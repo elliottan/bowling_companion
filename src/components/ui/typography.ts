@@ -13,4 +13,12 @@ export const GROUP_HEADING = "text-xs font-semibold uppercase tracking-wide text
  * session gave it a filter button.
  */
 export const TAB_TITLE = "text-xl font-bold text-ink";
+
+/**
+ * iOS's large title, for a tab whose header carries nothing else to keep in
+ * view (Settings): it scrolls away with the page, and the tab's name comes in
+ * small and centred in a frosted bar as it goes (`CompactTitleBar`, ADR-191).
+ * A tab whose controls stay pinned (History, Stats) keeps `TAB_TITLE`.
+ */
+export const LARGE_TITLE = "text-[34px] font-bold leading-tight tracking-tight text-ink";
 export const TAB_TITLE_ROW = "flex min-h-11 items-center";

@@ -345,10 +345,10 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
                   <button
                     type="button"
                     onClick={() => void addFromCatalog(pattern)}
-                    className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
+                    className="flex min-h-[52px] min-w-0 flex-1 items-center gap-3 px-4 py-2.5 text-left active:bg-surface-muted"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate font-semibold text-ink">{pattern.name}</span>
+                      <span className="block truncate text-[17px] leading-snug text-ink">{pattern.name}</span>
                       <span className="block truncate text-xs tabular-nums text-ink-secondary">
                         <PatternFeet pattern={pattern} />
                         {pattern.volumeMl.toFixed(2)} mL
@@ -491,10 +491,10 @@ function PatternRow({
         type="button"
         onClick={primary}
         aria-label={onOpenSheet ? `${pattern.name} details` : `Edit ${pattern.name}`}
-        className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted"
+        className="flex min-h-[52px] min-w-0 flex-1 items-center gap-3 px-4 py-2.5 text-left active:bg-surface-muted"
       >
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold text-ink">{pattern.name}</span>
+          <span className="block truncate text-[17px] leading-snug text-ink">{pattern.name}</span>
           <span className="block truncate text-xs tabular-nums text-ink-secondary">
             <PatternFeet pattern={pattern} />
             {summarize(pattern)}

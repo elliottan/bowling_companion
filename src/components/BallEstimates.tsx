@@ -62,7 +62,7 @@ export function BallEstimates({ report, balls, free }: { report: Estimates; ball
       }
     >
       <li
-        className="flex items-end gap-1 px-3 pb-1 pt-2 text-[9px] font-semibold uppercase leading-tight text-ink-tertiary"
+        className="flex items-end gap-1 px-4 pb-1 pt-2 text-[9px] font-semibold uppercase leading-tight text-ink-tertiary"
         aria-hidden="true"
       >
         <span className="min-w-0 flex-1" />
@@ -77,7 +77,7 @@ export function BallEstimates({ report, balls, free }: { report: Estimates; ball
       {/* Every ball together, as the row each ball is read against: its
           average is the real one, not an estimate. */}
       <li
-        className={`${LIST_DIVIDER} flex items-center gap-1 bg-surface-muted px-3 py-1.5 text-xs tabular-nums text-ink-secondary`}
+        className={`${LIST_DIVIDER} flex items-center gap-1 bg-surface-muted px-4 py-1.5 text-xs tabular-nums text-ink-secondary`}
         aria-label="All balls"
       >
         <span className="min-w-0 flex-1">
@@ -137,7 +137,7 @@ function BallEstimateRow({ estimate, ball }: { estimate: BallEstimate; ball: Bal
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-1 px-3 py-2 text-left text-xs tabular-nums active:bg-surface-muted"
+        className="flex w-full items-center gap-1 px-4 py-2 text-left text-xs tabular-nums active:bg-surface-muted"
       >
         <span className="flex min-w-0 flex-1 items-center gap-1.5">
           <span className="h-5 w-5 shrink-0">

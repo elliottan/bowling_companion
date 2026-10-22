@@ -26,7 +26,7 @@ import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { IconButton } from "../components/ui/IconButton";
 import { Measure } from "../components/ui/Measure";
-import { LIST_DIVIDER_INSET, ListGroup } from "../components/ui/ListGroup";
+import { LIST_DIVIDER_BASE, ListGroup } from "../components/ui/ListGroup";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { activeBalls } from "../lib/arsenal";
 import { deleteBall, getBalls, reorderBalls, setBallRetired } from "../services/ballRepository";
@@ -77,10 +77,17 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
     : "";
 
   return (
-    <li ref={setNodeRef} style={style}>
+    // One row of the bag's grouped list (ADR-191): the divider starts at the
+    // name, past the handle and the photo, and the row the finger holds lifts
+    // off the list as a card of its own.
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={`${LIST_DIVIDER_BASE} before:left-24 first:[&>div]:rounded-t-[26px] last:[&>div]:rounded-b-[26px]`}
+    >
       <div
-        className={`flex items-center gap-1 rounded-xl border bg-surface pr-2 shadow-sm ${
-          isDragging ? "border-accent-fill opacity-95 shadow-md" : "border-edge"
+        className={`flex items-center gap-1 bg-surface pr-2 ${
+          isDragging ? "rounded-[26px] opacity-95 shadow-md ring-1 ring-accent-fill" : ""
         }`}
       >
         <button
@@ -174,12 +181,12 @@ function RetiredBallRow({
 }) {
   const snap = ball.catalog_snapshot;
   return (
-    <li className={`flex items-center pr-2 ${LIST_DIVIDER_INSET}`}>
+    <li className={`flex items-center pr-2 ${LIST_DIVIDER_BASE} before:left-[4.25rem]`}>
       <button
         type="button"
         onClick={onEdit}
         aria-label={`Edit ${ball.name}`}
-        className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-left active:bg-surface-muted"
+        className="flex min-h-[52px] min-w-0 flex-1 items-center gap-3 px-4 py-2 text-left active:bg-surface-muted"
       >
         <div className="h-10 w-10 shrink-0">
           {snap ? (
@@ -190,7 +197,7 @@ function RetiredBallRow({
             </div>
           )}
         </div>
-        <span className="min-w-0 flex-1 truncate font-semibold text-ink">{ball.name}</span>
+        <span className="min-w-0 flex-1 truncate text-[17px] text-ink">{ball.name}</span>
       </button>
       <IconButton label={`Bring back ${ball.name}`} onClick={onRestore}>
         <RotateCcw size={16} aria-hidden="true" />
@@ -332,7 +339,7 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
                 onDragEnd={(e) => void handleDragEnd(e)}
               >
                 <SortableContext items={balls.map((b) => b.id!)} strategy={verticalListSortingStrategy}>
-                  <ul className="space-y-2">
+                  <ul className="rounded-[26px] bg-surface">
                     {balls.map((ball) => (
                       <SortableBallRow
                         key={ball.id}

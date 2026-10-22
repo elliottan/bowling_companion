@@ -23,7 +23,7 @@ function Banner({ access }: { access: Extract<ReturnType<typeof useProAccess>, {
         type="button"
         onClick={entry.start}
         aria-label="Headpin Pro. See what it adds"
-        className="mt-4 flex w-full items-center gap-3 rounded-xl border border-edge bg-surface p-3 text-left shadow-sm active:bg-surface-muted"
+        className="mt-4 flex w-full items-center gap-3 rounded-[22px] bg-surface px-4 py-3 text-left active:bg-surface-muted"
       >
         <ProMark size={40} />
         <span className="min-w-0 flex-1">

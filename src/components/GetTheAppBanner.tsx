@@ -49,7 +49,7 @@ function Banner({ access }: { access: LockedProAccess }) {
   return (
     <aside
       aria-label="Headpin for iPhone"
-      className="mb-3 flex items-center gap-2 rounded-xl border border-edge bg-surface py-1.5 pl-1 pr-2 shadow-sm"
+      className="mb-3 flex items-center gap-2 rounded-[22px] bg-surface py-1.5 pl-1.5 pr-2.5"
     >
       <IconButton
         compact

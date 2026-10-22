@@ -21,12 +21,16 @@ interface ListGroupProps {
  * unrelated objects that happen to be adjacent. One card per group says the
  * rows belong together, and the heading says what they have in common, which is
  * the whole job of a settings list (DESIGN-LANGUAGE §4).
+ *
+ * Drawn as iOS draws an inset grouped list (ADR-191): deep corners and no
+ * outline, the fill alone setting it off the page, with the heading in line
+ * with the rows' text rather than with the card's edge.
  */
 export function ListGroup({ heading, headingTrailing, children }: ListGroupProps) {
   return (
     <section>
       {(heading || headingTrailing) && (
-        <div className="mb-1.5 flex items-baseline justify-between gap-3 px-1">
+        <div className="mb-1.5 flex items-baseline justify-between gap-3 px-4">
           {typeof heading === "string" ? (
             <h2 className={GROUP_HEADING}>{heading}</h2>
           ) : (
@@ -35,7 +39,7 @@ export function ListGroup({ heading, headingTrailing, children }: ListGroupProps
           {headingTrailing}
         </div>
       )}
-      <ul className="overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
+      <ul className="overflow-hidden rounded-[26px] bg-surface">
         {children}
       </ul>
     </section>
@@ -45,7 +49,7 @@ export function ListGroup({ heading, headingTrailing, children }: ListGroupProps
 interface ListRowProps {
   /** A lucide icon, or the app's own ball icon, which matches that shape. */
   icon?: LucideIcon;
-  /** A 36px tile of its own in place of the icon's (the Pro mark). */
+  /** A 30px tile of its own in place of the icon's (the Pro mark). */
   leading?: ReactNode;
   label: string;
   /** One line under the label. Truncated, never wrapped to a third line (§4). */
@@ -64,13 +68,14 @@ interface ListRowProps {
  * The hairline between two rows, drawn by the row below as a pseudo-element so
  * it can start where the text starts. A full-bleed rule under a leading icon
  * cuts the icon column in half; an inset one reads as one list of rows.
- * `LIST_DIVIDER_INSET` is for rows with a 36px leading tile, `LIST_DIVIDER` for
- * rows without one. A row with a leading element of another size composes its
+ * It stops short of the trailing edge too, as iOS's does. `LIST_DIVIDER_INSET`
+ * is for rows with a 30px leading tile (16px in, 30, then a 14px gap),
+ * `LIST_DIVIDER` for rows without one. A row with a leading element of another size composes its
  * own inset onto `LIST_DIVIDER_BASE`.
  */
 export const LIST_DIVIDER_BASE =
-  "relative before:absolute before:right-0 before:top-0 before:h-px before:bg-edge first:before:hidden";
-export const LIST_DIVIDER = `${LIST_DIVIDER_BASE} before:left-3`;
+  "relative before:absolute before:right-4 before:top-0 before:h-px before:bg-edge first:before:hidden";
+export const LIST_DIVIDER = `${LIST_DIVIDER_BASE} before:left-4`;
 export const LIST_DIVIDER_INSET = `${LIST_DIVIDER_BASE} before:left-[3.75rem]`;
 
 /**
@@ -92,23 +97,26 @@ export function ListRow({
     <>
       {leading}
       {Icon && !leading && (
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
-          <Icon size={18} aria-hidden="true" />
+        <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] bg-accent-soft text-accent">
+          <Icon size={17} aria-hidden="true" />
         </span>
       )}
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-semibold text-ink">{label}</span>
+        <span className="block truncate text-[17px] leading-snug text-ink">{label}</span>
         {description && (
-          <span className="block truncate text-xs text-ink-secondary">{description}</span>
+          <span className="block truncate text-[13px] leading-snug text-ink-secondary">{description}</span>
         )}
       </span>
       {trailing ?? (
-        <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+        <ChevronRight size={17} strokeWidth={2.25} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
       )}
     </>
   );
 
-  const className = "flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-surface-muted";
+  // An iOS row: 52pt at least, 16 in from the card's edge, the label in the
+  // body size and weight rather than bold, which is for headings (ADR-191).
+  const className =
+    "flex min-h-[52px] w-full items-center gap-3.5 px-4 py-2.5 text-left active:bg-surface-muted";
 
   return (
     <li className={Icon || leading ? LIST_DIVIDER_INSET : LIST_DIVIDER}>

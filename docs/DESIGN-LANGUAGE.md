@@ -247,6 +247,12 @@ what they have in common. The divider is drawn by the row below as an inset
 pseudo-element (`LIST_DIVIDER*`), starting where the text starts, because a
 full-bleed rule under a leading icon cuts the icon column in half.
 
+It is drawn as iOS draws an inset grouped list (ADR-191): 26px corners and no
+outline, rows at least 52pt tall and 16pt in, the label at 17px in the body
+weight, a 30px icon tile, the divider stopping 16pt short of the trailing edge,
+and the heading in line with the rows' text. A square button (Home's tiles)
+centres its icon, name and count.
+
 `ListRow` is the row: leading icon tile, label, one truncated line of secondary
 text, and a trailing chevron. A row that *leaves the app* swaps the chevron for
 an outward arrow, since the chevron means "deeper into this app" everywhere
@@ -313,6 +319,10 @@ another sits with it (pocket, carry and strike as one chain) rather than in a
 tile of its own (ADR-126).
 
 ## 4c. Settings
+
+Settings has iOS's large title: it scrolls away with the page, and the name
+comes in small and centred in a frosted bar as it goes (`CompactTitleBar`,
+ADR-191).
 
 Ordered by what a bowler can lose or must not miss, not by how often it is
 opened. **Backup & restore leads, alone and louder than a row**, because the

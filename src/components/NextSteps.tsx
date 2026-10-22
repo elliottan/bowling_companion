@@ -91,14 +91,14 @@ export function NextSteps({
 
   return (
     <div className="mt-6">
-      <h2 className={`${GROUP_HEADING} mb-2`}>Next steps</h2>
+      <h2 className={`${GROUP_HEADING} mb-2 px-4`}>Next steps</h2>
       <ul className="flex flex-col gap-2">
         {steps.map((step) => {
           const copy = COPY[step];
           return (
             <li
               key={step}
-              className="flex gap-3 rounded-xl border border-edge bg-surface p-3 shadow-sm"
+              className="flex gap-3 rounded-[22px] bg-surface px-4 py-3"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
                 <copy.icon size={18} aria-hidden="true" />
