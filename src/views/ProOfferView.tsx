@@ -45,7 +45,7 @@ const FEATURES: Array<{ title: string; why: string; sample: ReactNode }> = [
   },
   {
     title: "Try your layouts",
-    why: "Change the angles and the pin buffer, see what the ball will do before you drill it, and set each ball's layout in your arsenal.",
+    why: "Change the angles and the pin buffer, see what the ball will do before you drill it, and see each ball in your arsenal drawn with its own layout.",
     sample: <LayoutSample />
   },
   {

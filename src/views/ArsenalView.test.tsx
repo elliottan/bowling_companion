@@ -5,6 +5,7 @@ import { db } from "../db/bowlingDb";
 import { addBall, getBalls } from "../services/ballRepository";
 import { setLayoutSystem, setPap } from "../services/bowlingRepository";
 import type { BallLayoutSpec } from "../types/bowling";
+import { ProAccessContext } from "../lib/useProAccess";
 
 const SPEC: BallLayoutSpec = {
   drillingAngle: 50,
@@ -84,6 +85,20 @@ describe("ArsenalView", () => {
     expect(seed.layout).toEqual({ drillingAngle: 50, pinToPap: 4.5, valAngle: 40 });
     expect(seed.ball.pinToCore).toBe(6.75);
     expect(seed.ballName).toBe("Phaze II");
+  });
+
+  it("without Pro, keeps View layout and says Pro draws it, rather than opening the lab (ADR-193)", async () => {
+    await addBall({ name: "Phaze II", is_spare_ball: false, layout_spec: SPEC });
+    const onViewLayout = vi.fn();
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
+        <ArsenalView onBack={vi.fn()} onViewLayout={onViewLayout} />
+      </ProAccessContext.Provider>
+    );
+    fireEvent.click(await screen.findByRole("button", { name: /View the layout on Phaze II/ }));
+    expect(await screen.findByText("Get Pro to visualize your ball layout")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Get the app" })).toBeInTheDocument();
+    expect(onViewLayout).not.toHaveBeenCalled();
   });
 
   it("offers nothing to view on a ball with no layout", async () => {

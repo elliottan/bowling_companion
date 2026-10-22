@@ -39,6 +39,9 @@ import {
 import { DEFAULT_PAP, formatLayoutSpec, layoutSystemFor } from "../lib/ballLayout";
 import { layoutSeedFromBall, type LayoutSeed } from "../lib/layoutShare";
 import { useHandedness } from "../lib/handednessContext";
+import type { LockedProAccess } from "../lib/pro";
+import { useProAccess } from "../lib/useProAccess";
+import { useProEntry } from "../components/ui/useProAction";
 import type { Ball, LayoutSystem } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
 
@@ -243,7 +246,16 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
   const grip = useLiveQuery(getGripStyle, [], undefined);
   const system = useLiveQuery(getLayoutSystem, [], undefined) ?? "dual";
 
+  // Writing a layout on a ball is free; seeing it drawn is Pro (ADR-193). The
+  // button stays where it is either way, and without Pro a tap says so.
+  const access = useProAccess();
+  const [askPro, setAskPro] = useState(false);
+
   const viewLayout = (ball: Ball) => {
+    if (access.locked) {
+      setAskPro(true);
+      return;
+    }
     const seed = layoutSeedFromBall(
       ball,
       { pap: pap ?? DEFAULT_PAP, hand: storedHand ?? appHand, grip: grip ?? "1h" },
@@ -407,6 +419,43 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
         onConfirm={() => pendingDelete && void handleDelete(pendingDelete)}
         onCancel={() => setPendingDelete(null)}
       />
+
+      {access.locked && <LayoutProPrompt access={access} open={askPro} onClose={() => setAskPro(false)} />}
+    </>
+  );
+}
+
+/** What View layout says without Pro: the layout is on the ball, and Pro is
+ *  what draws it. Mounted for as long as Pro is locked, not only while it is
+ *  open, so the web's steps for moving games outlive the prompt that started
+ *  them. */
+function LayoutProPrompt({
+  access,
+  open,
+  onClose
+}: {
+  access: LockedProAccess;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const entry = useProEntry(access);
+  return (
+    <>
+      <ConfirmDialog
+        open={open}
+        title="Get Pro to visualize your ball layout"
+        message="Your layout is saved on the ball. Headpin Pro draws it on the ball and shows what it will do on the lane."
+        confirmLabel={entry.label}
+        confirmVariant="primary"
+        confirmDisabled={entry.unavailable}
+        cancelLabel="Not now"
+        onConfirm={() => {
+          onClose();
+          entry.start();
+        }}
+        onCancel={onClose}
+      />
+      {entry.dialog}
     </>
   );
 }

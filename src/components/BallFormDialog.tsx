@@ -29,8 +29,6 @@ import { FIELD } from "./ui/field";
 import { FormSheet } from "./ui/FormSheet";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
 import { IconButton } from "./ui/IconButton";
-import { ProVeil } from "./ui/ProLock";
-import { useProAccess } from "../lib/useProAccess";
 
 /** Heaviest first: most bowlers throw 14 to 16, so the list opens near the
  *  answer, and it runs down to the 8 lb balls juniors and seniors throw. */
@@ -73,7 +71,6 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
   // this screen could hold numbers still has to show what was typed on it
   // (ADR-095). Entering a layout is what retires it.
   const [layoutSpec, setLayoutSpec] = useState<BallLayoutSpec | null>(ball?.layout_spec ?? null);
-  const { locked: proLocked } = useProAccess();
   const legacyLayout = ball?.layout_spec ? undefined : ball?.layout;
   const [catalogRef, setCatalogRef] = useState<CatalogBall | null>(null);
   const [weightSpecs, setWeightSpecs] = useState<WeightSpecs | null>(null);
@@ -131,9 +128,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
     setIsSaving(true);
     setError("");
     try {
-      // Without Pro the ball keeps the layout it had: setting one is Pro
-      // (ADR-172), and the form is not the place that decides it (ADR-190).
-      const savedSpec = proLocked ? ball?.layout_spec : layoutSpec ?? undefined;
+      const savedSpec = layoutSpec ?? undefined;
       const payload: Omit<Ball, "id"> = {
         name: trimmed,
         // Set on the spare lines page, not here: the form carries it through.
@@ -532,10 +527,13 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
  * A layout is optional and stays optional. A ball with none shows one control
  * that offers one, rather than three sliders parked on a benchmark layout
  * nobody drilled, which would be the form inventing a fact about the ball.
+ *
+ * Free, as recording (ADR-193): seeing the layout drawn on the ball is the Pro
+ * part, and that is the arsenal's View layout.
  */
 function LayoutField({
   spec,
-  onChange: change,
+  onChange,
   preference,
   legacyText,
   defaultSymmetric
@@ -560,16 +558,6 @@ function LayoutField({
   // notation of its own follows the preference, and keeps following it: that is
   // what makes the preference worth having.
   const system = spec?.system ?? preference;
-  // Setting a ball's layout is Pro (ADR-172): a layout on a ball is drawn by the
-  // layout lab, so a free one was the lab's sliders by another door. A layout
-  // already on a ball still reads, on the read sheet and in the lab.
-  const { locked } = useProAccess();
-  // The controls under the veil are inert, but they are still there: with the
-  // veil taken off in a browser's tools they would move, so a change without
-  // Pro goes nowhere (ADR-190).
-  const onChange = (next: BallLayoutSpec | null) => {
-    if (!locked) change(next);
-  };
 
   const setLayout = (next: DualAngleLayout) => {
     if (!spec) return;
@@ -590,7 +578,7 @@ function LayoutField({
     <section className="space-y-2">
       <div className="flex items-center justify-between gap-3">
         <h2 className={GROUP_HEADING}>Layout</h2>
-        {spec && !locked && (
+        {spec && (
           <button
             type="button"
             onClick={() => onChange(null)}
@@ -611,7 +599,6 @@ function LayoutField({
         </p>
       )}
 
-      <ProVeil what="Setting this ball's layout" label="Set and visualize your ball layout with Pro">
       {spec == null || ball == null || layout == null ? (
         <button
           type="button"
@@ -662,7 +649,6 @@ function LayoutField({
 
         </>
       )}
-      </ProVeil>
     </section>
   );
 }

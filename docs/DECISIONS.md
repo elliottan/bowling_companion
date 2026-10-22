@@ -8582,3 +8582,35 @@ stops the edit anybody would try, which is what it is for. Links shared before
 this carry no code and now open on the defaults; the iPhone app is not out yet,
 so they are the web's, and few. The ball the free tier shows is still the
 best by strike rate within the screen's filters (ADR-167).
+
+---
+
+## ADR-193: A ball's layout is free to set, and View layout is Pro
+
+**Status.** Accepted, 2026-10-22, by the owner's decision. Supersedes ADR-172.
+
+**Context.** ADR-172 put the ball form's whole Layout section under Pro, because
+the arsenal's View layout opened a ball's layout in the lab, drawn and read
+out, which made a free layout field the lab's sliders by another door. But
+writing down how a ball is drilled is recording, and recording is free
+(PRO-LAUNCH rule 1): a bowler without Pro could not even note the numbers their
+pro shop gave them. The thing worth paying for is seeing them drawn.
+
+**Decision.**
+
+- **The ball form's layout is free.** Adding, changing and removing it, on the
+  same sliders, with no veil, and it saves for everyone.
+- **View layout is Pro.** The button stays on every arsenal row whose ball has
+  a layout, so a bowler sees it is there. Without Pro a tap opens no lab: it
+  says "Get Pro to visualize your ball layout" in a dialog whose one action is
+  the way to Pro (`useProEntry`: the Pro page in the app, the steps for moving
+  games and the App Store on the web), and "Not now" closes it.
+- **Nothing else moves.** The arsenal row still writes the numbers out, the read
+  sheet still reads them, and the lab opened from Home or a shared link is still
+  free to read (ADR-170).
+
+**Consequences.** The dialog is the one Pro lock that is a prompt rather than a
+veil on the thing itself (ADR-163): there is no drawing on the arsenal row to
+blur, only a button that goes somewhere. A bowler without Pro can still type a
+ball's numbers into the lab's link by hand, but a link needs its check code
+(ADR-192), so that is no easier than before.

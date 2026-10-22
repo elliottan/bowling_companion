@@ -9,8 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.61.1: Bars that stay solid (2026-10-22)
+## 0.62.0: Set any ball's layout, and bars that stay solid (2026-10-22)
 
+- **Every bowler can set a ball's layout.** The Layout section of a ball's
+  form is open without Pro: add, change or remove the numbers, and they save.
+  Seeing the layout drawn is the Pro part: View layout stays on the arsenal
+  row, and without Pro it says Pro draws it (ADR-193).
 - **The bar at the bottom of the Headpin Pro page sits on the bottom edge.** On
   the iPhone it stopped a little above it, and the page scrolled through the
   gap underneath.
