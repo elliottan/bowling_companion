@@ -8358,3 +8358,34 @@ handing their room back on a scroll down; on a phone that is the title row and,
 with filters on, a row of chips. The frost costs a backdrop blur where the list
 moves, which ADR-171 avoided under the tab bar for WebKit's frame budget; the
 headers' is one layer, not stacked over an animation.
+
+## ADR-186: Sheets float as iOS 26's do, with filled fields
+
+**Status.** Accepted, 2026-10-22, at the owner's request, against the Claude
+app's own sheet as the reference for native.
+
+**Context.** Every sheet was a full-width slab sitting on the screen's bottom
+edge, rounded only at the top with a small radius, its round controls tight to
+the edge, and its fields outlined boxes under bold labels. An iOS 26 sheet
+floats: inset from the sides and the bottom, rounded at every corner to follow
+the phone's own, its controls set in from the curve, and the fields inside it
+filled rows under small grey captions. Beside a native app the difference read
+at a glance.
+
+**Decision.**
+
+- **`FormSheet` floats on a phone.** 8px in from each side and from the foot,
+  38px corners all round (the screen's corner less the inset), the bar's
+  controls 14px in, and the body's padding allowing for the home indicator's
+  inset less the 8px the sheet already stands off. On a wider screen it is the
+  centred card it was. `SessionLanePanel` and the lane view's Lane options
+  float the same way.
+- **Fields are filled.** `FIELD` is a rounded box in a 6% wash of the ink, no
+  border until focus, 15px text. `FIELD_LABEL` is a 13px caption in the
+  secondary ink, set in a little.
+- **The dense score-panel fields are unchanged.** They sit two to a row beside
+  the pin deck, where an outline is what tells one box from the next.
+
+**Consequence.** A sheet is 16px narrower on a phone. Every form in the app
+picks up the filled fields through `field.ts`, including the few outside a
+sheet, which read as the same control on the page.

@@ -185,7 +185,9 @@ export function SessionLanePanel({
         ref={overlayRef}
         // will-change: the panel is one composited layer for the whole slide,
         // header included, rather than being repainted on every frame of it.
-        className={`flex h-full w-full max-w-lg flex-col rounded-t-2xl border-t border-edge bg-surface shadow-xl will-change-transform ${
+        // Inset from the sides and the foot, every corner rounded, as an iOS
+        // 26 sheet floats (ADR-186); the clip keeps the panes inside the curve.
+        className={`mb-2 flex h-[calc(100%-0.5rem)] w-[calc(100%-1rem)] max-w-lg flex-col overflow-hidden rounded-[38px] bg-surface shadow-2xl ring-1 ring-edge/60 will-change-transform ${
           exiting ? "" : "animate-slide-up"
         }`}
         style={

@@ -18,6 +18,10 @@ had all shipped.
   and the series score sit in the session's header, so the scorecard starts
   higher. The date is short ("Oct 19") and the game count is gone; the game
   chips already say it.
+- **Sheets float like the iPhone's.** Every panel that rises from the bottom
+  now stands a little off the screen's edges with deep rounded corners, as iOS
+  26 draws its sheets, and its fields are soft filled boxes under small grey
+  labels rather than outlined ones (ADR-186).
 - **Buttons and menus behave like the iPhone's.** Press a button, slide your
   finger off it and let go, and nothing happens, as on any iPhone button.
   Menus (More, layout Presets) are frosted with rounded corners and full-size

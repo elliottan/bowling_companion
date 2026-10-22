@@ -112,7 +112,10 @@ export function FormSheet({
       <div
         ref={overlayRef}
         style={panelStyle}
-        className={`relative flex max-h-[92%] w-full max-w-lg flex-col rounded-t-2xl bg-surface shadow-xl sm:max-h-[85%] sm:rounded-2xl ${
+        // Floats as an iOS 26 sheet does (ADR-186): inset from the sides and the
+        // bottom, with every corner rounded to follow the phone's own, rather
+        // than a slab with square feet sitting on the screen's edge.
+        className={`relative mb-2 flex max-h-[92%] w-[calc(100%-1rem)] max-w-lg flex-col rounded-[38px] bg-surface shadow-2xl sm:mb-0 sm:max-h-[85%] sm:w-full sm:rounded-2xl ${
           size === "tall" ? "h-[92%] sm:h-[85%]" : ""
         } ${exiting ? "" : "animate-slide-up"}`}
       >
@@ -123,7 +126,7 @@ export function FormSheet({
             and published as `--sheet-bar-h` for a sticky row in the body to
             stop beneath the bar. */}
         <div ref={barRef} className="absolute inset-x-0 top-0 z-20 [--edge-color:var(--color-surface)]">
-          <div aria-hidden="true" className="scroll-edge absolute inset-x-0 -bottom-4 top-0 rounded-t-2xl" />
+          <div aria-hidden="true" className="scroll-edge absolute inset-x-0 -bottom-4 top-0 rounded-t-[38px] sm:rounded-t-2xl" />
           {/* The pill and the title bar are one grab area: the pill alone was a
               sixteen-pixel strip, easy to miss with a thumb. The controls in the
               bar still take their own taps (useSheetDismiss). */}
@@ -135,7 +138,9 @@ export function FormSheet({
           </div>
 
           <div
-            className="relative flex shrink-0 touch-none items-center gap-2 px-2 py-2 sm:touch-auto"
+            // In from the edge far enough that the round controls sit clear of
+            // the sheet's deep corners, as the system's do.
+            className="relative flex shrink-0 touch-none items-center gap-2 px-3.5 py-2 sm:touch-auto"
             {...dragHandlers}
           >
             {dismissAs === "close" ? (
@@ -181,7 +186,9 @@ export function FormSheet({
         </div>
 
         <div
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(var(--sheet-bar-h)+1rem)]"
+          // The sheet stops 8px above the screen's foot, so the home indicator's
+          // inset is that much smaller inside it.
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(1.25rem,calc(env(safe-area-inset-bottom)+0.25rem))] pt-[calc(var(--sheet-bar-h)+1rem)]"
           style={{ "--sheet-bar-h": `${barHeight}px` } as CSSProperties}
         >
           {children}

@@ -67,7 +67,11 @@ keyboard, not the size of the job:
   trailing in its own bar. Everything you enter data into: the session form, the
   ball editor, a spare line, the lane pair, adding a catalog ball. Bottom rather
   than centered because that is the edge the keyboard arrives at; a centered
-  dialog holding a focused field gets shoved half off-screen on iOS. The one
+  dialog holding a focused field gets shoved half off-screen on iOS. On a
+  phone it floats as an iOS 26 sheet does (ADR-186): 8px in from the sides and
+  the foot, every corner 38px so it follows the phone's own, its round
+  controls set in clear of the curve. The session sheet and the lane view's
+  options float the same way. The one
   exception to the leading close is a sheet that has already applied everything
   as you went, the filter sheet being the only one: there is nothing to cancel,
   so an X would be a lie about what leaving does. Those carry no leading control
@@ -434,6 +438,12 @@ spelled out in the form. Seven forms had spelled it out and five of those copies
 had lost `bg-surface`, so those inputs fell back to the browser's own control
 color: a warm gray block in a blue-slate app. That is §3's hardcoded-`slate-100`
 bug one level down, and one shared string is what stops it recurring.
+
+A field is filled, not outlined (ADR-186): a rounded box in a faint wash of the
+ink, no border until it is focused, as an iOS grouped field is. Its label is a
+small caption in the secondary ink, a little in from the box's edge, as iOS
+captions a group. The dense score panels keep their outlined boxes; they sit
+two to a row beside a pin deck, where an edge is what tells one from the next.
 
 A field label is sentence case and sits above its field. It is *not* a
 `GROUP_HEADING`: the small uppercase style names a group of things, and reusing

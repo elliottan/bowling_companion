@@ -907,7 +907,8 @@ function OptionsSheet({
     <div className="absolute inset-0 z-20 flex flex-col justify-end bg-black/50" onClick={onClose}>
       <div
         ref={sheetRef}
-        className="rounded-t-2xl bg-slate-800 px-5 pb-6 pt-3 text-white"
+        // Floats inset with deep corners, as every sheet does (ADR-186).
+        className="mx-2 mb-2 rounded-[38px] bg-slate-800 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-3 text-white"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-white/25" />
