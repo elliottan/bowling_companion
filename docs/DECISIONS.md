@@ -8933,3 +8933,19 @@ least, and Retire acted on the tap.
 (`AnchoredMenu`, its anchor helper now shared). Retiring asks first ("Retire
 Phaze II?"), with what it does and that the ball can come back; delete asks as
 it did. Bringing a retired ball back asks nothing, since it loses nothing.
+
+---
+
+## ADR-207: Under the session sheet there is no new game, and the stats controls close it
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** With the session sheet up, the chip row above it is the sheet's
+(ADR-183): a tap on a game chip scopes the sheet. The new game button stayed
+in that row, so a tap meant for a chip could start a game under the sheet.
+And the bar's stats button and score only ever opened the sheet; putting it
+away took the drag, Escape or the session's name.
+
+**Decision.** The new game button is not drawn while the sheet is up, and comes
+back when it goes. The bar's stats button and its score open the sheet and,
+with it up, close it, as the session's name already did.

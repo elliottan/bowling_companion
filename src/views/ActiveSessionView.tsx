@@ -608,12 +608,16 @@ export function ActiveSessionView({
       >
         <SessionHeaderText session={sessionDetails.session} heading={mode === "tab" ? "h2" : "h1"} />
       </div>
+      {/* Both of the bar's ways into the stats close the sheet again when
+          it is up, as the identity does: the control that opened it is where
+          the thumb goes to put it away. */}
       <IconButton
         label="Session stats"
         title="Session stats"
         variant="round"
         className="shrink-0"
-        onClick={() => openSheet("stats")}
+        aria-expanded={showSheet}
+        onClick={toggleStats}
       >
         <BarChart3 size={18} aria-hidden="true" />
       </IconButton>
@@ -627,8 +631,9 @@ export function ActiveSessionView({
       </IconButton>
       <button
         type="button"
-        onClick={() => openSheet("stats")}
-        aria-label="Open session stats"
+        onClick={toggleStats}
+        aria-expanded={showSheet}
+        aria-label={showSheet ? "Close session stats" : "Open session stats"}
         className="ml-1 shrink-0 rounded-md text-right active:bg-surface-muted"
       >
         <span className="block text-2xl font-extrabold leading-none text-accent">
@@ -640,6 +645,11 @@ export function ActiveSessionView({
       </button>
     </>
   );
+
+  function toggleStats() {
+    if (showSheet) setShowSheet(false);
+    else openSheet("stats");
+  }
 
   function tapIdentity() {
     // The editor opens over nothing: with the sheet up the tap only closes it.
@@ -707,7 +717,10 @@ export function ActiveSessionView({
               expanded vertically the same way Chip does it. It also wears
               Chip's own unselected skin, because a `bg-ink` slab was the only
               near-black object in light mode and out-shouted the selected
-              game chip beside it. */}
+              game chip beside it. Not there while the sheet is up: with it
+              up the chips are the sheet's, and a new game started under it
+              was a tap meant for a chip (ADR-207). */}
+          {!showSheet && (
           <button
             type="button"
             onClick={() => void handleAddGame()}
@@ -718,6 +731,7 @@ export function ActiveSessionView({
           >
             <Plus size={16} aria-hidden="true" />
           </button>
+          )}
         </div>
 
 

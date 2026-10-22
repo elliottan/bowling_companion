@@ -55,6 +55,8 @@ had all shipped.
   form is open without Pro: add, change or remove the numbers, and they save.
   Seeing the layout drawn is the Pro part: View layout stays on the arsenal
   row, and without Pro it says Pro draws it (ADR-193).
+- **With the session sheet up, the new game button steps aside,** and the
+  stats button or the score in the corner puts the sheet away again (ADR-207).
 - **The session sheet shows the ball on every shot of the 10th,** the second
   and third fresh racks included, not only the first.
 - **Retiring and deleting a ball sit under a More button** beside the pencil on

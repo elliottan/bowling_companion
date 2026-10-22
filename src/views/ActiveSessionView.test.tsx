@@ -97,6 +97,28 @@ describe("ActiveSessionView", () => {
     main.remove();
   });
 
+  it("hides the new game button under the sheet, and the stats button closes the sheet again (ADR-207)", async () => {
+    const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
+    await addGameToSession(sessionId, { game_number: 1 });
+    renderSession(sessionId);
+
+    expect(await screen.findByRole("button", { name: "New game" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Session stats" }));
+    await screen.findByRole("dialog", { name: "Session sheet" });
+    expect(screen.queryByRole("button", { name: "New game" })).not.toBeInTheDocument();
+
+    // The same button puts it away, and the new game button comes back.
+    fireEvent.click(screen.getByRole("button", { name: "Session stats" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Session sheet" })).not.toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "New game" })).toBeInTheDocument();
+
+    // So does the score in the corner.
+    fireEvent.click(screen.getByRole("button", { name: "Open session stats" }));
+    await screen.findByRole("dialog", { name: "Session sheet" });
+    fireEvent.click(screen.getByRole("button", { name: "Close session stats" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Session sheet" })).not.toBeInTheDocument());
+  });
+
   it("closes the sheet, and opens no editor, from the identity while the sheet is up", async () => {
     const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
     await addGameToSession(sessionId, { game_number: 1 });
