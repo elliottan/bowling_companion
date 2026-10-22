@@ -8903,3 +8903,18 @@ band itself stays in `ballLayout` (`DO_NOT_USE_BAND`, `inDoNotUseBand`), so it
 can come back as a gentler note, and the layout presets still keep clear of
 it. `readMotion` no longer takes the grip, which only that warning read; the
 lab's other warnings stand.
+
+---
+
+## ADR-205: The layout lab's reset needs no confirming
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** "Reset to your saved settings", under the lab's More, asked first
+whether to put the bowler's own hand, grip and PAP back, because someone
+reading a shared layout would be swapping the sender's axis for theirs. But
+nothing on the lab is saved, the layout's numbers stay as they are, and the
+fields the reset changes are right above the button, so the question guarded
+nothing a second look could not undo.
+
+**Decision.** The button resets at once, with no dialog.

@@ -587,40 +587,21 @@ describe("LayoutLabView", () => {
     expect(screen.getByRole("dialog", { name: "Share image" })).toBeInTheDocument();
   });
 
-  it("asks before the reset, and names the settings it is resetting to", async () => {
+  it("resets to the saved settings at once, with no question first (ADR-205)", async () => {
     await setPap({ over: 3, up: 0 });
     window.history.replaceState({}, "", `/?${withCheck("da=45&ptp=4.5&val=45&over=6&up=0&hand=left")}`);
     renderLab({ you: true });
     // Somebody else's axis, from their link.
     expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("6");
+    const before = (screen.getByRole("button", { name: /Dual angle/ }).textContent ?? "").trim();
 
     fireEvent.click(screen.getByRole("button", { name: /reset to your saved settings/i }));
-    // It says what it is resetting *to*, because the person reaching for this
-    // is usually reading a shared layout and is about to swap the sender's
-    // measurements for their own rather than blank both.
-    const dialog = screen
-      .getByText(/Use your saved settings\?/i)
-      .closest('[role="dialog"]') as HTMLElement;
-    expect(dialog.textContent).toMatch(/hand, grip and PAP from your preferences/i);
-    expect(dialog.textContent).toMatch(/layout numbers stay as they are/i);
-
-    fireEvent.click(screen.getByRole("button", { name: "Use mine" }));
+    expect(screen.queryByText(/Use your saved settings\?/i)).not.toBeInTheDocument();
     await waitFor(() =>
       expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("3")
     );
-  });
-
-  it("leaves everything alone when the reset is cancelled", async () => {
-    await setPap({ over: 3, up: 0 });
-    renderLab({ you: true });
-    await waitFor(() =>
-      expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("3")
-    );
-    fireEvent.change(screen.getByRole("combobox", { name: "Over" }), { target: { value: "6" } });
-    fireEvent.click(screen.getByRole("button", { name: /reset to your saved settings/i }));
-    fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
-    await waitFor(() => expect(screen.queryByText(/Use your saved settings/i)).not.toBeInTheDocument());
-    expect((screen.getByLabelText("Over") as HTMLSelectElement).value).toBe("6");
+    // The layout numbers stay as they are.
+    expect((screen.getByRole("button", { name: /Dual angle/ }).textContent ?? "").trim()).toBe(before);
   });
 
   it("opens one-handed when nothing has been chosen", () => {

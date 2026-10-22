@@ -169,7 +169,6 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
   const [turnedTo, setTurnedTo] = useState<Orientation | null>(null);
   const [presetAt, setPresetAt] = useState<Anchor | null>(null);
   const [pendingPreset, setPendingPreset] = useState<LayoutPreset | null>(null);
-  const [resetting, setResetting] = useState(false);
   // The sheet behind More: the PAP, the hand and the grip.
   const [youOpen, setYouOpen] = useState(false);
   const [card, setCard] = useState<ShareCardData | null>(null);
@@ -366,7 +365,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
          own Escape and the screen's both fired, so dismissing the menu also
          popped the screen out from under it. */
       active={
-        pendingPreset == null && !resetting && presetAt == null && card == null && !youOpen
+        pendingPreset == null && presetAt == null && card == null && !youOpen
       }
       /* Two trailing actions, the one place the app has two (DESIGN-LANGUAGE
          section 1). Sharing the layout is what this screen is for once the
@@ -507,7 +506,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
       )}
 
       {youOpen && (
-        <FormSheet title="Your PAP and hand" onClose={() => setYouOpen(false)} dismissAs="done" active={!resetting}>
+        <FormSheet title="Your PAP and hand" onClose={() => setYouOpen(false)} dismissAs="done">
           {/* 2. Who is bowling. The PAP leads because it is the frame every other
               number is measured against: the VAL angle is measured at it and the
               pin-to-PAP distance is measured to it, so a layout read against the
@@ -569,8 +568,19 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             </div>
             {/* Back to the bowler's own saved numbers. The PAP, the hand and the
                 grip are what a shared link overrides, so the way out of somebody
-                else's measurements sits with them. */}
-            <Button variant="secondary" className="w-full" onClick={() => setResetting(true)}>
+                else's measurements sits with them. At once, with no question
+                first: nothing is saved here, so nothing is lost, and the
+                fields above show the result as it lands (ADR-205). */}
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => {
+                setPapOverride(null);
+                setHandOverride(null);
+                setGripOverride(null);
+                setTurnedTo(null);
+              }}
+            >
               <RotateCcw size={16} aria-hidden="true" />
               Reset to your saved settings
             </Button>
@@ -591,27 +601,6 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
         confirmLabel="Replace"
         onConfirm={() => pendingPreset && applyPreset(pendingPreset)}
         onCancel={() => setPendingPreset(null)}
-      />
-
-      {/* The reset asks first, and names what it is resetting *to*. It is not
-          a reset to the app's defaults, it is a reset to the bowler's own saved
-          hand, grip and PAP, and those two are only the same thing until the
-          bowler has measured anything. Someone reading a shared layout is
-          exactly who reaches for this, and they should know it is about to swap
-          the sender's axis for their own rather than blank both. */}
-      <ConfirmDialog
-        open={resetting}
-        title="Use your saved settings?"
-        message="This puts the hand, grip and PAP from your preferences back on this screen. The layout numbers stay as they are."
-        confirmLabel="Use mine"
-        onConfirm={() => {
-          setPapOverride(null);
-          setHandOverride(null);
-          setGripOverride(null);
-          setTurnedTo(null);
-          setResetting(false);
-        }}
-        onCancel={() => setResetting(false)}
       />
 
       <ShareCardDialog

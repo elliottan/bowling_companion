@@ -41,6 +41,8 @@ had all shipped.
 - **The layout lab no longer warns about the thumb-hole band.** The shaded
   stretch on the pin-to-PAP slider and the message under the ball are gone
   (ADR-204).
+- **Reset to your saved settings, in the layout lab, resets at once** rather
+  than asking first (ADR-205).
 - **The layout lab is shorter.** The ball and what it will do sit side by side
   at the top, and without Pro the sliders show as they are under a lock
   (ADR-203).
