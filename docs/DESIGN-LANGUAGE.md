@@ -146,9 +146,11 @@ vertically only, and `compact` grows upward only, because it sits in a heading
 row with content directly beneath it.
 
 `SegmentedControl` (`src/components/ui/SegmentedControl.tsx`) is one track with
-N segments and exactly one selected: a theme, a handedness. It is drawn as
-UIKit draws its own, a grey track with the chosen segment raised on it in the
-surface color, and ticks in the store apps as the choice moves (ADR-168). A row of `Chip`s is
+N segments and exactly one selected: a theme, a handedness. It is a grey track
+with the chosen segment filled in the accent, as a primary button is, and ticks
+in the store apps as the choice moves (ADR-168). It was drawn as UIKit draws
+its own, the chosen segment raised in the surface color, and in dark mode that
+was grey on grey: which hand was set could not be told at a glance (ADR-182). A row of `Chip`s is
 not that, and reads as one because chips sit apart with gaps between them and
 any number of them can be on. The theme picker was three chips before, and the
 shared track is what says "pick one" before a single label is read.

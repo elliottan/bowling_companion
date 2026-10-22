@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.55.1: You can see which option is picked (2026-10-22)
+
+- **A picked option is filled in the accent.** In every pick-one track (left
+  or right hand, one or two hands, Asym or Sym, the theme) the chosen option
+  is now filled in the app's accent color, as a main button is, instead of a
+  slightly lighter grey that was hard to see in dark mode (ADR-182).
+
 ## 0.55.0: The web points at the iPhone app, and Pro shows what you'd get (2026-10-21)
 
 - **headpin.app shows your stats.** The "Know the pattern before you bowl it"

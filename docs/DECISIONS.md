@@ -8226,3 +8226,30 @@ Connect and a crawler need a public URL.
   app's history (ADR-041), the email address opens Mail, and the two outside
   policies leave as every outbound link does: a new tab on the web, the in-app
   browser in the store apps.
+
+## ADR-182: A segmented control's answer is filled in the accent
+
+**Status.** Accepted, 2026-10-22, at the owner's request. Amends
+DESIGN-LANGUAGE §2 on how `SegmentedControl` draws its selected segment.
+
+**Context.** The segmented control was drawn as UIKit draws its own: a grey
+track with the chosen segment raised in the surface color. In dark mode that
+segment is `surface-muted` on a faint ink track, two greys a few shades apart.
+In the Layout Lab's "Your PAP and hand" sheet, L/R and 1H/2H sat side by side
+and the owner could not tell which hand or which grip was set. The note that an
+accent fill "read as a pressed button" weighed less than a choice nobody can
+read.
+
+**Decision.**
+
+- The selected segment is filled with `accent-fill` and labelled in
+  `accent-on-fill`, the same pair a primary `Button` uses, so the answer reads
+  in both themes at a glance.
+- The track, sizes, the 44pt hit region and the store apps' selection tick are
+  unchanged. Unselected segments stay ink on the grey track.
+- It is the primitive that changes, so every pick-one track in the app (theme,
+  handedness, core, the Stats toggles) draws its answer the same way.
+
+**Consequence.** A track now carries the accent where it used to be neutral,
+so a screen with several stacked tracks shows more of it. That is the point:
+each one is an answer the bowler set.
