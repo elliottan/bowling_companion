@@ -164,12 +164,9 @@ export function LayoutEditor({
             unit="in"
             onChange={(pinToPap) => setVls({ pinToPap })}
           />
-          {vls.psaToPap == null ? (
-            <p className="rounded-lg bg-surface-muted p-2.5 text-xs text-ink-secondary">
-              No moulded PSA on a symmetric ball, so VLS is two numbers here. The pro shop names one
-              in the thumb hole, which is where the ball shows it.
-            </p>
-          ) : (
+          {/* A symmetric ball has no PSA to PAP, so VLS is its other two numbers,
+              said without a note: the two sliders read for themselves. */}
+          {vls.psaToPap != null && (
             <Slider
               idPrefix={idPrefix}
               label="PSA to PAP"
