@@ -29,4 +29,14 @@ describe("sideways scrollers", () => {
     );
     expect(offenders).toEqual([]);
   });
+
+  it("draw no scroll bar, since their cut-off edge already says they scroll (ADR-196)", () => {
+    const offenders = sourcesUnder("src").flatMap((file) =>
+      (readFileSync(file, "utf8").match(/className=["{`][^\n]*/g) ?? [])
+        .filter((cls) => /\boverflow-(x-)?(auto|scroll)\b/.test(cls))
+        .filter((cls) => !/\bscrollbar-none\b/.test(cls))
+        .map((cls) => `${file}: ${cls.trim()}`)
+    );
+    expect(offenders).toEqual([]);
+  });
 });

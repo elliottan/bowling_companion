@@ -1,10 +1,11 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ArsenalView } from "./ArsenalView";
 import { db } from "../db/bowlingDb";
 import { addBall, getBalls } from "../services/ballRepository";
 import { setLayoutSystem, setPap } from "../services/bowlingRepository";
 import type { BallLayoutSpec } from "../types/bowling";
+import { ProAccessContext } from "../lib/useProAccess";
 
 const SPEC: BallLayoutSpec = {
   drillingAngle: 50,
@@ -32,7 +33,7 @@ describe("ArsenalView", () => {
     await addBall({ name: "Phaze II", is_spare_ball: false, layout_spec: SPEC });
 
     render(<ArsenalView onBack={vi.fn()} />);
-    expect(await reading(/^50 x 4 1\/2 x 40$/)).toBeTruthy();
+    expect(await reading(/^50° x 4 1\/2 x 40°$/)).toBeTruthy();
   });
 
   it("lets a ball override that notation, so a drill sheet reads back as written", async () => {
@@ -86,6 +87,33 @@ describe("ArsenalView", () => {
     expect(seed.ballName).toBe("Phaze II");
   });
 
+  it("offers the layout on the ball's own sheet too, beside its numbers", async () => {
+    await addBall({ name: "Phaze II", is_spare_ball: false, layout_spec: SPEC });
+    const onViewLayout = vi.fn();
+    render(<ArsenalView onBack={vi.fn()} onViewLayout={onViewLayout} />);
+    fireEvent.click(await screen.findByRole("button", { name: /^Phaze II/ }));
+    const sheet = await screen.findByRole("dialog", { name: "Phaze II" });
+    await waitFor(() => {
+      fireEvent.click(within(sheet).getByRole("button", { name: "View the layout on Phaze II" }));
+      expect(onViewLayout).toHaveBeenCalled();
+    });
+    expect(onViewLayout.mock.lastCall![0].ballName).toBe("Phaze II");
+  });
+
+  it("without Pro, keeps View layout and says Pro draws it, rather than opening the lab (ADR-193)", async () => {
+    await addBall({ name: "Phaze II", is_spare_ball: false, layout_spec: SPEC });
+    const onViewLayout = vi.fn();
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
+        <ArsenalView onBack={vi.fn()} onViewLayout={onViewLayout} />
+      </ProAccessContext.Provider>
+    );
+    fireEvent.click(await screen.findByRole("button", { name: /View the layout on Phaze II/ }));
+    expect(await screen.findByText("Get Pro to visualize your ball layout")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Get the app" })).toBeInTheDocument();
+    expect(onViewLayout).not.toHaveBeenCalled();
+  });
+
   it("offers nothing to view on a ball with no layout", async () => {
     await addBall({ name: "Plastic", is_spare_ball: true });
 
@@ -100,7 +128,13 @@ describe("ArsenalView", () => {
     render(<ArsenalView onBack={vi.fn()} />);
 
     fireEvent.click(await screen.findByText("Old Hammer"));
+    // Under the sheet's More, and asked first, rather than a button across its
+    // foot that a stray tap could fire.
+    fireEvent.click(await screen.findByRole("button", { name: "More" }));
     fireEvent.click(await screen.findByRole("button", { name: "Retire ball" }));
+    expect(await screen.findByRole("heading", { name: "Retire Old Hammer?" })).toBeInTheDocument();
+    expect((await getBalls()).find((b) => b.name === "Old Hammer")?.retired).toBeFalsy();
+    fireEvent.click(screen.getByRole("button", { name: "Retire" }));
 
     // Out of the bag, still in the database, and behind a toggle.
     await waitFor(() => expect(screen.queryByText("Old Hammer")).toBeNull());

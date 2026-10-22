@@ -77,6 +77,24 @@ describe("the session sheet", () => {
     expect(screen.getAllByTitle(/Gem|Zen/)).toHaveLength(2);
   });
 
+  it("marks every fresh rack in the 10th with its own ball, not only the first", async () => {
+    const tenth: Frame = {
+      game_id: 1,
+      frame_number: 10,
+      shots: [
+        { pins_standing: [] as PinNumber[], ball_id: 1 },
+        { pins_standing: [] as PinNumber[], ball_id: 2 },
+        { pins_standing: [] as PinNumber[], ball_id: 1 }
+      ],
+      is_strike: true,
+      is_spare: false
+    };
+    const summary: SessionSummary = { session: SUMMARY.session, games: [game(1, 1, 300, [tenth])] };
+    render(<SessionLanePanel summary={summary} currentGameId={1} onClose={() => {}} />);
+    await waitFor(() => expect(screen.getAllByTitle("Roto Grip Gem")).toHaveLength(2));
+    expect(screen.getAllByTitle("Zen Master")).toHaveLength(1);
+  });
+
   it("scopes the stats to the game the screen's chips chose", async () => {
     render(
       <SessionLanePanel

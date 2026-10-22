@@ -8582,3 +8582,386 @@ stops the edit anybody would try, which is what it is for. Links shared before
 this carry no code and now open on the defaults; the iPhone app is not out yet,
 so they are the web's, and few. The ball the free tier shows is still the
 best by strike rate within the screen's filters (ADR-167).
+
+---
+
+## ADR-193: A ball's layout is free to set, and View layout is Pro
+
+**Status.** Accepted, 2026-10-22, by the owner's decision. Supersedes ADR-172.
+
+**Context.** ADR-172 put the ball form's whole Layout section under Pro, because
+the arsenal's View layout opened a ball's layout in the lab, drawn and read
+out, which made a free layout field the lab's sliders by another door. But
+writing down how a ball is drilled is recording, and recording is free
+(PRO-LAUNCH rule 1): a bowler without Pro could not even note the numbers their
+pro shop gave them. The thing worth paying for is seeing them drawn.
+
+**Decision.**
+
+- **The ball form's layout is free.** Adding, changing and removing it, on the
+  same sliders, with no veil, and it saves for everyone.
+- **View layout is Pro.** The button stays on every arsenal row whose ball has
+  a layout, so a bowler sees it is there. Without Pro a tap opens no lab: it
+  says "Get Pro to visualize your ball layout" in a dialog whose one action is
+  the way to Pro (`useProEntry`: the Pro page in the app, the steps for moving
+  games and the App Store on the web), and "Not now" closes it.
+- **Nothing else moves.** The arsenal row still writes the numbers out, the read
+  sheet still reads them, and the lab opened from Home or a shared link is still
+  free to read (ADR-170).
+
+**Consequences.** The dialog is the one Pro lock that is a prompt rather than a
+veil on the thing itself (ADR-163): there is no drawing on the arsenal row to
+blur, only a button that goes somewhere. A bowler without Pro can still type a
+ball's numbers into the lab's link by hand, but a link needs its check code
+(ADR-192), so that is no easier than before.
+
+---
+
+## ADR-194: The session screen holds still under its sheet
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand. Amends
+ADR-188.
+
+**Context.** ADR-188 made every screen rubber-band. With the session sheet up,
+a pull on the strip above it (the bar's foot, the lanes, the game chips)
+bounced the session screen down, and the sheet, which hangs from the chips and
+follows them, came down with it: the whole screen slid away from its bar. iOS
+never moves the screen behind a presented sheet.
+
+**Decision.** While the session sheet is up, the box that scrolls the session
+(the pushed screen's scroller, or `<main>` on the Score tab) is
+`overflow-y: hidden`, set and restored by `ActiveSessionView`, which finds it
+from the session header rather than having it handed down. It scrolls and
+bounces again as soon as the sheet goes. Where the reader had scrolled to is
+kept, since a box that cannot scroll still holds its offset.
+
+**Consequences.** Nothing behind the sheet scrolls while it is up. Opening the
+sheet already scrolls the header back into view first, so the chips the sheet
+hangs from are always on screen when it holds.
+
+---
+
+## ADR-195: The free leaves are the two left most again
+
+**Status.** Accepted, 2026-10-22, by the owner's decision. Supersedes ADR-192
+on which leaves are free; ADR-192's check code on shared links stands.
+
+**Context.** ADR-192 fixed the free leaves at the 7 and the 10, because
+ranking within the screen's filters let a bowler cycle the filters and read
+more leaves' records. On reflection that guarded little: under any one filter
+the bowler still sees only that filter's top two, never the whole list, never
+the shares and never the rest of the conversions. And the corner pins at 0/0
+on a card read as the app not knowing the bowler.
+
+**Decision.** Without Pro the Spares card, the All leaves sheet, Spare lines and
+a leave's sheet open the two leaves left most within what the screen shows,
+ranked as the card ranks them (`freeLeavePreview`, `isOpenLeave`), and blur the
+next one. This is the ADR-167 rule as it stood before ADR-192.
+
+**Consequences.** A bowler who cycles filters can read more than two leaves'
+records, one filter's top two at a time. That is accepted: it is still never
+the whole picture, which is what Pro sells.
+
+---
+
+## ADR-196: Stats cards hold what they show, and only screens draw scroll bars
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** The First ball card read as thrown together: pins a ball in the
+heading's corner, strike on strike and the longest run pushed to the two ends
+of a footer line, three sizes and three alignments for numbers of the same
+weight. The Spares and Balls cards each scrolled inside the scrolling screen,
+a second scroll to find and to fight, and their way to the whole list was a
+line of accent text in the corner ("View all 78 leaves") that read as a link
+in a heading and made a small target.
+
+**Decision.**
+
+- **One shape for every card:** a heading, the card's one large answer, and its
+  smaller numbers in one even row, each centred over its label
+  (`Companions`). The headline's high, low and games use it, and so does the
+  First ball card under its pocket, carry and strike chain: pins a ball, strike
+  on strike, strikes in a row. The headline stays about scores; the first
+  ball's numbers stay with the first ball.
+- **The Spares card says what its rate counts:** "of makeables made", since
+  splits and washouts are left out of it.
+- **Cards hold what they show.** The Spares card shows two rows of three
+  leaves, the Balls card six balls, and neither scrolls. Everything else is
+  under View all.
+- **View all is a glass pill the card's width at its foot** (`Button`'s
+  `glass` variant, the bar buttons' material): "View all 78", the count kept so
+  the bowler knows the size of what is behind it, the noun left to a screen
+  reader because the heading already says what is counted.
+- **Only a screen draws a scroll bar.** A screen, a sheet and a list that
+  fills one keep the indicator iOS draws while the list moves. Every sideways
+  strip and every small box inside a screen hides it (`.scrollbar-none`), and
+  `src/test/scrollers.test.ts` holds that for the sideways ones.
+
+**Consequences.** A bowler with more than six leaves or balls taps once more to
+see the seventh. The Balls card still scrolls sideways on a phone too narrow
+for its columns (ADR-144), without a bar.
+
+---
+
+## ADR-197: The games behind a Stats figure open in a sheet
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** A ball's game column on the All balls sheet and a point on the
+by-game chart each open the sessions behind them. Both opened as a card centred
+over the screen, with no bar and no close, its title loose at the top, raw ISO
+dates, and its rates in tinted pills that nothing else in the app draws. Over
+the All balls sheet it read as a stray panel rather than a step further in.
+
+**Decision.** Both open as a `FormSheet` (`GameRowsSheet`): the title is the
+ball, or "Game 2", the subtitle says how many sessions, and the close is in the
+bar. The sessions are an inset grouped list (ADR-191) on the sheet's muted fill,
+each row the venue and a short date, the event and lanes, then its figures as
+words ("Pocket 92% 11/12"), with a good rate in the accent, and a chevron,
+since a row opens its game. Tapping a row closes the sheet and opens the game,
+as before.
+
+**Consequences.** Every list the app opens over a screen is now a sheet; the
+centred dialog is left for a question with an answer (`ConfirmDialog`).
+
+---
+
+## ADR-198: A pushed screen's title always shows
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+Supersedes ADR-177.
+
+**Context.** ADR-177 faded a pushed screen's title once the page scrolled under
+it, because its words sat over the page's own text with only the scroll edge
+behind them. In use, Spare lines, Headpin Pro and the Alley report lost their
+names a flick into the page, and the bowler could no longer tell where they
+were.
+
+**Decision.** The title, and a session's bar, stays at every scroll position.
+The bar stands on the floating headers' ground (`.floating-header-ground`,
+ADR-185, ADR-196): the page's own color nearly solid over a blur, running a
+little below the bar and fading out there. Over the empty top of a page it is
+the page's color on the page's color, so it shows nothing; over content it
+turns what passes under the title into a soft shape.
+
+**Consequences.** `PushScreen` no longer tracks its scroll, and `bar` is a plain
+node rather than a function of it. Sheet bars are unchanged.
+
+---
+
+## ADR-199: The lane view's oil, hook sliders, quick moves and spare lines
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** Four rough edges on the lane view. Its options sheet had a "Show
+oil pattern" switch, a second way to say what clearing the pattern already
+says. Without Pro its hook sliders were left off the sheet entirely, so a
+bowler never saw that Pro shapes the hook. The quick moves panel could only be
+put away by tapping one of the line's fields: its full-screen backdrop sat
+inside the lane view's transformed frame, so `fixed` covered only that frame,
+and it lay over the button, so a second tap closed the panel on the way down
+and the button's click opened it again. And a spare line's lane, opened from
+its sheet with the pencil on, let a bowler without Pro drag the line, which
+everywhere else is Pro (ADR-165).
+
+**Decision.**
+
+- **The oil is drawn whenever a pattern is chosen.** The switch is gone; the
+  sheet still reads the pattern out.
+- **Without Pro the hook sliders show, under the lane's Pro veil** ("Shape it
+  with Pro"), and move nothing past it (ADR-190). The options button is offered
+  wherever editing is locked behind Pro, so the sheet can be reached.
+- **Quick moves close on a second tap of their button or a tap anywhere
+  outside,** listened for on the document in the capture phase, so the tap
+  that closes it still reaches the lane.
+- **A spare line's lane is read-only without Pro,** its controls under the
+  lock, as in score entry; the boards are still typed in the sheet's fields.
+
+---
+
+## ADR-200: The segmented control follows the finger
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand. Builds on
+ADR-189.
+
+**Context.** Beside the iPhone's own tab bar (ADR-161), the Stats screen's
+range and chart pickers still read as web controls. They only jumped to a
+tapped segment on a flat ease, did nothing under a finger that slid, and their
+pill all but vanished on the dark track.
+
+**Decision.** `SegmentedControl` behaves as UIKit's does. The pill follows a
+finger across the track with a selection tick at each segment it crosses, and
+the answer lands when the finger lifts; a vertical scroll that takes the finger
+cancels the press without choosing. The pill swells a little while held and
+settles on a spring that overshoots slightly. It is a raised pill, lit along
+its top and lifted by a soft shadow, rather than a tenth of the ink. The
+keyboard still chooses with Enter and Space.
+
+**Consequences.** A finger's click after its lift is ignored, since the lift
+already chose; only a click with no pointer behind it (the keyboard) chooses
+by itself.
+
+---
+
+## ADR-201: Every leave is free; carry, strike and the first ball's other numbers are Pro
+
+**Status.** Accepted, 2026-10-22, by the owner's decision. Supersedes ADR-195
+and ADR-174 on what Stats keeps free, and amends ADR-167.
+
+**Context.** A bowler's leaves, and how often each is made, are the read every
+bowler wants and would most resent paying for. What a first ball does beyond
+where it went (whether the pocket hit carried, how often it struck, how many
+pins it takes, how strikes follow strikes) is the deeper read, and the one Pro
+should carry.
+
+**Decision.**
+
+- **Every leave is free:** the Spares card, the All leaves sheet with its
+  filters, each leave's record on Spare lines and in its sheets. The leave
+  locks and their stand-ins are gone.
+- **The pocket is free,** since the bowler enters it at every frame. Without Pro
+  the First ball card leads with it ("73% pocket hits") and blurs carry, strike,
+  pins a ball, strike on strike and strikes in a row under one lock, over
+  stand-in figures (ADR-190).
+- **The chart plots the average, the pocket and the spare without Pro,** which
+  are first on the picker in that order. Strike, strike on strike, carry, first
+  ball and most strikes in a row keep their chips, each with a lock beside its
+  name, and a tap goes to Pro rather than plotting. A metric remembered from a
+  time with Pro plots the average without it.
+- **Balls are unchanged:** the best ball's row in full, the next blurred
+  (ADR-167).
+
+**Consequences.** The best ball's row still shows that ball's carry and strike
+without Pro, as the taste of the Balls card.
+
+---
+
+## ADR-202: The lane's fields stay at its side, and back from Pro returns to the lane
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand. Amends
+ADR-167 and ADR-199 on how the lane says what is Pro.
+
+**Context.** In bowler view the lane's peg fields were a bar along the foot of
+the screen, and the keyboard that opens to type in them covered them. Without
+Pro the fields' veil carried "Move it with Pro", and the points on the lane
+said nothing. And a lock's tap to the Pro page closed the lane first, or, for
+the line sandbox, hid it while the Pro page was up, so back from the Pro page
+showed the screen under the lane (Home, a sheet) for a moment, or stayed there.
+
+**Decision.**
+
+- **The fields are a side column in both views,** on the side away from the
+  line (left for a right-hander), on the lane's dark glass, with the drag hints
+  under them. Top-down, the lane steps aside from them as before.
+- **Without Pro each point of the line carries a lock** where it sits, and
+  none of them drags; the fields' veil is the lock alone, as is the hook
+  sliders'.
+- **The lane stays as it is under the Pro page.** That page opens on the layer
+  above the lane (ADR-175), so nothing closes or hides first, and back slides
+  it away to the lane. `editLocked` is a plain flag now, and `ProVeil` has no
+  `before`.
+
+---
+
+## ADR-203: The layout lab is the ball and its bars side by side, and its sliders lock as they are
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand. Amends
+ADR-163 on the lab's order and ADR-170 on how its sliders lock.
+
+**Context.** The lab pinned a full-width ball under its bar, with "What it will
+do" in a section of its own below: the pinned ball took a third of the screen
+from everything that scrolled. Without Pro the sliders were faded and blurred
+under "Try your layouts with Pro".
+
+**Decision.**
+
+- **The ball and what it will do share the top row,** the ball on the left and
+  the four bars on the right with the sentence they add up to under them, no
+  heading. Nothing is pinned; the page is one scroll, and on a phone it is
+  most of one screen.
+- **Without Pro the sliders are drawn as they are** (`ProVeil clear`), out of
+  reach, with the lock alone at the top of their card and the card as the tap.
+
+**Consequences.** The drawing has half the width it had, which still reads the
+pin, PAP, PSA and their angles at phone size.
+
+---
+
+## ADR-204: The layout lab says nothing about the thumb-hole band
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** A pin-to-PAP distance between 2 3/8" and 3 3/8" runs a
+one-hander's track over the thumb hole, and the lab marked it three ways: a
+shaded stretch of the slider, the number in amber, and a warning under the
+ball. Most bowlers set the numbers their pro shop drilled, and the marks read
+as the app saying their ball was wrong.
+
+**Decision.** None of the three is drawn, in the lab or on a ball's form. The
+band itself stays in `ballLayout` (`DO_NOT_USE_BAND`, `inDoNotUseBand`), so it
+can come back as a gentler note, and the layout presets still keep clear of
+it. `readMotion` no longer takes the grip, which only that warning read; the
+lab's other warnings stand.
+
+---
+
+## ADR-205: The layout lab's reset needs no confirming
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** "Reset to your saved settings", under the lab's More, asked first
+whether to put the bowler's own hand, grip and PAP back, because someone
+reading a shared layout would be swapping the sender's axis for theirs. But
+nothing on the lab is saved, the layout's numbers stay as they are, and the
+fields the reset changes are right above the button, so the question guarded
+nothing a second look could not undo.
+
+**Decision.** The button resets at once, with no dialog.
+
+---
+
+## ADR-206: A ball's retire and delete live under More, and retiring asks first
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** A ball's read sheet ended in two full-width buttons, Retire ball
+and Delete ball, the largest things on it for the two things a bowler does
+least, and Retire acted on the tap.
+
+**Decision.** They move into a More menu beside the pencil in the sheet's bar
+(`AnchoredMenu`, its anchor helper now shared). Retiring asks first ("Retire
+Phaze II?"), with what it does and that the ball can come back; delete asks as
+it did. Bringing a retired ball back asks nothing, since it loses nothing.
+
+---
+
+## ADR-207: Under the session sheet there is no new game, and the stats controls close it
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** With the session sheet up, the chip row above it is the sheet's
+(ADR-183): a tap on a game chip scopes the sheet. The new game button stayed
+in that row, so a tap meant for a chip could start a game under the sheet.
+And the bar's stats button and score only ever opened the sheet; putting it
+away took the drag, Escape or the session's name.
+
+**Decision.** The new game button is not drawn while the sheet is up, and comes
+back when it goes. The bar's stats button and its score open the sheet and,
+with it up, close it, as the session's name already did.
+
+---
+
+## ADR-208: Last 10 is offered once there are ten sessions
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand. Amends
+ADR-126 on the Stats range.
+
+**Context.** With fewer than ten sessions in scope, "Last 10" read exactly what
+"All" did, and a share card made under it said "Last 10 sessions" over a
+handful of nights.
+
+**Decision.** The range control leaves "Last 10" off until the sessions in
+scope, filters included, number ten. A "Last 10" remembered from a time with
+more, or under a broader filter, reads as All until there are ten again, so
+nothing is ever labelled with a window it does not have.

@@ -5,9 +5,10 @@ import { PushScreen } from "../components/PushScreen";
 import { Button } from "../components/ui/Button";
 import { useProAction } from "../components/ui/useProAction";
 import {
+  AlleySample,
   BallsSample,
+  FirstBallSample,
   LayoutSample,
-  LeavesSample,
   LineSample,
   ThemesSample
 } from "../components/ProOfferSamples";
@@ -29,23 +30,28 @@ interface ProOfferViewProps {
 
 const FEATURES: Array<{ title: string; why: string; sample: ReactNode }> = [
   {
-    title: "Your leaves",
-    why: "The leaves you keep ending up with, and how often you pick each one up.",
-    sample: <LeavesSample />
+    title: "Carry and strike",
+    why: "Whether your pocket hits carry, how often you strike, how strikes follow strikes and how many pins a first ball takes, on the First ball card and on the chart.",
+    sample: <FirstBallSample />
   },
   {
     title: "Ball by ball",
-    why: "Pocket, carry and strike rates for each ball, side by side. The Alley report adds what you would average with each ball at an alley.",
+    why: "Pocket, carry and strike rates for each ball, side by side, and how each one does by game.",
     sample: <BallsSample />
   },
   {
+    title: "Your alleys",
+    why: "What you would average with each ball at each alley, and on each pair of lanes there, so you know what to throw before you get there.",
+    sample: <AlleySample />
+  },
+  {
     title: "Move your line",
-    why: "Drag the laydown, target and breakpoint on the lane and watch the path follow. It works in the line visualizer and on any shot you have scored.",
+    why: "Drag the laydown, target and breakpoint on the lane, shape the hook, and watch the path follow. It works in the line visualizer, on your spare lines and on any shot you have scored.",
     sample: <LineSample />
   },
   {
     title: "Try your layouts",
-    why: "Change the angles and the pin buffer, see what the ball will do before you drill it, and set each ball's layout in your arsenal.",
+    why: "Change the angles and the pin buffer, see what the ball will do before you drill it, and see each ball in your arsenal drawn with its own layout.",
     sample: <LayoutSample />
   },
   {
@@ -60,7 +66,17 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
   return (
     // Above every sheet: a lock inside one opens this page, and closing it goes
     // back to that sheet as it was (ADR-175).
-    <PushScreen title="Headpin Pro" onBack={onBack} layer="top">
+    <PushScreen
+      title="Headpin Pro"
+      onBack={onBack}
+      layer="top"
+      footer={
+        // The button stays in reach while the page scrolls above it.
+        <div className="border-t border-edge bg-surface-sunken px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+          <div className="mx-auto w-full max-w-xl">{access.locked ? <Purchase access={access} /> : <Owned />}</div>
+        </div>
+      }
+    >
       <div className="mx-auto w-full max-w-xl px-3 pb-4 pt-4 sm:px-6">
         <header className="text-center">
           <ProMark size={72} className="mx-auto rounded-2xl shadow-md" />
@@ -77,11 +93,6 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
             </li>
           ))}
         </ul>
-      </div>
-
-      {/* The button stays in reach while the page scrolls under it. */}
-      <div className="sticky bottom-0 border-t border-edge bg-surface-sunken px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
-        <div className="mx-auto w-full max-w-xl">{access.locked ? <Purchase access={access} /> : <Owned />}</div>
       </div>
     </PushScreen>
   );

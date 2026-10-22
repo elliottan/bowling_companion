@@ -1,4 +1,4 @@
-import { ChevronRight, Lock, Plus, X } from "lucide-react";
+import { ChevronRight, Plus, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { CatalogBallImage } from "../components/CatalogBallImage";
@@ -44,8 +44,6 @@ import type { Manufacturer } from "../types/catalog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Button } from "../components/ui/Button";
 import { SpareLineIcon } from "../components/icons";
-import { useProAccess } from "../lib/useProAccess";
-import { isOpenLeave } from "../lib/proPreview";
 
 /** Slide → laydown, derived from the stance (ADR-030). Read-only, so it sits
  *  under the entered boards in a lighter weight. */
@@ -123,16 +121,12 @@ function Hint({
 }
 
 /** The tile for one leave on a line's row: its deck, its name, how often it was
- *  left, and how often it was made. Without Pro the record is the leaves Stats
- *  shows in full and no others (ADR-167): the rest carry a blurred stand-in, so
- *  the tile keeps its shape and does not read as never left. */
+ *  left, and how often it was made. Every leave's record is free (ADR-201). */
 function LeaveTile({
   tile,
-  recordLocked,
   onOpen
 }: {
   tile: LineRowTile;
-  recordLocked: boolean;
   onOpen: (sl: SpareLine) => void;
 }) {
   const { spareLine: sl } = tile;
@@ -146,20 +140,9 @@ function LeaveTile({
       >
         <MiniPins standing={sl.pins} size="md" />
         <span className="text-[11px] font-semibold tabular-nums text-ink">{formatLeave(sl.pins)}</span>
-        {recordLocked ? (
-          <span className="flex items-center gap-1 text-[11px] text-ink-tertiary">
-            <Lock size={10} aria-hidden="true" />
-            {/* A stand-in, not the record: blurred text is still in the page. */}
-            <span aria-hidden="true" className="select-none tabular-nums blur-[3px]">
-              8× · 60%
-            </span>
-            <span className="sr-only">Record in Headpin Pro</span>
-          </span>
-        ) : (
-          <span className="text-[11px] tabular-nums text-ink-secondary">
-            {tile.attempts}×{tile.conversionPct != null ? ` · ${tile.conversionPct}%` : ""}
-          </span>
-        )}
+        <span className="text-[11px] tabular-nums text-ink-secondary">
+          {tile.attempts}×{tile.conversionPct != null ? ` · ${tile.conversionPct}%` : ""}
+        </span>
       </button>
     </li>
   );
@@ -180,8 +163,6 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
   // hints rank by.
   const leaves = useLiveQuery(async () => calculateCommonLeaves(await getSessionHistory())) ?? NO_LEAVES;
   const balls = useLiveQuery(() => getBalls()) ?? [];
-  // Without Pro, only the 7's and the 10's records are open (ADR-192).
-  const { locked: proLocked } = useProAccess();
   // Pocket leaves are shot on the strike line and are never listed (ADR-123).
   // A row saved for one stays stored, out of sight.
   const shown = useMemo(() => spareLinesShown(live ?? NO_LINES), [live]);
@@ -362,9 +343,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           dismissLabel="Not now"
         >
           You leave <span className="font-semibold text-ink">{formatLeave(ask.pins)}</span> most often
-          {proLocked && !isOpenLeave(ask.pins)
-            ? " "
-            : ` (${ask.attempts} ${ask.attempts === 1 ? "time" : "times"}) `}
+          {` (${ask.attempts} ${ask.attempts === 1 ? "time" : "times"}) `}
           and have no line for it.
         </Hint>
       )}
@@ -429,15 +408,11 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
                   <h2 className={GROUP_HEADING}>No line yet</h2>
                 )}
               </div>
-              <ul className="-mx-3 flex snap-x scroll-pl-3 gap-2 overflow-x-auto overscroll-x-none px-3 pb-1 sm:mx-0 sm:scroll-pl-0 sm:px-0">
+              <ul className="scrollbar-none -mx-3 flex snap-x scroll-pl-3 gap-2 overflow-x-auto overscroll-x-none px-3 pb-1 sm:mx-0 sm:scroll-pl-0 sm:px-0">
                 {row.tiles.map((tile) => (
                   <LeaveTile
                     key={tile.spareLine.id}
                     tile={tile}
-                    // A leave never left has no record to hold back.
-                    recordLocked={
-                      proLocked && tile.attempts > 0 && !isOpenLeave(tile.spareLine.pins)
-                    }
                     onOpen={(line) => setOpened({ pins: line.pins, edit: false })}
                   />
                 ))}

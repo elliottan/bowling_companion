@@ -2,7 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { registerPushExit } from "../lib/backGesture";
-import { overlayHandoff } from "../lib/overlayHandoff";
+import { overlayHandoff, PUSH_IN_MS } from "../lib/overlayHandoff";
 import { useOverlay } from "../lib/useOverlay";
 import { IconButton } from "./ui/IconButton";
 
@@ -18,11 +18,9 @@ interface PushScreenProps {
    * The screen's own bar, from the back control to the trailing edge, in place
    * of the centred title and `trailing`. For a screen whose bar carries more
    * than its name: a session's identity, its score and the actions on it.
-   * Handed whether the page has scrolled under it, so its words can fade as a
-   * title does (ADR-177) while its controls stay; `title` still names the
-   * screen to a screen reader.
+   * `title` still names the screen to a screen reader.
    */
-  bar?: (scrolled: boolean) => ReactNode;
+  bar?: ReactNode;
   /** Suppress Escape / focus trap while a dialog is layered on top. */
   active?: boolean;
   /**
@@ -51,6 +49,14 @@ interface PushScreenProps {
    * in under the sheet that opened it.
    */
   layer?: "shell" | "top";
+  /**
+   * A bar pinned to the bottom of the screen, outside the scroll area, for an
+   * action that stays in reach while the page scrolls (the Pro page's button).
+   * It pays the bottom safe-area inset itself, so the scroll area drops its
+   * own. A `sticky bottom-0` row inside the page stopped above that padding on
+   * the iPhone, and the page showed through the gap beneath it.
+   */
+  footer?: ReactNode;
   children: ReactNode;
 }
 
@@ -83,17 +89,18 @@ export function PushScreen({
   backCloses = false,
   onLeave,
   layer = "shell",
+  footer,
   children,
 }: PushScreenProps) {
   const [exiting, setExiting] = useState(false);
-  // Whether anything has scrolled up under the bar. The title shows only at
-  // the top: once the page passes beneath it, text over moving text reads as
-  // a mistake, where the round controls, raised glass, still read and are
-  // still the way out (ADR-177).
-  const [scrolled, setScrolled] = useState(false);
   const exitTimer = useRef<number | null>(null);
-  // Taking the place of a loading screen that already slid in: no second slide.
-  const [takesPlace] = useState(() => overlayHandoff.active);
+  // Taking the place of a loading screen part-way through its slide: carry
+  // the slide on from where it had got to, by starting the same animation that
+  // far in. Past its end, nothing is left to slide.
+  const [slideFrom] = useState(() =>
+    overlayHandoff.active ? Math.max(0, performance.now() - overlayHandoff.since) : 0
+  );
+  const takesPlace = overlayHandoff.active && slideFrom >= PUSH_IN_MS;
 
   // Slide the screen back out before unmounting it. Without this the push
   // animated in and then vanished on a frame, which reads as a page swap
@@ -168,32 +175,32 @@ export function PushScreen({
         style={{
           transform: exiting ? "translateX(100%)" : undefined,
           transition: `transform ${EXIT_MS}ms cubic-bezier(0.32, 0.72, 0, 1)`,
+          animationDelay: slideFrom > 0 && !takesPlace ? `-${Math.round(slideFrom)}ms` : undefined,
         }}
       >
         {/* The bar floats over the screen and the screen scrolls under it,
-            as an iOS navigation bar does (ADR-168). Behind its controls is the
-            scroll edge: invisible over the empty top of the page, a fading
-            blur once anything passes beneath. Safe-area insets only in overlay
-            mode, inline sits inside the app shell, which has already paid
-            them. */}
+            as an iOS navigation bar does (ADR-168). Its title stays, wherever
+            the page is, so the bowler always knows where they are (ADR-198).
+            Behind it is the floating headers' ground, the page's own colour
+            nearly solid over a blur, so a page passing under the title is a
+            soft shape rather than words over words, and over the empty top of
+            the page it is the page's colour and shows nothing. Safe-area
+            insets only in overlay mode, inline sits inside the app shell,
+            which has already paid them. */}
         <header
           className={`absolute inset-x-0 top-0 z-20 ${overlay ? "pt-[env(safe-area-inset-top)]" : ""}`}
         >
-          <div aria-hidden="true" className="scroll-edge absolute inset-x-0 -bottom-4 top-0" />
+          <div aria-hidden="true" className="floating-header-ground absolute inset-x-0 -bottom-3 top-0" />
           <div className="relative mx-auto flex h-12 w-full max-w-3xl items-center gap-1 px-2 sm:px-4">
             <IconButton label="Back" onClick={dismiss} variant="round">
               {/* Optically centred: the chevron's mass sits right of its box. */}
               <ChevronLeft size={22} strokeWidth={2.5} aria-hidden="true" className="-ml-0.5" />
             </IconButton>
             {bar ? (
-              <div className="ml-1 flex min-w-0 flex-1 items-center gap-1">{bar(scrolled)}</div>
+              <div className="ml-1 flex min-w-0 flex-1 items-center gap-1">{bar}</div>
             ) : (
               <>
-                <div
-                  className={`pointer-events-none absolute left-1/2 max-w-[calc(100%-7rem)] -translate-x-1/2 text-center transition-opacity duration-200 ${
-                    scrolled ? "opacity-0" : ""
-                  }`}
-                >
+                <div className="pointer-events-none absolute left-1/2 max-w-[calc(100%-7rem)] -translate-x-1/2 text-center">
                   <h1 className="truncate text-[17px] font-semibold leading-tight text-ink">{title}</h1>
                   {subtitle && <p className="truncate text-xs leading-tight text-ink-secondary">{subtitle}</p>}
                 </div>
@@ -208,18 +215,16 @@ export function PushScreen({
             for a sticky row inside to stop beneath the bar rather than under
             it. */}
         <div
-          onScroll={(e) => {
-            const next = e.currentTarget.scrollTop > 4;
-            if (next !== scrolled) setScrolled(next);
-          }}
           className={`ios-bounce min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[var(--push-bar-h)] ${
             // Inline, a Settings section, runs under the tab bar like its tab.
-            overlay ? "pb-[env(safe-area-inset-bottom)]" : "pb-[var(--tab-clear,0px)]"
+            // A footer pays the bottom inset in place of the scroll area.
+            footer ? "" : overlay ? "pb-[env(safe-area-inset-bottom)]" : "pb-[var(--tab-clear,0px)]"
           }`}
           style={{ "--push-bar-h": overlay ? "calc(env(safe-area-inset-top) + 3rem)" : "3rem" } as CSSProperties}
         >
           {children}
         </div>
+        {footer && <div className="shrink-0">{footer}</div>}
       </div>
     </div>
   );

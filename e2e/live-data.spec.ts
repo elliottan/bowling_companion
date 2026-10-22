@@ -39,6 +39,8 @@ test("a ball deleted in its editor leaves the arsenal list at once", async ({ pa
   await expect(page.getByText("Live Ball")).toBeVisible();
 
   await page.locator("li").filter({ hasText: "Live Ball" }).getByRole("button").nth(1).click();
+  // Delete is under the sheet's More (ADR-206).
+  await page.getByRole("dialog", { name: "Live Ball" }).getByRole("button", { name: "More" }).click();
   await page.getByRole("button", { name: /delete/i }).first().click();
   await page.getByRole("button", { name: "Delete", exact: true }).click();
 

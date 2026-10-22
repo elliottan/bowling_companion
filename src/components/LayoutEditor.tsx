@@ -6,17 +6,15 @@ import { useProAccess } from "../lib/useProAccess";
 import { Measure } from "./ui/Measure";
 import { FIELD_MICRO_LABEL } from "./ui/field";
 import {
-  DO_NOT_USE_BAND,
   formatDualAngle,
   formatInches,
   formatVls,
   fromVls,
-  inDoNotUseBand,
   toVls,
   type BallSpec,
   type DualAngleLayout
 } from "../lib/ballLayout";
-import type { GripStyle, LayoutSystem } from "../types/bowling";
+import type { LayoutSystem } from "../types/bowling";
 
 /**
  * The three numbers of a layout, in whichever notation is being read, with the
@@ -25,8 +23,8 @@ import type { GripStyle, LayoutSystem } from "../types/bowling";
  * It lives here rather than inside the layout lab because two screens edit a
  * layout now: the lab, where nothing is saved, and the ball form, where the
  * numbers land on a ball in the arsenal. One component means the two can never
- * disagree about a slider's range, about which numbers are the do-not-use band,
- * or about what a VLS edit does to the dual angle underneath it.
+ * disagree about a slider's range or about what a VLS edit does to the dual
+ * angle underneath it.
  *
  * Editing a VLS number is editing the layout. It converts back through the same
  * geometry (`fromVls`), so the two sets of sliders are two views of one state
@@ -38,7 +36,6 @@ export function LayoutEditor({
   ball,
   system,
   onSystemChange,
-  grip = "1h",
   idPrefix = "layout",
   proNumbers = false
 }: {
@@ -47,9 +44,6 @@ export function LayoutEditor({
   ball: BallSpec;
   system: LayoutSystem;
   onSystemChange: (system: LayoutSystem) => void;
-  /** How the bowler holds the ball. The do-not-use band is a thumb-hole rule,
-   *  so it is not marked on a two-hander's slider. */
-  grip?: GripStyle;
   /** Distinguishes two copies of the sliders when both are mounted, as they are
    *  when the lab is pushed over the ball form. */
   idPrefix?: string;
@@ -143,10 +137,6 @@ export function LayoutEditor({
             max={6}
             step={0.125}
             unit="in"
-            warn={inDoNotUseBand(layout.pinToPap, grip)}
-            band={grip === "1h" ? DO_NOT_USE_BAND : undefined}
-            bandMin={0.5}
-            bandMax={6}
             onChange={(pinToPap) => set({ pinToPap })}
           />
           <Slider
@@ -174,12 +164,9 @@ export function LayoutEditor({
             unit="in"
             onChange={(pinToPap) => setVls({ pinToPap })}
           />
-          {vls.psaToPap == null ? (
-            <p className="rounded-lg bg-surface-muted p-2.5 text-xs text-ink-secondary">
-              No moulded PSA on a symmetric ball, so VLS is two numbers here. The pro shop names one
-              in the thumb hole, which is where the ball shows it.
-            </p>
-          ) : (
+          {/* A symmetric ball has no PSA to PAP, so VLS is its other two numbers,
+              said without a note: the two sliders read for themselves. */}
+          {vls.psaToPap != null && (
             <Slider
               idPrefix={idPrefix}
               label="PSA to PAP"
@@ -214,7 +201,8 @@ export function LayoutEditor({
 function NumbersVeil({ on, children }: { on: boolean; children: ReactNode }) {
   if (!on) return <>{children}</>;
   return (
-    <ProVeil top what="Changing the layout" label="Try your layouts with Pro">
+    // As they are, unfaded, and still: the lock alone says why (ADR-203).
+    <ProVeil clear top what="Changing the layout">
       {children}
     </ProVeil>
   );
@@ -237,10 +225,6 @@ export function Slider({
   step,
   unit,
   onChange,
-  warn = false,
-  band,
-  bandMin,
-  bandMax,
   idPrefix = "layout"
 }: {
   label: string;
@@ -251,11 +235,6 @@ export function Slider({
   step: number;
   unit: "deg" | "in";
   onChange: (value: number) => void;
-  warn?: boolean;
-  /** A span of the track to shade as unusable, in the value's own units. */
-  band?: readonly [number, number];
-  bandMin?: number;
-  bandMax?: number;
   idPrefix?: string;
 }) {
   const shown = unit === "deg" ? `${Math.round(value)}°` : `${formatInches(value)}"`;
@@ -277,14 +256,6 @@ export function Slider({
     return () => document.removeEventListener("pointerdown", away);
   }, [hintOpen]);
 
-  const bandStyle =
-    band && bandMin != null && bandMax != null
-      ? {
-          left: `${((band[0] - bandMin) / (bandMax - bandMin)) * 100}%`,
-          width: `${((band[1] - band[0]) / (bandMax - bandMin)) * 100}%`
-        }
-      : null;
-
   return (
     <div className="relative" ref={hintRef}>
       <div className="mb-0.5 flex items-baseline justify-between gap-2">
@@ -302,21 +273,11 @@ export function Slider({
           {label}
           <Info size={11} aria-hidden="true" className="opacity-60" />
         </button>
-        <span className={`text-sm font-bold tabular-nums ${warn ? "text-warning-700" : "text-ink"}`}>
+        <span className="text-sm font-bold tabular-nums text-ink">
           <Measure>{shown}</Measure>
         </span>
       </div>
       <div className="relative">
-        {/* The do-not-use band, drawn on the track itself. A number a bowler
-            should not pick is better shown where they are picking it than
-            explained underneath after they have picked it. */}
-        {bandStyle && (
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 h-1.5 -translate-y-1/2 rounded-sm bg-warning-200"
-            style={bandStyle}
-          />
-        )}
         <input
           id={id}
           type="range"

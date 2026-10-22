@@ -10,6 +10,7 @@ import { PapEditor } from "../components/PapEditor";
 import { ShareCardDialog } from "../components/ShareCardDialog";
 import { PushScreen } from "../components/PushScreen";
 import { ANCHORED_MENU_WIDTH, AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
+import { anchorUnder, type MenuAnchor } from "../lib/menuAnchor";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { IconButton } from "../components/ui/IconButton";
 import { Button } from "../components/ui/Button";
@@ -59,19 +60,6 @@ interface LayoutLabViewProps {
    *  the same way a shared link outranks the defaults, because it is the more
    *  specific answer to "which layout is this screen about". */
   seed?: LayoutSeed;
-}
-
-/** Where a menu hangs from, in viewport coordinates. */
-interface Anchor {
-  left: number;
-  top: number;
-}
-
-/** Anchor a menu of `width` px under the control that opened it, clamped so it
- *  cannot run off a narrow screen. */
-function anchorUnder(el: Element, width: number): Anchor {
-  const r = el.getBoundingClientRect();
-  return { left: Math.max(8, Math.min(r.right - width, window.innerWidth - width - 8)), top: r.bottom + 6 };
 }
 
 /** The page's query string, guarded for a render with no window behind it. */
@@ -167,9 +155,8 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
   // handedness that arrives asynchronously from settings without an effect
   // reaching back into state after the fact.
   const [turnedTo, setTurnedTo] = useState<Orientation | null>(null);
-  const [presetAt, setPresetAt] = useState<Anchor | null>(null);
+  const [presetAt, setPresetAt] = useState<MenuAnchor | null>(null);
   const [pendingPreset, setPendingPreset] = useState<LayoutPreset | null>(null);
-  const [resetting, setResetting] = useState(false);
   // The sheet behind More: the PAP, the hand and the grip.
   const [youOpen, setYouOpen] = useState(false);
   const [card, setCard] = useState<ShareCardData | null>(null);
@@ -243,7 +230,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
   const updatePap = useCallback((next: PapMeasurement) => setPapOverride(next), []);
   const chooseGrip = useCallback((next: GripStyle) => setGripOverride(next), []);
 
-  const motion = useMemo(() => readMotion(layout, ball, pap, grip), [layout, ball, pap, grip]);
+  const motion = useMemo(() => readMotion(layout, ball, pap), [layout, ball, pap]);
   const vls = useMemo(() => toVls(layout, ball), [layout, ball]);
   const papText = `${formatInches(pap.over)}" over, ${formatInches(Math.abs(pap.up))}" ${pap.up < 0 ? "down" : "up"}`;
 
@@ -366,7 +353,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
          own Escape and the screen's both fired, so dismissing the menu also
          popped the screen out from under it. */
       active={
-        pendingPreset == null && !resetting && presetAt == null && card == null && !youOpen
+        pendingPreset == null && presetAt == null && card == null && !youOpen
       }
       /* Two trailing actions, the one place the app has two (DESIGN-LANGUAGE
          section 1). Sharing the layout is what this screen is for once the
@@ -391,21 +378,18 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             it, so the numbers below are read against the ball they belong to. */}
         {seed?.ballName && <SeededBallCard seed={seed} />}
 
-        {/* 1. The ball, first. It is what the screen is about, so it leads, and
-            what it will do sits right under it. The row of chips that used to
-            sit under it (jump to the grip, the pin, the PAP, the core, and a
-            flare rings toggle) is gone: the ball is draggable, which is the
-            gesture everyone tries first, and the chips were a second way to do
-            the same thing taking a band of a screen whose whole complaint was
-            that too little fits on it. */}
-        {/* Pinned under the bar while the page scrolls, so the ball answers in
-            view as the sliders below it move. Shorter than the screen is wide,
-            so the controls have room; tall enough that the ball and its labels
-            are whole. Opaque, so what scrolls passes under it. */}
-        <div className="sticky top-0 z-10 -mx-3 bg-surface-sunken px-3 pb-1 sm:-mx-6 sm:px-6">
+        {/* 1. The ball, and what it will do, side by side (ADR-203). The ball
+            needs no more than half the width to read, and the bars beside it
+            answer every change to the numbers below without a scroll back up.
+            It was the full width, pinned under the bar, with "What it will do"
+            in its own section under it: the pinned ball took a third of the
+            screen from everything that scrolled. Now the page is one scroll,
+            short enough to need little of it. The ball is draggable, which is
+            the gesture everyone tries first. */}
+        <div className="grid grid-cols-2 items-stretch gap-2.5">
           <div
             ref={ballRef}
-            className="h-60 overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
+            className="min-h-[13.5rem] overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
           >
             {/* The drawing follows the notation being edited, so the picture is
                 always answering the question the sliders below it are asking. */}
@@ -421,29 +405,25 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
               className="h-full"
             />
           </div>
-        </div>
-
-        <section className="space-y-1.5">
-          <h2 className={GROUP_HEADING}>What it will do</h2>
-          <div className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-            <p className="text-sm text-ink">{motion.summary}</p>
+          {/* The bars, then the sentence they add up to. No heading: the bars
+              name themselves, and the ball beside them says whose they are. */}
+          <section aria-label="What it will do" className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
             <Axis label="Flare" value={motion.flare} low="Low" high="High" note={`${motion.flareInches.toFixed(1)}"`} />
             <Axis label="Reads the lane" value={motion.length} low="Early" high="Late" />
             <Axis label="Off the friction" value={motion.angularity} low="Smooth" high="Sharp" />
             <Axis label="Overall strength" value={motion.strength} low="Weak" high="Strong" />
-          </div>
+            <p className="text-xs leading-snug text-ink-secondary">{motion.summary}</p>
+          </section>
+        </div>
 
-          {motion.warnings.map((warning) => (
-            <p
-              key={warning}
-              className="rounded-lg border border-warning-200 bg-warning-50 p-2.5 text-xs text-warning-700"
-            >
-              {warning}
-            </p>
-          ))}
-        </section>
-
-
+        {motion.warnings.map((warning) => (
+          <p
+            key={warning}
+            className="rounded-lg border border-warning-200 bg-warning-50 p-2.5 text-xs text-warning-700"
+          >
+            {warning}
+          </p>
+        ))}
 
         {/* 3. What ball. The core type comes before the numbers because it
             changes what the drilling angle means, and therefore what every
@@ -493,7 +473,6 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             ball={ball}
             system={system}
             onSystemChange={setSystemOverride}
-            grip={grip}
             idPrefix="lab"
             proNumbers
           />
@@ -515,7 +494,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
       )}
 
       {youOpen && (
-        <FormSheet title="Your PAP and hand" onClose={() => setYouOpen(false)} dismissAs="done" active={!resetting}>
+        <FormSheet title="Your PAP and hand" onClose={() => setYouOpen(false)} dismissAs="done">
           {/* 2. Who is bowling. The PAP leads because it is the frame every other
               number is measured against: the VAL angle is measured at it and the
               pin-to-PAP distance is measured to it, so a layout read against the
@@ -577,8 +556,19 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             </div>
             {/* Back to the bowler's own saved numbers. The PAP, the hand and the
                 grip are what a shared link overrides, so the way out of somebody
-                else's measurements sits with them. */}
-            <Button variant="secondary" className="w-full" onClick={() => setResetting(true)}>
+                else's measurements sits with them. At once, with no question
+                first: nothing is saved here, so nothing is lost, and the
+                fields above show the result as it lands (ADR-205). */}
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => {
+                setPapOverride(null);
+                setHandOverride(null);
+                setGripOverride(null);
+                setTurnedTo(null);
+              }}
+            >
               <RotateCcw size={16} aria-hidden="true" />
               Reset to your saved settings
             </Button>
@@ -599,27 +589,6 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
         confirmLabel="Replace"
         onConfirm={() => pendingPreset && applyPreset(pendingPreset)}
         onCancel={() => setPendingPreset(null)}
-      />
-
-      {/* The reset asks first, and names what it is resetting *to*. It is not
-          a reset to the app's defaults, it is a reset to the bowler's own saved
-          hand, grip and PAP, and those two are only the same thing until the
-          bowler has measured anything. Someone reading a shared layout is
-          exactly who reaches for this, and they should know it is about to swap
-          the sender's axis for their own rather than blank both. */}
-      <ConfirmDialog
-        open={resetting}
-        title="Use your saved settings?"
-        message="This puts the hand, grip and PAP from your preferences back on this screen. The layout numbers stay as they are."
-        confirmLabel="Use mine"
-        onConfirm={() => {
-          setPapOverride(null);
-          setHandOverride(null);
-          setGripOverride(null);
-          setTurnedTo(null);
-          setResetting(false);
-        }}
-        onCancel={() => setResetting(false)}
       />
 
       <ShareCardDialog

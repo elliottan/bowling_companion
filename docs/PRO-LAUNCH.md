@@ -41,13 +41,12 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | History | Every session and game, filters, reopening a game | ✓ | | The bowler's own data |
 | History | Backup, export and import | ✓ | | Never gate the bowler's data |
 | Stats | Average, high game and series, game count, score trend chart | ✓ | | What every free app shows |
-| Stats | Strike % on the chart, spare % on its card | ✓ | | Same |
-| Stats | The First ball card: pocket, carry, strike on strike, first-ball pins, most strikes in a row (ADR-174) | ✓ | | The overall read; fewer locks on the screen |
-| Stats | The two leaves you leave most, with their rates, on the card and in View all; the same two leaves' records on Spare lines | ✓ | | A taste of the read below (ADR-167, ADR-174) |
-| Stats | Every other leave, leave shares, spare conversion by leave, on Stats, Spare lines and a leave's sheet | | ✓ | PinPal, LaneTalk Pro and StrikeStat Pro charge for it |
+| Stats | Pocket %, on the First ball card and the chart (ADR-201) | ✓ | | The bowler enters it at every frame |
+| Stats | Spare %, every leave, leave shares and spare conversion by leave, on Stats, Spare lines and a leave's sheet (ADR-201) | ✓ | | Core to every bowler; given away |
+| Stats | Carry %, strike %, strike on strike, first-ball pins, most strikes in a row: on the First ball card and as chart metrics (ADR-201) | | ✓ | The read of what the first ball does, beyond where it went |
 | Stats | Your best ball's row, and its details in View all | ✓ | | A taste (ADR-167, ADR-174) |
 | Stats | Every other ball's row and details | | ✓ | Equipment depth |
-| Stats | Every chart: every metric, by session and by game slot (ADR-174) | ✓ | | A lock on the main chart was more lock than taste |
+| Stats | The chart of the average, the pocket and the spare, by session and by game slot (ADR-201) | ✓ | | The free numbers, over time |
 | Home | Tonight, profile, first run, guides | ✓ | | Getting started |
 | Alley report | What you'd average with your best ball there | ✓ | | A taste (ADR-167) |
 | Alley report | What you'd average with each other ball there | | ✓ | Reads across sessions, the deepest read in the app. Its lines (best lines, the last session, line changes) are off the screen for now (ADR-163) |
@@ -57,8 +56,8 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | Lane | The sandbox: moving the line, quick moves, its hook shape | | ✓ | A tool for planning, not recording |
 | Lane | Lane notes | ✓ | | Recording |
 | Arsenal | Your balls, unlimited, retiring a ball and keeping its history | ✓ | | Some apps cap the arsenal, but a cap gates the bowler's own data |
-| Arsenal | A ball's name, weight, catalog link, and reading a layout already on it | ✓ | | Recording |
-| Arsenal | Setting a ball's layout (ADR-172) | | ✓ | The lab draws a ball's layout, so a free one was the lab's sliders by another door |
+| Arsenal | A ball's name, weight, catalog link, and setting or reading its layout's numbers (ADR-193) | ✓ | | Recording |
+| Arsenal | View layout: a ball's own layout drawn in the lab (ADR-193) | | ✓ | Seeing your own layout drawn is what a free layout field would otherwise give away |
 | Layout lab | Reading a layout: the drilled ball, both notations, what it will do, turning the ball to look | ✓ | | Seeing a layout, the best preview of Pro |
 | Layout lab | Your PAP, hand and grip, the core, and which notation to read (ADR-170) | ✓ | | Trying the drawn layout against your own hand is the taste |
 | Layout lab | Changing the three numbers: the sliders and the presets | | ✓ | Equipment depth (the Paddock and BowlSheet sell this alone) |
@@ -96,14 +95,15 @@ On the web always, and in the app before purchase. It follows
   with several says what Pro adds once, in a banner at its foot with the one
   button: "Get Headpin Pro" in the app, "Get the app" on the web.
 - **A locked list is a taste** (ADR-167): its first rows in full, then one row
-  blurred under the mark, and nothing after. The two leaves left most, with their
-  rates (and those two leaves' records on Spare lines and in their sheets); the
-  best ball on Stats and on the Alley report. Every other leave's record on Spare
-  lines is a blurred stand-in.
-- **Locked controls are blurred in place** (ADR-167, ADR-170): the layout lab's
-  three sliders and the lane's peg fields stay where they are, out of reach,
-  under one "Try your layouts with Pro" or "Move it with Pro" mark, lightly
-  enough blurred to see what is under them. The values they hold stay readable
+  blurred under the mark, and nothing after: the best ball on Stats and on the
+  Alley report. Every leave is free (ADR-201).
+- **A locked chart metric keeps its chip** (ADR-201), with a lock beside its
+  name, and a tap goes to Pro rather than plotting. The First ball card shows
+  the pocket in full and blurs the rest under one lock.
+- **Locked controls stay in place** (ADR-167, ADR-170, ADR-202, ADR-203): the
+  layout lab's three sliders, drawn as they are, and the lane's peg fields,
+  lightly blurred, stay where they are, out of reach, under the lock alone;
+  each point of the line on the lane carries a lock too. The values they hold stay readable
   (on the notation boxes above the lab's sliders, on the lane's own labels),
   since reading is free.
 - **Every one of those opens the Pro page first** (ADR-164): what Pro adds, in a

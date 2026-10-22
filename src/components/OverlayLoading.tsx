@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { overlayHandoff } from "../lib/overlayHandoff";
 import { PushScreen } from "./PushScreen";
 import { Spinner } from "./ui/Spinner";
@@ -14,8 +14,10 @@ import { Spinner } from "./ui/Spinner";
  * (`overlayHandoff`).
  */
 export function OverlayLoading({ onBack }: { onBack: () => void }) {
-  useEffect(() => {
+  // Before paint, as its slide starts, so the time is the slide's own.
+  useLayoutEffect(() => {
     overlayHandoff.active = true;
+    overlayHandoff.since = performance.now();
     return () => {
       overlayHandoff.active = false;
     };

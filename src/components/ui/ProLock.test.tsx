@@ -153,10 +153,9 @@ describe("ProVeil", () => {
   });
 
   it("keeps the controls in place, blurred and out of reach, under one tap", () => {
-    const before = vi.fn();
     render(
       <ProAccessContext.Provider value={LOCKED}>
-        <ProVeil what="Changing the layout" label="Edit with Pro" before={before}>
+        <ProVeil what="Changing the layout" label="Edit with Pro">
           <input aria-label="Drilling angle" />
         </ProVeil>
       </ProAccessContext.Provider>
@@ -164,8 +163,20 @@ describe("ProVeil", () => {
     expect(screen.queryByRole("textbox", { name: "Drilling angle" })).not.toBeInTheDocument();
     expect(screen.getByText("Edit with Pro")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Changing the layout. Get the app" }));
-    expect(before).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("dialog", { name: "Bowled with Headpin on the web?" })).toBeInTheDocument();
+  });
+
+  it("draws the controls as they are when clear, with the lock alone (ADR-203)", () => {
+    const { container } = render(
+      <ProAccessContext.Provider value={LOCKED}>
+        <ProVeil clear what="Changing the layout">
+          <input aria-label="Drilling angle" />
+        </ProVeil>
+      </ProAccessContext.Provider>
+    );
+    expect(container.querySelector(".blur-\\[1px\\]")).toBeNull();
+    expect(screen.queryByRole("textbox", { name: "Drilling angle" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Changing the layout. Get the app" })).toBeInTheDocument();
   });
 });
 

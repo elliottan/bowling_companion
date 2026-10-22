@@ -9,6 +9,94 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.62.0: Every leave free, a calmer Stats screen, and any ball's layout (2026-10-22)
+
+- **Every leave is free.** The Spares card, All leaves, Spare lines and each
+  leave's sheet show every leave and how often you make it, with or without
+  Pro (ADR-201).
+- **Carry, strike and the first ball's other numbers are Pro.** Without Pro
+  the First ball card leads with your pocket rate, and the chart plots the
+  average, the pocket and the spare; the other charts keep their chips with a
+  lock on them.
+- **The Headpin Pro page says what Pro adds now,** with the First ball card
+  and the Alley report's estimated average by ball, alley and lanes.
+- **The range and chart pickers follow your finger.** Slide across Last 10,
+  3 mo and All, or By session and By game, and the pill tracks you with a
+  tick at each one, settling on a spring when you let go (ADR-200).
+- **A pushed screen keeps its title as you scroll.** Spare lines, Headpin Pro,
+  the Alley report and the rest stay named, on a bar that turns solid under
+  the title (ADR-198).
+- **A screen opened for the first time slides in,** as it does every time
+  after.
+- **The lane's options:** the oil is drawn whenever a pattern is chosen, with
+  no switch to hide it; without Pro the hook sliders show under a lock; and
+  Quick moves close on a second tap or a tap anywhere else (ADR-199).
+- **The bowler's view of the lane fills the screen.** The pins now sit just
+  under the buttons at the top, rather than leaving an empty band above them.
+- **The lane's fields stay at its side** in both views, away from the line and
+  out of the keyboard's way, with how to move the line under them. Without Pro
+  each point on the line carries a lock (ADR-202).
+- **Back from the Pro page returns to the lane you were on,** rather than
+  showing Home, or the screen under it, first.
+- **The layout lab no longer warns about the thumb-hole band.** The shaded
+  stretch on the pin-to-PAP slider and the message under the ball are gone
+  (ADR-204).
+- **A symmetric ball's Storm VLS sliders carry no note** about why it has two
+  numbers rather than three.
+- **Reset to your saved settings, in the layout lab, resets at once** rather
+  than asking first (ADR-205).
+- **The layout lab is shorter.** The ball and what it will do sit side by side
+  at the top, and without Pro the sliders show as they are under a lock
+  (ADR-203).
+- **A spare line's lane is read-only without Pro.** Moving the line on the lane
+  is Pro, as everywhere else; its boards are still typed in the fields.
+
+- **Every bowler can set a ball's layout.** The Layout section of a ball's
+  form is open without Pro: add, change or remove the numbers, and they save.
+  Seeing the layout drawn is the Pro part: View layout stays on the arsenal
+  row, and without Pro it says Pro draws it (ADR-193).
+- **Stats offers Last 10 only once you have ten sessions.** With fewer it
+  read the same as All, and a share card called a handful of nights "Last 10
+  sessions" (ADR-208).
+- **The landing page's pictures are retaken** from the app as it is now.
+- **All balls opens on the ball you tapped, clear of its title bar,** rather
+  than with the ball's name under the bar.
+- **With the session sheet up, the new game button steps aside,** and the
+  stats button or the score in the corner puts the sheet away again (ADR-207).
+- **The session sheet shows the ball on every shot of the 10th,** the second
+  and third fresh racks included, not only the first.
+- **Retiring and deleting a ball sit under a More button** beside the pencil on
+  its sheet, and retiring asks first (ADR-206).
+- **A ball's sheet opens its layout in the layout lab,** from a button beside
+  the layout's numbers, as the arsenal row's does.
+- **A dual angle layout shows its degrees.** `55° x 5 x 45°` rather than
+  `55 x 5 x 45`, in the arsenal, on a ball's sheet and in the layout lab, so
+  the two angles read apart from the inches between them.
+- **A session holds still under its sheet.** With the session sheet up, a pull
+  above it no longer drags the whole screen, sheet and all, down from its bar.
+- **Stats leads with the average in the accent color,** and the high, low and
+  games each sit centred over their label.
+- **The First ball card is laid out as one piece.** Pocket, carry and strike
+  lead, and pins a ball, strike on strike and strikes in a row sit under them
+  in one even row, the same way the average's companions do.
+- **The Spares and Balls cards no longer scroll inside the screen.** Spares
+  shows six leaves, Balls six balls, and a full-width View all button at the
+  foot of each opens the rest. The spare rate reads "of makeables made".
+- **Ball columns sit at an even step.** On the Balls card and in each ball's
+  by-game table, every column is one fixed width with its figures centred, so
+  the gaps no longer change with the width of the numbers.
+- **The sessions behind a ball's game, or a point on the by-game chart, open
+  in a sheet** like the rest of the app, with a close button, short dates and the
+  rates written out, rather than a card floating over the screen (ADR-197).
+- **Fewer scroll bars.** Sideways strips and small lists inside a screen no
+  longer draw one; screens and sheets keep the one iOS shows while you scroll.
+- **The bar at the bottom of the Headpin Pro page sits on the bottom edge.** On
+  the iPhone it stopped a little above it, and the page scrolled through the
+  gap underneath.
+- **History's and Stats' headers always have their frosted ground.** It used
+  to come in only once the list had scrolled, so for a moment cards could pass
+  under the title and the filters with nothing behind them.
+
 ## 0.61.0: The 7 and the 10 are free, and shared links can't be edited (2026-10-22)
 
 - **Without Pro, the 7 and the 10 are always open.** The leaves card shows the

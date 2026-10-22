@@ -1,9 +1,9 @@
-import { Archive, BookOpen, Check, ChevronRight, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Check, ChevronRight, Compass, MoreHorizontal, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
 import { addBall, updateBall } from "../services/ballRepository";
-import { getGripStyle, getLayoutSystem } from "../services/bowlingRepository";
+import { getLayoutSystem } from "../services/bowlingRepository";
 import {
   DEFAULT_ASYMMETRIC,
   DEFAULT_SYMMETRIC,
@@ -24,13 +24,13 @@ import { Measure } from "./ui/Measure";
 import { SegmentedControl } from "./ui/SegmentedControl";
 import { GROUP_HEADING } from "./ui/typography";
 import { ErrorBanner } from "./ErrorBanner";
-import { Button } from "./ui/Button";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { ANCHORED_MENU_WIDTH, AnchoredMenu, AnchoredMenuItem } from "./ui/AnchoredMenu";
+import { anchorUnder, type MenuAnchor } from "../lib/menuAnchor";
 import { FIELD } from "./ui/field";
 import { FormSheet } from "./ui/FormSheet";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
 import { IconButton } from "./ui/IconButton";
-import { ProVeil } from "./ui/ProLock";
-import { useProAccess } from "../lib/useProAccess";
 
 /** Heaviest first: most bowlers throw 14 to 16, so the list opens near the
  *  answer, and it runs down to the 8 lb balls juniors and seniors throw. */
@@ -52,6 +52,9 @@ interface BallFormDialogProps {
   /** Retire the ball (true) or bring it back (false), ADR-133. Absent while
    *  adding, when there is no ball yet. */
   onRetire?: (retire: boolean) => void;
+  /** See the ball's layout drawn in the layout lab, as the arsenal row's
+   *  compass does (Pro, ADR-193). Absent when the ball has no layout. */
+  onViewLayout?: () => void;
 }
 
 /**
@@ -59,7 +62,7 @@ interface BallFormDialogProps {
  * arsenal list: the inline version pushed the list down and left the catalog
  * link stranded below the fold, so nobody found it.
  */
-export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: BallFormDialogProps) {
+export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onViewLayout }: BallFormDialogProps) {
   const editing = ball !== null;
   // A ball already in the bag opens read, with a pencil, like a spare line: the
   // sheet opens from a tap on the row, and a thumb that only meant to look was
@@ -73,12 +76,14 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
   // this screen could hold numbers still has to show what was typed on it
   // (ADR-095). Entering a layout is what retires it.
   const [layoutSpec, setLayoutSpec] = useState<BallLayoutSpec | null>(ball?.layout_spec ?? null);
-  const { locked: proLocked } = useProAccess();
   const legacyLayout = ball?.layout_spec ? undefined : ball?.layout;
   const [catalogRef, setCatalogRef] = useState<CatalogBall | null>(null);
   const [weightSpecs, setWeightSpecs] = useState<WeightSpecs | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  // The More menu beside the pencil, and the question retiring asks first.
+  const [moreAt, setMoreAt] = useState<MenuAnchor | null>(null);
+  const [confirmRetire, setConfirmRetire] = useState(false);
   const [error, setError] = useState("");
   // Which notation a ball with no notation of its own is read in. Undefined
   // while it loads, which the field shows as the app's own default rather than
@@ -131,9 +136,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
     setIsSaving(true);
     setError("");
     try {
-      // Without Pro the ball keeps the layout it had: setting one is Pro
-      // (ADR-172), and the form is not the place that decides it (ADR-190).
-      const savedSpec = proLocked ? ball?.layout_spec : layoutSpec ?? undefined;
+      const savedSpec = layoutSpec ?? undefined;
       const payload: Omit<Ball, "id"> = {
         name: trimmed,
         // Set on the spare lines page, not here: the form carries it through.
@@ -176,7 +179,10 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
   }
 
   // The bar's trailing control is the mode: a pencil while reading, which turns
-  // into the tick that saves while editing.
+  // into the tick that saves while editing. Reading, a More beside the pencil
+  // holds retiring and deleting: rare, and never what the sheet was opened
+  // for, so they are not buttons across the foot of it.
+  const hasMore = !unlocked && (onRetire != null || onDelete != null);
   const trailing = unlocked ? (
     <IconButton
       variant="confirm"
@@ -187,9 +193,20 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
       <Check size={20} aria-hidden="true" />
     </IconButton>
   ) : (
-    <IconButton variant="round" onClick={() => setUnlocked(true)} label="Edit ball">
-      <Pencil size={18} aria-hidden="true" />
-    </IconButton>
+    <div className="flex shrink-0 items-center gap-2">
+      {hasMore && (
+        <IconButton
+          variant="round"
+          label="More"
+          onClick={(e) => setMoreAt(anchorUnder(e.currentTarget, ANCHORED_MENU_WIDTH))}
+        >
+          <MoreHorizontal size={20} aria-hidden="true" />
+        </IconButton>
+      )}
+      <IconButton variant="round" onClick={() => setUnlocked(true)} label="Edit ball">
+        <Pencil size={18} aria-hidden="true" />
+      </IconButton>
+    </div>
   );
 
   // Read, the catalog card is the ball's specs and not yet the way into the
@@ -204,6 +221,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
         onClose={onClose}
         trailing={trailing}
         banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
+        active={moreAt == null && !confirmRetire}
       >
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
 
@@ -255,7 +273,15 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
             </CatalogCard>
 
             {!unlocked ? (
-              <BallReadout name={name} weight={weight} spec={layoutSpec} preference={systemPreference} legacyText={legacyLayout} />
+              <BallReadout
+                name={name}
+                weight={weight}
+                spec={layoutSpec}
+                preference={systemPreference}
+                legacyText={legacyLayout}
+                onViewLayout={onViewLayout}
+                ballName={ball?.name ?? name}
+              />
             ) : (
             <>
             <div className="flex items-end gap-3">
@@ -306,24 +332,65 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
             </>
             )}
 
-            {/* Retiring is the everyday way out of the bag, so it comes before
-                the delete that loses the ball's name from every shot. */}
-            {onRetire && (
-              <Button variant="secondary" onClick={() => onRetire(!ball?.retired)} className="w-full">
-                {ball?.retired ? <RotateCcw size={16} aria-hidden="true" /> : <Archive size={16} aria-hidden="true" />}
-                {ball?.retired ? "Bring back to arsenal" : "Retire ball"}
-              </Button>
-            )}
-            {onDelete && (
-              <Button variant="danger-ghost" onClick={onDelete} className="w-full">
-                <Trash2 size={16} aria-hidden="true" />
-                Delete ball
-              </Button>
-            )}
           {/* Enables the keyboard's Go/Return to submit without a visible row. */}
           <button type="submit" className="sr-only" tabIndex={-1} aria-hidden="true" />
         </form>
       </FormSheet>
+
+      {moreAt && (
+        <AnchoredMenu left={moreAt.left} top={moreAt.top} align="end" onClose={() => setMoreAt(null)}>
+          {onRetire &&
+            (ball?.retired ? (
+              // Bringing a ball back loses nothing, so it asks nothing.
+              <AnchoredMenuItem
+                icon={RotateCcw}
+                onClick={() => {
+                  setMoreAt(null);
+                  onRetire(false);
+                }}
+              >
+                Bring back to arsenal
+              </AnchoredMenuItem>
+            ) : (
+              <AnchoredMenuItem
+                icon={Archive}
+                onClick={() => {
+                  setMoreAt(null);
+                  setConfirmRetire(true);
+                }}
+              >
+                Retire ball
+              </AnchoredMenuItem>
+            ))}
+          {onDelete && (
+            <AnchoredMenuItem
+              icon={Trash2}
+              danger
+              onClick={() => {
+                setMoreAt(null);
+                onDelete();
+              }}
+            >
+              Delete ball
+            </AnchoredMenuItem>
+          )}
+        </AnchoredMenu>
+      )}
+
+      {/* Retiring asks first, as deleting does: it takes the ball out of the
+          bag and out of every ball list, which a stray tap should not do. */}
+      <ConfirmDialog
+        open={confirmRetire}
+        title={`Retire ${ball?.name ?? "this ball"}?`}
+        message="It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
+        confirmLabel="Retire"
+        confirmVariant="primary"
+        onConfirm={() => {
+          setConfirmRetire(false);
+          onRetire?.(true);
+        }}
+        onCancel={() => setConfirmRetire(false)}
+      />
 
       {pickerOpen && (
         <CatalogPickerSheet
@@ -347,13 +414,17 @@ function BallReadout({
   weight,
   spec,
   preference,
-  legacyText
+  legacyText,
+  onViewLayout,
+  ballName
 }: {
   name: string;
   weight: number;
   spec: BallLayoutSpec | null;
   preference: LayoutSystem;
   legacyText?: string;
+  onViewLayout?: () => void;
+  ballName: string;
 }) {
   return (
     <dl className="space-y-4">
@@ -370,11 +441,21 @@ function BallReadout({
       <div>
         <dt className={GROUP_HEADING}>Layout</dt>
         {spec ? (
-          <dd className="mt-1 text-base font-semibold tabular-nums text-accent">
-            <Measure>{formatLayoutSpec(spec, layoutSystemFor(spec, preference))}</Measure>
-            <span className="block text-xs font-normal text-ink-secondary">
-              {spec.symmetric ? "Symmetric" : "Asymmetric"} core
+          <dd className="mt-1 flex items-center gap-3">
+            <span className="min-w-0 flex-1 text-base font-semibold tabular-nums text-accent">
+              <Measure>{formatLayoutSpec(spec, layoutSystemFor(spec, preference))}</Measure>
+              <span className="block text-xs font-normal text-ink-secondary">
+                {spec.symmetric ? "Symmetric" : "Asymmetric"} core
+              </span>
             </span>
+            {/* The arsenal row's compass, beside the numbers it draws: the way
+                from reading a layout to seeing it, without leaving the ball. The
+                lab opens over this sheet, and back returns to it. */}
+            {onViewLayout && (
+              <IconButton label={`View the layout on ${ballName}`} title="View layout" onClick={onViewLayout}>
+                <Compass size={18} aria-hidden="true" />
+              </IconButton>
+            )}
           </dd>
         ) : legacyText ? (
           <dd className="mt-1 text-base font-semibold text-accent">
@@ -532,10 +613,13 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
  * A layout is optional and stays optional. A ball with none shows one control
  * that offers one, rather than three sliders parked on a benchmark layout
  * nobody drilled, which would be the form inventing a fact about the ball.
+ *
+ * Free, as recording (ADR-193): seeing the layout drawn on the ball is the Pro
+ * part, and that is the arsenal's View layout.
  */
 function LayoutField({
   spec,
-  onChange: change,
+  onChange,
   preference,
   legacyText,
   defaultSymmetric
@@ -552,24 +636,10 @@ function LayoutField({
 }) {
   const ball = spec ? specToBall(spec) : null;
   const layout = spec ? specToLayout(spec) : null;
-  // The bowler's grip, read here for the same reason the lab reads it: the
-  // do-not-use band on the pin-to-PAP slider is a thumb-hole rule and does not
-  // apply to a two-hander. One-handed until the setting says otherwise.
-  const grip = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
   // What the sliders are editing in. A ball that has never been given a
   // notation of its own follows the preference, and keeps following it: that is
   // what makes the preference worth having.
   const system = spec?.system ?? preference;
-  // Setting a ball's layout is Pro (ADR-172): a layout on a ball is drawn by the
-  // layout lab, so a free one was the lab's sliders by another door. A layout
-  // already on a ball still reads, on the read sheet and in the lab.
-  const { locked } = useProAccess();
-  // The controls under the veil are inert, but they are still there: with the
-  // veil taken off in a browser's tools they would move, so a change without
-  // Pro goes nowhere (ADR-190).
-  const onChange = (next: BallLayoutSpec | null) => {
-    if (!locked) change(next);
-  };
 
   const setLayout = (next: DualAngleLayout) => {
     if (!spec) return;
@@ -590,7 +660,7 @@ function LayoutField({
     <section className="space-y-2">
       <div className="flex items-center justify-between gap-3">
         <h2 className={GROUP_HEADING}>Layout</h2>
-        {spec && !locked && (
+        {spec && (
           <button
             type="button"
             onClick={() => onChange(null)}
@@ -611,7 +681,6 @@ function LayoutField({
         </p>
       )}
 
-      <ProVeil what="Setting this ball's layout" label="Set and visualize your ball layout with Pro">
       {spec == null || ball == null || layout == null ? (
         <button
           type="button"
@@ -656,13 +725,11 @@ function LayoutField({
             // not just how it is being typed: the arsenal reads it back in the
             // same one. A ball that never asked keeps following the preference.
             onSystemChange={(next) => onChange({ ...spec, system: next })}
-            grip={grip}
             idPrefix="ball"
           />
 
         </>
       )}
-      </ProVeil>
     </section>
   );
 }

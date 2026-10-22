@@ -34,8 +34,8 @@ Every push gets, without exception:
   "Back" for screen readers. It used to name the screen underneath ("‹ Settings"),
   which read as a lie once the same screen could be pushed from several places:
   opened from the dashboard it named a tab the user had never navigated from;
-- a centered title, one line, 17px semibold, shown while the screen is at its
-  top and faded out once anything scrolls under the bar (ADR-177);
+- a centered title, one line, 17px semibold, always shown, however far the
+  screen has scrolled, so the bowler always knows where they are (ADR-198);
 - at most **one** trailing action, an `IconButton` (§1b). The layout
   lab is the single exception: a share, which is what the screen is for once
   the numbers are right, beside a More that holds the bowler's PAP, hand and
@@ -125,13 +125,17 @@ event, the date and the pattern, and a tap on them opens the session's
 details, as a contact's name does. With the session sheet up the same tap
 puts the sheet away instead (ADR-183).
 
-**Bars float, and the page scrolls under them** (ADR-168). A push's nav bar, a
-sheet's bar and the status bar over a tab have no ground of their own: behind
-them is the scroll edge (`.scroll-edge`), a wash of the page's color and a blur
-that both fade out downward, so over an empty page it shows nothing and over
-content it lifts the bar's title and buttons off what passes under. A frosted
-bar was tried before and removed, because a flat haze across the whole bar read
-as a dirty surface; the edge is not a surface, it is where the content fades. A
+**Bars float, and the page scrolls under them** (ADR-168). A sheet's bar and
+the status bar over a tab have no ground of their own: behind them is the
+scroll edge (`.scroll-edge`), a wash of the page's color and a blur that both
+fade out downward, so over an empty page it shows nothing and over content it
+lifts the bar's title and buttons off what passes under. A push's nav bar, like
+History's and Stats' headers, stands on the floating headers' ground
+(`.floating-header-ground`, ADR-198): the page's own color nearly solid over a
+blur, fading out just below the bar, so its title, which never fades, is never
+words over words. A light haze across the whole bar was tried before and
+removed, because it read as a dirty surface; the ground is the page's own
+color, so over the page's empty top it is not there at all. A
 sticky row inside a push or a sheet stops beneath the bar by the bar's
 published height (`--push-bar-h`, `--sheet-bar-h`), and an opaque one reaches up
 behind the bar so the list passes under both as one band.
@@ -353,11 +357,17 @@ aligned, with the picture and name pinned at the left on an opaque cell, so a
 number never loses its ball. A ball's by-game table, which can be wider than
 any phone, scrolls the same way with its row names pinned (ADR-139).
 
-**A scroller inside a card shows no scroll bar when the card already says it
-scrolls** (`.scrollbar-none`): the chart's chips, cut off at the card's edge,
-and the Spares card's leaves, the next row peeking under the last. One that can
-go either way, the Balls card, keeps its bar and leaves its last column room
-for it.
+**A card never scrolls inside the screen** (ADR-196). It holds what it shows
+in full, at most two rows of leaves or six balls, and the rest is one tap away
+under a glass "View all" pill the card's width at its foot. A scroller in a
+scroller was a second thing to find and to fight.
+
+**Only a screen draws a scroll bar** (`.scrollbar-none`, ADR-196). A screen, a
+sheet and a list that fills one keep the indicator iOS draws while the list
+moves, which is where you are on a long one. Everything else hides it: every
+sideways strip, cut off at its edge, which already says it scrolls, and every
+small box inside a screen, a suggestion list or a menu.
+`src/test/scrollers.test.ts` holds the rule for the sideways ones.
 
 **A sideways scroller stops dead at its ends.** Every horizontal scroller
 carries `overscroll-x-none`, not `-contain`: contain keeps the swipe off the
@@ -374,8 +384,9 @@ changes are a draft until then, and leaving drops them. A spare line and a ball 
 the arsenal open the same way: their sheet comes up from a tap on a row, so it
 reads the values as text, and the pencil in the bar turns the fields on. Adding
 a new one opens straight on the fields, since there is nothing to read yet.
-Retire and delete stay on the read sheet: they are actions, not edits, and
-delete asks first.
+A ball's retire and delete sit under a More beside the pencil on the read
+sheet, never as buttons across its foot: they are rare, and never what the
+sheet was opened for. Both ask first; bringing a ball back does not (ADR-206).
 
 **Pro shows as a taste, never a wall (ADR-163, ADR-167, ADR-173).** A locked
 chart or card shows its first lines lightly blurred and fading out, with the
@@ -383,12 +394,12 @@ lock in the middle of them and the whole card as the tap: shown sharp, with the
 mark below it, the card read as open. The mark on a card or a row is the lock
 alone, never the word "Pro", which a screen of locks repeated over and over. A locked list shows its first rows in full, the
 bowler's own numbers, then one more row blurred under the mark, and nothing
-after it: two leaves on Stats, one ball on Stats and the Alley report
-(`lib/proPreview`, `ProBlur`). Locked controls stay where they are, blurred and
-out of reach, with one mark saying what Pro opens ("Try your layouts with Pro",
-"Move it with Pro") and the whole block as the tap (`ProVeil`). The blur is
-light, so what is under it can be seen, and the mark holds still: it does not
-ride along with the scroll. Only the controls Pro opens are veiled, never the
+after it: one ball on Stats and the Alley report (`lib/proPreview`,
+`ProBlur`). Locked controls stay where they are, out of reach, under the lock
+alone and the whole block as the tap (`ProVeil`, ADR-202, ADR-203): the lane's
+fields lightly blurred, the layout lab's sliders drawn as they are (`clear`),
+and each point of a line on the lane carrying a lock of its own. The mark holds
+still: it does not ride along with the scroll. Only the controls Pro opens are veiled, never the
 ones around them: in the layout lab that is the three sliders, and the PAP,
 hand, grip, core and notation stay free (ADR-170). The values stay readable
 beside them, since reading is free. The Pro page shows each thing Pro adds with
@@ -506,13 +517,16 @@ as the thing leaving.
   the Settings menu and History's and Stats' lists rubber-band under a pull
   whether or not their content fills them, as an iOS screen does: a strut one
   pixel taller than the scroller keeps it scrollable. The web view itself
-  never bounces (ADR-160), so it is the screen that moves, not the app.
+  never bounces (ADR-160), so it is the screen that moves, not the app. A
+  screen with the session sheet up holds still (ADR-194): iOS never moves the
+  screen behind a presented sheet.
 - **Tab headers stay put** (`FloatingHeader`, ADR-185). History's and Stats'
   title, actions and filter chips float over their list and never move; the
   list scrolls under them, and under the status bar, behind a frosted wash
-  that fades out at the header's foot. The wash shows only once something has
-  scrolled under it: at the top of the list there is nothing to frost, and
-  shown there it blurred the first card's top edge. They used to slide away on
+  that fades out at the header's foot. The wash is always on and stops at the
+  foot, so at the top of the list nothing is under it. It used to come in only
+  once the list scrolled, and whenever the scroll event lagged the list the
+  header sat bare over moving cards. They used to slide away on
   a scroll down (ADR-077, ADR-093), which hid the filters when a long list
   needed them.
 

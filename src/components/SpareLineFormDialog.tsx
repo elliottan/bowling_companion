@@ -17,9 +17,7 @@ import { Button } from "./ui/Button";
 import { FIELD_DENSE, FIELD_MICRO_LABEL as floatLabel } from "./ui/field";
 import { IconButton } from "./ui/IconButton";
 import { FormSheet } from "./ui/FormSheet";
-import { ProPill } from "./ui/ProLock";
 import { useProAccess } from "../lib/useProAccess";
-import { isOpenLeave } from "../lib/proPreview";
 
 const EMPTY_LINE: LineSpec = {};
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -168,8 +166,6 @@ export function SpareLineFormDialog({
   );
 
   const stats = leaves && pins.length > 0 ? leaves.find((l) => l.pins.join("-") === key) : undefined;
-  // Without Pro, the record of the 7 and the 10 and no others (ADR-192).
-  const recordLocked = proLocked && stats !== undefined && !isOpenLeave(pins);
 
   return (
     <FormSheet
@@ -199,7 +195,7 @@ export function SpareLineFormDialog({
                   size="sm"
                 />
               </div>
-              <LeaveRecord stats={stats} empty={pins.length === 0} locked={recordLocked} />
+              <LeaveRecord stats={stats} empty={pins.length === 0} />
             </div>
           ) : (
             <PinGrid
@@ -331,8 +327,12 @@ export function SpareLineFormDialog({
           leave={pins}
           spare
           // Reading, the lane only shows the line: changes there are edits,
-          // and edits start at the pencil.
-          onChange={editing ? (l) => applyLine(l ?? {}) : undefined}
+          // and edits start at the pencil. Moving the line on the lane is Pro
+          // (ADR-165, ADR-199): without it the line is drawn, its controls sit
+          // under the lock, and the boards are still typed in the fields, as
+          // they are in score entry.
+          onChange={editing && !proLocked ? (l) => applyLine(l ?? {}) : undefined}
+          editLocked={editing && proLocked}
           onClose={() => setShowViz(false)}
         />
       )}
@@ -366,35 +366,11 @@ export function SpareLineFormDialog({
 }
 
 /** How the leave has gone: the rate, made over chances, and how often it was
- *  left. The same numbers as its cell on Stats, and locked where that cell is:
- *  a blurred stand-in with the Pro mark, which opens nothing from inside a sheet. */
-function LeaveRecord({ stats, empty, locked }: { stats?: LeaveStats; empty: boolean; locked: boolean }) {
+ *  left. The same numbers as its cell on Stats, free for every leave (ADR-201). */
+function LeaveRecord({ stats, empty }: { stats?: LeaveStats; empty: boolean }) {
   if (empty) return null;
   if (!stats) {
     return <p className="min-w-0 flex-1 text-xs text-ink-secondary">Not left in a recorded game yet.</p>;
-  }
-  if (locked) {
-    return (
-      <div className="relative min-w-0 flex-1">
-        <dl aria-hidden="true" className="select-none space-y-2 opacity-70 blur-[3px]">
-          <div>
-            <dt className={eyebrow}>Converted</dt>
-            <dd className="text-2xl font-bold leading-tight tabular-nums text-ink">60%</dd>
-          </div>
-          <div>
-            <dt className={eyebrow}>Made</dt>
-            <dd className="text-sm font-semibold tabular-nums text-ink">6/10</dd>
-          </div>
-          <div>
-            <dt className={eyebrow}>Left</dt>
-            <dd className="text-sm font-semibold tabular-nums text-ink">10 times</dd>
-          </div>
-        </dl>
-        <p className="absolute inset-0 flex items-center justify-center">
-          <ProPill srLabel="This leave's record is in Headpin Pro" />
-        </p>
-      </div>
-    );
   }
   return (
     <dl className="min-w-0 flex-1 space-y-2">

@@ -135,7 +135,7 @@ describe("SpareLinesView", () => {
     expect(tiles[0]).toHaveAccessibleName("Open spare line for pins 7");
   });
 
-  it("shows a leave's record without Pro only where Stats shows it, and blurs the rest (ADR-167)", async () => {
+  it("shows every leave's record without Pro, on the row and in its sheet (ADR-201)", async () => {
     await upsertSpareLine([10], { stance: 15, target: 10 });
     await upsertSpareLine([7], { stance: 15, target: 10 });
     await upsertSpareLine([4], { stance: 15, target: 10 });
@@ -149,18 +149,15 @@ describe("SpareLinesView", () => {
     );
 
     const row = await screen.findByRole("region", { name: "Stance 15, target 10" });
-    // The two left most read as they do with Pro.
     await waitFor(() => expect(within(row).getByText("5× · 100%")).toBeInTheDocument());
     expect(within(row).getByText("3× · 100%")).toBeInTheDocument();
-    // The third carries a blurred stand-in, never its own numbers.
-    expect(within(row).queryByText("2× · 100%")).not.toBeInTheDocument();
-    const third = within(row).getByRole("button", { name: "Open spare line for pins 4" });
-    expect(within(third).getByText("Record in Headpin Pro")).toBeInTheDocument();
+    // The third, as left as it is, reads as it does with Pro.
+    expect(within(row).getByText("2× · 100%")).toBeInTheDocument();
+    expect(within(row).queryByText("Record in Headpin Pro")).not.toBeInTheDocument();
 
-    // And the same in its sheet.
-    fireEvent.click(third);
-    expect(await screen.findByText("This leave's record is in Headpin Pro")).toBeInTheDocument();
-    expect(screen.queryByText("2 times")).not.toBeInTheDocument();
+    fireEvent.click(within(row).getByRole("button", { name: "Open spare line for pins 4" }));
+    expect(await screen.findByText("2 times")).toBeInTheDocument();
+    expect(screen.queryByText("This leave's record is in Headpin Pro")).not.toBeInTheDocument();
   });
 
   it("does not call a leave with only a strike ball move lineless", async () => {

@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-type Variant = "primary" | "secondary" | "danger" | "danger-ghost" | "ghost" | "quiet";
+type Variant = "primary" | "secondary" | "danger" | "danger-ghost" | "ghost" | "quiet" | "glass";
 type Size = "md" | "lg";
 
 const VARIANT: Record<Variant, string> = {
@@ -13,7 +13,10 @@ const VARIANT: Record<Variant, string> = {
   ghost: "text-accent hover:bg-surface-muted",
   // Outlined but recessive, for a control that has to line up with the
   // buttons above it without competing with them: the scorer's More.
-  quiet: "border border-edge bg-transparent text-ink-secondary hover:bg-surface-muted active:bg-surface-muted"
+  quiet: "border border-edge bg-transparent text-ink-secondary hover:bg-surface-muted active:bg-surface-muted",
+  // The bar buttons' raised glass, as a pill: a way further into what the card
+  // it sits in is about (a card's View all), not a commit.
+  glass: "glass text-accent transition-transform active:scale-[0.98] active:opacity-80"
 };
 
 const SIZE: Record<Size, string> = {

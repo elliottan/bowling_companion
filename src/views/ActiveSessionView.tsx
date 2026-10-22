@@ -256,6 +256,23 @@ export function ActiveSessionView({
     };
   }, [showSheet, sessionDetails]);
 
+  // The screen holds still under the sheet, as iOS holds the screen behind a
+  // presented sheet. A pull on the strip above the sheet bounced the screen's
+  // scroller (ADR-188), and the sheet, which hangs from the chips, came down
+  // with it. The scroller is the push's or, on the Score tab, `<main>`, so it
+  // is found from the header rather than handed down. Where the reader had
+  // scrolled to is kept: a scroller that cannot scroll still holds its offset.
+  useEffect(() => {
+    if (!showSheet) return;
+    const scroller = scrollerOf(headerRef.current);
+    if (!scroller) return;
+    const before = scroller.style.overflowY;
+    scroller.style.overflowY = "hidden";
+    return () => {
+      scroller.style.overflowY = before;
+    };
+  }, [showSheet]);
+
   /** Open the panel on a tab, with the header scrolled back into view first:
    *  the panel stops under the chips, so they have to be on screen. */
   function openSheet(tab: SessionPanelTab) {
@@ -570,7 +587,7 @@ export function ActiveSessionView({
   // Tapping what it is edits it, with no glyph to say so, as a contact's name
   // does; with the sheet up the same tap puts the sheet away instead, since the
   // sheet is what the bowler is looking at and the bar is the way back out.
-  const sessionBar = (scrolled = false) => (
+  const sessionBar = (
     <>
       {/* The oil-pattern link inside stops propagation so it still opens the
           pattern's sheet. */}
@@ -584,21 +601,23 @@ export function ActiveSessionView({
             tapIdentity();
           }
         }}
-        // Its words fade once the page passes under the bar, as a pushed
-        // title's do (ADR-177), and a tap on what cannot be seen does nothing.
-        className={`min-w-0 flex-1 rounded-md px-1 transition-opacity duration-200 active:bg-surface-muted ${
-          scrolled ? "pointer-events-none opacity-0" : ""
-        }`}
+        // Its words stay however far the page scrolls, as a pushed title's
+        // do (ADR-198).
+        className="min-w-0 flex-1 rounded-md px-1 active:bg-surface-muted"
         aria-label={showSheet ? "Close session sheet" : "Edit session"}
       >
         <SessionHeaderText session={sessionDetails.session} heading={mode === "tab" ? "h2" : "h1"} />
       </div>
+      {/* Both of the bar's ways into the stats close the sheet again when
+          it is up, as the identity does: the control that opened it is where
+          the thumb goes to put it away. */}
       <IconButton
         label="Session stats"
         title="Session stats"
         variant="round"
         className="shrink-0"
-        onClick={() => openSheet("stats")}
+        aria-expanded={showSheet}
+        onClick={toggleStats}
       >
         <BarChart3 size={18} aria-hidden="true" />
       </IconButton>
@@ -612,8 +631,9 @@ export function ActiveSessionView({
       </IconButton>
       <button
         type="button"
-        onClick={() => openSheet("stats")}
-        aria-label="Open session stats"
+        onClick={toggleStats}
+        aria-expanded={showSheet}
+        aria-label={showSheet ? "Close session stats" : "Open session stats"}
         className="ml-1 shrink-0 rounded-md text-right active:bg-surface-muted"
       >
         <span className="block text-2xl font-extrabold leading-none text-accent">
@@ -625,6 +645,11 @@ export function ActiveSessionView({
       </button>
     </>
   );
+
+  function toggleStats() {
+    if (showSheet) setShowSheet(false);
+    else openSheet("stats");
+  }
 
   function tapIdentity() {
     // The editor opens over nothing: with the sheet up the tap only closes it.
@@ -638,7 +663,7 @@ export function ActiveSessionView({
       <section ref={headerRef} className="mx-auto w-full max-w-5xl px-3 pt-2 sm:px-6">
         {/* Pushed, the bar is the nav bar's; on the Score tab there is no bar,
             so it heads the page. */}
-        {mode === "tab" && <div className="flex items-center gap-1">{sessionBar()}</div>}
+        {mode === "tab" && <div className="flex items-center gap-1">{sessionBar}</div>}
         {lanes && (
           <button
             type="button"
@@ -692,7 +717,10 @@ export function ActiveSessionView({
               expanded vertically the same way Chip does it. It also wears
               Chip's own unselected skin, because a `bg-ink` slab was the only
               near-black object in light mode and out-shouted the selected
-              game chip beside it. */}
+              game chip beside it. Not there while the sheet is up: with it
+              up the chips are the sheet's, and a new game started under it
+              was a tap meant for a chip (ADR-207). */}
+          {!showSheet && (
           <button
             type="button"
             onClick={() => void handleAddGame()}
@@ -703,6 +731,7 @@ export function ActiveSessionView({
           >
             <Plus size={16} aria-hidden="true" />
           </button>
+          )}
         </div>
 
 
@@ -984,12 +1013,18 @@ export function ActiveSessionView({
  * (docs/VIEWPORT-BUG.md).
  */
 function revealHeader(header: HTMLElement | null) {
-  if (!header) return;
-  let scroller = header.parentElement;
+  const scroller = scrollerOf(header);
+  if (!header || !scroller) return;
+  const above = header.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+  if (above < 0) scroller.scrollTop += above;
+}
+
+/** The nearest box that scrolls the session header: the push's scroller, or
+ *  `<main>` on the Score tab. */
+function scrollerOf(header: HTMLElement | null): HTMLElement | null {
+  let scroller = header?.parentElement ?? null;
   while (scroller && !/(auto|scroll)/.test(getComputedStyle(scroller).overflowY)) {
     scroller = scroller.parentElement;
   }
-  if (!scroller) return;
-  const above = header.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
-  if (above < 0) scroller.scrollTop += above;
+  return scroller;
 }

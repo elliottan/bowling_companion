@@ -42,11 +42,12 @@ html {
   -webkit-touch-callout: none;
 }
 
-/* A scroller that says it scrolls some other way: the chart's chips, cut off
-   at the card's edge, and the Spares card's leaves, whose next row peeks out
-   under the last. Its indicator was one more line over a card that already
-   says so, and on the leaves iOS drew it short of the end (DESIGN-LANGUAGE
-   §4d). */
+/* A scroller that says it scrolls some other way (ADR-196): every strip
+   that runs sideways, cut off at the edge (chips, cards, the ball tables),
+   and every small box inside a screen (a suggestion list, a menu). Its
+   indicator was one more line over something that already says so. A screen,
+   a sheet and a list that fills one keep theirs: iOS draws it only while the
+   list moves and fades it out, and on a long list it is where you are. */
 .scrollbar-none {
   scrollbar-width: none;
 }
@@ -432,9 +433,18 @@ input[type="date"]::-webkit-date-and-time-value {
   -webkit-backdrop-filter: blur(24px) saturate(1.5);
   backdrop-filter: blur(24px) saturate(1.5);
 }
+/* The answer: a raised pill, lit along its top edge and lifted off the track
+   by a soft shadow, as the system control's thumb is. At a tenth of the ink it
+   all but vanished on the dark track (ADR-200). */
 .segmented-pill {
-  background: rgb(var(--color-ink) / 0.1);
-  box-shadow: 0 0 0 1px rgb(var(--color-edge) / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.3);
+  background: rgb(var(--color-surface));
+  box-shadow: 0 0 0 0.5px rgb(var(--color-edge) / 0.8), inset 0 1px 0 rgb(255 255 255 / 0.5),
+    0 2px 8px rgb(0 0 0 / 0.12);
+}
+:root[data-theme="dark"] .segmented-pill {
+  background: rgb(var(--color-ink) / 0.17);
+  box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 2px 10px rgb(0 0 0 / 0.35);
 }
 
 /* Every screen rubber-bands, as an iOS screen does whether or not its content
@@ -463,16 +473,17 @@ input[type="date"]::-webkit-date-and-time-value {
 
 /* The ground under a tab's floating header (FloatingHeader, ADR-185): the
    page's colour, nearly solid, over a blur, so the list passing under the
-   title and the chips is a soft shape rather than words over words. It runs a
-   little past the header's foot and fades out there, so the list goes under an
-   edge that is not there, as it does under a bar in iOS. */
+   title and the chips is a soft shape rather than words over words. It fades
+   out over the header's own bottom margin and stops at its foot, so the list
+   goes under an edge that is not there, as it does under a bar in iOS, and at
+   rest nothing is under it. */
 .floating-header-ground {
   pointer-events: none;
   background: rgb(var(--color-surface-sunken) / 0.86);
   -webkit-backdrop-filter: blur(14px) saturate(1.4);
   backdrop-filter: blur(14px) saturate(1.4);
-  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.25rem), transparent);
-  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.25rem), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 0.75rem), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 0.75rem), transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

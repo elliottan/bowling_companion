@@ -475,9 +475,11 @@ export function formatVls(vls: VlsLayout): string {
   return parts.map(formatInches).join(" x ");
 }
 
-/** `45 x 4 1/2 x 35`, the dual angle written the way a drill sheet writes it. */
+/** `45° x 4 1/2 x 35°`, the dual angle written the way a drill sheet writes it.
+ *  The two angles carry their degree sign, so the row cannot be read as three
+ *  distances; the inches go unmarked, as a drill sheet leaves them. */
 export function formatDualAngle(layout: DualAngleLayout): string {
-  return `${Math.round(layout.drillingAngle)} x ${formatInches(layout.pinToPap)} x ${Math.round(layout.valAngle)}`;
+  return `${Math.round(layout.drillingAngle)}° x ${formatInches(layout.pinToPap)} x ${Math.round(layout.valAngle)}°`;
 }
 
 /**
@@ -681,8 +683,7 @@ export interface MotionReading {
 export function readMotion(
   layout: DualAngleLayout,
   ball: BallSpec,
-  pap: PapMeasurement = DEFAULT_PAP,
-  grip: GripStyle = "1h"
+  pap: PapMeasurement = DEFAULT_PAP
 ): MotionReading {
   const flare = clamp(flarePotential(layout.pinToPap, ball.diff), 0, 1.4);
   const flareInches = clamp(flare, 0, 1.4) * 6.5;
@@ -699,12 +700,10 @@ export function readMotion(
   const angularity = clamp(0.5 + (0.5 - val) * 0.9 + (drill - 0.5) * 0.3 * drillWeight, 0, 1);
   const strength = clamp(flare * 0.7 + (1 - Math.abs(val - 0.35)) * 0.3, 0, 1);
 
+  // The thumb-hole band (`inDoNotUseBand`) is not said here: a warning and a
+  // shaded stretch of the slider read as an error to most bowlers, who pick
+  // the numbers their pro shop gave them (ADR-204).
   const warnings: string[] = [];
-  if (inDoNotUseBand(layout.pinToPap, grip)) {
-    warnings.push(
-      `A pin-to-PAP distance between ${formatInches(DO_NOT_USE_BAND[0])}" and ${formatInches(DO_NOT_USE_BAND[1])}" runs the track over the thumb hole. The reaction is hard to repeat, so the dual angle system skips this band.`
-    );
-  }
   if (pinBuffer(layout.pinToPap, layout.valAngle) < 0.75 && layout.pinToPap > 0.5) {
     warnings.push(
       "The pin buffer is under 3/4\". The pin sits almost on the axis line, which leaves the driller no room to move the layout and tends to make the ball read flat."

@@ -7,18 +7,25 @@ interface ConfirmDialogProps {
   title: string;
   message?: React.ReactNode;
   confirmLabel?: string;
+  /** Red for a confirm that loses something, the default; primary for one
+   *  that only goes somewhere (the Pro page). */
+  confirmVariant?: "danger" | "primary";
+  cancelLabel?: string;
   /** For a confirm that has to be earned: a typed phrase, a busy save. */
   confirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
 
-/** Modal confirmation with a destructive (red) confirm button. */
+/** Modal confirmation, with a destructive (red) confirm button unless told
+ *  otherwise. */
 export function ConfirmDialog({
   open,
   title,
   message,
   confirmLabel = "Delete",
+  confirmVariant = "danger",
+  cancelLabel = "Cancel",
   confirmDisabled = false,
   onConfirm,
   onCancel
@@ -48,9 +55,9 @@ export function ConfirmDialog({
         {message && <div className="mt-1.5 space-y-2 text-sm text-ink-secondary">{message}</div>}
         <div className="mt-5 flex justify-end gap-2">
           <Button variant="secondary" onClick={() => dismiss()}>
-            Cancel
+            {cancelLabel}
           </Button>
-          <Button variant="danger" disabled={confirmDisabled} onClick={() => dismiss(onConfirm)}>
+          <Button variant={confirmVariant} disabled={confirmDisabled} onClick={() => dismiss(onConfirm)}>
             {confirmLabel}
           </Button>
         </div>

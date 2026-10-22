@@ -290,49 +290,27 @@ describe("BallFormDialog reading first", () => {
   });
 });
 
-describe("BallFormDialog without Pro (ADR-172)", () => {
+describe("BallFormDialog without Pro (ADR-193)", () => {
   beforeEach(async () => {
     await db.delete();
     await db.open();
   });
 
-  it("keeps the layout behind Pro, and keeps the sheet up under the Pro page (ADR-175)", () => {
-    const onClose = vi.fn();
+  it("sets and saves a ball's layout, as recording", async () => {
     render(
       <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
-        <BallFormDialog ball={null} onClose={onClose} onSaved={vi.fn()} />
+        <BallFormDialog ball={null} onClose={vi.fn()} onSaved={vi.fn()} />
       </ProAccessContext.Provider>
     );
-    // The name and weight stay free; the layout is out of reach under one mark.
-    expect(screen.getByLabelText(/Display name/)).toBeEnabled();
-    expect(screen.getByText("Set and visualize your ball layout with Pro")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Add layout/ })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Setting this ball's layout. Get the app" }));
-    // The draft stays: the Pro page opens above the sheet, not in place of it.
-    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText(/Display name/), { target: { value: "Phaze II" } });
+    fireEvent.click(screen.getByRole("button", { name: /Add layout/ }));
+    fireEvent.change(screen.getByRole("slider", { name: "Drilling angle" }), { target: { value: "60" } });
+    save();
+
+    await waitFor(async () => expect((await saved("Phaze II"))?.layout_spec?.drillingAngle).toBe(60));
   });
 
-  it("still reads a layout already on the ball", async () => {
-    const id = await addBall({ name: "Phaze II", is_spare_ball: false, layout_spec: SPEC });
-    const ball = (await getBalls()).find((b) => b.id === id)!;
-    render(
-      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
-        <BallFormDialog ball={ball} onClose={vi.fn()} onSaved={vi.fn()} />
-      </ProAccessContext.Provider>
-    );
-    // The read sheet is free: the layout shows as it is.
-    expect(await screen.findByText("Asymmetric core")).toBeInTheDocument();
-    expect(screen.queryByText("Set and visualize your ball layout with Pro")).toBeNull();
-  });
-});
-
-describe("BallFormDialog without Pro, past the veil (ADR-190)", () => {
-  beforeEach(async () => {
-    await db.delete();
-    await db.open();
-  });
-
-  it("moves nothing and saves no new layout, even with the veil taken off", async () => {
+  it("changes and removes a layout already on the ball", async () => {
     const id = await addBall({ name: "Phaze II", is_spare_ball: false, layout_spec: SPEC });
     const ball = (await getBalls()).find((b) => b.id === id)!;
     const onSaved = vi.fn();
@@ -342,14 +320,10 @@ describe("BallFormDialog without Pro, past the veil (ADR-190)", () => {
       </ProAccessContext.Provider>
     );
     unlock();
-    // The slider is inert under the veil, but in the page: a change event
-    // reaches it as a browser's tools would let it.
-    const slider = (await screen.findAllByRole("slider", { hidden: true }))[0] as HTMLInputElement;
-    fireEvent.change(slider, { target: { value: "80" } });
+    fireEvent.click(await screen.findByRole("button", { name: "Remove layout" }));
     save();
     await waitFor(() => expect(onSaved).toHaveBeenCalled());
-    const saved = (await getBalls()).find((b) => b.id === id)!;
-    expect(saved.layout_spec).toEqual(SPEC);
+    expect((await saved("Phaze II"))?.layout_spec).toBeUndefined();
   });
 });
 

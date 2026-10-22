@@ -102,7 +102,7 @@ export function SuggestInput({
         <ul
           id={listId}
           role="listbox"
-          className={`absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border py-1 shadow-lg ${list}`}
+          className={`scrollbar-none absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border py-1 shadow-lg ${list}`}
         >
           {matches.map((s, i) => (
             // By position too: two entries can share a value, and a repeated

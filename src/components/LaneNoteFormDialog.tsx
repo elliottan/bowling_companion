@@ -110,7 +110,7 @@ export function LaneNoteFormDialog({ note, alleys, onClose, onSaved }: LaneNoteF
                     className={FIELD}
                   />
                   {showAlleyList && alleyMatches.length > 0 && (
-                    <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-edge bg-surface py-1 shadow-lg">
+                    <ul className="scrollbar-none absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-edge bg-surface py-1 shadow-lg">
                       {alleyMatches.map((a) => (
                         <li key={a}>
                           <button

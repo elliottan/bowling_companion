@@ -240,10 +240,11 @@ function Blurred({
  * reach, so a bowler sees what Pro would let them change, and one tap anywhere
  * on them is the way to Pro. The controls themselves while Pro is open.
  *
- * `before` runs first, for a layer the caller has to close so the Pro page is
- * not hidden behind it (the lane). `lane` is the lane view's dark frame. `top`
- * pins the mark to the top centre of the block (the layout lab's sliders)
- * rather than its middle. It never follows the scroll: a mark that rode along
+ * The Pro page opens above every layer, the lane's included (ADR-175), so
+ * nothing has to close first, and back returns to the controls as they were.
+ * `lane` is the lane view's dark frame. `top` pins the mark to the top centre
+ * of the block rather than its middle. `clear` drops the blur and the fade,
+ * for controls that read best exactly as they are (the layout lab's sliders). It never follows the scroll: a mark that rode along
  * read as loose on the screen, sliding over the blurred fields.
  *
  * The blur is light on purpose. The point of the veil is that the bowler can
@@ -254,7 +255,7 @@ export function ProVeil({
   label,
   lane = false,
   top = false,
-  before,
+  clear = false,
   className = "",
   children
 }: {
@@ -265,14 +266,16 @@ export function ProVeil({
   label?: string;
   lane?: boolean;
   top?: boolean;
-  before?: () => void;
+  /** No blur and no fade: the controls look as they are, out of reach, with
+   *  the lock on them (the layout lab's sliders, ADR-203). */
+  clear?: boolean;
   className?: string;
   children: ReactNode;
 }) {
   const access = useProAccess();
   if (!access.locked) return <>{children}</>;
   return (
-    <Veil access={access} what={what} label={label} lane={lane} top={top} before={before} className={className}>
+    <Veil access={access} what={what} label={label} lane={lane} top={top} clear={clear} className={className}>
       {children}
     </Veil>
   );
@@ -284,7 +287,7 @@ function Veil({
   label,
   lane,
   top,
-  before,
+  clear,
   className,
   children
 }: {
@@ -293,7 +296,7 @@ function Veil({
   label?: string;
   lane: boolean;
   top: boolean;
-  before?: () => void;
+  clear: boolean;
   className: string;
   children: ReactNode;
 }) {
@@ -301,18 +304,17 @@ function Veil({
   const previewRef = useInert<HTMLDivElement>();
   return (
     <div className={`relative ${className}`.trim()}>
-      <div ref={previewRef} aria-hidden="true" className="pointer-events-none select-none opacity-80 blur-[1px]">
+      <div
+        ref={previewRef}
+        aria-hidden="true"
+        className={`pointer-events-none select-none ${clear ? "" : "opacity-80 blur-[1px]"}`}
+      >
         {children}
       </div>
       <button
         type="button"
         disabled={action.busy || action.unavailable}
-        onClick={() => {
-          // The lane's own layer would cover the Pro page, so a caller that owns
-          // it closes it first.
-          before?.();
-          action.start();
-        }}
+        onClick={action.start}
         aria-label={`${what}. ${action.label}`}
         className={`absolute inset-0 flex justify-center rounded-xl disabled:opacity-60 ${top ? "items-start pt-3" : "items-center"}`}
       >

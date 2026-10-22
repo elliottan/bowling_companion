@@ -47,7 +47,7 @@ const SHOTS = [
   { name: "05-catalog", theme: "dark", h: "Hundreds of balls,|<em>one tap</em>.", sub: "Specs and photos. Build your bag from them." },
   { name: "06-pattern", theme: "dark", h: "See the oil|<em>before you throw</em>.", sub: "Load tables and the oil drawn on the lane." },
   { name: "07-layout", theme: "light", h: "See a layout|<em>before you drill it</em>.", sub: "Dual angle and Storm VLS, drawn from your PAP." },
-  { name: "08-pro", theme: "dark", pro: true, h: "Go deeper|with <em>Pro</em>.", sub: "Pocket, carry, leaves, ball by ball. One purchase, no subscription." },
+  { name: "08-pro", theme: "dark", pro: true, h: "Go deeper|with <em>Pro</em>.", sub: "Carry, strike, ball by ball, alley by alley. One purchase, no subscription." },
   { name: "09-home", theme: "light", h: "Works without|<em>a signal</em>.", sub: "No account to make. Built for the alley." },
   { name: "10-history", theme: "dark", h: "Every night,|<em>on your phone</em>.", sub: "Unlimited sessions. Back up any time, free." }
 ];

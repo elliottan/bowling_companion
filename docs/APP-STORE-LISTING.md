@@ -71,7 +71,7 @@ YOUR GAMES, YOUR FILE
 Export a backup any time and import it on another phone. Bowled with Headpin on the web? Export there, import in the app, and your games come with you.
 
 HEADPIN PRO
-Headpin is free to download, and recording is free: every shot, ball, line, lane, pattern and note, plus your history and backups. Headpin Pro is one purchase, tied to your Apple ID, with no subscription, and every Pro feature added later comes with it. It opens the deeper reads: every leave you leave and how often you make each, how every one of your balls strikes and carries, what you'd average with each ball at an alley, and moving a line, changing a layout or setting a ball's layout to see what it does.
+Headpin is free to download, and recording is free: every shot, ball, line, lane, pattern and note, plus your history and backups. Headpin Pro is one purchase, tied to your Apple ID, with no subscription, and every Pro feature added later comes with it. It opens the deeper reads: whether your pocket hits carry and how often you strike, how every one of your balls strikes and carries, what you'd average with each ball at an alley, and moving a line, changing a layout or seeing your own ball's layout drawn to see what it does.
 
 Headpin is an independent project and isn't affiliated with any ball manufacturer or bowling organization. Ball names and images belong to their owners.
 ```
@@ -105,11 +105,11 @@ There is no backend. Scores, balls and lines are stored on the device only. The 
 
 In-app purchase: one non-consumable, "Headpin Pro", product ID app.headpin.pro, US$9.99. It is a single unlock tied to the Apple ID, with no subscription and no trial. Restore purchase is in Settings and uses the App Store's own restore.
 
-What is free: scoring, every ball, line, lane, pattern and note, history, backup and export, the ball and oil pattern catalogs, share cards, and the stats: average, high game and series, strike and spare rates, the first-ball card (pocket, carry, strike on strike), a chart of every stat by session and by game, the two leaves left most and the best ball.
+What is free: scoring, every ball, line, lane, pattern and note, history, backup and export, the ball and oil pattern catalogs, share cards, and the stats: average, high game and series, the pocket rate, the spare rate, every leave and how often each is made, a chart of the average, the pocket and the spare by session and by game, and the best ball.
 
-What Pro unlocks: the rest of those same records read in depth. Every other leave and its spare conversion, every other ball's rates and details, the alley report's per-ball averages, moving a line in the line sandbox, changing the three numbers of a layout in the layout lab, and setting a ball's layout in the arsenal. Without Pro those are drawn but locked under a lock icon, and reading a line or layout stays free. Nothing the bowler recorded is ever hidden.
+What Pro unlocks: the rest of those same records read in depth. Carry, strike, strike on strike, first-ball pins and most strikes in a row, on the First ball card and as chart metrics, every other ball's rates and details, the alley report's per-ball averages, moving a line or shaping its hook in the line sandbox, changing the three numbers of a layout in the layout lab, and seeing a ball's own layout drawn from the arsenal. Without Pro those are drawn but locked under a lock icon, and reading a line or layout stays free. Nothing the bowler recorded is ever hidden.
 
-To see a Pro screen: open Stats, where the Spares and Balls cards show their first rows and lock the next, and tap "Get Headpin Pro" at the foot of the screen, or a lock, or the Headpin Pro row in Settings. The Headpin Pro page opens and says what Pro adds; its button opens the App Store's purchase sheet. The same page has Restore purchase, and so does Settings. Use a sandbox tester account to buy.
+To see a Pro screen: open Stats, where the First ball card shows the pocket and locks the rest, the chart's locked metrics carry a lock, and the Balls card shows its first row and locks the next, and tap "Get Headpin Pro" at the foot of the screen, or a lock, or the Headpin Pro row in Settings. The Headpin Pro page opens and says what Pro adds; its button opens the App Store's purchase sheet. The same page has Restore purchase, and so does Settings. Use a sandbox tester account to buy.
 
 Bringing games from the web: on first launch the app explains how to import a backup file exported from headpin.app (Settings, Backup & restore). Exporting uses the system share sheet.
 
@@ -144,7 +144,7 @@ the rest, so the set shows both.
 | 5 | A catalog ball's page, photo and specs | Hundreds of balls, one tap. | Specs and photos. Build your bag from them. |
 | 6 | 2019 PBA Shark 48: its numbers and the oil on the lane | See the oil before you throw. | Load tables and the oil drawn on the lane. |
 | 7 | The layout lab as it opens: the drilled ball, what it will do, the locked sliders | See a layout before you drill it. | Dual angle and Storm VLS, drawn from your PAP. |
-| 8 | Stats with Pro bought: every leave and every ball, under the Headpin Pro badge | Go deeper with Pro. | Every leave, ball by ball. One purchase, no subscription. |
+| 8 | Stats with Pro bought: carry, strike and every ball, under the Headpin Pro badge | Go deeper with Pro. | Carry, strike, ball by ball. One purchase, no subscription. |
 | 9 | Home, tonight's game in progress, with the Pro banner | Works without a signal. | No account to make. Built for the alley. |
 | 10 | History: five weeks of league nights | Every night, on your phone. | Unlimited sessions. Back up any time, free. |
 

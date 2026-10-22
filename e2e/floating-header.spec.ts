@@ -105,13 +105,18 @@ test("the list passes under the header rather than stopping at its edge", async 
   expect(firstCardTop).toBeLessThan(headerBottom);
 });
 
-test("at the top of the list nothing is frosted, and the wash comes in once it scrolls", async ({ page }) => {
+test("the wash is always on, and at the top of the list it frosts nothing", async ({ page }) => {
   await history(page, 5);
   const ground = page.locator("[data-floating-header] .floating-header-ground");
-  // At rest the first card sits below the header in full, not behind its blur.
-  await expect(ground).toHaveCSS("opacity", "0");
+  // Never keyed to the scroll, so it cannot be missing while the list moves.
+  await expect(ground).toHaveCSS("opacity", "1");
+  // At rest the first card sits below the wash in full, not behind its blur.
+  const { groundBottom, firstCardTop } = await page.evaluate((sel) => {
+    const g = document.querySelector("[data-floating-header] .floating-header-ground") as HTMLElement;
+    const card = (document.querySelector(sel) as HTMLElement).querySelector("ul > li") as HTMLElement;
+    return { groundBottom: g.getBoundingClientRect().bottom, firstCardTop: card.getBoundingClientRect().top };
+  }, SCROLLER);
+  expect(firstCardTop).toBeGreaterThanOrEqual(groundBottom - 0.5);
   await scrollBy(page, 120);
   await expect(ground).toHaveCSS("opacity", "1");
-  await scrollBy(page, -120);
-  await expect(ground).toHaveCSS("opacity", "0");
 });
