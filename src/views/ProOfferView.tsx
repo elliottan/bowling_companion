@@ -65,7 +65,7 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
         <header className="text-center">
           <ProMark size={72} className="mx-auto rounded-2xl shadow-md" />
           <h2 className="mt-3 text-2xl font-bold text-ink">Headpin Pro</h2>
-          <p className="mt-1 text-sm text-ink-secondary">You pay once and keep it. No subscription, no account.</p>
+          <p className="mt-1 text-sm text-ink-secondary">Pay once and it is yours, with every Pro feature added later included. No subscription, no account.</p>
         </header>
 
         <ul className="mt-5 space-y-3">

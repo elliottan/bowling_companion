@@ -71,7 +71,7 @@ YOUR GAMES, YOUR FILE
 Export a backup any time and import it on another phone. Bowled with Headpin on the web? Export there, import in the app, and your games come with you.
 
 HEADPIN PRO
-Headpin is free to download, and recording is free: every shot, ball, line, lane, pattern and note, plus your history and backups. Headpin Pro is one purchase, tied to your Apple ID, with no subscription. It opens the deeper reads: every leave you leave and how often you make each, how every one of your balls strikes and carries, what you'd average with each ball at an alley, and moving a line, changing a layout or setting a ball's layout to see what it does.
+Headpin is free to download, and recording is free: every shot, ball, line, lane, pattern and note, plus your history and backups. Headpin Pro is one purchase, tied to your Apple ID, with no subscription, and every Pro feature added later comes with it. It opens the deeper reads: every leave you leave and how often you make each, how every one of your balls strikes and carries, what you'd average with each ball at an alley, and moving a line, changing a layout or setting a ball's layout to see what it does.
 
 Headpin is an independent project and isn't affiliated with any ball manufacturer or bowling organization. Ball names and images belong to their owners.
 ```

@@ -9,6 +9,18 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.58.0: Pro includes what comes later, and links open the app (2026-10-22)
+
+- **Pro says it includes future Pro features.** The Pro page, the Home banner
+  and the Settings row now say that one purchase covers every Pro feature
+  added later, not only today's.
+- **headpin.app links open in the iPhone app.** The site now serves
+  `apple-app-site-association` for the app's team, so a shared line, layout
+  or guide link opens straight in the app when it is installed. `/score`
+  stays on the web.
+- **The landing page's first section says what you do:** "Tap the pins you
+  left." And the stats picture's description gives its real average.
+
 ## 0.57.1: The top of Stats and History is no longer frosted (2026-10-22)
 
 - **Nothing is cut off at the top of Stats and History.** The frosted wash

@@ -266,7 +266,7 @@ describe("SettingsView's Headpin Pro", () => {
   it("offers Pro at its price, and buys it", async () => {
     const buy = vi.fn(async () => "purchased" as const);
     renderWithStore({ ...base, buy });
-    expect(screen.getByText("$9.99, once: every analysis, for good")).toBeInTheDocument();
+    expect(screen.getByText("$9.99, once: every analysis, and every one added later")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Get Headpin Pro/ }));
     await waitFor(() => expect(buy).toHaveBeenCalledTimes(1));
   });

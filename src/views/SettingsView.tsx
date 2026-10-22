@@ -386,7 +386,7 @@ function ProSection() {
             description={
               busy === "buy"
                 ? waiting
-                : `${store.price ? `${store.price}, once` : "One purchase"}: every analysis, for good`
+                : `${store.price ? `${store.price}, once` : "One purchase"}: every analysis, and every one added later`
             }
             onClick={() => (openOffer ? openOffer() : void buy())}
           />

@@ -34,7 +34,7 @@ describe("the Pro page (ADR-164)", () => {
     ]) {
       expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();
     }
-    expect(screen.getByText(/You pay once and keep it/)).toBeInTheDocument();
+    expect(screen.getByText(/every Pro feature added later included/)).toBeInTheDocument();
     // Only what Pro adds: the free app is already in the bowler's hand.
     expect(screen.queryByRole("heading", { name: "What stays free" })).not.toBeInTheDocument();
   });
