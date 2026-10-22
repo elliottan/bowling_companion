@@ -18,6 +18,11 @@ had all shipped.
   and the series score sit in the session's header, so the scorecard starts
   higher. The date is short ("Oct 19") and the game count is gone; the game
   chips already say it.
+- **No more long press.** Holding a History row or a game chip no longer opens
+  a menu; a tap just opens it. Edit session is a tap on the session's header,
+  and its sheet now ends with the session's games, each with a red delete,
+  and a red Delete session, each behind a warning (ADR-184).
+- **The game chips have no scroll bar.** They still scroll sideways.
 - **"Strike on strike" is "Double".** A strike that follows a strike is a
   double, as bowlers say it, and the one word fits on the Stats chart picker,
   the First ball card and the ball tables where three words wrapped.

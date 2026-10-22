@@ -25,7 +25,6 @@ import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import { IconButton } from "../components/ui/IconButton";
 import { FormSheet } from "../components/ui/FormSheet";
-import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import { FIELD } from "../components/ui/field";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -41,10 +40,10 @@ import {
   shouldOfferShare
 } from "../lib/shareOffer";
 import { useHandedness } from "../lib/handednessContext";
-import { useLongPress } from "../lib/useLongPress";
 import {
   addNextGameToSession,
   deleteGame,
+  deleteSession,
   getBackupNudgeState,
   getSessionDetails,
   getSessionHistory,
@@ -131,7 +130,7 @@ export function ActiveSessionView({
   const [isAddingGame, setIsAddingGame] = useState(false);
   const [error, setError] = useState("");
   const [confirmDeleteGame, setConfirmDeleteGame] = useState<number | null>(null);
-  const [chipMenu, setChipMenu] = useState<{ gameId: number; left: number; top: number } | null>(null);
+  const [confirmDeleteSession, setConfirmDeleteSession] = useState(false);
   // A game drill-down lands on the session sheet, scrolled to that game: the
   // question it was asked from ("what did this ball do in game 3") is answered
   // by the frames, not by the scorer parked on one of them.
@@ -220,8 +219,6 @@ export function ActiveSessionView({
     // Mount-only: the flag is consumed by the initial state above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const longPress = useLongPress();
 
   const activeGame = useMemo(
     () => sessionDetails?.games.find((g) => g.id === activeGameId) ?? null,
@@ -445,6 +442,17 @@ export function ActiveSessionView({
     }
   }
 
+  async function handleDeleteSession() {
+    setConfirmDeleteSession(false);
+    try {
+      await deleteSession(sessionId);
+      setShowEdit(false);
+      onSessionDeleted();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete session.");
+    }
+  }
+
   async function handleSaveEdit(values: NewSessionFormValues) {
     try {
       await updateSession(sessionId, values);
@@ -645,7 +653,7 @@ export function ActiveSessionView({
         {/* py-1, not pb-1: overflow-x-auto forces overflow-y to auto, which
             clips at the padding box. The Chip tap region overhangs its box 4px
             top and bottom, so both sides need padding or the top 4px is dead. */}
-        <div ref={chipRowRef} className="mt-2 flex items-center gap-2 overflow-x-auto overscroll-x-none py-1">
+        <div ref={chipRowRef} className="scrollbar-none mt-2 flex items-center gap-2 overflow-x-auto overscroll-x-none py-1">
           {games.map((g) => {
             const frames = (g as Game & { frames: Frame[] }).frames;
             return (
@@ -656,17 +664,7 @@ export function ActiveSessionView({
                 selected={
                   showSheet ? gameChipOn(sheetTab, panelSelection, g.id) : g.id === activeGameId
                 }
-                {...longPress.bind((chip) => {
-                  if (!g.id) return;
-                  const rect = chip.getBoundingClientRect();
-                  setChipMenu({
-                    gameId: g.id,
-                    left: Math.max(8, Math.min(rect.left, window.innerWidth - 184)),
-                    top: rect.bottom + 4
-                  });
-                })}
                 onClick={() => {
-                  if (longPress.didLongPress()) return;
                   if (!g.id) return;
                   if (showSheet) {
                     const next = tapGameChip(sheetTab, panelSelection, g.id);
@@ -707,21 +705,6 @@ export function ActiveSessionView({
           </button>
         </div>
 
-        {chipMenu && (
-          <AnchoredMenu left={chipMenu.left} top={chipMenu.top} onClose={() => setChipMenu(null)}>
-            <AnchoredMenuItem
-              icon={Trash2}
-              danger
-              onClick={() => {
-                const gameId = chipMenu.gameId;
-                setChipMenu(null);
-                setConfirmDeleteGame(gameId);
-              }}
-            >
-              Delete game
-            </AnchoredMenuItem>
-          </AnchoredMenu>
-        )}
 
         {error && (
           <ErrorBanner className="mt-3">{error}</ErrorBanner>
@@ -805,14 +788,6 @@ export function ActiveSessionView({
         onOpenArsenal={onOpenArsenal}
       />
 
-      <ConfirmDialog
-        open={confirmDeleteGame != null}
-        title="Delete this game?"
-        message={deleteGameMessage}
-        onConfirm={handleDeleteGame}
-        onCancel={() => setConfirmDeleteGame(null)}
-      />
-
 
       {showSheet && (
         <SessionLanePanel
@@ -861,7 +836,63 @@ export function ActiveSessionView({
         }}
         onSubmit={handleSaveEdit}
         onCancel={() => setShowEdit(false)}
-      />, document.body)}
+        active={confirmDeleteGame === null && !confirmDeleteSession}
+      >
+        {/* Deleting sits with what it deletes, in the session's own editor,
+            rather than behind a long press on a chip or a History row: a hold
+            is a gesture nobody finds, and the one found by accident (ADR-184). */}
+        <section className="mt-6 border-t border-edge pt-4" aria-label="Games">
+          <h3 className={GROUP_HEADING}>Games</h3>
+          <ul className="mt-1 divide-y divide-edge">
+            {games.map((g) => {
+              const frames = (g as Game & { frames: Frame[] }).frames;
+              const score = g.final_score ?? (frames.length > 0 ? `${calculateGameScore(frames).total}+` : null);
+              return (
+                <li key={g.id} className="flex items-center gap-2 py-1">
+                  <span className="flex-1 text-sm text-ink">
+                    Game {g.game_number}
+                    {score != null && <span className="text-ink-secondary"> · {score}</span>}
+                  </span>
+                  <IconButton
+                    label={`Delete game ${g.game_number}`}
+                    variant="danger"
+                    onClick={() => g.id != null && setConfirmDeleteGame(g.id)}
+                  >
+                    <Trash2 size={18} aria-hidden="true" />
+                  </IconButton>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+        <Button variant="danger-ghost" onClick={() => setConfirmDeleteSession(true)} className="mt-4 w-full">
+          <Trash2 size={16} aria-hidden="true" />
+          Delete session
+        </Button>
+      </SessionFormDialog>, document.body)}
+
+      {/* Over the editor, so portalled beside it. */}
+      {createPortal(
+        <>
+          <ConfirmDialog
+            open={confirmDeleteGame != null}
+            title="Delete this game?"
+            message={deleteGameMessage}
+            onConfirm={handleDeleteGame}
+            onCancel={() => setConfirmDeleteGame(null)}
+          />
+          <ConfirmDialog
+            open={confirmDeleteSession}
+            title="Delete this session?"
+            message={`"${alleyLabel(sessionDetails.session.alley_name)}" and all ${games.length} ${
+              games.length === 1 ? "game" : "games"
+            } will be permanently deleted. This can't be undone.`}
+            onConfirm={handleDeleteSession}
+            onCancel={() => setConfirmDeleteSession(false)}
+          />
+        </>,
+        document.body
+      )}
 
       {/* Lanes save as you type, so the sheet carries a close and no commit. */}
       {showLaneEditor && (

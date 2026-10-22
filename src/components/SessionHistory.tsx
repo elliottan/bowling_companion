@@ -1,19 +1,11 @@
-import { History, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { createPortal } from "react-dom";
+import { History } from "lucide-react";
 import { calculateGameScore } from "../lib/scoring";
-import { useLongPress } from "../lib/useLongPress";
-import { deleteSession, updateSession } from "../services/bowlingRepository";
-import { ConfirmDialog } from "./ConfirmDialog";
-import { SessionFormDialog } from "./SessionFormDialog";
 import { laneSummary } from "./SessionHeaderText";
 import { alleyLabel } from "../lib/sessionLabels";
-import type { NewSessionFormValues } from "./SessionForm";
 import type { SessionSummary } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
 import { LoadingCard } from "./ui/LoadingCard";
 import { EmptyState } from "./ui/EmptyState";
-import { AnchoredMenu, AnchoredMenuItem } from "./ui/AnchoredMenu";
 import { formatSessionDate } from "../lib/dates";
 
 interface SessionHistoryProps {
@@ -22,17 +14,13 @@ interface SessionHistoryProps {
   /** `openStats` is set when every game in the session is finished. */
   onOpenSession: (sessionId: number, openStats?: boolean) => void;
   activeSessionId?: number | null;
-  /** Called after a session is edited or deleted so the list can reload. */
-  /** Called after a session is deleted so App can drop stale active state. */
-  onSessionDeleted?: (sessionId: number) => void;
 }
 
 export function SessionHistory({
   sessions,
   isLoading = false,
   onOpenSession,
-  activeSessionId,
-  onSessionDeleted
+  activeSessionId
 }: SessionHistoryProps) {
   if (isLoading) return <LoadingCard />;
 
@@ -54,7 +42,6 @@ export function SessionHistory({
             summary={summary}
             isActive={summary.session.id != null && summary.session.id === activeSessionId}
             onOpen={onOpenSession}
-            onSessionDeleted={onSessionDeleted}
           />
         </li>
       ))}
@@ -66,34 +53,16 @@ interface SessionRowProps {
   summary: SessionSummary;
   isActive: boolean;
   onOpen: (sessionId: number, openStats?: boolean) => void;
-  onSessionDeleted?: (sessionId: number) => void;
 }
 
 /**
- * Tap a row to open the session; edit lives in the stats panel's pencil;
- * long-press the row to delete the session.
+ * Tap a row to open the session, and that is all a row does. Editing and
+ * deleting the session are in its own editor, a tap on its header away: a
+ * long press here was found by accident, mid-scroll, more than on purpose
+ * (ADR-184).
  */
-function SessionRow({ summary, isActive, onOpen, onSessionDeleted }: SessionRowProps) {
+function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
   const { session, games } = summary;
-  const [showEdit, setShowEdit] = useState(false);
-  const [rowMenu, setRowMenu] = useState<{ left: number; top: number } | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const longPress = useLongPress();
-
-  async function handleSaveEdit(values: NewSessionFormValues) {
-    if (!session.id) return;
-    await updateSession(session.id, values);
-    setShowEdit(false);
-  }
-
-  async function handleDeleteSession() {
-    setConfirmDelete(false);
-    if (!session.id) return;
-    await deleteSession(session.id);
-    // Still announced: the lists refresh themselves now, but the shell has to
-    // drop the session it may be holding open (ADR-041 navigation state).
-    onSessionDeleted?.(session.id);
-  }
   // Series total = sum of every game's score (current total if unfinished);
   // average = mean of completed games only.
   const seriesTotal = games.reduce(
@@ -111,19 +80,10 @@ function SessionRow({ summary, isActive, onOpen, onSessionDeleted }: SessionRowP
   );
 
   return (
-    <div className="relative">
     <button
       type="button"
-      {...longPress.bind((row) => {
-        const rect = row.getBoundingClientRect();
-        setRowMenu({
-          left: Math.max(8, Math.min(rect.left + 16, window.innerWidth - 200)),
-          top: rect.top + Math.min(rect.height / 2, 48)
-        });
-      })}
       aria-label={`Open session: ${alleyLabel(session.alley_name)}, ${formatSessionDate(session.date)}`}
       onClick={() => {
-        if (longPress.didLongPress()) return;
         if (session.id) onOpen(session.id, !hasUnfinishedGame);
       }}
       className={`w-full rounded-lg border bg-surface p-4 text-left shadow-sm ${
@@ -198,64 +158,5 @@ function SessionRow({ summary, isActive, onOpen, onSessionDeleted }: SessionRowP
         </dl>
       )}
     </button>
-
-      {/* Long-press menu + confirm are portaled to body: rows can live inside
-          SwipePanes, whose translateX transform would otherwise reposition
-          these fixed overlays. */}
-      {rowMenu && (
-        <AnchoredMenu left={rowMenu.left} top={rowMenu.top} onClose={() => setRowMenu(null)}>
-          <AnchoredMenuItem
-            icon={Pencil}
-            onClick={() => {
-              setRowMenu(null);
-              setShowEdit(true);
-            }}
-          >
-            Edit session
-          </AnchoredMenuItem>
-          <AnchoredMenuItem
-            icon={Trash2}
-            danger
-            onClick={() => {
-              setRowMenu(null);
-              setConfirmDelete(true);
-            }}
-          >
-            Delete session
-          </AnchoredMenuItem>
-        </AnchoredMenu>
-      )}
-
-      {createPortal(
-        <ConfirmDialog
-          open={confirmDelete}
-          title="Delete this session?"
-          message={`"${alleyLabel(session.alley_name)}" and all its games will be permanently deleted.`}
-          onConfirm={handleDeleteSession}
-          onCancel={() => setConfirmDelete(false)}
-        />,
-        document.body
-      )}
-
-      {/* Portal to body: rows can live inside SwipePanes, whose translateX
-          transform would otherwise reposition this fixed dialog. */}
-      {createPortal(
-        <SessionFormDialog
-          open={showEdit}
-          title="Edit session"
-          submitLabel="Save"
-          initial={{
-            alley_name: session.alley_name,
-            date: session.date,
-            description: session.description,
-            oil_pattern_id: session.oil_pattern_id,
-            general_notes: session.general_notes
-          }}
-          onSubmit={handleSaveEdit}
-          onCancel={() => setShowEdit(false)}
-        />,
-        document.body
-      )}
-    </div>
   );
 }

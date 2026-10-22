@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { clearDatabase, recordShot, startSession, openArsenalFromHome } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
@@ -12,16 +12,6 @@ test.beforeEach(async ({ page }) => {
  * the row would still be on screen after the delete.
  */
 
-/** The session rows carry a long-press menu; a tap opens the session instead. */
-async function longPress(page: Page, name: RegExp) {
-  const row = page.getByRole("button", { name }).first();
-  const box = (await row.boundingBox())!;
-  await page.mouse.move(box.x + 20, box.y + 20);
-  await page.mouse.down();
-  await page.waitForTimeout(700);
-  await page.mouse.up();
-}
-
 test("deleting a session updates the list it was deleted from", async ({ page }) => {
   await startSession(page, "Live Lanes");
   await recordShot(page, []);
@@ -29,11 +19,15 @@ test("deleting a session updates the list it was deleted from", async ({ page })
   await page.getByRole("navigation").getByRole("button", { name: "History" }).click();
   await expect(page.getByRole("button", { name: /Live Lanes/ }).first()).toBeVisible();
 
-  await longPress(page, /Live Lanes/);
-  await page.getByRole("button", { name: /^Delete/ }).click();
+  // Deleted from the session's own editor (ADR-184): open it, tap its header,
+  // and the red Delete session at the foot, behind its confirm.
+  await page.getByRole("button", { name: /Live Lanes/ }).first().click();
+  await page.getByRole("button", { name: "Edit session" }).click();
+  await page.getByRole("dialog", { name: "Edit session" }).getByRole("button", { name: "Delete session" }).click();
   await page.getByRole("button", { name: "Delete", exact: true }).last().click();
 
-  // No reload, no navigation: the list follows the write.
+  // Back on History with no reload: the list follows the write.
+  await page.getByRole("navigation").getByRole("button", { name: "History" }).click();
   await expect(page.getByRole("button", { name: /Live Lanes/ })).toHaveCount(0);
 });
 

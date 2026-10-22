@@ -8287,3 +8287,36 @@ say.
 
 **Consequence.** A long alley name truncates sooner in a pushed bar, beside
 two round buttons and the score. The full name is in the edit sheet a tap away.
+
+## ADR-184: No long press; a session's deletes are in its editor
+
+**Status.** Accepted, 2026-10-22, at the owner's request.
+
+**Context.** Two things in the app waited on a hold. A History row held for a
+menu of Edit session and Delete session, and a game chip held for Delete game.
+The owner found both clunky and easy to set off by accident. On the iPhone a
+hold is the system's context menu, which lifts the item, blurs the rest and
+gives a haptic, and a page cannot draw that. What it can draw is a timer and a
+small floating menu, with nothing to say the gesture is there, and the thumb
+that finds it is mostly one resting on a row mid-scroll.
+
+**Decision.**
+
+- **No long press anywhere.** `useLongPress` is gone. A History row and a game
+  chip do one thing on a tap, open or pick, and nothing on a hold.
+- **Edit session** is a tap on the session's header (ADR-183), so it leaves the
+  History menu with nothing to replace.
+- **Delete session** is a red button at the foot of Edit session, behind a
+  confirm that says every game goes with it and that it cannot be undone. It
+  sits with what it deletes, as Delete ball does in the ball editor.
+- **Delete game** is in the same sheet: a Games list, each game with its score
+  and a red delete, behind a confirm. The editor is the one place reachable
+  for every game, finished or not; the scorer's More menu is only there while
+  a game is being scored. Deleting the last game deletes the session, as it
+  did from the chip.
+- The game chips scroll sideways with no scroll bar drawn; a row cut off at
+  the edge already says there is more.
+
+**Consequence.** Deleting a session from History is now three taps (open it,
+its header, Delete session) rather than a hold and a tap. That is the point: a
+delete should be found by looking for it, not by resting a thumb.

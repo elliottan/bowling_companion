@@ -89,6 +89,51 @@ describe("ActiveSessionView", () => {
     expect(screen.queryByRole("dialog", { name: "Edit session" })).not.toBeInTheDocument();
   });
 
+  /**
+   * A session's deletes sit in its own editor: each game, and the session at
+   * the foot, in red, behind a confirm. No long press anywhere (ADR-184).
+   */
+  it("deletes a game from the session's editor, after a confirm", async () => {
+    const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
+    await addGameToSession(sessionId, { game_number: 1 });
+    const g2 = Number(await addGameToSession(sessionId, { game_number: 2 }));
+    renderSession(sessionId);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Edit session" }));
+    const editor = await screen.findByRole("dialog", { name: "Edit session" });
+    fireEvent.click(within(editor).getByRole("button", { name: "Delete game 2" }));
+    const confirm = (await screen.findByText("Delete this game?")).closest("[role=dialog]") as HTMLElement;
+    fireEvent.click(within(confirm).getByRole("button", { name: "Delete" }));
+
+    await waitFor(async () => expect(await db.games.get(g2)).toBeUndefined());
+    expect(await db.sessions.get(sessionId)).toBeDefined();
+  });
+
+  it("deletes the whole session from the foot of its editor, after a warning", async () => {
+    const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
+    await addGameToSession(sessionId, { game_number: 1 });
+    const onSessionDeleted = vi.fn();
+    renderSession(sessionId, { onSessionDeleted });
+
+    fireEvent.click(await screen.findByRole("button", { name: "Edit session" }));
+    const editor = await screen.findByRole("dialog", { name: "Edit session" });
+    fireEvent.click(within(editor).getByRole("button", { name: "Delete session" }));
+    const confirm = (await screen.findByText("Delete this session?")).closest("[role=dialog]") as HTMLElement;
+    expect(confirm).toHaveTextContent(/permanently deleted\. This can't be undone\./);
+    fireEvent.click(within(confirm).getByRole("button", { name: "Delete" }));
+
+    await waitFor(() => expect(onSessionDeleted).toHaveBeenCalled());
+    expect(await db.sessions.get(sessionId)).toBeUndefined();
+  });
+
+  it("scrolls the game chips with no scroll bar drawn", async () => {
+    const sessionId = Number(await createSession({ date: "2026-05-27", alley_name: "Axe Lanes" }));
+    await addGameToSession(sessionId, { game_number: 1 });
+    renderSession(sessionId);
+    const chip = await screen.findByRole("button", { name: /^G1/ });
+    expect(chip.parentElement).toHaveClass("overflow-x-auto", "scrollbar-none");
+  });
+
   it("puts the oil pattern and a short date in the bar, and no game count", async () => {
     const sessionId = Number(
       await createSession({ date: "2026-05-27", alley_name: "Axe Lanes", description: "Practice" })

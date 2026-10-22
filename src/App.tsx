@@ -395,13 +395,12 @@ function App() {
     }, EMPTY_SESSION_GRACE_MS);
   }, [view, activeSessionId]);
 
-  // A session deleted from a history row may be the active one, drop the
-  // stale active state so the Active tab and resume pill don't point at it.
+  // A session deleted from its own editor, pushed over a list, may be the
+  // active one or the one the resume pill offers: drop it from navigation and
+  // re-read what can be resumed.
   function handleSessionDeleted(sessionId: number) {
-    // Clearing the active session refires refreshResumable via the effect;
-    // deleting any other one leaves navigation alone, so refresh by hand.
-    if (sessionId === activeSessionId) dispatch({ type: "sessionDeleted", sessionId });
-    else refreshResumable();
+    dispatch({ type: "sessionDeleted", sessionId });
+    refreshResumable();
   }
 
   useEffect(() => {
@@ -671,7 +670,6 @@ function App() {
           <HistoryView
             onOpenSession={openSession}
             activeSessionId={activeSessionId}
-            onSessionDeleted={handleSessionDeleted}
           />
         )}
         {view === "stats" && (
@@ -847,8 +845,7 @@ function App() {
                 onStatsOpened={() => dispatch({ type: "statsOpened" })}
                 onBack={popOverlay}
                 onSessionDeleted={() =>
-                  nav.viewedSessionId != null &&
-                  dispatch({ type: "sessionDeleted", sessionId: nav.viewedSessionId })
+                  nav.viewedSessionId != null && handleSessionDeleted(nav.viewedSessionId)
                 }
                 onOpenArsenal={() => pushOverlay("arsenal")}
               />

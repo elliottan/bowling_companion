@@ -20,7 +20,7 @@ describe("the History and Stats headers before there is anything to read", () =>
 
   it("History shows no filter until there is a session", async () => {
     const { unmount } = render(
-      <HistoryView onOpenSession={vi.fn()} activeSessionId={null} onSessionDeleted={vi.fn()} />
+      <HistoryView onOpenSession={vi.fn()} activeSessionId={null} />
     );
     expect(await screen.findByText("No sessions yet")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /filter/i })).not.toBeInTheDocument();
@@ -28,7 +28,7 @@ describe("the History and Stats headers before there is anything to read", () =>
 
     const id = Number(await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" }));
     await addGameToSession(id, { game_number: 1 });
-    render(<HistoryView onOpenSession={vi.fn()} activeSessionId={null} onSessionDeleted={vi.fn()} />);
+    render(<HistoryView onOpenSession={vi.fn()} activeSessionId={null} />);
     expect(await screen.findByRole("button", { name: /filter/i })).toBeInTheDocument();
   });
 

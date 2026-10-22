@@ -80,9 +80,14 @@ keyboard, not the size of the job:
   layer under the Filters button, over the list, and a tap anywhere else puts
   them away. Opened inline they pushed every ball down the screen each time a
   chip was chosen, and the list the filters were narrowing went out of sight.
-- **`AnchoredMenu`** (`src/components/ui/AnchoredMenu.tsx`) is the long-press
-  menu on a row or a chip. Its scrim is transparent, not dimmed: a menu is
-  anchored to the thing it acts on, and dimming would hide it.
+- **`AnchoredMenu`** (`src/components/ui/AnchoredMenu.tsx`) is the menu a
+  tapped button opens beside itself: the scorer's More, the Layouts presets.
+  Its scrim is transparent, not dimmed: a menu is anchored to the thing it
+  acts on, and dimming would hide it.
+- **No long press.** Nothing in the app waits on a hold (ADR-184). On the web
+  a hold cannot be the iPhone's own context menu, with its lift and preview
+  and haptic, so it was a gesture with no sign it existed, found mostly by a
+  thumb resting mid-scroll. A row's tap opens it, and only that.
 
 Before this rule the app had it both ways: the ball editor was a sheet and the
 session editor a centered dialog, though they are the same object.
@@ -183,7 +188,8 @@ why `danger-ghost` exists alongside `danger`.
 
 Destructive actions: the trigger sits with the thing it destroys (delete lives
 *inside* the ball editor, not as a third icon on the list row), and always goes
-through `ConfirmDialog`.
+through `ConfirmDialog`. A session's are in its editor: each game in a Games
+list with a red delete, and Delete session at the foot.
 
 **Icons.** Lucide, at the size the control asks for, for anything universal: a
 close, a share, a chevron, a trash. A *bowling* idea gets one of the app's own

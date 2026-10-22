@@ -15,15 +15,13 @@ import type { SessionSummary } from "../types/bowling";
 interface HistoryViewProps {
   onOpenSession: (sessionId: number) => void;
   activeSessionId: number | null;
-  onSessionDeleted?: (sessionId: number) => void;
 }
 
 const PAGE = 15; // sessions loaded per infinite-scroll step
 
 export function HistoryView({
   onOpenSession,
-  activeSessionId,
-  onSessionDeleted
+  activeSessionId
 }: HistoryViewProps) {
   // The list reads scores, never shots, so it takes the loader that skips the
   // frames of games that already have one (ADR-066).
@@ -104,7 +102,6 @@ export function HistoryView({
             isLoading={isLoading}
             onOpenSession={onOpenSession}
             activeSessionId={activeSessionId}
-            onSessionDeleted={onSessionDeleted}
           />
           <div ref={sentinelRef} className="h-6" aria-hidden="true" />
         </div>
