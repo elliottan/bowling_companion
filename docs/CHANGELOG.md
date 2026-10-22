@@ -16,6 +16,11 @@ had all shipped.
   frosted capsule, with the choice a lighter pill that slides to it, as iOS
   apps draw their filter bars. It replaces the accent-filled segment (ADR-189).
 
+- **headpin.app always shows the current screenshots.** A visitor who had
+  the app installed could be shown the previous deploy's picture of the app
+  once, in the new page; one of those was taken before the pictures had a
+  status bar, so the Dynamic Island sat over the app's header. Each picture's
+  address now changes with the picture.
 - **"Double" is "Strike on strike" again.** A double is two strikes in a row;
   this number is how often a strike was followed by another, which is not the
   same thing. Where the columns are tight (the Balls card's headings, a ball's

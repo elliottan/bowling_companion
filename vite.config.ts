@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { version as pkgVersion } from "./package.json";
 import react from "@vitejs/plugin-react";
 import { VitePWA, type ManifestOptions } from "vite-plugin-pwa";
@@ -125,28 +127,28 @@ function appManifest(path: string): Partial<ManifestOptions> {
     screenshots: [
       {
         src: "shots/scorer.webp",
-        sizes: "780x1688",
+        sizes: "880x1912",
         type: "image/webp",
         form_factor: "narrow",
         label: "Scoring a game frame by frame"
       },
       {
         src: "shots/line.webp",
-        sizes: "780x1688",
+        sizes: "880x1912",
         type: "image/webp",
         form_factor: "narrow",
         label: "The line you threw, drawn on the lane"
       },
       {
         src: "shots/stats.webp",
-        sizes: "780x1688",
+        sizes: "880x1912",
         type: "image/webp",
         form_factor: "narrow",
         label: "Averages, strike and spare rates over time"
       },
       {
         src: "shots/arsenal.webp",
-        sizes: "780x1688",
+        sizes: "880x1912",
         type: "image/webp",
         form_factor: "narrow",
         label: "Your arsenal, with the specs of every ball"
@@ -175,6 +177,40 @@ function ownerManifest(): Plugin {
 }
 
 const OWNER_MANIFEST = "manifest-owner.webmanifest";
+
+/**
+ * Fingerprints the landing page's screenshots: `/shots/scorer.webp` becomes
+ * `/shots/scorer.webp?v=<the file's hash>`. The service worker answers
+ * `/shots/*.webp` stale-while-revalidate, so a visitor who has the app
+ * installed was shown the last deploy's picture inside this deploy's page: a
+ * retaken shot reached them a visit late, and once it was one taken before the
+ * phone had a status bar, with the island over the app's header. A new picture
+ * now has a new address, which no cache has seen.
+ */
+function fingerprintLandingShots(): Plugin {
+  const hashes = new Map<string, string>();
+  const hashOf = (file: string) => {
+    let hash = hashes.get(file);
+    if (!hash) {
+      hash = createHash("sha256").update(readFileSync(`public/shots/${file}`)).digest("hex").slice(0, 10);
+      hashes.set(file, hash);
+    }
+    return hash;
+  };
+  return {
+    name: "fingerprint-landing-shots",
+    transformIndexHtml: {
+      order: "pre",
+      handler(html, ctx) {
+        // The landing page only: the app shell names no shots.
+        if (!/(^|\/)index\.html$/.test(ctx.filename) || /(score|legal)\/index\.html$/.test(ctx.filename)) {
+          return html;
+        }
+        return html.replace(/\/shots\/([\w-]+\.webp)(?!\?)/g, (_, file: string) => `/shots/${file}?v=${hashOf(file)}`);
+      }
+    }
+  };
+}
 
 export default defineConfig({
   // Baked in so a pasted bug report says which build it came from. The app has
@@ -232,6 +268,7 @@ export default defineConfig({
   plugins: [
     serveCleanUrls(),
     ownerManifest(),
+    fingerprintLandingShots(),
     appStoreBanner(),
     react(),
     VitePWA({
@@ -330,9 +367,19 @@ export default defineConfig({
             // catalog images (webp stays out of precache to keep boot light),
             // but the landing page is served from the cache, so without this it
             // would come back offline with two holes where the app used to be.
-            urlPattern: /\/shots\/.*\.webp$/,
-            handler: "StaleWhileRevalidate",
-            options: { cacheName: "landing-shots" }
+            //
+            // CacheFirst, because the page fingerprints each one
+            // (fingerprintLandingShots): a URL names one version of a picture,
+            // so the cached copy is never stale, and a retaken shot arrives as
+            // a new URL. Stale-while-revalidate showed the last deploy's
+            // picture for a visit. The cap clears the versions left behind.
+            urlPattern: /\/shots\/[\w-]+\.webp(\?v=\w+)?$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "landing-shots",
+              cacheableResponse: { statuses: [200] },
+              expiration: { maxEntries: 40 }
+            }
           }
         ]
       }
