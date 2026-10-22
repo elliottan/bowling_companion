@@ -104,3 +104,14 @@ test("the list passes under the header rather than stopping at its edge", async 
   // shows it through; the scroller was not cut off at the header's foot.
   expect(firstCardTop).toBeLessThan(headerBottom);
 });
+
+test("at the top of the list nothing is frosted, and the wash comes in once it scrolls", async ({ page }) => {
+  await history(page, 5);
+  const ground = page.locator("[data-floating-header] .floating-header-ground");
+  // At rest the first card sits below the header in full, not behind its blur.
+  await expect(ground).toHaveCSS("opacity", "0");
+  await scrollBy(page, 120);
+  await expect(ground).toHaveCSS("opacity", "1");
+  await scrollBy(page, -120);
+  await expect(ground).toHaveCSS("opacity", "0");
+});

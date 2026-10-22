@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.57.1: The top of Stats and History is no longer frosted (2026-10-22)
+
+- **Nothing is cut off at the top of Stats and History.** The frosted wash
+  behind the pinned header showed even with the list at its top, and its blur
+  reached over the first card, so the card's top edge looked fuzzy and cut
+  off. The wash now comes in only once the list scrolls under the header, as
+  an iOS bar's does. The landing page and App Store pictures of both screens
+  are retaken.
+
 ## 0.57.0: Pickers match the tab bar, and strike on strike is back (2026-10-22)
 
 - **Pickers look like the tab bar.** Every pick-one control (By session / By
