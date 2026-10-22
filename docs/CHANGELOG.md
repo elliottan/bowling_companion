@@ -38,6 +38,9 @@ had all shipped.
   each point on the line carries a lock (ADR-202).
 - **Back from the Pro page returns to the lane you were on,** rather than
   showing Home, or the screen under it, first.
+- **The layout lab no longer warns about the thumb-hole band.** The shaded
+  stretch on the pin-to-PAP slider and the message under the ball are gone
+  (ADR-204).
 - **The layout lab is shorter.** The ball and what it will do sit side by side
   at the top, and without Pro the sliders show as they are under a lock
   (ADR-203).

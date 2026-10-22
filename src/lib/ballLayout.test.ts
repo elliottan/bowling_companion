@@ -371,36 +371,16 @@ describe("the do-not-use band", () => {
     expect(inDoNotUseBand(3.375)).toBe(false);
   });
 
-  it("warns when a layout lands in it", () => {
+  it("is not warned about: a layout in it reads like any other (ADR-204)", () => {
     const warnings = readMotion({ ...BENCHMARK, pinToPap: 3 }, DEFAULT_ASYMMETRIC).warnings;
-    expect(warnings.some((w) => w.includes("thumb hole"))).toBe(true);
-  });
-
-  // The band exists to keep the track off the thumb hole, so a grip with no
-  // thumb hole has no band. Both the predicate and the warning that reads it.
-  it("does not apply to a two-handed grip", () => {
-    expect(inDoNotUseBand(3, "2h")).toBe(false);
-    expect(inDoNotUseBand(3, "1h")).toBe(true);
-    const warnings = readMotion({ ...BENCHMARK, pinToPap: 3 }, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "2h")
-      .warnings;
     expect(warnings.some((w) => w.includes("thumb hole"))).toBe(false);
   });
 
-  it("leaves every other warning alone for a two-hander", () => {
-    const layout = { ...BENCHMARK, pinToPap: 6 };
-    expect(readMotion(layout, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "2h").warnings).toEqual(
-      readMotion(layout, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "1h").warnings
-    );
-  });
-
-  it("moves no motion number for a two-hander", () => {
-    const one = readMotion(BENCHMARK, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "1h");
-    const two = readMotion(BENCHMARK, DEFAULT_ASYMMETRIC, DEFAULT_PAP, "2h");
-    expect(two.flare).toBe(one.flare);
-    expect(two.length).toBe(one.length);
-    expect(two.angularity).toBe(one.angularity);
-    expect(two.strength).toBe(one.strength);
-    expect(two.summary).toBe(one.summary);
+  // The band exists to keep the track off the thumb hole, so a grip with no
+  // thumb hole has no band.
+  it("does not apply to a two-handed grip", () => {
+    expect(inDoNotUseBand(3, "2h")).toBe(false);
+    expect(inDoNotUseBand(3, "1h")).toBe(true);
   });
 });
 

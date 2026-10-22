@@ -243,7 +243,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
   const updatePap = useCallback((next: PapMeasurement) => setPapOverride(next), []);
   const chooseGrip = useCallback((next: GripStyle) => setGripOverride(next), []);
 
-  const motion = useMemo(() => readMotion(layout, ball, pap, grip), [layout, ball, pap, grip]);
+  const motion = useMemo(() => readMotion(layout, ball, pap), [layout, ball, pap]);
   const vls = useMemo(() => toVls(layout, ball), [layout, ball]);
   const papText = `${formatInches(pap.over)}" over, ${formatInches(Math.abs(pap.up))}" ${pap.up < 0 ? "down" : "up"}`;
 
@@ -486,7 +486,6 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             ball={ball}
             system={system}
             onSystemChange={setSystemOverride}
-            grip={grip}
             idPrefix="lab"
             proNumbers
           />

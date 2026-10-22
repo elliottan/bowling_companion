@@ -8885,3 +8885,21 @@ under "Try your layouts with Pro".
 
 **Consequences.** The drawing has half the width it had, which still reads the
 pin, PAP, PSA and their angles at phone size.
+
+---
+
+## ADR-204: The layout lab says nothing about the thumb-hole band
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** A pin-to-PAP distance between 2 3/8" and 3 3/8" runs a
+one-hander's track over the thumb hole, and the lab marked it three ways: a
+shaded stretch of the slider, the number in amber, and a warning under the
+ball. Most bowlers set the numbers their pro shop drilled, and the marks read
+as the app saying their ball was wrong.
+
+**Decision.** None of the three is drawn, in the lab or on a ball's form. The
+band itself stays in `ballLayout` (`DO_NOT_USE_BAND`, `inDoNotUseBand`), so it
+can come back as a gentler note, and the layout presets still keep clear of
+it. `readMotion` no longer takes the grip, which only that warning read; the
+lab's other warnings stand.

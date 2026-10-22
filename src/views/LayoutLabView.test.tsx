@@ -182,10 +182,11 @@ describe("LayoutLabView", () => {
     expect(dualAngle()).toBe("45° x 4 1/2 x 62°");
   });
 
-  it("warns on the lane, not after the fact, when the pin-to-PAP lands in the do-not-use band", () => {
+  it("says nothing about the thumb-hole band, on the slider or under the ball (ADR-204)", () => {
     renderLab();
     fireEvent.change(slider(/Pin to PAP/i), { target: { value: "3" } });
-    expect(screen.getByText(/thumb hole/i)).toBeInTheDocument();
+    expect(screen.queryByText(/thumb hole/i)).toBeNull();
+    expect(document.querySelector(".bg-warning-200")).toBeNull();
   });
 
   it("dims the separators without running the numbers together", () => {
@@ -651,21 +652,15 @@ describe("LayoutLabView", () => {
     expect(decodeLayoutParams(url.slice(url.indexOf("?"), url.indexOf("#")))?.grip).toBe("2h");
   });
 
-  it("drills the drawn ball for the grip on screen, and drops the thumb-hole band", async () => {
+  it("drills the drawn ball for the grip on screen", async () => {
     renderLab({ you: true });
-    // The band's reason is a thumb hole, so both the warning and the drawn
-    // thumb hole come and go together with the grip.
-    fireEvent.change(slider(/Pin to PAP/), { target: { value: "3" } });
     await waitFor(() =>
       expect(screen.getByRole("img").getAttribute("aria-label")).toMatch(/a thumb hole/)
     );
-    expect(screen.getByText(/runs the track over the thumb hole/i)).toBeTruthy();
-
     fireEvent.click(screen.getByRole("button", { name: "Two handed" }));
     await waitFor(() =>
       expect(screen.getByRole("img").getAttribute("aria-label")).toMatch(/no thumb hole/)
     );
-    expect(screen.queryByText(/runs the track over the thumb hole/i)).toBeNull();
   });
 
   it("leaves the reader's own grip alone when it opens on somebody else's", async () => {
