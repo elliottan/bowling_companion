@@ -463,16 +463,17 @@ input[type="date"]::-webkit-date-and-time-value {
 
 /* The ground under a tab's floating header (FloatingHeader, ADR-185): the
    page's colour, nearly solid, over a blur, so the list passing under the
-   title and the chips is a soft shape rather than words over words. It runs a
-   little past the header's foot and fades out there, so the list goes under an
-   edge that is not there, as it does under a bar in iOS. */
+   title and the chips is a soft shape rather than words over words. It fades
+   out over the header's own bottom margin and stops at its foot, so the list
+   goes under an edge that is not there, as it does under a bar in iOS, and at
+   rest nothing is under it. */
 .floating-header-ground {
   pointer-events: none;
   background: rgb(var(--color-surface-sunken) / 0.86);
   -webkit-backdrop-filter: blur(14px) saturate(1.4);
   backdrop-filter: blur(14px) saturate(1.4);
-  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.25rem), transparent);
-  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.25rem), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 0.75rem), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 0.75rem), transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

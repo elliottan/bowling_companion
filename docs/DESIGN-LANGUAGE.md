@@ -510,9 +510,10 @@ as the thing leaving.
 - **Tab headers stay put** (`FloatingHeader`, ADR-185). History's and Stats'
   title, actions and filter chips float over their list and never move; the
   list scrolls under them, and under the status bar, behind a frosted wash
-  that fades out at the header's foot. The wash shows only once something has
-  scrolled under it: at the top of the list there is nothing to frost, and
-  shown there it blurred the first card's top edge. They used to slide away on
+  that fades out at the header's foot. The wash is always on and stops at the
+  foot, so at the top of the list nothing is under it. It used to come in only
+  once the list scrolled, and whenever the scroll event lagged the list the
+  header sat bare over moving cards. They used to slide away on
   a scroll down (ADR-077, ADR-093), which hid the filters when a long list
   needed them.
 

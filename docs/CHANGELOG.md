@@ -9,11 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.61.1: The Pro page's bottom bar reaches the bottom (2026-10-22)
+## 0.61.1: Bars that stay solid (2026-10-22)
 
 - **The bar at the bottom of the Headpin Pro page sits on the bottom edge.** On
   the iPhone it stopped a little above it, and the page scrolled through the
   gap underneath.
+- **History's and Stats' headers always have their frosted ground.** It used
+  to come in only once the list had scrolled, so for a moment cards could pass
+  under the title and the filters with nothing behind them.
 
 ## 0.61.0: The 7 and the 10 are free, and shared links can't be edited (2026-10-22)
 

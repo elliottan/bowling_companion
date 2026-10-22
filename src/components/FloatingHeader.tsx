@@ -33,15 +33,17 @@ interface FloatingHeaderProps {
  * hidden; the height is measured, because filter chips make the row taller and
  * they come and go while the screen is open.
  *
- * The wash shows only once something has scrolled under it, as an iOS scroll
- * edge does. Shown at rest, its blur and its fade reached past the header's
- * foot and frosted the top of the first card, which read as the page being
- * cut off at the top of its scroll.
+ * The wash is always there, and it ends at the header's foot, fading out
+ * inside the header's own bottom margin. It used to show only once the list
+ * had scrolled, because it reached past the foot and frosted the first card's
+ * top at rest. Keyed to the scroll, it went missing whenever the scroll event
+ * lagged the list (a restored position, an iPhone fling), and the list ran
+ * under the title and the chips with nothing behind them. Ending at the foot,
+ * there is nothing under it at rest, and nothing to time.
  */
 export function FloatingHeader({ scrollerRef, header, onScroll, children }: FloatingHeaderProps) {
   const rowRef = useRef<HTMLDivElement | null>(null);
   const [height, setHeight] = useState(0);
-  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const el = rowRef.current;
@@ -60,11 +62,7 @@ export function FloatingHeader({ scrollerRef, header, onScroll, children }: Floa
     >
       <div
         ref={scrollerRef}
-        onScroll={(e) => {
-          const next = e.currentTarget.scrollTop > 4;
-          if (next !== scrolled) setScrolled(next);
-          onScroll?.(e);
-        }}
+        onScroll={onScroll}
         // Ends clear of the tab bar on a tab, which `<main>` says through
         // `--tab-clear`; nothing anywhere else (ADR-171).
         className="ios-bounce h-full overflow-y-auto overscroll-contain pb-[var(--tab-clear,0px)]"
@@ -81,10 +79,7 @@ export function FloatingHeader({ scrollerRef, header, onScroll, children }: Floa
         data-floating-header=""
         className="absolute inset-x-0 top-0 z-[1] px-3 pt-[env(safe-area-inset-top)] sm:px-6"
       >
-        <div aria-hidden="true" className={`floating-header-ground absolute inset-x-0 -bottom-5 top-0 transition-opacity duration-200 ${
-            scrolled ? "" : "opacity-0"
-          }`}
-        />
+        <div aria-hidden="true" className="floating-header-ground absolute inset-0" />
         <div className="relative">{header}</div>
       </div>
     </div>
