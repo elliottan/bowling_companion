@@ -60,7 +60,17 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
   return (
     // Above every sheet: a lock inside one opens this page, and closing it goes
     // back to that sheet as it was (ADR-175).
-    <PushScreen title="Headpin Pro" onBack={onBack} layer="top">
+    <PushScreen
+      title="Headpin Pro"
+      onBack={onBack}
+      layer="top"
+      footer={
+        // The button stays in reach while the page scrolls above it.
+        <div className="border-t border-edge bg-surface-sunken px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+          <div className="mx-auto w-full max-w-xl">{access.locked ? <Purchase access={access} /> : <Owned />}</div>
+        </div>
+      }
+    >
       <div className="mx-auto w-full max-w-xl px-3 pb-4 pt-4 sm:px-6">
         <header className="text-center">
           <ProMark size={72} className="mx-auto rounded-2xl shadow-md" />
@@ -77,11 +87,6 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
             </li>
           ))}
         </ul>
-      </div>
-
-      {/* The button stays in reach while the page scrolls under it. */}
-      <div className="sticky bottom-0 border-t border-edge bg-surface-sunken px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
-        <div className="mx-auto w-full max-w-xl">{access.locked ? <Purchase access={access} /> : <Owned />}</div>
       </div>
     </PushScreen>
   );

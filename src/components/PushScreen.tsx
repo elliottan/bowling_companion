@@ -51,6 +51,14 @@ interface PushScreenProps {
    * in under the sheet that opened it.
    */
   layer?: "shell" | "top";
+  /**
+   * A bar pinned to the bottom of the screen, outside the scroll area, for an
+   * action that stays in reach while the page scrolls (the Pro page's button).
+   * It pays the bottom safe-area inset itself, so the scroll area drops its
+   * own. A `sticky bottom-0` row inside the page stopped above that padding on
+   * the iPhone, and the page showed through the gap beneath it.
+   */
+  footer?: ReactNode;
   children: ReactNode;
 }
 
@@ -83,6 +91,7 @@ export function PushScreen({
   backCloses = false,
   onLeave,
   layer = "shell",
+  footer,
   children,
 }: PushScreenProps) {
   const [exiting, setExiting] = useState(false);
@@ -214,12 +223,14 @@ export function PushScreen({
           }}
           className={`ios-bounce min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[var(--push-bar-h)] ${
             // Inline, a Settings section, runs under the tab bar like its tab.
-            overlay ? "pb-[env(safe-area-inset-bottom)]" : "pb-[var(--tab-clear,0px)]"
+            // A footer pays the bottom inset in place of the scroll area.
+            footer ? "" : overlay ? "pb-[env(safe-area-inset-bottom)]" : "pb-[var(--tab-clear,0px)]"
           }`}
           style={{ "--push-bar-h": overlay ? "calc(env(safe-area-inset-top) + 3rem)" : "3rem" } as CSSProperties}
         >
           {children}
         </div>
+        {footer && <div className="shrink-0">{footer}</div>}
       </div>
     </div>
   );

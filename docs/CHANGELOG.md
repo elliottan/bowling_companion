@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.61.1: The Pro page's bottom bar reaches the bottom (2026-10-22)
+
+- **The bar at the bottom of the Headpin Pro page sits on the bottom edge.** On
+  the iPhone it stopped a little above it, and the page scrolled through the
+  gap underneath.
+
 ## 0.61.0: The 7 and the 10 are free, and shared links can't be edited (2026-10-22)
 
 - **Without Pro, the 7 and the 10 are always open.** The leaves card shows the
