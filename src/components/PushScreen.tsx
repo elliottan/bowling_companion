@@ -212,7 +212,7 @@ export function PushScreen({
             const next = e.currentTarget.scrollTop > 4;
             if (next !== scrolled) setScrolled(next);
           }}
-          className={`min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[var(--push-bar-h)] ${
+          className={`ios-bounce min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[var(--push-bar-h)] ${
             // Inline, a Settings section, runs under the tab bar like its tab.
             overlay ? "pb-[env(safe-area-inset-bottom)]" : "pb-[var(--tab-clear,0px)]"
           }`}

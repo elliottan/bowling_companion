@@ -614,7 +614,8 @@ function App() {
         // scroller: padding here as well shortened that scroller by the bar's
         // height, and the list stopped at a hard edge above it (ADR-171).
         className={`min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[env(safe-area-inset-top)] [--tab-clear:var(--tab-bar-h)] sm:[--tab-clear:0px] ${
-          SELF_SCROLLING_VIEWS.includes(view) ? "" : "pb-[var(--tab-clear)]"
+          // A tab that scrolls itself bounces in its own scroller instead.
+          SELF_SCROLLING_VIEWS.includes(view) ? "" : "ios-bounce pb-[var(--tab-clear)]"
         }`}
       >
         <Suspense fallback={null}>

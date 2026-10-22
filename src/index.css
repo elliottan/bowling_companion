@@ -422,6 +422,30 @@ input[type="date"]::-webkit-date-and-time-value {
   );
 }
 
+/* Every screen rubber-bands, as an iOS screen does whether or not its content
+   fills it (ADR-188). WebKit bounces a scroller only once its content is
+   taller than it, so a screen that fits, Home on a big phone, sat dead under
+   the thumb. This leaves a strut one pixel taller than the scroller in it,
+   so there is always that pixel to scroll and the bounce always answers.
+   Touch screens only: a mouse has no bounce, and a desktop browser would draw
+   a scroll bar for the pixel. The web view itself still does not bounce
+   (ADR-160): it is the screen that moves, never the whole app. */
+@media (pointer: coarse) {
+  .ios-bounce {
+    position: relative;
+  }
+  .ios-bounce::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: calc(100% + 1px);
+    pointer-events: none;
+    visibility: hidden;
+  }
+}
+
 /* The ground under a tab's floating header (FloatingHeader, ADR-185): the
    page's colour, nearly solid, over a blur, so the list passing under the
    title and the chips is a soft shape rather than words over words. It runs a

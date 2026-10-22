@@ -492,6 +492,11 @@ as the thing leaving.
   between the tap and the screen (ADR-085). This is the one exception to the
   symmetry rule above, and it is not really an exception: nothing animates in,
   so nothing has to animate out.
+- **Every screen bounces** (`.ios-bounce`, ADR-188). A tab, a pushed screen,
+  the Settings menu and History's and Stats' lists rubber-band under a pull
+  whether or not their content fills them, as an iOS screen does: a strut one
+  pixel taller than the scroller keeps it scrollable. The web view itself
+  never bounces (ADR-160), so it is the screen that moves, not the app.
 - **Tab headers stay put** (`FloatingHeader`, ADR-185). History's and Stats'
   title, actions and filter chips float over their list and never move; the
   list scrolls under them, and under the status bar, behind a frosted wash

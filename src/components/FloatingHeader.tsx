@@ -57,7 +57,7 @@ export function FloatingHeader({ scrollerRef, header, onScroll, children }: Floa
         onScroll={onScroll}
         // Ends clear of the tab bar on a tab, which `<main>` says through
         // `--tab-clear`; nothing anywhere else (ADR-171).
-        className="h-full overflow-y-auto overscroll-contain pb-[var(--tab-clear,0px)]"
+        className="ios-bounce h-full overflow-y-auto overscroll-contain pb-[var(--tab-clear,0px)]"
       >
         <div style={{ height }} aria-hidden="true" />
         {children}

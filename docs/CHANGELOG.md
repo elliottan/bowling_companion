@@ -18,6 +18,9 @@ had all shipped.
   and the series score sit in the session's header, so the scorecard starts
   higher. The date is short ("Oct 19") and the game count is gone; the game
   chips already say it.
+- **Every screen springs under your thumb.** Pull any screen down, even one
+  with little on it, and it stretches and springs back as an iPhone screen
+  does (ADR-188).
 - **Buttons, chips and toggles are fully rounded**, as iOS 26 draws its
   controls (ADR-187).
 - **Sheets float like the iPhone's.** Every panel that rises from the bottom

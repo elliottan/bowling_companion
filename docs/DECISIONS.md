@@ -8406,3 +8406,30 @@ capsule is the shape of a thing that is pressed.
 
 **Consequence.** A wide button (a full-width Delete session) is a long pill,
 as iOS draws one.
+
+## ADR-188: Every screen bounces, the app never does
+
+**Status.** Accepted, 2026-10-22, at the owner's request, against the iPhone's
+own Settings screens as the reference. Keeps ADR-160's decision for the web
+view as a whole.
+
+**Context.** An iOS screen rubber-bands under a pull even when everything on it
+fits: a Bluetooth settings page with three rows still comes down under the
+thumb and springs back, and that answer is a large part of why it feels alive.
+Headpin's screens scroll inside their own scrollers (the web view itself is
+held still, ADR-160), and WebKit bounces a scroller only once its content is
+taller than it. A screen that fit, the Score tab between games or a short
+History, did not move at all.
+
+**Decision.** `.ios-bounce` (`index.css`) gives a scroller an invisible strut
+one pixel taller than itself, so it always has that pixel to scroll and iOS
+always bounces it. It is on `<main>` for the tabs it scrolls, on the History
+and Stats lists (`FloatingHeader`), on the Settings menu and on every pushed
+screen (`PushScreen`). It applies on touch screens only (`pointer: coarse`):
+a mouse has no bounce, and a desktop browser would draw a scroll bar for the
+pixel. Sheets are left out, since a pull down on a sheet is its dismiss.
+
+**Consequence.** A screen that fits can be scrolled by one pixel; nothing that
+reads a scroll position acts on less than four (the pushed title's fade, the
+floating header). The web view keeps `bounces = false`, so the tab bar and the
+status bar never move with a pull.
