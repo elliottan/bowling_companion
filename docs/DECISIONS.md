@@ -8546,3 +8546,39 @@ that scrolled away with nothing taking its place.
 **Consequences.** Cards that are not lists or tiles (the stats cards, sheets'
 fields) keep their own corners for now; they are the next pass if the two
 looks sit badly together on a phone.
+
+---
+
+## ADR-192: The free leaves are the 7 and the 10, and a shared link carries a check code
+
+**Status.** Accepted, 2026-10-22, at the owner's request. Amends ADR-167 on
+which leaves are free; follows ADR-190.
+
+**Context.** Two ways round the Pro lock were left after ADR-190. The free
+leaves were the two a bowler left most, ranked within whatever the screen
+showed, so changing the date range, the alley, the pattern or the session
+ranked a different two to the top, and cycling the filters read most leaves'
+records. And a shared line or layout link sets the numbers the line visualizer
+or the layout lab opens on, so typing `?da=70&ptp=5` into the address bar was
+a free slider.
+
+**Decision.**
+
+- **The free leaves are the 7 and the 10** (`FREE_LEAVE_PINS`,
+  `freeLeavePreview`): the corner pins, which bowlers of either hand leave
+  most. They are the same two for every bowler and under every filter, shown
+  in full even before either has been left (at 0/0), and the leave left most of
+  the rest is blurred beside them. Their records are open on the Spare lines
+  page and in a leave's sheet too, and no other's is.
+- **A shared link carries a check code** (`c`, `src/lib/shareCheck.ts`): six
+  characters worked out from the link's other parameters, sorted by name so a
+  chat app that reorders them does not break it. A link whose code is missing or
+  does not match opens nothing shared: the visualizer and the lab open on their
+  defaults.
+
+**Consequences.** The code is a checksum, not a signature: the recipe is in the
+page, so someone who reads the app's code can make one for any numbers. It
+stops the edit anybody would try, which is what it is for. Links shared before
+this carry no code and now open on the defaults; the iPhone app is not out yet,
+so they are the web's, and few. The ball the free tier shows is still the
+best by strike rate within the screen's filters (ADR-167).

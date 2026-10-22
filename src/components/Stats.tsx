@@ -40,7 +40,7 @@ import { RECENT_SESSIONS, type RecentForm } from "../lib/statsRange";
 import { GROUP_HEADING } from "./ui/typography";
 import { ProBanner, ProBlur } from "./ui/ProLock";
 import { useProAccess } from "../lib/useProAccess";
-import { byMostLeft, FREE_BALLS, FREE_LEAVES, previewSplit, standInBall, standInLeave } from "../lib/proPreview";
+import { byMostLeft, FREE_BALLS, freeLeavePreview, previewSplit, standInBall, standInLeave } from "../lib/proPreview";
 
 /** The stats the chart can plot, and how each one is drawn.
  *
@@ -312,8 +312,9 @@ export function Stats({
   const ranked = byStrikeRate(ballPerformance?.balls ?? []);
   const header = chartHeader;
   // Without Pro, a list shows its first rows as they are and the next one
-  // blurred, and nothing after it (ADR-167).
-  const leavePreview = proLocked ? previewSplit(leftMost, FREE_LEAVES) : null;
+  // blurred, and nothing after it (ADR-167); the leaves' first rows are always
+  // the 7 and the 10 (ADR-192).
+  const leavePreview = proLocked ? freeLeavePreview(convertible) : null;
   const ballPreview = proLocked ? previewSplit(ranked, FREE_BALLS) : null;
 
   return (
@@ -475,10 +476,10 @@ export function Stats({
             </div>
           )}
           {leavePreview ? (
-            // Without Pro: the leaves left most, in full, and the next one
-            // blurred in the same row. No scroller, since there is nothing to
+            // Without Pro: the 7 and the 10, in full, and the leave left most
+            // of the rest blurred in the same row. No scroller, since there is nothing to
             // scroll to.
-            <ul aria-label="Leaves left most" className="mt-3 grid grid-cols-3 gap-1.5">
+            <ul aria-label="Leaves" className="mt-3 grid grid-cols-3 gap-1.5">
               {leavePreview.shown.map((leave) => (
                 <li key={leave.pins.join("-")}>
                   <LeaveCell leave={leave} onOpen={() => setOpenLeave(leave.pins)} />
@@ -1187,8 +1188,8 @@ function AllLeavesSheet({
   );
 }
 
-/** The All leaves sheet without Pro: the leaves left most that the Spares card
- *  shows, each one opening its record, then the next one blurred (ADR-174). */
+/** The All leaves sheet without Pro: the 7 and the 10 the Spares card shows,
+ *  each one opening its record, then the next one blurred (ADR-174, ADR-192). */
 function LockedLeaves({
   leaves,
   onOpen
@@ -1196,9 +1197,9 @@ function LockedLeaves({
   leaves: LeaveStats[];
   onOpen: (pins: LeaveStats["pins"]) => void;
 }) {
-  const { shown, blurred } = previewSplit(mostLeft(leaves), FREE_LEAVES);
+  const { shown, blurred } = freeLeavePreview(leaves);
   return (
-    <ul aria-label="Leaves left most" className="grid grid-cols-3 gap-1.5">
+    <ul aria-label="Leaves" className="grid grid-cols-3 gap-1.5">
       {shown.map((leave) => (
         <li key={leave.pins.join("-")}>
           <LeaveCell leave={leave} onOpen={() => onOpen(leave.pins)} />

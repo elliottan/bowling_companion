@@ -19,7 +19,7 @@ import { IconButton } from "./ui/IconButton";
 import { FormSheet } from "./ui/FormSheet";
 import { ProPill } from "./ui/ProLock";
 import { useProAccess } from "../lib/useProAccess";
-import { openLeaveKeys } from "../lib/proPreview";
+import { isOpenLeave } from "../lib/proPreview";
 
 const EMPTY_LINE: LineSpec = {};
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -168,9 +168,8 @@ export function SpareLineFormDialog({
   );
 
   const stats = leaves && pins.length > 0 ? leaves.find((l) => l.pins.join("-") === key) : undefined;
-  // Without Pro, the record of the leaves Stats shows in full and no others
-  // (ADR-167).
-  const recordLocked = proLocked && stats !== undefined && !openLeaveKeys(leaves ?? []).has(key);
+  // Without Pro, the record of the 7 and the 10 and no others (ADR-192).
+  const recordLocked = proLocked && stats !== undefined && !isOpenLeave(pins);
 
   return (
     <FormSheet

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isOpenLeave, openLeaveKeys, previewSplit, standInBall, standInLeave } from "./proPreview";
+import { freeLeavePreview, isOpenLeave, previewSplit, standInBall, standInLeave } from "./proPreview";
 import type { LeaveStats } from "./stats";
 import type { PinNumber } from "../types/bowling";
 
@@ -27,19 +27,30 @@ describe("previewSplit", () => {
   });
 });
 
-describe("openLeaveKeys", () => {
-  it("opens the leaves Stats shows in full: left most, among those a ball followed", () => {
+describe("the free leaves (ADR-192)", () => {
+  it("are the 7 and the 10, whatever was left most, with the next most left blurred", () => {
     const leaves = [leave([7], 4), leave([10], 9), leave([4], 6), leave([2, 4, 5, 8], 12, 0)];
-    // The washout off the 10th's last ball has no chance to convert, so it is
-    // not on the card and not counted.
-    expect([...openLeaveKeys(leaves)]).toEqual(["10", "4"]);
-    expect(isOpenLeave(leaves, [10])).toBe(true);
-    expect(isOpenLeave(leaves, [7])).toBe(false);
+    const { shown, blurred } = freeLeavePreview(leaves);
+    expect(shown.map((l) => l.pins)).toEqual([[7], [10]]);
+    expect(shown[1].attempts).toBe(9);
+    // The washout off the 10th's last ball had no chance, so the 4 is next.
+    expect(blurred?.pins).toEqual([4]);
   });
 
-  it("breaks a tie on attempts by chances, as Stats does", () => {
-    const leaves = [leave([7], 5, 3), leave([10], 5, 5), leave([4], 1)];
-    expect([...openLeaveKeys(leaves)]).toEqual(["10", "7"]);
+  it("shows a corner pin never left, at nothing", () => {
+    const { shown, blurred } = freeLeavePreview([leave([4], 6)]);
+    expect(shown).toEqual([
+      { pins: [7], attempts: 0, chances: 0, conversions: 0, conversionPct: null, sharePct: null },
+      { pins: [10], attempts: 0, chances: 0, conversions: 0, conversionPct: null, sharePct: null }
+    ]);
+    expect(blurred?.pins).toEqual([4]);
+  });
+
+  it("opens the same two records under every filter", () => {
+    expect(isOpenLeave([7])).toBe(true);
+    expect(isOpenLeave([10])).toBe(true);
+    expect(isOpenLeave([4])).toBe(false);
+    expect(isOpenLeave([7, 10])).toBe(false);
   });
 });
 

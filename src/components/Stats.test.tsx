@@ -915,7 +915,7 @@ describe("while Pro is locked (ADR-154)", () => {
     expect(screen.getByText(/Pro adds every leave and every ball/)).toBeInTheDocument();
   });
 
-  it("shows the two leaves left most in full, the next one blurred, and no more (ADR-167)", () => {
+  it("shows the 7 and the 10 in full, the leave left most of the rest blurred, and no more (ADR-192)", () => {
     const leave = (pin: PinNumber, attempts: number, conversions: number): LeaveStats => ({
       pins: [pin],
       attempts,
@@ -928,30 +928,46 @@ describe("while Pro is locked (ADR-154)", () => {
       <ProAccessContext.Provider value={LOCKED}>
         <Stats
           stats={STATS}
-          leaves={[leave(7, 4, 1), leave(10, 9, 6), leave(4, 6, 3), leave(6, 2, 2)]}
+          leaves={[leave(4, 12, 3), leave(10, 9, 6), leave(6, 7, 2), leave(7, 4, 1)]}
         />
       </ProAccessContext.Provider>
     );
-    const grid = screen.getByRole("list", { name: "Leaves left most" });
-    // Left most first: the 10 pin (9), then the 4 pin (6), with their rates.
+    const grid = screen.getByRole("list", { name: "Leaves" });
+    // The corner pins, whichever leaves were left most.
+    expect(within(grid).getByRole("button", { name: "Open Pin 7" })).toHaveTextContent("1/425%");
     expect(within(grid).getByRole("button", { name: "Open Pin 10" })).toHaveTextContent("6/967%");
-    expect(within(grid).getByRole("button", { name: "Open Pin 4" })).toHaveTextContent("3/650%");
-    // The third is blurred under one tap to Pro, and the fourth is not drawn.
-    expect(within(grid).queryByRole("button", { name: "Open Pin 7" })).not.toBeInTheDocument();
+    // The 4, left most of the rest, is blurred under one tap to Pro; the 6 is
+    // not drawn, and neither one's own numbers are in the page.
+    expect(within(grid).queryByRole("button", { name: "Open Pin 4" })).not.toBeInTheDocument();
     expect(
       within(grid).getByRole("button", { name: "Every leave you leave, and how often you make each. Get the app" })
     ).toBeInTheDocument();
-    expect(screen.queryByText("2/2")).not.toBeInTheDocument();
+    expect(screen.queryByText("3/12")).not.toBeInTheDocument();
+    expect(screen.queryByText("2/7")).not.toBeInTheDocument();
     expect(within(grid).getAllByRole("listitem")).toHaveLength(3);
     // The sheet opens without Pro, says how many there are, and shows the same
     // two with the next one blurred (ADR-174).
     fireEvent.click(screen.getByRole("button", { name: "View all 4 leaves" }));
     const sheet = screen.getByRole("dialog", { name: /Leaves/ });
-    const locked = within(sheet).getByRole("list", { name: "Leaves left most" });
+    const locked = within(sheet).getByRole("list", { name: "Leaves" });
+    expect(within(locked).getByRole("button", { name: "Open Pin 7" })).toBeInTheDocument();
     expect(within(locked).getByRole("button", { name: "Open Pin 10" })).toBeInTheDocument();
-    expect(within(locked).getByRole("button", { name: "Open Pin 4" })).toBeInTheDocument();
-    expect(within(locked).queryByRole("button", { name: "Open Pin 7" })).not.toBeInTheDocument();
+    expect(within(locked).queryByRole("button", { name: "Open Pin 4" })).not.toBeInTheDocument();
     expect(within(locked).getAllByRole("listitem")).toHaveLength(3);
+  });
+
+  it("shows a corner pin never left at nothing, rather than leaving it out (ADR-192)", () => {
+    render(
+      <ProAccessContext.Provider value={LOCKED}>
+        <Stats
+          stats={STATS}
+          leaves={[{ pins: [10], attempts: 3, chances: 3, conversions: 2, conversionPct: 67, sharePct: 5 }]}
+        />
+      </ProAccessContext.Provider>
+    );
+    const grid = screen.getByRole("list", { name: "Leaves" });
+    expect(within(grid).getByRole("button", { name: "Open Pin 7" })).toHaveTextContent("0/0-");
+    expect(within(grid).getByRole("button", { name: "Open Pin 10" })).toHaveTextContent("2/367%");
   });
 
   it("shows the best ball in full, the next one blurred, and no more (ADR-167)", () => {

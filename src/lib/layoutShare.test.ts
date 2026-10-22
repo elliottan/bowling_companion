@@ -1,3 +1,4 @@
+import { withCheck } from "./shareCheck";
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_SHARED,
@@ -9,6 +10,9 @@ import {
 } from "./layoutShare";
 import { DEFAULT_ASYMMETRIC, DEFAULT_PAP, DEFAULT_SYMMETRIC } from "./ballLayout";
 import type { SharedLayout } from "./layoutShare";
+
+/** A hand-made link with the check code a shared one carries (ADR-192). */
+const signed = (query: string) => withCheck(query.replace(/^\?/, ""));
 
 const A_LAYOUT: SharedLayout = {
   layout: { drillingAngle: 70, pinToPap: 5.25, valAngle: 30 },
@@ -57,12 +61,12 @@ describe("decoding a link somebody else made", () => {
   });
 
   it("takes the query with or without its leading question mark", () => {
-    expect(decodeLayoutParams("?da=20")?.layout.drillingAngle).toBe(20);
-    expect(decodeLayoutParams("da=20")?.layout.drillingAngle).toBe(20);
+    expect(decodeLayoutParams(signed("?da=20"))?.layout.drillingAngle).toBe(20);
+    expect(decodeLayoutParams(signed("da=20"))?.layout.drillingAngle).toBe(20);
   });
 
   it("fills anything missing from the defaults rather than failing", () => {
-    const partial = decodeLayoutParams("?val=30");
+    const partial = decodeLayoutParams(signed("?val=30"));
     expect(partial?.layout.valAngle).toBe(30);
     expect(partial?.layout.drillingAngle).toBe(DEFAULT_SHARED.layout.drillingAngle);
     expect(partial?.pap).toEqual(DEFAULT_PAP);
@@ -70,7 +74,7 @@ describe("decoding a link somebody else made", () => {
   });
 
   it("opens a bowling ball on a hand-edited link rather than breaking", () => {
-    const junk = decodeLayoutParams("?da=banana&ptp=&val=NaN&over=%20&up=zzz&hand=sideways");
+    const junk = decodeLayoutParams(signed("?da=banana&ptp=&val=NaN&over=%20&up=zzz&hand=sideways"));
     expect(junk?.layout).toEqual(DEFAULT_SHARED.layout);
     expect(junk?.pap).toEqual(DEFAULT_PAP);
     // An unreadable hand is a right-hander, because one of the two has to be
@@ -79,7 +83,7 @@ describe("decoding a link somebody else made", () => {
   });
 
   it("clamps a number that is outside anything drillable", () => {
-    const wild = decodeLayoutParams("?da=999&val=-40&ptp=99&over=40&up=-40");
+    const wild = decodeLayoutParams(signed("?da=999&val=-40&ptp=99&over=40&up=-40"));
     expect(wild?.layout.drillingAngle).toBe(90);
     expect(wild?.layout.valAngle).toBe(0);
     expect(wild?.pap.over).toBe(6.5);
@@ -119,16 +123,16 @@ describe("grip style", () => {
   it("opens one-handed on a link that says nothing about the grip", () => {
     // Every link shared before the toggle existed is such a link, and the
     // common grip is the right thing to open them on.
-    const older = decodeLayoutParams("?da=45&ptp=4.5&val=45&hand=right");
+    const older = decodeLayoutParams(signed("?da=45&ptp=4.5&val=45&hand=right"));
     expect(older?.grip).toBe("1h");
   });
 
   it("reads an unrecognised grip as one-handed rather than failing", () => {
-    expect(decodeLayoutParams("?da=45&grip=three-handed")?.grip).toBe("1h");
+    expect(decodeLayoutParams(signed("?da=45&grip=three-handed"))?.grip).toBe("1h");
   });
 
   it("is enough on its own to make a query a shared layout", () => {
-    expect(decodeLayoutParams("?grip=2h")).not.toBeNull();
+    expect(decodeLayoutParams(signed("?grip=2h"))).not.toBeNull();
     expect(decodeLayoutParams("?utm_source=chat")).toBeNull();
   });
 });

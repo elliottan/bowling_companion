@@ -38,6 +38,7 @@ import {
   type PapMeasurement
 } from "./ballLayout";
 import type { Ball, BallCatalogSnapshot, GripStyle, Handedness, LayoutSystem } from "../types/bowling";
+import { hasValidCheck, withCheck } from "./shareCheck";
 
 /** Everything a shared link carries: the layout, the ball, the bowler. */
 export interface SharedLayout {
@@ -81,7 +82,7 @@ export function encodeLayoutParams(shared: SharedLayout): string {
   params.set("grip", shared.grip);
   params.set("over", num(shared.pap.over));
   params.set("up", num(shared.pap.up));
-  return params.toString();
+  return withCheck(params.toString());
 }
 
 /**
@@ -112,11 +113,14 @@ function readNumber(raw: string | null, lo: number, hi: number): number | undefi
  * Returns `null` when the query carries nothing about a layout at all, which is
  * how the caller tells "opened from a shared link" from "opened normally" and
  * so knows whether to override the bowler's own stored PAP and handedness.
+ * A link whose check code does not match its numbers is read the same way: a
+ * number edited by hand opens nothing (`shareCheck.ts`, ADR-192).
  */
 export function decodeLayoutParams(search: string): SharedLayout | null {
   const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
   const known = ["da", "ptp", "val", "core", "ptc", "hand", "grip", "over", "up"];
   if (!known.some((key) => params.has(key))) return null;
+  if (!hasValidCheck(params)) return null;
 
   const symmetric = params.get("core") === "sym";
   const base = symmetric ? DEFAULT_SYMMETRIC : DEFAULT_ASYMMETRIC;

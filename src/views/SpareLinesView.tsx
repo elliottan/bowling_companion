@@ -45,7 +45,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { Button } from "../components/ui/Button";
 import { SpareLineIcon } from "../components/icons";
 import { useProAccess } from "../lib/useProAccess";
-import { openLeaveKeys } from "../lib/proPreview";
+import { isOpenLeave } from "../lib/proPreview";
 
 /** Slide → laydown, derived from the stance (ADR-030). Read-only, so it sits
  *  under the entered boards in a lighter weight. */
@@ -180,9 +180,8 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
   // hints rank by.
   const leaves = useLiveQuery(async () => calculateCommonLeaves(await getSessionHistory())) ?? NO_LEAVES;
   const balls = useLiveQuery(() => getBalls()) ?? [];
-  // Which leaves' records are open without Pro: the ones Stats shows in full.
+  // Without Pro, only the 7's and the 10's records are open (ADR-192).
   const { locked: proLocked } = useProAccess();
-  const openRecords = useMemo(() => (proLocked ? openLeaveKeys(leaves) : null), [proLocked, leaves]);
   // Pocket leaves are shot on the strike line and are never listed (ADR-123).
   // A row saved for one stays stored, out of sight.
   const shown = useMemo(() => spareLinesShown(live ?? NO_LINES), [live]);
@@ -363,7 +362,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           dismissLabel="Not now"
         >
           You leave <span className="font-semibold text-ink">{formatLeave(ask.pins)}</span> most often
-          {openRecords && !openRecords.has(leaveKey(ask.pins))
+          {proLocked && !isOpenLeave(ask.pins)
             ? " "
             : ` (${ask.attempts} ${ask.attempts === 1 ? "time" : "times"}) `}
           and have no line for it.
@@ -437,7 +436,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
                     tile={tile}
                     // A leave never left has no record to hold back.
                     recordLocked={
-                      openRecords !== null && tile.attempts > 0 && !openRecords.has(leaveKey(tile.spareLine.pins))
+                      proLocked && tile.attempts > 0 && !isOpenLeave(tile.spareLine.pins)
                     }
                     onOpen={(line) => setOpened({ pins: line.pins, edit: false })}
                   />
