@@ -8226,3 +8226,210 @@ Connect and a crawler need a public URL.
   app's history (ADR-041), the email address opens Mail, and the two outside
   policies leave as every outbound link does: a new tab on the web, the in-app
   browser in the store apps.
+
+## ADR-182: A segmented control's answer is filled in the accent
+
+**Status.** Accepted, 2026-10-22, at the owner's request. Amends
+DESIGN-LANGUAGE §2 on how `SegmentedControl` draws its selected segment.
+
+**Context.** The segmented control was drawn as UIKit draws its own: a grey
+track with the chosen segment raised in the surface color. In dark mode that
+segment is `surface-muted` on a faint ink track, two greys a few shades apart.
+In the Layout Lab's "Your PAP and hand" sheet, L/R and 1H/2H sat side by side
+and the owner could not tell which hand or which grip was set. The note that an
+accent fill "read as a pressed button" weighed less than a choice nobody can
+read.
+
+**Decision.**
+
+- The selected segment is filled with `accent-fill` and labelled in
+  `accent-on-fill`, the same pair a primary `Button` uses, so the answer reads
+  in both themes at a glance.
+- The track, sizes, the 44pt hit region and the store apps' selection tick are
+  unchanged. Unselected segments stay ink on the grey track.
+- It is the primitive that changes, so every pick-one track in the app (theme,
+  handedness, core, the Stats toggles) draws its answer the same way.
+
+**Consequence.** A track now carries the accent where it used to be neutral,
+so a screen with several stacked tracks shows more of it. That is the point:
+each one is an answer the bowler set.
+
+## ADR-183: A session's bar carries it, and a tap on what it is edits it
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand. Amends
+ADR-177 on a pushed screen's bar, and replaces the two-tap stats-then-pencil
+edit on a session.
+
+**Context.** A session opened from History drew its alley and a meta line in
+the nav bar, then a row under it with the lanes, the oil pattern, the stats and
+share buttons and the series score. To edit the session took two taps on one
+button: the stats glyph brought the sheet up, and the same button, now a
+pencil, opened the details. The row cost a band of the screen, the pencil was
+a glyph for something the bowler already expected the header to do, and the
+meta line spent its room on a long date and a game count the chips already
+say.
+
+**Decision.**
+
+- **The bar carries the session.** Back, then the alley over the event, a short
+  date and the oil pattern, then the stats button, share and the series score
+  with its average. `PushScreen` takes a `bar` in place of its centred title
+  for this; its words fade under a scroll as a title does (ADR-177), and its
+  controls stay. The Score tab has no nav bar, so the same bar heads its page.
+- **The identity is the edit.** A tap on the alley and its line opens the
+  session's details, with no pencil. While the session sheet is up, the same
+  tap closes the sheet and opens nothing: the sheet is what the bowler is
+  looking at, and the bar is the way out of it.
+- **The meta line is short.** "Oct 19", with the year only when it is not this
+  one, and no game count.
+- **The lanes stay under the bar,** on their own line, and a tap there still
+  opens the session sheet on its scorecard.
+
+**Consequence.** A long alley name truncates sooner in a pushed bar, beside
+two round buttons and the score. The full name is in the edit sheet a tap away.
+
+## ADR-184: No long press; a session's deletes are in its editor
+
+**Status.** Accepted, 2026-10-22, at the owner's request.
+
+**Context.** Two things in the app waited on a hold. A History row held for a
+menu of Edit session and Delete session, and a game chip held for Delete game.
+The owner found both clunky and easy to set off by accident. On the iPhone a
+hold is the system's context menu, which lifts the item, blurs the rest and
+gives a haptic, and a page cannot draw that. What it can draw is a timer and a
+small floating menu, with nothing to say the gesture is there, and the thumb
+that finds it is mostly one resting on a row mid-scroll.
+
+**Decision.**
+
+- **No long press anywhere.** `useLongPress` is gone. A History row and a game
+  chip do one thing on a tap, open or pick, and nothing on a hold.
+- **Edit session** is a tap on the session's header (ADR-183), so it leaves the
+  History menu with nothing to replace.
+- **Delete session** is a red button at the foot of Edit session, behind a
+  confirm that says every game goes with it and that it cannot be undone. It
+  sits with what it deletes, as Delete ball does in the ball editor.
+- **Delete game** is in the same sheet: a Games list, each game with its score
+  and a red delete, behind a confirm. The editor is the one place reachable
+  for every game, finished or not; the scorer's More menu is only there while
+  a game is being scored. Deleting the last game deletes the session, as it
+  did from the chip.
+- The game chips scroll sideways with no scroll bar drawn; a row cut off at
+  the edge already says there is more.
+
+**Consequence.** Deleting a session from History is now three taps (open it,
+its header, Delete session) rather than a hold and a tap. That is the point: a
+delete should be found by looking for it, not by resting a thumb.
+
+## ADR-185: Native presses and menus, and tab headers that stay put
+
+**Status.** Accepted, 2026-10-22, at the owner's request. Supersedes ADR-077 and
+ADR-093 on the tab header, and amends DESIGN-LANGUAGE §1 on where frost goes.
+
+**Context.** Three things read as a web page rather than an iPhone app. A finger
+pressed on More, slid off it to change its mind and lifted, and the menu opened
+anyway: a browser fires `click` for any touch that did not scroll, wherever it
+lifted. The menu itself was a small flat card with an icon before each label
+that faded in where it stood. And History's and Stats' headers slid away on a
+scroll down and back on a scroll up, where the owner wanted them to stay, with
+the list passing under them as it does under an iOS bar.
+
+**Decision.**
+
+- **A press dragged off a control is cancelled.** `installPressCancel`
+  (`src/lib/pressCancel.ts`), installed once at start, watches a touch from
+  the control it landed on; if it ends more than 32px past that control's
+  edge, the click that follows is swallowed. Coming back inside first counts
+  as a press, as UIKit's does. A mouse is left alone, since a desktop browser
+  already drops a click released elsewhere. Pins and the lane act on pointer
+  events, not clicks, and are untouched.
+- **The menu is drawn as an iOS menu.** `AnchoredMenu` is 240px wide, frosted
+  (`.anchored-menu`), with 22px corners, 44px rows, the label leading and its
+  glyph trailing, and it grows out of the corner of the button that opened it
+  with a little overshoot (`.animate-menu-in`).
+- **Tab headers stay put.** `FloatingHeader` replaces `CollapsingHeader`, and
+  `useHeaderCollapse` is gone. The title, actions and filter chips float over
+  the list, which scrolls under them and under the status bar, behind a
+  frosted wash that fades out just past the header's foot
+  (`.floating-header-ground`).
+
+**Consequence.** The headers cover the top of the list for good rather than
+handing their room back on a scroll down; on a phone that is the title row and,
+with filters on, a row of chips. The frost costs a backdrop blur where the list
+moves, which ADR-171 avoided under the tab bar for WebKit's frame budget; the
+headers' is one layer, not stacked over an animation.
+
+## ADR-186: Sheets float as iOS 26's do, with filled fields
+
+**Status.** Accepted, 2026-10-22, at the owner's request, against the Claude
+app's own sheet as the reference for native.
+
+**Context.** Every sheet was a full-width slab sitting on the screen's bottom
+edge, rounded only at the top with a small radius, its round controls tight to
+the edge, and its fields outlined boxes under bold labels. An iOS 26 sheet
+floats: inset from the sides and the bottom, rounded at every corner to follow
+the phone's own, its controls set in from the curve, and the fields inside it
+filled rows under small grey captions. Beside a native app the difference read
+at a glance.
+
+**Decision.**
+
+- **`FormSheet` floats on a phone.** 8px in from each side and from the foot,
+  38px corners all round (the screen's corner less the inset), the bar's
+  controls 14px in, and the body's padding allowing for the home indicator's
+  inset less the 8px the sheet already stands off. On a wider screen it is the
+  centred card it was. `SessionLanePanel` and the lane view's Lane options
+  float the same way.
+- **Fields are filled.** `FIELD` is a rounded box in a 6% wash of the ink, no
+  border until focus, 15px text. `FIELD_LABEL` is a 13px caption in the
+  secondary ink, set in a little.
+- **The dense score-panel fields are unchanged.** They sit two to a row beside
+  the pin deck, where an outline is what tells one box from the next.
+
+**Consequence.** A sheet is 16px narrower on a phone. Every form in the app
+picks up the filled fields through `field.ts`, including the few outside a
+sheet, which read as the same control on the page.
+
+## ADR-187: Controls are capsules
+
+**Status.** Accepted, 2026-10-22, at the owner's request.
+
+**Context.** iOS 26 draws its controls as capsules: buttons, the segmented
+control's track and thumb, a menu's pressed row. Headpin's were rounded
+rectangles of 6 to 10px, which read as a web form beside the floating sheets
+and glass buttons around them (ADR-168, ADR-186).
+
+**Decision.** `Button`, `Chip`, `SegmentedControl` and the session's new-game
+button are `rounded-full`; a menu row lights as an inset capsule. Cards,
+fields, menus and sheets keep their corner radii: they are containers, and a
+capsule is the shape of a thing that is pressed.
+
+**Consequence.** A wide button (a full-width Delete session) is a long pill,
+as iOS draws one.
+
+## ADR-188: Every screen bounces, the app never does
+
+**Status.** Accepted, 2026-10-22, at the owner's request, against the iPhone's
+own Settings screens as the reference. Keeps ADR-160's decision for the web
+view as a whole.
+
+**Context.** An iOS screen rubber-bands under a pull even when everything on it
+fits: a Bluetooth settings page with three rows still comes down under the
+thumb and springs back, and that answer is a large part of why it feels alive.
+Headpin's screens scroll inside their own scrollers (the web view itself is
+held still, ADR-160), and WebKit bounces a scroller only once its content is
+taller than it. A screen that fit, the Score tab between games or a short
+History, did not move at all.
+
+**Decision.** `.ios-bounce` (`index.css`) gives a scroller an invisible strut
+one pixel taller than itself, so it always has that pixel to scroll and iOS
+always bounces it. It is on `<main>` for the tabs it scrolls, on the History
+and Stats lists (`FloatingHeader`), on the Settings menu and on every pushed
+screen (`PushScreen`). It applies on touch screens only (`pointer: coarse`):
+a mouse has no bounce, and a desktop browser would draw a scroll bar for the
+pixel. Sheets are left out, since a pull down on a sheet is its dismiss.
+
+**Consequence.** A screen that fits can be scrolled by one pixel; nothing that
+reads a scroll position acts on less than four (the pushed title's fade, the
+floating header). The web view keeps `bounces = false`, so the tab bar and the
+status bar never move with a pull.

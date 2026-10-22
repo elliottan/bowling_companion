@@ -165,14 +165,6 @@
         --mint: #5ed6c1;
         --line: #f59e0b;
       }
-      @media (prefers-color-scheme: light) {
-        :root:not([data-theme="dark"]) .phone:not(.phone-dark) {
-          --shot-bg: #fff8ed;
-        }
-      }
-      :root[data-theme="light"] .phone:not(.phone-dark) {
-        --shot-bg: #fff8ed;
-      }
       :root[data-theme="dark"] {
         --bg: #0f172a;
         --card: #1e293b;
@@ -351,33 +343,38 @@
       /* ---------- Phones ---------- */
       /*
        * A phone drawn in CSS rather than shipped as a picture: it scales to any
-       * width, follows the theme, and costs nothing to download. The screen
-       * carries a strip of the app's background above the screenshot, so the
-       * camera cut-out sits above the app's header rather than on it.
+       * width, follows the theme, and costs nothing to download. It is the App
+       * Store set's phone, the 6.9 inch iPhone, at its real proportions
+       * (scripts/app-store/iphone.mjs, in points): a 440 x 956 screen with a
+       * 62pt corner, a 14pt black border round it, and the Dynamic Island,
+       * 126 x 37, 14pt from the top. The phone is 468pt across, so a point is
+       * 100/468 of a container width (cqw). The screenshots carry the status
+       * bar in the phone's own top inset, so the island sits in the status bar
+       * between the time and the battery, over none of the app.
        */
       .phone {
-        --shot-bg: #0f172a;
-        padding: 0.3rem;
-        border-radius: 1.7rem;
-        background: linear-gradient(160deg, #52525b, #27272a 40%, #3f3f46);
-        box-shadow: 0 24px 60px rgb(0 0 0 / 0.45), 0 0 0 1px rgb(255 255 255 / 0.06);
+        container-type: inline-size;
+        border-radius: 16.24cqw;
       }
-      .phone-dark { --shot-bg: #0f172a; }
       .screen {
         position: relative;
         overflow: hidden;
-        border-radius: 1.42rem;
-        background: var(--shot-bg);
-        padding-top: 5.2%;
+        /* 62pt + 14pt outside; the border takes 14pt, leaving the glass's 62. */
+        border-radius: 16.24cqw;
+        border: 2.99cqw solid #020304;
+        background: #020304;
+        /* The titanium edge, and the phone's shadow. */
+        box-shadow: 0 0 0 0.64cqw #5b6069, 0 0 0 1.1cqw #2a2d33,
+          0 24px 60px rgb(0 0 0 / 0.45);
       }
       .screen::after {
         content: "";
         position: absolute;
-        top: 1.5%;
+        top: 2.99cqw;
         left: 50%;
         transform: translateX(-50%);
-        width: 26%;
-        height: 2.7%;
+        width: 26.92cqw;
+        height: 7.91cqw;
         border-radius: 999px;
         background: #000;
       }
@@ -637,7 +634,7 @@
             </svg>
             <div class="phone">
               <div class="screen">
-                <img src="/shots/scorer.webp" width="780" height="1688" alt="" fetchpriority="high" />
+                <img src="/shots/scorer.webp" width="880" height="1912" alt="" fetchpriority="high" />
               </div>
             </div>
           </div>
@@ -662,7 +659,7 @@
             <a class="shot-link" href="/shots/scorer.webp" aria-label="View the scorecard larger"><div class="phone"><div class="screen">
               <picture>
                 <source srcset="/shots/scorer-light.webp" media="(prefers-color-scheme: light)" />
-                <img src="/shots/scorer.webp" width="780" height="1688" loading="lazy"
+                <img src="/shots/scorer.webp" width="880" height="1912" loading="lazy"
                   alt="A Headpin scorecard on the tenth frame, with the pins left standing and the stance and target boards written down beside it." />
               </picture>
             </div></div></a>
@@ -675,7 +672,7 @@
           </div>
           <figure>
             <a class="shot-link" href="/shots/line.webp" aria-label="View the lane view larger"><div class="phone phone-dark"><div class="screen">
-              <img src="/shots/line.webp" width="780" height="1688" loading="lazy"
+              <img src="/shots/line.webp" width="880" height="1912" loading="lazy"
                 alt="The Headpin lane view, with a ball path from the laydown through the target arrows to the breakpoint and into the pocket, drawn over an oil pattern." />
             </div></div></a>
           </figure>
@@ -689,7 +686,7 @@
             <a class="shot-link" href="/shots/stats.webp" aria-label="View the stats larger"><div class="phone"><div class="screen">
               <picture>
                 <source srcset="/shots/stats-light.webp" media="(prefers-color-scheme: light)" />
-                <img src="/shots/stats.webp" width="780" height="1688" loading="lazy"
+                <img src="/shots/stats.webp" width="880" height="1912" loading="lazy"
                   alt="The Headpin stats screen: an average of 180 with the high and low game, a chart of the score over each session, first-ball pocket, carry and strike rates, and the spares made." />
               </picture>
             </div></div></a>
@@ -704,7 +701,7 @@
             <a class="shot-link" href="/shots/arsenal.webp" aria-label="View the arsenal larger"><div class="phone"><div class="screen">
               <picture>
                 <source srcset="/shots/arsenal-light.webp" media="(prefers-color-scheme: light)" />
-                <img src="/shots/arsenal.webp" width="780" height="1688" loading="lazy"
+                <img src="/shots/arsenal.webp" width="880" height="1912" loading="lazy"
                   alt="The Headpin arsenal, a list of bowling balls with their photos, coverstocks, cores and specs." />
               </picture>
             </div></div></a>
@@ -719,7 +716,7 @@
             <a class="shot-link" href="/shots/history.webp" aria-label="View the history larger"><div class="phone"><div class="screen">
               <picture>
                 <source srcset="/shots/history-light.webp" media="(prefers-color-scheme: light)" />
-                <img src="/shots/history.webp" width="780" height="1688" loading="lazy"
+                <img src="/shots/history.webp" width="880" height="1912" loading="lazy"
                   alt="The Headpin history, a list of league nights, each with its alley, lanes, oil pattern, games and average." />
               </picture>
             </div></div></a>

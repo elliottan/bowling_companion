@@ -298,6 +298,43 @@ input[type="date"]::-webkit-date-and-time-value {
   animation: pop-in 0.18s ease-out;
 }
 
+/* A menu grows out of the button that opened it, from small, as an iOS menu
+   does, and settles with a little give (ADR-185). The origin is the edge it
+   hangs from (AnchoredMenu). */
+@keyframes menu-in {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-menu-in {
+  animation: menu-in 0.32s cubic-bezier(0.34, 1.32, 0.64, 1);
+}
+
+/* The menu's material: the surface, mostly opaque, over a strong blur, with a
+   hairline edge and a long soft shadow, as iOS draws its menus. */
+.anchored-menu {
+  background: rgb(var(--color-surface) / 0.82);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  backdrop-filter: blur(28px) saturate(1.6);
+  box-shadow: 0 0 0 0.5px rgb(var(--color-edge) / 0.7), 0 16px 48px rgb(0 0 0 / 0.28);
+}
+
+/* In the dark a menu is a shade lighter than the cards it opens over, as iOS
+   lifts its own, or it sank into the panel behind it. */
+:root[data-theme="dark"] .anchored-menu {
+  background: rgb(var(--color-surface-muted) / 0.86);
+  box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.08), 0 16px 48px rgb(0 0 0 / 0.5);
+}
+
 /* Glass: the material of a control on chrome (DESIGN-LANGUAGE §1b, ADR-168).
    A translucent round over whatever is behind it, blurred and lifted by a
    hairline highlight on its top edge, the way iOS 26 draws a bar button. The
@@ -385,24 +422,47 @@ input[type="date"]::-webkit-date-and-time-value {
   );
 }
 
-/* The tab header flips fully away and fully back (never half-there), so the
-   travel has to be animated: the scroll only says when, not how. The header and
-   the list under it are one block and only its transform moves, so the two
-   cannot drift apart the way a transitioned height and a transitioned transform
-   do. Keep this duration in step with SLIDE_MS in CollapsingHeader.tsx. */
-.collapsing-header {
-  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-  will-change: transform;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .collapsing-header {
-    transition: none;
+/* Every screen rubber-bands, as an iOS screen does whether or not its content
+   fills it (ADR-188). WebKit bounces a scroller only once its content is
+   taller than it, so a screen that fits, Home on a big phone, sat dead under
+   the thumb. This leaves a strut one pixel taller than the scroller in it,
+   so there is always that pixel to scroll and the bounce always answers.
+   Touch screens only: a mouse has no bounce, and a desktop browser would draw
+   a scroll bar for the pixel. The web view itself still does not bounce
+   (ADR-160): it is the screen that moves, never the whole app. */
+@media (pointer: coarse) {
+  .ios-bounce {
+    position: relative;
+  }
+  .ios-bounce::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: calc(100% + 1px);
+    pointer-events: none;
+    visibility: hidden;
   }
 }
 
+/* The ground under a tab's floating header (FloatingHeader, ADR-185): the
+   page's colour, nearly solid, over a blur, so the list passing under the
+   title and the chips is a soft shape rather than words over words. It runs a
+   little past the header's foot and fades out there, so the list goes under an
+   edge that is not there, as it does under a bar in iOS. */
+.floating-header-ground {
+  pointer-events: none;
+  background: rgb(var(--color-surface-sunken) / 0.86);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.25rem), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 1.25rem), transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-pop-in {
+  .animate-pop-in,
+  .animate-menu-in {
     animation: none;
   }
 }

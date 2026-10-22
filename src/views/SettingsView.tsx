@@ -78,7 +78,7 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
   // reveals it mid-animation instead of sliding onto an empty page.
   return (
     <div className="relative h-full">
-      <div className="h-full overflow-y-auto pb-[var(--tab-clear,0px)]">
+      <div className="ios-bounce h-full overflow-y-auto overscroll-contain pb-[var(--tab-clear,0px)]">
         <SettingsMenu
           handedness={handedness}
           onOpenBackup={onOpenBackup}

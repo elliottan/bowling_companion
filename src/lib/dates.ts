@@ -29,6 +29,18 @@ export function formatSessionDate(value: string): string {
     : value;
 }
 
+/** A session's date where room is short, a bar beside its score: "Oct 19",
+ *  with the year only when it is not this one. */
+export function formatShortDate(value: string, now: Date = new Date()): string {
+  const parsed = parseStoredDate(value);
+  if (!parsed) return value;
+  return parsed.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    ...(parsed.getFullYear() !== now.getFullYear() && { year: "numeric" })
+  });
+}
+
 /**
  * A catalog ball's release: "Mar 2024", or "2024" when the source only gave
  * the year. A release date is stored to the precision it was read at, `yyyy`,

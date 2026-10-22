@@ -67,7 +67,9 @@ const METRICS = {
     minSpan: 25
   },
   strikeOnStrikePct: {
-    label: "Strike on strike",
+    // A double, as bowlers say it: a strike that follows a strike. "Strike on
+    // strike" said the same in three words, and a heading three lines tall.
+    label: "Double",
     value: (s: BowlingStats) => s.strikeOnStrikePct,
     format: (v: number) => `${Math.round(v)}%`,
     min: 0,
@@ -133,9 +135,7 @@ export function metricNote(metric: MetricKey): string {
   return METRIC_NOTE[metric];
 }
 
-// Tapped definitions, for the numbers off the chart: the Spares heading and the
-// Carry row of a ball's table.
-const CARRY_NOTE = "Carry: pocket hits that struck.";
+// A tapped definition, for a number off the chart: the Spares heading.
 const SPARE_NOTE = "Spare: makeable leaves converted, excludes splits and washouts.";
 
 /** One line under the chart picker saying what the picked metric counts, always
@@ -738,7 +738,7 @@ function FirstBallCard({
       </dl>
       <dl className="mt-3 flex justify-between gap-3 border-t border-edge pt-2 text-xs text-ink-secondary">
         <div className="flex gap-1">
-          <dt>Strike on strike</dt>
+          <dt>Double</dt>
           <dd className="font-semibold tabular-nums text-ink">{pct(stats.strikeOnStrikePct)}</dd>
         </div>
         <div className="flex gap-1">
@@ -798,7 +798,7 @@ function StatNote({ text, onDismiss }: { text: string; onDismiss: () => void }) 
 
 /** A ball's columns, in order, shared by the heading row and every ball so
  *  each number sits under the word that names it. Strike leads the three
- *  rates it ends; the first ball average and strike on strike follow. Sized so
+ *  rates it ends; the first ball average and the double rate follow. Sized so
  *  all five fit beside the name on a 360px phone (ADR-144). */
 const BALL_COLUMNS: ReadonlyArray<{
   key: string;
@@ -810,12 +810,7 @@ const BALL_COLUMNS: ReadonlyArray<{
   { key: "carry", label: "Carry", width: "w-9", value: (b) => pct(b.carryPct) },
   { key: "strike", label: "Strike", width: "w-9", value: (b) => pct(b.strikePct) },
   { key: "first ball", label: "1st ball", width: "w-9", value: (b) => oneDp(b.firstBallAverage) },
-  {
-    key: "strike on strike",
-    label: "Strike on strike",
-    width: "w-10",
-    value: (b) => pct(b.strikeOnStrikePct)
-  }
+  { key: "double", label: "Double", width: "w-9", value: (b) => pct(b.strikeOnStrikePct) }
 ];
 
 /** The ball's picture and name, taking whatever the columns leave. Below about
@@ -921,7 +916,6 @@ function BallDetails({
   /** Open the games behind one column, where there is somewhere to go. */
   onDrill?: (cell: BallGameCell) => void;
 }) {
-  const [note, setNote] = useState<string | null>(null);
   return (
     <div className="mt-2 space-y-2 rounded-lg bg-surface-muted p-2">
       {/* Wider than the sheet once a ball has been thrown in many game slots:
@@ -934,7 +928,7 @@ function BallDetails({
         <table className="min-w-full whitespace-nowrap text-[11px] tabular-nums">
           <thead>
             <tr className="text-ink-tertiary">
-              <th className={`${ROW_NAME_CELL} text-left font-semibold`}>Game</th>
+              <th className={`${ROW_NAME_CELL} text-left font-semibold`}>By game</th>
               {ball.byGame.map((c) => (
                 <th key={c.gameNumber} className="pl-3 text-right font-semibold">
                   {onDrill && c.sessions.length > 0 ? (
@@ -951,37 +945,18 @@ function BallDetails({
                   )}
                 </th>
               ))}
-              <th className="pl-3 text-right font-semibold">All</th>
             </tr>
           </thead>
           <tbody className="text-ink-secondary">
-            <MetricRow
-              label="Pocket"
-              cells={ball.byGame.map((c) => rateOf(c.pocket, c.firstBalls))}
-              total={ball.pocketPct}
-            />
-            <MetricRow
-              label="Carry"
-              cells={ball.byGame.map((c) => rateOf(c.pocketStrikes, c.pocket))}
-              total={ball.carryPct}
-              onExplain={() => setNote((curr) => (curr === CARRY_NOTE ? null : CARRY_NOTE))}
-            />
-            <MetricRow
-              label="Strike"
-              cells={ball.byGame.map((c) => rateOf(c.strikes, c.firstBalls))}
-              total={ball.strikePct}
-            />
+            <MetricRow label="Pocket" cells={ball.byGame.map((c) => rateOf(c.pocket, c.firstBalls))} />
+            <MetricRow label="Carry" cells={ball.byGame.map((c) => rateOf(c.pocketStrikes, c.pocket))} />
+            <MetricRow label="Strike" cells={ball.byGame.map((c) => rateOf(c.strikes, c.firstBalls))} />
             <MetricRow
               label="1st ball"
               cells={ball.byGame.map((c) => pinsPerBall(c.firstBallPins, c.firstBalls))}
-              total={ball.firstBallAverage}
               format={oneDp}
             />
-            <MetricRow
-              label="Strike on strike"
-              cells={ball.byGame.map((c) => rateOf(c.followUps, c.followUpOpps))}
-              total={ball.strikeOnStrikePct}
-            />
+            <MetricRow label="Double" cells={ball.byGame.map((c) => rateOf(c.followUps, c.followUpOpps))} />
             <tr>
               <td className={`${ROW_NAME_CELL} text-left text-ink-tertiary`}>Balls</td>
               {ball.byGame.map((c) => (
@@ -989,13 +964,10 @@ function BallDetails({
                   {c.firstBalls}
                 </td>
               ))}
-              <td className="pl-3 text-right text-ink-tertiary">{ball.firstBalls}</td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      {note && <StatNote text={note} onDismiss={() => setNote(null)} />}
 
       {ball.leaves.length > 0 && (
         // Grouped the way the leave cards are, easiest first, and scrolled
@@ -1233,40 +1205,23 @@ const ROW_NAME_CELL = "sticky left-0 z-[1] bg-surface-muted pr-2";
 function MetricRow({
   label,
   cells,
-  total,
-  format = pct,
-  onExplain
+  format = pct
 }: {
   label: string;
   cells: Array<number | null>;
-  total: number | null;
   /** How a cell reads; a rate unless said otherwise. */
   format?: (value: number | null) => string;
-  /** Omitted where the label needs no explaining, and then it is not a
-   *  control: a dotted underline that opens nothing is a broken promise. */
-  onExplain?: () => void;
 }) {
+  // No All column: the ball's line above the table carries every total, and
+  // a second copy cost the table its last column on a phone.
   return (
     <tr>
-      <td className={`${ROW_NAME_CELL} text-left font-semibold text-ink`}>
-        {onExplain ? (
-          <button
-            type="button"
-            onClick={onExplain}
-            className="underline decoration-dotted underline-offset-2"
-          >
-            {label}
-          </button>
-        ) : (
-          label
-        )}
-      </td>
+      <td className={`${ROW_NAME_CELL} text-left font-semibold text-ink`}>{label}</td>
       {cells.map((value, i) => (
         <td key={i} className="pl-3 text-right">
           {format(value)}
         </td>
       ))}
-      <td className="pl-3 text-right font-semibold text-ink">{format(total)}</td>
     </tr>
   );
 }

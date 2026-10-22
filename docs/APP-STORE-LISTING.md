@@ -122,7 +122,7 @@ Apple takes up to 10 per size. The required size is the 6.9 inch iPhone (1320
 by 2868); the others scale from it. Headpin is portrait only, so every shot is
 portrait.
 
-The set is built: `marketing/app-store/2026-10-21/`, made by
+The set is built: `marketing/app-store/2026-10-22/`, made by
 `scripts/app-store/screenshots.mjs` from the real app. `captioned/` is the set
 to upload; `plain/` is the same ten screens with no caption, for a listing or a
 press kit that wants the bare app. The script drives the app at the 6.9 inch
@@ -162,6 +162,13 @@ Rules for the set:
   league nights (`scripts/ad-content/history.mjs`) and tonight's game.
 - The phone is whole, and the same size in the same place on every shot; the
   caption never covers the app.
+- **The phone is a real one.** Every picture of the app, here and on the
+  landing page, is taken on and drawn in one phone, the 6.9 inch iPhone, from
+  one file (`scripts/app-store/iphone.mjs`): its screen, its safe areas, a 62pt
+  glass corner with a 14pt border round it, and a 126 by 37 Dynamic Island 14pt
+  from the top. The status bar is drawn into the top inset, so the island sits
+  in it between the time and the battery and never over the app. The landing
+  page's CSS phone copies the same numbers as ratios.
 - No ball brand's logo outside the catalog photos the app itself shows, and no
   claim in a caption that the description does not make.
 - The pages are rendered by Chromium with Inter, which is close to the iPhone's
@@ -172,10 +179,10 @@ Rules for the set:
 
 ## Before submission
 
-- **Retake the screenshots.** The set in `marketing/app-store/2026-10-21/`
-  predates 0.55.0: the first-ball card and the charts are free now, locks are a
-  lock icon, the layout lab locks only its sliders, and the Pro page shows the
-  real screens (ADR-170 to ADR-176). `node scripts/app-store/screenshots.mjs`.
+- **The screenshots are current as of 0.56.0** (`marketing/app-store/2026-10-22/`).
+  Retake them when a screen in the set changes:
+  `node scripts/app-store/screenshots.mjs`, from the state `npm run shots`
+  saves, so the landing page and the store show the same bowler.
 
 - Replace "Hundreds" with a number only if it is checked against the catalog on
   the day.

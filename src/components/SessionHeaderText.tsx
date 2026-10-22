@@ -1,5 +1,4 @@
-import { Pencil } from "lucide-react";
-import { formatSessionDate } from "../lib/dates";
+import { formatShortDate } from "../lib/dates";
 import { alleyLabel } from "../lib/sessionLabels";
 import type { SessionSummary } from "../types/bowling";
 
@@ -25,62 +24,39 @@ export function laneSummary(games: SessionSummary["games"]): string {
   return `${noun} ${pairs.join(", ")}`;
 }
 
-/**
- * Session identity block, alley, event/date/games, lanes/oil pattern. Shared
- * by the score-entry header and the session sheet so both read identically.
- * The oil pattern is a link; callers that make the whole block tappable get a
- * `stopPropagation` on it so tapping the pattern opens the sheet, not the block.
- */
-/** The line under the alley: the event, the date and how many games. */
-export function sessionMetaLine(session: SessionSummary["session"], games: SessionSummary["games"]): string {
-  return [session.description, formatSessionDate(session.date), `${games.length} ${games.length === 1 ? "game" : "games"}`]
-    .filter(Boolean)
-    .join(" · ");
+/** The line under the alley: the event and a short date. The game count is
+ *  gone: the chips under the bar already say it, and the bar has the score and
+ *  its actions to fit beside this. */
+export function sessionMetaLine(session: SessionSummary["session"]): string {
+  return [session.description, formatShortDate(session.date)].filter(Boolean).join(" · ");
 }
 
+/**
+ * The session's identity as its bar draws it: the alley, then the event, the
+ * date and the oil pattern. The pattern is a link where it has a sheet; a
+ * caller that makes the block tappable gets the link's `stopPropagation`, so
+ * tapping the pattern opens the pattern and not the block.
+ */
 export function SessionHeaderText({
   session,
-  games,
-  onEdit,
-  identityInBar = false
+  heading: Heading = "h1"
 }: {
   session: SessionSummary["session"];
-  games: SessionSummary["games"];
-  /** Renders a pencil button beside the alley name. */
-  onEdit?: () => void;
-  /** The alley and the date line are in the screen's nav bar already, so only
-   *  the lanes and the pattern are drawn here. */
-  identityInBar?: boolean;
+  /** `h1` as a pushed screen's title; `h2` heading the Score tab's page. */
+  heading?: "h1" | "h2";
 }) {
-  const lanes = laneSummary(games);
+  const meta = sessionMetaLine(session);
   return (
     <div className="min-w-0">
-      {!identityInBar && (
-      <>
-      <div className="flex min-w-0 items-center gap-1">
-        <h2 className="truncate text-base font-bold text-ink">{alleyLabel(session.alley_name)}</h2>
-        {onEdit && (
-          <button
-            type="button"
-            onClick={onEdit}
-            aria-label="Edit session"
-            className="shrink-0 rounded p-1 text-ink-tertiary hover:bg-surface-muted hover:text-ink-secondary"
-          >
-            <Pencil size={14} aria-hidden="true" />
-          </button>
-        )}
-      </div>
-      {/* Two rows: event/date/games, then lanes + pattern, the pattern name is
-          long, so it gets a row where it won't be truncated. */}
-      <p className="truncate text-xs text-ink-secondary">{sessionMetaLine(session, games)}</p>
-      </>
-      )}
-      {(lanes || session.oil_pattern) && (
-        <p className="truncate text-xs text-ink-secondary">
-          {lanes}
+      <Heading className="truncate text-[17px] font-semibold leading-tight text-ink">
+        {alleyLabel(session.alley_name)}
+      </Heading>
+      {(meta || session.oil_pattern) && (
+        <p className="truncate text-xs leading-tight text-ink-secondary">
+          {meta}
           {session.oil_pattern && (
             <>
-              {lanes && " · "}
+              {meta && " · "}
               {/* The pattern sheet is worth a tap mid-session, so link it here. */}
               {session.oil_pattern_url ? (
                 <a

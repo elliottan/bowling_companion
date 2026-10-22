@@ -109,7 +109,7 @@ test("the sheets you type into are accessible", async ({ page }) => {
     .click();
   await startSession(page, "Axe Lanes");
   await recordShot(page, [7]);
-  await page.getByRole("button", { name: "Open session sheet and lane notes" }).click();
+  await page.getByRole("button", { name: "Session stats", exact: true }).click();
   await expectNoViolations(page);
 });
 

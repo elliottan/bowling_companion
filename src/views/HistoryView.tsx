@@ -7,7 +7,7 @@ import {
   SessionFilterChips,
   SessionFilterSheet
 } from "../components/SessionFilterBar";
-import { CollapsingHeader } from "../components/CollapsingHeader";
+import { FloatingHeader } from "../components/FloatingHeader";
 import { rememberScroll, restoreScroll, useRememberedState } from "../lib/viewMemory";
 import { useSessionFilters } from "./useSessionFilters";
 import type { SessionSummary } from "../types/bowling";
@@ -15,15 +15,13 @@ import type { SessionSummary } from "../types/bowling";
 interface HistoryViewProps {
   onOpenSession: (sessionId: number) => void;
   activeSessionId: number | null;
-  onSessionDeleted?: (sessionId: number) => void;
 }
 
 const PAGE = 15; // sessions loaded per infinite-scroll step
 
 export function HistoryView({
   onOpenSession,
-  activeSessionId,
-  onSessionDeleted
+  activeSessionId
 }: HistoryViewProps) {
   // The list reads scores, never shots, so it takes the loader that skips the
   // frames of games that already have one (ADR-066).
@@ -75,7 +73,7 @@ export function HistoryView({
 
   return (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
-      <CollapsingHeader
+      <FloatingHeader
         scrollerRef={scrollerRef}
         header={
           <>
@@ -104,11 +102,10 @@ export function HistoryView({
             isLoading={isLoading}
             onOpenSession={onOpenSession}
             activeSessionId={activeSessionId}
-            onSessionDeleted={onSessionDeleted}
           />
           <div ref={sentinelRef} className="h-6" aria-hidden="true" />
         </div>
-      </CollapsingHeader>
+      </FloatingHeader>
       {filtersOpen && (
         <SessionFilterSheet filters={filters} onClose={() => setFiltersOpen(false)} />
       )}

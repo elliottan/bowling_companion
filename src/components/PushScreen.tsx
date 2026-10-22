@@ -14,6 +14,15 @@ interface PushScreenProps {
   subtitle?: string;
   /** Optional trailing nav-bar action (kept to one control, iOS style). */
   trailing?: ReactNode;
+  /**
+   * The screen's own bar, from the back control to the trailing edge, in place
+   * of the centred title and `trailing`. For a screen whose bar carries more
+   * than its name: a session's identity, its score and the actions on it.
+   * Handed whether the page has scrolled under it, so its words can fade as a
+   * title does (ADR-177) while its controls stay; `title` still names the
+   * screen to a screen reader.
+   */
+  bar?: (scrolled: boolean) => ReactNode;
   /** Suppress Escape / focus trap while a dialog is layered on top. */
   active?: boolean;
   /**
@@ -68,6 +77,7 @@ export function PushScreen({
   subtitle,
   onBack,
   trailing,
+  bar,
   active = true,
   mode = "overlay",
   backCloses = false,
@@ -175,15 +185,21 @@ export function PushScreen({
               {/* Optically centred: the chevron's mass sits right of its box. */}
               <ChevronLeft size={22} strokeWidth={2.5} aria-hidden="true" className="-ml-0.5" />
             </IconButton>
-            <div
-              className={`pointer-events-none absolute left-1/2 max-w-[calc(100%-7rem)] -translate-x-1/2 text-center transition-opacity duration-200 ${
-                scrolled ? "opacity-0" : ""
-              }`}
-            >
-              <h1 className="truncate text-[17px] font-semibold leading-tight text-ink">{title}</h1>
-              {subtitle && <p className="truncate text-xs leading-tight text-ink-secondary">{subtitle}</p>}
-            </div>
-            <div className="ml-auto flex shrink-0 items-center">{trailing}</div>
+            {bar ? (
+              <div className="ml-1 flex min-w-0 flex-1 items-center gap-1">{bar(scrolled)}</div>
+            ) : (
+              <>
+                <div
+                  className={`pointer-events-none absolute left-1/2 max-w-[calc(100%-7rem)] -translate-x-1/2 text-center transition-opacity duration-200 ${
+                    scrolled ? "opacity-0" : ""
+                  }`}
+                >
+                  <h1 className="truncate text-[17px] font-semibold leading-tight text-ink">{title}</h1>
+                  {subtitle && <p className="truncate text-xs leading-tight text-ink-secondary">{subtitle}</p>}
+                </div>
+                <div className="ml-auto flex shrink-0 items-center">{trailing}</div>
+              </>
+            )}
           </div>
         </header>
 
@@ -196,7 +212,7 @@ export function PushScreen({
             const next = e.currentTarget.scrollTop > 4;
             if (next !== scrolled) setScrolled(next);
           }}
-          className={`min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[var(--push-bar-h)] ${
+          className={`ios-bounce min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[var(--push-bar-h)] ${
             // Inline, a Settings section, runs under the tab bar like its tab.
             overlay ? "pb-[env(safe-area-inset-bottom)]" : "pb-[var(--tab-clear,0px)]"
           }`}

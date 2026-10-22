@@ -67,7 +67,11 @@ keyboard, not the size of the job:
   trailing in its own bar. Everything you enter data into: the session form, the
   ball editor, a spare line, the lane pair, adding a catalog ball. Bottom rather
   than centered because that is the edge the keyboard arrives at; a centered
-  dialog holding a focused field gets shoved half off-screen on iOS. The one
+  dialog holding a focused field gets shoved half off-screen on iOS. On a
+  phone it floats as an iOS 26 sheet does (ADR-186): 8px in from the sides and
+  the foot, every corner 38px so it follows the phone's own, its round
+  controls set in clear of the curve. The session sheet and the lane view's
+  options float the same way. The one
   exception to the leading close is a sheet that has already applied everything
   as you went, the filter sheet being the only one: there is nothing to cancel,
   so an X would be a lie about what leaving does. Those carry no leading control
@@ -80,9 +84,19 @@ keyboard, not the size of the job:
   layer under the Filters button, over the list, and a tap anywhere else puts
   them away. Opened inline they pushed every ball down the screen each time a
   chip was chosen, and the list the filters were narrowing went out of sight.
-- **`AnchoredMenu`** (`src/components/ui/AnchoredMenu.tsx`) is the long-press
-  menu on a row or a chip. Its scrim is transparent, not dimmed: a menu is
-  anchored to the thing it acts on, and dimming would hide it.
+- **`AnchoredMenu`** (`src/components/ui/AnchoredMenu.tsx`) is the menu a
+  tapped button opens beside itself: the scorer's More, the Layouts presets.
+  Its scrim is transparent, not dimmed: a menu is anchored to the thing it
+  acts on, and dimming would hide it.
+- **No long press.** Nothing in the app waits on a hold (ADR-184). On the web
+  a hold cannot be the iPhone's own context menu, with its lift and preview
+  and haptic, so it was a gesture with no sign it existed, found mostly by a
+  thumb resting mid-scroll. A row's tap opens it, and only that.
+- **A press dragged off a control presses nothing**, as a UIKit button's does
+  (`src/lib/pressCancel.ts`, ADR-185). It is one listener for the whole
+  document, so every button, link and role=button keeps to it without being
+  told. A touch may wander a little past the edge and still count, and one
+  that comes back before lifting counts again.
 
 Before this rule the app had it both ways: the ball editor was a sheet and the
 session editor a centered dialog, though they are the same object.
@@ -106,6 +120,11 @@ out. Words stay where a glyph would be a guess: a dialog's answers ("Edit",
 "Replace", "Delete"), a toggle between two named views ("Top-down"), and a
 quiet action inside a screen ("Edit shots", "Re-aim", "Presets").
 
+A session is the one place an edit has no glyph: its bar is the alley, the
+event, the date and the pattern, and a tap on them opens the session's
+details, as a contact's name does. With the session sheet up the same tap
+puts the sheet away instead (ADR-183).
+
 **Bars float, and the page scrolls under them** (ADR-168). A push's nav bar, a
 sheet's bar and the status bar over a tab have no ground of their own: behind
 them is the scroll edge (`.scroll-edge`), a wash of the page's color and a blur
@@ -128,8 +147,9 @@ attempt left the list ending in a hard edge above a bar floating in empty page,
 and a later gradient that went solid under the capsule read the same way: a
 band the page stopped at, not a bar over it (ADR-171). The iPhone app's system
 bar has no ground of its own either, so the page passes under it the same way.
-Frost belongs only here, where there is something to blur; headers and sheets
-stay opaque.
+Frost belongs where something passes beneath it: here, under History's and
+Stats' floating headers, and in a menu over the page (ADR-185). Sheets and a
+pushed screen's bar stay as they are.
 
 ## 2. Controls
 
@@ -146,9 +166,11 @@ vertically only, and `compact` grows upward only, because it sits in a heading
 row with content directly beneath it.
 
 `SegmentedControl` (`src/components/ui/SegmentedControl.tsx`) is one track with
-N segments and exactly one selected: a theme, a handedness. It is drawn as
-UIKit draws its own, a grey track with the chosen segment raised on it in the
-surface color, and ticks in the store apps as the choice moves (ADR-168). A row of `Chip`s is
+N segments and exactly one selected: a theme, a handedness. It is a grey track
+with the chosen segment filled in the accent, as a primary button is, and ticks
+in the store apps as the choice moves (ADR-168). It was drawn as UIKit draws
+its own, the chosen segment raised in the surface color, and in dark mode that
+was grey on grey: which hand was set could not be told at a glance (ADR-182). A row of `Chip`s is
 not that, and reads as one because chips sit apart with gaps between them and
 any number of them can be on. The theme picker was three chips before, and the
 shared track is what says "pick one" before a single label is read.
@@ -176,7 +198,8 @@ why `danger-ghost` exists alongside `danger`.
 
 Destructive actions: the trigger sits with the thing it destroys (delete lives
 *inside* the ball editor, not as a third icon on the list row), and always goes
-through `ConfirmDialog`.
+through `ConfirmDialog`. A session's are in its editor: each game in a Games
+list with a red delete, and Delete session at the foot.
 
 **Icons.** Lucide, at the size the control asks for, for anything universal: a
 close, a share, a chevron, a trash. A *bowling* idea gets one of the app's own
@@ -197,6 +220,12 @@ mode.
 Depth: `surface-sunken` is the page, `surface` is a card on it, `edge` draws the
 boundary. Cards are `rounded-xl` (`rounded-2xl` for a full-width empty state),
 one `shadow-sm`, no stacked shadows.
+
+**Controls are capsules; containers have corners** (ADR-187). A `Button`, a
+`Chip`, a `SegmentedControl` (track and segment), the new-game button and a
+pressed menu row are fully round at the ends, as iOS 26 draws every control.
+Cards, fields, menus and sheets keep a corner radius, since they hold things
+rather than being pressed.
 
 **The one exception is the lane.** A pin deck is maple and a knocked-down pin is
 tan, in a dark room as much as a light one, and a deck that went slate at night
@@ -416,6 +445,12 @@ had lost `bg-surface`, so those inputs fell back to the browser's own control
 color: a warm gray block in a blue-slate app. That is §3's hardcoded-`slate-100`
 bug one level down, and one shared string is what stops it recurring.
 
+A field is filled, not outlined (ADR-186): a rounded box in a faint wash of the
+ink, no border until it is focused, as an iOS grouped field is. Its label is a
+small caption in the secondary ink, a little in from the box's edge, as iOS
+captions a group. The dense score panels keep their outlined boxes; they sit
+two to a row beside a pin deck, where an edge is what tells one from the next.
+
 A field label is sentence case and sits above its field. It is *not* a
 `GROUP_HEADING`: the small uppercase style names a group of things, and reusing
 it on labels shouts every field name. The dense score panels use
@@ -457,13 +492,16 @@ as the thing leaving.
   between the tap and the screen (ADR-085). This is the one exception to the
   symmetry rule above, and it is not really an exception: nothing animates in,
   so nothing has to animate out.
-- **Collapsing tab headers** flip fully away and fully back, never parking half
-  way (`useHeaderCollapse`, `CollapsingHeader`). The scroll says when, the
-  header says how: it earns the flip over a threshold of committed travel, then
-  slides over the list on a transform of its own. The list is full height
-  whether the header is there or not, so the flip changes only how much of the
-  list the header covers: the scroll is never moved by the header. ADR-077,
-  ADR-093.
+- **Every screen bounces** (`.ios-bounce`, ADR-188). A tab, a pushed screen,
+  the Settings menu and History's and Stats' lists rubber-band under a pull
+  whether or not their content fills them, as an iOS screen does: a strut one
+  pixel taller than the scroller keeps it scrollable. The web view itself
+  never bounces (ADR-160), so it is the screen that moves, not the app.
+- **Tab headers stay put** (`FloatingHeader`, ADR-185). History's and Stats'
+  title, actions and filter chips float over their list and never move; the
+  list scrolls under them, and under the status bar, behind a frosted wash
+  that fades out at the header's foot. They used to slide away on a scroll
+  down (ADR-077, ADR-093), which hid the filters when a long list needed them.
 
 Keyframes live in `src/index.css`; interactive drags own their own transform
 and never animate against a keyframe. Everything is off under

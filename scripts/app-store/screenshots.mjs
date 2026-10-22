@@ -2,7 +2,7 @@
 //
 //   1. npm run dev
 //   2. SHOTS_STATE=/tmp/headpin-state.json SHOTS_DIR=/tmp/shots npm run shots
-//   3. STORE_STATE=/tmp/headpin-state.json STORE_OUT=marketing/app-store/2026-10-21 \
+//   3. STORE_STATE=/tmp/headpin-state.json STORE_OUT=marketing/app-store/2026-10-22 \
 //        node scripts/app-store/screenshots.mjs
 //
 // Two passes. The first drives the app at the 6.9 inch iPhone's size (440 x 956
@@ -21,6 +21,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { chromium } from "@playwright/test";
 import { seedHistory } from "../ad-content/history.mjs";
+import { SCREEN, STORE_DPR, actAsIphoneApp, drawStatusBar, emulateSafeAreas, removeStatusBar } from "./iphone.mjs";
 
 const BASE = process.env.STORE_BASE ?? "http://localhost:5173";
 const STATE = process.env.STORE_STATE;
@@ -28,11 +29,10 @@ const OUT = resolve(process.env.STORE_OUT ?? "store-out");
 const ONLY = process.env.STORE_ONLY?.split(",");
 if (!STATE) throw new Error("STORE_STATE must name a saved bowler (see the header).");
 
-// The 6.9 inch iPhone (16 Pro Max, 17 Pro Max) in points, and its safe areas.
-const W = 440;
-const H = 956;
-const DPR = 3;
-const INSETS = { top: 62, bottom: 34, left: 0, right: 0 };
+// The 6.9 inch iPhone, shared with the landing page's pictures (iphone.mjs).
+const W = SCREEN.width;
+const H = SCREEN.height;
+const DPR = STORE_DPR;
 
 /**
  * The set, in the order the listing shows it: the first three are what a
@@ -64,69 +64,17 @@ const context = await browser.newContext({
   reducedMotion: "reduce",
   hasTouch: false
 });
-// The screens are the iPhone app's, not the web app's: the page is told it is
-// inside the app, as Capacitor's native side tells it (ADR-155), so it shows
-// the app's own copy (no "this browser may clear your scores"), sells Pro
-// through the store plugin, and fetches photos and catalogs from headpin.app,
-// which is answered here from the dev server. The store plugin answers as
-// StoreKit would, at the US price: Pro owned for the screen that shows it,
-// not owned for the rest, so a free screen shows exactly what a free download
-// does. Every other plugin is missing, and the app falls back as it does when
-// one is (the tab bar is then the page's own, ADR-161).
-await context.addInitScript(() => {
-  const owned = localStorage.getItem("store-shots.pro") === "1";
-  const ids = owned ? ["app.headpin.pro"] : [];
-  const answers = {
-    HeadpinStore: {
-      product: { id: "app.headpin.pro", name: "Headpin Pro", price: "$9.99" },
-      entitlements: { ids },
-      restore: { ids },
-      removeListener: {}
-    }
-  };
-  const methods = (names) => names.map((name) => ({ name, rtype: name === "addListener" ? "callback" : "promise" }));
-  window.webkit = { messageHandlers: { bridge: { postMessage() {} } } };
-  window.Capacitor = {
-    isNativePlatform: () => true,
-    getPlatform: () => "ios",
-    PluginHeaders: [{ name: "HeadpinStore", methods: methods(["product", "purchase", "entitlements", "restore", "addListener", "removeListener"]) }],
-    nativePromise: (plugin, method) =>
-      answers[plugin]?.[method] ? Promise.resolve(answers[plugin][method]) : Promise.reject(new Error(`${plugin}.${method} is not in the screenshot bridge`)),
-    nativeCallback: () => Promise.resolve("store-shots"),
-    convertFileSrc: (path) => path
-  };
-});
+// The screens are the iPhone app's, not the web app's (iphone.mjs), and the
+// catalogs and photos it fetches from headpin.app are answered here from the
+// dev server.
+await actAsIphoneApp(context);
 await context.route("https://headpin.app/**", async (route) => {
   const url = new URL(route.request().url());
   route.fulfill({ response: await route.fetch({ url: `${BASE}${url.pathname}${url.search}` }) });
 });
 const page = await context.newPage();
-const cdp = await context.newCDPSession(page);
-await cdp.send("Emulation.setSafeAreaInsetsOverride", { insets: INSETS });
+await emulateSafeAreas(page);
 const wait = (ms) => page.waitForTimeout(ms);
-
-// The status bar, drawn where the phone's own would be: the time on the left,
-// signal, Wi-Fi and a full battery on the right. A screenshot taken on a phone
-// carries neither the Dynamic Island nor the home indicator, so neither is here.
-const ICONS = `<svg viewBox="0 0 78 13" width="78" height="13" fill="currentColor"><rect x="0" y="8" width="3.2" height="4.5" rx="1"/><rect x="4.7" y="6" width="3.2" height="6.5" rx="1"/><rect x="9.4" y="3.5" width="3.2" height="9" rx="1"/><rect x="14.1" y="1" width="3.2" height="11.5" rx="1"/><path d="M31 2.6a10 10 0 0 1 7 2.9l1.3-1.3A11.9 11.9 0 0 0 31 .7a11.9 11.9 0 0 0-8.3 3.5L24 5.5a10 10 0 0 1 7-2.9Zm0 3.7a6.3 6.3 0 0 1 4.4 1.8l1.3-1.3A8.1 8.1 0 0 0 31 4.4a8.1 8.1 0 0 0-5.7 2.4l1.3 1.3A6.3 6.3 0 0 1 31 6.3Zm0 3.7c.7 0 1.3.3 1.8.7L31 12.5l-1.8-1.8c.5-.4 1.1-.7 1.8-.7Z"/><rect x="50.5" y="0.5" width="24" height="12" rx="3.6" fill="none" stroke="currentColor" stroke-opacity="0.4"/><rect x="52.5" y="2.5" width="20" height="8" rx="2"/><path d="M76 4.2v4.6a2.5 2.5 0 0 0 0-4.6Z" fill-opacity="0.45"/></svg>`;
-async function statusBar(colour) {
-  await page.evaluate(
-    ({ icons, colour, top }) => {
-      document.getElementById("store-status-bar")?.remove();
-      const bar = document.createElement("div");
-      bar.id = "store-status-bar";
-      bar.innerHTML = `<span>9:41</span>${icons}`;
-      Object.assign(bar.style, {
-        position: "fixed", left: "0", right: "0", top: "0", height: `${top}px`, zIndex: "2147483647",
-        pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "4px 30px 0 52px", boxSizing: "border-box", color: colour,
-        font: "600 17px/1 Inter, system-ui, sans-serif", letterSpacing: "-0.01em"
-      });
-      document.body.appendChild(bar);
-    },
-    { icons: ICONS, colour, top: INSETS.top }
-  );
-}
 
 async function setTheme(theme) {
   await page.evaluate((t) => {
@@ -166,12 +114,12 @@ const back = (n = 1) =>
 const plain = {};
 async function shoot(shot, { bar = shot.theme === "dark" ? "#fff" : "#0b1220" } = {}) {
   await wait(500);
-  await statusBar(bar);
+  await drawStatusBar(page, bar);
   await wait(150);
   plain[shot.name] = await page.screenshot({ type: "png" });
   await writeFile(join(OUT, "plain", `${shot.name}.png`), plain[shot.name]);
   console.log("took", shot.name);
-  await page.evaluate(() => document.getElementById("store-status-bar")?.remove());
+  await removeStatusBar(page);
 }
 const shot = (name) => SHOTS.find((s) => s.name.endsWith(name));
 
@@ -267,6 +215,11 @@ if (wanted("score") || wanted("home")) {
     await nav.getByRole("button", { name: "Home" }).click();
     await wait(600);
     await page.evaluate(() => document.querySelectorAll("*").forEach((el) => el.scrollTop && (el.scrollTop = 0)));
+    // The backup reminder, put off as a bowler would: it is the app asking,
+    // not the app.
+    const later = page.getByRole("button", { name: "Later", exact: true });
+    if (await later.count()) await later.first().click();
+    await wait(300);
     await shoot(shot("home"));
   }
   await home();

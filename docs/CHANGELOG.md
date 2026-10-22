@@ -9,6 +9,55 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.56.0: A session's header carries it, and you can see which option is picked (2026-10-22)
+
+- **Tap a session's name to edit it.** The pencil is gone. Tapping the alley
+  at the top of a session opens its details; with the session's stats pulled
+  up, the same tap puts them away (ADR-183).
+- **One header, not two rows.** The oil pattern, the stats and share buttons
+  and the series score sit in the session's header, so the scorecard starts
+  higher. The date is short ("Oct 19") and the game count is gone; the game
+  chips already say it.
+- **Every screen springs under your thumb.** Pull any screen down, even one
+  with little on it, and it stretches and springs back as an iPhone screen
+  does (ADR-188).
+- **Buttons, chips and toggles are fully rounded**, as iOS 26 draws its
+  controls (ADR-187).
+- **Sheets float like the iPhone's.** Every panel that rises from the bottom
+  now stands a little off the screen's edges with deep rounded corners, as iOS
+  26 draws its sheets, and its fields are soft filled boxes under small grey
+  labels rather than outlined ones (ADR-186).
+- **Buttons and menus behave like the iPhone's.** Press a button, slide your
+  finger off it and let go, and nothing happens, as on any iPhone button.
+  Menus (More, layout Presets) are frosted with rounded corners and full-size
+  rows, and grow out of the button you tapped (ADR-185).
+- **History's and Stats' headers stay put.** The title, filters and actions no
+  longer slide away as you scroll; the list scrolls under them, softly blurred.
+- **No more long press.** Holding a History row or a game chip no longer opens
+  a menu; a tap just opens it. Edit session is a tap on the session's header,
+  and its sheet now ends with the session's games, each with a red delete,
+  and a red Delete session, each behind a warning (ADR-184).
+- **The game chips have no scroll bar.** They still scroll sideways.
+- **"Strike on strike" is "Double".** A strike that follows a strike is a
+  double, as bowlers say it, and the one word fits on the Stats chart picker,
+  the First ball card and the ball tables where three words wrapped.
+- **A ball's table reads by game.** On the Balls sheet, each ball's table is
+  headed "By game" and has no All column, since the ball's line just above it
+  carries every total. Carry is no longer a tap that explains itself.
+- **The pictures of the app are a real iPhone.** On headpin.app and in the App
+  Store screenshots, the phone has the iPhone 16 Pro Max's deep corners and its
+  Dynamic Island, sitting in the status bar where the phone has it rather than
+  over the app. The stats picture on headpin.app is today's Stats screen, and
+  the site and the store now show the same screens, the same phone and the same
+  bowler's nights.
+- **A picked option is filled in the accent.** In every pick-one track (left
+  or right hand, one or two hands, Asym or Sym, the theme) the chosen option
+  is now filled in the app's accent color, as a main button is, instead of a
+  slightly lighter grey that was hard to see in dark mode (ADR-182).
+- **The lane's options match.** In the lane visualizer's Lane options, the
+  picked bowling hand and the hook sliders are in the accent color too,
+  instead of amber.
+
 ## 0.55.0: The web points at the iPhone app, and Pro shows what you'd get (2026-10-21)
 
 - **headpin.app shows your stats.** The "Know the pattern before you bowl it"

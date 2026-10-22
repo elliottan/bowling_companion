@@ -31,7 +31,7 @@ import type {
 } from "../types/bowling";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { FoulLineIcon } from "./icons";
-import { AnchoredMenu, AnchoredMenuItem } from "./ui/AnchoredMenu";
+import { ANCHORED_MENU_WIDTH, AnchoredMenu, AnchoredMenuItem } from "./ui/AnchoredMenu";
 import { PinGrid, WOOD_PIN_DOWN } from "./PinGrid";
 
 const NO_BALLS: Ball[] = [];
@@ -98,8 +98,8 @@ interface ActiveGameScorerProps {
   onUndoShot?: (result: UndoResult) => Promise<void> | void;
 }
 
-// AnchoredMenu's width (`w-44`), to keep the More menu on screen.
-const MORE_MENU_WIDTH = 176;
+// AnchoredMenu's width, to keep the More menu on screen.
+const MORE_MENU_WIDTH = ANCHORED_MENU_WIDTH;
 
 /** The last recorded ball, named the way the card draws it, for the undo
  *  question: "frame 2, ball 1 (9 pins)". Null on an untouched game. */

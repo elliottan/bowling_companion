@@ -9,7 +9,7 @@ import { LayoutEditor } from "../components/LayoutEditor";
 import { PapEditor } from "../components/PapEditor";
 import { ShareCardDialog } from "../components/ShareCardDialog";
 import { PushScreen } from "../components/PushScreen";
-import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
+import { ANCHORED_MENU_WIDTH, AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { IconButton } from "../components/ui/IconButton";
 import { Button } from "../components/ui/Button";
@@ -478,7 +478,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
                 aria-haspopup="menu"
                 aria-expanded={presetAt != null}
                 aria-label={`Presets, ${activePreset?.name ?? "Custom"}`}
-                onClick={(e) => setPresetAt(anchorUnder(e.currentTarget, 176))}
+                onClick={(e) => setPresetAt(anchorUnder(e.currentTarget, ANCHORED_MENU_WIDTH))}
                 className="inline-flex items-center gap-1 text-xs font-semibold text-accent active:opacity-80"
               >
                 <LayoutGrid size={13} aria-hidden="true" />
@@ -501,7 +501,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
       </div>
 
       {presetAt && (
-        <AnchoredMenu left={presetAt.left} top={presetAt.top} onClose={() => setPresetAt(null)}>
+        <AnchoredMenu left={presetAt.left} top={presetAt.top} align="end" onClose={() => setPresetAt(null)}>
           {LAYOUT_PRESETS.map((preset) => (
             <AnchoredMenuItem
               key={preset.id}

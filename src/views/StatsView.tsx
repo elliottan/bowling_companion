@@ -7,7 +7,7 @@ import {
   SessionFilterChips,
   SessionFilterSheet
 } from "../components/SessionFilterBar";
-import { CollapsingHeader } from "../components/CollapsingHeader";
+import { FloatingHeader } from "../components/FloatingHeader";
 import { IconButton } from "../components/ui/IconButton";
 import { ShareCardDialog } from "../components/ShareCardDialog";
 import {
@@ -170,7 +170,7 @@ export function StatsView({
   // moved into the nav bar's single trailing slot anyway.
   const body = (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
-      <CollapsingHeader
+      <FloatingHeader
         scrollerRef={scrollerRef}
         header={
           <>
@@ -252,7 +252,7 @@ export function StatsView({
             onOpenGame={onOpenSessionGame}
           />
         </div>
-      </CollapsingHeader>
+      </FloatingHeader>
       {filtersOpen && (
         <SessionFilterSheet filters={filters} onClose={() => setFiltersOpen(false)} />
       )}

@@ -34,10 +34,11 @@ interface SegmentedControlProps<T extends string> {
  * A segmented control is exactly one answer, and the shared track is what says
  * so before you read a single label.
  *
- * Drawn as UIKit draws its own (ADR-168): a grey track with the chosen segment
- * raised on it in the surface color, the label in ink. An accent-filled
- * segment read as a pressed button, which is a different thing. In the store
- * apps a change gives the selection tick UIKit's control gives.
+ * A grey track with the chosen segment filled in the accent, as a primary
+ * button is (ADR-182). The UIKit look, the chosen segment raised in the
+ * surface color, left the answer unreadable in dark mode: a slightly lighter
+ * grey on grey. In the store apps a change gives the selection tick UIKit's
+ * control gives (ADR-168).
  */
 export function SegmentedControl<T extends string>({
   label,
@@ -50,7 +51,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="group"
       aria-label={label}
-      className={`flex rounded-[10px] bg-ink/[0.07] ${
+      className={`flex rounded-full bg-ink/[0.07] ${
         dense ? "gap-0.5 p-0.5" : "gap-1 p-1"
       }`}
     >
@@ -66,11 +67,11 @@ export function SegmentedControl<T extends string>({
               if (!selected) void haptic("select");
               onChange(opt.value);
             }}
-            className={`relative flex-1 rounded-[8px] text-sm transition-colors ${
+            className={`relative flex-1 rounded-full text-sm transition-colors ${
               dense ? "h-9" : "h-10"
             } ${TAP_TARGET_44} ${
               selected
-                ? "bg-surface font-semibold text-ink shadow-[0_1px_3px_rgb(0_0_0/0.12),0_0_0_0.5px_rgb(0_0_0/0.04)] dark:bg-surface-muted"
+                ? "bg-accent-fill font-semibold text-accent-on-fill shadow-sm"
                 : // Ink, as UIKit's are: the secondary grey on the grey track
                   // fell short of the contrast floor.
                   "font-medium text-ink active:opacity-60"

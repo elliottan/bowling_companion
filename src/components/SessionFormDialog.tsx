@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { FormSheet } from "./ui/FormSheet";
 import { SessionForm, type NewSessionFormValues, type SessionFormInitial } from "./SessionForm";
 
@@ -15,6 +15,11 @@ interface SessionFormDialogProps {
   submitLabel?: string;
   /** Offered once the alley typed is one already bowled at. */
   onOpenAlleyReport?: (alley: string) => void;
+  /** Under the form, for the edit flow: the session's games and its delete,
+   *  which sit with the thing they destroy (DESIGN-LANGUAGE §2). */
+  children?: ReactNode;
+  /** Off while a confirm is up over the sheet, so Escape closes the confirm. */
+  active?: boolean;
 }
 
 /**
@@ -29,7 +34,9 @@ export function SessionFormDialog({
   initial,
   title = "Start session",
   submitLabel = "Start session",
-  onOpenAlleyReport
+  onOpenAlleyReport,
+  children,
+  active = true
 }: SessionFormDialogProps) {
   const [canSubmit, setCanSubmit] = useState(false);
   // Stable, so the form's report effect doesn't re-run every render.
@@ -47,6 +54,7 @@ export function SessionFormDialog({
       }}
       confirmLabel={submitLabel}
       confirmDisabled={!canSubmit}
+      active={active}
     >
       {/* `key` remounts the form when the prefill changes so a freshly opened
           edit sheet starts from the right values. */}
@@ -59,6 +67,7 @@ export function SessionFormDialog({
         initial={initial}
         onOpenAlleyReport={onOpenAlleyReport}
       />
+      {children}
     </FormSheet>
   );
 }

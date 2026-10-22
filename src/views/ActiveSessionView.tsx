@@ -1,4 +1,4 @@
-import { BarChart3, ChevronLeft, Pencil, Plus, Trash2, X } from "lucide-react";
+import { BarChart3, ChevronLeft, Plus, Trash2, X } from "lucide-react";
 import { ShareIosIcon } from "../components/icons";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ActiveGameScorer } from "../components/ActiveGameScorer";
@@ -12,7 +12,7 @@ import { getBalls, getOilPattern } from "../services/ballRepository";
 import { movementAt } from "../lib/briefing";
 import { describeGameMove } from "../components/alleyHistoryCopy";
 import { SessionFormDialog } from "../components/SessionFormDialog";
-import { SessionHeaderText, sessionMetaLine } from "../components/SessionHeaderText";
+import { SessionHeaderText, laneSummary } from "../components/SessionHeaderText";
 import { PushScreen } from "../components/PushScreen";
 import { SessionLanePanel } from "../components/SessionLanePanel";
 import {
@@ -25,7 +25,6 @@ import { Button } from "../components/ui/Button";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import { IconButton } from "../components/ui/IconButton";
 import { FormSheet } from "../components/ui/FormSheet";
-import { AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import { FIELD } from "../components/ui/field";
 import type { NewSessionFormValues } from "../components/SessionForm";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -41,10 +40,10 @@ import {
   shouldOfferShare
 } from "../lib/shareOffer";
 import { useHandedness } from "../lib/handednessContext";
-import { useLongPress } from "../lib/useLongPress";
 import {
   addNextGameToSession,
   deleteGame,
+  deleteSession,
   getBackupNudgeState,
   getSessionDetails,
   getSessionHistory,
@@ -131,7 +130,7 @@ export function ActiveSessionView({
   const [isAddingGame, setIsAddingGame] = useState(false);
   const [error, setError] = useState("");
   const [confirmDeleteGame, setConfirmDeleteGame] = useState<number | null>(null);
-  const [chipMenu, setChipMenu] = useState<{ gameId: number; left: number; top: number } | null>(null);
+  const [confirmDeleteSession, setConfirmDeleteSession] = useState(false);
   // A game drill-down lands on the session sheet, scrolled to that game: the
   // question it was asked from ("what did this ball do in game 3") is answered
   // by the frames, not by the scorer parked on one of them.
@@ -220,8 +219,6 @@ export function ActiveSessionView({
     // Mount-only: the flag is consumed by the initial state above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const longPress = useLongPress();
 
   const activeGame = useMemo(
     () => sessionDetails?.games.find((g) => g.id === activeGameId) ?? null,
@@ -445,6 +442,17 @@ export function ActiveSessionView({
     }
   }
 
+  async function handleDeleteSession() {
+    setConfirmDeleteSession(false);
+    try {
+      await deleteSession(sessionId);
+      setShowEdit(false);
+      onSessionDeleted();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete session.");
+    }
+  }
+
   async function handleSaveEdit(values: NewSessionFormValues) {
     try {
       await updateSession(sessionId, values);
@@ -556,75 +564,96 @@ export function ActiveSessionView({
     ? `Game ${gameToDelete.game_number}${deleteGameScore ? ` (score ${deleteGameScore})` : ""} and its frames will be permanently deleted.`
     : "";
 
+  const lanes = laneSummary(games);
+
+  // The session's bar: what it is, then its stats, its share and its score.
+  // Tapping what it is edits it, with no glyph to say so, as a contact's name
+  // does; with the sheet up the same tap puts the sheet away instead, since the
+  // sheet is what the bowler is looking at and the bar is the way back out.
+  const sessionBar = (scrolled = false) => (
+    <>
+      {/* The oil-pattern link inside stops propagation so it still opens the
+          pattern's sheet. */}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={tapIdentity}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            tapIdentity();
+          }
+        }}
+        // Its words fade once the page passes under the bar, as a pushed
+        // title's do (ADR-177), and a tap on what cannot be seen does nothing.
+        className={`min-w-0 flex-1 rounded-md px-1 transition-opacity duration-200 active:bg-surface-muted ${
+          scrolled ? "pointer-events-none opacity-0" : ""
+        }`}
+        aria-label={showSheet ? "Close session sheet" : "Edit session"}
+      >
+        <SessionHeaderText session={sessionDetails.session} heading={mode === "tab" ? "h2" : "h1"} />
+      </div>
+      <IconButton
+        label="Session stats"
+        title="Session stats"
+        variant="round"
+        className="shrink-0"
+        onClick={() => openSheet("stats")}
+      >
+        <BarChart3 size={18} aria-hidden="true" />
+      </IconButton>
+      <IconButton
+        label="Share this session"
+        variant="round"
+        className="shrink-0"
+        onClick={() => setShareOpen(true)}
+      >
+        <ShareIosIcon size={18} aria-hidden="true" />
+      </IconButton>
+      <button
+        type="button"
+        onClick={() => openSheet("stats")}
+        aria-label="Open session stats"
+        className="ml-1 shrink-0 rounded-md text-right active:bg-surface-muted"
+      >
+        <span className="block text-2xl font-extrabold leading-none text-accent">
+          {seriesTotal}
+        </span>
+        {seriesAvg !== null && (
+          <span className="block text-xs font-semibold text-ink-secondary">{seriesAvg} avg</span>
+        )}
+      </button>
+    </>
+  );
+
+  function tapIdentity() {
+    // The editor opens over nothing: with the sheet up the tap only closes it.
+    if (showSheet) setShowSheet(false);
+    else setShowEdit(true);
+  }
+
   const body = (
     <OilPatternContext.Provider value={oilPattern}>
     <div>
       <section ref={headerRef} className="mx-auto w-full max-w-5xl px-3 pt-2 sm:px-6">
-        <div className="flex items-start gap-2">
-          {/* Tapping the identity block opens the sheet; the oil-pattern link
-              inside it stops propagation so it still opens the pattern PDF. */}
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => openSheet("sheet")}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                openSheet("sheet");
-              }
-            }}
-            className="min-w-0 flex-1 rounded-md hover:bg-surface-muted active:bg-surface-muted"
-            aria-label="Open session sheet and lane notes"
-          >
-            {/* Pushed, the alley and the date are the nav bar's; on the Score
-                tab there is no bar, so the block carries them. */}
-            <SessionHeaderText session={sessionDetails.session} games={games} identityInBar={mode !== "tab"} />
-          </div>
-          {/* Two taps to the edit: the first brings up the session sheet, which
-              is what the header is for, and the second, with the sheet up, opens
-              the session's details. The glyph says which tap this is: the
-              sheet's stats while it is down, the pencil once it is up. */}
-          <IconButton
-            label={showSheet ? "Edit session" : "Session stats"}
-            title={showSheet ? "Edit session" : "Session stats"}
-            variant="round"
-            className="shrink-0"
-            onClick={() => {
-              // The editor opens over the sheet rather than closing it: both are
-              // portalled to the body, and the editor sits above.
-              if (showSheet) setShowEdit(true);
-              else openSheet("stats");
-            }}
-          >
-            {showSheet ? <Pencil size={16} aria-hidden="true" /> : <BarChart3 size={18} aria-hidden="true" />}
-          </IconButton>
-          <IconButton
-            label="Share this session"
-            variant="round"
-            className="shrink-0"
-            onClick={() => setShareOpen(true)}
-          >
-            <ShareIosIcon size={18} aria-hidden="true" />
-          </IconButton>
+        {/* Pushed, the bar is the nav bar's; on the Score tab there is no bar,
+            so it heads the page. */}
+        {mode === "tab" && <div className="flex items-center gap-1">{sessionBar()}</div>}
+        {lanes && (
           <button
             type="button"
-            onClick={() => openSheet("stats")}
-            aria-label="Open session stats"
-            className="shrink-0 rounded-md text-right hover:bg-surface-muted active:bg-surface-muted"
+            onClick={() => openSheet("sheet")}
+            aria-label="Open session sheet and lane notes"
+            className="block max-w-full truncate rounded-md text-left text-xs text-ink-secondary active:bg-surface-muted"
           >
-            <span className="block text-2xl font-extrabold leading-none text-accent">
-              {seriesTotal}
-            </span>
-            {seriesAvg !== null && (
-              <span className="block text-xs font-semibold text-ink-secondary">{seriesAvg} avg</span>
-            )}
+            {lanes}
           </button>
-        </div>
+        )}
 
         {/* py-1, not pb-1: overflow-x-auto forces overflow-y to auto, which
             clips at the padding box. The Chip tap region overhangs its box 4px
             top and bottom, so both sides need padding or the top 4px is dead. */}
-        <div ref={chipRowRef} className="mt-2 flex items-center gap-2 overflow-x-auto overscroll-x-none py-1">
+        <div ref={chipRowRef} className="scrollbar-none mt-2 flex items-center gap-2 overflow-x-auto overscroll-x-none py-1">
           {games.map((g) => {
             const frames = (g as Game & { frames: Frame[] }).frames;
             return (
@@ -635,17 +664,7 @@ export function ActiveSessionView({
                 selected={
                   showSheet ? gameChipOn(sheetTab, panelSelection, g.id) : g.id === activeGameId
                 }
-                {...longPress.bind((chip) => {
-                  if (!g.id) return;
-                  const rect = chip.getBoundingClientRect();
-                  setChipMenu({
-                    gameId: g.id,
-                    left: Math.max(8, Math.min(rect.left, window.innerWidth - 184)),
-                    top: rect.bottom + 4
-                  });
-                })}
                 onClick={() => {
-                  if (longPress.didLongPress()) return;
                   if (!g.id) return;
                   if (showSheet) {
                     const next = tapGameChip(sheetTab, panelSelection, g.id);
@@ -680,27 +699,12 @@ export function ActiveSessionView({
             disabled={!canAddGame}
             aria-label="New game"
             title="New game"
-            className={`relative inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-md border border-edge-strong bg-surface text-accent hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50 ${TAP_TARGET_44}`}
+            className={`relative inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full border border-edge-strong bg-surface text-accent hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50 ${TAP_TARGET_44}`}
           >
             <Plus size={16} aria-hidden="true" />
           </button>
         </div>
 
-        {chipMenu && (
-          <AnchoredMenu left={chipMenu.left} top={chipMenu.top} onClose={() => setChipMenu(null)}>
-            <AnchoredMenuItem
-              icon={Trash2}
-              danger
-              onClick={() => {
-                const gameId = chipMenu.gameId;
-                setChipMenu(null);
-                setConfirmDeleteGame(gameId);
-              }}
-            >
-              Delete game
-            </AnchoredMenuItem>
-          </AnchoredMenu>
-        )}
 
         {error && (
           <ErrorBanner className="mt-3">{error}</ErrorBanner>
@@ -784,14 +788,6 @@ export function ActiveSessionView({
         onOpenArsenal={onOpenArsenal}
       />
 
-      <ConfirmDialog
-        open={confirmDeleteGame != null}
-        title="Delete this game?"
-        message={deleteGameMessage}
-        onConfirm={handleDeleteGame}
-        onCancel={() => setConfirmDeleteGame(null)}
-      />
-
 
       {showSheet && (
         <SessionLanePanel
@@ -840,7 +836,63 @@ export function ActiveSessionView({
         }}
         onSubmit={handleSaveEdit}
         onCancel={() => setShowEdit(false)}
-      />, document.body)}
+        active={confirmDeleteGame === null && !confirmDeleteSession}
+      >
+        {/* Deleting sits with what it deletes, in the session's own editor,
+            rather than behind a long press on a chip or a History row: a hold
+            is a gesture nobody finds, and the one found by accident (ADR-184). */}
+        <section className="mt-6 border-t border-edge pt-4" aria-label="Games">
+          <h3 className={GROUP_HEADING}>Games</h3>
+          <ul className="mt-1 divide-y divide-edge">
+            {games.map((g) => {
+              const frames = (g as Game & { frames: Frame[] }).frames;
+              const score = g.final_score ?? (frames.length > 0 ? `${calculateGameScore(frames).total}+` : null);
+              return (
+                <li key={g.id} className="flex items-center gap-2 py-1">
+                  <span className="flex-1 text-sm text-ink">
+                    Game {g.game_number}
+                    {score != null && <span className="text-ink-secondary"> · {score}</span>}
+                  </span>
+                  <IconButton
+                    label={`Delete game ${g.game_number}`}
+                    variant="danger"
+                    onClick={() => g.id != null && setConfirmDeleteGame(g.id)}
+                  >
+                    <Trash2 size={18} aria-hidden="true" />
+                  </IconButton>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+        <Button variant="danger-ghost" onClick={() => setConfirmDeleteSession(true)} className="mt-4 w-full">
+          <Trash2 size={16} aria-hidden="true" />
+          Delete session
+        </Button>
+      </SessionFormDialog>, document.body)}
+
+      {/* Over the editor, so portalled beside it. */}
+      {createPortal(
+        <>
+          <ConfirmDialog
+            open={confirmDeleteGame != null}
+            title="Delete this game?"
+            message={deleteGameMessage}
+            onConfirm={handleDeleteGame}
+            onCancel={() => setConfirmDeleteGame(null)}
+          />
+          <ConfirmDialog
+            open={confirmDeleteSession}
+            title="Delete this session?"
+            message={`"${alleyLabel(sessionDetails.session.alley_name)}" and all ${games.length} ${
+              games.length === 1 ? "game" : "games"
+            } will be permanently deleted. This can't be undone.`}
+            onConfirm={handleDeleteSession}
+            onCancel={() => setConfirmDeleteSession(false)}
+          />
+        </>,
+        document.body
+      )}
 
       {/* Lanes save as you type, so the sheet carries a close and no commit. */}
       {showLaneEditor && (
@@ -907,13 +959,12 @@ export function ActiveSessionView({
   );
 
   if (mode === "tab") return body;
-  // The alley and the date line are the bar's, so the page below keeps only
-  // the lanes, the pattern and the score. "Session" until the session is read,
-  // which is a frame, rather than an empty bar.
+  // "Session" until the session is read, which is a frame, rather than an
+  // empty bar.
   return (
     <PushScreen
       title={sessionDetails ? alleyLabel(sessionDetails.session.alley_name) : "Session"}
-      subtitle={sessionDetails ? sessionMetaLine(sessionDetails.session, games) : undefined}
+      bar={sessionBar}
       onBack={onBack}
       // The sheet is portalled out of the screen, so it is told to go with it.
       onLeave={() => setLeaving(true)}

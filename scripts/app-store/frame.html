@@ -49,11 +49,15 @@
         -webkit-background-clip: text; background-clip: text; color: transparent; }
       #sub { margin: 34px auto 0; max-width: 1040px; font: 600 48px/1.25 Inter, sans-serif; letter-spacing: -0.01em; color: #b9c6d8; text-wrap: balance; }
 
-      /* The phone: a black bezel, a titanium edge, the Dynamic Island over the
-         screen as the hardware has it. Sizes are set from the space left. */
-      #phone { position: absolute; left: 50%; transform: translateX(-50%); background: #05070b;
-        box-shadow: 0 90px 200px rgb(0 0 0 / 0.7), 0 0 0 4px #4a4f58 inset, 0 0 0 8px #23262c inset, 0 0 140px rgb(94 214 193 / 0.12); }
-      body.pro #phone { box-shadow: 0 90px 200px rgb(0 0 0 / 0.7), 0 0 0 4px #4a4f58 inset, 0 0 0 8px #23262c inset, 0 0 160px rgb(255 176 32 / 0.16); }
+      /* The phone (iphone.mjs): a black border round the glass, a titanium
+         edge round that, and the Dynamic Island over the screen as the hardware
+         has it. Sizes are set from the space left; --edge is the titanium's
+         width at that size. */
+      #phone { position: absolute; left: 50%; transform: translateX(-50%); background: #020304;
+        box-shadow: 0 0 0 var(--edge) #5b6069 inset, 0 0 0 calc(var(--edge) * 1.6) #2a2d33 inset,
+          0 90px 200px rgb(0 0 0 / 0.7), 0 0 140px rgb(94 214 193 / 0.12); }
+      body.pro #phone { box-shadow: 0 0 0 var(--edge) #5b6069 inset, 0 0 0 calc(var(--edge) * 1.6) #2a2d33 inset,
+          0 90px 200px rgb(0 0 0 / 0.7), 0 0 160px rgb(255 176 32 / 0.16); }
       #screen { position: absolute; overflow: hidden; background: #0f172a; }
       #screen img { display: block; width: 100%; height: 100%; }
       #island { position: absolute; left: 50%; transform: translateX(-50%); background: #000; border-radius: 999px; }
@@ -71,7 +75,8 @@
     </div>
     <div id="phone"><div id="screen"><img id="shot" alt="" /><div id="island"></div></div><div id="sheen"></div></div>
     <div id="grain"></div>
-    <script>
+    <script type="module">
+      import { BEZEL, CORNER, EDGE, ISLAND, SCREEN } from "./iphone.mjs";
       const q = new URLSearchParams(location.search);
       const $ = (id) => document.getElementById(id);
       if (q.get("pro")) document.body.classList.add("pro");
@@ -86,23 +91,27 @@
       at($("g2"), 760 - ((n * 260) % 900), 2150);
       at($("g3"), 280, 1280 + (n % 3) * 120);
 
-      // The caption is centred in its band; the phone sits under it, whole.
-      const RATIO = 2868 / 1320;
+      // The caption is centred in its band; the phone sits under it, whole, at
+      // the real phone's proportions: the glass, the border round it, and the
+      // body's corner, which is the glass's plus that border.
       const BAND = [130, 650];
       function layout() {
         const h = $("top").offsetHeight;
         $("top").style.top = `${BAND[0] + (BAND[1] - BAND[0] - h) / 2}px`;
         const top = BAND[1] + 60;
         const foot = 92;
-        const bezelK = 0.026; // of the screen's width, each side
-        const sh = 2868 - foot - top; // the phone's height
-        const sw = sh / (RATIO + 2 * bezelK * 1.0); // screen width: phone height = screen height + 2 bezels
-        const bez = sw * bezelK;
-        const w = sw + 2 * bez;
-        const scale = sw / 440;
-        Object.assign($("phone").style, { top: `${top}px`, width: `${w}px`, height: `${sh}px`, borderRadius: `${(55 + 12) * scale}px` });
-        Object.assign($("screen").style, { left: `${bez}px`, top: `${bez}px`, width: `${sw}px`, height: `${sw * RATIO}px`, borderRadius: `${55 * scale}px` });
-        Object.assign($("island").style, { top: `${11 * scale}px`, width: `${125 * scale}px`, height: `${37 * scale}px` });
+        const ph = 2868 - foot - top; // the phone's height
+        const k = ph / (SCREEN.height + 2 * BEZEL); // pixels a point
+        const pt = (v) => `${v * k}px`;
+        Object.assign($("phone").style, {
+          top: `${top}px`, width: pt(SCREEN.width + 2 * BEZEL), height: `${ph}px`,
+          borderRadius: pt(CORNER + BEZEL)
+        });
+        $("phone").style.setProperty("--edge", pt(EDGE));
+        Object.assign($("screen").style, {
+          left: pt(BEZEL), top: pt(BEZEL), width: pt(SCREEN.width), height: pt(SCREEN.height), borderRadius: pt(CORNER)
+        });
+        Object.assign($("island").style, { top: pt(ISLAND.top), width: pt(ISLAND.width), height: pt(ISLAND.height) });
       }
       const img = $("shot");
       img.src = q.get("img") || "";

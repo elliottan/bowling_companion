@@ -1,7 +1,9 @@
-# App Store screenshots, October 21, 2026
+# App Store screenshots, October 22, 2026
 
 The iPhone app's screenshots for App Store Connect, taken from the real app at
-0.50 by `scripts/app-store/screenshots.mjs`. The captions, the order and the
+0.56.0 by `scripts/app-store/screenshots.mjs`, on the phone in
+`scripts/app-store/iphone.mjs`, the same one the landing page's pictures are
+taken on and drawn in. The captions, the order and the
 rules behind them are in `docs/APP-STORE-LISTING.md` ("Screenshots").
 
 | Folder | What it is |
