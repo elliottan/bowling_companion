@@ -9,7 +9,30 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.62.0: Set any ball's layout, and a calmer Stats screen (2026-10-22)
+## 0.62.0: Every leave free, a calmer Stats screen, and any ball's layout (2026-10-22)
+
+- **Every leave is free.** The Spares card, All leaves, Spare lines and each
+  leave's sheet show every leave and how often you make it, with or without
+  Pro (ADR-201).
+- **Carry, strike and the first ball's other numbers are Pro.** Without Pro
+  the First ball card leads with your pocket rate, and the chart plots the
+  average, the pocket and the spare; the other charts keep their chips with a
+  lock on them.
+- **The Headpin Pro page says what Pro adds now,** with the First ball card
+  and the Alley report's estimated average by ball, alley and lanes.
+- **The range and chart pickers follow your finger.** Slide across Last 10,
+  3 mo and All, or By session and By game, and the pill tracks you with a
+  tick at each one, settling on a spring when you let go (ADR-200).
+- **A pushed screen keeps its title as you scroll.** Spare lines, Headpin Pro,
+  the Alley report and the rest stay named, on a bar that turns solid under
+  the title (ADR-198).
+- **A screen opened for the first time slides in,** as it does every time
+  after.
+- **The lane's options:** the oil is drawn whenever a pattern is chosen, with
+  no switch to hide it; without Pro the hook sliders show under a lock; and
+  Quick moves close on a second tap or a tap anywhere else (ADR-199).
+- **A spare line's lane is read-only without Pro.** Moving the line on the lane
+  is Pro, as everywhere else; its boards are still typed in the fields.
 
 - **Every bowler can set a ball's layout.** The Layout section of a ball's
   form is open without Pro: add, change or remove the numbers, and they save.
@@ -28,8 +51,6 @@ had all shipped.
 - **The Spares and Balls cards no longer scroll inside the screen.** Spares
   shows six leaves, Balls six balls, and a full-width View all button at the
   foot of each opens the rest. The spare rate reads "of makeables made".
-- **Without Pro, the free leaves are your two left most again,** rather than
-  always the 7 and the 10 (ADR-195).
 - **Ball columns sit at an even step.** On the Balls card and in each ball's
   by-game table, every column is one fixed width with its figures centred, so
   the gaps no longer change with the width of the numbers.

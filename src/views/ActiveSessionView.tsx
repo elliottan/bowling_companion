@@ -587,7 +587,7 @@ export function ActiveSessionView({
   // Tapping what it is edits it, with no glyph to say so, as a contact's name
   // does; with the sheet up the same tap puts the sheet away instead, since the
   // sheet is what the bowler is looking at and the bar is the way back out.
-  const sessionBar = (scrolled = false) => (
+  const sessionBar = (
     <>
       {/* The oil-pattern link inside stops propagation so it still opens the
           pattern's sheet. */}
@@ -601,11 +601,9 @@ export function ActiveSessionView({
             tapIdentity();
           }
         }}
-        // Its words fade once the page passes under the bar, as a pushed
-        // title's do (ADR-177), and a tap on what cannot be seen does nothing.
-        className={`min-w-0 flex-1 rounded-md px-1 transition-opacity duration-200 active:bg-surface-muted ${
-          scrolled ? "pointer-events-none opacity-0" : ""
-        }`}
+        // Its words stay however far the page scrolls, as a pushed title's
+        // do (ADR-198).
+        className="min-w-0 flex-1 rounded-md px-1 active:bg-surface-muted"
         aria-label={showSheet ? "Close session sheet" : "Edit session"}
       >
         <SessionHeaderText session={sessionDetails.session} heading={mode === "tab" ? "h2" : "h1"} />
@@ -655,7 +653,7 @@ export function ActiveSessionView({
       <section ref={headerRef} className="mx-auto w-full max-w-5xl px-3 pt-2 sm:px-6">
         {/* Pushed, the bar is the nav bar's; on the Score tab there is no bar,
             so it heads the page. */}
-        {mode === "tab" && <div className="flex items-center gap-1">{sessionBar()}</div>}
+        {mode === "tab" && <div className="flex items-center gap-1">{sessionBar}</div>}
         {lanes && (
           <button
             type="button"

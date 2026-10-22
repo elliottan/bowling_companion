@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { db } from "../db/bowlingDb";
 import { HandednessContext } from "../lib/handednessContext";
+import { ProAccessContext } from "../lib/useProAccess";
 import { SpareLineFormDialog } from "./SpareLineFormDialog";
 
 const noop = () => {};
@@ -161,5 +162,26 @@ describe("SpareLineFormDialog at a pocket leave (ADR-123)", () => {
     expect(screen.queryByText("Spare ball line")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Edit spare line" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save spare line" })).not.toBeInTheDocument();
+  });
+});
+
+describe("SpareLineFormDialog's lane without Pro (ADR-199)", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("draws the line, and leaves moving it on the lane to Pro", async () => {
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
+        <HandednessContext.Provider value="right">
+          <SpareLineFormDialog initialPins={[10]} lockPins onSaved={noop} onCancel={noop} />
+        </HandednessContext.Provider>
+      </ProAccessContext.Provider>
+    );
+    fireEvent.click(screen.getByLabelText("View line on the lane"));
+    // Read-only: the lane tilts, and no point drags.
+    expect(await screen.findByText("Drag the lane to tilt")).toBeInTheDocument();
+    expect(screen.queryByText(/Drag a point to move it/)).toBeNull();
   });
 });

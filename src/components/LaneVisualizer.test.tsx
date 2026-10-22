@@ -308,14 +308,35 @@ describe("LaneVisualizer oil pattern", () => {
     expect(screen.queryByLabelText(/lane options/i)).toBeNull();
   });
 
-  it("reads the pattern out, and the switch puts the oil away", () => {
+  it("reads the pattern out, and draws it with no switch to hide it (ADR-199)", () => {
     const { container } = renderWithPattern(pattern);
     fireEvent.click(screen.getByLabelText(/lane options/i));
     // One readout line, so the name and the numbers it belongs to stay together.
     expect(screen.getByText(/Main Street/).textContent).toMatch(/39 ft · 1\.68 mL · 3\.3:1/);
+    // A chosen pattern is drawn; clearing it is how the oil goes.
+    expect(screen.queryByRole("switch", { name: /oil/i })).toBeNull();
+    expect(container.querySelector('[data-role="oil-film"]')).not.toBeNull();
+  });
 
-    fireEvent.click(screen.getByRole("switch", { name: /show oil pattern/i }));
-    expect(container.querySelector('[data-role="oil-film"]')).toBeNull();
+  it("shows the hook sliders without Pro, under a lock, and moves nothing (ADR-199)", () => {
+    const onChange = vi.fn();
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
+        <HandednessContext.Provider value="right">
+          <LaneVisualizer
+            line={{ laydown: 18, target: 10, breakpoint: 6 }}
+            editLocked={{}}
+            onClose={() => {}}
+          />
+        </HandednessContext.Provider>
+      </ProAccessContext.Provider>
+    );
+    fireEvent.click(screen.getByLabelText(/lane options/i));
+    expect(screen.getByText(/hook shape/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Changing the hook shape/ })).toBeInTheDocument();
+    const slider = screen.getAllByRole("slider", { hidden: true })[0];
+    fireEvent.change(slider, { target: { value: "40" } });
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it("offers no hook sliders on a read-only line", () => {
@@ -462,8 +483,25 @@ describe("LaneVisualizer quick moves (ADR-109)", () => {
     const onChange = vi.fn();
     openMoves("right", onChange);
     expect(screen.getByRole("group", { name: /move presets/i })).toBeInTheDocument();
-    fireEvent.pointerDown(document.querySelector('[data-role="quick-moves-backdrop"]')!);
+    fireEvent.pointerDown(document.body);
     expect(screen.queryByRole("group", { name: /move presets/i })).toBeNull();
+  });
+
+  it("closes on a second tap of its button, and stays shut", () => {
+    openMoves("right", vi.fn());
+    const button = screen.getByRole("button", { name: "Quick moves" });
+    // The tap's own pointerdown lands on the button, not outside the panel,
+    // so it is the click that closes it, once.
+    fireEvent.pointerDown(button);
+    fireEvent.click(button);
+    expect(screen.queryByRole("group", { name: /move presets/i })).toBeNull();
+    expect(button).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("stays open for a tap inside it", () => {
+    openMoves("right", vi.fn());
+    fireEvent.pointerDown(screen.getByLabelText("Move 1-1 in"));
+    expect(screen.getByRole("group", { name: /move presets/i })).toBeInTheDocument();
   });
 
   it("is not offered on a read-only line", () => {

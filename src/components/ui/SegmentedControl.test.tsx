@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { SegmentedControl } from "./SegmentedControl";
 
 const options = [
@@ -62,5 +62,65 @@ describe("SegmentedControl", () => {
     // exists to hold. A dense variant that dropped this would be a tap target
     // shrunk by a styling prop.
     expect(segment.className).toContain("after:h-11");
+  });
+
+  describe("under a finger (ADR-200)", () => {
+    // jsdom has no PointerEvent, and a plain Event drops the position.
+    beforeAll(() => {
+      if (!("PointerEvent" in window)) {
+        class PointerEventStandIn extends MouseEvent {
+          pointerId: number;
+          pointerType: string;
+          constructor(type: string, init: PointerEventInit = {}) {
+            super(type, init);
+            this.pointerId = init.pointerId ?? 1;
+            this.pointerType = init.pointerType ?? "touch";
+          }
+        }
+        Object.assign(window, { PointerEvent: PointerEventStandIn });
+      }
+    });
+
+    const three = [
+      { value: "last10", label: "Last 10" },
+      { value: "months3", label: "3 mo" },
+      { value: "all", label: "All" }
+    ] as const;
+
+    function renderTrack(onChange = vi.fn()) {
+      render(<SegmentedControl label="Range" value="last10" options={three} onChange={onChange} />);
+      const track = screen.getByRole("group", { name: "Range" });
+      // 300px wide from x=0: a segment every 100px.
+      track.getBoundingClientRect = () => ({ left: 0, width: 300, top: 0, height: 40, right: 300, bottom: 40, x: 0, y: 0, toJSON: () => ({}) });
+      return { track, onChange };
+    }
+
+    it("follows a slide across the track and chooses where the finger lifts, once", () => {
+      const { track, onChange } = renderTrack();
+      fireEvent.pointerDown(track, { clientX: 50, pointerId: 1 });
+      fireEvent.pointerMove(track, { clientX: 150, pointerId: 1 });
+      fireEvent.pointerMove(track, { clientX: 250, pointerId: 1 });
+      // Nothing is chosen on the way across.
+      expect(onChange).not.toHaveBeenCalled();
+      fireEvent.pointerUp(track, { clientX: 250, pointerId: 1 });
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith("all");
+    });
+
+    it("chooses nothing when a scroll takes the finger", () => {
+      const { track, onChange } = renderTrack();
+      fireEvent.pointerDown(track, { clientX: 250, pointerId: 1 });
+      fireEvent.pointerCancel(track, { pointerId: 1 });
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("ignores the click a finger's tap ends with, having chosen on its lift", () => {
+      const { track, onChange } = renderTrack();
+      fireEvent.pointerDown(track, { clientX: 150, pointerId: 1 });
+      fireEvent.pointerUp(track, { clientX: 150, pointerId: 1 });
+      fireEvent.click(screen.getByRole("button", { name: "3 mo" }), { detail: 1 });
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith("months3");
+    });
   });
 });

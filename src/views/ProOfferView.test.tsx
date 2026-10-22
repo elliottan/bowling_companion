@@ -26,8 +26,9 @@ describe("the Pro page (ADR-164)", () => {
   it("says what Pro adds before any button that charges", () => {
     renderOffer({ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" });
     for (const title of [
-      "Your leaves",
+      "Carry and strike",
       "Ball by ball",
+      "Your alleys",
       "Move your line",
       "Try your layouts",
       "More colors"
@@ -35,6 +36,8 @@ describe("the Pro page (ADR-164)", () => {
       expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();
     }
     expect(screen.getByText(/every Pro feature added later included/)).toBeInTheDocument();
+    // Leaves are free (ADR-201), so the page does not sell them.
+    expect(screen.queryByRole("heading", { name: "Your leaves" })).not.toBeInTheDocument();
     // Only what Pro adds: the free app is already in the bowler's hand.
     expect(screen.queryByRole("heading", { name: "What stays free" })).not.toBeInTheDocument();
   });

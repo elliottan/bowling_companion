@@ -894,31 +894,44 @@ describe("while Pro is locked (ADR-154)", () => {
     );
   }
 
-  it("keeps the average, strike and spare open", () => {
+  it("keeps the average, the pocket and the spare on the chart (ADR-201)", () => {
     renderLocked();
     expect(screen.getByRole("img", { name: /^Average by session/ })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Strike" }));
-    expect(screen.getByRole("button", { name: "Sea Bowl, 60%" })).toBeInTheDocument();
-    expect(screen.getByText("80%")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Pocket" }));
+    expect(screen.getByRole("button", { name: "Sea Bowl, 90%" })).toBeInTheDocument();
+    // Next to the average, ahead of the locked ones.
+    const chips = within(screen.getByRole("group", { name: /^Chart by/ })).getAllByRole("button");
+    expect(chips.slice(0, 3).map((c) => c.textContent)).toEqual(["Average", "Pocket", "Spare"]);
   });
 
-  it("keeps every chart and the first ball open (ADR-174)", () => {
+  it("locks carry, strike and the first ball's other charts, each chip a way to Pro (ADR-201)", () => {
     renderLocked();
-    fireEvent.click(screen.getByRole("button", { name: "Carry" }));
-    expect(screen.getByRole("button", { name: "Sea Bowl, 67%" })).toBeInTheDocument();
-    expect(screen.getByText("First ball")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^Every stat/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^Pocket, carry/ })).not.toBeInTheDocument();
+    for (const label of ["Strike", "Strike on strike", "Carry", "1st ball", "Max consecutive strikes"]) {
+      expect(screen.getByRole("button", { name: `${label}. Get the app` })).toBeInTheDocument();
+    }
+    // A locked chip plots nothing: the average stays up.
+    fireEvent.click(screen.getByRole("button", { name: "Carry. Get the app" }));
+    expect(screen.queryByRole("button", { name: "Sea Bowl, 67%" })).not.toBeInTheDocument();
+  });
+
+  it("shows the pocket on the First ball card, and the rest under one lock (ADR-201)", () => {
+    renderLocked();
+    const card = screen.getByRole("heading", { name: "First ball" }).closest("section")!;
+    expect(card).toHaveTextContent(/90%\s*pocket hits/);
+    expect(
+      within(card).getByRole("button", { name: "Carry, strike and the first ball's other numbers. Get the app" })
+    ).toBeInTheDocument();
+    // The bowler's own carry and strike are not in the page, blurred or not.
+    expect(card).not.toHaveTextContent("67%");
+    expect(card).not.toHaveTextContent("60%");
   });
 
   it("says once what Pro adds", () => {
     renderLocked();
-    // Said once for the screen, with the one button that says "Get the app".
-    expect(screen.getAllByRole("button", { name: "Get the app" })).toHaveLength(1);
-    expect(screen.getByText(/Pro adds every leave and every ball/)).toBeInTheDocument();
+    expect(screen.getByText(/Pro adds carry, strike and the first ball's other numbers/)).toBeInTheDocument();
   });
 
-  it("shows the two leaves left most in full, the next one blurred, and no more (ADR-195)", () => {
+  it("shows every leave, with no lock, on the card and behind View all (ADR-201)", () => {
     const leave = (pin: PinNumber, attempts: number, conversions: number): LeaveStats => ({
       pins: [pin],
       attempts,
@@ -935,28 +948,13 @@ describe("while Pro is locked (ADR-154)", () => {
         />
       </ProAccessContext.Provider>
     );
-    const grid = screen.getByRole("list", { name: "Leaves" });
-    // The two left most, in that order.
-    expect(within(grid).getByRole("button", { name: "Open Pin 4" })).toHaveTextContent("3/1225%");
-    expect(within(grid).getByRole("button", { name: "Open Pin 10" })).toHaveTextContent("6/967%");
-    // The 6, next, is blurred under one tap to Pro; the 7 is not drawn, and
-    // neither one's own numbers are in the page.
-    expect(within(grid).queryByRole("button", { name: "Open Pin 6" })).not.toBeInTheDocument();
-    expect(
-      within(grid).getByRole("button", { name: "Every leave you leave, and how often you make each. Get the app" })
-    ).toBeInTheDocument();
-    expect(screen.queryByText("2/7")).not.toBeInTheDocument();
-    expect(screen.queryByText("1/4")).not.toBeInTheDocument();
-    expect(within(grid).getAllByRole("listitem")).toHaveLength(3);
-    // The sheet opens without Pro, says how many there are, and shows the same
-    // two with the next one blurred (ADR-174).
+    const grid = screen.getByRole("list", { name: "Leaves left most" });
+    expect(within(grid).getAllByRole("button", { name: /^Open / })).toHaveLength(4);
+    expect(within(grid).getByRole("button", { name: "Open Pin 7" })).toHaveTextContent("1/425%");
     fireEvent.click(screen.getByRole("button", { name: "View all 4 leaves" }));
     const sheet = screen.getByRole("dialog", { name: /Leaves/ });
-    const locked = within(sheet).getByRole("list", { name: "Leaves" });
-    expect(within(locked).getByRole("button", { name: "Open Pin 4" })).toBeInTheDocument();
-    expect(within(locked).getByRole("button", { name: "Open Pin 10" })).toBeInTheDocument();
-    expect(within(locked).queryByRole("button", { name: "Open Pin 6" })).not.toBeInTheDocument();
-    expect(within(locked).getAllByRole("listitem")).toHaveLength(3);
+    expect(within(sheet).getAllByRole("button", { name: /^Open Pin/ })).toHaveLength(4);
+    expect(within(sheet).queryByRole("button", { name: /Get the app/ })).toBeNull();
   });
 
   it("shows the best ball in full, the next one blurred, and no more (ADR-167)", () => {

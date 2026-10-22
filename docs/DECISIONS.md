@@ -8724,3 +8724,113 @@ as before.
 
 **Consequences.** Every list the app opens over a screen is now a sheet; the
 centred dialog is left for a question with an answer (`ConfirmDialog`).
+
+---
+
+## ADR-198: A pushed screen's title always shows
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+Supersedes ADR-177.
+
+**Context.** ADR-177 faded a pushed screen's title once the page scrolled under
+it, because its words sat over the page's own text with only the scroll edge
+behind them. In use, Spare lines, Headpin Pro and the Alley report lost their
+names a flick into the page, and the bowler could no longer tell where they
+were.
+
+**Decision.** The title, and a session's bar, stays at every scroll position.
+The bar stands on the floating headers' ground (`.floating-header-ground`,
+ADR-185, ADR-196): the page's own color nearly solid over a blur, running a
+little below the bar and fading out there. Over the empty top of a page it is
+the page's color on the page's color, so it shows nothing; over content it
+turns what passes under the title into a soft shape.
+
+**Consequences.** `PushScreen` no longer tracks its scroll, and `bar` is a plain
+node rather than a function of it. Sheet bars are unchanged.
+
+---
+
+## ADR-199: The lane view's oil, hook sliders, quick moves and spare lines
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** Four rough edges on the lane view. Its options sheet had a "Show
+oil pattern" switch, a second way to say what clearing the pattern already
+says. Without Pro its hook sliders were left off the sheet entirely, so a
+bowler never saw that Pro shapes the hook. The quick moves panel could only be
+put away by tapping one of the line's fields: its full-screen backdrop sat
+inside the lane view's transformed frame, so `fixed` covered only that frame,
+and it lay over the button, so a second tap closed the panel on the way down
+and the button's click opened it again. And a spare line's lane, opened from
+its sheet with the pencil on, let a bowler without Pro drag the line, which
+everywhere else is Pro (ADR-165).
+
+**Decision.**
+
+- **The oil is drawn whenever a pattern is chosen.** The switch is gone; the
+  sheet still reads the pattern out.
+- **Without Pro the hook sliders show, under the lane's Pro veil** ("Shape it
+  with Pro"), and move nothing past it (ADR-190). The options button is offered
+  wherever editing is locked behind Pro, so the sheet can be reached.
+- **Quick moves close on a second tap of their button or a tap anywhere
+  outside,** listened for on the document in the capture phase, so the tap
+  that closes it still reaches the lane.
+- **A spare line's lane is read-only without Pro,** its controls under the
+  lock, as in score entry; the boards are still typed in the sheet's fields.
+
+---
+
+## ADR-200: The segmented control follows the finger
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand. Builds on
+ADR-189.
+
+**Context.** Beside the iPhone's own tab bar (ADR-161), the Stats screen's
+range and chart pickers still read as web controls. They only jumped to a
+tapped segment on a flat ease, did nothing under a finger that slid, and their
+pill all but vanished on the dark track.
+
+**Decision.** `SegmentedControl` behaves as UIKit's does. The pill follows a
+finger across the track with a selection tick at each segment it crosses, and
+the answer lands when the finger lifts; a vertical scroll that takes the finger
+cancels the press without choosing. The pill swells a little while held and
+settles on a spring that overshoots slightly. It is a raised pill, lit along
+its top and lifted by a soft shadow, rather than a tenth of the ink. The
+keyboard still chooses with Enter and Space.
+
+**Consequences.** A finger's click after its lift is ignored, since the lift
+already chose; only a click with no pointer behind it (the keyboard) chooses
+by itself.
+
+---
+
+## ADR-201: Every leave is free; carry, strike and the first ball's other numbers are Pro
+
+**Status.** Accepted, 2026-10-22, by the owner's decision. Supersedes ADR-195
+and ADR-174 on what Stats keeps free, and amends ADR-167.
+
+**Context.** A bowler's leaves, and how often each is made, are the read every
+bowler wants and would most resent paying for. What a first ball does beyond
+where it went (whether the pocket hit carried, how often it struck, how many
+pins it takes, how strikes follow strikes) is the deeper read, and the one Pro
+should carry.
+
+**Decision.**
+
+- **Every leave is free:** the Spares card, the All leaves sheet with its
+  filters, each leave's record on Spare lines and in its sheets. The leave
+  locks and their stand-ins are gone.
+- **The pocket is free,** since the bowler enters it at every frame. Without Pro
+  the First ball card leads with it ("73% pocket hits") and blurs carry, strike,
+  pins a ball, strike on strike and strikes in a row under one lock, over
+  stand-in figures (ADR-190).
+- **The chart plots the average, the pocket and the spare without Pro,** which
+  are first on the picker in that order. Strike, strike on strike, carry, first
+  ball and most strikes in a row keep their chips, each with a lock beside its
+  name, and a tap goes to Pro rather than plotting. A metric remembered from a
+  time with Pro plots the average without it.
+- **Balls are unchanged:** the best ball's row in full, the next blurred
+  (ADR-167).
+
+**Consequences.** The best ball's row still shows that ball's carry and strike
+without Pro, as the taste of the Balls card.

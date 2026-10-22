@@ -34,8 +34,8 @@ Every push gets, without exception:
   "Back" for screen readers. It used to name the screen underneath ("‹ Settings"),
   which read as a lie once the same screen could be pushed from several places:
   opened from the dashboard it named a tab the user had never navigated from;
-- a centered title, one line, 17px semibold, shown while the screen is at its
-  top and faded out once anything scrolls under the bar (ADR-177);
+- a centered title, one line, 17px semibold, always shown, however far the
+  screen has scrolled, so the bowler always knows where they are (ADR-198);
 - at most **one** trailing action, an `IconButton` (§1b). The layout
   lab is the single exception: a share, which is what the screen is for once
   the numbers are right, beside a More that holds the bowler's PAP, hand and
@@ -125,13 +125,17 @@ event, the date and the pattern, and a tap on them opens the session's
 details, as a contact's name does. With the session sheet up the same tap
 puts the sheet away instead (ADR-183).
 
-**Bars float, and the page scrolls under them** (ADR-168). A push's nav bar, a
-sheet's bar and the status bar over a tab have no ground of their own: behind
-them is the scroll edge (`.scroll-edge`), a wash of the page's color and a blur
-that both fade out downward, so over an empty page it shows nothing and over
-content it lifts the bar's title and buttons off what passes under. A frosted
-bar was tried before and removed, because a flat haze across the whole bar read
-as a dirty surface; the edge is not a surface, it is where the content fades. A
+**Bars float, and the page scrolls under them** (ADR-168). A sheet's bar and
+the status bar over a tab have no ground of their own: behind them is the
+scroll edge (`.scroll-edge`), a wash of the page's color and a blur that both
+fade out downward, so over an empty page it shows nothing and over content it
+lifts the bar's title and buttons off what passes under. A push's nav bar, like
+History's and Stats' headers, stands on the floating headers' ground
+(`.floating-header-ground`, ADR-198): the page's own color nearly solid over a
+blur, fading out just below the bar, so its title, which never fades, is never
+words over words. A light haze across the whole bar was tried before and
+removed, because it read as a dirty surface; the ground is the page's own
+color, so over the page's empty top it is not there at all. A
 sticky row inside a push or a sheet stops beneath the bar by the bar's
 published height (`--push-bar-h`, `--sheet-bar-h`), and an opaque one reaches up
 behind the bar so the list passes under both as one band.

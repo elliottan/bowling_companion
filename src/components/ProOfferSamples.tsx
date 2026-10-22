@@ -1,14 +1,14 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, type ReactNode } from "react";
+import { ArrowRight } from "lucide-react";
 import { PALETTES } from "../lib/palette";
 import { DEFAULT_ASYMMETRIC, DEFAULT_PAP } from "../lib/ballLayout";
 import { defaultOrientationFor } from "../lib/ballProjection";
 import { oilBands, oilZones, peakUnits } from "../lib/oilPattern";
-import type { OilPass, PinNumber } from "../types/bowling";
+import type { OilPass } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
 import { BallLayoutDiagram } from "./BallLayoutDiagram";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { LaneSurface, type OilOverlay } from "./LaneSurface";
-import { MiniPins } from "./MiniPins";
 
 /**
  * What Pro opens, for the Pro page (ADR-164, ADR-170), drawn by the screens'
@@ -34,45 +34,6 @@ function Sample({ className = "", children }: { className?: string; children: Re
     >
       {children}
     </div>
-  );
-}
-
-const LEAVES: Array<{ pins: PinNumber[]; made: number; of: number }> = [
-  { pins: [10], made: 41, of: 46 },
-  { pins: [7], made: 22, of: 27 },
-  { pins: [3, 6, 10], made: 9, of: 13 },
-  { pins: [2, 4, 5, 8], made: 5, of: 9 },
-  { pins: [6, 10], made: 6, of: 10 },
-  { pins: [7, 10], made: 1, of: 6 }
-];
-
-/** The leaves left most, each with how often it is made, as the Spares card
- *  draws them. */
-export function LeavesSample() {
-  return (
-    <Sample>
-      <ul className="grid grid-cols-3 gap-1.5">
-        {LEAVES.map((leave) => {
-          const rate = Math.round((100 * leave.made) / leave.of);
-          return (
-            <li
-              key={leave.pins.join("-")}
-              className="flex flex-col items-center gap-1 rounded-xl border border-edge bg-surface px-1.5 py-2 text-center shadow-sm"
-            >
-              <MiniPins standing={leave.pins} size="sm" />
-              <div className="flex w-full items-baseline gap-1">
-                <span className="min-w-0 flex-1 text-left text-[11px] tabular-nums text-ink-secondary">
-                  {leave.made}/{leave.of}
-                </span>
-                <span className={`shrink-0 text-sm font-bold tabular-nums ${rate >= 70 ? "text-accent" : "text-ink"}`}>
-                  {rate}%
-                </span>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-    </Sample>
   );
 }
 
@@ -131,6 +92,90 @@ export function BallsSample() {
                 {rate}
               </span>
             ))}
+          </div>
+        ))}
+      </div>
+    </Sample>
+  );
+}
+
+/** The first ball's chain and its three smaller numbers, as the First ball
+ *  card draws them with Pro. */
+export function FirstBallSample() {
+  const chain: Array<[string, string, boolean]> = [
+    ["Pocket", "74%", false],
+    ["Carry", "70%", false],
+    ["Strike", "52%", true]
+  ];
+  return (
+    <Sample>
+      <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+        <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-center">
+          {chain.map(([label, value, lead], i) => (
+            <Fragment key={label}>
+              {i > 0 && <ArrowRight size={14} className="text-ink-tertiary" />}
+              <div>
+                <p className={`text-2xl font-bold tabular-nums ${lead ? "text-accent" : "text-ink"}`}>{value}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
+              </div>
+            </Fragment>
+          ))}
+        </div>
+        <div className="mt-3 grid grid-cols-3 border-t border-edge pt-2.5 text-center">
+          {[
+            ["9.1", "Pins a ball"],
+            ["49%", "Strike on strike"],
+            ["9", "Strikes in a row"]
+          ].map(([value, label]) => (
+            <div key={label}>
+              <p className="text-base font-bold leading-tight tabular-nums text-ink">{value}</p>
+              <p className="text-xs text-ink-secondary">{label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Sample>
+  );
+}
+
+const ALLEY_BALLS: Array<{ name: string; brand: Manufacturer; thumb: string; est: number; diff: number }> = [
+  { name: "Phaze II", brand: "Storm", thumb: "/catalog/img/storm-phaze-2-2019-p2-thumb.webp", est: 211, diff: 9 },
+  { name: "Idol", brand: "Roto Grip", thumb: "/catalog/img/roto-grip-idol-2018-p2-thumb.webp", est: 203, diff: 1 },
+  {
+    name: "Purple Pearl Urethane 78D",
+    brand: "Hammer",
+    thumb: "/catalog/img/hammer-purple-pearl-urethane-78d-2026-p2-thumb.webp",
+    est: 194,
+    diff: -8
+  }
+];
+
+/** What you would average with each ball at one alley, on one pair of lanes,
+ *  as the Alley report lists it. */
+export function AlleySample() {
+  return (
+    <Sample>
+      <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+        <span className="rounded-full bg-accent-fill px-3 py-1 text-accent-on-fill">Sea Bowl</span>
+        <span className="rounded-full border border-edge-strong bg-surface px-3 py-1 text-ink-strong">Lanes 11-12</span>
+      </div>
+      <div className="overflow-hidden rounded-[22px] bg-surface">
+        <div className="flex items-center gap-2 px-3.5 pb-1 pt-2 text-[9px] font-semibold uppercase text-ink-tertiary">
+          <span className="min-w-0 flex-1">Estimated average</span>
+          <span className="w-10 shrink-0 text-right">Est.</span>
+        </div>
+        {ALLEY_BALLS.map((ball) => (
+          <div key={ball.name} className="flex items-center gap-2 border-t border-edge px-3.5 py-2 text-[13px]">
+            <span className="h-7 w-7 shrink-0">
+              <CatalogBallImage src={ball.thumb} alt="" brand={ball.brand} size="thumb" />
+            </span>
+            <span className="min-w-0 flex-1 truncate font-medium text-ink-strong">{ball.name}</span>
+            <span
+              className={`shrink-0 text-xs tabular-nums ${ball.diff > 0 ? "text-success-700" : ball.diff < 0 ? "text-danger-700" : "text-ink-tertiary"}`}
+            >
+              {ball.diff > 0 ? `+${ball.diff}` : ball.diff < 0 ? `−${Math.abs(ball.diff)}` : "0"}
+            </span>
+            <span className="w-10 shrink-0 text-right font-bold tabular-nums text-ink">~{ball.est}</span>
           </div>
         ))}
       </div>

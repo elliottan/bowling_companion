@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, ChevronRight, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowRight, BarChart3, ChevronRight, Lock, TrendingDown, TrendingUp } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getSpareLinesAll } from "../services/ballRepository";
@@ -41,7 +41,9 @@ import { RECENT_SESSIONS, type RecentForm } from "../lib/statsRange";
 import { GROUP_HEADING } from "./ui/typography";
 import { ProBanner, ProBlur } from "./ui/ProLock";
 import { useProAccess } from "../lib/useProAccess";
-import { byMostLeft, FREE_BALLS, freeLeavePreview, previewSplit, standInBall, standInLeave } from "../lib/proPreview";
+import { useProEntry } from "./ui/useProAction";
+import type { LockedProAccess } from "../lib/pro";
+import { byMostLeft, FREE_BALLS, previewSplit, standInBall } from "../lib/proPreview";
 
 /** The stats the chart can plot, and how each one is drawn.
  *
@@ -59,6 +61,22 @@ const METRICS = {
     max: 300,
     minSpan: 80
   },
+  pocketPct: {
+    label: "Pocket",
+    value: (s: BowlingStats) => s.pocketPct,
+    format: (v: number) => `${Math.round(v)}%`,
+    min: 0,
+    max: 100,
+    minSpan: 25
+  },
+  sparePct: {
+    label: "Spare",
+    value: (s: BowlingStats) => s.sparePct,
+    format: (v: number) => `${Math.round(v)}%`,
+    min: 0,
+    max: 100,
+    minSpan: 25
+  },
   strikePct: {
     label: "Strike",
     value: (s: BowlingStats) => s.strikePct,
@@ -74,22 +92,6 @@ const METRICS = {
     // where this is how often a strike was followed by another.
     label: "Strike on strike",
     value: (s: BowlingStats) => s.strikeOnStrikePct,
-    format: (v: number) => `${Math.round(v)}%`,
-    min: 0,
-    max: 100,
-    minSpan: 25
-  },
-  sparePct: {
-    label: "Spare",
-    value: (s: BowlingStats) => s.sparePct,
-    format: (v: number) => `${Math.round(v)}%`,
-    min: 0,
-    max: 100,
-    minSpan: 25
-  },
-  pocketPct: {
-    label: "Pocket",
-    value: (s: BowlingStats) => s.pocketPct,
     format: (v: number) => `${Math.round(v)}%`,
     min: 0,
     max: 100,
@@ -126,6 +128,12 @@ export type MetricKey = keyof typeof METRICS;
 /** The metrics a picker can offer, in chip order. Exported so the Game-by-game
  *  screen can build the same picker over the same specs (ADR-063b). */
 export const METRIC_KEYS = Object.keys(METRICS) as MetricKey[];
+
+/** The metrics a bowler without Pro can plot (ADR-201): the score, and the two
+ *  rates entered by hand at every frame, the pocket and the spare. Carry,
+ *  strike and the first ball's other numbers are Pro, and first after these on
+ *  the picker, each chip with a lock on it. */
+const FREE_METRICS: ReadonlySet<MetricKey> = new Set(["average", "pocketPct", "sparePct"]);
 
 /** What each metric is called and how it is drawn, for anything outside this
  *  file that plots one. */
@@ -239,7 +247,12 @@ export function Stats({
 
   // Which stat the chart is plotting. Remembered, so leaving the tab and
   // coming back does not silently drop you back on the average.
-  const [metric, setMetric] = useRememberedState<MetricKey>(`${memoryKey}:metric`, "average");
+  const [metricPick, setMetric] = useRememberedState<MetricKey>(`${memoryKey}:metric`, "average");
+  // The chart and the First ball card's pocket are free; carry, strike and the
+  // first ball's other numbers are Pro (ADR-201), so a metric remembered from
+  // a time with Pro plots the average without it.
+  const { locked: proLocked } = useProAccess();
+  const metric: MetricKey = proLocked && !FREE_METRICS.has(metricPick) ? "average" : metricPick;
   const spec = METRICS[metric];
   // Night by night, or game 1 against game 2 (ADR-139). Only where there are
   // nights to slice both ways: a session sheet already plots its own games.
@@ -247,10 +260,6 @@ export function Stats({
   const canSlice = !gameMetrics && gameNumberMetrics !== undefined;
   const chartBy: ChartBy = canSlice ? chartByPick : "session";
 
-  // The chart and the First ball card are free, every metric and both slices
-  // (ADR-174): a lock on the screen's main chart was more lock than taste.
-  // Pro is the long lists: every leave and every ball past the first few.
-  const { locked: proLocked } = useProAccess();
 
   // One header for either chart: the picker, then one line saying what the
   // picked metric counts (ADR-127).
@@ -273,16 +282,20 @@ export function Stats({
           aria-label={`Chart by ${gameMetrics || chartBy === "game" ? "game" : "session"}`}
           className="scrollbar-none -mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-none px-1 py-1"
         >
-          {METRIC_KEYS.map((key) => (
-            <Chip
-              key={key}
-              selected={key === metric}
-              onClick={() => setMetric(key)}
-              className="shrink-0"
-            >
-              {METRICS[key].label}
-            </Chip>
-          ))}
+          {METRIC_KEYS.map((key) =>
+            proLocked && !FREE_METRICS.has(key) ? (
+              <LockedMetricChip key={key} label={METRICS[key].label} />
+            ) : (
+              <Chip
+                key={key}
+                selected={key === metric}
+                onClick={() => setMetric(key)}
+                className="shrink-0"
+              >
+                {METRICS[key].label}
+              </Chip>
+            )
+          )}
         </div>
       </div>
       <p className="mt-1 text-xs text-ink-secondary">{METRIC_NOTE[metric]}</p>
@@ -312,10 +325,8 @@ export function Stats({
   const leftMost = mostLeft(convertible);
   const ranked = byStrikeRate(ballPerformance?.balls ?? []);
   const header = chartHeader;
-  // Without Pro, a list shows its first rows as they are and the next one
-  // blurred, and nothing after it (ADR-167); the leaves' first rows are always
-  // the two left most (ADR-195).
-  const leavePreview = proLocked ? freeLeavePreview(convertible) : null;
+  // Without Pro, the balls show the first as it is and the next one blurred,
+  // and nothing after it (ADR-167). Every leave is free (ADR-201).
   const ballPreview = proLocked ? previewSplit(ranked, FREE_BALLS) : null;
 
   return (
@@ -464,36 +475,16 @@ export function Stats({
               <StatNote text={SPARE_NOTE} onDismiss={() => setNote(null)} />
             </div>
           )}
-          {leavePreview ? (
-            // Without Pro: the two left most, in full, and the next one blurred
-            // in the same row (ADR-195).
-            <ul aria-label="Leaves" className="mt-3 grid grid-cols-3 gap-1.5">
-              {leavePreview.shown.map((leave) => (
-                <li key={leave.pins.join("-")}>
-                  <LeaveCell leave={leave} onOpen={() => setOpenLeave(leave.pins)} />
-                </li>
-              ))}
-              {leavePreview.blurred && (
-                <li>
-                  <ProBlur what="Every leave you leave, and how often you make each">
-                    <LeaveCell leave={standInLeave(leavePreview.blurred)} onOpen={() => {}} />
-                  </ProBlur>
-                </li>
-              )}
-            </ul>
-          ) : (
-            leftMost.length > 0 && (
-              // Two rows of three, and every other leave under View all: a
-              // scroller inside the scrolling screen was a second scroll to
-              // find and to fight (ADR-196).
-              <div className="mt-3">
-                <LeaveGrid leaves={leftMost} onOpen={setOpenLeave} label="Leaves left most" />
-              </div>
-            )
+          {leftMost.length > 0 && (
+            // Two rows of three, and every other leave under View all: a
+            // scroller inside the scrolling screen was a second scroll to
+            // find and to fight (ADR-196). Every leave is free (ADR-201).
+            <div className="mt-3">
+              <LeaveGrid leaves={leftMost} onOpen={setOpenLeave} label="Leaves left most" />
+            </div>
           )}
           {/* How many there are, so the bowler knows the size of what is
-              behind the tap. Open with or without Pro: without it, the sheet
-              shows what this card does and locks the rest (ADR-174). */}
+              behind the tap. */}
           {convertible.length > 0 && (
             <ViewAll count={convertible.length} noun="leaves" onClick={() => setAllLeavesOpen(true)} />
           )}
@@ -571,7 +562,7 @@ export function Stats({
 
       {/* Said once for the screen, under the bowler's own numbers rather than
           over them; each card above carries only a small mark. */}
-      <ProBanner what="Pro adds every leave and every ball, with each one's record." />
+      <ProBanner what="Pro adds carry, strike and the first ball's other numbers, and every ball's record." />
 
       {/* Portalled to the body: on the session sheet the stats sit inside a
           panel that slides on a transform, and a transformed ancestor makes
@@ -591,7 +582,6 @@ export function Stats({
       {allLeavesOpen &&
         createPortal(
           <AllLeavesSheet
-            locked={proLocked}
             leaves={convertible}
             scopeLabel={scopeLabel}
             covered={openLeave !== null}
@@ -711,6 +701,9 @@ function Companions({
  * ball, strike after a strike, and the longest run. They used to be scattered,
  * one in the heading's corner and two pushed to either end of a footer line,
  * three sizes and three alignments for numbers of the same weight.
+ *
+ * Without Pro the pocket is the card's answer, since the bowler enters it at
+ * every frame, and the rest sits blurred under one lock (ADR-201).
  */
 function FirstBallCard({
   stats
@@ -721,6 +714,8 @@ function FirstBallCard({
     "pocketPct" | "carryPct" | "strikePct" | "firstBallAverage" | "strikeOnStrikePct" | "bestStreak"
   >;
 }) {
+  const { locked } = useProAccess();
+  if (locked) return <LockedFirstBallCard pocketPct={stats.pocketPct} />;
   const links: Array<[string, string, boolean]> = [
     ["Pocket", pct(stats.pocketPct), false],
     ["Carry", pct(stats.carryPct), false],
@@ -748,6 +743,73 @@ function FirstBallCard({
           ["Strikes in a row", fmt(stats.bestStreak)]
         ]}
       />
+    </section>
+  );
+}
+
+/**
+ * A chart metric that is Pro, on the picker without it (ADR-201): the chip as
+ * it is, with a lock beside its name, and a tap goes to Pro rather than
+ * plotting. Shown rather than left off, so the bowler sees what Pro would
+ * chart.
+ */
+function LockedMetricChip({ label }: { label: string }) {
+  const access = useProAccess();
+  if (!access.locked) return null;
+  return <LockedChip access={access} label={label} />;
+}
+
+function LockedChip({ access, label }: { access: LockedProAccess; label: string }) {
+  const entry = useProEntry(access);
+  return (
+    <>
+      <Chip
+        selected={false}
+        onClick={entry.start}
+        aria-label={`${label}. ${entry.label}`}
+        className="shrink-0 gap-1 text-ink-secondary"
+      >
+        {label}
+        <Lock size={11} aria-hidden="true" className="text-ink-tertiary" />
+      </Chip>
+      {entry.dialog}
+    </>
+  );
+}
+
+/** The First ball card without Pro: the pocket in full, and carry, strike and
+ *  the three smaller numbers blurred under one lock. Stand-in figures under the
+ *  blur, never the bowler's own, since blurred text is still in the page
+ *  (ADR-190). */
+function LockedFirstBallCard({ pocketPct }: { pocketPct: number | null }) {
+  return (
+    <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+      <h2 className={GROUP_HEADING}>First ball</h2>
+      <p className="mt-1 flex items-baseline gap-2">
+        <span className="text-3xl font-bold tabular-nums text-ink">{pct(pocketPct)}</span>
+        <span className="text-sm text-ink-secondary">pocket hits</span>
+      </p>
+      <ProBlur what="Carry, strike and the first ball's other numbers" className="mt-3">
+        <dl className="grid grid-cols-[1fr_auto_1fr] items-center text-center">
+          <div className="flex flex-col-reverse">
+            <dt className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">Carry</dt>
+            <dd className="text-2xl font-bold tabular-nums text-ink">63%</dd>
+          </div>
+          <ArrowRight size={14} aria-hidden="true" className="text-ink-tertiary" />
+          <div className="flex flex-col-reverse">
+            <dt className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">Strike</dt>
+            <dd className="text-2xl font-bold tabular-nums text-accent">48%</dd>
+          </div>
+        </dl>
+        <Companions
+          className="mt-3 border-t border-edge pt-2.5"
+          items={[
+            ["Pins a ball", "8.8"],
+            ["Strike on strike", "45%"],
+            ["Strikes in a row", "6"]
+          ]}
+        />
+      </ProBlur>
     </section>
   );
 }
@@ -1131,17 +1193,12 @@ function AllBallsSheet({
  * tab's own scope.
  */
 function AllLeavesSheet({
-  locked,
   leaves,
   scopeLabel,
   covered,
   onOpen,
   onClose
 }: {
-  /** Without Pro: the leaves the card shows, open, then the next one blurred
-   *  and nothing after it (ADR-174). No filters, which would be a way to read
-   *  every other leave one at a time. */
-  locked: boolean;
   leaves: LeaveStats[];
   scopeLabel?: string;
   /** False while a sheet is open over this one. */
@@ -1170,9 +1227,6 @@ function AllLeavesSheet({
       size="tall"
       active={!covered && !pinsOpen}
     >
-      {locked ? (
-        <LockedLeaves leaves={leaves} onOpen={onOpen} />
-      ) : (
       <div className="space-y-4">
         {/* The scope is in the bar; the filters stay pinned under it while the
             leaves scroll, so the list never loses what it is narrowed to. */}
@@ -1215,36 +1269,7 @@ function AllLeavesSheet({
           })
         )}
       </div>
-      )}
     </FormSheet>
-  );
-}
-
-/** The All leaves sheet without Pro: the two the Spares card shows, each one
- *  opening its record, then the next one blurred (ADR-174, ADR-195). */
-function LockedLeaves({
-  leaves,
-  onOpen
-}: {
-  leaves: LeaveStats[];
-  onOpen: (pins: LeaveStats["pins"]) => void;
-}) {
-  const { shown, blurred } = freeLeavePreview(leaves);
-  return (
-    <ul aria-label="Leaves" className="grid grid-cols-3 gap-1.5">
-      {shown.map((leave) => (
-        <li key={leave.pins.join("-")}>
-          <LeaveCell leave={leave} onOpen={() => onOpen(leave.pins)} />
-        </li>
-      ))}
-      {blurred && (
-        <li>
-          <ProBlur what="Every leave you leave, and how often you make each">
-            <LeaveCell leave={standInLeave(blurred)} onOpen={() => {}} />
-          </ProBlur>
-        </li>
-      )}
-    </ul>
   );
 }
 
