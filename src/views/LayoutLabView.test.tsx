@@ -56,7 +56,7 @@ const openYou = () => fireEvent.click(screen.getByRole("button", { name: "More" 
 const slider = (name: RegExp | string) =>
   screen.getByRole("slider", { name }) as HTMLInputElement;
 
-/** The "45 x 4 1/2 x 45" readout, whatever it currently says. Each notation is
+/** The "45° x 4 1/2 x 45°" readout, whatever it currently says. Each notation is
  *  one control now: the box that shows the layout in a notation is the button
  *  that starts editing it in that notation. */
 const systemCard = (label: string) =>
@@ -102,7 +102,7 @@ describe("LayoutLabView", () => {
 
   it("opens on the benchmark layout, in both notations", () => {
     renderLab();
-    expect(dualAngle()).toBe("45 x 4 1/2 x 45");
+    expect(dualAngle()).toBe("45° x 4 1/2 x 45°");
     // The asymmetric default has a 6 3/4" pin-to-PSA, so the middle number is
     // there and the layout is three numbers.
     expect(vlsReadout()?.split(" x ")).toHaveLength(3);
@@ -111,7 +111,7 @@ describe("LayoutLabView", () => {
   it("moves the layout when a slider moves, and both notations follow", () => {
     renderLab();
     fireEvent.change(slider(/VAL angle/i), { target: { value: "70" } });
-    expect(dualAngle()).toBe("45 x 4 1/2 x 70");
+    expect(dualAngle()).toBe("45° x 4 1/2 x 70°");
     // A bigger VAL angle is a bigger pin buffer, which is the VLS third number.
     expect(vlsReadout()).toBe("4 1/2 x 3 7/8 x 4 1/8");
   });
@@ -133,7 +133,7 @@ describe("LayoutLabView", () => {
     // The screen opens on the benchmark, which is itself a preset, so switching
     // presets loses nothing and goes straight through.
     fireEvent.click(screen.getByRole("button", { name: "Pin down" }));
-    expect(dualAngle()).toBe("70 x 4 1/2 x 70");
+    expect(dualAngle()).toBe("70° x 4 1/2 x 70°");
   });
 
   it("asks before a preset throws away numbers the bowler typed", async () => {
@@ -144,7 +144,7 @@ describe("LayoutLabView", () => {
     fireEvent.click(screen.getByRole("button", { name: "Pin down" }));
 
     // Nothing has changed yet: the dialog names both layouts and waits.
-    expect(dualAngle()).toBe("45 x 4 1/2 x 62");
+    expect(dualAngle()).toBe("45° x 4 1/2 x 62°");
     // The pushed screen is itself a dialog, so the confirm is found by its own
     // title rather than by role alone.
     const dialog = screen
@@ -153,12 +153,12 @@ describe("LayoutLabView", () => {
     expect(dialog).toBeTruthy();
     // It names what is being lost and what replaces it, so the answer is a
     // decision rather than a guess.
-    expect(dialog.textContent).toContain("45 x 4 1/2 x 62");
-    expect(dialog.textContent).toContain("70 x 4 1/2 x 70");
+    expect(dialog.textContent).toContain("45° x 4 1/2 x 62°");
+    expect(dialog.textContent).toContain("70° x 4 1/2 x 70°");
 
     fireEvent.click(screen.getByRole("button", { name: "Replace" }));
     // ConfirmDialog commits through its own dismiss, which waits for the exit.
-    await waitFor(() => expect(dualAngle()).toBe("70 x 4 1/2 x 70"));
+    await waitFor(() => expect(dualAngle()).toBe("70° x 4 1/2 x 70°"));
   });
 
   it("does not ask when the layout on screen is already a preset", () => {
@@ -169,7 +169,7 @@ describe("LayoutLabView", () => {
     // that took work, and a dialog whose answer is always yes teaches people to
     // dismiss dialogs unread.
     expect(screen.queryByText(/Use the/i)).not.toBeInTheDocument();
-    expect(dualAngle()).toBe("35 x 4 x 35");
+    expect(dualAngle()).toBe("35° x 4 x 35°");
   });
 
   it("keeps the layout when the preset confirm is cancelled", async () => {
@@ -179,7 +179,7 @@ describe("LayoutLabView", () => {
     fireEvent.click(screen.getByRole("button", { name: "Short pin" }));
     fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
     await waitFor(() => expect(screen.queryByText(/Use the/i)).not.toBeInTheDocument());
-    expect(dualAngle()).toBe("45 x 4 1/2 x 62");
+    expect(dualAngle()).toBe("45° x 4 1/2 x 62°");
   });
 
   it("warns on the lane, not after the fact, when the pin-to-PAP lands in the do-not-use band", () => {
@@ -202,7 +202,7 @@ describe("LayoutLabView", () => {
     // Still three measurements to a screen reader, which gets the text content
     // with the styling thrown away. Padding instead of real spaces would look
     // identical and say "45x4 1/2x45".
-    expect(card).toHaveAccessibleName("Dual angle 45 x 4 1/2 x 45");
+    expect(card).toHaveAccessibleName("Dual angle 45° x 4 1/2 x 45°");
   });
 
   it("edits the layout through the VLS numbers and converts back", () => {
@@ -216,7 +216,7 @@ describe("LayoutLabView", () => {
     // of buffer is about one degree of VAL angle. Anything asking for an exact
     // round trip through the written numbers is asking for precision the
     // notation does not carry.
-    expect(dualAngle()).toMatch(/^45 x 4 1\/2 x (70|71)$/);
+    expect(dualAngle()).toMatch(/^45° x 4 1\/2 x (70|71)°$/);
   });
 
   it("reads the motion out in words as well as bars", () => {
@@ -231,14 +231,14 @@ describe("LayoutLabView", () => {
     renderLab();
     openMenu();
     fireEvent.click(screen.getByRole("button", { name: "Short pin" }));
-    expect(dualAngle()).not.toBe("45 x 4 1/2 x 45");
+    expect(dualAngle()).not.toBe("45° x 4 1/2 x 45°");
     // The separate Reset control is gone: every reset it offered was "go back
     // to the benchmark", and the benchmark is itself a preset, so the two
     // controls were one idea spending two bands of a phone screen.
     expect(screen.queryByRole("button", { name: "Reset" })).not.toBeInTheDocument();
     openMenu();
     fireEvent.click(screen.getByRole("button", { name: "Benchmark" }));
-    await waitFor(() => expect(dualAngle()).toBe("45 x 4 1/2 x 45"));
+    await waitFor(() => expect(dualAngle()).toBe("45° x 4 1/2 x 45°"));
   });
 
   it("draws a ball that describes itself, since the picture carries the point", () => {
@@ -271,7 +271,7 @@ describe("LayoutLabView", () => {
     fireEvent.change(screen.getByLabelText("Over"), { target: { value: "3" } });
     expect(ball.innerHTML).not.toBe(before);
     // The layout numbers themselves are untouched: a PAP is the bowler, not the drill.
-    expect(dualAngle()).toBe("45 x 4 1/2 x 45");
+    expect(dualAngle()).toBe("45° x 4 1/2 x 45°");
   });
 
   it("takes a PAP as whole inches and a fraction, never as a decimal", () => {
@@ -439,7 +439,7 @@ describe("LayoutLabView", () => {
     fireEvent.click(screen.getByRole("button", { name: "Left" }));
     // Same three numbers, opposite side of the ball.
     expect(ball()).not.toBe(right);
-    expect(dualAngle()).toBe("45 x 4 1/2 x 45");
+    expect(dualAngle()).toBe("45° x 4 1/2 x 45°");
   });
 
   it("shows the ball's own pin-to-PSA distance on the line it measures", () => {
@@ -531,7 +531,7 @@ describe("LayoutLabView", () => {
     window.history.replaceState({}, "", `/?${withCheck("da=70&ptp=5&val=30&hand=left&over=4&up=0&core=asym")}`);
     renderLab({ you: true });
 
-    expect(dualAngle()).toBe("70 x 5 x 30");
+    expect(dualAngle()).toBe("70° x 5 x 30°");
     expect(screen.getByRole("button", { name: "Left" })).toHaveAttribute("aria-pressed", "true");
     expect((screen.getByRole("combobox", { name: "Over" }) as HTMLSelectElement).value).toBe("4");
   });
@@ -545,7 +545,7 @@ describe("LayoutLabView", () => {
     fireEvent.change(screen.getByRole("combobox", { name: "Over" }), { target: { value: "2" } });
     // A shared layout is a thing to look at, not a measurement of the person
     // looking at it.
-    await waitFor(() => expect(dualAngle()).toBe("45 x 4 1/2 x 45"));
+    await waitFor(() => expect(dualAngle()).toBe("45° x 4 1/2 x 45°"));
     expect(await getPap()).toEqual({ over: 5, up: 0.5 });
   });
 
@@ -674,7 +674,7 @@ describe("LayoutLabView", () => {
     fireEvent.click(screen.getByRole("button", { name: "One handed" }));
     // A shared layout says who it was drilled for. It does not say who is
     // reading it, so nothing about the reader is written from it.
-    await waitFor(() => expect(dualAngle()).toBe("45 x 4 1/2 x 45"));
+    await waitFor(() => expect(dualAngle()).toBe("45° x 4 1/2 x 45°"));
     expect(await getGripStyle()).toBeNull();
   });
 
@@ -765,7 +765,7 @@ describe("LayoutLabView", () => {
         }}
       />
     );
-    expect(dualAngle()).toBe("60 x 5 x 30");
+    expect(dualAngle()).toBe("60° x 5 x 30°");
     // The ball itself heads the screen: name, weight, core and numbers, in
     // place of the sentence that used to stand there.
     expect(screen.getByText("Phaze II · 15 lb")).toBeTruthy();
@@ -820,7 +820,7 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
     // The layout reads in both notations on the toggle above the sliders, and
     // the toggle itself is free (ADR-170).
     const dual = screen.getByRole("button", { name: /Dual angle/ });
-    expect(dual).toHaveTextContent("45 x 4 1/2 x 45");
+    expect(dual).toHaveTextContent("45° x 4 1/2 x 45°");
     fireEvent.click(screen.getByRole("button", { name: /Storm VLS/ }));
     expect(screen.getByRole("button", { name: /Storm VLS/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("heading", { name: "What it will do" })).toBeInTheDocument();

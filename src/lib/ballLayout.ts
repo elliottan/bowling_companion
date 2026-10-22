@@ -475,9 +475,11 @@ export function formatVls(vls: VlsLayout): string {
   return parts.map(formatInches).join(" x ");
 }
 
-/** `45 x 4 1/2 x 35`, the dual angle written the way a drill sheet writes it. */
+/** `45° x 4 1/2 x 35°`, the dual angle written the way a drill sheet writes it.
+ *  The two angles carry their degree sign, so the row cannot be read as three
+ *  distances; the inches go unmarked, as a drill sheet leaves them. */
 export function formatDualAngle(layout: DualAngleLayout): string {
-  return `${Math.round(layout.drillingAngle)} x ${formatInches(layout.pinToPap)} x ${Math.round(layout.valAngle)}`;
+  return `${Math.round(layout.drillingAngle)}° x ${formatInches(layout.pinToPap)} x ${Math.round(layout.valAngle)}°`;
 }
 
 /**

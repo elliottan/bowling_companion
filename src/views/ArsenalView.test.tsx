@@ -33,7 +33,7 @@ describe("ArsenalView", () => {
     await addBall({ name: "Phaze II", is_spare_ball: false, layout_spec: SPEC });
 
     render(<ArsenalView onBack={vi.fn()} />);
-    expect(await reading(/^50 x 4 1\/2 x 40$/)).toBeTruthy();
+    expect(await reading(/^50° x 4 1\/2 x 40°$/)).toBeTruthy();
   });
 
   it("lets a ball override that notation, so a drill sheet reads back as written", async () => {

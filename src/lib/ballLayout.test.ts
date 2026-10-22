@@ -297,7 +297,7 @@ describe("formatting", () => {
   });
 
   it("writes a dual angle the way a drill sheet writes it", () => {
-    expect(formatDualAngle(BENCHMARK)).toBe("45 x 4 1/2 x 45");
+    expect(formatDualAngle(BENCHMARK)).toBe("45° x 4 1/2 x 45°");
   });
 });
 
@@ -653,7 +653,7 @@ describe("a layout as a ball keeps it", () => {
   });
 
   it("writes the same layout in either notation", () => {
-    expect(formatLayoutSpec(spec, "dual")).toBe("50 x 4 1/2 x 40");
+    expect(formatLayoutSpec(spec, "dual")).toBe("50° x 4 1/2 x 40°");
     expect(formatLayoutSpec(spec, "vls")).toBe(
       formatVls(toVls(specToLayout(spec), specToBall(spec)))
     );
