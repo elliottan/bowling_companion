@@ -15,6 +15,9 @@ had all shipped.
   or right hand, one or two hands, Asym or Sym, the theme) the chosen option
   is now filled in the app's accent color, as a main button is, instead of a
   slightly lighter grey that was hard to see in dark mode (ADR-182).
+- **The lane's options match.** In the lane visualizer's Lane options, the
+  picked bowling hand and the hook sliders are in the accent color too,
+  instead of amber.
 
 ## 0.55.0: The web points at the iPhone app, and Pro shows what you'd get (2026-10-21)
 

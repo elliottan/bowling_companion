@@ -935,7 +935,7 @@ function OptionsSheet({
                   aria-pressed={hand === h}
                   onClick={() => onPickHand(h)}
                   className={`h-9 flex-1 rounded-lg text-sm font-semibold ${
-                    hand === h ? "bg-amber-400 text-slate-900" : "text-white/70 hover:bg-white/10"
+                    hand === h ? "bg-accent-fill text-accent-on-fill" : "text-white/70 hover:bg-white/10"
                   }`}
                 >
                   {h === "left" ? "L" : "R"}
@@ -1020,7 +1020,7 @@ function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="h-8 w-full cursor-pointer accent-amber-400"
+        className="h-8 w-full cursor-pointer accent-accent-fill"
       />
       <div className="flex justify-between text-[11px] tabular-nums text-white/40">
         <span>{min} {suffix}</span>
