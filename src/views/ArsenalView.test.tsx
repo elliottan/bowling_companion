@@ -128,7 +128,13 @@ describe("ArsenalView", () => {
     render(<ArsenalView onBack={vi.fn()} />);
 
     fireEvent.click(await screen.findByText("Old Hammer"));
+    // Under the sheet's More, and asked first, rather than a button across its
+    // foot that a stray tap could fire.
+    fireEvent.click(await screen.findByRole("button", { name: "More" }));
     fireEvent.click(await screen.findByRole("button", { name: "Retire ball" }));
+    expect(await screen.findByRole("heading", { name: "Retire Old Hammer?" })).toBeInTheDocument();
+    expect((await getBalls()).find((b) => b.name === "Old Hammer")?.retired).toBeFalsy();
+    fireEvent.click(screen.getByRole("button", { name: "Retire" }));
 
     // Out of the bag, still in the database, and behind a toggle.
     await waitFor(() => expect(screen.queryByText("Old Hammer")).toBeNull());

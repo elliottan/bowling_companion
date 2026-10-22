@@ -10,6 +10,7 @@ import { PapEditor } from "../components/PapEditor";
 import { ShareCardDialog } from "../components/ShareCardDialog";
 import { PushScreen } from "../components/PushScreen";
 import { ANCHORED_MENU_WIDTH, AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
+import { anchorUnder, type MenuAnchor } from "../lib/menuAnchor";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { IconButton } from "../components/ui/IconButton";
 import { Button } from "../components/ui/Button";
@@ -59,19 +60,6 @@ interface LayoutLabViewProps {
    *  the same way a shared link outranks the defaults, because it is the more
    *  specific answer to "which layout is this screen about". */
   seed?: LayoutSeed;
-}
-
-/** Where a menu hangs from, in viewport coordinates. */
-interface Anchor {
-  left: number;
-  top: number;
-}
-
-/** Anchor a menu of `width` px under the control that opened it, clamped so it
- *  cannot run off a narrow screen. */
-function anchorUnder(el: Element, width: number): Anchor {
-  const r = el.getBoundingClientRect();
-  return { left: Math.max(8, Math.min(r.right - width, window.innerWidth - width - 8)), top: r.bottom + 6 };
 }
 
 /** The page's query string, guarded for a render with no window behind it. */
@@ -167,7 +155,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
   // handedness that arrives asynchronously from settings without an effect
   // reaching back into state after the fact.
   const [turnedTo, setTurnedTo] = useState<Orientation | null>(null);
-  const [presetAt, setPresetAt] = useState<Anchor | null>(null);
+  const [presetAt, setPresetAt] = useState<MenuAnchor | null>(null);
   const [pendingPreset, setPendingPreset] = useState<LayoutPreset | null>(null);
   // The sheet behind More: the PAP, the hand and the grip.
   const [youOpen, setYouOpen] = useState(false);

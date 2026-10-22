@@ -384,8 +384,9 @@ changes are a draft until then, and leaving drops them. A spare line and a ball 
 the arsenal open the same way: their sheet comes up from a tap on a row, so it
 reads the values as text, and the pencil in the bar turns the fields on. Adding
 a new one opens straight on the fields, since there is nothing to read yet.
-Retire and delete stay on the read sheet: they are actions, not edits, and
-delete asks first.
+A ball's retire and delete sit under a More beside the pencil on the read
+sheet, never as buttons across its foot: they are rare, and never what the
+sheet was opened for. Both ask first; bringing a ball back does not (ADR-206).
 
 **Pro shows as a taste, never a wall (ADR-163, ADR-167, ADR-173).** A locked
 chart or card shows its first lines lightly blurred and fading out, with the

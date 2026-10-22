@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Check, ChevronRight, Compass, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Check, ChevronRight, Compass, MoreHorizontal, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
@@ -24,7 +24,9 @@ import { Measure } from "./ui/Measure";
 import { SegmentedControl } from "./ui/SegmentedControl";
 import { GROUP_HEADING } from "./ui/typography";
 import { ErrorBanner } from "./ErrorBanner";
-import { Button } from "./ui/Button";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { ANCHORED_MENU_WIDTH, AnchoredMenu, AnchoredMenuItem } from "./ui/AnchoredMenu";
+import { anchorUnder, type MenuAnchor } from "../lib/menuAnchor";
 import { FIELD } from "./ui/field";
 import { FormSheet } from "./ui/FormSheet";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
@@ -79,6 +81,9 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
   const [weightSpecs, setWeightSpecs] = useState<WeightSpecs | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  // The More menu beside the pencil, and the question retiring asks first.
+  const [moreAt, setMoreAt] = useState<MenuAnchor | null>(null);
+  const [confirmRetire, setConfirmRetire] = useState(false);
   const [error, setError] = useState("");
   // Which notation a ball with no notation of its own is read in. Undefined
   // while it loads, which the field shows as the app's own default rather than
@@ -174,7 +179,10 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
   }
 
   // The bar's trailing control is the mode: a pencil while reading, which turns
-  // into the tick that saves while editing.
+  // into the tick that saves while editing. Reading, a More beside the pencil
+  // holds retiring and deleting: rare, and never what the sheet was opened
+  // for, so they are not buttons across the foot of it.
+  const hasMore = !unlocked && (onRetire != null || onDelete != null);
   const trailing = unlocked ? (
     <IconButton
       variant="confirm"
@@ -185,9 +193,20 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
       <Check size={20} aria-hidden="true" />
     </IconButton>
   ) : (
-    <IconButton variant="round" onClick={() => setUnlocked(true)} label="Edit ball">
-      <Pencil size={18} aria-hidden="true" />
-    </IconButton>
+    <div className="flex shrink-0 items-center gap-2">
+      {hasMore && (
+        <IconButton
+          variant="round"
+          label="More"
+          onClick={(e) => setMoreAt(anchorUnder(e.currentTarget, ANCHORED_MENU_WIDTH))}
+        >
+          <MoreHorizontal size={20} aria-hidden="true" />
+        </IconButton>
+      )}
+      <IconButton variant="round" onClick={() => setUnlocked(true)} label="Edit ball">
+        <Pencil size={18} aria-hidden="true" />
+      </IconButton>
+    </div>
   );
 
   // Read, the catalog card is the ball's specs and not yet the way into the
@@ -202,6 +221,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
         onClose={onClose}
         trailing={trailing}
         banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
+        active={moreAt == null && !confirmRetire}
       >
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
 
@@ -312,24 +332,65 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
             </>
             )}
 
-            {/* Retiring is the everyday way out of the bag, so it comes before
-                the delete that loses the ball's name from every shot. */}
-            {onRetire && (
-              <Button variant="secondary" onClick={() => onRetire(!ball?.retired)} className="w-full">
-                {ball?.retired ? <RotateCcw size={16} aria-hidden="true" /> : <Archive size={16} aria-hidden="true" />}
-                {ball?.retired ? "Bring back to arsenal" : "Retire ball"}
-              </Button>
-            )}
-            {onDelete && (
-              <Button variant="danger-ghost" onClick={onDelete} className="w-full">
-                <Trash2 size={16} aria-hidden="true" />
-                Delete ball
-              </Button>
-            )}
           {/* Enables the keyboard's Go/Return to submit without a visible row. */}
           <button type="submit" className="sr-only" tabIndex={-1} aria-hidden="true" />
         </form>
       </FormSheet>
+
+      {moreAt && (
+        <AnchoredMenu left={moreAt.left} top={moreAt.top} align="end" onClose={() => setMoreAt(null)}>
+          {onRetire &&
+            (ball?.retired ? (
+              // Bringing a ball back loses nothing, so it asks nothing.
+              <AnchoredMenuItem
+                icon={RotateCcw}
+                onClick={() => {
+                  setMoreAt(null);
+                  onRetire(false);
+                }}
+              >
+                Bring back to arsenal
+              </AnchoredMenuItem>
+            ) : (
+              <AnchoredMenuItem
+                icon={Archive}
+                onClick={() => {
+                  setMoreAt(null);
+                  setConfirmRetire(true);
+                }}
+              >
+                Retire ball
+              </AnchoredMenuItem>
+            ))}
+          {onDelete && (
+            <AnchoredMenuItem
+              icon={Trash2}
+              danger
+              onClick={() => {
+                setMoreAt(null);
+                onDelete();
+              }}
+            >
+              Delete ball
+            </AnchoredMenuItem>
+          )}
+        </AnchoredMenu>
+      )}
+
+      {/* Retiring asks first, as deleting does: it takes the ball out of the
+          bag and out of every ball list, which a stray tap should not do. */}
+      <ConfirmDialog
+        open={confirmRetire}
+        title={`Retire ${ball?.name ?? "this ball"}?`}
+        message="It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
+        confirmLabel="Retire"
+        confirmVariant="primary"
+        onConfirm={() => {
+          setConfirmRetire(false);
+          onRetire?.(true);
+        }}
+        onCancel={() => setConfirmRetire(false)}
+      />
 
       {pickerOpen && (
         <CatalogPickerSheet

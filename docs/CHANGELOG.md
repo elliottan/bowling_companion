@@ -55,6 +55,8 @@ had all shipped.
   form is open without Pro: add, change or remove the numbers, and they save.
   Seeing the layout drawn is the Pro part: View layout stays on the arsenal
   row, and without Pro it says Pro draws it (ADR-193).
+- **Retiring and deleting a ball sit under a More button** beside the pencil on
+  its sheet, and retiring asks first (ADR-206).
 - **A ball's sheet opens its layout in the layout lab,** from a button beside
   the layout's numbers, as the arsenal row's does.
 - **A dual angle layout shows its degrees.** `55° x 5 x 45°` rather than

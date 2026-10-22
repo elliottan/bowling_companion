@@ -8918,3 +8918,18 @@ fields the reset changes are right above the button, so the question guarded
 nothing a second look could not undo.
 
 **Decision.** The button resets at once, with no dialog.
+
+---
+
+## ADR-206: A ball's retire and delete live under More, and retiring asks first
+
+**Status.** Accepted, 2026-10-22, by the owner from a phone in hand.
+
+**Context.** A ball's read sheet ended in two full-width buttons, Retire ball
+and Delete ball, the largest things on it for the two things a bowler does
+least, and Retire acted on the tap.
+
+**Decision.** They move into a More menu beside the pencil in the sheet's bar
+(`AnchoredMenu`, its anchor helper now shared). Retiring asks first ("Retire
+Phaze II?"), with what it does and that the ball can come back; delete asks as
+it did. Bringing a retired ball back asks nothing, since it loses nothing.
