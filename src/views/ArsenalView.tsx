@@ -409,6 +409,19 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
           onSaved={() => setForm(null)}
           onDelete={form.ball ? () => setPendingDelete(form.ball) : undefined}
           onRetire={form.ball ? (retire) => void handleRetire(form.ball!, retire) : undefined}
+          // The row's compass, on the ball's own sheet too. A sheet sits above
+          // every pushed screen, so the lab would open under it: the sheet goes
+          // first, and back comes to the arsenal. Without Pro it stays, under
+          // the prompt that says Pro draws the layout.
+          onViewLayout={
+            form.ball?.layout_spec && onViewLayout
+              ? () => {
+                  const ball = form.ball!;
+                  if (!access.locked) setForm(null);
+                  viewLayout(ball);
+                }
+              : undefined
+          }
         />
       )}
 

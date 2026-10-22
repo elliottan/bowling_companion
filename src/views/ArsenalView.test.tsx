@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ArsenalView } from "./ArsenalView";
 import { db } from "../db/bowlingDb";
@@ -85,6 +85,19 @@ describe("ArsenalView", () => {
     expect(seed.layout).toEqual({ drillingAngle: 50, pinToPap: 4.5, valAngle: 40 });
     expect(seed.ball.pinToCore).toBe(6.75);
     expect(seed.ballName).toBe("Phaze II");
+  });
+
+  it("offers the layout on the ball's own sheet too, beside its numbers", async () => {
+    await addBall({ name: "Phaze II", is_spare_ball: false, layout_spec: SPEC });
+    const onViewLayout = vi.fn();
+    render(<ArsenalView onBack={vi.fn()} onViewLayout={onViewLayout} />);
+    fireEvent.click(await screen.findByRole("button", { name: /^Phaze II/ }));
+    const sheet = await screen.findByRole("dialog", { name: "Phaze II" });
+    await waitFor(() => {
+      fireEvent.click(within(sheet).getByRole("button", { name: "View the layout on Phaze II" }));
+      expect(onViewLayout).toHaveBeenCalled();
+    });
+    expect(onViewLayout.mock.lastCall![0].ballName).toBe("Phaze II");
   });
 
   it("without Pro, keeps View layout and says Pro draws it, rather than opening the lab (ADR-193)", async () => {

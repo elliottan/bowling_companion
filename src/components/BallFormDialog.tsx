@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Check, ChevronRight, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Check, ChevronRight, Compass, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
@@ -50,6 +50,9 @@ interface BallFormDialogProps {
   /** Retire the ball (true) or bring it back (false), ADR-133. Absent while
    *  adding, when there is no ball yet. */
   onRetire?: (retire: boolean) => void;
+  /** See the ball's layout drawn in the layout lab, as the arsenal row's
+   *  compass does (Pro, ADR-193). Absent when the ball has no layout. */
+  onViewLayout?: () => void;
 }
 
 /**
@@ -57,7 +60,7 @@ interface BallFormDialogProps {
  * arsenal list: the inline version pushed the list down and left the catalog
  * link stranded below the fold, so nobody found it.
  */
-export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: BallFormDialogProps) {
+export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onViewLayout }: BallFormDialogProps) {
   const editing = ball !== null;
   // A ball already in the bag opens read, with a pencil, like a spare line: the
   // sheet opens from a tap on the row, and a thumb that only meant to look was
@@ -250,7 +253,15 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire }: B
             </CatalogCard>
 
             {!unlocked ? (
-              <BallReadout name={name} weight={weight} spec={layoutSpec} preference={systemPreference} legacyText={legacyLayout} />
+              <BallReadout
+                name={name}
+                weight={weight}
+                spec={layoutSpec}
+                preference={systemPreference}
+                legacyText={legacyLayout}
+                onViewLayout={onViewLayout}
+                ballName={ball?.name ?? name}
+              />
             ) : (
             <>
             <div className="flex items-end gap-3">
@@ -342,13 +353,17 @@ function BallReadout({
   weight,
   spec,
   preference,
-  legacyText
+  legacyText,
+  onViewLayout,
+  ballName
 }: {
   name: string;
   weight: number;
   spec: BallLayoutSpec | null;
   preference: LayoutSystem;
   legacyText?: string;
+  onViewLayout?: () => void;
+  ballName: string;
 }) {
   return (
     <dl className="space-y-4">
@@ -365,11 +380,21 @@ function BallReadout({
       <div>
         <dt className={GROUP_HEADING}>Layout</dt>
         {spec ? (
-          <dd className="mt-1 text-base font-semibold tabular-nums text-accent">
-            <Measure>{formatLayoutSpec(spec, layoutSystemFor(spec, preference))}</Measure>
-            <span className="block text-xs font-normal text-ink-secondary">
-              {spec.symmetric ? "Symmetric" : "Asymmetric"} core
+          <dd className="mt-1 flex items-center gap-3">
+            <span className="min-w-0 flex-1 text-base font-semibold tabular-nums text-accent">
+              <Measure>{formatLayoutSpec(spec, layoutSystemFor(spec, preference))}</Measure>
+              <span className="block text-xs font-normal text-ink-secondary">
+                {spec.symmetric ? "Symmetric" : "Asymmetric"} core
+              </span>
             </span>
+            {/* The arsenal row's compass, beside the numbers it draws: the way
+                from reading a layout to seeing it, without leaving the ball. The
+                lab opens over this sheet, and back returns to it. */}
+            {onViewLayout && (
+              <IconButton label={`View the layout on ${ballName}`} title="View layout" onClick={onViewLayout}>
+                <Compass size={18} aria-hidden="true" />
+              </IconButton>
+            )}
           </dd>
         ) : legacyText ? (
           <dd className="mt-1 text-base font-semibold text-accent">
