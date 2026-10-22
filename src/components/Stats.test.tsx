@@ -136,7 +136,7 @@ describe("the first ball", () => {
       "Pocket",
       "Carry",
       "Strike",
-      "Strike on strike",
+      "Double",
       "Max consecutive strikes"
     ]);
     expect(screen.getByText("Pocket").nextElementSibling).toHaveTextContent("90%");
@@ -144,14 +144,14 @@ describe("the first ball", () => {
   });
 });
 
-describe("strike on strike and max consecutive strikes", () => {
+describe("the double rate and max consecutive strikes", () => {
   it("sits with the first ball, and says what it counts on the chart", () => {
     render(<Stats stats={STATS} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
     const card = screen.getByRole("heading", { name: "First ball" }).closest("section")!;
-    expect(within(card).getByText("Strike on strike").nextElementSibling).toHaveTextContent("47%");
+    expect(within(card).getByText("Double").nextElementSibling).toHaveTextContent("47%");
     expect(within(card).getByText("Max consecutive strikes").nextElementSibling).toHaveTextContent("4");
 
-    fireEvent.click(screen.getByRole("button", { name: "Strike on strike" }));
+    fireEvent.click(screen.getByRole("button", { name: "Double" }));
     expect(screen.getByText("Strikes the next ball struck too.")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Max consecutive strikes" }));
@@ -267,15 +267,15 @@ describe("stat definitions", () => {
     // Each ball names its own rates, so nothing has to be pinned over the list.
     for (let i = 1; i <= 7; i++) {
       const line = within(sheet).getByRole("region", { name: `Ball ${i} columns` });
-      expect(line).toHaveTextContent(/Pocket.*Carry.*Strike.*1st ball.*Strike on strike/);
+      expect(line).toHaveTextContent(/Pocket.*Carry.*Strike.*1st ball.*Double/);
     }
   });
 
-  it("adds the first ball average and strike on strike to each ball's row", () => {
+  it("adds the first ball average and the double rate to each ball's row", () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
     const row = screen.getByRole("button", { name: "Open Wolverine" });
     expect(within(row).getByLabelText("first ball 9.3")).toBeInTheDocument();
-    expect(within(row).getByLabelText("strike on strike 75%")).toBeInTheDocument();
+    expect(within(row).getByLabelText("double 75%")).toBeInTheDocument();
   });
 
   it("keeps the ball columns in one scroller, all rows together, on the card", () => {
@@ -287,10 +287,10 @@ describe("stat definitions", () => {
     // A long name wraps to a second line rather than being cut at the first.
     expect(within(scroller).getByText("Wolverine")).toHaveClass("line-clamp-2");
     expect(within(scroller).getByRole("button", { name: "Open Wolverine" })).toBeInTheDocument();
-    expect(within(scroller).getByText("Strike on strike")).toBeInTheDocument();
+    expect(within(scroller).getByText("Double")).toBeInTheDocument();
   });
 
-  it("gives each ball's table a first ball and strike on strike row, scrolled sideways", async () => {
+  it("gives each ball's table a first ball and a double row, scrolled sideways", async () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
     fireEvent.click(screen.getByRole("button", { name: /^View all \d+ balls?$/ }));
     const sheet = await screen.findByRole("dialog", { name: "Balls" });
@@ -298,8 +298,8 @@ describe("stat definitions", () => {
     expect(table).toHaveClass("overflow-x-auto");
     const rows = within(table).getAllByRole("row").map((r) => r.textContent);
     // Game 4: 111 pins over 12 balls, and 6 of 8 strikes followed by a strike.
-    expect(rows).toContain("1st ball9.39.3");
-    expect(rows).toContain("Strike on strike75%75%");
+    expect(rows).toContain("1st ball9.3");
+    expect(rows).toContain("Double75%");
   });
   it("ranks the balls by strike rate, and puts a thin one last however it strikes", () => {
     const ball = REPORT.balls[0];
@@ -323,16 +323,16 @@ describe("stat definitions", () => {
     expect([...names].map((n) => n.textContent)).toEqual(["Hot", "Steady", "Thin"]);
   });
 
-  it("explains the rows of a ball's table", () => {
+  it("reads a ball's table by game, with no All column and no row to tap", async () => {
     render(<Stats stats={STATS} ballPerformance={REPORT} />);
-    fireEvent.click(screen.getByText("Wolverine"));
-
-    // The expanded table's own Carry row, not the tile that shares its label.
-    const rowLabel = screen
-      .getAllByText("Carry")
-      .find((el) => el.closest("tr") !== null)!;
-    fireEvent.click(rowLabel);
-    expect(screen.getByText(/pocket hits that struck/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^View all \d+ balls?$/ }));
+    const sheet = await screen.findByRole("dialog", { name: "Balls" });
+    const table = within(sheet).getByRole("region", { name: "Wolverine by game" });
+    const headings = within(table).getAllByRole("columnheader").map((h) => h.textContent);
+    // The totals are the ball's own line, just above the table.
+    expect(headings[0]).toBe("By game");
+    expect(headings).not.toContain("All");
+    expect(within(table).queryByRole("button", { name: "Carry" })).not.toBeInTheDocument();
   });
 });
 

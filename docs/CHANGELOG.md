@@ -18,6 +18,12 @@ had all shipped.
   and the series score sit in the session's header, so the scorecard starts
   higher. The date is short ("Oct 19") and the game count is gone; the game
   chips already say it.
+- **"Strike on strike" is "Double".** A strike that follows a strike is a
+  double, as bowlers say it, and the one word fits on the Stats chart picker,
+  the First ball card and the ball tables where three words wrapped.
+- **A ball's table reads by game.** On the Balls sheet, each ball's table is
+  headed "By game" and has no All column, since the ball's line just above it
+  carries every total. Carry is no longer a tap that explains itself.
 - **The pictures of the app are a real iPhone.** On headpin.app and in the App
   Store screenshots, the phone has the iPhone 16 Pro Max's deep corners and its
   Dynamic Island, sitting in the status bar where the phone has it rather than
