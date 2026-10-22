@@ -645,11 +645,14 @@ function Headline({ stats, form }: { stats: BowlingStats; form?: RecentForm | nu
       <div className="flex items-end gap-3">
         <div className="min-w-0 flex-1">
           <h2 className={GROUP_HEADING}>Average</h2>
-          <p className="mt-0.5 text-4xl font-bold leading-none tabular-nums text-ink">
+          {/* In the accent: it is the answer the screen leads with. */}
+          <p className="mt-0.5 text-4xl font-bold leading-none tabular-nums text-accent">
             {fmt(stats.averageScore)}
           </p>
         </div>
-        <dl className="grid shrink-0 grid-cols-3 gap-4 text-right">
+        {/* Each number centred over its label: right-aligned, a short label
+            ("Low") sat off under the end of a wider number. */}
+        <dl className="grid shrink-0 grid-cols-3 gap-4 text-center">
           {(
             [
               ["High", fmt(stats.highGame)],

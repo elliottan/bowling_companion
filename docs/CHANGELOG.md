@@ -18,6 +18,8 @@ had all shipped.
 - **A dual angle layout shows its degrees.** `55° x 5 x 45°` rather than
   `55 x 5 x 45`, in the arsenal, on a ball's sheet and in the layout lab, so
   the two angles read apart from the inches between them.
+- **Stats leads with the average in the accent color,** and the high, low and
+  games each sit centred over their label.
 - **The bar at the bottom of the Headpin Pro page sits on the bottom edge.** On
   the iPhone it stopped a little above it, and the page scrolled through the
   gap underneath.
