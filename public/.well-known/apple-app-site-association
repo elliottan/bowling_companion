@@ -4,13 +4,11 @@
       {
         "appIDs": ["CQ6FS6P6H2.app.headpin"],
         "components": [
-          { "/": "/score", "exclude": true },
-          { "/": "/score/*", "exclude": true },
           { "/": "/app" },
           { "/": "/app/*" },
           { "/": "/guides/*" }
         ],
-        "paths": ["NOT /score", "NOT /score/*", "/app", "/app/*", "/guides/*"]
+        "paths": ["/app", "/app/*", "/guides/*"]
       }
     ]
   }

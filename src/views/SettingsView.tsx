@@ -312,7 +312,7 @@ function SettingsMenu({
  * Headpin Pro, where the app sells it (the iOS app, ADR-158): bought or not,
  * and, until it is bought, Restore purchase, which App Review requires and a
  * bowler on a new phone needs. On the web, where Pro is not sold, one row to the Pro page wherever
- * Pro is locked or owned (`/app`, `/score`), so either side of it can be read
+ * Pro is locked, so what Pro adds can be read
  * there (ADR-167). Every row carries the Pro mark, which is what the page shows.
  */
 function ProSection() {

@@ -117,7 +117,7 @@ test("the first run is accessible, on the screen a new bowler starts at", async 
   // Every other scan in this file runs past the first run, so the one screen a
   // stranger sees first was the one screen never scanned. Its hidden file input
   // had no name for four months because of it.
-  await page.goto("/score");
+  await page.goto("/app?pro");
   await page.evaluate(async () => {
     await new Promise<void>((resolve) => {
       const req = indexedDB.deleteDatabase("BowlingCompanionDB");

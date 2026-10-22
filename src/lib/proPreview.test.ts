@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isOpenLeave, openLeaveKeys, previewSplit } from "./proPreview";
+import { isOpenLeave, openLeaveKeys, previewSplit, standInBall, standInLeave } from "./proPreview";
 import type { LeaveStats } from "./stats";
 import type { PinNumber } from "../types/bowling";
 
@@ -40,5 +40,34 @@ describe("openLeaveKeys", () => {
   it("breaks a tie on attempts by chances, as Stats does", () => {
     const leaves = [leave([7], 5, 3), leave([10], 5, 5), leave([4], 1)];
     expect([...openLeaveKeys(leaves)]).toEqual(["10", "7"]);
+  });
+});
+
+describe("the blurred row's stand-ins (ADR-190)", () => {
+  it("keep a leave's pins and none of its record", () => {
+    const real: LeaveStats = { pins: [7, 10], attempts: 31, chances: 30, conversions: 2, conversionPct: 7, sharePct: 9 };
+    const shown = standInLeave(real);
+    expect(shown.pins).toEqual([7, 10]);
+    expect(standInLeave({ ...real, attempts: 3, conversions: 1, conversionPct: 33 })).toEqual(shown);
+  });
+
+  it("keep a ball's name and photo and none of its numbers", () => {
+    const real = {
+      ballId: 4,
+      name: "Phaze II",
+      imageThumb: "a.webp",
+      brand: "Storm",
+      firstBalls: 212,
+      pocketPct: 71,
+      carryPct: 66,
+      strikePct: 47,
+      firstBallAverage: 9.1,
+      strikeOnStrikePct: 52,
+      byGame: [],
+      leaves: []
+    };
+    const shown = standInBall(real);
+    expect(shown).toMatchObject({ ballId: 4, name: "Phaze II", imageThumb: "a.webp", brand: "Storm" });
+    expect(standInBall({ ...real, firstBalls: 15, strikePct: 20 })).toEqual(shown);
   });
 });

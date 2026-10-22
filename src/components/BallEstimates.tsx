@@ -7,7 +7,7 @@ import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";
 import { ProBlur } from "./ui/ProLock";
 import { GROUP_HEADING } from "./ui/typography";
 import { formatLeave } from "../lib/pins";
-import { previewSplit } from "../lib/proPreview";
+import { previewSplit, standInEstimate } from "../lib/proPreview";
 import { type BallEstimate, type BallEstimates as Estimates, type Counted } from "../lib/scoreModel";
 import type { Ball } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
@@ -105,7 +105,7 @@ export function BallEstimates({ report, balls, free }: { report: Estimates; ball
         <li className={LIST_DIVIDER}>
           <ProBlur what="What you'd average with each ball here">
             <ul>
-              <BallEstimateRow estimate={preview.blurred} ball={byId.get(preview.blurred.ballId)} />
+              <BallEstimateRow estimate={standInEstimate(preview.blurred)} ball={byId.get(preview.blurred.ballId)} />
             </ul>
           </ProBlur>
         </li>

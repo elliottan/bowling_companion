@@ -4,7 +4,7 @@ import { preferDownloadOverShare, RECORD_SHOT, recordShot, startSession } from "
 /** Wipe the database and reload, landing on a genuine first run. */
 async function freshInstall(page: Parameters<typeof startSession>[0]) {
   await preferDownloadOverShare(page);
-  await page.goto("/score");
+  await page.goto("/app?pro");
   await page.evaluate(async () => {
     await new Promise<void>((resolve) => {
       const req = indexedDB.deleteDatabase("BowlingCompanionDB");
@@ -51,7 +51,7 @@ test("opens on the welcome screen, not on a question over an unseen app", async 
 test("the welcome screen is the first thing painted, never a Dashboard first", async ({
   page
 }) => {
-  await page.goto("/score");
+  await page.goto("/app?pro");
   await page.evaluate(async () => {
     await new Promise<void>((resolve) => {
       const req = indexedDB.deleteDatabase("BowlingCompanionDB");

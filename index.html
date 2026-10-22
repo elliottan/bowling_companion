@@ -90,22 +90,20 @@
     </script>
 
     <!--
-      Installed apps launched before the app moved to /score still have `/` as
+      Installed apps launched before the app moved off `/` still have it as
       their start URL, and a manifest update is not applied on any schedule we
       control (iOS is the worst of them). Without this, tapping the home screen
       icon opens a sales pitch for an app the user already installed. A launch
       in an app window is never a visit to the landing page, so bounce it, and
       `replace` so the back gesture does not land straight back here.
-      It bounces to /score, the owner's copy, not to /app: the only installs
-      old enough to open at `/` are the owner's own, and every newer one opens
-      at /app from its manifest (ADR-154).
+      It bounces to /app, the one web app (ADR-190).
     -->
     <script>
       (function () {
         var standalone =
           window.matchMedia("(display-mode: standalone)").matches ||
           window.navigator.standalone === true;
-        if (standalone) location.replace("/score" + location.hash);
+        if (standalone) location.replace("/app" + location.hash);
       })();
     </script>
 

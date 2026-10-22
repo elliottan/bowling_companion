@@ -232,8 +232,8 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             ...(oilPattern?.catalog_id ? { patternCatalogId: oilPattern.catalog_id } : {}),
           },
           shareOrigin(),
-          // Always the free app: a link from the owner's copy must not open it
-          // for whoever it is sent to (ADR-154).
+          // Always the web app: a link from the store app opens there for
+          // whoever it is sent to, or in their app (ADR-159).
           FREE_APP_PATH
         );
 

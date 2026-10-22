@@ -9,19 +9,11 @@ import { APP_STORE_URL, LOCK_FREE_WEB } from "./appStore";
 export { APP_STORE_URL, appStoreId } from "./appStore";
 
 /**
- * The free web app, where the landing page, guides and shared links send a
- * bowler. It is the same shell as the owner's copy; only the address differs.
+ * The web app, where the landing page, guides and shared links send a bowler.
+ * There is one: the owner's copy that used to open at `/score` with every
+ * feature is gone, and that address now redirects here (ADR-190).
  */
 export const FREE_APP_PATH = "/app";
-
-/**
- * The owner's copy, at the app's original address: every feature, always, by
- * the owner's decision (ADR-154). It is Pro as a buyer has it, mark and colors
- * included (ADR-167), so the web shows both sides: the locked app at /app and
- * the unlocked one here. It is not a secret, since anyone who types it gets it,
- * and it is linked from nowhere.
- */
-export const OWNER_APP_PATH = "/score";
 
 /** How a purchase the bowler started ended: bought, closed, or waiting on
  *  someone else (Ask to Buy, a payment still clearing). A store failure throws. */
@@ -46,7 +38,7 @@ export interface ProStore {
  */
 export type ProAccess =
   /** `owned` is set where this copy is Pro as a buyer has it: an Apple ID that
-   *  bought it, or the owner's copy (ADR-167). Not where Pro is merely open (a
+   *  bought it. Not where Pro is merely open (a
    *  web with nothing to sell, the Android app), so a mark of ownership is never
    *  shown to a bowler who did not buy it (ADR-164). */
   | { locked: false; owned?: true }
@@ -60,29 +52,41 @@ export type LockedProAccess = Extract<ProAccess, { locked: true }>;
 
 export const PRO_OPEN: ProAccess = { locked: false };
 
-/** Pro as a buyer has it: the owner's copy answers this (ADR-167). */
+/** Pro as a buyer has it. */
 export const PRO_OWNED: ProAccess = { locked: false, owned: true };
 
-/** Whether a page path is the owner's copy: `/score`, or its directory form. */
-export function isOwnerPath(pathname: string): boolean {
-  return pathname === OWNER_APP_PATH || pathname.startsWith(`${OWNER_APP_PATH}/`);
-}
-
-/** Whether a page path is the free web app: `/app`, or its directory form. */
+/** Whether a page path is the web app: `/app`, or its directory form. */
 export function isFreeAppPath(pathname: string): boolean {
   return pathname === FREE_APP_PATH || pathname.startsWith(`${FREE_APP_PATH}/`);
 }
 
-/** What the web app offers: Pro as bought at the owner's address; at /app the free
- *  features with the rest pointing at the App Store, or, before the app is
- *  listed, locked with nowhere to go yet (`LOCK_FREE_WEB`, ADR-166); anywhere
- *  else (the Android app, a stray address) everything stays open. */
+/**
+ * Pro open on the dev server when the page was opened with `?pro`, for the e2e
+ * suite and the screenshot scripts, which drive every Pro screen. Read once, as
+ * the page loads, so a screen that tidies its address keeps it. A build sets
+ * `import.meta.env.DEV` to false and drops this, so no address opens Pro on
+ * headpin.app (ADR-190).
+ */
+export function devProUnlock(
+  dev: boolean = import.meta.env.DEV,
+  search: string = typeof window === "undefined" ? "" : window.location.search
+): boolean {
+  return dev && new URLSearchParams(search).has("pro");
+}
+
+const DEV_PRO = devProUnlock();
+
+/** What the web app offers: at /app the free features with the rest pointing
+ *  at the App Store, or, before the app is listed, locked with nowhere to go
+ *  yet (`LOCK_FREE_WEB`, ADR-166); anywhere else (the Android app) everything
+ *  stays open. */
 export function webProAccess(
   appStoreUrl: string | null = APP_STORE_URL,
   pathname: string = typeof window === "undefined" ? FREE_APP_PATH : window.location.pathname,
-  lockFreeWeb: boolean = LOCK_FREE_WEB
+  lockFreeWeb: boolean = LOCK_FREE_WEB,
+  unlocked: boolean = DEV_PRO
 ): ProAccess {
-  if (isOwnerPath(pathname)) return PRO_OWNED;
+  if (unlocked) return PRO_OWNED;
   if (appStoreUrl) return { locked: true, appStoreUrl };
   return lockFreeWeb && isFreeAppPath(pathname) ? { locked: true, appStoreUrl: null } : PRO_OPEN;
 }

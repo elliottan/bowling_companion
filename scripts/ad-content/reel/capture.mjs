@@ -47,7 +47,7 @@ async function open() {
   await page.goto(`${BASE}/scripts/ad-content/stage.html`);
   await page.setContent(
     `<html><body style="margin:0;background:#0b1220;overflow:hidden">` +
-      `<iframe id="app" src="${BASE}/score" style="border:0;width:${W}px;height:${H}px;` +
+      `<iframe id="app" src="${BASE}/app?pro" style="border:0;width:${W}px;height:${H}px;` +
       `transform:scale(${SCALE});transform-origin:0 0"></iframe></body></html>`
   );
   const app = page.frameLocator("#app");
@@ -451,7 +451,7 @@ await take("catalog", {
 
 /** The weeks of history (../history.mjs), then the app reloaded onto them. */
 async function seedHistory(page, app) {
-  const frame = page.frames().find((f) => f.url().includes("/score"));
+  const frame = page.frames().find((f) => f.url().includes("/app?pro"));
   await writeHistory(frame);
   await frame.evaluate(() => location.reload());
   await wait(1500);

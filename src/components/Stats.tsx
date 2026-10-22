@@ -40,7 +40,7 @@ import { RECENT_SESSIONS, type RecentForm } from "../lib/statsRange";
 import { GROUP_HEADING } from "./ui/typography";
 import { ProBanner, ProBlur } from "./ui/ProLock";
 import { useProAccess } from "../lib/useProAccess";
-import { byMostLeft, FREE_BALLS, FREE_LEAVES, previewSplit } from "../lib/proPreview";
+import { byMostLeft, FREE_BALLS, FREE_LEAVES, previewSplit, standInBall, standInLeave } from "../lib/proPreview";
 
 /** The stats the chart can plot, and how each one is drawn.
  *
@@ -487,7 +487,7 @@ export function Stats({
               {leavePreview.blurred && (
                 <li>
                   <ProBlur what="Every leave you leave, and how often you make each">
-                    <LeaveCell leave={leavePreview.blurred} onOpen={() => {}} />
+                    <LeaveCell leave={standInLeave(leavePreview.blurred)} onOpen={() => {}} />
                   </ProBlur>
                 </li>
               )}
@@ -543,7 +543,7 @@ export function Stats({
                       <li>
                         <ProBlur what="How each of your balls strikes, carries and spares">
                           <div className="flex py-2">
-                            <BallSummary ball={ballPreview.blurred} />
+                            <BallSummary ball={standInBall(ballPreview.blurred)} />
                           </div>
                         </ProBlur>
                       </li>
@@ -1066,7 +1066,7 @@ function AllBallsSheet({
             {blurred && (
               <li className="py-3">
                 <ProBlur what="How each of your balls strikes, carries and spares">
-                  <BallSummary ball={blurred} labelled />
+                  <BallSummary ball={standInBall(blurred)} labelled />
                 </ProBlur>
               </li>
             )}
@@ -1207,7 +1207,7 @@ function LockedLeaves({
       {blurred && (
         <li>
           <ProBlur what="Every leave you leave, and how often you make each">
-            <LeaveCell leave={blurred} onOpen={() => {}} />
+            <LeaveCell leave={standInLeave(blurred)} onOpen={() => {}} />
           </ProBlur>
         </li>
       )}

@@ -45,8 +45,7 @@ test("the sticky bar appears once the hero's button scrolls away", async ({ page
   await expect(bar.getByRole("link", { name: "Open Headpin" })).toHaveAttribute("href", "/app");
 });
 
-/** The landing page's buttons open the free app at /app, the same shell as the
- *  owner's copy at /score, told apart only by its address (ADR-154). */
+/** The landing page's buttons open the web app at /app (ADR-190). */
 test("the free app at /app is the app", async ({ page }) => {
   await page.goto("/app");
   await expect(page.getByText(/score your first session/i)).toBeVisible();

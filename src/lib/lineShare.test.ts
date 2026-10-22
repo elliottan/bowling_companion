@@ -74,8 +74,8 @@ describe("encode and decode", () => {
 
 describe("the shareable URL", () => {
   it("puts the line in the query and the sandbox in the hash", () => {
-    const url = lineShareUrl(A_LINE, "https://headpin.app", "/score");
-    expect(url.startsWith("https://headpin.app/score?")).toBe(true);
+    const url = lineShareUrl(A_LINE, "https://headpin.app", "/app");
+    expect(url.startsWith("https://headpin.app/app?")).toBe(true);
     expect(url.endsWith(LINE_SANDBOX_HASH)).toBe(true);
     expect(decodeLineParams(url.slice(url.indexOf("?"), url.indexOf("#")))).toEqual(A_LINE);
   });

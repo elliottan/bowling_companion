@@ -34,14 +34,13 @@ describe("keepInApp", () => {
   it("leaves out what only the website uses", () => {
     for (const path of [
       "index.html",
-      "score/index.html",
+      "app/index.html",
       "404.html",
       "guides/spare-system/index.html",
       "shots/scorer.webp",
       "sw.js",
       "workbox-ca0fd4ca.js",
       "manifest.webmanifest",
-      "manifest-owner.webmanifest",
       "og-image.png",
       "robots.txt",
       "sitemap.xml"
@@ -74,7 +73,7 @@ describe("assemble", () => {
       writeFileSync(join(dist, path), body);
     };
     put("index.html", "landing");
-    put("score/index.html", SHELL);
+    put("app/index.html", SHELL);
     put("assets/app.js");
     put("catalog/catalog.json");
     put("catalog/img/a-thumb.webp");
@@ -89,7 +88,7 @@ describe("assemble", () => {
     expect(existsSync(join(out, "assets/app.js"))).toBe(true);
     expect(existsSync(join(out, "catalog/catalog.json"))).toBe(true);
     expect(existsSync(join(out, "catalog/img"))).toBe(false);
-    expect(existsSync(join(out, "score"))).toBe(false);
+    expect(existsSync(join(out, "app"))).toBe(false);
     expect(existsSync(join(out, "stale.txt"))).toBe(false);
   });
 });

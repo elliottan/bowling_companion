@@ -374,7 +374,7 @@ await page.addStyleTag({
 await mkdir(outDir, { recursive: true });
 await mkdir(helpDir, { recursive: true });
 
-await page.goto(`${BASE}/score`);
+await page.goto(`${BASE}/app?pro`);
 await page.evaluate(
   () =>
     new Promise((resolve) => {

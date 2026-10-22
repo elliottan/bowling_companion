@@ -120,22 +120,23 @@ It could equally be a "Redirect to" setting on the domain in the Vercel
 dashboard. It lives here instead so it is version-controlled, reviewable, and
 survives the project being recreated.
 
-The rewrites serve `/score` and `/legal` from their own `index.html`, because
+The rewrites serve `/app` and `/legal` from their own `index.html`, because
 both are linked, shared and installed without a trailing slash and hosts
-disagree about resolving that themselves. `/app` is served the same
-`score/index.html` as `/score`: it is the free web app, which the landing page,
-guides and shared links open, and `/score` is the owner's copy with every
-feature. One shell, told apart by its path (ADR-154, `src/lib/pro.ts`). The
-build writes two install manifests, `manifest.webmanifest` opening `/app` and
-`manifest-owner.webmanifest` opening `/score`, and the shell links the second
-only at `/score`.
+disagree about resolving that themselves. `/app` is the web app, which the
+landing page, guides and shared links open, and its install manifest
+(`manifest.webmanifest`) opens it.
+
+`/score`, the owner's copy that opened with every feature, is gone (ADR-190).
+The redirects send `/score` and anything under it to `/app`, so an old bookmark
+or home screen install still opens the app, locked as everyone's is. The games
+are kept: storage belongs to the site, not the path.
 
 The headers block is described under "Deploy to Vercel" above.
 
 ### Why nothing else is needed
 
-- The app routes in the **hash fragment** (`/score#/home`, `/score#/session/4`),
-  which a server never sees, so every request is for `/score` and no SPA rewrite
+- The app routes in the **hash fragment** (`/app#/home`, `/app#/session/4`),
+  which a server never sees, so every request is for `/app` and no SPA rewrite
   rule is required beyond the one that resolves that path to its `index.html`. This is the reason, and it is load-bearing: move the routes into the
   path and a rewrite becomes mandatory. Routing itself is real, see ADR-041 and
   `src/lib/appRoute.ts`.
@@ -163,7 +164,7 @@ here.
 
 ### Web Analytics
 
-The site carries Vercel Web Analytics on `/`, `/app` and `/score` (not `/legal`), as a
+The site carries Vercel Web Analytics on `/` and `/app` (not `/legal`), as a
 `<script defer src="/_vercel/insights/script.js">`. It is cookieless, stores no
 identifier, and counts page views, referrers and rough country. It has to be
 switched on once in the Vercel dashboard, under the project's Analytics tab, or
