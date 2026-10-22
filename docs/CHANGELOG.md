@@ -30,6 +30,9 @@ had all shipped.
   foot of each opens the rest. The spare rate reads "of makeables made".
 - **Without Pro, the free leaves are your two left most again,** rather than
   always the 7 and the 10 (ADR-195).
+- **Ball columns sit at an even step.** On the Balls card and in each ball's
+  by-game table, every column is one fixed width with its figures centred, so
+  the gaps no longer change with the width of the numbers.
 - **Fewer scroll bars.** Sideways strips and small lists inside a screen no
   longer draw one; screens and sheets keep the one iOS shows while you scroll.
 - **The bar at the bottom of the Headpin Pro page sits on the bottom edge.** On

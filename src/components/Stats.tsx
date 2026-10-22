@@ -841,7 +841,8 @@ const BALL_COLUMNS: ReadonlyArray<{
   {
     key: "strike on strike",
     label: STRIKE_ON_STRIKE_SHORT,
-    width: "w-9",
+    // 40px, as ADR-144 set it: "X-ON-X" on one line is wider than 36.
+    width: "w-10",
     value: (b) => pct(b.strikeOnStrikePct)
   }
 ];
@@ -854,8 +855,17 @@ const BALL_COLUMNS: ReadonlyArray<{
 const BALL_NAME_CELL =
   "sticky left-0 z-[1] flex min-w-24 flex-1 items-center gap-1.5 bg-surface pr-1 group-active:bg-surface-muted";
 
-/** The gap between columns, the heading row's and every ball's alike. */
+/** The gap between columns, the heading row's and every ball's alike. Each
+ *  column is one fixed width and its number is centred in it, so the columns
+ *  sit at an even step whatever they hold: right-aligned, a short figure
+ *  ("9.0") opened a wider gap before it than a long one ("52%"), and the
+ *  stacked "1st ball" heading leaned off its number. */
 const BALL_ROW = "flex gap-1";
+
+/** A one-word heading ("X-on-X") stays on one line: at the column's edge it
+ *  broke at its hyphen and read as "X-ON-" over "X". Two words ("1st ball")
+ *  still stack. */
+const NO_BREAK = (label: string) => (label.includes(" ") ? "" : "whitespace-nowrap");
 
 /** The headings over the columns, spelled out: as single letters they had to
  *  be decoded before the row said anything. */
@@ -867,7 +877,7 @@ function BallRateHeadings() {
     >
       <span className={`${BALL_NAME_CELL} self-stretch`} />
       {BALL_COLUMNS.map((c) => (
-        <span key={c.key} className={`${c.width} shrink-0 text-right`}>
+        <span key={c.key} className={`${c.width} shrink-0 text-center ${NO_BREAK(c.label)}`}>
           {c.label}
         </span>
       ))}
@@ -909,14 +919,14 @@ function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labell
       {BALL_COLUMNS.map((c) => (
         <span
           key={c.key}
-          className={`${c.width} shrink-0 text-right font-semibold tabular-nums ${tone} ${
+          className={`${c.width} shrink-0 text-center font-semibold tabular-nums ${tone} ${
             labelled ? "" : "self-center"
           }`}
           aria-label={`${c.key} ${c.value(ball)}`}
         >
           {labelled && (
             <span
-              className="block text-[9px] font-semibold uppercase leading-tight text-ink-tertiary"
+              className={`block text-[9px] font-semibold uppercase leading-tight text-ink-tertiary ${NO_BREAK(c.label)}`}
               aria-hidden="true"
             >
               {c.label}
@@ -952,7 +962,11 @@ function BallDetails({
   return (
     <div className="mt-2 space-y-2 rounded-lg bg-surface-muted p-2">
       {/* Wider than the sheet once a ball has been thrown in many game slots:
-          it scrolls sideways with the row names pinned (ADR-139). */}
+          it scrolls sideways with the row names pinned (ADR-139). Every game
+          is one fixed column with its figures centred, and the row names take
+          whatever is left, so the games sit at an even step. Sized by their
+          contents, each column took its widest figure and a share of the
+          spare room, and "1 2 3 4" landed at uneven gaps. */}
       <div
         role="region"
         aria-label={`${ball.name} by game`}
@@ -963,7 +977,7 @@ function BallDetails({
             <tr className="text-ink-tertiary">
               <th className={`${ROW_NAME_CELL} text-left font-semibold`}>By game</th>
               {ball.byGame.map((c) => (
-                <th key={c.gameNumber} className="pl-3 text-right font-semibold">
+                <th key={c.gameNumber} className={`${GAME_CELL} font-semibold`}>
                   {onDrill && c.sessions.length > 0 ? (
                     <button
                       type="button"
@@ -997,7 +1011,7 @@ function BallDetails({
             <tr>
               <td className={`${ROW_NAME_CELL} text-left text-ink-tertiary`}>Balls</td>
               {ball.byGame.map((c) => (
-                <td key={c.gameNumber} className="pl-3 text-right text-ink-tertiary">
+                <td key={c.gameNumber} className={`${GAME_CELL} text-ink-tertiary`}>
                   {c.firstBalls}
                 </td>
               ))}
@@ -1239,6 +1253,12 @@ function LockedLeaves({
  *  the detail box's own colour, since the columns pass behind it. */
 const ROW_NAME_CELL = "sticky left-0 z-[1] bg-surface-muted pr-2";
 
+/** One game's column in a ball's by-game table: a fixed width that holds
+ *  "100%" with room either side, its figures centred. A table hands its spare
+ *  width to the columns with no width of their own, so the row names take it
+ *  and every game column stays this wide. */
+const GAME_CELL = "w-10 min-w-10 text-center";
+
 function MetricRow({
   label,
   spoken,
@@ -1267,7 +1287,7 @@ function MetricRow({
         )}
       </td>
       {cells.map((value, i) => (
-        <td key={i} className="pl-3 text-right">
+        <td key={i} className={GAME_CELL}>
           {format(value)}
         </td>
       ))}
