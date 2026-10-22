@@ -24,45 +24,12 @@ export function byMostLeft(a: LeaveStats, b: LeaveStats): number {
   return b.attempts - a.attempts || b.chances - a.chances;
 }
 
-const keyOf = (pins: readonly number[]) => pins.join("-");
-
-/** Leaves on Stats without Pro, and so their record wherever else it shows. */
-export const FREE_LEAVES = 2;
-
-/**
- * The leaves card without Pro (ADR-195): the two left most, in full, then the
- * next one blurred. Ranked within whatever the screen shows, so a filter shows
- * that filter's top two; a bowler still never reads the whole list.
- */
-export function freeLeavePreview(leaves: readonly LeaveStats[]): { shown: LeaveStats[]; blurred: LeaveStats | undefined } {
-  return previewSplit(
-    leaves.filter((l) => l.chances > 0).sort(byMostLeft),
-    FREE_LEAVES
-  );
-}
-
-/** The leaves whose record is open without Pro: the ones Stats shows in full,
- *  by the same ranking over the same leaves. */
-export function openLeaveKeys(leaves: readonly LeaveStats[]): Set<string> {
-  return new Set(freeLeavePreview(leaves).shown.map((l) => keyOf(l.pins)));
-}
-
-/** Whether a leave's record is open without Pro: on Stats, on the Spare lines
- *  page and in its sheet alike, exactly when its cell on Stats is. */
-export function isOpenLeave(leaves: readonly LeaveStats[], pins: readonly number[]): boolean {
-  return openLeaveKeys(leaves).has(keyOf(pins));
-}
-
 /*
  * Stand-ins for the blurred row (ADR-190). Blurred text is still in the page,
  * and a browser's tools read it, so the row under the blur keeps its look (the
  * leave's pins, the ball's name and photo) and none of its record. The numbers
  * are plausible and fixed, so the blur reads as a row and gives nothing away.
  */
-
-export function standInLeave(leave: LeaveStats): LeaveStats {
-  return { ...leave, attempts: 8, chances: 8, conversions: 5, conversionPct: 63, sharePct: 4 };
-}
 
 export function standInBall(ball: BallPerformance): BallPerformance {
   return {
