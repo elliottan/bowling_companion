@@ -359,6 +359,9 @@ const context = await browser.newContext({
   reducedMotion: "reduce"
 });
 await actAsIphoneApp(context);
+// Pro bought, so every screen on the landing page shows what it can do rather
+// than a lock (the stand-in reads this as it answers the store, iphone.mjs).
+await context.addInitScript(() => localStorage.setItem("store-shots.pro", "1"));
 // Catalogs and photos come from headpin.app inside the app; answer from here.
 await context.route("https://headpin.app/**", async (route) => {
   const url = new URL(route.request().url());

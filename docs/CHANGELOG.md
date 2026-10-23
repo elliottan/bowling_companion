@@ -9,6 +9,11 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.62.1: The landing page shows Pro (2026-10-23)
+
+- **The landing page's pictures show the app with Pro.** Stats, the layout lab
+  and the lane view appear as a bowler with Pro sees them, with no locks.
+
 ## 0.62.0: Every leave free, a calmer Stats screen, and any ball's layout (2026-10-22)
 
 - **Every leave is free.** The Spares card, All leaves, Spare lines and each
