@@ -30,21 +30,6 @@ interface ProOfferViewProps {
 
 const FEATURES: Array<{ title: string; why: string; sample: ReactNode }> = [
   {
-    title: "Carry and strike",
-    why: "Whether your pocket hits carry, how often you strike, how strikes follow strikes and how many pins a first ball takes, on the First ball card and on the chart.",
-    sample: <FirstBallSample />
-  },
-  {
-    title: "Ball by ball",
-    why: "Pocket, carry and strike rates for each ball, side by side, and how each one does by game.",
-    sample: <BallsSample />
-  },
-  {
-    title: "Your alleys",
-    why: "What you would average with each ball at each alley, and on each pair of lanes there, so you know what to throw before you get there.",
-    sample: <AlleySample />
-  },
-  {
     title: "Move your line",
     why: "Drag the laydown, target and breakpoint on the lane, shape the hook, and watch the path follow. It works in the line visualizer, on your spare lines and on any shot you have scored.",
     sample: <LineSample />
@@ -53,6 +38,21 @@ const FEATURES: Array<{ title: string; why: string; sample: ReactNode }> = [
     title: "Try your layouts",
     why: "Change the angles and the pin buffer, see what the ball will do before you drill it, and see each ball in your arsenal drawn with its own layout.",
     sample: <LayoutSample />
+  },
+  {
+    title: "Deeper stats",
+    why: "Pocket, carry and strike rates, overall and for each ball, game by game.",
+    sample: (
+      <div className="space-y-2">
+        <FirstBallSample />
+        <BallsSample />
+      </div>
+    )
+  },
+  {
+    title: "Your alleys",
+    why: "What you would average with each ball at each alley, and on each pair of lanes there, so you know what to throw before you get there.",
+    sample: <AlleySample />
   },
   {
     title: "More colors",

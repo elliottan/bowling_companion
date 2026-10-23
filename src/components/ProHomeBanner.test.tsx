@@ -19,7 +19,7 @@ function renderBanner(access: ProAccess, openOffer = vi.fn()) {
 describe("the Home banner (ADR-164)", () => {
   it("is one tap to the Pro page, and locks nothing", () => {
     const { openOffer } = renderBanner({ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" });
-    expect(screen.getByText(/Carry and strike, every ball, your alleys/)).toBeInTheDocument();
+    expect(screen.getByText(/Line and layout tools, deeper stats, your alleys/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Headpin Pro. See what it adds" }));
     expect(openOffer).toHaveBeenCalledTimes(1);
   });

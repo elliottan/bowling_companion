@@ -26,11 +26,10 @@ describe("the Pro page (ADR-164)", () => {
   it("says what Pro adds before any button that charges", () => {
     renderOffer({ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" });
     for (const title of [
-      "Carry and strike",
-      "Ball by ball",
-      "Your alleys",
       "Move your line",
       "Try your layouts",
+      "Deeper stats",
+      "Your alleys",
       "More colors"
     ]) {
       expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();

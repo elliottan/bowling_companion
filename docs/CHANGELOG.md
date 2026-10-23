@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.62.1: Layouts tidy-up (2026-10-23)
+## 0.62.1: Layouts tidy-up and a clearer Pro page (2026-10-23)
 
 - **Flare drops its number.** The bar says low to high; the inch figure
   raised more questions than it answered.
@@ -21,6 +21,10 @@ had all shipped.
   bars under it.
 - **No more layout warnings.** The notes about a short pin buffer, a long pin
   to PAP, a symmetric ball's drilling angle and an unreachable PAP are gone.
+- **The Pro page leads with Move your line and Try your layouts.** Carry and
+  strike and Ball by ball are one card, Deeper stats, showing the First ball
+  card and a ball opened on its game-by-game rates.
+- **"Pins a ball" is now "1st ball avg"** on Stats.
 
 ## 0.62.0: Every leave free, a calmer Stats screen, and any ball's layout (2026-10-22)
 

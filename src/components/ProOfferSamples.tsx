@@ -63,7 +63,17 @@ const BALLS: Array<{ name: string; brand: Manufacturer; thumb: string; balls: nu
 
 const BALL_HEADINGS = ["Pocket", "Carry", "Strike", "1st ball"];
 
-/** Each ball's rates side by side, as the Balls card lists them. */
+/** A ball's game-by-game rates, as its details open under its line. */
+const BY_GAME: Array<[string, string[]]> = [
+  ["Pocket", ["78%", "75%", "69%"]],
+  ["Carry", ["74%", "71%", "64%"]],
+  ["Strike", ["58%", "53%", "44%"]],
+  ["1st ball", ["9.3", "9.1", "8.8"]],
+  ["X-on-X", ["55%", "49%", "41%"]]
+];
+
+/** Each ball's rates side by side, the first one open on its by-game
+ *  details, as the All balls sheet draws them. */
 export function BallsSample() {
   return (
     <Sample>
@@ -76,22 +86,50 @@ export function BallsSample() {
             </span>
           ))}
         </div>
-        {BALLS.map((ball) => (
-          <div key={ball.name} className="flex items-center gap-1 border-t border-edge py-1.5 text-[13px]">
-            <span className="flex min-w-0 flex-1 items-center gap-1.5">
-              <span className="h-7 w-7 shrink-0">
-                <CatalogBallImage src={ball.thumb} alt="" brand={ball.brand} size="thumb" />
+        {BALLS.slice(0, 2).map((ball, n) => (
+          <div key={ball.name} className="border-t border-edge py-1.5">
+            <div className="flex items-center gap-1 text-[13px]">
+              <span className="flex min-w-0 flex-1 items-center gap-1.5">
+                <span className="h-7 w-7 shrink-0">
+                  <CatalogBallImage src={ball.thumb} alt="" brand={ball.brand} size="thumb" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium leading-tight text-ink-strong">{ball.name}</span>
+                  <span className="block text-[10px] tabular-nums text-ink-tertiary">{ball.balls} balls</span>
+                </span>
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-medium leading-tight text-ink-strong">{ball.name}</span>
-                <span className="block text-[10px] tabular-nums text-ink-tertiary">{ball.balls} balls</span>
-              </span>
-            </span>
-            {ball.rates.map((rate, i) => (
-              <span key={i} className="w-10 shrink-0 text-right font-semibold tabular-nums text-ink">
-                {rate}
-              </span>
-            ))}
+              {ball.rates.map((rate, i) => (
+                <span key={i} className="w-10 shrink-0 text-right font-semibold tabular-nums text-ink">
+                  {rate}
+                </span>
+              ))}
+            </div>
+            {n === 0 && (
+              <table className="mt-2 w-full rounded-lg bg-surface-muted text-[11px] tabular-nums">
+                <thead>
+                  <tr className="text-ink-tertiary">
+                    <th className="px-2 pt-1.5 text-left font-semibold">By game</th>
+                    {[1, 2, 3].map((g) => (
+                      <th key={g} className="w-10 pt-1.5 text-center font-semibold">
+                        {g}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="text-ink-secondary">
+                  {BY_GAME.map(([label, cells]) => (
+                    <tr key={label}>
+                      <td className="px-2 text-left">{label}</td>
+                      {cells.map((c, i) => (
+                        <td key={i} className="w-10 text-center">
+                          {c}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         ))}
       </div>
@@ -123,7 +161,7 @@ export function FirstBallSample() {
         </div>
         <div className="mt-3 grid grid-cols-3 border-t border-edge pt-2.5 text-center">
           {[
-            ["9.1", "Pins a ball"],
+            ["9.1", "1st ball avg"],
             ["49%", "Strike on strike"],
             ["9", "Strikes in a row"]
           ].map(([value, label]) => (
