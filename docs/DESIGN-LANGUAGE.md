@@ -46,7 +46,8 @@ Every push gets, without exception:
 Back out of a push with the chevron or with the platform's own back gesture
 (Android's button, iOS's left-edge swipe). The app does not implement a
 back-swipe of its own: competing with the platform's drew the screen underneath
-twice (ADR-065).
+twice (ADR-065). In the iPhone app the swipe is the shell's, and the screen in
+front follows the finger it reports (`backGesture.ts`).
 
 A sheet that lists numbers read through filters says which, as a `subtitle`
 in its own bar: the title then sits leading beside the close with the scope

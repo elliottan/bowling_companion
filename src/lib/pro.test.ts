@@ -77,7 +77,7 @@ describe("appStoreId", () => {
 });
 
 describe("appProAccess", () => {
-  const store = { owned: false, price: "$9.99", buy: async () => "purchased" as const, restore: async () => false };
+  const store = { owned: false, buy: async () => "purchased" as const, restore: async () => false };
 
   it("locks with the purchase until this Apple ID owns Pro", () => {
     expect(appProAccess(store)).toEqual({ locked: true, store });

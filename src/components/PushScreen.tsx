@@ -120,14 +120,15 @@ export function PushScreen({
     if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
   }, []);
 
-  // The iPhone app's edge swipe leaves through the same slide as the chevron.
-  const dismissRef = useRef(dismiss);
-  dismissRef.current = dismiss;
-  useEffect(() => registerPushExit(() => dismissRef.current()), []);
-
   // Inline pushes are not modal, the tab bar behind them stays live, so they
   // must not trap focus or swallow Escape.
   const overlayRef = useOverlay<HTMLDivElement>(dismiss, active && mode === "overlay", backCloses);
+
+  // The iPhone app's edge swipe moves the screen with the finger, then leaves
+  // through the same slide as the chevron.
+  const dismissRef = useRef(dismiss);
+  dismissRef.current = dismiss;
+  useEffect(() => registerPushExit(() => dismissRef.current(), () => overlayRef.current), [overlayRef]);
 
   const overlay = mode === "overlay";
 

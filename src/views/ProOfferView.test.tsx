@@ -20,7 +20,7 @@ function renderOffer(access: ProAccess, store: ProStore | null = null) {
   );
 }
 
-const base: ProStore = { owned: false, price: "$9.99", buy: async () => "cancelled", restore: async () => false };
+const base: ProStore = { owned: false, buy: async () => "cancelled", restore: async () => false };
 
 describe("the Pro page (ADR-164)", () => {
   it("says what Pro adds before any button that charges", () => {
@@ -56,12 +56,12 @@ describe("the Pro page (ADR-164)", () => {
     expect(screen.getByText(/not in the App Store yet/)).toBeInTheDocument();
   });
 
-  it("buys at the App Store's price from its own button, and only there", async () => {
+  it("buys from its own button, and only there", async () => {
     const buy = vi.fn(async () => "purchased" as const);
     const store = { ...base, buy };
     renderOffer({ locked: true, store }, store);
     expect(buy).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Get Headpin Pro, $9.99" }));
+    fireEvent.click(screen.getByRole("button", { name: "Get Headpin Pro" }));
     await waitFor(() => expect(buy).toHaveBeenCalledTimes(1));
   });
 
