@@ -9013,3 +9013,18 @@ ball at half the card.
 **Consequences.** On a phone the ball, its bars, the notation, the core and all
 three sliders are on one screen, so a slider or a toggle moves the ball and the
 bars in view. Nothing is pinned; the page is still one scroll.
+
+---
+
+## ADR-210: A layout slider is one row, and its track is the same length in every row
+
+**Status.** Accepted, 2026-10-23, by the owner from a phone in hand.
+
+**Context.** Each layout slider was two rows, its name and number over a
+full-width track, which spent a band of the screen per slider on a label.
+
+**Decision.** The name, the track and the number share one row. The name sits
+in a fixed column wide enough for the longest of them on one line, and the
+number in a fixed column of its own, so every track in a card is the same
+length and two thumbs at the same fraction of their range line up. The name is
+still the button that opens what the slider does.

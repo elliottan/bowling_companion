@@ -9,6 +9,11 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.64.1: Layout sliders on one line (2026-10-23)
+
+- **Each layout slider is one line**: its name, the slider and the number,
+  with every slider the same length (ADR-210).
+
 ## 0.64.0: The layout lab on one screen (2026-10-23)
 
 - **The ball and what it will do sit side by side again, without shrinking

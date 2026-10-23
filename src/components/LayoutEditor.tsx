@@ -278,27 +278,25 @@ export function Slider({
   }, [hintOpen]);
 
   return (
-    <div className="relative" ref={hintRef}>
-      <div className="mb-0.5 flex items-baseline justify-between gap-2">
-        {/* The label is the affordance. Tapping the name of a thing to find out
-            what it means is the gesture people already try, and a separate icon
-            would be a second tap target in a row that is already dense, so the
-            whole label is the button and the glyph only says that it is one. */}
-        <button
-          type="button"
-          onClick={() => setHintOpen((v) => !v)}
-          aria-expanded={hintOpen}
-          aria-controls={`${id}-hint`}
-          className={`${FIELD_MICRO_LABEL} mb-0 inline-flex items-center gap-1 text-left`}
-        >
-          {label}
-          <Info size={11} aria-hidden="true" className="opacity-60" />
-        </button>
-        <span className="text-sm font-bold tabular-nums text-ink">
-          <Measure>{shown}</Measure>
-        </span>
-      </div>
-      <div className="relative">
+    // One row: the name, the track, the number. The name and the number sit in
+    // fixed columns, so every track in a card is the same length and the thumbs
+    // of two sliders at the same fraction line up (ADR-210).
+    <div className="relative flex items-center gap-2" ref={hintRef}>
+      {/* The label is the affordance. Tapping the name of a thing to find out
+          what it means is the gesture people already try, and a separate icon
+          would be a second tap target in a row that is already dense, so the
+          whole label is the button and the glyph only says that it is one. */}
+      <button
+        type="button"
+        onClick={() => setHintOpen((v) => !v)}
+        aria-expanded={hintOpen}
+        aria-controls={`${id}-hint`}
+        className={`${FIELD_MICRO_LABEL} mb-0 inline-flex w-[6.75rem] shrink-0 items-center gap-1 whitespace-nowrap text-left`}
+      >
+        {label}
+        <Info size={11} aria-hidden="true" className="shrink-0 opacity-60" />
+      </button>
+      <div className="relative min-w-0 flex-1">
         <input
           id={id}
           type="range"
@@ -325,6 +323,9 @@ export function Slider({
           </span>
         )}
       </div>
+      <span className="w-12 shrink-0 text-right text-sm font-bold tabular-nums text-ink">
+        <Measure>{shown}</Measure>
+      </span>
       {/* A popup over the row rather than a line added under it. Three of these
           stacked is a paragraph standing between the bowler and the control
           they came to move, and opening one used to push the two sliders below
@@ -335,7 +336,7 @@ export function Slider({
           id={`${id}-hint`}
           role="dialog"
           aria-label={`${label}, what it does`}
-          className="absolute left-0 right-0 top-6 z-20 flex items-start gap-2 rounded-lg border border-edge bg-surface p-2 text-xs leading-snug text-ink-secondary shadow-lg"
+          className="absolute left-0 right-0 top-10 z-20 flex items-start gap-2 rounded-lg border border-edge bg-surface p-2 text-xs leading-snug text-ink-secondary shadow-lg"
         >
           <p className="min-w-0 flex-1">{hint}</p>
           <IconButton compact label="Close" onClick={() => setHintOpen(false)}>
