@@ -24,6 +24,8 @@ had all shipped.
 - **The Pro page leads with Move your line and Try your layouts.** Carry and
   strike and Ball by ball are one card, Deeper stats, showing the First ball
   card and a ball opened on its game-by-game rates.
+- **"Your alleys" is now "Estimated average"** on the Pro page, and its
+  picture shows the strike, after strike, splits and made columns.
 - **"Pins a ball" is now "1st ball avg"** on Stats.
 
 ## 0.62.0: Every leave free, a calmer Stats screen, and any ball's layout (2026-10-22)

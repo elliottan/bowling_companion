@@ -50,8 +50,8 @@ const FEATURES: Array<{ title: string; why: string; sample: ReactNode }> = [
     )
   },
   {
-    title: "Your alleys",
-    why: "What you would average with each ball at each alley, and on each pair of lanes there, so you know what to throw before you get there.",
+    title: "Estimated average",
+    why: "Your estimated average with each ball, by alley, lane pair and pattern.",
     sample: <AlleySample />
   },
   {
