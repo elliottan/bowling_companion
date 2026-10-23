@@ -71,6 +71,21 @@ export interface ShareCardData {
   /** A lane drawn down the left of the card, with the stats stacked beside
    *  it rather than under it. A line card's picture. */
   lane?: ShareLane;
+  /** Short bars drawn in a small block under a layout card's ball: what the
+   *  ball will do, the same four readings the lab's rail shows. */
+  meters?: ShareMeter[];
+  /** The title is a layout reading, so its " x " separators are drawn dim and
+   *  its fractions a step down, and the numbers carry it (as `LayoutNumbers`
+   *  does on screen). */
+  readingTitle?: boolean;
+}
+
+export interface ShareMeter {
+  label: string;
+  /** 0 to 1 along the bar. */
+  value: number;
+  /** The reading in a word, drawn at the bar's end. */
+  word: string;
 }
 
 /* ------------------------------------------------------------------ *
@@ -213,8 +228,8 @@ interface LayoutLike {
   grip: "1h" | "2h";
   /** The bowler's axis, written the way it is spoken: `5" over, 1/2" up`. */
   pap: string;
-  /** What the ball will do, in the words the lab already uses. */
-  summary: string;
+  /** What the ball will do, as the lab's rail reads it. */
+  meters: ShareMeter[];
 }
 
 /**
@@ -223,7 +238,9 @@ interface LayoutLike {
  * The three numbers are the title because they are what a bowler asks another
  * bowler for, and the ball carries the card: a drill sheet reads as a drill
  * sheet, and the whole reason to share a layout rather than type it is that the
- * picture says where the pin went without anyone having to imagine it.
+ * picture says where the pin went without anyone having to imagine it. So the
+ * ball takes most of the card, and everything else is short (ADR-209): the
+ * core in a word, the four readings as small bars rather than a sentence.
  */
 export function buildLayoutCard(layout: LayoutLike): ShareCardData {
   return {
@@ -231,20 +248,20 @@ export function buildLayoutCard(layout: LayoutLike): ShareCardData {
     // three numbers are read under, like the core and the hand beside it, and
     // the card's lower half belongs to the ball.
     eyebrow: [
-      layout.symmetric ? "Symmetric core" : "Asymmetric core",
-      `${layout.hand === "left" ? "Left" : "Right"} hand${layout.grip === "2h" ? ", two handed" : ""}`,
+      layout.symmetric ? "Sym" : "Asym",
+      `${layout.hand === "left" ? "Left" : "Right"} hand${layout.grip === "2h" ? ", 2H" : ""}`,
       `PAP ${layout.pap}`
     ].join("  ·  "),
     title: layout.dualAngle,
-    caption: layout.summary,
+    readingTitle: true,
     hero: null,
     games: null,
-    // The layout in the other notation, and nothing else. The flare figure used
-    // to sit beside it and was the one number on the card that is a model's
-    // opinion rather than a measurement: the caption above already says what
-    // the ball will do, in words, and a card that quotes a tenth of an inch of
-    // flare invites it to be read as a spec.
-    stats: [{ value: layout.vls, label: "Storm VLS" }]
+    // The layout in the other notation, beside the bars. The flare figure used
+    // to sit here and was the one number on the card that is a model's
+    // opinion rather than a measurement; the bars say the same thing without
+    // inviting a tenth of an inch to be read as a spec.
+    stats: [{ value: layout.vls, label: "Storm VLS" }],
+    meters: layout.meters
   };
 }
 
@@ -445,6 +462,43 @@ function wrapText(
   return lines;
 }
 
+/**
+ * A layout reading drawn the way the app shows it: the numbers at full
+ * weight, the fractions a step down and the " x " separators dim, shrunk as a
+ * whole until it fits. Without it the x's read as loudly as the numbers.
+ */
+function drawReading(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  size: number
+): void {
+  type Run = { text: string; scale: number; dim: boolean };
+  const runs: Run[] = [];
+  text.split(" x ").forEach((part, i) => {
+    if (i > 0) runs.push({ text: " x ", scale: 0.6, dim: true });
+    const [whole, frac] = part.split(" ");
+    runs.push({ text: whole, scale: 1, dim: false });
+    if (frac) runs.push({ text: ` ${frac}`, scale: 0.62, dim: false });
+  });
+  const measure = (s: number) =>
+    runs.reduce((w, r) => {
+      ctx.font = font(r.dim ? 500 : 800, s * r.scale);
+      return w + ctx.measureText(r.text).width;
+    }, 0);
+  let s = size;
+  while (measure(s) > maxWidth && s > 32) s -= 4;
+  let at = x;
+  for (const r of runs) {
+    ctx.font = font(r.dim ? 500 : 800, s * r.scale);
+    ctx.fillStyle = r.dim ? CREAM_DIM : CREAM;
+    ctx.fillText(r.text, at, y);
+    at += ctx.measureText(r.text).width;
+  }
+}
+
 function roundRect(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -631,7 +685,8 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
 
   // Title
   ctx.fillStyle = CREAM;
-  fitText(ctx, data.title, PAD, 244, W - PAD * 2, 800, 78);
+  if (data.readingTitle) drawReading(ctx, data.title, PAD, 244, W - PAD * 2, 92);
+  else fitText(ctx, data.title, PAD, 244, W - PAD * 2, 800, 78);
 
   // Caption, wrapped over at most two lines. It is a sentence rather than a
   // number, so it takes the dim ink and sits directly under the title it
@@ -649,10 +704,40 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
 
   // The ball, where the hero and the game boxes would have been. Square, and
   // centred, because it is the card rather than an illustration beside it.
+  // A card with bars under the ball gives the ball everything between the
+  // title and that block, which is most of the card.
   if (data.diagram) {
-    const size = 640;
-    const top = captionBottom + 16;
+    const size = data.meters ? 800 : 640;
+    const top = data.meters ? 272 : captionBottom + 16;
     ctx.drawImage(data.diagram, (W - size) / 2, top, size, size);
+  }
+
+  // The bars, two by two in the right half of the strip under the ball, small
+  // on purpose: they say what the ball will do at a glance, and the ball is
+  // the picture.
+  if (data.meters) {
+    const left = W / 2 + 12;
+    const gap = 32;
+    const cellW = (W - PAD - left - gap) / 2;
+    data.meters.slice(0, 4).forEach((m, i) => {
+      const x = left + (i % 2) * (cellW + gap);
+      const y = 1092 + Math.floor(i / 2) * 48;
+      ctx.font = font(700, 22);
+      ctx.fillStyle = CREAM;
+      ctx.textAlign = "left";
+      ctx.fillText(m.label.toUpperCase(), x, y + 18);
+      ctx.font = font(500, 22);
+      ctx.fillStyle = CREAM_DIM;
+      ctx.textAlign = "right";
+      ctx.fillText(m.word, x + cellW, y + 18);
+      ctx.textAlign = "left";
+      ctx.fillStyle = "rgba(255, 248, 237, 0.18)";
+      roundRect(ctx, x, y + 28, cellW, 8, 4);
+      ctx.fill();
+      ctx.fillStyle = "#5fcfae";
+      roundRect(ctx, x, y + 28, Math.max(8, cellW * Math.min(1, Math.max(0, m.value))), 8, 4);
+      ctx.fill();
+    });
   }
 
   // Hero. Shrunk to fit like the title: a six-game series runs to four digits.
@@ -731,7 +816,8 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   const shown = data.lane ? [] : data.stats.slice(0, hasGames ? 4 : 6);
   // Under the ball, clear of the footer rule at 1200: one row of two, which is
   // what is left of the card once the picture has had its share of it.
-  const statsY = data.diagram ? 1000 : hasGames ? Math.max(872, gamesBottom + 48) : 700;
+  // With bars, the one stat sits in the strip's left half, level with them.
+  const statsY = data.meters ? 1080 : data.diagram ? 1000 : hasGames ? Math.max(872, gamesBottom + 48) : 700;
   const colW = (W - PAD * 2) / 2;
   shown.forEach((stat, i) => {
     const x = PAD + (i % 2) * colW;
@@ -739,7 +825,8 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
     ctx.fillStyle = CREAM;
     // Shrunk to fit its own column: a Storm VLS reading is three fractions
     // long and would otherwise run into the stat beside it.
-    fitText(ctx, stat.value, x, rowY + 60, colW - 32, 700, 66);
+    if (data.readingTitle) drawReading(ctx, stat.value, x, rowY + 60, colW - 40, 60);
+    else fitText(ctx, stat.value, x, rowY + 60, colW - 32, 700, 66);
     ctx.fillStyle = CREAM_DIM;
     ctx.font = font(600, 26);
     ctx.fillText(stat.label.toUpperCase(), x, rowY + 98);

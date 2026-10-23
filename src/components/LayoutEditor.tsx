@@ -37,7 +37,8 @@ export function LayoutEditor({
   system,
   onSystemChange,
   idPrefix = "layout",
-  proNumbers = false
+  proNumbers = false,
+  beside
 }: {
   layout: DualAngleLayout;
   onChange: (layout: DualAngleLayout) => void;
@@ -52,6 +53,10 @@ export function LayoutEditor({
    *  them stays free. The ball form leaves this off, since writing down a
    *  ball's own layout is recording it. */
   proNumbers?: boolean;
+  /** A narrow control that rides at the end of the notation row, as the core
+   *  type does in the lab (ADR-209): it changes what the numbers mean, so it
+   *  sits with them rather than in a band of its own. */
+  beside?: ReactNode;
 }) {
   const vls = toVls(layout, ball);
   // The sliders under the veil are inert, but still there: with the veil taken
@@ -99,19 +104,22 @@ export function LayoutEditor({
           notations are one layout, so the boxes showing that layout in both are
           exactly the right thing to tap. One row instead of two, and nothing is
           hidden to get it. */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className={`grid gap-2 ${beside ? "grid-cols-[1fr_1fr_auto]" : "grid-cols-2"}`}>
         <SystemCard
           label="Dual angle"
           value={formatDualAngle(layout)}
           selected={system === "dual"}
           onClick={() => onSystemChange("dual")}
+          compact={beside != null}
         />
         <SystemCard
           label="Storm VLS"
           value={formatVls(vls)}
           selected={system === "vls"}
           onClick={() => onSystemChange("vls")}
+          compact={beside != null}
         />
+        {beside}
       </div>
 
       <NumbersVeil on={proNumbers}>
@@ -327,25 +335,31 @@ export function SystemCard({
   label,
   value,
   selected,
-  onClick
+  onClick,
+  compact = false
 }: {
   label: string;
   value: string;
   selected: boolean;
   onClick: () => void;
+  /** Sharing its row with a third control: less side padding and a step
+   *  smaller numbers, so the longest VLS reading still fits one line. */
+  compact?: boolean;
 }) {
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`rounded-xl border p-2.5 text-center shadow-sm active:opacity-80 ${
-        selected ? "border-accent-fill bg-accent-soft" : "border-edge bg-surface"
-      }`}
+      className={`min-w-0 rounded-xl border text-center shadow-sm active:opacity-80 ${
+        compact ? "px-0.5 py-2" : "p-2.5"
+      } ${selected ? "border-accent-fill bg-accent-soft" : "border-edge bg-surface"}`}
     >
       <span className={FIELD_MICRO_LABEL}>{label}</span>
       <span
-        className="block text-sm font-bold tabular-nums text-accent"
+        className={`block whitespace-nowrap font-bold tabular-nums text-accent ${
+          compact ? "text-xs" : "text-sm"
+        }`}
       >
         <LayoutNumbers value={value} />
       </span>

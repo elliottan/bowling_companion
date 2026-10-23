@@ -6,6 +6,7 @@ import { BallLayoutDiagram } from "../components/BallLayoutDiagram";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { BowlingBallIcon } from "../components/icons";
 import { LayoutEditor } from "../components/LayoutEditor";
+import { MotionRail } from "../components/MotionRail";
 import { PapEditor } from "../components/PapEditor";
 import { ShareCardDialog } from "../components/ShareCardDialog";
 import { PushScreen } from "../components/PushScreen";
@@ -28,6 +29,7 @@ import {
   formatDualAngle,
   formatInches,
   formatVls,
+  MOTION_METERS,
   motionBand,
   presetLayout,
   readMotion,
@@ -163,7 +165,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
   const [turnedTo, setTurnedTo] = useState<Orientation | null>(null);
   const [presetAt, setPresetAt] = useState<MenuAnchor | null>(null);
   const [pendingPreset, setPendingPreset] = useState<LayoutPreset | null>(null);
-  // The sheet behind More: the PAP, and the reset to saved settings.
+  // The sheet behind More: the PAP, the hand and the grip.
   const [youOpen, setYouOpen] = useState(false);
   const [card, setCard] = useState<ShareCardData | null>(null);
   // The diagram's own SVG, read off the DOM when a picture is asked for.
@@ -249,7 +251,11 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
       hand,
       grip,
       pap: papText,
-      summary: motion.summary
+      meters: MOTION_METERS.map((m) => ({
+        label: m.label,
+        value: clamp(motion[m.key], 0, 1),
+        word: motionBand(motion[m.key], m.words[0], m.words[1], m.words[2])
+      }))
     });
   }, [layout, vls, ball, hand, grip, papText, motion]);
 
@@ -269,7 +275,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
     flushSync(() => setTurnedTo(null));
     const svg = ballRef.current?.querySelector("svg");
     let picture: Promise<HTMLImageElement> | undefined;
-    if (svg) picture = svgToImage(svg as SVGSVGElement, 560);
+    if (svg) picture = svgToImage(svg as SVGSVGElement, 900);
     flushSync(() => setTurnedTo(turnedTo));
     if (!picture) return undefined;
     try {
@@ -365,9 +371,9 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
       }
       /* Two trailing actions, the one place the app has two (DESIGN-LANGUAGE
          section 1). Sharing the layout is what this screen is for once the
-         numbers are right. More holds the bowler's PAP: set once and then
-         read against, so it does not take the page from the ball and the
-         sliders. Saving the picture is a thing to
+         numbers are right. More holds who is bowling, the PAP, the hand and
+         the grip: set once and then read against, so they do not take the
+         page from the ball and the sliders. Saving the picture is a thing to
          do to the card, so it lives on the card. */
       trailing={
         <>
@@ -413,69 +419,11 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             </div>
             {/* The bars, each named in a word and read in one, beside the ball
                 they describe. No heading: the bars name themselves. */}
-            <section aria-label="What it will do" className="w-20 shrink-0 space-y-3">
-              <Meter label="Flare" value={motion.flare} words={["Low", "Medium", "High"]} />
-              <Meter label="Length" value={motion.length} words={["Early", "Mid", "Late"]} />
-              <Meter label="Backend" value={motion.angularity} words={["Smooth", "Defined", "Sharp"]} />
-              <Meter label="Strength" value={motion.strength} words={["Weak", "Medium", "Strong"]} />
-            </section>
+            <MotionRail motion={motion} className="w-20 shrink-0" />
           </div>
           {/* The sentence the bars add up to, in the long words the rail has
               no room for. */}
           <p className="px-1 text-xs leading-snug text-ink-secondary">{motion.summary}</p>
-        </div>
-
-        {/* 2. What ball and who throws it, in one row, so every toggle that
-            moves the ball is on the page beside the sliders rather than behind
-            More. The core comes first because it changes what the drilling
-            angle means, and therefore what every number below does. Left on
-            the left in the hand control, which is the one ordering that needs
-            no reading: the letters sit where the hands do. */}
-        <div className="grid grid-cols-3 gap-2">
-          <section className="min-w-0 space-y-1.5">
-            <h2 className={GROUP_HEADING}>Core</h2>
-            <SegmentedControl
-              dense
-              label="Core type"
-              value={symmetric ? "sym" : "asym"}
-              onChange={(v) => setSymmetric(v === "sym")}
-              options={[
-                { value: "asym", label: "Asym", srLabel: "Asymmetric" },
-                { value: "sym", label: "Sym", srLabel: "Symmetric" }
-              ]}
-            />
-          </section>
-          <section className="min-w-0 space-y-1.5">
-            <h2 className={GROUP_HEADING}>Hand</h2>
-            <SegmentedControl
-              dense
-              label="Bowling hand"
-              value={hand}
-              onChange={chooseHand}
-              options={[
-                { value: "left", label: "L", srLabel: "Left" },
-                { value: "right", label: "R", srLabel: "Right" }
-              ]}
-            />
-          </section>
-          <section className="min-w-0 space-y-1.5">
-            <h2 className={GROUP_HEADING}>Grip</h2>
-            {/* One-handed or two-handed. It draws the ball the bowler actually
-                holds (no thumb hole, and the grip centred between the fingers).
-                It moves none of the motion coefficients: those are fitted to a
-                thumb-in chart, and guessing at a two-handed release would be
-                worse than saying nothing. */}
-            <SegmentedControl
-              dense
-              label="Grip style"
-              value={grip}
-              onChange={chooseGrip}
-              options={[
-                { value: "1h", label: "1H", srLabel: "One handed" },
-                { value: "2h", label: "2H", srLabel: "Two handed" }
-              ]}
-            />
-          </section>
         </div>
 
         {/* 4. The numbers. */}
@@ -512,6 +460,25 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             onSystemChange={setSystemOverride}
             idPrefix="lab"
             proNumbers
+            beside={
+              /* The core type, at the end of the notation row rather than in a
+                 band of its own (ADR-209). It comes with the numbers because
+                 it changes what the drilling angle means, and therefore what
+                 every number does. */
+              <div className="flex w-24 flex-col justify-center gap-1">
+                <span className={`${FIELD_MICRO_LABEL} text-center`}>Core</span>
+                <SegmentedControl
+                  dense
+                  label="Core type"
+                  value={symmetric ? "sym" : "asym"}
+                  onChange={(v) => setSymmetric(v === "sym")}
+                  options={[
+                    { value: "asym", label: "Asym", srLabel: "Asymmetric" },
+                    { value: "sym", label: "Sym", srLabel: "Symmetric" }
+                  ]}
+                />
+              </div>
+            }
           />
         </section>
       </div>
@@ -531,24 +498,71 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
       )}
 
       {youOpen && (
-        <FormSheet title="Your PAP" onClose={() => setYouOpen(false)} dismissAs="done">
-          {/* Who is bowling. The PAP is the frame every other number is
-              measured against: the VAL angle is measured at it and the
-              pin-to-PAP distance is measured to it, so a layout read against
-              the wrong axis is the wrong layout. It is set once and then read
-              against, so it lives here; the hand and the grip, which a bowler
-              flips to see what changes, are on the page (ADR-209). */}
+        <FormSheet title="Your PAP and hand" onClose={() => setYouOpen(false)} dismissAs="done">
+          {/* 2. Who is bowling. The PAP leads because it is the frame every other
+              number is measured against: the VAL angle is measured at it and the
+              pin-to-PAP distance is measured to it, so a layout read against the
+              wrong axis is the wrong layout. It used to sit last on the grounds
+              that it is set once and then left alone, which is true of how often
+              it is touched and wrong about what it means.
+
+              The hand and the grip ride beside it rather than under it. They are
+              two two-way answers, so they cost a quarter of the width and would
+              otherwise cost two full bands of a phone screen. */}
           <section className="space-y-3">
-            <div className="space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-              <span className={FIELD_MICRO_LABEL}>Your PAP</span>
-              <PapEditor pap={pap} onChange={updatePap} idPrefix="lab-pap" />
+            {/* Stretched rather than top-aligned, so the two cards end level
+                whichever is taller. The hand card is the taller of the two (two
+                toggles against two rows of fields), so the PAP card takes a few
+                px of extra padding at the bottom, which reads as padding. */}
+            <div className="flex items-stretch gap-2">
+              <div className="min-w-0 flex-1 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+                <span className={FIELD_MICRO_LABEL}>Your PAP</span>
+                <PapEditor pap={pap} onChange={updatePap} idPrefix="lab-pap" />
+              </div>
+              <div className="w-[7.5rem] shrink-0 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+                <span className={FIELD_MICRO_LABEL}>Hand</span>
+                {/* `space-y-2` is required, not chosen: a dense segmented control
+                    is 36px drawn and 44pt to the finger, so two stacked any
+                    closer than 8px would have overlapping hit regions and the
+                    grip row would start swallowing taps meant for the hand. */}
+                <div className="space-y-2">
+                  {/* Left on the left, which is the one ordering that needs no
+                      reading: the letters sit where the hands do. */}
+                  <SegmentedControl
+                    dense
+                    label="Bowling hand"
+                    value={hand}
+                    onChange={chooseHand}
+                    options={[
+                      { value: "left", label: "L", srLabel: "Left" },
+                      { value: "right", label: "R", srLabel: "Right" }
+                    ]}
+                  />
+                  {/* One-handed or two-handed. It draws the ball the bowler
+                      actually holds (no thumb hole, and the grip centred between
+                      the fingers) and it drops the do-not-use band, whose whole
+                      reason is a thumb hole to run the track over. It still moves
+                      none of the motion coefficients: those are fitted to a
+                      thumb-in chart, and guessing at a two-handed release would
+                      be worse than saying nothing. */}
+                  <SegmentedControl
+                    dense
+                    label="Grip style"
+                    value={grip}
+                    onChange={chooseGrip}
+                    options={[
+                      { value: "1h", label: "1H", srLabel: "One handed" },
+                      { value: "2h", label: "2H", srLabel: "Two handed" }
+                    ]}
+                  />
+                </div>
+              </div>
             </div>
             {/* Back to the bowler's own saved numbers. The PAP, the hand and the
                 grip are what a shared link overrides, so the way out of somebody
                 else's measurements sits with them. At once, with no question
                 first: nothing is saved here, so nothing is lost, and the
-                PAP above and the hand and grip on the page show the result as
-                it lands (ADR-205). */}
+                fields above show the result as it lands (ADR-205). */}
             <Button
               variant="secondary"
               className="w-full"
@@ -588,33 +602,5 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
         onClose={() => setCard(null)}
       />
     </PushScreen>
-  );
-}
-
-/** One motion reading as a short bar, named above and read in a word below,
- *  in the same thirds the summary sentence uses. */
-function Meter({
-  label,
-  value,
-  words
-}: {
-  label: string;
-  value: number;
-  words: readonly [low: string, mid: string, high: string];
-}) {
-  const word = motionBand(value, ...words);
-  return (
-    <div aria-label={`${label}, ${word}`} role="group">
-      <div className="text-[11px] font-semibold leading-tight text-ink-strong">{label}</div>
-      {/* The slider's own track colour: the rail sits on the sunken page
-          colour, where the muted fill the old bars used all but vanished. */}
-      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-edge-strong">
-        <div
-          className="h-full rounded-full bg-accent-fill transition-[width] duration-200 motion-reduce:transition-none"
-          style={{ width: `${clamp(value, 0, 1) * 100}%` }}
-        />
-      </div>
-      <div className="mt-0.5 text-[11px] leading-tight text-ink-secondary">{word}</div>
-    </div>
   );
 }

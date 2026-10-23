@@ -329,12 +329,12 @@ describe("LayoutLabView", () => {
     expect(ball()).not.toBe(halfUp);
   });
 
-  it("leads with the ball and a rail of meters beside it, then the toggles and the numbers (ADR-209)", () => {
+  it("leads with the ball and a rail of meters beside it, then the numbers (ADR-209)", () => {
     renderLab();
     const headings = screen.getAllByRole("heading").map((h) => h.textContent);
-    // The ball and its rail are untitled; the core, hand and grip share one
-    // row under them, then the numbers.
-    expect(headings.slice(0, 5)).toEqual(["Layouts", "Core", "Hand", "Grip", "Layout"]);
+    // The ball and its rail are untitled; the bowler is behind More, so the
+    // next heading is the numbers.
+    expect(headings.slice(0, 2)).toEqual(["Layouts", "Layout"]);
     const bars = screen.getByRole("region", { name: "What it will do" });
     expect(bars).toHaveTextContent(/Flare.*Length.*Backend.*Strength/);
     // Each meter reads in the same thirds as the sentence under the rail: the
@@ -342,9 +342,11 @@ describe("LayoutLabView", () => {
     expect(within(bars).getByRole("group", { name: "Length, Mid" })).toBeInTheDocument();
     expect(within(bars).getByRole("group", { name: "Backend, Defined" })).toBeInTheDocument();
     expect(screen.getByText(/picks up in the mid lane and turns the corner with a defined shape/i)).toBeInTheDocument();
-    // The hand and the grip are on the page, not behind More.
-    expect(screen.getByRole("button", { name: "Left" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Two handed" })).toBeInTheDocument();
+    // The core rides at the end of the notation row, which keeps its numbers.
+    expect(screen.getByRole("button", { name: "Symmetric" })).toBeInTheDocument();
+    expect(systemCard("Dual angle")).toHaveTextContent("45° x 4 1/2 x 45°");
+    // The hand and the grip are behind More, not on the page.
+    expect(screen.queryByRole("button", { name: "Left" })).not.toBeInTheDocument();
     // The drawing is cropped to the ball, so a narrow box still draws it big.
     const drawing = screen.getByRole("img", { name: /bowling ball/i });
     expect(drawing).toHaveAttribute("viewBox", "44 44 232 232");
@@ -824,8 +826,7 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
     fireEvent.click(screen.getByRole("button", { name: /Storm VLS/ }));
     expect(screen.getByRole("button", { name: /Storm VLS/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("region", { name: "What it will do" })).toBeInTheDocument();
-    // Who is bowling and the core stay in reach: the hand on the page, the
-    // PAP and the reset behind More.
+    // Who is bowling and the core stay in reach, behind More.
     openYou();
     expect(screen.getByRole("button", { name: "Left" })).toBeEnabled();
     expect(screen.getByLabelText("Over")).toBeEnabled();

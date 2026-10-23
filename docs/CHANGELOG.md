@@ -15,11 +15,17 @@ had all shipped.
   the ball.** The drawing is cropped to the ball, and the four bars are a
   narrow rail beside it: Flare, Length, Backend and Strength, each with its
   reading in a word (ADR-209).
-- **Core, hand and grip are one row on the page.** The hand and the grip used
-  to be under More, which now holds your PAP and the reset.
+- **Asym and Sym sit at the end of the Dual angle and Storm VLS row**, which
+  keeps its numbers. Your PAP, hand and grip stay under More.
 - **The ball, the bars, the toggles and the sliders fit on one phone screen**,
   so moving a slider or flipping a toggle changes the ball and the bars in
   view.
+- **The layout share picture is mostly ball.** A bigger ball with its labels
+  in the app's typeface, the numbers drawn the way the app draws them, the
+  core as Asym or Sym, and the four readings as small bars in place of the
+  sentence.
+- **The Pro page and the landing page show the new Layouts screen**, and the
+  landing page's Stats picture says "1st ball avg".
 
 ## 0.63.0: Layouts tidy-up and a clearer Pro page (2026-10-23)
 

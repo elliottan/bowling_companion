@@ -82,20 +82,27 @@ describe("renderShareCard", () => {
     expect(drawn.texts).toEqual(expect.arrayContaining(["190", "HIGH GAME", "CARRY"]));
   });
 
-  it("draws a layout with its ball and wraps its caption", async () => {
+  it("draws a layout with its ball, its reading in parts, and its four bars", async () => {
     const drawn = stubCanvas();
     const card = buildLayoutCard({
-      dualAngle: "45 x 4 1/2 x 45",
+      dualAngle: "45° x 4 1/2 x 45°",
       vls: "4 1/2 x 3 7/8 x 2 7/8",
       symmetric: false,
       hand: "right",
       grip: "2h",
       pap: '5" over, 1/2" up',
-      summary: "Picks up in the mid lane and turns the corner with a defined shape. High flare, a strong look overall, and more words than fit."
+      meters: [
+        { label: "Flare", value: 0.9, word: "High" },
+        { label: "Length", value: 0.5, word: "Mid" },
+        { label: "Backend", value: 0.2, word: "Smooth" },
+        { label: "Strength", value: 1.3, word: "Strong" }
+      ]
     });
     await renderShareCard({ ...card, diagram: {} as CanvasImageSource, mark: {} as CanvasImageSource });
-    expect(drawn.texts).toContain("45 x 4 1/2 x 45");
-    expect(drawn.texts.some((t) => t.endsWith("…"))).toBe(true);
+    // The numbers and their separators are separate runs, so the x's can be
+    // drawn dim and the fractions smaller.
+    expect(drawn.texts).toEqual(expect.arrayContaining(["45°", " x ", "4", " 1/2"]));
+    expect(drawn.texts).toEqual(expect.arrayContaining(["FLARE", "High", "BACKEND", "Smooth", "STORM VLS"]));
   });
 
   it("draws a line on its lane, with the oil and the keyed marks", async () => {
