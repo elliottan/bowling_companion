@@ -17,6 +17,10 @@ had all shipped.
   reading says the ball snaps hard at the breakpoint.
 - **A preset turns the ball back to face forward**, so the new layout is read
   from the front.
+- **The ball is big again.** It sits centred at full width, with the motion
+  bars under it.
+- **No more layout warnings.** The notes about a short pin buffer, a long pin
+  to PAP, a symmetric ball's drilling angle and an unreachable PAP are gone.
 
 ## 0.62.0: Every leave free, a calmer Stats screen, and any ball's layout (2026-10-22)
 

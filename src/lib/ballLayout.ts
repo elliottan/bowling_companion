@@ -657,8 +657,6 @@ export interface MotionReading {
   strength: number;
   /** Plain-language reading, one clause per axis. */
   summary: string;
-  /** Anything about the layout the bowler should know before drilling it. */
-  warnings: string[];
 }
 
 /**
@@ -682,8 +680,7 @@ export interface MotionReading {
  */
 export function readMotion(
   layout: DualAngleLayout,
-  ball: BallSpec,
-  pap: PapMeasurement = DEFAULT_PAP
+  ball: BallSpec
 ): MotionReading {
   const flare = clamp(flarePotential(layout.pinToPap, ball.diff), 0, 1.4);
   const flareInches = clamp(flare, 0, 1.4) * 6.5;
@@ -700,37 +697,13 @@ export function readMotion(
   const angularity = clamp(0.5 + (0.5 - val) * 0.9 + (drill - 0.5) * 0.3 * drillWeight, 0, 1);
   const strength = clamp(flare * 0.7 + (1 - Math.abs(val - 0.35)) * 0.3, 0, 1);
 
-  // The thumb-hole band (`inDoNotUseBand`) is not said here: a warning and a
-  // shaded stretch of the slider read as an error to most bowlers, who pick
-  // the numbers their pro shop gave them (ADR-204).
-  const warnings: string[] = [];
-  if (pinBuffer(layout.pinToPap, layout.valAngle) < 0.75 && layout.pinToPap > 0.5) {
-    warnings.push(
-      "The pin buffer is under 3/4\". The pin sits almost on the axis line, which leaves the driller no room to move the layout and tends to make the ball read flat."
-    );
-  }
-  if (ball.symmetric && (layout.drillingAngle < 20 || layout.drillingAngle > 70)) {
-    warnings.push(
-      "This is a symmetric ball, so the drilling angle only moves the CG. Expect a much smaller change than the same swing on an asymmetric core."
-    );
-  }
-  if (layout.pinToPap > 5.5) {
-    warnings.push(
-      "Past 5 1/2\" the pin is closing on the bowler's axis line and flare drops away fast. Check the ball still has enough motion left to be worth drilling."
-    );
-  }
-  if (Math.hypot(pap.over, pap.up) > 6.75) {
-    warnings.push("That PAP measurement is farther than a quarter of the way round the ball, which is not a reachable axis.");
-  }
-
   return {
     flare,
     flareInches,
     length,
     angularity,
     strength,
-    summary: describeMotion({ flare, length, angularity, strength }),
-    warnings
+    summary: describeMotion({ flare, length, angularity, strength })
   };
 }
 
