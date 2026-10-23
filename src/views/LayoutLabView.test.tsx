@@ -831,8 +831,12 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
     expect(screen.getByRole("button", { name: "Left" })).toBeEnabled();
     expect(screen.getByLabelText("Over")).toBeEnabled();
     expect(screen.getByRole("button", { name: "Reset to your saved settings" })).toBeInTheDocument();
-    // The sliders stay on screen as they are, out of reach, under the lock
-    // alone, and the presets that would move them are gone (ADR-203).
+    // The sliders stay on screen as they are, out of reach, each thumb drawn
+    // as a lock and no lock over the card (ADR-209), and the presets that
+    // would move them are gone (ADR-203).
+    expect(document.querySelectorAll("[data-slider-lock]")).toHaveLength(3);
+    const veil = screen.getByRole("button", { name: "Changing the layout. Get the app" });
+    expect(veil.querySelector("[data-pro-mark]")).toBeNull();
     expect(screen.queryByRole("slider", { name: /Pin buffer/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Presets/ })).not.toBeInTheDocument();
     expect(screen.queryByText("Try your layouts with Pro")).not.toBeInTheDocument();

@@ -256,6 +256,7 @@ export function ProVeil({
   lane = false,
   top = false,
   clear = false,
+  bare = false,
   className = "",
   children
 }: {
@@ -269,13 +270,16 @@ export function ProVeil({
   /** No blur and no fade: the controls look as they are, out of reach, with
    *  the lock on them (the layout lab's sliders, ADR-203). */
   clear?: boolean;
+  /** The controls draw their own locks (the layout lab's sliders lock on
+   *  their thumbs, ADR-209), so the veil adds none and is only the tap. */
+  bare?: boolean;
   className?: string;
   children: ReactNode;
 }) {
   const access = useProAccess();
   if (!access.locked) return <>{children}</>;
   return (
-    <Veil access={access} what={what} label={label} lane={lane} top={top} clear={clear} className={className}>
+    <Veil access={access} what={what} label={label} lane={lane} top={top} clear={clear} bare={bare} className={className}>
       {children}
     </Veil>
   );
@@ -288,6 +292,7 @@ function Veil({
   lane,
   top,
   clear,
+  bare,
   className,
   children
 }: {
@@ -297,6 +302,7 @@ function Veil({
   lane: boolean;
   top: boolean;
   clear: boolean;
+  bare: boolean;
   className: string;
   children: ReactNode;
 }) {
@@ -318,7 +324,7 @@ function Veil({
         aria-label={`${what}. ${action.label}`}
         className={`absolute inset-0 flex justify-center rounded-xl disabled:opacity-60 ${top ? "items-start pt-3" : "items-center"}`}
       >
-        <ProPill lane={lane}>{label}</ProPill>
+        {!bare && <ProPill lane={lane}>{label}</ProPill>}
       </button>
       {action.dialog}
     </div>

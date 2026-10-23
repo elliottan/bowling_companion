@@ -8997,6 +8997,9 @@ ball at half the card.
 - **The core rides the end of the notation row**, a narrow column beside the
   Dual angle and Storm VLS cards, which keep their numbers. The bowler (PAP,
   hand, grip) stays behind More: set once and then read against.
+- **Without Pro each slider's thumb is a lock**, where it sits, instead of one
+  lock at the top of their card (amending ADR-203): the lock is on the thing
+  that will not move. The card is still the one tap that opens Pro.
 - **The share card is mostly ball.** The eyebrow names the core in a word
   (Asym, Sym) and a two-handed grip as 2H; the title and the VLS reading are
   drawn with dim separators and smaller fractions, as the app draws them; the
