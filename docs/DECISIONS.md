@@ -8999,7 +8999,11 @@ ball at half the card.
   hand, grip) stays behind More: set once and then read against.
 - **Without Pro each slider's thumb is a lock**, where it sits, instead of one
   lock at the top of their card (amending ADR-203): the lock is on the thing
-  that will not move. The card is still the one tap that opens Pro.
+  that will not move. The card is still the one tap that opens Pro. The lane
+  view does the same (amending ADR-167 and ADR-202): Hook start and Hook
+  length lock on their thumbs, and the laydown, target and final fields are
+  no longer blurred, each wearing a small lock badge with its number still
+  readable under it (`ProVeil bare`).
 - **The share card is mostly ball.** The eyebrow names the core in a word
   (Asym, Sym) and a two-handed grip as 2H; the title and the VLS reading are
   drawn with dim separators and smaller fractions, as the app draws them; the

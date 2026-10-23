@@ -17,8 +17,10 @@ had all shipped.
   reading in a word (ADR-209).
 - **Asym and Sym sit at the end of the Dual angle and Storm VLS row**, which
   keeps its numbers. Your PAP, hand and grip stay under More.
-- **Without Pro, each layout slider shows its lock on the thumb itself**
-  rather than one lock above the sliders.
+- **Without Pro, each slider shows its lock on the thumb itself** rather
+  than one lock above the sliders: the layout sliders and the lane view's
+  Hook start and Hook length. The lane view's laydown, target and final are
+  no longer blurred; each has a small lock, with its number still readable.
 - **The ball, the bars, the toggles and the sliders fit on one phone screen**,
   so moving a slider or flipping a toggle changes the ball and the bars in
   view.
