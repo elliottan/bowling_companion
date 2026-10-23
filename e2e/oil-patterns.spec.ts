@@ -73,12 +73,15 @@ test("closing the visualizer opened from a pattern comes back to that pattern", 
   await expect(pattern).toBeVisible();
 
   await page.getByRole("button", { name: "Try in the line visualizer" }).click();
-  await page.getByRole("button", { name: "Close", exact: true }).last().click();
+  // The sandbox is a pushed screen (ADR-211), so it backs out with a chevron.
+  const lane = page.getByRole("dialog", { name: /visualizer/ });
+  await lane.getByRole("button", { name: "Back", exact: true }).click();
+  await expect(lane).toHaveCount(0);
   await expect(pattern).toBeVisible();
 
   // The platform's back too, from the visualizer: one layer at a time.
   await page.getByRole("button", { name: "Try in the line visualizer" }).click();
-  await expect(page.getByRole("button", { name: "Close", exact: true }).last()).toBeVisible();
+  await expect(lane.getByRole("button", { name: "Back", exact: true })).toBeVisible();
   await page.goBack();
   await expect(pattern).toBeVisible();
 

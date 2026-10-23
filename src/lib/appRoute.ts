@@ -33,7 +33,6 @@ export interface AppRoute {
   guideId?: string;
   /** The open line, which rides behind the game-plan overlay segment. */
   reportLineId?: string;
-  lineSandbox?: boolean;
 }
 
 const VIEW_SEGMENT: Record<AppView, string> = {
@@ -61,6 +60,7 @@ const OVERLAYS: readonly string[] = [
   "game-trend",
   "game-plan",
   "pro",
+  "line",
   "stats-push",
   "session"
 ];
@@ -82,7 +82,6 @@ const SETTINGS_SECTIONS: readonly string[] = [
  *  the two apart, whatever they are called. */
 const SECTION_SEGMENT = "section";
 
-const LINE_SEGMENT = "line";
 const GUIDE_SEGMENT = "guide";
 const BALL_SEGMENT = "ball";
 const PLAYED_SEGMENT = "played";
@@ -115,7 +114,6 @@ export function toRoute(state: NavState): AppRoute {
   if (state.reportLineId && state.overlays[state.overlays.length - 1] === "game-plan") {
     route.reportLineId = state.reportLineId;
   }
-  if (state.lineSandboxOpen) route.lineSandbox = true;
   return route;
 }
 
@@ -137,7 +135,6 @@ export function formatRoute(route: AppRoute): string {
   if (route.catalogBallId) parts.push(BALL_SEGMENT, encodeURIComponent(route.catalogBallId));
   if (route.guideId) parts.push(GUIDE_SEGMENT, encodeURIComponent(route.guideId));
   if (route.reportLineId) parts.push(PLAYED_SEGMENT, encodeURIComponent(route.reportLineId));
-  if (route.lineSandbox) parts.push(LINE_SEGMENT);
 
   return `#/${parts.join("/")}`;
 }
@@ -178,8 +175,7 @@ export function parseRoute(hash: string): AppRoute {
     } else if (segment === PLAYED_SEGMENT && segments[i + 1]) {
       route.reportLineId = decodeURIComponent(segments[i + 1]);
       i += 1;
-    } else if (segment === LINE_SEGMENT) route.lineSandbox = true;
-    else if (OVERLAYS.includes(segment)) {
+    } else if (OVERLAYS.includes(segment)) {
       route.overlays.push(segment as Overlay);
       if (segment === "session") {
         const id = Number(segments[i + 1]);
@@ -221,7 +217,6 @@ export function shouldPushHistory(from: NavState, to: NavState): boolean {
   // Landing on a different session in the pushed screen is a navigation of its
   // own, the way a different catalog ball is.
   if (to.viewedSessionId != null && to.viewedSessionId !== from.viewedSessionId) return true;
-  if (to.lineSandboxOpen && !from.lineSandboxOpen) return true;
   if (to.view === "active" && from.view !== "active") return true;
   if (to.view === "settings" && to.settingsSection !== "menu" && from.settingsSection === "menu") {
     return true;

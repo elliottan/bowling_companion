@@ -19,7 +19,6 @@ import { FormSheet } from "../components/ui/FormSheet";
 import { ShareIosIcon } from "../components/icons";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { FIELD_MICRO_LABEL } from "../components/ui/field";
-import { GROUP_HEADING } from "../components/ui/typography";
 import {
   DEFAULT_ASYMMETRIC,
   DEFAULT_PAP,
@@ -419,54 +418,14 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             </div>
             {/* The bars, each named in a word and read in one, beside the ball
                 they describe. No heading: the bars name themselves. */}
-            <MotionRail motion={motion} className="w-20 shrink-0" />
-          </div>
-          {/* The sentence the bars add up to, in the long words the rail has
-              no room for. */}
-          <p className="px-1 text-xs leading-snug text-ink-secondary">{motion.summary}</p>
-        </div>
-
-        {/* 4. The numbers. */}
-        <section className="space-y-2">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className={GROUP_HEADING}>Layout</h2>
-            {/* The presets, as a named menu on the heading row. This replaced a
-                Reset control and a separate labelled dropdown underneath it,
-                which between them spent two bands of a phone screen on one
-                idea: every reset this screen had was "go back to the
-                benchmark", and the benchmark is a preset. One control now, and
-                it says which preset is on screen in its own spoken name rather
-                than in a field that has to be looked at. */}
-            {!proLocked && (
-              <button
-                type="button"
-                aria-haspopup="menu"
-                aria-expanded={presetAt != null}
-                aria-label={`Presets, ${activePreset?.name ?? "Custom"}`}
-                onClick={(e) => setPresetAt(anchorUnder(e.currentTarget, ANCHORED_MENU_WIDTH))}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-accent active:opacity-80"
-              >
-                <LayoutGrid size={13} aria-hidden="true" />
-                Presets
-              </button>
-            )}
-          </div>
-
-          <LayoutEditor
-            layout={layout}
-            onChange={setLayout}
-            ball={ball}
-            system={system}
-            onSystemChange={setSystemOverride}
-            idPrefix="lab"
-            proNumbers
-            beside={
-              /* The core type, at the end of the notation row rather than in a
-                 band of its own (ADR-209). It comes with the numbers because
-                 it changes what the drilling angle means, and therefore what
-                 every number does. */
-              <div className="flex w-24 flex-col justify-center gap-1">
-                <span className={`${FIELD_MICRO_LABEL} text-center`}>Core</span>
+            {/* The rail: the bars, each named in a word and read in one, then
+                the core and the presets under them, in the card's bottom
+                corner (ADR-211). The core sits with the ball because it changes
+                what the drilling angle means, so it changes the picture and
+                the bars beside it. */}
+            <div className="flex w-24 shrink-0 flex-col justify-between gap-2 self-stretch py-1">
+              <MotionRail motion={motion} />
+              <div className="space-y-2">
                 <SegmentedControl
                   dense
                   label="Core type"
@@ -477,8 +436,41 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
                     { value: "sym", label: "Sym", srLabel: "Symmetric" }
                   ]}
                 />
+                {/* The presets, as a named menu. Every reset this screen had was
+                    "go back to the benchmark", and the benchmark is a preset,
+                    so one control, saying which preset is on screen in its
+                    spoken name. */}
+                {!proLocked && (
+                  <button
+                    type="button"
+                    aria-haspopup="menu"
+                    aria-expanded={presetAt != null}
+                    aria-label={`Presets, ${activePreset?.name ?? "Custom"}`}
+                    onClick={(e) => setPresetAt(anchorUnder(e.currentTarget, ANCHORED_MENU_WIDTH))}
+                    className="inline-flex w-full items-center justify-center gap-1 py-1 text-xs font-semibold text-accent active:opacity-80"
+                  >
+                    <LayoutGrid size={13} aria-hidden="true" />
+                    Presets
+                  </button>
+                )}
               </div>
-            }
+            </div>
+          </div>
+          {/* The sentence the bars add up to, in the long words the rail has
+              no room for. */}
+          <p className="px-1 text-xs leading-snug text-ink-secondary">{motion.summary}</p>
+        </div>
+
+        {/* The numbers, untitled: the notation cards name them. */}
+        <section className="space-y-2">
+          <LayoutEditor
+            layout={layout}
+            onChange={setLayout}
+            ball={ball}
+            system={system}
+            onSystemChange={setSystemOverride}
+            idPrefix="lab"
+            proNumbers
           />
         </section>
       </div>

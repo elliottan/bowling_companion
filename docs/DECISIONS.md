@@ -9028,3 +9028,36 @@ in a fixed column wide enough for the longest of them on one line, and the
 number in a fixed column of its own, so every track in a card is the same
 length and two thumbs at the same fraction of their range line up. The name is
 still the button that opens what the slider does.
+
+---
+
+## ADR-211: The line sandbox is a pushed screen, and the layout lab drops its titles
+
+**Status.** Accepted, 2026-10-23, by the owner from a phone in hand. Amends
+ADR-175 on what opens above the sheets and ADR-209 on where the lab's core
+sits.
+
+**Context.** The line sandbox (Home's line visualizer, a pattern's "Try in the
+line visualizer") was a route, `#/home/line`, held by a flag beside the screen
+stack, and drawn as a layer over everything that also registered itself as a
+sheet. So it had two back entries: its route and a sheet sentinel on top. The
+Pro page opened over it took over that sentinel instead of pushing, and on an
+iPhone the back swipe from the Pro page showed the screen under the lane, hung,
+and only then brought the lane back. In the layout lab, the "Layout" and
+"Core" titles each spent a band of the screen on a word, and the core beside
+the notation row squeezed both readings down to small type.
+
+**Decision.**
+
+- **The sandbox is `line`, an overlay on the stack like every pushed screen.**
+  It slides in from the trailing edge, backs out with a chevron (and the
+  iPhone app's edge swipe) through the same slide, and registers no sheet
+  sentinel, since history already closes it. It is portalled to the body at
+  the lane's own layer, above the sheets, because a pattern's sheet opens it,
+  and is in `ABOVE_SHEETS` with the Pro page so the sheet keeps its back entry
+  under it. The Pro page over it is a plain push: back from it lands on the
+  lane, one entry at a time. A lane opened from a shot or a spare is not a
+  route and still covers what opened it, as before.
+- **The lab has no titles under its own.** The core moves to the rail, under
+  the bars, with Presets under it; the Dual angle and Storm VLS cards take the
+  full width again, with their numbers at 18 px.

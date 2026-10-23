@@ -9,10 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.64.1: Layout sliders on one line (2026-10-23)
+## 0.65.0: The line visualizer is a normal screen, and Layouts is tighter (2026-10-23)
 
+- **The line visualizer slides in and out like every other screen**, with a
+  back chevron. Going back from Headpin Pro opened over it now lands straight
+  on the lane, rather than showing Home and stalling first (ADR-211).
 - **Each layout slider is one line**: its name, the slider and the number,
   with every slider the same length (ADR-210).
+- **Layouts drops its "Layout" and "Core" titles.** Asym and Sym sit under
+  the bars beside the ball, with Presets, and the Dual angle and Storm VLS
+  numbers are larger across the full width.
 
 ## 0.64.0: The layout lab on one screen (2026-10-23)
 

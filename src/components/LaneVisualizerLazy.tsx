@@ -19,20 +19,24 @@ const LaneVisualizer = lazy(() =>
  */
 export function LaneVisualizerLazy(props: ComponentProps<typeof LaneVisualizerType>) {
   return (
-    <Suspense fallback={<LaneLoading onClose={props.onClose} />}>
+    <Suspense fallback={<LaneLoading onClose={props.onClose} pushed={props.presentation === "push"} />}>
       <LaneVisualizer {...props} />
     </Suspense>
   );
 }
 
 /** The lane view's night sky and a close control, until the lane has loaded. */
-function LaneLoading({ onClose }: { onClose: () => void }) {
+function LaneLoading({ onClose, pushed }: { onClose: () => void; pushed: boolean }) {
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Loading the lane view"
-      className="fixed inset-0 z-[70] flex flex-col items-center justify-center bg-slate-900 text-white/70"
+      // Where the lane itself will land: in the shell as a push, or over
+      // everything as a cover.
+      className={`fixed inset-0 flex flex-col items-center justify-center bg-slate-900 text-white/70 ${
+        pushed ? "z-[70] animate-push-in" : "z-[70]"
+      }`}
     >
       <button
         type="button"

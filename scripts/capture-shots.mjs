@@ -417,7 +417,9 @@ await page.getByRole("button", { name: "Done" }).click();
 // One theme only: the lane view paints its own wood and sky rather than the
 // app's colour tokens, so both themes render the identical picture.
 await shoot(page, "line", 0, { bar: "#fff" });
-await page.getByRole("button", { name: "Close" }).first().click();
+// A pushed screen (ADR-211): out through its chevron, and its slide.
+await page.getByRole("dialog", { name: /visualizer/ }).getByRole("button", { name: "Back", exact: true }).click();
+await page.getByRole("dialog", { name: /visualizer/ }).waitFor({ state: "detached" });
 
 // An oil pattern: its numbers, and the oil drawn on the lane.
 await page.getByRole("button", { name: /Oil patterns/ }).first().click();

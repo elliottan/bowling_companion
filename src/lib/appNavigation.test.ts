@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { INITIAL_NAV, navReducer, type NavAction, type NavState } from "./appNavigation";
+import { parseRoute } from "./appRoute";
 
 /** Apply a sequence of actions, the way a user's taps arrive. */
 function run(actions: NavAction[], from: NavState = INITIAL_NAV): NavState {
@@ -208,17 +209,31 @@ describe("navReducer", () => {
       expect(state.overlays).toEqual(["catalog"]);
     });
 
-    it("opens and closes the line sandbox independently of the stack", () => {
+    it("pushes the line sandbox onto the stack and pops it off again (ADR-211)", () => {
       const open = run([
         { type: "pushOverlay", overlay: "arsenal" },
-        { type: "openLineSandbox" }
+        { type: "openLineSandbox", patternId: 7 }
       ]);
-      expect(open.lineSandboxOpen).toBe(true);
-      expect(open.overlays).toEqual(["arsenal"]);
+      expect(open.overlays).toEqual(["arsenal", "line"]);
+      expect(open.lineSandboxPatternId).toBe(7);
 
       const closed = navReducer(open, { type: "closeLineSandbox" });
-      expect(closed.lineSandboxOpen).toBe(false);
       expect(closed.overlays).toEqual(["arsenal"]);
+      expect(closed.lineSandboxPatternId).toBeNull();
+    });
+
+    it("backs out of the Pro page onto the sandbox, keeping its pattern", () => {
+      const pro = run([
+        { type: "openLineSandbox", patternId: 7 },
+        { type: "pushOverlay", overlay: "pro" }
+      ]);
+      expect(pro.overlays).toEqual(["line", "pro"]);
+      const back = navReducer(pro, { type: "restore", route: parseRoute("#/home/line") });
+      expect(back.overlays).toEqual(["line"]);
+      expect(back.lineSandboxPatternId).toBe(7);
+      const popped = navReducer(pro, { type: "popOverlay" });
+      expect(popped.overlays).toEqual(["line"]);
+      expect(popped.lineSandboxPatternId).toBe(7);
     });
   });
 
