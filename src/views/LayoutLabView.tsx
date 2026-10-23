@@ -230,7 +230,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
   const updatePap = useCallback((next: PapMeasurement) => setPapOverride(next), []);
   const chooseGrip = useCallback((next: GripStyle) => setGripOverride(next), []);
 
-  const motion = useMemo(() => readMotion(layout, ball, pap), [layout, ball, pap]);
+  const motion = useMemo(() => readMotion(layout, ball), [layout, ball]);
   const vls = useMemo(() => toVls(layout, ball), [layout, ball]);
   const papText = `${formatInches(pap.over)}" over, ${formatInches(Math.abs(pap.up))}" ${pap.up < 0 ? "down" : "up"}`;
 
@@ -309,6 +309,8 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
   const applyPreset = useCallback(
     (preset: LayoutPreset) => {
       setLayout(presetLayout(preset, ball));
+      // A new layout is read from the front, so the ball turns back to face forward.
+      setTurnedTo(null);
       setPendingPreset(null);
       setPresetAt(null);
     },
@@ -378,18 +380,15 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             it, so the numbers below are read against the ball they belong to. */}
         {seed?.ballName && <SeededBallCard seed={seed} />}
 
-        {/* 1. The ball, and what it will do, side by side (ADR-203). The ball
-            needs no more than half the width to read, and the bars beside it
-            answer every change to the numbers below without a scroll back up.
-            It was the full width, pinned under the bar, with "What it will do"
-            in its own section under it: the pinned ball took a third of the
-            screen from everything that scrolled. Now the page is one scroll,
-            short enough to need little of it. The ball is draggable, which is
-            the gesture everyone tries first. */}
-        <div className="grid grid-cols-2 items-stretch gap-2.5">
+        {/* 1. The ball, then what it will do. The ball was half the width
+            beside the bars (ADR-203), which made the one picture the page is
+            for too small to read, so it is centred at full width again and
+            the bars sit under it. Not pinned: the page stays one scroll. The
+            ball is draggable, which is the gesture everyone tries first. */}
+        <div className="space-y-2.5">
           <div
             ref={ballRef}
-            className="min-h-[13.5rem] overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
+            className="mx-auto aspect-square w-full max-w-[24rem] overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
           >
             {/* The drawing follows the notation being edited, so the picture is
                 always answering the question the sliders below it are asking. */}
@@ -408,22 +407,14 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
           {/* The bars, then the sentence they add up to. No heading: the bars
               name themselves, and the ball beside them says whose they are. */}
           <section aria-label="What it will do" className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-            <Axis label="Flare" value={motion.flare} low="Low" high="High" note={`${motion.flareInches.toFixed(1)}"`} />
+            <Axis label="Flare" value={motion.flare} low="Low" high="High" />
             <Axis label="Reads the lane" value={motion.length} low="Early" high="Late" />
-            <Axis label="Off the friction" value={motion.angularity} low="Smooth" high="Sharp" />
+            <Axis label="Response to friction" value={motion.angularity} low="Smooth" high="Sharp" />
             <Axis label="Overall strength" value={motion.strength} low="Weak" high="Strong" />
             <p className="text-xs leading-snug text-ink-secondary">{motion.summary}</p>
           </section>
         </div>
 
-        {motion.warnings.map((warning) => (
-          <p
-            key={warning}
-            className="rounded-lg border border-warning-200 bg-warning-50 p-2.5 text-xs text-warning-700"
-          >
-            {warning}
-          </p>
-        ))}
 
         {/* 3. What ball. The core type comes before the numbers because it
             changes what the drilling angle means, and therefore what every
@@ -606,20 +597,17 @@ function Axis({
   label,
   value,
   low,
-  high,
-  note
+  high
 }: {
   label: string;
   value: number;
   low: string;
   high: string;
-  note?: string;
 }) {
   return (
     <div>
-      <div className="mb-1 flex items-baseline justify-between gap-2 text-xs">
+      <div className="mb-1 text-xs">
         <span className="font-semibold text-ink-strong">{label}</span>
-        {note && <span className="tabular-nums text-ink-secondary">{note}</span>}
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
         <div

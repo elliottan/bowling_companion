@@ -9,6 +9,25 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.63.0: Layouts tidy-up and a clearer Pro page (2026-10-23)
+
+- **Flare drops its number.** The bar says low to high; the inch figure
+  raised more questions than it answered.
+- **"Off the friction" is now "Response to friction"**, and the strongest
+  reading says the ball snaps hard at the breakpoint.
+- **A preset turns the ball back to face forward**, so the new layout is read
+  from the front.
+- **The ball is big again.** It sits centred at full width, with the motion
+  bars under it.
+- **No more layout warnings.** The notes about a short pin buffer, a long pin
+  to PAP, a symmetric ball's drilling angle and an unreachable PAP are gone.
+- **The Pro page leads with Move your line and Try your layouts.** Carry and
+  strike and Ball by ball are one card, Deeper stats, showing the First ball
+  card and a ball opened on its game-by-game rates.
+- **"Your alleys" is now "Estimated average"** on the Pro page, and its
+  picture shows the strike, after strike, splits and made columns.
+- **"Pins a ball" is now "1st ball avg"** on Stats.
+
 ## 0.62.1: The landing page shows Pro (2026-10-23)
 
 - **The landing page's pictures show the app with Pro.** Stats, the layout lab

@@ -738,7 +738,7 @@ function FirstBallCard({
       <Companions
         className="mt-3 border-t border-edge pt-2.5"
         items={[
-          ["Pins a ball", oneDp(stats.firstBallAverage)],
+          ["1st ball avg", oneDp(stats.firstBallAverage)],
           ["Strike on strike", pct(stats.strikeOnStrikePct)],
           ["Strikes in a row", fmt(stats.bestStreak)]
         ]}
@@ -804,7 +804,7 @@ function LockedFirstBallCard({ pocketPct }: { pocketPct: number | null }) {
         <Companions
           className="mt-3 border-t border-edge pt-2.5"
           items={[
-            ["Pins a ball", "8.8"],
+            ["1st ball avg", "8.8"],
             ["Strike on strike", "45%"],
             ["Strikes in a row", "6"]
           ]}

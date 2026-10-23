@@ -63,7 +63,17 @@ const BALLS: Array<{ name: string; brand: Manufacturer; thumb: string; balls: nu
 
 const BALL_HEADINGS = ["Pocket", "Carry", "Strike", "1st ball"];
 
-/** Each ball's rates side by side, as the Balls card lists them. */
+/** A ball's game-by-game rates, as its details open under its line. */
+const BY_GAME: Array<[string, string[]]> = [
+  ["Pocket", ["78%", "75%", "69%"]],
+  ["Carry", ["74%", "71%", "64%"]],
+  ["Strike", ["58%", "53%", "44%"]],
+  ["1st ball", ["9.3", "9.1", "8.8"]],
+  ["X-on-X", ["55%", "49%", "41%"]]
+];
+
+/** Each ball's rates side by side, the first one open on its by-game
+ *  details, as the All balls sheet draws them. */
 export function BallsSample() {
   return (
     <Sample>
@@ -76,22 +86,50 @@ export function BallsSample() {
             </span>
           ))}
         </div>
-        {BALLS.map((ball) => (
-          <div key={ball.name} className="flex items-center gap-1 border-t border-edge py-1.5 text-[13px]">
-            <span className="flex min-w-0 flex-1 items-center gap-1.5">
-              <span className="h-7 w-7 shrink-0">
-                <CatalogBallImage src={ball.thumb} alt="" brand={ball.brand} size="thumb" />
+        {BALLS.slice(0, 2).map((ball, n) => (
+          <div key={ball.name} className="border-t border-edge py-1.5">
+            <div className="flex items-center gap-1 text-[13px]">
+              <span className="flex min-w-0 flex-1 items-center gap-1.5">
+                <span className="h-7 w-7 shrink-0">
+                  <CatalogBallImage src={ball.thumb} alt="" brand={ball.brand} size="thumb" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium leading-tight text-ink-strong">{ball.name}</span>
+                  <span className="block text-[10px] tabular-nums text-ink-tertiary">{ball.balls} balls</span>
+                </span>
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate font-medium leading-tight text-ink-strong">{ball.name}</span>
-                <span className="block text-[10px] tabular-nums text-ink-tertiary">{ball.balls} balls</span>
-              </span>
-            </span>
-            {ball.rates.map((rate, i) => (
-              <span key={i} className="w-10 shrink-0 text-right font-semibold tabular-nums text-ink">
-                {rate}
-              </span>
-            ))}
+              {ball.rates.map((rate, i) => (
+                <span key={i} className="w-10 shrink-0 text-right font-semibold tabular-nums text-ink">
+                  {rate}
+                </span>
+              ))}
+            </div>
+            {n === 0 && (
+              <table className="mt-2 w-full rounded-lg bg-surface-muted text-[11px] tabular-nums">
+                <thead>
+                  <tr className="text-ink-tertiary">
+                    <th className="px-2 pt-1.5 text-left font-semibold">By game</th>
+                    {[1, 2, 3].map((g) => (
+                      <th key={g} className="w-10 pt-1.5 text-center font-semibold">
+                        {g}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="text-ink-secondary">
+                  {BY_GAME.map(([label, cells]) => (
+                    <tr key={label}>
+                      <td className="px-2 text-left">{label}</td>
+                      {cells.map((c, i) => (
+                        <td key={i} className="w-10 text-center">
+                          {c}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         ))}
       </div>
@@ -123,7 +161,7 @@ export function FirstBallSample() {
         </div>
         <div className="mt-3 grid grid-cols-3 border-t border-edge pt-2.5 text-center">
           {[
-            ["9.1", "Pins a ball"],
+            ["9.1", "1st ball avg"],
             ["49%", "Strike on strike"],
             ["9", "Strikes in a row"]
           ].map(([value, label]) => (
@@ -138,20 +176,44 @@ export function FirstBallSample() {
   );
 }
 
-const ALLEY_BALLS: Array<{ name: string; brand: Manufacturer; thumb: string; est: number; diff: number }> = [
-  { name: "Phaze II", brand: "Storm", thumb: "/catalog/img/storm-phaze-2-2019-p2-thumb.webp", est: 211, diff: 9 },
-  { name: "Idol", brand: "Roto Grip", thumb: "/catalog/img/roto-grip-idol-2018-p2-thumb.webp", est: 203, diff: 1 },
+const ALLEY_BALLS: Array<{
+  name: string;
+  brand: Manufacturer;
+  thumb: string;
+  rates: string[];
+  est: number;
+  diff: number;
+}> = [
+  {
+    name: "Phaze II",
+    brand: "Storm",
+    thumb: "/catalog/img/storm-phaze-2-2019-p2-thumb.webp",
+    rates: ["58%", "55%", "9%", "71%"],
+    est: 211,
+    diff: 9
+  },
+  {
+    name: "Idol",
+    brand: "Roto Grip",
+    thumb: "/catalog/img/roto-grip-idol-2018-p2-thumb.webp",
+    rates: ["51%", "49%", "12%", "66%"],
+    est: 203,
+    diff: 1
+  },
   {
     name: "Purple Pearl Urethane 78D",
     brand: "Hammer",
     thumb: "/catalog/img/hammer-purple-pearl-urethane-78d-2026-p2-thumb.webp",
+    rates: ["40%", "36%", "15%", "78%"],
     est: 194,
     diff: -8
   }
 ];
 
+const ALLEY_HEADINGS = ["Strike", "After strike", "Splits", "Made"];
+
 /** What you would average with each ball at one alley, on one pair of lanes,
- *  as the Alley report lists it. */
+ *  with the rates behind it, as the Alley report lists it. */
 export function AlleySample() {
   return (
     <Sample>
@@ -160,22 +222,36 @@ export function AlleySample() {
         <span className="rounded-full border border-edge-strong bg-surface px-3 py-1 text-ink-strong">Lanes 11-12</span>
       </div>
       <div className="overflow-hidden rounded-[22px] bg-surface">
-        <div className="flex items-center gap-2 px-3.5 pb-1 pt-2 text-[9px] font-semibold uppercase text-ink-tertiary">
-          <span className="min-w-0 flex-1">Estimated average</span>
-          <span className="w-10 shrink-0 text-right">Est.</span>
+        <div className="flex items-end gap-1 px-3 pb-1 pt-2 text-[8px] font-semibold uppercase leading-tight text-ink-tertiary">
+          <span className="min-w-0 flex-1" />
+          {ALLEY_HEADINGS.map((h) => (
+            <span key={h} className="w-8 shrink-0 text-center">
+              {h}
+            </span>
+          ))}
+          <span className="w-9 shrink-0 text-right">Est.</span>
         </div>
         {ALLEY_BALLS.map((ball) => (
-          <div key={ball.name} className="flex items-center gap-2 border-t border-edge px-3.5 py-2 text-[13px]">
-            <span className="h-7 w-7 shrink-0">
-              <CatalogBallImage src={ball.thumb} alt="" brand={ball.brand} size="thumb" />
+          <div key={ball.name} className="flex items-center gap-1 border-t border-edge px-3 py-2 text-[12px]">
+            <span className="flex min-w-0 flex-1 items-center gap-1.5">
+              <span className="h-6 w-6 shrink-0">
+                <CatalogBallImage src={ball.thumb} alt="" brand={ball.brand} size="thumb" />
+              </span>
+              <span className="min-w-0 flex-1 truncate font-medium text-ink-strong">{ball.name}</span>
             </span>
-            <span className="min-w-0 flex-1 truncate font-medium text-ink-strong">{ball.name}</span>
-            <span
-              className={`shrink-0 text-xs tabular-nums ${ball.diff > 0 ? "text-success-700" : ball.diff < 0 ? "text-danger-700" : "text-ink-tertiary"}`}
-            >
-              {ball.diff > 0 ? `+${ball.diff}` : ball.diff < 0 ? `−${Math.abs(ball.diff)}` : "0"}
+            {ball.rates.map((rate, i) => (
+              <span key={i} className="w-8 shrink-0 text-center tabular-nums text-ink">
+                {rate}
+              </span>
+            ))}
+            <span className="w-9 shrink-0 text-right leading-tight">
+              <span className="block font-bold tabular-nums text-ink">~{ball.est}</span>
+              <span
+                className={`block text-[10px] tabular-nums ${ball.diff > 0 ? "text-success-700" : ball.diff < 0 ? "text-danger-700" : "text-ink-tertiary"}`}
+              >
+                {ball.diff > 0 ? `+${ball.diff}` : ball.diff < 0 ? `−${Math.abs(ball.diff)}` : "0"}
+              </span>
             </span>
-            <span className="w-10 shrink-0 text-right font-bold tabular-nums text-ink">~{ball.est}</span>
           </div>
         ))}
       </div>

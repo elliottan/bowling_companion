@@ -136,7 +136,7 @@ describe("the first ball", () => {
       "Pocket",
       "Carry",
       "Strike",
-      "Pins a ball",
+      "1st ball avg",
       "Strike on strike",
       "Strikes in a row"
     ]);
@@ -663,7 +663,7 @@ describe("the All balls sheet", () => {
 describe("first ball average", () => {
   it("sits on the first ball card, and can be plotted like the rest", () => {
     render(<Stats stats={STATS} leaves={[]} sessionMetrics={TREND} sessionTrend={SESSION_TREND} />);
-    expect(screen.getByText("Pins a ball").nextElementSibling).toHaveTextContent("8.4");
+    expect(screen.getByText("1st ball avg").nextElementSibling).toHaveTextContent("8.4");
     fireEvent.click(screen.getByRole("button", { name: "1st ball" }));
     expect(screen.getByRole("button", { name: "Sea Bowl, 8.9" })).toBeInTheDocument();
   });
@@ -675,7 +675,7 @@ describe("first ball average", () => {
 
   it("shows a dash when nothing has been thrown", () => {
     render(<Stats stats={{ ...STATS, firstBallAverage: null }} leaves={[]} />);
-    expect(screen.getByText("Pins a ball").nextElementSibling).toHaveTextContent("-");
+    expect(screen.getByText("1st ball avg").nextElementSibling).toHaveTextContent("-");
   });
 });
 

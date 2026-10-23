@@ -371,11 +371,6 @@ describe("the do-not-use band", () => {
     expect(inDoNotUseBand(3.375)).toBe(false);
   });
 
-  it("is not warned about: a layout in it reads like any other (ADR-204)", () => {
-    const warnings = readMotion({ ...BENCHMARK, pinToPap: 3 }, DEFAULT_ASYMMETRIC).warnings;
-    expect(warnings.some((w) => w.includes("thumb hole"))).toBe(false);
-  });
-
   // The band exists to keep the track off the thumb hole, so a grip with no
   // thumb hole has no band.
   it("does not apply to a two-handed grip", () => {
@@ -481,29 +476,8 @@ describe("motion reading", () => {
     }
   });
 
-  it("warns about a pin buffer too short to work with", () => {
-    const m = readMotion({ ...BENCHMARK, valAngle: 2 }, ball);
-    expect(m.warnings.some((w) => w.includes("pin buffer"))).toBe(true);
-  });
-
-  it("warns when the pin closes on the axis line", () => {
-    const m = readMotion({ ...BENCHMARK, pinToPap: 6 }, ball);
-    expect(m.warnings.some((w) => w.includes("5 1/2"))).toBe(true);
-  });
-
-  it("warns on an unreachable PAP measurement", () => {
-    const m = readMotion(BENCHMARK, ball, { over: 6, up: 4 });
-    expect(m.warnings.some((w) => w.includes("reachable axis"))).toBe(true);
-  });
-
-  it("notes that a symmetric ball's drilling angle only moves the CG", () => {
-    const m = readMotion({ ...BENCHMARK, drillingAngle: 10 }, DEFAULT_SYMMETRIC);
-    expect(m.warnings.some((w) => w.includes("only moves the CG"))).toBe(true);
-  });
-
-  it("leaves a benchmark layout clean", () => {
-    expect(readMotion(BENCHMARK, ball).warnings).toEqual([]);
-    expect(readMotion(BENCHMARK, ball, DEFAULT_PAP).flareInches).toBeGreaterThan(4);
+  it("reads a benchmark layout as high flare", () => {
+    expect(readMotion(BENCHMARK, ball).flareInches).toBeGreaterThan(4);
   });
 
   it("describes the three axes in the order the shot happens", () => {

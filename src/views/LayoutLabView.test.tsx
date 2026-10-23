@@ -225,7 +225,7 @@ describe("LayoutLabView", () => {
     fireEvent.change(slider(/VAL angle/i), { target: { value: "85" } });
     expect(screen.getByText(/arcs smoothly through the breakpoint/i)).toBeInTheDocument();
     fireEvent.change(slider(/VAL angle/i), { target: { value: "5" } });
-    expect(screen.getByText(/snaps hard off the friction/i)).toBeInTheDocument();
+    expect(screen.getByText(/snaps hard at the breakpoint/i)).toBeInTheDocument();
   });
 
   it("gets back to the benchmark through the presets, which is what reset meant", async () => {
@@ -336,7 +336,7 @@ describe("LayoutLabView", () => {
     // with its bars beside it, untitled, then the core and the numbers.
     expect(headings.slice(0, 3)).toEqual(["Layouts", "Core", "Layout"]);
     const bars = screen.getByRole("region", { name: "What it will do" });
-    expect(bars).toHaveTextContent(/Flare.*Reads the lane.*Off the friction.*Overall strength/);
+    expect(bars).toHaveTextContent(/Flare.*Reads the lane.*Response to friction.*Overall strength/);
     // Nothing pins the ball: the page is one scroll.
     expect(screen.getByRole("img", { name: /bowling ball/i }).closest(".sticky")).toBeNull();
   });
