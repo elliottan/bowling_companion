@@ -20,13 +20,11 @@ export const FREE_APP_PATH = "/app";
 export type PurchaseOutcome = "purchased" | "cancelled" | "pending";
 
 /**
- * Pro as the iOS app sells it (ADR-158): whether this Apple ID owns it, what it
- * costs in the bowler's own currency (null until the App Store answers), and
- * the two things a bowler can do about it.
+ * Pro as the iOS app sells it (ADR-158): whether this Apple ID owns it, and
+ * the two things a bowler can do about it. The app never shows its price.
  */
 export interface ProStore {
   owned: boolean;
-  price: string | null;
   buy(): Promise<PurchaseOutcome>;
   /** Asks the App Store again; true when this Apple ID owns Pro. */
   restore(): Promise<boolean>;

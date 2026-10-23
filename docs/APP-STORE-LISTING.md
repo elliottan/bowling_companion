@@ -128,8 +128,9 @@ to upload; `plain/` is the same ten screens with no caption, for a listing or a
 press kit that wants the bare app. The script drives the app at the 6.9 inch
 size with the phone's safe areas, and tells the page it is inside the iPhone
 app, so every screen carries the app's copy, not the web's. The store answers
-at the US price, so a locked card shows its preview marked Pro, and the Get
-Headpin Pro button reads "$9.99", as a free download sees them.
+at the US price, so a locked card shows its preview marked Pro, as a free
+download sees it. The app shows no price of its own: Apple's purchase sheet
+names it.
 
 One idea per screenshot, a headline and one line under it, in the app's voice.
 The app's theme is light for the scorer, stats, layout and Home, and dark for

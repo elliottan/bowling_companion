@@ -10,7 +10,6 @@ function memoryStorage(initial: Record<string, string> = {}) {
 function fakePlugin(over: Partial<StorePlugin> = {}) {
   let listener: ((d: { ids: string[] }) => void) | undefined;
   const plugin: StorePlugin = {
-    product: vi.fn(async () => ({ id: PRO_PRODUCT_ID, price: "$9.99" })),
     purchase: vi.fn(async () => ({ status: "purchased" as const })),
     entitlements: vi.fn(async () => ({ ids: [] as string[] })),
     restore: vi.fn(async () => ({ ids: [PRO_PRODUCT_ID] })),
@@ -39,10 +38,10 @@ describe("useProStore", () => {
     expect(result.current).toBeNull();
   });
 
-  it("asks the App Store who owns Pro and what it costs", async () => {
-    const { load } = fakePlugin();
+  it("asks the App Store who owns Pro", async () => {
+    const { plugin, load } = fakePlugin();
     const { result } = renderHook(() => useProStore(true, load, memoryStorage()));
-    await waitFor(() => expect(result.current?.price).toBe("$9.99"));
+    await waitFor(() => expect(plugin.entitlements).toHaveBeenCalled());
     expect(result.current?.owned).toBe(false);
   });
 
@@ -53,10 +52,10 @@ describe("useProStore", () => {
   });
 
   it("opens Pro once it is bought, and remembers it", async () => {
-    const { load } = fakePlugin();
+    const { plugin, load } = fakePlugin();
     const storage = memoryStorage();
     const { result } = renderHook(() => useProStore(true, load, storage));
-    await waitFor(() => expect(result.current?.price).toBe("$9.99"));
+    await waitFor(() => expect(plugin.entitlements).toHaveBeenCalled());
     await act(async () => {
       expect(await result.current!.buy()).toBe("purchased");
     });
@@ -83,10 +82,10 @@ describe("useProStore", () => {
   });
 
   it("follows a purchase that finishes away from the tap, or a refund", async () => {
-    const { load, emit } = fakePlugin();
+    const { plugin, load, emit } = fakePlugin();
     const storage = memoryStorage();
     const { result } = renderHook(() => useProStore(true, load, storage));
-    await waitFor(() => expect(result.current?.price).toBe("$9.99"));
+    await waitFor(() => expect(plugin.entitlements).toHaveBeenCalled());
     act(() => emit([PRO_PRODUCT_ID]));
     expect(result.current?.owned).toBe(true);
     act(() => emit([]));

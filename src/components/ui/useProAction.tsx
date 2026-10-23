@@ -4,7 +4,7 @@ import { openAppStore, type LockedProAccess } from "../../lib/pro";
 import { useProOffer } from "../../lib/proOffer";
 
 export interface ProAction {
-  /** What the button says: the purchase with its price, or "Get the app". */
+  /** What the button says: the purchase, or "Get the app". */
   label: string;
   busy: boolean;
   /** Nowhere to send the bowler yet: the free web before the app is listed
@@ -68,7 +68,7 @@ export function useProAction(access: LockedProAccess): ProAction {
     }
   }
   return {
-    label: store.price ? `Get Headpin Pro, ${store.price}` : "Get Headpin Pro",
+    label: "Get Headpin Pro",
     busy: state === "busy",
     note:
       state === "pending"

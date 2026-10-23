@@ -78,10 +78,10 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
         paintBackground(HeadpinViewController.launchBackground)
         // The page says what its background is, and again when its theme changes.
         let content = webView.configuration.userContentController
-        content.add(BackgroundMessageHandler { [weak self] css in
+        content.add(BackgroundMessageHandler { [weak self] css, followsPhone in
             guard let color = HeadpinViewController.color(fromCSS: css) else { return }
             self?.paintBackground(color)
-            self?.followTheme(of: color)
+            self?.followTheme(of: color, followsPhone: followsPhone)
         }, name: "headpinBackground")
         content.addUserScript(WKUserScript(
             source: HeadpinViewController.backgroundScript,
@@ -103,18 +103,23 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
             : UIColor(red: 255 / 255, green: 248 / 255, blue: 237 / 255, alpha: 1)
     }
 
-    /// Reports the page's background color, now and whenever its theme changes.
+    /// Reports the page's background color, now and whenever its theme changes,
+    /// and whether the bowler left the theme on System (no "theme" stored).
     /// `--color-surface-sunken` is the app's background in both themes, and is
     /// set before the first paint, so a poll for the first few seconds only
     /// covers the stylesheet arriving late.
     private static let backgroundScript = """
     (function () {
       var last = "";
+      function followsPhone() {
+        try { return !localStorage.getItem("theme"); } catch (e) { return true; }
+      }
       function post() {
         var v = getComputedStyle(document.documentElement).getPropertyValue("--color-surface-sunken").trim();
-        if (!v || v === last) return;
-        last = v;
-        window.webkit.messageHandlers.headpinBackground.postMessage("rgb(" + v.replace(/ +/g, ",") + ")");
+        var phone = followsPhone();
+        if (!v || v + phone === last) return;
+        last = v + phone;
+        window.webkit.messageHandlers.headpinBackground.postMessage({ color: "rgb(" + v.replace(/ +/g, ",") + ")", followsPhone: phone });
       }
       post();
       new MutationObserver(post).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -140,11 +145,16 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
     /// clock, the keyboard, the share sheet, the App Store's purchase sheet and
     /// any alert. Read from the page's own background, which the page already
     /// reports, so there is no second message to keep in step.
-    private func followTheme(of background: UIColor) {
+    ///
+    /// On System the window holds no theme of its own. The web view reads the
+    /// phone's setting through the window, so a window still held to Light
+    /// after the bowler went back to System told the page the phone was light,
+    /// and the page stayed light on a dark phone.
+    private func followTheme(of background: UIColor, followsPhone: Bool) {
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
         guard background.getRed(&red, green: &green, blue: &blue, alpha: &alpha) else { return }
         let luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue
-        let style: UIUserInterfaceStyle = luminance < 0.5 ? .dark : .light
+        let style: UIUserInterfaceStyle = followsPhone ? .unspecified : luminance < 0.5 ? .dark : .light
         guard let window = view.window, window.overrideUserInterfaceStyle != style else { return }
         window.overrideUserInterfaceStyle = style
         setNeedsStatusBarAppearanceUpdate()
@@ -164,14 +174,31 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
     }
 
     @objc private func edgeSwiped(_ gesture: UIScreenEdgePanGestureRecognizer) {
-        guard gesture.state == .ended, let view = gesture.view else { return }
-        // A pull far enough, or quick enough, to mean it; a graze is not back.
+        guard let view = gesture.view else { return }
         let distance = gesture.translation(in: view).x
-        let speed = gesture.velocity(in: view).x
-        guard distance > 60 || speed > 500 else { return }
-        // The page slides its screen out and then steps history back, as its own
-        // chevron does; a bare `history.back()` unmounted the screen with no motion.
-        webView?.evaluateJavaScript("window.dispatchEvent(new Event('headpin:back'))", completionHandler: nil)
+        switch gesture.state {
+        case .began, .changed:
+            // The screen in front follows the finger, as a native pop does.
+            let x = max(0, distance)
+            webView?.evaluateJavaScript(
+                "window.dispatchEvent(new CustomEvent('headpin:back-drag', { detail: \(x) }))",
+                completionHandler: nil
+            )
+        case .ended:
+            // Past halfway, or flicked toward the trailing edge, means back; a
+            // graze, or a pull carried back toward the edge, is not.
+            let speed = gesture.velocity(in: view).x
+            let back = speed > 500 || (distance > view.bounds.width / 2 && speed > -100)
+            // The page slides its screen out from where the finger left it and
+            // then steps history back, as its own chevron does; a bare
+            // `history.back()` unmounted the screen with no motion.
+            let event = back ? "headpin:back" : "headpin:back-cancel"
+            webView?.evaluateJavaScript("window.dispatchEvent(new Event('\(event)'))", completionHandler: nil)
+        case .cancelled, .failed:
+            webView?.evaluateJavaScript("window.dispatchEvent(new Event('headpin:back-cancel'))", completionHandler: nil)
+        default:
+            break
+        }
     }
 
     // The page's own scrolling and taps keep working alongside the edge pan.
@@ -184,13 +211,14 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
 /// handlers, so a handler that held the view controller back would keep both
 /// alive; the closure holds it weakly instead.
 private final class BackgroundMessageHandler: NSObject, WKScriptMessageHandler {
-    private let onColor: (String) -> Void
+    private let onColor: (String, Bool) -> Void
 
-    init(_ onColor: @escaping (String) -> Void) {
+    init(_ onColor: @escaping (String, Bool) -> Void) {
         self.onColor = onColor
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        if let css = message.body as? String { onColor(css) }
+        guard let body = message.body as? [String: Any], let css = body["color"] as? String else { return }
+        onColor(css, body["followsPhone"] as? Bool ?? true)
     }
 }

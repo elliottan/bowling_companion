@@ -18,7 +18,6 @@ export const PRO_PRODUCT_ID = "app.headpin.pro";
 const OWNED_KEY = "headpin.proOwned";
 
 export interface StorePlugin {
-  product(options: { id: string }): Promise<{ id?: string; name?: string; price?: string }>;
   purchase(options: { id: string }): Promise<{ status: PurchaseOutcome }>;
   entitlements(): Promise<{ ids: string[] }>;
   restore(): Promise<{ ids: string[] }>;
@@ -66,7 +65,6 @@ export function useProStore(
   storage: Pick<Storage, "getItem" | "setItem"> | null = localStorageOrNull()
 ): ProStore | null {
   const [owned, setOwned] = useState(() => storage?.getItem(OWNED_KEY) === "1");
-  const [price, setPrice] = useState<string | null>(null);
   const storageRef = useRef(storage);
   // Set once a purchase, a restore or the store's own news has answered, so
   // the launch's first ask, if it lands later, cannot put an older answer back.
@@ -95,10 +93,8 @@ export function useProStore(
         });
         remove = () => void handle.remove();
         if (!alive) remove();
-        const [entitled, product] = await Promise.allSettled([store.entitlements(), store.product({ id: PRO_PRODUCT_ID })]);
-        if (!alive) return;
-        if (entitled.status === "fulfilled" && !answered.current) record(entitled.value.ids);
-        if (product.status === "fulfilled") setPrice(product.value.price ?? null);
+        const { ids } = await store.entitlements();
+        if (alive && !answered.current) record(ids);
       })
       .catch(() => {
         // No store to ask (an old build): the last answer stands.
@@ -113,7 +109,6 @@ export function useProStore(
     if (!enabled) return null;
     return {
       owned,
-      price,
       async buy() {
         const { status } = await (await plugin()).purchase({ id: PRO_PRODUCT_ID });
         if (status === "purchased") record([PRO_PRODUCT_ID]);
@@ -124,5 +119,5 @@ export function useProStore(
         return record(ids);
       }
     };
-  }, [enabled, owned, price, plugin, record]);
+  }, [enabled, owned, plugin, record]);
 }

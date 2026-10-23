@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.66.0: Back swipe follows your finger on iPhone (2026-10-24)
+
+- **On iPhone, swiping back from the left edge moves the screen with your
+  finger**, as other iPhone apps do. Let go past halfway, or flick, and it goes
+  back; let go short and it slides back into place.
+- **System theme follows the phone again on iPhone.** Picking Light and then
+  System left the app light on a dark phone.
+- **Headpin Pro shows no price in the app.** The buttons say "Get Headpin Pro",
+  and Apple's purchase sheet names the price.
+
 ## 0.65.0: The line visualizer is a normal screen, and Layouts is tighter (2026-10-23)
 
 - **The line visualizer slides in and out like every other screen**, with a

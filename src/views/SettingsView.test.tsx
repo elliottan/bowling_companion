@@ -256,17 +256,17 @@ describe("SettingsView's Headpin Pro", () => {
     );
   }
 
-  const base: ProStore = { owned: false, price: "$9.99", buy: async () => "cancelled", restore: async () => false };
+  const base: ProStore = { owned: false, buy: async () => "cancelled", restore: async () => false };
 
   it("is not there on the web, where Pro is not sold", () => {
     renderWithStore(null);
     expect(screen.queryByText("Restore purchase")).not.toBeInTheDocument();
   });
 
-  it("offers Pro at its price, and buys it", async () => {
+  it("offers Pro without a price, and buys it", async () => {
     const buy = vi.fn(async () => "purchased" as const);
     renderWithStore({ ...base, buy });
-    expect(screen.getByText("$9.99, once: every analysis, and every one added later")).toBeInTheDocument();
+    expect(screen.getByText("One purchase: every analysis, and every one added later")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Get Headpin Pro/ }));
     await waitFor(() => expect(buy).toHaveBeenCalledTimes(1));
   });
@@ -397,7 +397,7 @@ describe("SettingsView's Headpin Pro", () => {
       const openOffer = vi.fn();
       const buy = vi.fn(async () => "purchased" as const);
       render(
-        <ProStoreContext.Provider value={{ owned: false, price: "$9.99", buy, restore: async () => false }}>
+        <ProStoreContext.Provider value={{ owned: false, buy, restore: async () => false }}>
           <ProOfferContext.Provider value={openOffer}>
             <SettingsView
               section="menu"

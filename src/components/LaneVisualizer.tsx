@@ -152,7 +152,6 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   useEffect(() => {
     closeRef.current = close;
   }, [close]);
-  useEffect(() => (pushed ? registerPushExit(() => closeRef.current()) : undefined), [pushed]);
   // Nothing here is written back to settings: mirroring the lane to see how the
   // other hand plays it is a question being asked, not the bowler changing hands
   // (the layout lab's rule, ADR-108). Resets on close with the component.
@@ -214,6 +213,12 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     close,
     !optionsOpen && !movesOpen && card == null && !suspended,
     !pushed
+  );
+  // The iPhone app's edge swipe moves a pushed lane with the finger, then
+  // leaves through the same slide.
+  useEffect(
+    () => (pushed ? registerPushExit(() => closeRef.current(), () => overlayRef.current) : undefined),
+    [pushed, overlayRef]
   );
 
   function toggleLock(key: string) {

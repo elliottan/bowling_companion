@@ -181,20 +181,15 @@ describe("ProVeil", () => {
 });
 
 describe("Pro in the iOS app", () => {
-  function storeWith(buy: ProStore["buy"], price: string | null = "$9.99"): ProStore {
-    return { owned: false, price, buy, restore: async () => false };
+  function storeWith(buy: ProStore["buy"]): ProStore {
+    return { owned: false, buy, restore: async () => false };
   }
 
-  it("offers the purchase at the App Store's own price", async () => {
+  it("offers the purchase without a price", async () => {
     const buy = vi.fn(async () => "purchased" as const);
     renderLock({ locked: true, store: storeWith(buy) });
-    fireEvent.click(screen.getByRole("button", { name: "How each ball strikes. Get Headpin Pro, $9.99" }));
+    fireEvent.click(screen.getByRole("button", { name: "How each ball strikes. Get Headpin Pro" }));
     await waitFor(() => expect(buy).toHaveBeenCalledTimes(1));
-  });
-
-  it("names the purchase without a price until the store answers", () => {
-    renderLock({ locked: true, store: storeWith(async () => "cancelled", null) });
-    expect(screen.getByRole("button", { name: "How each ball strikes. Get Headpin Pro" })).toBeInTheDocument();
   });
 
   it("says when a purchase is waiting on approval", async () => {
@@ -215,13 +210,13 @@ describe("Pro in the iOS app", () => {
     expect(screen.getByRole("button", { name: /Get Headpin Pro/ })).toBeEnabled();
   });
 
-  it("puts the purchase in the banner as a button with the price", () => {
+  it("puts the purchase in the banner as a button", () => {
     render(
       <ProAccessContext.Provider value={{ locked: true, store: storeWith(async () => "cancelled") }}>
         <ProBanner what="Charts for every stat" />
       </ProAccessContext.Provider>
     );
-    expect(screen.getByRole("button", { name: "Get Headpin Pro, $9.99" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Get Headpin Pro" })).toBeInTheDocument();
   });
 });
 
@@ -229,7 +224,7 @@ describe("with the Pro page available (ADR-164)", () => {
   it("opens the page from a teaser, a banner, a blurred row and blurred controls, and charges nothing there", () => {
     const openOffer = vi.fn();
     const buy = vi.fn(async () => "purchased" as const);
-    const access = { locked: true as const, store: { owned: false, price: "$9.99", buy, restore: async () => false } };
+    const access = { locked: true as const, store: { owned: false, buy, restore: async () => false } };
     render(
       <ProAccessContext.Provider value={access}>
         <ProOfferContext.Provider value={openOffer}>
@@ -246,10 +241,10 @@ describe("with the Pro page available (ADR-164)", () => {
         </ProOfferContext.Provider>
       </ProAccessContext.Provider>
     );
-    fireEvent.click(screen.getByRole("button", { name: "How each ball strikes. Get Headpin Pro, $9.99" }));
-    fireEvent.click(screen.getByRole("button", { name: "Get Headpin Pro, $9.99" }));
-    fireEvent.click(screen.getByRole("button", { name: "Every ball. Get Headpin Pro, $9.99" }));
-    fireEvent.click(screen.getByRole("button", { name: "Moving the line. Get Headpin Pro, $9.99" }));
+    fireEvent.click(screen.getByRole("button", { name: "How each ball strikes. Get Headpin Pro" }));
+    fireEvent.click(screen.getByRole("button", { name: "Get Headpin Pro" }));
+    fireEvent.click(screen.getByRole("button", { name: "Every ball. Get Headpin Pro" }));
+    fireEvent.click(screen.getByRole("button", { name: "Moving the line. Get Headpin Pro" }));
     expect(openOffer).toHaveBeenCalledTimes(4);
     expect(buy).not.toHaveBeenCalled();
   });

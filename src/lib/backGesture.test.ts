@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { registerPushExit, swipeBack } from "./backGesture";
+import { cancelBack, dragBack, registerPushExit, swipeBack } from "./backGesture";
 import { registerSheet } from "./sheetBackStack";
 
 describe("swipeBack", () => {
@@ -39,6 +39,62 @@ describe("swipeBack", () => {
     expect(push).not.toHaveBeenCalled();
     expect(back).toHaveBeenCalledTimes(1);
 
+    offSheet();
+    offPush();
+  });
+});
+
+describe("dragBack", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  function panel() {
+    const el = document.createElement("div");
+    el.style.transition = "transform 280ms ease";
+    return el;
+  }
+
+  it("moves the screen in front with the finger, with no lag", () => {
+    const front = panel();
+    const off = registerPushExit(vi.fn(), () => front);
+    dragBack(120);
+    expect(front.style.transform).toBe("translateX(120px)");
+    expect(front.style.transition).toBe("none");
+    dragBack(-20);
+    expect(front.style.transform).toBe("translateX(0px)");
+    cancelBack();
+    off();
+  });
+
+  it("slides back to rest when let go short", () => {
+    const front = panel();
+    const off = registerPushExit(vi.fn(), () => front);
+    dragBack(80);
+    cancelBack();
+    expect(front.style.transform).toBe("");
+    expect(front.style.transition).toBe("transform 280ms ease");
+    off();
+  });
+
+  it("hands the slide back before the screen leaves from where it was let go", () => {
+    vi.spyOn(window.history, "back").mockImplementation(() => {});
+    const front = panel();
+    const exit = vi.fn(() => {
+      expect(front.style.transition).toBe("transform 280ms ease");
+      expect(front.style.transform).toBe("translateX(200px)");
+    });
+    const off = registerPushExit(exit, () => front);
+    dragBack(200);
+    swipeBack();
+    expect(exit).toHaveBeenCalledTimes(1);
+    off();
+  });
+
+  it("leaves a pushed screen alone while a sheet is in front of it", () => {
+    const front = panel();
+    const offPush = registerPushExit(vi.fn(), () => front);
+    const offSheet = registerSheet({ close: vi.fn() });
+    dragBack(100);
+    expect(front.style.transform).toBe("");
     offSheet();
     offPush();
   });
