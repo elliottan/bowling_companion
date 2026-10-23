@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.62.1: Layouts tidy-up and a clearer Pro page (2026-10-23)
+## 0.63.0: Layouts tidy-up and a clearer Pro page (2026-10-23)
 
 - **Flare drops its number.** The bar says low to high; the inch figure
   raised more questions than it answered.
@@ -27,6 +27,11 @@ had all shipped.
 - **"Your alleys" is now "Estimated average"** on the Pro page, and its
   picture shows the strike, after strike, splits and made columns.
 - **"Pins a ball" is now "1st ball avg"** on Stats.
+
+## 0.62.1: The landing page shows Pro (2026-10-23)
+
+- **The landing page's pictures show the app with Pro.** Stats, the layout lab
+  and the lane view appear as a bowler with Pro sees them, with no locks.
 
 ## 0.62.0: Every leave free, a calmer Stats screen, and any ball's layout (2026-10-22)
 
