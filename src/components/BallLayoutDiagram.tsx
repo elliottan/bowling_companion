@@ -97,6 +97,13 @@ interface BallLayoutDiagramProps {
    * drilled around it.
    */
   grip?: GripStyle;
+  /**
+   * Drawing units trimmed off every side of the square, for a ball that has to
+   * be big in a narrow box. The full square keeps a wide margin round the ball
+   * for labels; cropped, the labels flip inward at the new edge instead, so the
+   * same width of screen draws a bigger ball.
+   */
+  crop?: number;
   className?: string;
 }
 
@@ -136,6 +143,7 @@ export function BallLayoutDiagram({
   onOrientationChange,
   hand = "right",
   grip = "1h",
+  crop = 0,
   className = ""
 }: BallLayoutDiagramProps) {
   const geometry = useMemo(() => layoutGeometry(layout, ball, pap, hand), [layout, ball, pap, hand]);
@@ -274,7 +282,8 @@ export function BallLayoutDiagram({
   return (
     <svg
       ref={svgRef}
-      viewBox={`0 0 ${SIZE} ${SIZE}`}
+      viewBox={`${crop} ${crop} ${SIZE - 2 * crop} ${SIZE - 2 * crop}`}
+      overflow="visible"
       className={`w-full touch-none select-none ${dragging ? "cursor-grabbing" : "cursor-grab"} ${className}`}
       role="img"
       tabIndex={0}
@@ -495,7 +504,7 @@ export function BallLayoutDiagram({
             <Marker shape={mark.shape} x={q.x} y={q.y} color={mark.color} />
             {q.front && q.facing > 0.25 && (
               <text
-                {...labelAnchor(q.x, q.y)}
+                {...labelAnchor(q.x, q.y, crop)}
                 fill={mark.color}
                 fontSize="11"
                 fontWeight="700"
@@ -706,11 +715,15 @@ function AngleArc({
  * measurement. So it starts outward and flips inward at the edge rather than
  * being clipped.
  */
-function labelAnchor(x: number, y: number): { x: number; y: number; textAnchor: "start" | "end" } {
+function labelAnchor(
+  x: number,
+  y: number,
+  crop = 0
+): { x: number; y: number; textAnchor: "start" | "end" } {
   const outward = x >= CENTER;
   const gutter = 36;
-  if (outward && x + gutter > SIZE) return { x: x - 11, y: y - 9, textAnchor: "end" };
-  if (!outward && x - gutter < 0) return { x: x + 11, y: y - 9, textAnchor: "start" };
+  if (outward && x + gutter > SIZE - crop) return { x: x - 11, y: y - 9, textAnchor: "end" };
+  if (!outward && x - gutter < crop) return { x: x + 11, y: y - 9, textAnchor: "start" };
   return outward
     ? { x: x + 11, y: y - 9, textAnchor: "start" }
     : { x: x - 11, y: y - 9, textAnchor: "end" };

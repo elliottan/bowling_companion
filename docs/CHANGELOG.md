@@ -9,6 +9,28 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.64.0: The layout lab on one screen (2026-10-23)
+
+- **The ball and what it will do sit side by side again, without shrinking
+  the ball.** The drawing is cropped to the ball, and the four bars are a
+  narrow rail beside it: Flare, Length, Backend and Strength, each with its
+  reading in a word (ADR-209).
+- **Asym and Sym sit at the end of the Dual angle and Storm VLS row**, which
+  keeps its numbers. Your PAP, hand and grip stay under More.
+- **Without Pro, each slider shows its lock on the thumb itself** rather
+  than one lock above the sliders: the layout sliders and the lane view's
+  Hook start and Hook length. The lane view's laydown, target and final are
+  no longer blurred; each has a small lock, with its number still readable.
+- **The ball, the bars, the toggles and the sliders fit on one phone screen**,
+  so moving a slider or flipping a toggle changes the ball and the bars in
+  view.
+- **The layout share picture is mostly ball.** A bigger ball with its labels
+  in the app's typeface, the numbers drawn the way the app draws them, the
+  core as Asym or Sym, and the four readings as small bars in place of the
+  sentence.
+- **The Pro page and the landing page show the new Layouts screen**, and the
+  landing page's Stats picture says "1st ball avg".
+
 ## 0.63.0: Layouts tidy-up and a clearer Pro page (2026-10-23)
 
 - **Flare drops its number.** The bar says low to high; the inch figure

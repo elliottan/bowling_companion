@@ -1,6 +1,6 @@
 import { IconButton } from "./ui/IconButton";
 import { Check, ChevronLeft, ChevronRight, Lock, Minus, MoveHorizontal, Plus, SlidersHorizontal, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
 import { HandednessContext, useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
@@ -102,7 +102,8 @@ interface LaneVisualizerProps {
    *  device, so its own id is enough. */
   seedPatternId?: number;
   /** Read-only because moving the line is Pro, not because there is nothing
-   *  to move (ADR-167). The peg fields stay in their place, blurred, under one
+   *  to move (ADR-167). The peg fields stay in their place, each with a small
+   *  lock (ADR-209), under one
    *  tap to the Pro page, and each point on the lane carries a lock. The Pro
    *  page opens above the lane (ADR-175), so the lane stays as it is under it.
    *  Ignored while `onChange` is set. */
@@ -477,7 +478,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     (line?.final_board !== snapBoard(spareAim.board) ||
       (line?.final_distance ?? LANE_FEET) !== Math.round(spareAim.feet * 10) / 10);
 
-  // The peg fields show to move the line, and, blurred, where moving it is Pro.
+  // The peg fields show to move the line, and, locked, where moving it is Pro.
   const showPegs = onChange != null || editLocked === true;
   const pegRow = "flex flex-col gap-2";
   // The fields' column sits away from the line: a right-hander's runs down the
@@ -707,7 +708,8 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             where the keyboard that opens to type in them covered them
             (ADR-202). The strike line's three, or the spare line's with its
             final depth (no breakpoint), and how to move the line under them.
-            Without Pro they stay where they are, blurred, and are the way to it
+            Without Pro they stay where they are, each with a small lock
+            (ADR-209), and are the way to it
             (ADR-167). */}
         {showPegs && (
           <div
@@ -750,9 +752,12 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
                 </div>
               </div>
             ) : (
-              // The lock alone, which says enough on a column of fields.
-              <ProVeil lane what="Moving the line">
-                <div className={pegRow}>{pegFields}</div>
+              // Unblurred, each number still readable, with a small lock on
+              // each field rather than one over the column (ADR-209).
+              <ProVeil lane clear bare what="Moving the line">
+                <ProBadged.Provider value={true}>
+                  <div className={pegRow}>{pegFields}</div>
+                </ProBadged.Provider>
               </ProVeil>
             )}
             {/* One instruction to a line, in a column this narrow. */}
@@ -1027,16 +1032,20 @@ function OptionsSheet({
         {(editable || proLocked) && (
           <>
             <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-white/60">Hook shape</h4>
-            <ProVeil lane what="Changing the hook shape">
+            {/* Unblurred, with a lock on each slider's thumb rather than one
+                over the pair (ADR-209). */}
+            <ProVeil lane clear bare what="Changing the hook shape">
               <Slider
                 label="Hook start" suffix="ft" min={startMin} max={startMax} step={1}
                 value={clamp(dS, startMin, startMax)}
+                locked={proLocked}
                 // Inert under the veil, and moving nothing past it (ADR-190).
                 onChange={(v) => editable && onChange({ hook_start_distance: v })}
               />
               <Slider
                 label="Hook length" suffix="ft" min={4} max={lenMax} step={1}
                 value={clamp(line?.hook_length ?? HOOK_LENGTH_FT, 4, lenMax)}
+                locked={proLocked}
                 onChange={(v) => editable && onChange({ hook_length: v })}
               />
             </ProVeil>
@@ -1047,8 +1056,12 @@ function OptionsSheet({
   );
 }
 
+/** Set around fields that are out of reach without Pro, so each draws its own
+ *  small lock rather than the column wearing one (ADR-209). */
+const ProBadged = createContext(false);
+
 function Slider({
-  label, suffix, min, max, step, value, onChange,
+  label, suffix, min, max, step, value, onChange, locked = false,
 }: {
   label: string;
   suffix: string;
@@ -1057,6 +1070,8 @@ function Slider({
   step: number;
   value: number;
   onChange: (v: number) => void;
+  /** Out of reach without Pro: the thumb is drawn as a lock, where it sits. */
+  locked?: boolean;
 }) {
   return (
     <label className="mb-3 block py-1">
@@ -1064,15 +1079,40 @@ function Slider({
         <span>{label}</span>
         <span className="tabular-nums text-white/90">{Math.round(value)} {suffix}</span>
       </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="h-8 w-full cursor-pointer accent-accent-fill"
-      />
+      {locked ? (
+        // The platform thumb cannot be hidden, and its size differs between
+        // browsers, so a locked slider draws its own track with a 20px thumb
+        // left invisible, and the lock sits exactly where that thumb is.
+        <div className="relative">
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={value}
+            onChange={(e) => onChange(Number(e.target.value))}
+            className="block h-8 w-full appearance-none bg-transparent [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:opacity-0 [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-white/25 [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-white/25 [&::-webkit-slider-thumb]:-mt-1.5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:opacity-0"
+          />
+          <span
+            data-slider-lock=""
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 border-slate-900 bg-accent-fill text-accent-on-fill shadow"
+            style={{ left: `calc(${Math.min(1, Math.max(0, (value - min) / (max - min || 1)))} * (100% - 20px) - 2px)` }}
+          >
+            <Lock size={11} aria-hidden="true" />
+          </span>
+        </div>
+      ) : (
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="h-8 w-full cursor-pointer accent-accent-fill"
+        />
+      )}
       <div className="flex justify-between text-[11px] tabular-nums text-white/40">
         <span>{min} {suffix}</span>
         <span>{max} {suffix}</span>
@@ -1101,6 +1141,7 @@ function StepperField({
   onCommit: (v: number) => void;
 }) {
   const hand = useHandedness();
+  const proBadged = useContext(ProBadged);
   const dir = hand === "right" ? 1 : -1; // ◀ raises the board for a right-hander
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? (value != null ? String(value) : "");
@@ -1121,6 +1162,18 @@ function StepperField({
         {locked && <Lock size={9} aria-hidden="true" />}
         {label}
       </span>
+      <div className="relative">
+      {/* Out of reach without Pro: a small lock on the box, the number still
+          read in full under it (ADR-209). */}
+      {proBadged && (
+        <span
+          data-field-lock=""
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-1.5 -top-1.5 z-10 flex h-4 w-4 items-center justify-center rounded-full border border-slate-900 bg-accent-fill text-accent-on-fill"
+        >
+          <Lock size={8} aria-hidden="true" />
+        </span>
+      )}
       <div
         className={`flex h-9 items-stretch overflow-hidden rounded-md border bg-white/10 ${
           locked ? "border-dashed border-white/40" : "border-white/20"
@@ -1154,6 +1207,7 @@ function StepperField({
         >
           {lateral ? <ChevronRight size={11} aria-hidden="true" /> : <Plus size={11} aria-hidden="true" />}
         </button>
+      </div>
       </div>
     </div>
   );

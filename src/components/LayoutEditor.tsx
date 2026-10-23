@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { Info, X } from "lucide-react";
+import { Info, Lock, X } from "lucide-react";
 import { IconButton } from "./ui/IconButton";
 import { ProVeil } from "./ui/ProLock";
 import { useProAccess } from "../lib/useProAccess";
@@ -37,7 +37,8 @@ export function LayoutEditor({
   system,
   onSystemChange,
   idPrefix = "layout",
-  proNumbers = false
+  proNumbers = false,
+  beside
 }: {
   layout: DualAngleLayout;
   onChange: (layout: DualAngleLayout) => void;
@@ -52,6 +53,10 @@ export function LayoutEditor({
    *  them stays free. The ball form leaves this off, since writing down a
    *  ball's own layout is recording it. */
   proNumbers?: boolean;
+  /** A narrow control that rides at the end of the notation row, as the core
+   *  type does in the lab (ADR-209): it changes what the numbers mean, so it
+   *  sits with them rather than in a band of its own. */
+  beside?: ReactNode;
 }) {
   const vls = toVls(layout, ball);
   // The sliders under the veil are inert, but still there: with the veil taken
@@ -99,19 +104,22 @@ export function LayoutEditor({
           notations are one layout, so the boxes showing that layout in both are
           exactly the right thing to tap. One row instead of two, and nothing is
           hidden to get it. */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className={`grid gap-2 ${beside ? "grid-cols-[1fr_1fr_auto]" : "grid-cols-2"}`}>
         <SystemCard
           label="Dual angle"
           value={formatDualAngle(layout)}
           selected={system === "dual"}
           onClick={() => onSystemChange("dual")}
+          compact={beside != null}
         />
         <SystemCard
           label="Storm VLS"
           value={formatVls(vls)}
           selected={system === "vls"}
           onClick={() => onSystemChange("vls")}
+          compact={beside != null}
         />
+        {beside}
       </div>
 
       <NumbersVeil on={proNumbers}>
@@ -119,6 +127,7 @@ export function LayoutEditor({
         <div className="space-y-0.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
           <Slider
             idPrefix={idPrefix}
+            locked={frozen}
             label="Drilling angle"
             hint="At the pin, to the CG or PSA. Low rolls early, high rolls late."
             value={layout.drillingAngle}
@@ -130,6 +139,7 @@ export function LayoutEditor({
           />
           <Slider
             idPrefix={idPrefix}
+            locked={frozen}
             label="Pin to PAP"
             hint="Sets the flare. Peaks around 4 inches and falls away either side."
             value={layout.pinToPap}
@@ -141,6 +151,7 @@ export function LayoutEditor({
           />
           <Slider
             idPrefix={idPrefix}
+            locked={frozen}
             label="VAL angle"
             hint="At the PAP, to the axis line. Low is pin up and sharp, high is pin down and smooth."
             value={layout.valAngle}
@@ -155,6 +166,7 @@ export function LayoutEditor({
         <div className="space-y-0.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
           <Slider
             idPrefix={idPrefix}
+            locked={frozen}
             label="Pin to PAP"
             hint="The same first number in both systems."
             value={vls.pinToPap}
@@ -169,6 +181,7 @@ export function LayoutEditor({
           {vls.psaToPap != null && (
             <Slider
               idPrefix={idPrefix}
+              locked={frozen}
               label="PSA to PAP"
               hint="How fast the ball sheds side roll. This is the drilling angle, written as a distance."
               value={vls.psaToPap}
@@ -181,6 +194,7 @@ export function LayoutEditor({
           )}
           <Slider
             idPrefix={idPrefix}
+            locked={frozen}
             label="Pin buffer"
             hint="Pin to the axis line. Short reads smooth and early, long is stronger off the friction."
             value={vls.pinBuffer}
@@ -197,12 +211,16 @@ export function LayoutEditor({
   );
 }
 
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
 /** The sliders under a Pro veil, or as they are. */
 function NumbersVeil({ on, children }: { on: boolean; children: ReactNode }) {
   if (!on) return <>{children}</>;
   return (
-    // As they are, unfaded, and still: the lock alone says why (ADR-203).
-    <ProVeil clear top what="Changing the layout">
+    // As they are, unfaded, and still, with each thumb drawn as a lock: the
+    // lock sits on the thing that will not move rather than over the card
+    // (ADR-209). The whole card is still the one tap.
+    <ProVeil clear bare what="Changing the layout">
       {children}
     </ProVeil>
   );
@@ -225,7 +243,8 @@ export function Slider({
   step,
   unit,
   onChange,
-  idPrefix = "layout"
+  idPrefix = "layout",
+  locked = false
 }: {
   label: string;
   hint: string;
@@ -236,6 +255,8 @@ export function Slider({
   unit: "deg" | "in";
   onChange: (value: number) => void;
   idPrefix?: string;
+  /** Out of reach without Pro: the thumb is drawn as a lock, where it sits. */
+  locked?: boolean;
 }) {
   const shown = unit === "deg" ? `${Math.round(value)}°` : `${formatInches(value)}"`;
   const id = `${idPrefix}-slider-${label.replace(/\s+/g, "-").toLowerCase()}`;
@@ -287,8 +308,22 @@ export function Slider({
           step={step}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="relative h-11 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-surface [&::-moz-range-thumb]:bg-accent-fill [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-edge-strong [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-edge-strong [&::-webkit-slider-thumb]:-mt-1.5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-surface [&::-webkit-slider-thumb]:bg-accent-fill [&::-webkit-slider-thumb]:shadow"
+          className={`relative h-11 w-full cursor-pointer appearance-none bg-transparent ${
+            locked ? "[&::-moz-range-thumb]:opacity-0 [&::-webkit-slider-thumb]:opacity-0" : ""
+          } [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-surface [&::-moz-range-thumb]:bg-accent-fill [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-edge-strong [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-edge-strong [&::-webkit-slider-thumb]:-mt-1.5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-surface [&::-webkit-slider-thumb]:bg-accent-fill [&::-webkit-slider-thumb]:shadow`}
         />
+        {/* The lock in place of the thumb, at the thumb's own position: a 20px
+            thumb travels the track less its own width. */}
+        {locked && (
+          <span
+            data-slider-lock=""
+            aria-hidden="true"
+            className="pointer-events-none absolute top-[22px] flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border-2 border-surface bg-accent-fill text-accent-on-fill shadow"
+            style={{ left: `calc(${clamp01((value - min) / (max - min || 1))} * (100% - 20px) - 2px)` }}
+          >
+            <Lock size={11} aria-hidden="true" />
+          </span>
+        )}
       </div>
       {/* A popup over the row rather than a line added under it. Three of these
           stacked is a paragraph standing between the bowler and the control
@@ -327,25 +362,31 @@ export function SystemCard({
   label,
   value,
   selected,
-  onClick
+  onClick,
+  compact = false
 }: {
   label: string;
   value: string;
   selected: boolean;
   onClick: () => void;
+  /** Sharing its row with a third control: less side padding and a step
+   *  smaller numbers, so the longest VLS reading still fits one line. */
+  compact?: boolean;
 }) {
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`rounded-xl border p-2.5 text-center shadow-sm active:opacity-80 ${
-        selected ? "border-accent-fill bg-accent-soft" : "border-edge bg-surface"
-      }`}
+      className={`min-w-0 rounded-xl border text-center shadow-sm active:opacity-80 ${
+        compact ? "px-0.5 py-2" : "p-2.5"
+      } ${selected ? "border-accent-fill bg-accent-soft" : "border-edge bg-surface"}`}
     >
       <span className={FIELD_MICRO_LABEL}>{label}</span>
       <span
-        className="block text-sm font-bold tabular-nums text-accent"
+        className={`block whitespace-nowrap font-bold tabular-nums text-accent ${
+          compact ? "text-xs" : "text-sm"
+        }`}
       >
         <LayoutNumbers value={value} />
       </span>

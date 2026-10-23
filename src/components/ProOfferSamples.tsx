@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, type ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 import { PALETTES } from "../lib/palette";
-import { DEFAULT_ASYMMETRIC, DEFAULT_PAP } from "../lib/ballLayout";
+import { DEFAULT_ASYMMETRIC, DEFAULT_PAP, readMotion } from "../lib/ballLayout";
 import { defaultOrientationFor } from "../lib/ballProjection";
 import { oilBands, oilZones, peakUnits } from "../lib/oilPattern";
 import type { OilPass } from "../types/bowling";
@@ -9,6 +9,7 @@ import type { Manufacturer } from "../types/catalog";
 import { BallLayoutDiagram } from "./BallLayoutDiagram";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { LaneSurface, type OilOverlay } from "./LaneSurface";
+import { MotionRail } from "./MotionRail";
 
 /**
  * What Pro opens, for the Pro page (ADR-164, ADR-170), drawn by the screens'
@@ -301,20 +302,25 @@ export function LineSample() {
   );
 }
 
-/** The layout lab's own ball, drilled 45 x 4 1/2 x 45. */
+const SAMPLE_LAYOUT = { drillingAngle: 45, pinToPap: 4.5, valAngle: 45 };
+
+/** The layout lab as it opens: its ball, drilled 45 x 4 1/2 x 45, with the
+ *  rail of what it will do beside it (ADR-209). */
 export function LayoutSample() {
   return (
-    <Sample className="flex justify-center p-0">
-      <div className="w-full max-w-[14rem]">
+    <Sample className="flex items-center justify-center gap-2 py-2">
+      <div className="w-full max-w-[13rem]">
         <BallLayoutDiagram
-          layout={{ drillingAngle: 45, pinToPap: 4.5, valAngle: 45 }}
+          layout={SAMPLE_LAYOUT}
           ball={DEFAULT_ASYMMETRIC}
           pap={DEFAULT_PAP}
           orientation={defaultOrientationFor("right")}
           onOrientationChange={() => {}}
           hand="right"
+          crop={44}
         />
       </div>
+      <MotionRail motion={readMotion(SAMPLE_LAYOUT, DEFAULT_ASYMMETRIC)} className="w-20 shrink-0" />
     </Sample>
   );
 }

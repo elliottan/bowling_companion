@@ -99,6 +99,12 @@ describe("buildSessionCard", () => {
 });
 
 describe("buildLayoutCard", () => {
+  const meters = [
+    { label: "Flare", value: 0.9, word: "High" },
+    { label: "Length", value: 0.5, word: "Mid" },
+    { label: "Backend", value: 0.5, word: "Defined" },
+    { label: "Strength", value: 0.8, word: "Strong" }
+  ];
   const layout = {
     dualAngle: "45 x 4 1/2 x 45",
     vls: "4 1/2 x 3 7/8 x 2 7/8",
@@ -106,44 +112,41 @@ describe("buildLayoutCard", () => {
     hand: "right" as const,
     grip: "1h" as const,
     pap: '5" over, 1/2" up',
-    summary: "Picks up in the mid lane and turns the corner with a defined shape."
+    meters
   };
 
-  it("leads with the three numbers, which is what one bowler asks another for", () => {
-    expect(buildLayoutCard(layout).title).toBe("45 x 4 1/2 x 45");
-  });
-
-  it("names the core, the hand and the axis, without which the numbers are a different layout", () => {
-    expect(buildLayoutCard(layout).eyebrow).toBe(
-      'Asymmetric core  ·  Right hand  ·  PAP 5" over, 1/2" up'
-    );
-    expect(buildLayoutCard({ ...layout, symmetric: true, hand: "left" }).eyebrow).toContain(
-      "Symmetric core  ·  Left hand"
-    );
-  });
-
-  it("carries what the ball will do as the caption, and no hero or game boxes", () => {
+  it("leads with the three numbers, drawn as a reading, which is what one bowler asks another for", () => {
     const card = buildLayoutCard(layout);
-    expect(card.caption).toBe(layout.summary);
+    expect(card.title).toBe("45 x 4 1/2 x 45");
+    expect(card.readingTitle).toBe(true);
+  });
+
+  it("names the core in a word, the hand and the axis, without which the numbers are a different layout", () => {
+    expect(buildLayoutCard(layout).eyebrow).toBe('Asym  ·  Right hand  ·  PAP 5" over, 1/2" up');
+    expect(buildLayoutCard({ ...layout, symmetric: true, hand: "left" }).eyebrow).toContain(
+      "Sym  ·  Left hand"
+    );
+  });
+
+  it("says what the ball will do in four small bars rather than a sentence, and has no hero or game boxes", () => {
+    const card = buildLayoutCard(layout);
+    expect(card.meters).toEqual(meters);
+    expect(card.caption).toBeUndefined();
     expect(card.hero).toBeNull();
     expect(card.games).toBeNull();
   });
 
   it("keeps the other notation, which the picture cannot say, and nothing else", () => {
-    // The flare figure used to sit beside it. It is the one number on the card
-    // that is a model's opinion rather than a measurement, the caption above it
-    // already says what the ball will do in words, and quoting a tenth of an
-    // inch invites it to be read as a spec.
     expect(buildLayoutCard(layout).stats).toEqual([
       { value: "4 1/2 x 3 7/8 x 2 7/8", label: "Storm VLS" }
     ]);
   });
 
   it("names a two-handed grip, and leaves the common one unsaid", () => {
-    // A card that spelled out "one handed" on every layout would be spending a
-    // clause of a crowded eyebrow to say nothing surprising.
-    expect(buildLayoutCard({ ...layout, grip: "2h" }).eyebrow).toContain("Right hand, two handed");
-    expect(buildLayoutCard(layout).eyebrow).not.toContain("handed");
+    // A card that spelled out the one-handed grip on every layout would be
+    // spending a clause of the eyebrow to say nothing surprising.
+    expect(buildLayoutCard({ ...layout, grip: "2h" }).eyebrow).toContain("Right hand, 2H");
+    expect(buildLayoutCard(layout).eyebrow).not.toContain("1H");
   });
 });
 

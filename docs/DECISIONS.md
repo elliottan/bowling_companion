@@ -8965,3 +8965,51 @@ handful of nights.
 scope, filters included, number ten. A "Last 10" remembered from a time with
 more, or under a broader filter, reads as All until there are ten again, so
 nothing is ever labelled with a window it does not have.
+
+---
+
+## ADR-209: The layout lab's bars are a rail beside a cropped ball, the core rides the notation row, and the card is mostly ball
+
+**Status.** Accepted, 2026-10-23, by the owner. Amends ADR-203 on the lab's
+top row, and supersedes the centred ball 0.63.0 went back to.
+
+**Context.** ADR-203 put the ball and its four bars side by side, and the ball
+lost half its width to bars that kept their long names. 0.63.0 centred the ball
+at full width again with the bars under it, which pushed the core and the
+sliders below the fold: a bowler could watch the ball or move the numbers, not
+both. And the ball fills only 220 of the diagram's 320 units, the rest kept as
+a margin for its labels, so a third of every box it was given was empty. The
+share card had the same problem in miniature: a sentence, a long eyebrow and a
+ball at half the card.
+
+**Decision.**
+
+- **The ball is cropped to itself.** `BallLayoutDiagram` takes a `crop`, units
+  trimmed off every side, and its labels flip inward at the cropped edge rather
+  than the full square's. The lab crops 44, so a box about 16rem wide draws the
+  ball as wide as the full-width square did.
+- **The bars are a narrow rail on its right** (`MotionRail`): Flare, Length,
+  Backend and Strength, each a short bar with its reading in a word under it
+  (Low to High, Early to Late, Smooth to Sharp, Weak to Strong), in the same
+  thirds as the sentence (`motionBand`, `MOTION_METERS`). The sentence sits
+  under the card, in the long words the rail has no room for. The Pro page's
+  sample draws the same rail.
+- **The core rides the end of the notation row**, a narrow column beside the
+  Dual angle and Storm VLS cards, which keep their numbers. The bowler (PAP,
+  hand, grip) stays behind More: set once and then read against.
+- **Without Pro each slider's thumb is a lock**, where it sits, instead of one
+  lock at the top of their card (amending ADR-203): the lock is on the thing
+  that will not move. The card is still the one tap that opens Pro. The lane
+  view does the same (amending ADR-167 and ADR-202): Hook start and Hook
+  length lock on their thumbs, and the laydown, target and final fields are
+  no longer blurred, each wearing a small lock badge with its number still
+  readable under it (`ProVeil bare`).
+- **The share card is mostly ball.** The eyebrow names the core in a word
+  (Asym, Sym) and a two-handed grip as 2H; the title and the VLS reading are
+  drawn with dim separators and smaller fractions, as the app draws them; the
+  sentence is gone, and the four readings are small bars beside the VLS reading
+  under a ball 800 px across, rasterized at 900 in the page's own typeface.
+
+**Consequences.** On a phone the ball, its bars, the notation, the core and all
+three sliders are on one screen, so a slider or a toggle moves the ball and the
+bars in view. Nothing is pinned; the page is still one scroll.

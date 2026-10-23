@@ -6,6 +6,7 @@ import { BallLayoutDiagram } from "../components/BallLayoutDiagram";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { BowlingBallIcon } from "../components/icons";
 import { LayoutEditor } from "../components/LayoutEditor";
+import { MotionRail } from "../components/MotionRail";
 import { PapEditor } from "../components/PapEditor";
 import { ShareCardDialog } from "../components/ShareCardDialog";
 import { PushScreen } from "../components/PushScreen";
@@ -28,6 +29,8 @@ import {
   formatDualAngle,
   formatInches,
   formatVls,
+  MOTION_METERS,
+  motionBand,
   presetLayout,
   readMotion,
   toVls,
@@ -114,6 +117,11 @@ function SeededBallCard({ seed }: { seed: LayoutSeed }) {
     </div>
   );
 }
+
+/** Drawing units trimmed off each side of the ball's 320-unit square. The ball
+ *  is 220 across, so this leaves a 6-unit rim and lets a 16rem box draw the
+ *  ball about as wide as the full-width square did (ADR-209). */
+const BALL_CROP = 44;
 
 const BENCHMARK: DualAngleLayout = { drillingAngle: 45, pinToPap: 4.5, valAngle: 45 };
 
@@ -243,7 +251,11 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
       hand,
       grip,
       pap: papText,
-      summary: motion.summary
+      meters: MOTION_METERS.map((m) => ({
+        label: m.label,
+        value: clamp(motion[m.key], 0, 1),
+        word: motionBand(motion[m.key], m.words[0], m.words[1], m.words[2])
+      }))
     });
   }, [layout, vls, ball, hand, grip, papText, motion]);
 
@@ -263,7 +275,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
     flushSync(() => setTurnedTo(null));
     const svg = ballRef.current?.querySelector("svg");
     let picture: Promise<HTMLImageElement> | undefined;
-    if (svg) picture = svgToImage(svg as SVGSVGElement, 560);
+    if (svg) picture = svgToImage(svg as SVGSVGElement, 900);
     flushSync(() => setTurnedTo(turnedTo));
     if (!picture) return undefined;
     try {
@@ -380,57 +392,39 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             it, so the numbers below are read against the ball they belong to. */}
         {seed?.ballName && <SeededBallCard seed={seed} />}
 
-        {/* 1. The ball, then what it will do. The ball was half the width
-            beside the bars (ADR-203), which made the one picture the page is
-            for too small to read, so it is centred at full width again and
-            the bars sit under it. Not pinned: the page stays one scroll. The
-            ball is draggable, which is the gesture everyone tries first. */}
-        <div className="space-y-2.5">
-          <div
-            ref={ballRef}
-            className="mx-auto aspect-square w-full max-w-[24rem] overflow-hidden rounded-xl border border-edge bg-surface-sunken shadow-sm"
-          >
-            {/* The drawing follows the notation being edited, so the picture is
-                always answering the question the sliders below it are asking. */}
-            <BallLayoutDiagram
-              layout={layout}
-              ball={ball}
-              pap={pap}
-              system={system}
-              orientation={orientation}
-              onOrientationChange={setOrientation}
-              hand={hand}
-              grip={grip}
-              className="h-full"
-            />
+        {/* 1. The ball and what it will do, side by side (ADR-209). ADR-203
+            tried this and halved the ball, because the bars kept their long
+            names and took half the width. Here they are a narrow rail of short
+            meters, and the drawing is cropped to the ball rather than to the
+            label margin round it, so the ball is as wide as it was centred.
+            Not pinned: the page stays one scroll, and on a phone the ball,
+            the bars and the sliders now share one screen. The ball is
+            draggable, which is the gesture everyone tries first. */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5 rounded-xl border border-edge bg-surface-sunken py-2 pl-1 pr-2.5 shadow-sm">
+            <div ref={ballRef} className="min-w-0 max-w-[24rem] flex-1">
+              {/* The drawing follows the notation being edited, so the picture
+                  is always answering the question the sliders are asking. */}
+              <BallLayoutDiagram
+                layout={layout}
+                ball={ball}
+                pap={pap}
+                system={system}
+                orientation={orientation}
+                onOrientationChange={setOrientation}
+                hand={hand}
+                grip={grip}
+                crop={BALL_CROP}
+              />
+            </div>
+            {/* The bars, each named in a word and read in one, beside the ball
+                they describe. No heading: the bars name themselves. */}
+            <MotionRail motion={motion} className="w-20 shrink-0" />
           </div>
-          {/* The bars, then the sentence they add up to. No heading: the bars
-              name themselves, and the ball beside them says whose they are. */}
-          <section aria-label="What it will do" className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-            <Axis label="Flare" value={motion.flare} low="Low" high="High" />
-            <Axis label="Reads the lane" value={motion.length} low="Early" high="Late" />
-            <Axis label="Response to friction" value={motion.angularity} low="Smooth" high="Sharp" />
-            <Axis label="Overall strength" value={motion.strength} low="Weak" high="Strong" />
-            <p className="text-xs leading-snug text-ink-secondary">{motion.summary}</p>
-          </section>
+          {/* The sentence the bars add up to, in the long words the rail has
+              no room for. */}
+          <p className="px-1 text-xs leading-snug text-ink-secondary">{motion.summary}</p>
         </div>
-
-
-        {/* 3. What ball. The core type comes before the numbers because it
-            changes what the drilling angle means, and therefore what every
-            number below does. */}
-        <section className="space-y-1.5">
-          <h2 className={GROUP_HEADING}>Core</h2>
-          <SegmentedControl
-            label="Core type"
-            value={symmetric ? "sym" : "asym"}
-            onChange={(v) => setSymmetric(v === "sym")}
-            options={[
-              { value: "asym", label: "Asym", srLabel: "Asymmetric" },
-              { value: "sym", label: "Sym", srLabel: "Symmetric" }
-            ]}
-          />
-        </section>
 
         {/* 4. The numbers. */}
         <section className="space-y-2">
@@ -466,6 +460,25 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             onSystemChange={setSystemOverride}
             idPrefix="lab"
             proNumbers
+            beside={
+              /* The core type, at the end of the notation row rather than in a
+                 band of its own (ADR-209). It comes with the numbers because
+                 it changes what the drilling angle means, and therefore what
+                 every number does. */
+              <div className="flex w-24 flex-col justify-center gap-1">
+                <span className={`${FIELD_MICRO_LABEL} text-center`}>Core</span>
+                <SegmentedControl
+                  dense
+                  label="Core type"
+                  value={symmetric ? "sym" : "asym"}
+                  onChange={(v) => setSymmetric(v === "sym")}
+                  options={[
+                    { value: "asym", label: "Asym", srLabel: "Asymmetric" },
+                    { value: "sym", label: "Sym", srLabel: "Symmetric" }
+                  ]}
+                />
+              </div>
+            }
           />
         </section>
       </div>
@@ -589,36 +602,5 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
         onClose={() => setCard(null)}
       />
     </PushScreen>
-  );
-}
-
-/** One motion axis as a bar between its two named ends. */
-function Axis({
-  label,
-  value,
-  low,
-  high
-}: {
-  label: string;
-  value: number;
-  low: string;
-  high: string;
-}) {
-  return (
-    <div>
-      <div className="mb-1 text-xs">
-        <span className="font-semibold text-ink-strong">{label}</span>
-      </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
-        <div
-          className="h-full rounded-full bg-accent-fill"
-          style={{ width: `${clamp(value, 0, 1) * 100}%` }}
-        />
-      </div>
-      <div className="mt-0.5 flex justify-between text-[10px] text-ink-tertiary">
-        <span>{low}</span>
-        <span>{high}</span>
-      </div>
-    </div>
   );
 }

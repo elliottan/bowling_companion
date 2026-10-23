@@ -334,6 +334,8 @@ describe("LaneVisualizer oil pattern", () => {
     fireEvent.click(screen.getByLabelText(/lane options/i));
     expect(screen.getByText(/hook shape/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Changing the hook shape/ })).toBeInTheDocument();
+    // One lock per slider, on its thumb (ADR-209).
+    expect(document.querySelectorAll("[data-slider-lock]")).toHaveLength(2);
     const slider = screen.getAllByRole("slider", { hidden: true })[0];
     fireEvent.change(slider, { target: { value: "40" } });
     expect(onChange).not.toHaveBeenCalled();
@@ -548,9 +550,12 @@ describe("the hint under the lane", () => {
       </ProAccessContext.Provider>
     );
     // The fields are drawn but out of reach: no field answers to its name, and
-    // the veil is the lock alone (ADR-202).
+    // each carries its own small lock, the veil adding none (ADR-209).
     expect(screen.queryByRole("textbox", { name: /Laydown/i })).toBeNull();
     expect(screen.queryByText("Move it with Pro")).toBeNull();
+    expect(container.querySelectorAll("[data-field-lock]")).toHaveLength(3);
+    const veil = screen.getByRole("button", { name: "Moving the line. See Headpin Pro" });
+    expect(veil.querySelector("[data-pro-mark]")).toBeNull();
     // Each point on the lane carries a lock, and none of them drags.
     expect(container.querySelectorAll('[data-role="point-lock"]').length).toBeGreaterThan(0);
     expect(container.querySelector('[data-role="handle"]')).toBeNull();

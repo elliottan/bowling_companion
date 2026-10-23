@@ -21,6 +21,11 @@ export function svgToImage(svg: SVGSVGElement, size: number): Promise<HTMLImageE
   // carries neither: it is sized by the layout around it.
   clone.setAttribute("width", String(size));
   clone.setAttribute("height", String(size));
+  // The one thing the drawing takes from the page rather than its own
+  // attributes is its typeface, so the labels came out in the image's default
+  // serif. The font the screen is using rides along on the root.
+  const family = typeof getComputedStyle === "function" ? getComputedStyle(svg).fontFamily : "";
+  if (family) clone.setAttribute("font-family", family);
 
   const markup = new XMLSerializer().serializeToString(clone);
   // A data URL rather than a blob URL: a blob URL has to be revoked, and the

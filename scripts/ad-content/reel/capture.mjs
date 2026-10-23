@@ -41,6 +41,17 @@ async function open() {
     storageState: STATE,
     colorScheme: "dark"
   });
+  // The reel sells the store app, which is installed by definition. A browser
+  // tab gets the web's own asks (the "save a copy before closing the tab"
+  // toast after the tenth), which the app on the phone never shows, so the
+  // app is told it is installed. Init scripts reach the iframe too.
+  await context.addInitScript(() => {
+    const query = window.matchMedia.bind(window);
+    window.matchMedia = (q) =>
+      q.includes("display-mode: standalone")
+        ? { matches: true, media: q, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false }
+        : query(q);
+  });
   const page = await context.newPage();
   // The frame must be same-site with the page around it, or the browser
   // partitions its storage and the app opens empty, without the saved bowler.
@@ -278,8 +289,18 @@ async function sessionToFrame8(app) {
 
 // The game: frames 8 to 10, the way a bowler uses it, then the session stats.
 await take("game", {
-  async setup({ app }) {
+  async setup({ page, app }) {
     await spareSystem(app);
+    // The lane view is lazy, and a lazy screen shows its spinner on its first
+    // open even with its code in hand. In a fresh browser that first open was
+    // the "lane" beat, which flashed a spinner where the lane should land. So
+    // it opens once here, from Home's Line visualizer, and the tap in the take
+    // goes straight onto the lane.
+    await click(app.getByRole("button", { name: /^Line visualizer/ }).first());
+    await app.getByText("Laydown", { exact: false }).first().waitFor({ timeout: 15000 }).catch(() => {});
+    await wait(500);
+    await page.keyboard.press("Escape");
+    await wait(600);
     await sessionToFrame8(app);
     await wait(600);
   },

@@ -329,16 +329,38 @@ describe("LayoutLabView", () => {
     expect(ball()).not.toBe(halfUp);
   });
 
-  it("leads with the ball and what it will do side by side, then the numbers (ADR-163, ADR-203)", () => {
+  it("leads with the ball and a rail of meters beside it, then the numbers (ADR-209)", () => {
     renderLab();
     const headings = screen.getAllByRole("heading").map((h) => h.textContent);
-    // The bowler's PAP, hand and grip are behind More, so the page is the ball
-    // with its bars beside it, untitled, then the core and the numbers.
-    expect(headings.slice(0, 3)).toEqual(["Layouts", "Core", "Layout"]);
+    // The ball and its rail are untitled; the bowler is behind More, so the
+    // next heading is the numbers.
+    expect(headings.slice(0, 2)).toEqual(["Layouts", "Layout"]);
     const bars = screen.getByRole("region", { name: "What it will do" });
-    expect(bars).toHaveTextContent(/Flare.*Reads the lane.*Response to friction.*Overall strength/);
+    expect(bars).toHaveTextContent(/Flare.*Length.*Backend.*Strength/);
+    // Each meter reads in the same thirds as the sentence under the rail: the
+    // benchmark picks up in the mid lane with a defined shape.
+    expect(within(bars).getByRole("group", { name: "Length, Mid" })).toBeInTheDocument();
+    expect(within(bars).getByRole("group", { name: "Backend, Defined" })).toBeInTheDocument();
+    expect(screen.getByText(/picks up in the mid lane and turns the corner with a defined shape/i)).toBeInTheDocument();
+    // The core rides at the end of the notation row, which keeps its numbers.
+    expect(screen.getByRole("button", { name: "Symmetric" })).toBeInTheDocument();
+    expect(systemCard("Dual angle")).toHaveTextContent("45° x 4 1/2 x 45°");
+    // The hand and the grip are behind More, not on the page.
+    expect(screen.queryByRole("button", { name: "Left" })).not.toBeInTheDocument();
+    // The drawing is cropped to the ball, so a narrow box still draws it big.
+    const drawing = screen.getByRole("img", { name: /bowling ball/i });
+    expect(drawing).toHaveAttribute("viewBox", "44 44 232 232");
     // Nothing pins the ball: the page is one scroll.
-    expect(screen.getByRole("img", { name: /bowling ball/i }).closest(".sticky")).toBeNull();
+    expect(drawing.closest(".sticky")).toBeNull();
+  });
+
+  it("moves the rail's meters as the layout moves", () => {
+    renderLab();
+    const bars = screen.getByRole("region", { name: "What it will do" });
+    // A high VAL angle saves the ball for the back and smooths its turn.
+    fireEvent.change(slider(/VAL angle/i), { target: { value: "80" } });
+    expect(within(bars).getByRole("group", { name: "Length, Late" })).toBeInTheDocument();
+    expect(within(bars).getByRole("group", { name: "Backend, Smooth" })).toBeInTheDocument();
   });
 
   it("puts each angle at its own vertex, not both in the middle of the ball", () => {
@@ -809,8 +831,12 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
     expect(screen.getByRole("button", { name: "Left" })).toBeEnabled();
     expect(screen.getByLabelText("Over")).toBeEnabled();
     expect(screen.getByRole("button", { name: "Reset to your saved settings" })).toBeInTheDocument();
-    // The sliders stay on screen as they are, out of reach, under the lock
-    // alone, and the presets that would move them are gone (ADR-203).
+    // The sliders stay on screen as they are, out of reach, each thumb drawn
+    // as a lock and no lock over the card (ADR-209), and the presets that
+    // would move them are gone (ADR-203).
+    expect(document.querySelectorAll("[data-slider-lock]")).toHaveLength(3);
+    const veil = screen.getByRole("button", { name: "Changing the layout. Get the app" });
+    expect(veil.querySelector("[data-pro-mark]")).toBeNull();
     expect(screen.queryByRole("slider", { name: /Pin buffer/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Presets/ })).not.toBeInTheDocument();
     expect(screen.queryByText("Try your layouts with Pro")).not.toBeInTheDocument();
