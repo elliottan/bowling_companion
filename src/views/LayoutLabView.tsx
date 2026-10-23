@@ -309,6 +309,8 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
   const applyPreset = useCallback(
     (preset: LayoutPreset) => {
       setLayout(presetLayout(preset, ball));
+      // A new layout is read from the front, so the ball turns back to face forward.
+      setTurnedTo(null);
       setPendingPreset(null);
       setPresetAt(null);
     },
@@ -408,9 +410,9 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
           {/* The bars, then the sentence they add up to. No heading: the bars
               name themselves, and the ball beside them says whose they are. */}
           <section aria-label="What it will do" className="space-y-2 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-            <Axis label="Flare" value={motion.flare} low="Low" high="High" note={`${motion.flareInches.toFixed(1)}"`} />
+            <Axis label="Flare" value={motion.flare} low="Low" high="High" />
             <Axis label="Reads the lane" value={motion.length} low="Early" high="Late" />
-            <Axis label="Off the friction" value={motion.angularity} low="Smooth" high="Sharp" />
+            <Axis label="Response to friction" value={motion.angularity} low="Smooth" high="Sharp" />
             <Axis label="Overall strength" value={motion.strength} low="Weak" high="Strong" />
             <p className="text-xs leading-snug text-ink-secondary">{motion.summary}</p>
           </section>
@@ -606,20 +608,17 @@ function Axis({
   label,
   value,
   low,
-  high,
-  note
+  high
 }: {
   label: string;
   value: number;
   low: string;
   high: string;
-  note?: string;
 }) {
   return (
     <div>
-      <div className="mb-1 flex items-baseline justify-between gap-2 text-xs">
+      <div className="mb-1 text-xs">
         <span className="font-semibold text-ink-strong">{label}</span>
-        {note && <span className="tabular-nums text-ink-secondary">{note}</span>}
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
         <div

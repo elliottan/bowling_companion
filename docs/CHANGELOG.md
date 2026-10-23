@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.62.1: Layouts tidy-up (2026-10-23)
+
+- **Flare drops its number.** The bar says low to high; the inch figure
+  raised more questions than it answered.
+- **"Off the friction" is now "Response to friction"**, and the strongest
+  reading says the ball snaps hard at the breakpoint.
+- **A preset turns the ball back to face forward**, so the new layout is read
+  from the front.
+
 ## 0.62.0: Every leave free, a calmer Stats screen, and any ball's layout (2026-10-22)
 
 - **Every leave is free.** The Spares card, All leaves, Spare lines and each

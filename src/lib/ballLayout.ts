@@ -739,7 +739,7 @@ const band = (v: number, low: string, mid: string, high: string) => (v < 0.36 ? 
 /** One sentence, three clauses, in the order a bowler watches the shot happen. */
 export function describeMotion(m: Pick<MotionReading, "flare" | "length" | "angularity" | "strength">): string {
   const lengthWord = band(m.length, "reads the lane early", "picks up in the mid lane", "saves its energy for the back");
-  const shapeWord = band(m.angularity, "arcs smoothly through the breakpoint", "turns the corner with a defined shape", "snaps hard off the friction");
+  const shapeWord = band(m.angularity, "arcs smoothly through the breakpoint", "turns the corner with a defined shape", "snaps hard at the breakpoint");
   const flareWord = band(m.flare, "low flare", "medium flare", "high flare");
   const strengthWord = band(m.strength, "a weaker", "a controllable", "a strong");
   return `${capitalize(lengthWord)} and ${shapeWord}. ${capitalize(flareWord)}, ${strengthWord} look overall.`;
