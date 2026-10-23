@@ -19,6 +19,9 @@ had all shipped.
 - **Layouts drops its "Layout" and "Core" titles.** Asym and Sym sit under
   the bars beside the ball, with Presets, and the Dual angle and Storm VLS
   numbers are larger across the full width.
+- **The Pro page's "Move your line" picture reads in the light theme**: its
+  lane sits on the lane's dark ground, so the laydown, target and breakpoint
+  numbers no longer vanish on cream.
 
 ## 0.64.0: The layout lab on one screen (2026-10-23)
 

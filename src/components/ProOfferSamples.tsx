@@ -23,7 +23,19 @@ import { MotionRail } from "./MotionRail";
  */
 
 /** A sample, inert: it is a picture of a screen, not a working one. */
-function Sample({ className = "", children }: { className?: string; children: ReactNode }) {
+function Sample({
+  className = "",
+  lane = false,
+  children
+}: {
+  className?: string;
+  /** The lane's own dark ground in both themes, for a sample that is a lane
+   *  (DESIGN-LANGUAGE §3, the lane exception). A variant rather than a colour
+   *  in `className`, which lost to the sunken ground and left the line's
+   *  white numbers on cream in the light theme. */
+  lane?: boolean;
+  children: ReactNode;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   // React 18 has no `inert` prop.
   useEffect(() => ref.current?.setAttribute("inert", ""), []);
@@ -31,7 +43,9 @@ function Sample({ className = "", children }: { className?: string; children: Re
     <div
       ref={ref}
       aria-hidden="true"
-      className={`pointer-events-none select-none overflow-hidden rounded-lg bg-surface-sunken p-2.5 ${className}`.trim()}
+      className={`pointer-events-none select-none overflow-hidden rounded-lg p-2.5 ${
+        lane ? "bg-slate-900" : "bg-surface-sunken"
+      } ${className}`.trim()}
     >
       {children}
     </div>
@@ -286,7 +300,7 @@ const PEGS: Array<[string, number]> = [
 /** A line on the lane over the oil, with the three points that move it. */
 export function LineSample() {
   return (
-    <Sample className="flex items-center justify-center gap-4 bg-slate-900 py-3">
+    <Sample lane className="flex items-center justify-center gap-4 py-3">
       <div className="h-64 w-[5.5rem] shrink-0">
         <LaneSurface line={LINE} hand="right" oil={OIL} />
       </div>
