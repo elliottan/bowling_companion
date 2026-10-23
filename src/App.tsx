@@ -334,7 +334,7 @@ function App() {
     enabled: boot.booted && isIOSApp(),
     items: NATIVE_TAB_ITEMS,
     active: view,
-    hidden: keyboardOpen || overlays.length > 0 || nav.lineSandboxOpen || openSheets.length > 0,
+    hidden: keyboardOpen || overlays.length > 0 || openSheets.length > 0,
     onSelect: (id) => dispatch({ type: "goTo", view: id as AppView })
   });
   const nativeTabBar = nativeTabs.status !== "failed";
@@ -694,7 +694,7 @@ function App() {
             onDriftModelChange={updateDriftModel}
             onOpenBackup={goToBackup}
             onOpenLineVisualizer={(patternId) => dispatch({ type: "openLineSandbox", patternId })}
-            lineVisualizerOpen={nav.lineSandboxOpen}
+            lineVisualizerOpen={overlays.includes("line")}
             onOpenArsenal={() => pushOverlay("arsenal")}
             onOpenSpareLines={() => pushOverlay("spares")}
             onOpenLayoutLab={() => pushOverlay("layout-lab")}
@@ -797,7 +797,7 @@ function App() {
                 onBack={popOverlay}
                 mode="overlay"
                 onOpenLineVisualizer={(patternId) => dispatch({ type: "openLineSandbox", patternId })}
-                covered={nav.lineSandboxOpen}
+                covered={overlays.includes("line")}
               />
             );
           case "backup":
@@ -861,6 +861,34 @@ function App() {
                 onOpenSessionGame={openSessionGame}
               />
             );
+          case "line":
+            // A pushed screen like the rest (ADR-211): it slides in over the
+            // screen that opened it, and back, the Pro page over it included,
+            // goes through the same stack as every other push.
+            return (
+              <LaneVisualizerLazy
+                key={`line-${i}`}
+                presentation="push"
+                title="Line sandbox"
+                line={sandboxLine}
+                // Read-only without Pro: the line, shared or not, is drawn in
+                // full and can be shared on, but not moved (ADR-154).
+                onChange={pro.locked ? undefined : setSandboxLine}
+                editLocked={pro.locked}
+                // No shot behind this lane, so the hand is a question rather
+                // than a fact, the same reason the sandbox picks its own
+                // pattern (ADR-108).
+                handSwitchable
+                // A shared line opens as it was drawn: their hand, their
+                // pattern, their leave if it was a spare (ADR-110).
+                seedHand={sharedLine?.hand}
+                seedPatternCatalogId={sharedLine?.patternCatalogId}
+                seedPatternId={nav.lineSandboxPatternId ?? undefined}
+                spare={sharedLine?.spare}
+                leave={sharedLine?.leave}
+                onClose={() => goBack({ type: "closeLineSandbox" })}
+              />
+            );
           case "pro":
             return <ProOfferView key={`pro-${i}`} onBack={popOverlay} />;
           case "game-plan":
@@ -875,32 +903,6 @@ function App() {
         })()}
         </Suspense>
       ))}
-
-      {/* Left on screen while the Pro page is up: that page opens on the layer
-          above the lane (ADR-175), so back slides it away to the lane as it
-          was. It used to be hidden meanwhile, and the Pro page slid out over
-          Home before the lane came back. */}
-      {nav.lineSandboxOpen && (
-        <LaneVisualizerLazy
-          title="Line sandbox"
-          line={sandboxLine}
-          // Read-only without Pro: the line, shared or not, is drawn in full
-          // and can be shared on, but not moved (ADR-154).
-          onChange={pro.locked ? undefined : setSandboxLine}
-          editLocked={pro.locked}
-          // No shot behind this lane, so the hand is a question rather than a
-          // fact, the same reason the sandbox picks its own pattern (ADR-108).
-          handSwitchable
-          // A shared line opens as it was drawn: their hand, their pattern,
-          // their leave if it was a spare (ADR-110).
-          seedHand={sharedLine?.hand}
-          seedPatternCatalogId={sharedLine?.patternCatalogId}
-          seedPatternId={nav.lineSandboxPatternId ?? undefined}
-          spare={sharedLine?.spare}
-          leave={sharedLine?.leave}
-          onClose={() => goBack({ type: "closeLineSandbox" })}
-        />
-      )}
 
       <UpdateToast />
 

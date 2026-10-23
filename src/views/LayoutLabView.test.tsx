@@ -332,9 +332,9 @@ describe("LayoutLabView", () => {
   it("leads with the ball and a rail of meters beside it, then the numbers (ADR-209)", () => {
     renderLab();
     const headings = screen.getAllByRole("heading").map((h) => h.textContent);
-    // The ball and its rail are untitled; the bowler is behind More, so the
-    // next heading is the numbers.
-    expect(headings.slice(0, 2)).toEqual(["Layouts", "Layout"]);
+    // Nothing under the screen's own title is titled: the rail and the
+    // notation cards name themselves (ADR-211).
+    expect(headings).toEqual(["Layouts"]);
     const bars = screen.getByRole("region", { name: "What it will do" });
     expect(bars).toHaveTextContent(/Flare.*Length.*Backend.*Strength/);
     // Each meter reads in the same thirds as the sentence under the rail: the
@@ -342,8 +342,9 @@ describe("LayoutLabView", () => {
     expect(within(bars).getByRole("group", { name: "Length, Mid" })).toBeInTheDocument();
     expect(within(bars).getByRole("group", { name: "Backend, Defined" })).toBeInTheDocument();
     expect(screen.getByText(/picks up in the mid lane and turns the corner with a defined shape/i)).toBeInTheDocument();
-    // The core rides at the end of the notation row, which keeps its numbers.
-    expect(screen.getByRole("button", { name: "Symmetric" })).toBeInTheDocument();
+    // The core sits in the rail under the bars, and the notation row keeps
+    // its numbers across the full width.
+    expect(within(bars.parentElement!.parentElement!).getByRole("button", { name: "Symmetric" })).toBeInTheDocument();
     expect(systemCard("Dual angle")).toHaveTextContent("45° x 4 1/2 x 45°");
     // The hand and the grip are behind More, not on the page.
     expect(screen.queryByRole("button", { name: "Left" })).not.toBeInTheDocument();

@@ -60,6 +60,10 @@ export type Overlay =
   /** What Headpin Pro is, with samples, before anything charges (ADR-164).
    *  Every locked card, the Home banner and Settings open it. */
   | "pro"
+  /** The line sandbox: the lane view on a line of its own, reached from Home,
+   *  a pattern or a guide. A pushed screen like the rest (ADR-211), so back
+   *  and the Pro page over it work as they do over any other. */
+  | "line"
   /** A session you are looking at rather than bowling. Pushed over whatever
    *  list you opened it from, so back returns to the list and the Active tab
    *  keeps the session you are actually bowling (ADR-084). */
@@ -111,11 +115,10 @@ export interface NavState {
    *  `catalogBallId`: the Overlay union cannot carry an id. Distinct from
    *  `activeSessionId`, which is the session being bowled (ADR-084). */
   viewedSessionId: number | null;
-  lineSandboxOpen: boolean;
   /** The pattern the sandbox opens with drawn on the lane, when it was sent
    *  there from a pattern's own detail sheet rather than reached on its own.
-   *  A field beside the flag for the same reason as `catalogBallId`: it is
-   *  content, not part of the route (see `layoutSeed`). */
+   *  A field beside the `line` overlay for the same reason as `catalogBallId`:
+   *  it is content, not part of the route (see `layoutSeed`). */
   lineSandboxPatternId: number | null;
 }
 
@@ -161,13 +164,13 @@ export interface RestorableRoute {
   catalogBallId?: string;
   guideId?: string;
   reportLineId?: string;
-  lineSandbox?: boolean;
 }
 
 /** Overlays that open above every sheet rather than under it: the Pro page,
  *  which a lock inside a sheet opens, and which closes back to that sheet
- *  (ADR-175). */
-export const ABOVE_SHEETS: readonly Overlay[] = ["pro"];
+ *  (ADR-175), and the line sandbox, which a pattern's own sheet opens
+ *  (ADR-211). */
+export const ABOVE_SHEETS: readonly Overlay[] = ["pro", "line"];
 
 /** Whether the screen in front sits above whatever sheets are open. */
 export function coversSheets(state: Pick<NavState, "overlays">): boolean {
@@ -189,7 +192,6 @@ export const INITIAL_NAV: NavState = {
   reportLineId: null,
   layoutSeed: null,
   viewedSessionId: null,
-  lineSandboxOpen: false,
   lineSandboxPatternId: null
 };
 
@@ -308,9 +310,10 @@ export function navReducer(state: NavState, action: NavAction): NavState {
       // Each id goes with the screen that was showing it, or a later push would
       // flash the last one on its way in.
       const next = overlays.includes("layout-lab") ? state.layoutSeed : null;
+      const pattern = overlays.includes("line") ? state.lineSandboxPatternId : null;
       return overlays.includes("session")
-        ? { ...state, overlays, layoutSeed: next }
-        : { ...state, overlays, layoutSeed: next, viewedSessionId: null };
+        ? { ...state, overlays, layoutSeed: next, lineSandboxPatternId: pattern }
+        : { ...state, overlays, layoutSeed: next, lineSandboxPatternId: pattern, viewedSessionId: null };
     }
 
     case "openCatalogBall":
@@ -338,10 +341,19 @@ export function navReducer(state: NavState, action: NavAction): NavState {
     }
 
     case "openLineSandbox":
-      return { ...state, lineSandboxOpen: true, lineSandboxPatternId: action.patternId ?? null };
+      return {
+        ...state,
+        overlays:
+          state.overlays[state.overlays.length - 1] === "line" ? state.overlays : [...state.overlays, "line"],
+        lineSandboxPatternId: action.patternId ?? null
+      };
 
-    case "closeLineSandbox":
-      return { ...state, lineSandboxOpen: false, lineSandboxPatternId: null };
+    case "closeLineSandbox": {
+      const at = state.overlays.lastIndexOf("line");
+      return at < 0
+        ? state
+        : { ...state, overlays: state.overlays.filter((_, i) => i !== at), lineSandboxPatternId: null };
+    }
 
     case "sessionGameOpened":
       return state.openSessionGameId === null && state.openSessionBallId === null
@@ -397,8 +409,9 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         // query string, exactly as a pasted link does.
         layoutSeed: null,
         viewedSessionId: route.viewedSessionId ?? null,
-        lineSandboxOpen: route.lineSandbox ?? false,
-        lineSandboxPatternId: null
+        // The pattern is content rather than route, but a back that leaves the
+        // sandbox in place (closing the Pro page over it) keeps its pattern.
+        lineSandboxPatternId: route.overlays.includes("line") ? state.lineSandboxPatternId : null
       };
     }
 

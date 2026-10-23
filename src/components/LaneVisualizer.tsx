@@ -1,6 +1,7 @@
 import { IconButton } from "./ui/IconButton";
 import { Check, ChevronLeft, ChevronRight, Lock, Minus, MoveHorizontal, Plus, SlidersHorizontal, X } from "lucide-react";
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
+import { createPortal } from "react-dom";
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
 import { HandednessContext, useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
@@ -17,6 +18,7 @@ import { ProVeil } from "./ui/ProLock";
 import type { OilPattern } from "../types/bowling";
 import { headlineRatio, oilBands, oilExitPoint, oilStats, oilZones, patternLabel, peakUnits, type OilStats } from "../lib/oilPattern";
 import { useOverlay } from "../lib/useOverlay";
+import { registerPushExit } from "../lib/backGesture";
 import { deriveLaydown, deriveLaydownFromSlide, deriveSlide } from "../lib/driftModel";
 import { spareAimPoint } from "../lib/spareAim";
 import { LaneSurface, type OilOverlay } from "./LaneSurface";
@@ -58,6 +60,9 @@ function pegValue(l: LineSpec | undefined, k: LockablePeg): number | undefined {
   if (k === "laydown") return l?.laydown ?? l?.stance;
   return l?.target;
 }
+
+/** Matches PushScreen's exit, so a pushed lane leaves like any pushed screen. */
+const PUSH_EXIT_MS = 280;
 
 interface LaneVisualizerProps {
   line: LineSpec | undefined;
@@ -101,6 +106,12 @@ interface LaneVisualizerProps {
    *  link that may cross devices; this one names a row already on this
    *  device, so its own id is enough. */
   seedPatternId?: number;
+  /** How the view arrives. "cover" (the default) is a layer over everything,
+   *  for a lane opened from a shot or a sheet. "push" is a pushed screen in
+   *  the app's own stack, for the sandbox: it slides in from the trailing
+   *  edge, leaves the same way, backs out with a chevron, and a screen pushed
+   *  over it (the Pro page) backs out to it as over any other (ADR-211). */
+  presentation?: "cover" | "push";
   /** Read-only because moving the line is Pro, not because there is nothing
    *  to move (ADR-167). The peg fields stay in their place, each with a small
    *  lock (ADR-209), under one
@@ -110,8 +121,38 @@ interface LaneVisualizerProps {
   editLocked?: boolean;
 }
 
-export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId, seedPatternId, editLocked }: LaneVisualizerProps) {
+export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId, seedPatternId, editLocked, presentation = "cover" }: LaneVisualizerProps) {
   const appHand = useHandedness();
+  const pushed = presentation === "push";
+  // A pushed lane renders from the app shell's screen stack, but has to sit
+  // above the sheets, so it goes to the body as the Pro page does (ADR-175).
+  const portal = (node: ReactNode) => (pushed ? createPortal(node, document.body) : node);
+  // A pushed lane leaves the way a PushScreen does: slid back out to the
+  // trailing edge, then closed. A covering one just closes.
+  const [exiting, setExiting] = useState(false);
+  const exitTimer = useRef<number | null>(null);
+  const close = useCallback(() => {
+    if (!pushed) {
+      onClose();
+      return;
+    }
+    if (exitTimer.current !== null) return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      onClose();
+      return;
+    }
+    setExiting(true);
+    exitTimer.current = window.setTimeout(onClose, PUSH_EXIT_MS);
+  }, [pushed, onClose]);
+  useEffect(() => () => {
+    if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
+  }, []);
+  // The iPhone app's edge swipe leaves a pushed lane through the same slide.
+  const closeRef = useRef(close);
+  useEffect(() => {
+    closeRef.current = close;
+  }, [close]);
+  useEffect(() => (pushed ? registerPushExit(() => closeRef.current()) : undefined), [pushed]);
   // Nothing here is written back to settings: mirroring the lane to see how the
   // other hand plays it is a question being asked, not the bowler changing hands
   // (the layout lab's rule, ADR-108). Resets on close with the component.
@@ -165,9 +206,14 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   // Escape/focus-trap/focus-restore for the visualizer itself. Disabled while
   // the nested hook-options sheet is open so a single Escape press (and the
   // trap) only ever apply to the topmost layer, the sheet has its own.
+  // A pushed lane is a route, so history already closes it; registering it as
+  // a sheet as well gave it a second back entry of its own, which a Pro page
+  // opened over it then took over, and back from that page landed on the
+  // screen under the lane before the lane came back (ADR-211).
   const overlayRef = useOverlay<HTMLDivElement>(
-    onClose,
-    !optionsOpen && !movesOpen && card == null && !suspended
+    close,
+    !optionsOpen && !movesOpen && card == null && !suspended,
+    !pushed
   );
 
   function toggleLock(key: string) {
@@ -554,10 +600,25 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
     // Everything below reads the hand from context (the steppers' arrow
     // direction, the pin grid), so the switch has to reach them rather than only
     // the geometry computed here.
+    portal(
     <HandednessContext.Provider value={hand}>
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-[70] flex flex-col bg-slate-900"
+      className={
+        pushed
+          ? // On the body, above the sheets (a pattern's sheet opens it) and
+            // under the Pro page's top layer, sliding in from the trailing edge.
+            `fixed inset-0 z-[70] flex flex-col bg-slate-900 ${exiting ? "" : "animate-push-in"}`
+          : "fixed inset-0 z-[70] flex flex-col bg-slate-900"
+      }
+      style={
+        pushed
+          ? {
+              transform: exiting ? "translateX(100%)" : undefined,
+              transition: `transform ${PUSH_EXIT_MS}ms cubic-bezier(0.32, 0.72, 0, 1)`
+            }
+          : undefined
+      }
       role="dialog"
       aria-modal="true"
       aria-label={`${title} visualizer`}
@@ -582,9 +643,13 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           <IconButton variant="lane" label="Share line" onClick={shareLine}>
             <ShareIosIcon size={18} aria-hidden="true" />
           </IconButton>
-          <IconButton variant="lane" label="Close" onClick={onClose}>
-            <X size={20} aria-hidden="true" />
-          </IconButton>
+          {/* A pushed lane backs out with the chevron on the left, as every
+              pushed screen does; a covering one closes with the X. */}
+          {!pushed && (
+            <IconButton variant="lane" label="Close" onClick={close}>
+              <X size={20} aria-hidden="true" />
+            </IconButton>
+          )}
         </div>
         <div
           // One row, like the pair on the right: stacked, the second sat over
@@ -592,6 +657,11 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           className="absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20 flex items-center gap-2"
           onPointerDown={(e) => e.stopPropagation()}
         >
+          {pushed && (
+            <IconButton variant="lane" label="Back" onClick={close}>
+              <ChevronLeft size={22} strokeWidth={2.5} aria-hidden="true" className="-ml-0.5" />
+            </IconButton>
+          )}
           {/* A word on a glass capsule as tall as the rounds, as the app's
               Edit is (DESIGN-LANGUAGE §1b). */}
           <button
@@ -800,6 +870,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       />
     </div>
     </HandednessContext.Provider>
+    )
   );
 }
 

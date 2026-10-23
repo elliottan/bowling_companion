@@ -37,8 +37,7 @@ export function LayoutEditor({
   system,
   onSystemChange,
   idPrefix = "layout",
-  proNumbers = false,
-  beside
+  proNumbers = false
 }: {
   layout: DualAngleLayout;
   onChange: (layout: DualAngleLayout) => void;
@@ -53,10 +52,6 @@ export function LayoutEditor({
    *  them stays free. The ball form leaves this off, since writing down a
    *  ball's own layout is recording it. */
   proNumbers?: boolean;
-  /** A narrow control that rides at the end of the notation row, as the core
-   *  type does in the lab (ADR-209): it changes what the numbers mean, so it
-   *  sits with them rather than in a band of its own. */
-  beside?: ReactNode;
 }) {
   const vls = toVls(layout, ball);
   // The sliders under the veil are inert, but still there: with the veil taken
@@ -104,22 +99,19 @@ export function LayoutEditor({
           notations are one layout, so the boxes showing that layout in both are
           exactly the right thing to tap. One row instead of two, and nothing is
           hidden to get it. */}
-      <div className={`grid gap-2 ${beside ? "grid-cols-[1fr_1fr_auto]" : "grid-cols-2"}`}>
+      <div className="grid grid-cols-2 gap-2">
         <SystemCard
           label="Dual angle"
           value={formatDualAngle(layout)}
           selected={system === "dual"}
           onClick={() => onSystemChange("dual")}
-          compact={beside != null}
         />
         <SystemCard
           label="Storm VLS"
           value={formatVls(vls)}
           selected={system === "vls"}
           onClick={() => onSystemChange("vls")}
-          compact={beside != null}
         />
-        {beside}
       </div>
 
       <NumbersVeil on={proNumbers}>
@@ -278,27 +270,25 @@ export function Slider({
   }, [hintOpen]);
 
   return (
-    <div className="relative" ref={hintRef}>
-      <div className="mb-0.5 flex items-baseline justify-between gap-2">
-        {/* The label is the affordance. Tapping the name of a thing to find out
-            what it means is the gesture people already try, and a separate icon
-            would be a second tap target in a row that is already dense, so the
-            whole label is the button and the glyph only says that it is one. */}
-        <button
-          type="button"
-          onClick={() => setHintOpen((v) => !v)}
-          aria-expanded={hintOpen}
-          aria-controls={`${id}-hint`}
-          className={`${FIELD_MICRO_LABEL} mb-0 inline-flex items-center gap-1 text-left`}
-        >
-          {label}
-          <Info size={11} aria-hidden="true" className="opacity-60" />
-        </button>
-        <span className="text-sm font-bold tabular-nums text-ink">
-          <Measure>{shown}</Measure>
-        </span>
-      </div>
-      <div className="relative">
+    // One row: the name, the track, the number. The name and the number sit in
+    // fixed columns, so every track in a card is the same length and the thumbs
+    // of two sliders at the same fraction line up (ADR-210).
+    <div className="relative flex items-center gap-2" ref={hintRef}>
+      {/* The label is the affordance. Tapping the name of a thing to find out
+          what it means is the gesture people already try, and a separate icon
+          would be a second tap target in a row that is already dense, so the
+          whole label is the button and the glyph only says that it is one. */}
+      <button
+        type="button"
+        onClick={() => setHintOpen((v) => !v)}
+        aria-expanded={hintOpen}
+        aria-controls={`${id}-hint`}
+        className={`${FIELD_MICRO_LABEL} mb-0 inline-flex w-[6.75rem] shrink-0 items-center gap-1 whitespace-nowrap text-left`}
+      >
+        {label}
+        <Info size={11} aria-hidden="true" className="shrink-0 opacity-60" />
+      </button>
+      <div className="relative min-w-0 flex-1">
         <input
           id={id}
           type="range"
@@ -325,6 +315,9 @@ export function Slider({
           </span>
         )}
       </div>
+      <span className="w-12 shrink-0 text-right text-sm font-bold tabular-nums text-ink">
+        <Measure>{shown}</Measure>
+      </span>
       {/* A popup over the row rather than a line added under it. Three of these
           stacked is a paragraph standing between the bowler and the control
           they came to move, and opening one used to push the two sliders below
@@ -335,7 +328,7 @@ export function Slider({
           id={`${id}-hint`}
           role="dialog"
           aria-label={`${label}, what it does`}
-          className="absolute left-0 right-0 top-6 z-20 flex items-start gap-2 rounded-lg border border-edge bg-surface p-2 text-xs leading-snug text-ink-secondary shadow-lg"
+          className="absolute left-0 right-0 top-10 z-20 flex items-start gap-2 rounded-lg border border-edge bg-surface p-2 text-xs leading-snug text-ink-secondary shadow-lg"
         >
           <p className="min-w-0 flex-1">{hint}</p>
           <IconButton compact label="Close" onClick={() => setHintOpen(false)}>
@@ -362,31 +355,27 @@ export function SystemCard({
   label,
   value,
   selected,
-  onClick,
-  compact = false
+  onClick
 }: {
   label: string;
   value: string;
   selected: boolean;
   onClick: () => void;
-  /** Sharing its row with a third control: less side padding and a step
-   *  smaller numbers, so the longest VLS reading still fits one line. */
-  compact?: boolean;
 }) {
   return (
     <button
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`min-w-0 rounded-xl border text-center shadow-sm active:opacity-80 ${
-        compact ? "px-0.5 py-2" : "p-2.5"
-      } ${selected ? "border-accent-fill bg-accent-soft" : "border-edge bg-surface"}`}
+      className={`min-w-0 rounded-xl border px-1 py-2 text-center shadow-sm active:opacity-80 ${
+        selected ? "border-accent-fill bg-accent-soft" : "border-edge bg-surface"
+      }`}
     >
       <span className={FIELD_MICRO_LABEL}>{label}</span>
       <span
-        className={`block whitespace-nowrap font-bold tabular-nums text-accent ${
-          compact ? "text-xs" : "text-sm"
-        }`}
+        // Large enough to read at arm's length: the three numbers are what
+        // the card is for (ADR-211).
+        className="block whitespace-nowrap text-lg font-bold leading-tight tabular-nums text-accent"
       >
         <LayoutNumbers value={value} />
       </span>

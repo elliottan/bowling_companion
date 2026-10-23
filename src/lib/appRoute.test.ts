@@ -53,8 +53,8 @@ describe("appRoute", () => {
     ],
     // The Pro page, over wherever it was opened from, survives a reload.
     ["#/stats/pro", { view: "stats", overlays: ["pro"] }],
-    ["#/home/line", { view: "dashboard", overlays: [], lineSandbox: true }],
-    ["#/session/3/catalog/line", { view: "active", sessionId: 3, overlays: ["catalog"], lineSandbox: true }]
+    ["#/home/line", { view: "dashboard", overlays: ["line"] }],
+    ["#/session/3/catalog/line", { view: "active", sessionId: 3, overlays: ["catalog", "line"] }]
   ];
 
   it.each(cases)("round-trips %s", (hash, route) => {
@@ -101,7 +101,7 @@ describe("appRoute", () => {
         "#/settings/section/profile"
       );
       expect(routeHash(nav({ overlays: ["arsenal", "catalog"] }))).toBe("#/home/arsenal/catalog");
-      expect(routeHash(nav({ lineSandboxOpen: true }))).toBe("#/home/line");
+      expect(routeHash(nav({ overlays: ["line"] }))).toBe("#/home/line");
     });
 
     it("leaves session memory out of the URL", () => {
@@ -128,7 +128,7 @@ describe("appRoute", () => {
       const home = nav();
       expect(shouldPushHistory(home, nav({ overlays: ["arsenal"] }))).toBe(true);
       expect(shouldPushHistory(nav({ overlays: ["arsenal"] }), nav({ overlays: ["arsenal", "catalog"] }))).toBe(true);
-      expect(shouldPushHistory(home, nav({ lineSandboxOpen: true }))).toBe(true);
+      expect(shouldPushHistory(home, nav({ overlays: ["line"] }))).toBe(true);
       expect(shouldPushHistory(home, nav({ view: "active", activeSessionId: 4 }))).toBe(true);
       expect(shouldPushHistory(
         nav({ view: "settings" }),
@@ -143,7 +143,7 @@ describe("appRoute", () => {
 
     it("does not push on the way back out", () => {
       expect(shouldPushHistory(nav({ overlays: ["arsenal"] }), nav())).toBe(false);
-      expect(shouldPushHistory(nav({ lineSandboxOpen: true }), nav())).toBe(false);
+      expect(shouldPushHistory(nav({ overlays: ["line"] }), nav())).toBe(false);
       expect(shouldPushHistory(
         nav({ view: "settings", settingsSection: "lanes" }),
         nav({ view: "settings" })
@@ -163,7 +163,7 @@ describe("appRoute", () => {
       const open = nav({ overlays: ["arsenal", "catalog"] });
       const restored = navReducer(open, { type: "restore", route: parseRoute("#/home") });
       expect(restored.overlays).toEqual([]);
-      expect(restored.lineSandboxOpen).toBe(false);
+      expect(restored.overlays).not.toContain("line");
     });
 
     it("keeps the open session when the URL names the tab without an id", () => {
