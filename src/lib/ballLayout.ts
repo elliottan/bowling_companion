@@ -707,7 +707,12 @@ export function readMotion(
   };
 }
 
-const band = (v: number, low: string, mid: string, high: string) => (v < 0.36 ? low : v > 0.64 ? high : mid);
+/** Which third of its scale a motion reading falls in, named by the caller.
+ *  The lab's bars and the sentence under them share it, so a bar's word and
+ *  the summary never disagree about the same reading. */
+export const motionBand = (v: number, low: string, mid: string, high: string) =>
+  v < 0.36 ? low : v > 0.64 ? high : mid;
+const band = motionBand;
 
 /** One sentence, three clauses, in the order a bowler watches the shot happen. */
 export function describeMotion(m: Pick<MotionReading, "flare" | "length" | "angularity" | "strength">): string {

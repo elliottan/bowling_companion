@@ -9,6 +9,18 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.64.0: The layout lab on one screen (2026-10-23)
+
+- **The ball and what it will do sit side by side again, without shrinking
+  the ball.** The drawing is cropped to the ball, and the four bars are a
+  narrow rail beside it: Flare, Length, Backend and Strength, each with its
+  reading in a word (ADR-209).
+- **Core, hand and grip are one row on the page.** The hand and the grip used
+  to be under More, which now holds your PAP and the reset.
+- **The ball, the bars, the toggles and the sliders fit on one phone screen**,
+  so moving a slider or flipping a toggle changes the ball and the bars in
+  view.
+
 ## 0.63.0: Layouts tidy-up and a clearer Pro page (2026-10-23)
 
 - **Flare drops its number.** The bar says low to high; the inch figure

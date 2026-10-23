@@ -8965,3 +8965,37 @@ handful of nights.
 scope, filters included, number ten. A "Last 10" remembered from a time with
 more, or under a broader filter, reads as All until there are ten again, so
 nothing is ever labelled with a window it does not have.
+
+---
+
+## ADR-209: The layout lab's bars are a rail beside a cropped ball, and the hand and grip are on the page
+
+**Status.** Accepted, 2026-10-23, by the owner. Amends ADR-203 on the lab's
+top row, and supersedes the centred ball 0.63.0 went back to.
+
+**Context.** ADR-203 put the ball and its four bars side by side, and the ball
+lost half its width to bars that kept their long names. 0.63.0 centred the ball
+at full width again with the bars under it, which pushed the core and the
+sliders below the fold: a bowler could watch the ball or move the numbers, not
+both. The hand and the grip, which move the drawing, were behind More. And the
+ball fills only 220 of the diagram's 320 units, the rest kept as a margin for
+its labels, so a third of every box it was given was empty.
+
+**Decision.**
+
+- **The ball is cropped to itself.** `BallLayoutDiagram` takes a `crop`, units
+  trimmed off every side, and its labels flip inward at the cropped edge rather
+  than the full square's. The lab crops 44, so a box about 16rem wide draws the
+  ball as wide as the full-width square did.
+- **The bars are a narrow rail on its right:** Flare, Length, Backend and
+  Strength, each a short bar with its reading in a word under it (Low to High,
+  Early to Late, Smooth to Sharp, Weak to Strong), in the same thirds as the
+  sentence (`motionBand`). The sentence sits under the card, in the long words
+  the rail has no room for.
+- **Core, hand and grip share one row under it.** More keeps the PAP and the
+  reset, which are set once and then read against.
+
+**Consequences.** On a phone the ball, its bars, every toggle and all three
+sliders are on one screen, so a slider or a toggle moves the ball and the bars
+in view. Nothing is pinned; the page is still one scroll. The share card's ball
+is drawn cropped too, so it is a little larger on the card.

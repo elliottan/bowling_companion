@@ -329,16 +329,36 @@ describe("LayoutLabView", () => {
     expect(ball()).not.toBe(halfUp);
   });
 
-  it("leads with the ball and what it will do side by side, then the numbers (ADR-163, ADR-203)", () => {
+  it("leads with the ball and a rail of meters beside it, then the toggles and the numbers (ADR-209)", () => {
     renderLab();
     const headings = screen.getAllByRole("heading").map((h) => h.textContent);
-    // The bowler's PAP, hand and grip are behind More, so the page is the ball
-    // with its bars beside it, untitled, then the core and the numbers.
-    expect(headings.slice(0, 3)).toEqual(["Layouts", "Core", "Layout"]);
+    // The ball and its rail are untitled; the core, hand and grip share one
+    // row under them, then the numbers.
+    expect(headings.slice(0, 5)).toEqual(["Layouts", "Core", "Hand", "Grip", "Layout"]);
     const bars = screen.getByRole("region", { name: "What it will do" });
-    expect(bars).toHaveTextContent(/Flare.*Reads the lane.*Response to friction.*Overall strength/);
+    expect(bars).toHaveTextContent(/Flare.*Length.*Backend.*Strength/);
+    // Each meter reads in the same thirds as the sentence under the rail: the
+    // benchmark picks up in the mid lane with a defined shape.
+    expect(within(bars).getByRole("group", { name: "Length, Mid" })).toBeInTheDocument();
+    expect(within(bars).getByRole("group", { name: "Backend, Defined" })).toBeInTheDocument();
+    expect(screen.getByText(/picks up in the mid lane and turns the corner with a defined shape/i)).toBeInTheDocument();
+    // The hand and the grip are on the page, not behind More.
+    expect(screen.getByRole("button", { name: "Left" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Two handed" })).toBeInTheDocument();
+    // The drawing is cropped to the ball, so a narrow box still draws it big.
+    const drawing = screen.getByRole("img", { name: /bowling ball/i });
+    expect(drawing).toHaveAttribute("viewBox", "44 44 232 232");
     // Nothing pins the ball: the page is one scroll.
-    expect(screen.getByRole("img", { name: /bowling ball/i }).closest(".sticky")).toBeNull();
+    expect(drawing.closest(".sticky")).toBeNull();
+  });
+
+  it("moves the rail's meters as the layout moves", () => {
+    renderLab();
+    const bars = screen.getByRole("region", { name: "What it will do" });
+    // A high VAL angle saves the ball for the back and smooths its turn.
+    fireEvent.change(slider(/VAL angle/i), { target: { value: "80" } });
+    expect(within(bars).getByRole("group", { name: "Length, Late" })).toBeInTheDocument();
+    expect(within(bars).getByRole("group", { name: "Backend, Smooth" })).toBeInTheDocument();
   });
 
   it("puts each angle at its own vertex, not both in the middle of the ball", () => {
@@ -804,7 +824,8 @@ describe("the layout lab while Pro is locked (ADR-154, ADR-163)", () => {
     fireEvent.click(screen.getByRole("button", { name: /Storm VLS/ }));
     expect(screen.getByRole("button", { name: /Storm VLS/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("region", { name: "What it will do" })).toBeInTheDocument();
-    // Who is bowling and the core stay in reach, behind More.
+    // Who is bowling and the core stay in reach: the hand on the page, the
+    // PAP and the reset behind More.
     openYou();
     expect(screen.getByRole("button", { name: "Left" })).toBeEnabled();
     expect(screen.getByLabelText("Over")).toBeEnabled();
