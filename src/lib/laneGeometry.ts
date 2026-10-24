@@ -258,11 +258,12 @@ function hookGeom(p: StrikeParams, wantDS: number, wantLen: number, capToLane: b
   return g;
 }
 
-/** Hook start reproducing a legacy stored apex depth (`breakpoint_distance`)
- *  with the default hook length, the ADR-026 lazy migration. Coarse + refine. */
-function migrateHookStart(p: StrikeParams, wantApexFt: number): number {
+/** Hook start putting the apex at a wanted depth for a given hook length:
+ *  the ADR-026 lazy migration of a legacy `breakpoint_distance` (default
+ *  length), and the oil floor (ADR-212). Coarse + refine. */
+function migrateHookStart(p: StrikeParams, wantApexFt: number, len = HOOK_LENGTH_FT): number {
   const lo = p.tgtFt + 1, hi = p.fF - 2, STEPS = 32;
-  const cost = (dS: number) => Math.abs(hookGeom(p, dS, HOOK_LENGTH_FT, true).apex.feet - wantApexFt);
+  const cost = (dS: number) => Math.abs(hookGeom(p, dS, len, true).apex.feet - wantApexFt);
   let best = lo, bestC = Infinity;
   for (let i = 0; i <= STEPS; i++) {
     const c = lo + ((hi - lo) * i) / STEPS;
@@ -314,6 +315,23 @@ export function strikeApexPoint(line: LineSpec): { board: number; feet: number; 
   }
   const g = hookGeom(p, t.dS, t.len, true);
   return { board: g.apex.board, feet: g.apex.feet, dS: g.dS, len: g.dE - g.dS };
+}
+
+/** The hook timing that moves a strike line's breakpoint to at least `minFeet`
+ *  down the lane, keeping its hook length (ADR-212: a pattern on the lane puts
+ *  the break past its length). Null when the line has no real apex, or its
+ *  apex already sits that deep; the nearest achievable depth otherwise. */
+export function breakpointFloorTiming(
+  line: LineSpec, minFeet: number
+): { hook_start_distance: number; hook_length: number } | null {
+  const apex = derivedApexForDisplay(line);
+  if (!apex || apex.feet >= minFeet - 0.05) return null;
+  const foul = (line.laydown ?? line.stance)!;
+  const p = strikeParams(foul, line.target!, line.final_board ?? POCKET_BOARD, line.final_distance ?? LANE_FEET);
+  const { len } = lineHookTiming(p, line);
+  const g = hookGeom(p, migrateHookStart(p, minFeet, len), len, true);
+  if (g.apex.feet <= apex.feet) return null; // nothing deeper is reachable
+  return { hook_start_distance: r2(g.dS), hook_length: r2(g.dE - g.dS) };
 }
 
 /** The derived breakpoint for DISPLAY (a read-only chip in score entry), honouring

@@ -33,7 +33,7 @@ export interface OilOverlay {
   peak: number;
   /** Pattern distance, in feet from the foul line. */
   length: number;
-  /** Where the drawn line leaves the oil, in the app's handed board space. */
+  /** Where the drawn line crosses the pattern length (ADR-212), in the app's handed board space. */
   exit: { board: number; feet: number } | null;
 }
 
