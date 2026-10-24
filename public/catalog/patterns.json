@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-15T07:52:06.270Z",
+  "generated_at": "2026-10-24T14:48:15.764Z",
   "patterns": [
     {
       "id": "2019-pba-bear-41",
@@ -9819,6 +9819,202 @@
           "speed": 14,
           "buffer": 3,
           "tank": "A - KEGEL"
+        }
+      ]
+    },
+    {
+      "id": "sg-nationals-2026",
+      "name": "SG Nationals 2026",
+      "vendor": "kegel",
+      "sourceUrl": "https://singaporebowling.org.sg/wp-content/uploads/2026/09/SNNYC-2026-OILING-PATTERN.pdf",
+      "sheet": "sheets/sg-nationals-2026.3d0ae9b5d6df.pdf",
+      "sheetPages": [
+        "sheets/sg-nationals-2026.3d0ae9b5d6df.p1.webp"
+      ],
+      "distance": 45,
+      "volumeMl": 27.57,
+      "ratio": 2.6455026455026456,
+      "shape": "sport",
+      "passes": [
+        {
+          "direction": "forward",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 4,
+          "microliters": 30,
+          "start_distance": 0,
+          "end_distance": 8,
+          "speed": 18,
+          "buffer": 500,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "forward",
+          "left_board": 6,
+          "right_board": 34,
+          "loads": 2,
+          "microliters": 30,
+          "start_distance": 8,
+          "end_distance": 13,
+          "speed": 18,
+          "buffer": 500,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "forward",
+          "left_board": 7,
+          "right_board": 33,
+          "loads": 2,
+          "microliters": 35,
+          "start_distance": 13,
+          "end_distance": 18,
+          "speed": 18,
+          "buffer": 500,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "forward",
+          "left_board": 8,
+          "right_board": 32,
+          "loads": 2,
+          "microliters": 40,
+          "start_distance": 18,
+          "end_distance": 23,
+          "speed": 18,
+          "buffer": 500,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "forward",
+          "left_board": 9,
+          "right_board": 31,
+          "loads": 3,
+          "microliters": 45,
+          "start_distance": 23,
+          "end_distance": 30,
+          "speed": 18,
+          "buffer": 500,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "forward",
+          "left_board": 10,
+          "right_board": 30,
+          "loads": 2,
+          "microliters": 45,
+          "start_distance": 30,
+          "end_distance": 35,
+          "speed": 18,
+          "buffer": 500,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "forward",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 50,
+          "start_distance": 35,
+          "end_distance": 45,
+          "speed": 18,
+          "buffer": 500,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 50,
+          "start_distance": 35,
+          "end_distance": 24,
+          "speed": 30,
+          "buffer": 300,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 13,
+          "right_board": 27,
+          "loads": 1,
+          "microliters": 40,
+          "start_distance": 24,
+          "end_distance": 21,
+          "speed": 22,
+          "buffer": 500,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 12,
+          "right_board": 28,
+          "loads": 1,
+          "microliters": 40,
+          "start_distance": 21,
+          "end_distance": 18,
+          "speed": 18,
+          "buffer": 500,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 11,
+          "right_board": 29,
+          "loads": 1,
+          "microliters": 45,
+          "start_distance": 18,
+          "end_distance": 16,
+          "speed": 18,
+          "buffer": 500,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 11,
+          "right_board": 29,
+          "loads": 1,
+          "microliters": 45,
+          "start_distance": 16,
+          "end_distance": 13,
+          "speed": 18,
+          "buffer": 500,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 8,
+          "right_board": 32,
+          "loads": 1,
+          "microliters": 55,
+          "start_distance": 13,
+          "end_distance": 11,
+          "speed": 18,
+          "buffer": 500,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 4,
+          "microliters": 55,
+          "start_distance": 11,
+          "end_distance": 3,
+          "speed": 14,
+          "buffer": 500,
+          "tank": "A - ICE"
+        },
+        {
+          "direction": "reverse",
+          "left_board": 2,
+          "right_board": 38,
+          "loads": 0,
+          "microliters": 55,
+          "start_distance": 3,
+          "end_distance": 0,
+          "speed": 10,
+          "buffer": 500,
+          "tank": "A - ICE"
         }
       ]
     },

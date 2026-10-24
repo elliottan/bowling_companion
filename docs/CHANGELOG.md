@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.67.0: SG Nationals 2026 joins the pattern catalog (2026-10-24)
+
+- **SG Nationals 2026 is in the oil pattern catalog**: 45 feet, 27.57 mL, 2.65:1,
+  read from the Singapore Bowling Federation sheet and checked against all 19
+  of the totals the sheet prints. The original sheet opens from the pattern
+  (ADR-136). The catalog now holds 65 patterns.
+
 ## 0.66.0: Back swipe follows your finger on iPhone (2026-10-24)
 
 - **On iPhone, swiping back from the left edge moves the screen with your
