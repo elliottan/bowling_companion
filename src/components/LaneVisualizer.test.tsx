@@ -395,6 +395,28 @@ describe("LaneVisualizer pattern picker", () => {
     );
   });
 
+  it("puts the breakpoint 2 ft past the pattern length once one is chosen (ADR-212)", async () => {
+    const onChange = vi.fn();
+    render(
+      <HandednessContext.Provider value="right">
+        <LaneVisualizer
+          line={{ laydown: 20, target: 16, final_board: 17.5, breakpoint: 9, hook_start_distance: 28, hook_length: 14 }}
+          onClose={() => {}}
+          onChange={onChange}
+        />
+      </HandednessContext.Provider>
+    );
+    await waitFor(() => expect(listPatterns).toHaveBeenCalled());
+    fireEvent.click(screen.getByLabelText(/lane options/i));
+    const field = await screen.findByRole("combobox", { name: /oil pattern/i });
+    fireEvent.focus(field);
+    fireEvent.change(field, { target: { value: "chrom" } });
+    fireEvent.click(await screen.findByRole("button", { name: /Chromium 6742/ }));
+    await waitFor(() => expect(onChange).toHaveBeenCalled());
+    const moved: LineSpec = onChange.mock.calls[onChange.mock.calls.length - 1][0];
+    expect(moved.breakpoint_distance).toBeCloseTo(41, 0);
+  });
+
   it("does not offer a choice where the session already made one", async () => {
     renderSandbox(saved);
     fireEvent.click(screen.getByLabelText(/lane options/i));

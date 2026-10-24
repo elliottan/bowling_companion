@@ -333,7 +333,7 @@ export function buildLineCard(input: LineLike): ShareCardData {
       breakpoint: plane.points.breakpoint ? mark(plane.points.breakpoint) : null,
       final: mark(plane.points.final),
       oil: zones.length
-        ? { bands: oilBands(zones), peak: peakUnits(zones), length, exit: oilExitPoint(zones, path, hand) }
+        ? { bands: oilBands(zones), peak: peakUnits(zones), length, exit: oilExitPoint(length, path) }
         : null,
       standing: spare && input.leave?.length ? input.leave : ALL_PINS
     };

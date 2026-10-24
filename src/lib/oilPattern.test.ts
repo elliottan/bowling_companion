@@ -174,33 +174,23 @@ describe("oiledSpanAt", () => {
 });
 
 describe("oilExitPoint", () => {
-  // A 40 ft pattern, boards 5 to 35, both sides of the lane equally.
-  const zones = oilZones([pass({ start_distance: 0, end_distance: 40, left_board: 5, right_board: 35 })]);
-
   it("has no exit without a pattern", () => {
-    expect(oilExitPoint([], [{ board: 20, feet: 0 }], "right")).toBeNull();
+    expect(oilExitPoint(0, [{ board: 20, feet: 0 }, { board: 20, feet: 60 }])).toBeNull();
   });
 
-  it("exits at the end of the pattern when the ball stays inside the oil", () => {
-    const exit = oilExitPoint(zones, [{ board: 20, feet: 0 }, { board: 20, feet: 60 }], "right");
-    expect(exit?.feet).toBeCloseTo(40, 1);
+  it("exits where the ball crosses the pattern length", () => {
+    const exit = oilExitPoint(40, [{ board: 20, feet: 0 }, { board: 10, feet: 50 }, { board: 17.5, feet: 60 }]);
+    expect(exit).toEqual({ board: 12, feet: 40 });
   });
 
-  it("exits early, out at the edge, when the ball runs off the oiled width", () => {
-    // A right-hander's board 5 is sheet board 35, the oil's right edge, so a
-    // line drifting to board 2 leaves the pattern well before 40 ft.
-    const exit = oilExitPoint(zones, [{ board: 20, feet: 0 }, { board: 1, feet: 40 }], "right");
-    expect(exit!.feet).toBeLessThan(35);
-    expect(exit!.board).toBeLessThan(6);
+  it("exits at the length even out at the edge of the oil", () => {
+    // The old shape-based exit left early out here; the length is the rule now.
+    const exit = oilExitPoint(40, [{ board: 20, feet: 0 }, { board: 2, feet: 40 }, { board: 17.5, feet: 60 }]);
+    expect(exit).toEqual({ board: 2, feet: 40 });
   });
 
-  it("does not come back once the ball has left", () => {
-    const exit = oilExitPoint(
-      zones,
-      [{ board: 20, feet: 0 }, { board: 1, feet: 20 }, { board: 20, feet: 30 }],
-      "right"
-    );
-    expect(exit!.feet).toBeLessThan(20);
+  it("has no exit for a path that stops short of the length", () => {
+    expect(oilExitPoint(40, [{ board: 20, feet: 0 }, { board: 20, feet: 30 }])).toBeNull();
   });
 });
 
@@ -276,14 +266,9 @@ describe("Kegel Chromium 6742", () => {
     expect(span!.fromBoard).toBeLessThanOrEqual(13);
   });
 
-  it("leaves the oil at the end of the pattern down the middle", () => {
-    const exit = oilExitPoint(
-      oilZones(CHROMIUM_6742),
-      [{ board: 20, feet: 0 }, { board: 20, feet: 60 }],
-      "right"
-    );
-    // The last oil is at 30.6 ft; past it the lane is dry, buffer travel or not.
-    expect(exit!.feet).toBeCloseTo(30.6, 2);
+  it("exits at the 42 ft on the wall, not where the last oil goes down", () => {
+    const exit = oilExitPoint(oilStats(CHROMIUM_6742).length, [{ board: 20, feet: 0 }, { board: 20, feet: 60 }]);
+    expect(exit!.feet).toBe(42);
   });
 });
 

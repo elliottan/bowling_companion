@@ -3,7 +3,7 @@ import {
   PLANE_W, PLANE_L, LANE_BOARDS, DRAW_FRONT_FEET, DRAW_BACK_FEET, POCKET_BOARD,
   boardToX, feetToY, xToBoard, yToFeet,
   buildLinePath, solveLine, arrowFeet, skidBoardAt, projectBreakpoint,
-  strikeApexPoint, derivedApexForDisplay
+  strikeApexPoint, derivedApexForDisplay, breakpointFloorTiming
 } from "./laneGeometry";
 import type { Handedness, LineSpec } from "../types/bowling";
 
@@ -696,5 +696,26 @@ describe("derivedApexForDisplay (ADR-031)", () => {
     expect(derived).not.toBeNull();
     expect(derived!.board).toBeCloseTo(strike!.board, 6);
     expect(derived!.feet).toBeCloseTo(strike!.feet, 6);
+  });
+});
+
+describe("breakpointFloorTiming (ADR-212)", () => {
+  const line: LineSpec = { laydown: 20, target: 16, final_board: 17.5, breakpoint: 9, hook_start_distance: 30, hook_length: 14 };
+
+  it("moves a break that sits short of the floor down to it, keeping the hook length", () => {
+    const before = derivedApexForDisplay(line)!;
+    expect(before.feet).toBeLessThan(44);
+    const t = breakpointFloorTiming(line, 44)!;
+    expect(t.hook_length).toBeCloseTo(14, 1);
+    expect(derivedApexForDisplay({ ...line, ...t })!.feet).toBeCloseTo(44, 0);
+  });
+
+  it("leaves a break that is already past the floor alone", () => {
+    const apex = derivedApexForDisplay(line)!;
+    expect(breakpointFloorTiming(line, apex.feet - 3)).toBeNull();
+  });
+
+  it("does nothing for a line without a real apex", () => {
+    expect(breakpointFloorTiming({ laydown: 17.5, target: 17.5 }, 44)).toBeNull();
   });
 });

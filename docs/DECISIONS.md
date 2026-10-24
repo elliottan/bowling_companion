@@ -9061,3 +9061,43 @@ the notation row squeezed both readings down to small type.
 - **The lab has no titles under its own.** The core moves to the rail, under
   the bars, with Presets under it; the Dual angle and Storm VLS cards take the
   full width again, with their numbers at 18 px.
+
+---
+
+## ADR-212: The exit point is the pattern length, and the break starts past it
+
+**Status.** Accepted, 2026-10-24, by the owner. Supersedes ADR-101 on what
+the exit point is; the rest of ADR-101 stands.
+
+**Context.** ADR-101 placed the exit at the last point of the drawn line still
+on a loaded board, so it followed the oil's shape. On a real pattern that
+reads wrong. Chromium lays its last oil at 30.6 ft and is a 42 ft pattern, so
+a ball down the middle "exited" at 30.6, and on a shaped pattern the exit sat
+wherever the stair step ended, ten feet short of the distance every bowler
+plays by. Bowlers use the pattern length as the exit, with the buffer carrying
+the ball the rest of the way. The breakpoint had nothing to do with the oil
+either: picking a 41 ft pattern left the break wherever it had been, often
+in front of the length, where a fresh ball does not hook.
+
+**Decision.**
+
+- **The exit is where the line crosses the pattern length.** `oilExitPoint`
+  takes the length (`oilStats`) and the path, and returns the path's board at
+  that depth. The shape is still drawn as the film, and reading where your
+  line runs off the oiled width is left to that drawing.
+- **A pattern coming onto the lane floors the breakpoint at its length plus
+  2 ft** (`BREAK_PAST_OIL_FT`), because the ball hooks a little after it
+  leaves the oil. `breakpointFloorTiming` moves only the hook start, keeping
+  the hook length, and does nothing to a break that is already that deep. It
+  runs when a pattern is picked, and when a pattern arrives on a line that has
+  never been timed, on a surface with no edit gate. It never runs when a
+  recorded shot is opened, because opening a shot does not rewrite it.
+- **It is a floor at the moment the pattern arrives, never a wall.** The break
+  can be dragged back up the lane afterwards: a broken-down pattern, or a line
+  played out to the dry, hooks before the length, and that is the bowler's to
+  draw.
+
+**Consequences.**
+- A line crossing the length out past the oiled width still shows its exit at
+  the length. The film under it shows that it is dry there.
+- A path that never reaches the length has no exit.
