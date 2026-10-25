@@ -8,7 +8,8 @@ on:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest is Ubuntu 26.04 now, which Playwright 1.60 cannot install browsers on.
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       issues: write

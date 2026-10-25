@@ -286,75 +286,35 @@ export function oiledSpanAt(
 }
 
 /**
- * Where the ball leaves the oil: the last point of its path that still sits on
- * a loaded board. That is the exit point a bowler is actually looking for, and
- * it is NOT always the end of the pattern, a ball that runs outside the oiled
- * width exits early, out at the edge, with dry boards still ahead of it.
+ * The exit point: where the ball's path crosses the pattern's length, the
+ * distance on the wall at the alley (ADR-212). That is the general rule a bowler
+ * plays by, so it is the one the lane quotes. Where the oil's own shape stops
+ * short of the length (Chromium lays its last oil at 30.6 ft and is a 42 ft
+ * pattern), the buffer still carries the ball to the length, and the shape is
+ * left for the film to show.
  *
  * `samples` is the ball path in the app's handed board space, front to back.
+ * Null without a pattern, or when the path never reaches the length.
  */
 export function oilExitPoint(
-  zones: readonly OilZone[],
-  samples: readonly { board: number; feet: number }[],
-  hand: Handedness
+  length: number,
+  samples: readonly { board: number; feet: number }[]
 ): { board: number; feet: number } | null {
-  if (zones.length === 0) return null;
-  const inOil = (p: { board: number; feet: number }): boolean => {
-    const span = oiledSpanAt(zones, p.feet);
-    if (span == null) return false;
-    const sheetBoard = toHandBoard(p.board, hand); // the mirror is its own inverse
-    return sheetBoard >= span.fromBoard - 0.5 && sheetBoard <= span.toBoard + 0.5;
-  };
-
-  const walk = densify(samples, 0.5);
-  let last: { board: number; feet: number } | null = null;
-  let first: { board: number; feet: number } | null = null;
-  for (const p of walk) {
-    if (inOil(p)) {
-      last = p;
-    } else if (last) {
-      first = p; // left the oil and does not come back
-      break;
+  if (!(length > 0)) return null;
+  for (let i = 0; i < samples.length - 1; i += 1) {
+    const a = samples[i];
+    const b = samples[i + 1];
+    if (a.feet <= length && b.feet >= length && b.feet > a.feet) {
+      const t = (length - a.feet) / (b.feet - a.feet);
+      return { board: Math.round((a.board + (b.board - a.board) * t) * 100) / 100, feet: length };
     }
   }
-  if (!last) return null;
-  if (!first) return last;
-
-  // Close the half-foot the walk steps over, so the exit reads as the number on
-  // the sheet (30.6 ft, not 30.5) rather than as an artefact of the step size.
-  let lo = last;
-  let hi = first;
-  for (let i = 0; i < 12; i += 1) {
-    const mid = {
-      board: (lo.board + hi.board) / 2,
-      feet: (lo.feet + hi.feet) / 2,
-    };
-    if (inOil(mid)) lo = mid;
-    else hi = mid;
-  }
-  return { board: Math.round(lo.board * 100) / 100, feet: Math.round(lo.feet * 100) / 100 };
+  return null;
 }
 
-/** Walk a polyline in fixed down-lane steps, so the exit reads to the half foot
- *  even where the path itself is only a couple of vertices long. */
-function densify(
-  poly: readonly { board: number; feet: number }[],
-  stepFt: number
-): Array<{ board: number; feet: number }> {
-  const out: Array<{ board: number; feet: number }> = [];
-  for (let i = 0; i < poly.length - 1; i += 1) {
-    const a = poly[i];
-    const b = poly[i + 1];
-    const span = b.feet - a.feet;
-    const steps = Math.max(1, Math.ceil(Math.abs(span) / stepFt));
-    for (let k = 0; k < steps; k += 1) {
-      const t = k / steps;
-      out.push({ board: a.board + (b.board - a.board) * t, feet: a.feet + span * t });
-    }
-  }
-  if (poly.length > 0) out.push(poly[poly.length - 1]);
-  return out;
-}
+/** The breakpoint's floor when a pattern is on the lane: this far past its
+ *  length, because the ball hooks a little after it leaves the oil (ADR-212). */
+export const BREAK_PAST_OIL_FT = 2;
 
 /**
  * How a pattern is spoken about, derived from its ratio rather than asserted.

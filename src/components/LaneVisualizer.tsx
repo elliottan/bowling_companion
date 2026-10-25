@@ -16,7 +16,7 @@ import { ShareCardDialog } from "./ShareCardDialog";
 import { ShareIosIcon } from "./icons";
 import { ProVeil } from "./ui/ProLock";
 import type { OilPattern } from "../types/bowling";
-import { headlineRatio, oilBands, oilExitPoint, oilStats, oilZones, patternLabel, peakUnits, type OilStats } from "../lib/oilPattern";
+import { BREAK_PAST_OIL_FT, headlineRatio, oilBands, oilExitPoint, oilStats, oilZones, patternLabel, peakUnits, type OilStats } from "../lib/oilPattern";
 import { useOverlay } from "../lib/useOverlay";
 import { registerPushExit } from "../lib/backGesture";
 import { deriveLaydown, deriveLaydownFromSlide, deriveSlide } from "../lib/driftModel";
@@ -24,7 +24,7 @@ import { spareAimPoint } from "../lib/spareAim";
 import { LaneSurface, type OilOverlay } from "./LaneSurface";
 import { ChoiceInput } from "./ui/SuggestInput";
 import {
-  buildLinePath, solveLine, projectBreakpoint, xToBoard, yToFeet, PLANE_W, PLANE_L,
+  buildLinePath, breakpointFloorTiming, solveLine, projectBreakpoint, xToBoard, yToFeet, PLANE_W, PLANE_L,
   POCKET_BOARD, type Peg, arrowFeet, ARROWS_FEET, LANE_FEET, HOOK_START_FT, HOOK_LENGTH_FT,
 } from "../lib/laneGeometry";
 
@@ -386,9 +386,34 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       bands: oilBands(zones),
       peak: peakUnits(zones),
       length: stats.length,
-      exit: path ? oilExitPoint(zones, path.samples, hand) : null,
+      exit: path ? oilExitPoint(stats.length, path.samples) : null,
     };
-  }, [hasOil, zones, stats.length, path, hand]);
+  }, [hasOil, zones, stats.length, path]);
+
+  // A pattern coming onto the lane puts the breakpoint at least a little past
+  // its length, because the ball hooks after it leaves the oil (ADR-212). Only
+  // ever a floor, set when the pattern arrives: dragging the break back up the
+  // lane afterwards is a broken-down or dry lane, and is the bowler's to draw.
+  function floorBreakToPattern(pattern: OilPattern | null | undefined) {
+    if (spare || !line) return;
+    const length = oilStats(pattern?.passes).length;
+    if (!(length > 0)) return;
+    const timing = breakpointFloorTiming(line, length + BREAK_PAST_OIL_FT);
+    if (timing) applyEdit(timing);
+  }
+  function pickPattern(id: number | null) {
+    setPickedId(id);
+    floorBreakToPattern(pickable.find((p) => p.id === id));
+  }
+  // A line that has never been timed meets its pattern the same way. A gated
+  // surface (a recorded game) is left alone: opening a shot never rewrites it.
+  const patternKey = oilPattern ? oilPattern.id ?? oilPattern.catalog_id ?? oilPattern.name : null;
+  useEffect(() => {
+    if (patternKey == null || onEditAttempt) return;
+    if (line?.hook_start_distance != null || line?.breakpoint_distance != null) return;
+    floorBreakToPattern(oilPattern);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patternKey]);
 
   // Slide tick (ADR-030): purely decorative, a derived slide-foot marker at the
   // foul line, distinct from the (draggable) laydown peg. Shown on spare lines
@@ -860,7 +885,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           oilRatio={hasOil ? headlineRatio(oilPattern?.passes) : null}
           pickable={sessionPattern ? [] : pickable}
           pickedId={pickedId}
-          onPick={setPickedId}
+          onPick={pickPattern}
           onClose={() => setOptionsOpen(false)}
           hand={handSwitchable ? hand : null}
           onPickHand={setHandOverride}

@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.68.0: The exit point is the pattern length, and the break starts past it (2026-10-24)
+
+- **The exit point on the lane is where your line crosses the pattern
+  length**, the number on the sheet, not where the oil's shape runs out. A
+  42 ft pattern exits at 42 ft (ADR-212).
+- **Picking a pattern moves the breakpoint to 2 ft past its length**, since
+  the ball hooks a little after it leaves the oil. A break that is already
+  deeper stays where it is, and you can still drag it nearer for a lane that
+  has broken down or a line played out to the dry.
+
 ## 0.67.0: SG Nationals 2026 joins the pattern catalog (2026-10-24)
 
 - **SG Nationals 2026 is in the oil pattern catalog**: 45 feet, 27.57 mL, 2.65:1,
