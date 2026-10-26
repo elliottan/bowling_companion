@@ -9,6 +9,24 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.69.0: Recent sessions name the oil pattern (2026-10-26)
+
+### Added
+
+- Home's Recent sessions tiles show the session's oil pattern under the date.
+
+### Changed
+
+- The dual angle and Storm VLS slider explanations are rewritten in plain
+  words. VLS's Pin to PAP now explains itself in full instead of pointing back
+  at dual angle.
+
+### Fixed
+
+- Tapping the oil pattern settings icon while editing a session from score
+  entry opened the Oil patterns screen behind the Edit session sheet. It now
+  opens on top, as it does from New session.
+
 ## 0.68.0: The exit point is the pattern length, and the break starts past it (2026-10-24)
 
 - **The exit point on the lane is where your line crosses the pattern
