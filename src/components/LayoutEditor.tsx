@@ -121,7 +121,7 @@ export function LayoutEditor({
             idPrefix={idPrefix}
             locked={frozen}
             label="Drilling angle"
-            hint="At the pin, to the CG or PSA. Low rolls early, high rolls late."
+            hint="Angle at the pin between your PAP and the CG or PSA. A low angle rolls early; a high one rolls later."
             value={layout.drillingAngle}
             min={0}
             max={90}
@@ -133,7 +133,7 @@ export function LayoutEditor({
             idPrefix={idPrefix}
             locked={frozen}
             label="Pin to PAP"
-            hint="Sets the flare. Peaks around 4 inches and falls away either side."
+            hint="Distance from the pin to your PAP. Flare is highest around 4 inches and drops off either side."
             value={layout.pinToPap}
             min={0.5}
             max={6}
@@ -145,7 +145,7 @@ export function LayoutEditor({
             idPrefix={idPrefix}
             locked={frozen}
             label="VAL angle"
-            hint="At the PAP, to the axis line. Low is pin up and sharp, high is pin down and smooth."
+            hint="Angle at the PAP between the pin and your axis line. Low puts the pin up for a sharper turn; high puts it down for a smoother one."
             value={layout.valAngle}
             min={0}
             max={90}
@@ -160,7 +160,7 @@ export function LayoutEditor({
             idPrefix={idPrefix}
             locked={frozen}
             label="Pin to PAP"
-            hint="The same first number in both systems."
+            hint="Distance from the pin to your PAP. Flare is highest around 4 inches and drops off either side."
             value={vls.pinToPap}
             min={0.5}
             max={6}
@@ -175,7 +175,7 @@ export function LayoutEditor({
               idPrefix={idPrefix}
               locked={frozen}
               label="PSA to PAP"
-              hint="How fast the ball sheds side roll. This is the drilling angle, written as a distance."
+              hint="Distance from the PSA to your PAP. It controls how quickly the ball gives up side roll, the job the drilling angle does in dual angle."
               value={vls.psaToPap}
               min={Math.max(0.25, Math.abs(ball.pinToCore - vls.pinToPap))}
               max={Math.min(6.7, ball.pinToCore + vls.pinToPap)}
@@ -188,7 +188,7 @@ export function LayoutEditor({
             idPrefix={idPrefix}
             locked={frozen}
             label="Pin buffer"
-            hint="Pin to the axis line. Short reads smooth and early, long is stronger off the friction."
+            hint="Distance from the pin to your axis line. Short reads the lane earlier and smoother; long saves more for the dry back end."
             value={vls.pinBuffer}
             min={0}
             max={Math.min(vls.pinToPap, 6)}

@@ -236,6 +236,7 @@ function SessionTile({
   const alley = alleyLabel(session.alley_name);
   const event = session.description?.trim();
   const date = formatSessionDate(session.date);
+  const pattern = session.oil_pattern?.trim();
 
   return (
     <button
@@ -249,6 +250,7 @@ function SessionTile({
       <span className="block w-full truncate text-sm font-semibold text-ink">{event || alley}</span>
       {event && <span className="block w-full truncate text-xs text-ink-secondary">{alley}</span>}
       <span className="block w-full truncate text-xs text-ink-secondary">{date}</span>
+      {pattern && <span className="block w-full truncate text-xs text-ink-secondary">{pattern}</span>}
       {/* The average leads, in the accent: it is the number a bowler looks
           for. The game count rides beside it, smaller, as its context. */}
       <span className="mt-auto flex w-full items-baseline gap-1 pt-2 tabular-nums">

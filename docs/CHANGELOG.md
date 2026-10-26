@@ -9,7 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.68.1: Oil patterns opens above the session editor (2026-10-26)
+## 0.69.0: Recent sessions name the oil pattern (2026-10-26)
+
+### Added
+
+- Home's Recent sessions tiles show the session's oil pattern under the date.
+
+### Changed
+
+- The dual angle and Storm VLS slider explanations are rewritten in plain
+  words. VLS's Pin to PAP now explains itself in full instead of pointing back
+  at dual angle.
 
 ### Fixed
 

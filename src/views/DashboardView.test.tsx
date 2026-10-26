@@ -9,7 +9,7 @@ import {
   setBackupNudgeSnoozedUntil,
   setBowlerName
 } from "../services/bowlingRepository";
-import { addBall } from "../services/ballRepository";
+import { addBall, addOilPattern } from "../services/ballRepository";
 import { GREETINGS } from "../lib/greeting";
 import { ProAccessContext } from "../lib/useProAccess";
 import type { ProAccess } from "../lib/pro";
@@ -206,6 +206,14 @@ describe("Home (ADR-115)", () => {
     expect(tile).not.toHaveTextContent(/Lane/);
     fireEvent.click(tile);
     expect(props.onOpenSession).toHaveBeenCalledWith(id, true);
+  });
+
+  it("names the oil pattern on a session tile", async () => {
+    const patternId = Number(await addOilPattern("SG Nationals 2026"));
+    await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl", oil_pattern_id: patternId });
+    renderHome();
+    const tile = await screen.findByRole("button", { name: /Open session: Orchid Bowl/ });
+    await waitFor(() => expect(tile).toHaveTextContent("SG Nationals 2026"));
   });
 
   it("leads with the game in progress when there is one", async () => {
