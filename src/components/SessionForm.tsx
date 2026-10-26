@@ -273,7 +273,9 @@ export function SessionForm({
           // session form underneath and threw away everything typed into it.
           // Going through PushScreen puts it on `useOverlay` and the sheet back
           // stack, where back closes the topmost layer and nothing else.
-          <PushScreen title="Oil patterns" onBack={closePatternManager} backCloses>
+          // On the top layer: the session form is a sheet (z-60), and a shell
+          // push (z-55) slid in under the sheet that opened it.
+          <PushScreen title="Oil patterns" onBack={closePatternManager} backCloses layer="top">
             <div className="mx-auto w-full max-w-3xl">
               <OilPatternManager />
             </div>

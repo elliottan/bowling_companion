@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.68.1: Oil patterns opens above the session editor (2026-10-26)
+
+### Fixed
+
+- Tapping the oil pattern settings icon while editing a session from score
+  entry opened the Oil patterns screen behind the Edit session sheet. It now
+  opens on top, as it does from New session.
+
 ## 0.68.0: The exit point is the pattern length, and the break starts past it (2026-10-24)
 
 - **The exit point on the lane is where your line crosses the pattern
