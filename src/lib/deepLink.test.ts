@@ -12,7 +12,7 @@ vi.mock("@capacitor/app", () => ({
   }
 }));
 
-const { inAppLocation, listenForLinks, openInApp } = await import("./deepLink");
+const { inAppLocation, LINK_EVENT, listenForLinks, openInApp } = await import("./deepLink");
 
 describe("inAppLocation", () => {
   it("opens a shared line on the same screen, query and all", () => {
@@ -62,10 +62,22 @@ describe("listenForLinks", () => {
     const store = new Map<string, string>();
     const storage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v) };
     launchUrl = { url: "https://headpin.app/app#/history" };
-    await listenForLinks(true, storage, open);
-    await listenForLinks(true, storage, open);
+    await listenForLinks(true, storage, open, null);
+    await listenForLinks(true, storage, open, null);
     expect(opened).toEqual(["https://headpin.app/app#/history"]);
     listeners[0]({ url: "https://headpin.app/app#/stats" });
     expect(opened[opened.length - 1]).toBe("https://headpin.app/app#/stats");
+  });
+
+  it("on the iPhone, says it is ready and opens what the app hands it", async () => {
+    const opened: string[] = [];
+    const said: string[] = [];
+    const before = listeners.length;
+    await listenForLinks(true, null, (url) => (opened.push(url), true), { postMessage: (m) => void said.push(m) });
+    expect(said).toEqual(["ready"]);
+    expect(listeners.length).toBe(before);
+    window.dispatchEvent(new CustomEvent(LINK_EVENT, { detail: "https://headpin.app/app#/stats" }));
+    window.dispatchEvent(new CustomEvent(LINK_EVENT, { detail: 42 }));
+    expect(opened).toEqual(["https://headpin.app/app#/stats"]);
   });
 });

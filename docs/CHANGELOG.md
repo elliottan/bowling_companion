@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.69.4: A shared link opens its screen in the iPhone app (2026-10-27)
+
+- Tapping a shared line or layout link opened the iPhone app and left it where
+  it was. The app now takes the link itself and opens the line sandbox or the
+  layout lab with what was shared (ADR-214). Home Screen quick actions use the
+  same way in.
+
 ## 0.69.3: Shared links open the app from an Xcode build too (2026-10-27)
 
 - A headpin.app link opened Safari instead of the iPhone app when the app was
