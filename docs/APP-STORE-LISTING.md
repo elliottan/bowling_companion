@@ -30,12 +30,12 @@ fields, so none of them is repeated in the keywords. Apple also joins words
 across the fields, so "keeper" in the keywords answers a search for "score
 keeper".
 
-## Promotional text (159 of 170)
+## Promotional text (154 of 170)
 
 Editable at any time without a new build.
 
 ```
-Tap the pins you left, add the ball and the boards, and see what's working. It runs offline at the alley, keeps everything on your phone, and needs no account.
+Score a game in a few taps, keep the ball and line behind every shot, and find out what's really working. It all stays on your phone, signal or no signal.
 ```
 
 ## Keywords (100 of 100)
@@ -50,32 +50,39 @@ league,pins,strike,spare,oil pattern,arsenal,average,tracker,layout,pap,usbc,lan
 ## Description (under 4,000)
 
 ```
-Headpin keeps score the way you bowl. Tap the pins you left standing and the frame scores itself, strikes, spares, fouls and the tenth included. Add the ball and your boards if you want to, and Headpin remembers them for next time.
+Headpin is a bowling score keeper for bowlers who want to get better. Tap the pins still standing after each ball and Headpin does the scoring, strikes, spares and the tenth frame included.
 
-It works without a signal, which is the normal case at an alley. Your sessions, games, balls and lines stay on your phone. There's no account to make and no ads.
+Each shot can carry more when you want it to: the ball you threw, where you stood, the arrow you aimed at and where it broke. A few sessions in, you can see which ball, which line and which spares are costing you pins.
 
-SCORE EVERY SHOT
-Tap the pins left standing and Next. Fix a shot in a finished game, undo the last ball, mark a foul. Each shot can carry the ball, your stance and target, and your breakpoint.
+Score at the lanes
+• Tap the pins left standing, then Next. It keeps up with league pace.
+• Fix any shot later, undo the last ball, or mark a foul.
+• Works offline, so a weak signal at the alley never matters.
 
-REMEMBER EVERY LINE YOU THREW
-See your line drawn over the oil pattern, from the laydown through the arrows to the breakpoint and into the pocket. Spare lines remember how you play each leave.
+See your line on the lane
+Your stance, target and breakpoint, drawn over the oil pattern you bowled on, from the laydown to the pocket. Save a line for each spare and Headpin opens with it the next time that leave comes up.
 
-HUNDREDS OF BALLS AND OIL PATTERNS
-Browse the ball catalog with specs and photos, and build your arsenal from it. Look up an oil pattern's load table, see the oil drawn on the lane, and open its original sheet. Missing something? Ask for it from inside the app.
+Your arsenal, and every ball and pattern
+Add your balls from a catalog of hundreds, each with its specs and photo. Look up an oil pattern, read its load table, see the oil drawn on the lane, and open the original sheet. If a ball or pattern is missing, ask for it from inside the app.
 
-SEE A LAYOUT BEFORE YOU DRILL IT
-Dual angle and Storm VLS layouts are drawn on the ball from your PAP, so you can turn the ball and look.
+Layouts before you drill
+Dual angle and Storm VLS layouts are drawn on the ball from your PAP. Turn the ball around and see where everything sits.
 
-KNOW WHAT'S WORKING
-Average, high game and series, strike and spare rates, first-ball pocket and carry, and a chart of any stat by session or by game.
+Your numbers
+Average, high game and series, your pocket and spare percentages, and how often you make every leave, charted session by session.
 
-YOUR GAMES, YOUR FILE
-Export a backup any time and import it on another phone. Bowled with Headpin on the web? Export there, import in the app, and your games come with you.
+Your games stay yours
+There's nothing to sign up for. Your games live on your phone, and you can export a backup whenever you like and take it to a new one. Bowled with Headpin on the web? Export there and import here.
 
-HEADPIN PRO
-Headpin is free to download, and recording is free: every shot, ball, line, lane, pattern and note, plus your history and backups. Headpin Pro is one purchase, tied to your Apple ID, with no subscription, and every Pro feature added later comes with it. It opens the deeper reads: whether your pocket hits carry and how often you strike, how every one of your balls strikes and carries, what you'd average with each ball at an alley, and moving a line, changing a layout or seeing your own ball's layout drawn to see what it does.
+Headpin Pro
+Everything you record is free, forever. Headpin Pro is one purchase, with no subscription, and it reads deeper into those records:
+• Strike and carry rates, strikes in a row, and your first-ball pin count
+• Strike and carry for every ball in your bag
+• What you'd average with each ball at a given alley
+• Moving a line on the lane, or changing a layout to see what it does
+Buy it once and every Pro feature added later comes with it.
 
-Headpin is an independent project and isn't affiliated with any ball manufacturer or bowling organization. Ball names and images belong to their owners.
+Headpin is independent and isn't affiliated with any ball maker or bowling organization. Ball names and images belong to their owners.
 ```
 
 ## What's new in 1.0 (under 4,000)

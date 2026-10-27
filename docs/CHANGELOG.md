@@ -12,7 +12,8 @@ had all shipped.
 ## 0.69.1: The App Store name is Headpin: Bowling Score & Stats (2026-10-27)
 
 - The iPhone app's App Store name is "Headpin: Bowling Score & Stats", and its
-  keywords drop "stats" and add "keeper" to match (`docs/APP-STORE-LISTING.md`).
+  keywords drop "stats" and add "keeper" to match. The promotional text and
+  description are rewritten (`docs/APP-STORE-LISTING.md`).
   Nothing in the app changes. `scripts/app-store/pro-icon.mjs` draws the Pro
   mark at 1024 by 1024 for the in-app purchase's image
   (`marketing/app-store/headpin-pro-1024.png`).
