@@ -16,6 +16,8 @@ had all shipped.
   (`ios/App/ci_scripts/ci_post_clone.sh`) now installs Node 22, runs `npm ci`
   and `npm run build:ios` before Xcode resolves packages. Nothing in the app
   changes.
+- The Headpin Pro page's screenshot for the in-app purchase's App Review
+  information is kept beside the Pro image (`marketing/app-store/`).
 
 ## 0.69.1: The App Store name is Headpin: Bowling Score & Stats (2026-10-27)
 

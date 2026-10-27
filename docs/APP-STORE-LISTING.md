@@ -158,6 +158,15 @@ Bringing games from the web: on first launch the app explains how to import a ba
 Contact: hello@headpin.app
 ```
 
+## The Headpin Pro in-app purchase
+
+- Image (1024 by 1024, shown in offer code redemptions):
+  `marketing/app-store/headpin-pro-1024.png`, drawn by
+  `node scripts/app-store/pro-icon.mjs`.
+- Review Information screenshot (for App Review only, never on the store):
+  `marketing/app-store/headpin-pro-review.png`, the Headpin Pro page as a free
+  download sees it, with Get Headpin Pro and Restore purchase.
+
 ## Screenshots
 
 Apple takes up to 10 per size. App Store Connect asks for the 6.3 inch iPhone
