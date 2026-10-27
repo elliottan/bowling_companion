@@ -9101,3 +9101,30 @@ in front of the length, where a fresh ball does not hook.
 - A line crossing the length out past the oiled width still shows its exit at
   the length. The film under it shows that it is dry there.
 - A path that never reaches the length has no exit.
+
+## ADR-213: The link entitlement is signed into Debug builds too
+
+**Status.** Accepted, 2026-10-27. Amends ADR-159.
+
+**Context.** ADR-159 signed Associated Domains into Release builds only, so a
+Debug build would keep building for anyone on a personal (free) Apple team,
+which cannot sign it. The owner's paid Developer Program team is now approved,
+and the first check on a phone found shared headpin.app links opening in Safari:
+the build on the phone was run from Xcode, which is Debug, and carried no
+`applinks:headpin.app` at all. The site's `apple-app-site-association` was
+already served, and Apple's CDN already had it.
+
+**Decision.** `CODE_SIGN_ENTITLEMENTS` is set for Debug as well as Release, so
+every signed build of the app claims headpin.app links, and a link can be
+checked on a phone without an archive.
+
+**Consequences.**
+
+- A Debug build now needs the paid team to sign. The simulator check in CI
+  builds with code signing off, which applies no entitlements, so it is
+  unaffected.
+- Checking a link still has rules of its own: a link opens the app when it is
+  tapped in Messages, Notes or Mail, not when it is typed into Safari or tapped
+  on a headpin.app page already open in Safari. A long press offers "Open in
+  Headpin", and choosing Safari once there makes iOS remember Safari for the
+  site until "Open in Headpin" is chosen again.

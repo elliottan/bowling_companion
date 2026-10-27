@@ -226,10 +226,10 @@ switch.
 - [x] Share sheet for cards, links and backups, which saves to Files (ADR-156).
 - [x] Haptics on the pin deck, no rubber band, no pinch zoom (ADR-160). Apple
       rejects a repackaged website (4.2).
-- [ ] The first-run import steps.
+- [x] The first-run import steps.
 - [x] Remove the donation link and the retailer link (ADR-119), their usage
       count, and their words on the legal page.
-- [ ] The legal page and privacy policy say what the app stores and what the
+- [x] The legal page and privacy policy say what the app stores and what the
       store does.
 
 ### 4. App Store submission
