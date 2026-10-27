@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.69.3: Shared links open the app from an Xcode build too (2026-10-27)
+
+- A headpin.app link opened Safari instead of the iPhone app when the app was
+  installed from Xcode, because the link entitlement was signed into Release
+  builds only. It is signed into Debug builds as well now (ADR-213). App Store
+  and TestFlight builds were never affected.
+
 ## 0.69.2: The iPhone app builds on Xcode Cloud (2026-10-27)
 
 - Xcode Cloud failed to resolve the Capacitor plugins, which are Swift packages

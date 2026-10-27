@@ -5,9 +5,9 @@
   installed. headpin.app vouches for the app in
   public/.well-known/apple-app-site-association.
 
-  Signed in only on Release builds: a personal (free) development team cannot
-  sign Associated Domains, so a Debug build for the simulator leaves it out and
-  keeps building for anyone without the paid Developer Program.
+  Signed into Debug and Release builds alike (ADR-213), so a build run from
+  Xcode on a phone opens links as the App Store build does. It needs the paid
+  Developer Program's team; a personal (free) team cannot sign it.
 -->
 <plist version="1.0">
 <dict>
