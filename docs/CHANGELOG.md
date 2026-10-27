@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.69.1: The App Store name is Headpin: Bowling Score & Stats (2026-10-27)
+
+- The iPhone app's App Store name is "Headpin: Bowling Score & Stats", and its
+  keywords drop "stats" and add "keeper" to match (`docs/APP-STORE-LISTING.md`).
+  Nothing in the app changes.
+
 ## 0.69.0: Recent sessions name the oil pattern (2026-10-26)
 
 ### Added

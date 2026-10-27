@@ -13,10 +13,10 @@ Claims stay inside what the app does today. A feature that is not built is not
 in the listing, and "hundreds of balls" is used where an exact catalog count
 would go out of date with the next catalog update.
 
-## App name (28 of 30)
+## App name (30 of 30)
 
 ```
-Headpin: Bowling Scorekeeper
+Headpin: Bowling Score & Stats
 ```
 
 ## Subtitle (25 of 30)
@@ -25,8 +25,10 @@ Headpin: Bowling Scorekeeper
 Every shot, ball and line
 ```
 
-The name already carries "bowling" and "scorekeeper", and Apple indexes both
-fields, so neither word is repeated in the keywords.
+The name already carries "bowling", "score" and "stats", and Apple indexes both
+fields, so none of them is repeated in the keywords. Apple also joins words
+across the fields, so "keeper" in the keywords answers a search for "score
+keeper".
 
 ## Promotional text (159 of 170)
 
@@ -36,13 +38,13 @@ Editable at any time without a new build.
 Tap the pins you left, add the ball and the boards, and see what's working. It runs offline at the alley, keeps everything on your phone, and needs no account.
 ```
 
-## Keywords (99 of 100)
+## Keywords (100 of 100)
 
 Comma separated, no spaces after commas. Words already in the name and subtitle
 are left out, and so is "Headpin".
 
 ```
-league,pins,strike,spare,oil pattern,arsenal,stats,average,tracker,layout,pap,usbc,lane,notes,leave
+league,pins,strike,spare,oil pattern,arsenal,average,tracker,layout,pap,usbc,lane,notes,leave,keeper
 ```
 
 ## Description (under 4,000)
