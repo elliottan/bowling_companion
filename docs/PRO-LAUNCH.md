@@ -181,7 +181,10 @@ switch.
 ### 1. The iOS shell (a spike first)
 
 - [x] Capacitor around the Vite build, with photos and sheets kept out of the
-      bundle (ADR-155, `npm run build:ios`). Not yet built in Xcode.
+      bundle (ADR-155, `npm run build:ios`). Xcode Cloud builds it:
+      `ios/App/ci_scripts/ci_post_clone.sh` installs Node and runs
+      `npm ci` and `npm run build:ios` first, since the plugins are Swift
+      packages in `node_modules` and `App/public` is not committed.
 - [ ] Read `docs/VIEWPORT-BUG.md` in full before touching the shell: safe areas,
       rotation and the keyboard behave differently in the iOS web view. iPhone
       is portrait only; safe areas and the keyboard wait on a device.

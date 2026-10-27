@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.69.2: The iPhone app builds on Xcode Cloud (2026-10-27)
+
+- Xcode Cloud failed to resolve the Capacitor plugins, which are Swift packages
+  inside `node_modules`, and found no web app to carry. A post-clone script
+  (`ios/App/ci_scripts/ci_post_clone.sh`) now installs Node 22, runs `npm ci`
+  and `npm run build:ios` before Xcode resolves packages. Nothing in the app
+  changes.
+
 ## 0.69.1: The App Store name is Headpin: Bowling Score & Stats (2026-10-27)
 
 - The iPhone app's App Store name is "Headpin: Bowling Score & Stats", and its
