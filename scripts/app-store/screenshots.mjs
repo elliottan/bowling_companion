@@ -2,7 +2,7 @@
 //
 //   1. npm run dev
 //   2. SHOTS_STATE=/tmp/headpin-state.json SHOTS_DIR=/tmp/shots npm run shots
-//   3. STORE_STATE=/tmp/headpin-state.json STORE_OUT=marketing/app-store/2026-10-22 \
+//   3. STORE_STATE=/tmp/headpin-state.json STORE_OUT=marketing/app-store/2026-10-27 \
 //        node scripts/app-store/screenshots.mjs
 //
 // Two passes. The first drives the app at the 6.9 inch iPhone's size (440 x 956
@@ -11,6 +11,9 @@
 // status bar as it does on a phone, and the status bar drawn into that space.
 // Those are the plain screenshots (`plain/`). The second sets each one in a
 // phone under its caption (`frame.html`), at the same size (`captioned/`).
+// Every set is also written at the 6.3 inch iPhone's 1206 x 2622
+// (`plain-6.3/`, `captioned-6.3/`), which App Store Connect asks for as well.
+// The two screens' shapes differ by under a pixel, so it is a resize.
 //
 // The captions are the plan in docs/APP-STORE-LISTING.md. A screen that shows
 // Headpin Pro carries the Pro badge, since Apple asks that a screenshot say
@@ -20,6 +23,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { chromium } from "@playwright/test";
+import sharp from "sharp";
 import { seedHistory } from "../ad-content/history.mjs";
 import { SCREEN, STORE_DPR, actAsIphoneApp, drawStatusBar, emulateSafeAreas, removeStatusBar } from "./iphone.mjs";
 
@@ -39,16 +43,19 @@ const DPR = STORE_DPR;
  * bowler sees in search before scrolling, so they carry the pitch. `theme` is
  * the app's; the lane view paints its own dark frame either way.
  */
+const SMALL = { width: 1206, height: 2622 };
+const small = (png) => sharp(png).resize(SMALL.width, SMALL.height, { fit: "cover" }).png().toBuffer();
+
 const SHOTS = [
-  { name: "01-score", theme: "light", h: "Score <em>every shot</em>.", sub: "Tap the pins you left. Unlimited games, free." },
+  { name: "01-score", theme: "dark", h: "Score <em>every shot</em>.", sub: "Tap the pins you left. Unlimited games, free." },
   { name: "02-line", theme: "dark", h: "Remember every|<em>line</em> you threw.", sub: "Your line drawn over the oil, shot by shot." },
   { name: "03-arsenal", theme: "dark", h: "Your whole|<em>arsenal</em>, free.", sub: "Every ball you own, with no cap on the bag." },
-  { name: "04-stats", theme: "light", h: "Know what's|<em>working</em>.", sub: "Average, high game, strike and spare rates." },
-  { name: "05-catalog", theme: "dark", h: "Hundreds of balls,|<em>one tap</em>.", sub: "Specs and photos. Build your bag from them." },
+  { name: "04-stats", theme: "dark", h: "Know what's|<em>working</em>.", sub: "Your average, pocket and spares, over time." },
+  { name: "05-catalog", theme: "dark", h: "Over 800 balls,|<em>one tap</em>.", sub: "Specs and photos. Build your bag from them." },
   { name: "06-pattern", theme: "dark", h: "See the oil|<em>before you throw</em>.", sub: "Load tables and the oil drawn on the lane." },
-  { name: "07-layout", theme: "light", h: "See a layout|<em>before you drill it</em>.", sub: "Dual angle and Storm VLS, drawn from your PAP." },
+  { name: "07-layout", theme: "dark", h: "See a layout|<em>before you drill it</em>.", sub: "Dual angle and Storm VLS, drawn from your PAP." },
   { name: "08-pro", theme: "dark", pro: true, h: "Go deeper|with <em>Pro</em>.", sub: "Carry, strike, ball by ball, alley by alley. One purchase, no subscription." },
-  { name: "09-home", theme: "light", h: "Works without|<em>a signal</em>.", sub: "No account to make. Built for the alley." },
+  { name: "09-home", theme: "dark", h: "Works without|<em>a signal</em>.", sub: "No account to make. Built for the alley." },
   { name: "10-history", theme: "dark", h: "Every night,|<em>on your phone</em>.", sub: "Unlimited sessions. Back up any time, free." }
 ];
 const wanted = (name) => !ONLY || ONLY.some((o) => name.includes(o));
@@ -118,6 +125,7 @@ async function shoot(shot, { bar = shot.theme === "dark" ? "#fff" : "#0b1220" } 
   await wait(150);
   plain[shot.name] = await page.screenshot({ type: "png" });
   await writeFile(join(OUT, "plain", `${shot.name}.png`), plain[shot.name]);
+  await writeFile(join(OUT, "plain-6.3", `${shot.name}.png`), await small(plain[shot.name]));
   console.log("took", shot.name);
   await removeStatusBar(page);
 }
@@ -150,6 +158,8 @@ async function addFromCatalog(query, name) {
 
 await mkdir(join(OUT, "plain"), { recursive: true });
 await mkdir(join(OUT, "captioned"), { recursive: true });
+await mkdir(join(OUT, "plain-6.3"), { recursive: true });
+await mkdir(join(OUT, "captioned-6.3"), { recursive: true });
 
 // --- Setup: weeks of league nights, and a bigger bag -----------------------
 
@@ -170,7 +180,7 @@ for (const [query, name] of [["Dynasty", /Black Widow 3\.0 Dynasty/], ["Hy-Road 
 // Tonight's game, into the tenth: the card full of marks, the 10 pin left
 // standing, the ball and the line with it.
 if (wanted("score") || wanted("home")) {
-  await setTheme("light");
+  await setTheme("dark");
   const nav = page.getByRole("navigation");
   await nav.getByRole("button", { name: "Score", exact: true }).click();
   await page.getByRole("button", { name: "Start session" }).first().click();
@@ -226,11 +236,16 @@ if (wanted("score") || wanted("home")) {
 }
 
 // The line over a PBA pattern, from the pattern's own page.
+// Drawn as a bowler with Pro sees them, with no lock over the controls:
+// reading a line, a pattern or a layout is free (ADR-170), and the shot is about
+// what is drawn, not the controls that move it.
 if (wanted("line") || wanted("pattern")) {
+  await home(true);
   await setTheme("dark");
   await page.getByRole("button", { name: /Oil patterns/ }).first().click();
   await page.getByRole("searchbox").or(page.getByPlaceholder(/search/i)).first().fill("Shark");
-  await page.getByText("2019 PBA Shark 48").first().click();
+  // Home's session tiles name their pattern too, under the pushed screen.
+  await page.getByRole("dialog", { name: "Oil patterns" }).getByText("2019 PBA Shark 48").first().click();
   await wait(900);
   if (wanted("pattern")) await shoot(shot("pattern"));
   if (wanted("line")) {
@@ -264,7 +279,8 @@ if (wanted("catalog")) {
 
 // The layout lab as it opens: the drilled ball first, then what it will do.
 if (wanted("layout")) {
-  await setTheme("light");
+  await home(true);
+  await setTheme("dark");
   await page.getByRole("button", { name: /^Layouts/ }).click();
   await wait(900);
   await shoot(shot("layout"));
@@ -275,7 +291,10 @@ if (wanted("layout")) {
 if (wanted("stats") || wanted("pro")) {
   const nav = page.getByRole("navigation");
   if (wanted("stats")) {
-    await setTheme("light");
+    // With Pro, so no lock sits over the numbers: the caption names only the
+    // free ones, and the Pro shot (08) is the one that sells the rest.
+    await home(true);
+    await setTheme("dark");
     await nav.getByRole("button", { name: "Stats" }).click();
     await wait(900);
     await shoot(shot("stats"));
@@ -321,7 +340,8 @@ for (const [i, s] of SHOTS.entries()) {
   await framer.goto(`${BASE}/scripts/app-store/frame.html?${q}`);
   await framer.evaluate(() => window.ready);
   const file = join(OUT, "captioned", `${s.name}.png`);
-  await framer.screenshot({ path: file });
+  const png = await framer.screenshot({ path: file });
+  await writeFile(join(OUT, "captioned-6.3", `${s.name}.png`), await small(png));
   console.log("wrote", file);
 }
 await browser.close();

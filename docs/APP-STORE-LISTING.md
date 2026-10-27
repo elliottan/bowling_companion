@@ -160,13 +160,13 @@ Contact: hello@headpin.app
 
 ## Screenshots
 
-Apple takes up to 10 per size. The required size is the 6.9 inch iPhone (1320
-by 2868); the others scale from it. Headpin is portrait only, so every shot is
+Apple takes up to 10 per size. App Store Connect asks for the 6.3 inch iPhone
+(1206 by 2622) as well as the 6.9 inch (1320 by 2868), so the script writes both. Headpin is portrait only, so every shot is
 portrait.
 
-The set is built: `marketing/app-store/2026-10-22/`, made by
-`scripts/app-store/screenshots.mjs` from the real app. `captioned/` is the set
-to upload; `plain/` is the same ten screens with no caption, for a listing or a
+The set is built: `marketing/app-store/2026-10-27/`, made by
+`scripts/app-store/screenshots.mjs` from the real app. `captioned/` (6.9 inch)
+and `captioned-6.3/` are the sets to upload; `plain/` and `plain-6.3/` are the same ten screens with no caption, for a listing or a
 press kit that wants the bare app. The script drives the app at the 6.9 inch
 size with the phone's safe areas, and tells the page it is inside the iPhone
 app, so every screen carries the app's copy, not the web's. The store answers
@@ -175,18 +175,17 @@ download sees it. The app shows no price of its own: Apple's purchase sheet
 names it.
 
 One idea per screenshot, a headline and one line under it, in the app's voice.
-The app's theme is light for the scorer, stats, layout and Home, and dark for
-the rest, so the set shows both.
+Every screen is in the app's dark theme, at the owner's request.
 
 | # | Screen | Headline | Under it |
 |---|---|---|---|
 | 1 | The scorer in the tenth, the 10 left standing, ball and line beside it | Score every shot. | Tap the pins you left. Unlimited games, free. |
-| 2 | The lane view, the line over 2019 PBA Shark 48, with the "Unlock editing" chip | Remember every line you threw. | Your line drawn over the oil, shot by shot. |
+| 2 | The lane view, the line over 2019 PBA Shark 48 | Remember every line you threw. | Your line drawn over the oil, shot by shot. |
 | 3 | The arsenal, nine balls | Your whole arsenal, free. | Every ball you own, with no cap on the bag. |
-| 4 | Stats: average, the trend chart, the first-ball card, the Pro banner | Know what's working. | Average, strike and spare rates, pocket and carry. |
-| 5 | A catalog ball's page, photo and specs | Hundreds of balls, one tap. | Specs and photos. Build your bag from them. |
+| 4 | Stats: average, the trend chart, the first-ball card, spares | Know what's working. | Your average, pocket and spares, over time. |
+| 5 | A catalog ball's page, photo and specs | Over 800 balls, one tap. | Specs and photos. Build your bag from them. |
 | 6 | 2019 PBA Shark 48: its numbers and the oil on the lane | See the oil before you throw. | Load tables and the oil drawn on the lane. |
-| 7 | The layout lab as it opens: the drilled ball, what it will do, the locked sliders | See a layout before you drill it. | Dual angle and Storm VLS, drawn from your PAP. |
+| 7 | The layout lab as it opens: the drilled ball, what it will do, the sliders | See a layout before you drill it. | Dual angle and Storm VLS, drawn from your PAP. |
 | 8 | Stats with Pro bought: carry, strike and every ball, under the Headpin Pro badge | Go deeper with Pro. | Carry, strike, ball by ball. One purchase, no subscription. |
 | 9 | Home, tonight's game in progress, with the Pro banner | Works without a signal. | No account to make. Built for the alley. |
 | 10 | History: five weeks of league nights | Every night, on your phone. | Unlimited sessions. Back up any time, free. |
@@ -198,9 +197,11 @@ Rules for the set:
 
 - **A screen that shows Pro says so** (App Review Guideline 2.3.2: screenshots
   must make clear when a featured item needs a purchase). Shot 8 carries the
-  Headpin Pro badge and the price model in its line; every other shot is taken
-  without Pro, so a Pro card or control on it is shown locked, as a free
-  download has it (shots 2, 4 and 7).
+  Headpin Pro badge and the price model in its line. Shots 2, 4, 6 and 7 are
+  taken with Pro owned, at the owner's request, so no lock sits over them:
+  what they feature (a line, a pattern and a layout drawn, and the stats their
+  captions name) is free to read. Shot 4 does show carry and strike on the
+  First ball card, which are Pro; if App Review objects, retake it without Pro.
 - Real data from a believable bowler, not placeholder numbers: five weeks of
   league nights (`scripts/ad-content/history.mjs`) and tonight's game.
 - The phone is whole, and the same size in the same place on every shot; the
@@ -222,7 +223,7 @@ Rules for the set:
 
 ## Before submission
 
-- **The screenshots are current as of 0.56.0** (`marketing/app-store/2026-10-22/`).
+- **The screenshots are current as of 0.69.1** (`marketing/app-store/2026-10-27/`).
   Retake them when a screen in the set changes:
   `node scripts/app-store/screenshots.mjs`, from the state `npm run shots`
   saves, so the landing page and the store show the same bowler.
