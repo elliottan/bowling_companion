@@ -54,13 +54,12 @@ Everything you need to understand your game and bowl better, in one app:
 
 1. Scoring
 2. Line Visualizer
-3. Spare Lines
-4. Stats & Charts
-5. Bowling Ball Arsenal
-6. Oil Patterns
-7. Layout Lab
+3. Layouts Visualizer
+4. Bowling Ball Arsenal
+5. Stats & Charts
+6. Spare Lines
+7. Oil Patterns
 8. Your Games, Your Phone
-9. Share Cards
 
 ---
 
@@ -76,45 +75,39 @@ See exactly how you're playing the lane. Your line is drawn over the oil, from y
 
 ---
 
-3. Spare Lines
+3. Layouts Visualizer
 
-Make more spares. Headpin remembers how you shoot every leave, so the right line is ready the moment it comes up, and it moves with you as the lanes break down.
-
----
-
-4. Stats & Charts
-
-Find out where your pins are going. Your average, your pocket and spare percentages, and the leaves that cost you the most, charted over time so you can watch yourself improve.
+See a layout before you drill it. Dual angle and Storm VLS layouts are drawn on the ball from your own PAP, so you know what you're getting before it goes to the pro shop.
 
 ---
 
-5. Bowling Ball Arsenal
+4. Bowling Ball Arsenal
 
 Know your bag. Browse over 800 bowling balls with specs and photos, build your arsenal, and see which ball is really scoring for you.
 
 ---
 
-6. Oil Patterns
+5. Stats & Charts
 
-Walk in knowing the shot. Look up PBA and Kegel patterns, see the oil laid out on the lane, and plan your line before your first ball.
+Find out where your pins are going. Your average, your pocket and spare percentages, and the leaves that cost you the most, charted over time so you can watch yourself improve.
 
 ---
 
-7. Layout Lab
+6. Spare Lines
 
-See a layout before you drill it. Dual angle and Storm VLS layouts are drawn on the ball from your own PAP, so you know what you're getting before it goes to the pro shop.
+Make more spares. Headpin remembers how you shoot every leave, so the right line is ready the moment it comes up, and it moves with you as the lanes break down.
+
+---
+
+7. Oil Patterns
+
+Walk in knowing the shot. Look up PBA and Kegel patterns, see the oil laid out on the lane, and plan your line before your first ball.
 
 ---
 
 8. Your Games, Your Phone
 
 Your games live on your phone and work offline at any alley, with no account to create. Back up whenever you like and bring your whole history to a new phone.
-
----
-
-9. Share Cards
-
-Bowled a great night? Share it as a picture, along with your line or your layout, so your teammates can see it too.
 
 ---
 
