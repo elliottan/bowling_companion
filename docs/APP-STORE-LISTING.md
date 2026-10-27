@@ -13,10 +13,10 @@ Claims stay inside what the app does today. A feature that is not built is not
 in the listing, and "hundreds of balls" is used where an exact catalog count
 would go out of date with the next catalog update.
 
-## App name (28 of 30)
+## App name (30 of 30)
 
 ```
-Headpin: Bowling Scorekeeper
+Headpin: Bowling Score & Stats
 ```
 
 ## Subtitle (25 of 30)
@@ -25,55 +25,97 @@ Headpin: Bowling Scorekeeper
 Every shot, ball and line
 ```
 
-The name already carries "bowling" and "scorekeeper", and Apple indexes both
-fields, so neither word is repeated in the keywords.
+The name already carries "bowling", "score" and "stats", and Apple indexes both
+fields, so none of them is repeated in the keywords. Apple also joins words
+across the fields, so "keeper" in the keywords answers a search for "score
+keeper".
 
-## Promotional text (159 of 170)
+## Promotional text (164 of 170)
 
 Editable at any time without a new build.
 
 ```
-Tap the pins you left, add the ball and the boards, and see what's working. It runs offline at the alley, keeps everything on your phone, and needs no account.
+Know where your pins are going. Track every ball, see your line over the oil, and find the ball and the spares that make the difference. Works offline at any alley.
 ```
 
-## Keywords (99 of 100)
+## Keywords (100 of 100)
 
 Comma separated, no spaces after commas. Words already in the name and subtitle
 are left out, and so is "Headpin".
 
 ```
-league,pins,strike,spare,oil pattern,arsenal,stats,average,tracker,layout,pap,usbc,lane,notes,leave
+league,pins,strike,spare,oil pattern,arsenal,average,tracker,layout,pap,usbc,lane,notes,leave,keeper
 ```
 
 ## Description (under 4,000)
 
 ```
-Headpin keeps score the way you bowl. Tap the pins you left standing and the frame scores itself, strikes, spares, fouls and the tenth included. Add the ball and your boards if you want to, and Headpin remembers them for next time.
+Everything you need to understand your game and bowl better, in one app:
 
-It works without a signal, which is the normal case at an alley. Your sessions, games, balls and lines stay on your phone. There's no account to make and no ads.
+1. Scoring
+2. Line Visualizer
+3. Layouts Visualizer
+4. Bowling Ball Arsenal
+5. Stats & Charts
+6. Spare Lines
+7. Oil Patterns
+8. Your Games, Your Phone
 
-SCORE EVERY SHOT
-Tap the pins left standing and Next. Fix a shot in a finished game, undo the last ball, mark a foul. Each shot can carry the ball, your stance and target, and your breakpoint.
+---
 
-REMEMBER EVERY LINE YOU THREW
-See your line drawn over the oil pattern, from the laydown through the arrows to the breakpoint and into the pocket. Spare lines remember how you play each leave.
+1. Scoring
 
-HUNDREDS OF BALLS AND OIL PATTERNS
-Browse the ball catalog with specs and photos, and build your arsenal from it. Look up an oil pattern's load table, see the oil drawn on the lane, and open its original sheet. Missing something? Ask for it from inside the app.
+Keep score the easy way, and turn every game into something you can learn from. Each ball you bowl, with the ball you threw and where you played it, builds a record of your game across the whole season.
 
-SEE A LAYOUT BEFORE YOU DRILL IT
-Dual angle and Storm VLS layouts are drawn on the ball from your PAP, so you can turn the ball and look.
+---
 
-KNOW WHAT'S WORKING
-Average, high game and series, strike and spare rates, first-ball pocket and carry, and a chart of any stat by session or by game.
+2. Line Visualizer
 
-YOUR GAMES, YOUR FILE
-Export a backup any time and import it on another phone. Bowled with Headpin on the web? Export there, import in the app, and your games come with you.
+See exactly how you're playing the lane. Your line is drawn over the oil, from your feet to the pocket, so when the lanes change you know where to move, and the next time you see that pattern you'll remember what worked.
 
-HEADPIN PRO
-Headpin is free to download, and recording is free: every shot, ball, line, lane, pattern and note, plus your history and backups. Headpin Pro is one purchase, tied to your Apple ID, with no subscription, and every Pro feature added later comes with it. It opens the deeper reads: whether your pocket hits carry and how often you strike, how every one of your balls strikes and carries, what you'd average with each ball at an alley, and moving a line, changing a layout or seeing your own ball's layout drawn to see what it does.
+---
 
-Headpin is an independent project and isn't affiliated with any ball manufacturer or bowling organization. Ball names and images belong to their owners.
+3. Layouts Visualizer
+
+See a layout before you drill it. Dual angle and Storm VLS layouts are drawn on the ball from your own PAP, so you know what you're getting before it goes to the pro shop.
+
+---
+
+4. Bowling Ball Arsenal
+
+Know your bag. Browse over 800 bowling balls with specs and photos, build your arsenal, and see which ball is really scoring for you.
+
+---
+
+5. Stats & Charts
+
+Find out where your pins are going. Your average, your pocket and spare percentages, and the leaves that cost you the most, charted over time so you can watch yourself improve.
+
+---
+
+6. Spare Lines
+
+Make more spares. Headpin remembers how you shoot every leave, so the right line is ready the moment it comes up, and it moves with you as the lanes break down.
+
+---
+
+7. Oil Patterns
+
+Walk in knowing the shot. Look up PBA and Kegel patterns, see the oil laid out on the lane, and plan your line before your first ball.
+
+---
+
+8. Your Games, Your Phone
+
+Your games live on your phone and work offline at any alley, with no account to create. Back up whenever you like and bring your whole history to a new phone.
+
+---
+
+Headpin Pro
+
+Go deeper with one purchase and no subscription. See what's behind your strikes with carry and strike rates, compare every ball in your bag, find the ball you average best with at each alley, and fine-tune lines and layouts to see what changes. Everything you record stays free, forever.
+
+Headpin is independent and isn't affiliated with any ball manufacturer or bowling organization. Ball names and images belong to their owners.
 ```
 
 ## What's new in 1.0 (under 4,000)
@@ -118,13 +160,13 @@ Contact: hello@headpin.app
 
 ## Screenshots
 
-Apple takes up to 10 per size. The required size is the 6.9 inch iPhone (1320
-by 2868); the others scale from it. Headpin is portrait only, so every shot is
+Apple takes up to 10 per size. App Store Connect asks for the 6.3 inch iPhone
+(1206 by 2622) as well as the 6.9 inch (1320 by 2868), so the script writes both. Headpin is portrait only, so every shot is
 portrait.
 
-The set is built: `marketing/app-store/2026-10-22/`, made by
-`scripts/app-store/screenshots.mjs` from the real app. `captioned/` is the set
-to upload; `plain/` is the same ten screens with no caption, for a listing or a
+The set is built: `marketing/app-store/2026-10-27/`, made by
+`scripts/app-store/screenshots.mjs` from the real app. `captioned/` (6.9 inch)
+and `captioned-6.3/` are the sets to upload; `plain/` and `plain-6.3/` are the same ten screens with no caption, for a listing or a
 press kit that wants the bare app. The script drives the app at the 6.9 inch
 size with the phone's safe areas, and tells the page it is inside the iPhone
 app, so every screen carries the app's copy, not the web's. The store answers
@@ -133,18 +175,17 @@ download sees it. The app shows no price of its own: Apple's purchase sheet
 names it.
 
 One idea per screenshot, a headline and one line under it, in the app's voice.
-The app's theme is light for the scorer, stats, layout and Home, and dark for
-the rest, so the set shows both.
+Every screen is in the app's dark theme, at the owner's request.
 
 | # | Screen | Headline | Under it |
 |---|---|---|---|
 | 1 | The scorer in the tenth, the 10 left standing, ball and line beside it | Score every shot. | Tap the pins you left. Unlimited games, free. |
-| 2 | The lane view, the line over 2019 PBA Shark 48, with the "Unlock editing" chip | Remember every line you threw. | Your line drawn over the oil, shot by shot. |
+| 2 | The lane view, the line over 2019 PBA Shark 48 | Remember every line you threw. | Your line drawn over the oil, shot by shot. |
 | 3 | The arsenal, nine balls | Your whole arsenal, free. | Every ball you own, with no cap on the bag. |
-| 4 | Stats: average, the trend chart, the first-ball card, the Pro banner | Know what's working. | Average, strike and spare rates, pocket and carry. |
-| 5 | A catalog ball's page, photo and specs | Hundreds of balls, one tap. | Specs and photos. Build your bag from them. |
+| 4 | Stats: average, the trend chart, the first-ball card, spares | Know what's working. | Your average, pocket and spares, over time. |
+| 5 | A catalog ball's page, photo and specs | Over 800 balls, one tap. | Specs and photos. Build your bag from them. |
 | 6 | 2019 PBA Shark 48: its numbers and the oil on the lane | See the oil before you throw. | Load tables and the oil drawn on the lane. |
-| 7 | The layout lab as it opens: the drilled ball, what it will do, the locked sliders | See a layout before you drill it. | Dual angle and Storm VLS, drawn from your PAP. |
+| 7 | The layout lab as it opens: the drilled ball, what it will do, the sliders | See a layout before you drill it. | Dual angle and Storm VLS, drawn from your PAP. |
 | 8 | Stats with Pro bought: carry, strike and every ball, under the Headpin Pro badge | Go deeper with Pro. | Carry, strike, ball by ball. One purchase, no subscription. |
 | 9 | Home, tonight's game in progress, with the Pro banner | Works without a signal. | No account to make. Built for the alley. |
 | 10 | History: five weeks of league nights | Every night, on your phone. | Unlimited sessions. Back up any time, free. |
@@ -156,9 +197,11 @@ Rules for the set:
 
 - **A screen that shows Pro says so** (App Review Guideline 2.3.2: screenshots
   must make clear when a featured item needs a purchase). Shot 8 carries the
-  Headpin Pro badge and the price model in its line; every other shot is taken
-  without Pro, so a Pro card or control on it is shown locked, as a free
-  download has it (shots 2, 4 and 7).
+  Headpin Pro badge and the price model in its line. Shots 2, 4, 6 and 7 are
+  taken with Pro owned, at the owner's request, so no lock sits over them:
+  what they feature (a line, a pattern and a layout drawn, and the stats their
+  captions name) is free to read. Shot 4 does show carry and strike on the
+  First ball card, which are Pro; if App Review objects, retake it without Pro.
 - Real data from a believable bowler, not placeholder numbers: five weeks of
   league nights (`scripts/ad-content/history.mjs`) and tonight's game.
 - The phone is whole, and the same size in the same place on every shot; the
@@ -180,13 +223,13 @@ Rules for the set:
 
 ## Before submission
 
-- **The screenshots are current as of 0.56.0** (`marketing/app-store/2026-10-22/`).
+- **The screenshots are current as of 0.69.1** (`marketing/app-store/2026-10-27/`).
   Retake them when a screen in the set changes:
   `node scripts/app-store/screenshots.mjs`, from the state `npm run shots`
   saves, so the landing page and the store show the same bowler.
 
-- Replace "Hundreds" with a number only if it is checked against the catalog on
-  the day.
+- "Over 800" balls was checked against `public/catalog/catalog.json` (832) on
+  2026-10-27. Recheck it before each submission.
 - Age rating: no objectionable content, no web access beyond headpin.app, no
   user-generated content shared with others.
 - Privacy "nutrition label": the app collects nothing it links to the bowler.
