@@ -52,9 +52,20 @@ const HANDLED_KEY = "headpin.launchLinkHandled";
 export async function listenForLinks(
   native = isNativeApp(),
   storage: Pick<Storage, "getItem" | "setItem"> | null = sessionStorageOrNull(),
-  open: (url: string) => boolean = (url) => openInApp(url)
+  open: (url: string) => boolean = (url) => openInApp(url),
+  inbox: LinkInbox | null = iosLinkInbox()
 ): Promise<boolean> {
   if (!native) return false;
+  // The iPhone app hands links over itself (ADR-214): Capacitor's own route
+  // through the App plugin never reached the page on a phone.
+  if (inbox) {
+    window.addEventListener(LINK_EVENT, (e) => {
+      const url = (e as CustomEvent<unknown>).detail;
+      if (typeof url === "string") open(url);
+    });
+    inbox.postMessage("ready");
+    return true;
+  }
   const { App } = await import("@capacitor/app");
   await App.addListener("appUrlOpen", ({ url }) => {
     open(url);
@@ -65,6 +76,21 @@ export async function listenForLinks(
     open(launch.url);
   }
   return true;
+}
+
+/** The event the iPhone app raises on the page with a link it was handed. */
+export const LINK_EVENT = "headpin:link";
+
+/** Where the page tells the iPhone app it is ready for a link
+ *  (`SceneDelegate.swift`); null anywhere else. */
+interface LinkInbox {
+  postMessage(message: "ready"): void;
+}
+
+function iosLinkInbox(): LinkInbox | null {
+  const handlers = (window as { webkit?: { messageHandlers?: Record<string, LinkInbox | undefined> } }).webkit
+    ?.messageHandlers;
+  return handlers?.headpinLink ?? null;
 }
 
 function sessionStorageOrNull(): Storage | null {

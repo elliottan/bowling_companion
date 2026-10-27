@@ -9128,3 +9128,32 @@ checked on a phone without an archive.
   on a headpin.app page already open in Safari. A long press offers "Open in
   Headpin", and choosing Safari once there makes iOS remember Safari for the
   site until "Open in Headpin" is chosen again.
+
+## ADR-214: The iPhone app hands links to the page itself
+
+**Status.** Accepted, 2026-10-27. Amends ADR-159 and ADR-168.
+
+**Context.** With the entitlement signed (ADR-213), a shared headpin.app link
+opened the iPhone app, and the app stayed on whatever screen it was on. The
+page side was sound: the links decoded, and the app's own page loaded at the
+address `inAppLocation` gives opened the shared line. Xcode's console showed
+no Capacitor bridge message at all on the tap, so the link never reached the
+page through Capacitor's way in (the App plugin's `appUrlOpen`, fed by the
+scene delegate proxy). Why it stops there was not found.
+
+**Decision.** `SceneDelegate` takes a link itself, from a running app
+(`scene(_:continue:)`) or a cold start (the connection options), and keeps it in
+`LinkInbox`. The page says it is listening (the `headpinLink` message, sent by
+`listenForLinks`), and the inbox raises the link on the page as a
+`headpin:link` event, which `openInApp` turns into the app's route. Each load
+says it began, so a link that arrives mid-load waits for the next page.
+Home Screen quick actions take the same way in, as they did before. Both steps
+log a `⚡️  Headpin link` line, so the console shows where a link got to.
+
+**Consequences.**
+
+- The iPhone app no longer reads `appUrlOpen` or the launch URL; the Android
+  app still does, through the App plugin, which works there.
+- A link is raised once and then dropped, so the reload it causes cannot open
+  it again, without the session flag the launch URL needed.
+

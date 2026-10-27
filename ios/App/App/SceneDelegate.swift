@@ -14,11 +14,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
 
-        // Launched from a Home Screen quick action. The bridge is not up yet,
-        // so the address waits as the launch URL, which the page asks for as
-        // it starts (`listenForLinks`).
+        // Launched from a Home Screen quick action or a headpin.app link. The
+        // page is not up yet, so the address waits in the inbox until the page
+        // says it is ready (`listenForLinks`).
         if let item = connectionOptions.shortcutItem {
             _ = open(item)
+        }
+        for activity in connectionOptions.userActivities {
+            open(activity)
         }
     }
 
@@ -29,12 +32,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     /// The Home Screen's quick actions (ADR-168) are listed in Info.plist, each
     /// with the headpin.app address of the screen it opens. They take the same
-    /// way in as a shared link (ADR-159): Capacitor hands the address to the
-    /// page as an opened URL, and the page turns it into its own route. So the
-    /// screens a quick action can reach are the page's to say, as a link's are.
+    /// way in as a shared link (ADR-159): the page is handed the address and
+    /// turns it into its own route. So the screens a quick action can reach are
+    /// the page's to say, as a link's are.
     private func open(_ item: UIApplicationShortcutItem) -> Bool {
         guard let address = item.userInfo?["url"] as? String, let url = URL(string: address) else { return false }
-        return ApplicationDelegateProxy.shared.application(UIApplication.shared, open: url, options: [:])
+        LinkInbox.shared.receive(url)
+        return true
+    }
+
+    /// A headpin.app link the phone opened in the app (ADR-159).
+    private func open(_ activity: NSUserActivity) {
+        guard activity.activityType == NSUserActivityTypeBrowsingWeb, let url = activity.webpageURL else { return }
+        LinkInbox.shared.receive(url)
     }
 
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
@@ -43,6 +53,63 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
         SceneDelegateProxy.shared.scene(scene, continue: userActivity)
+        open(userActivity)
+    }
+}
+
+/// Hands the page the links the phone opens in the app (ADR-214).
+///
+/// Capacitor's own way, its App plugin's `appUrlOpen`, never reached the page
+/// on a phone: a tapped link opened the app and nothing was logged as sent to
+/// the page. So the app keeps the link here and raises it on the page itself,
+/// as a `headpin:link` event, once the page has said it is listening. A link
+/// that arrives while the page is loading waits, and one that cold-starts the
+/// app waits for the page's first load.
+final class LinkInbox {
+    static let shared = LinkInbox()
+
+    weak var webView: WKWebView?
+    private var pending: URL?
+    private var pageReady = false
+
+    func receive(_ url: URL) {
+        CAPLog.print("⚡️  Headpin link received: \(url.absoluteString)")
+        pending = url
+        deliver()
+    }
+
+    /// The page is listening (it says so once per load).
+    func pageIsReady() {
+        pageReady = true
+        deliver()
+    }
+
+    /// A page is loading, and will say when it is listening.
+    func pageIsLoading() {
+        pageReady = false
+    }
+
+    private func deliver() {
+        guard pageReady, let url = pending, let webView = webView,
+              let json = try? JSONSerialization.data(withJSONObject: [url.absoluteString]),
+              let array = String(data: json, encoding: .utf8) else { return }
+        pending = nil
+        CAPLog.print("⚡️  Headpin link sent to the page: \(url.absoluteString)")
+        webView.evaluateJavaScript(
+            "window.dispatchEvent(new CustomEvent('headpin:link', { detail: \(array)[0] }))",
+            completionHandler: nil
+        )
+    }
+}
+
+/// The page's word that it is listening for links, or that a new load began.
+private final class LinkMessageHandler: NSObject, WKScriptMessageHandler {
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        switch message.body as? String {
+        case "ready": LinkInbox.shared.pageIsReady()
+        case "loading": LinkInbox.shared.pageIsLoading()
+        default: break
+        }
     }
 }
 
@@ -86,6 +153,15 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
         content.addUserScript(WKUserScript(
             source: HeadpinViewController.backgroundScript,
             injectionTime: .atDocumentEnd,
+            forMainFrameOnly: true
+        ))
+        // Links the phone opens in the app (ADR-214): each load says it began,
+        // and the page says when it is listening.
+        LinkInbox.shared.webView = webView
+        content.add(LinkMessageHandler(), name: "headpinLink")
+        content.addUserScript(WKUserScript(
+            source: "window.webkit.messageHandlers.headpinLink.postMessage('loading');",
+            injectionTime: .atDocumentStart,
             forMainFrameOnly: true
         ))
         let edge = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(edgeSwiped(_:)))
