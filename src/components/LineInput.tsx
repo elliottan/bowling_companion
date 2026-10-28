@@ -336,7 +336,7 @@ export function LineInput({
 
   return (
     <div>
-      <div className="mb-0.5 flex items-center justify-between gap-2">
+      <div className="mb-1.5 flex items-center justify-between gap-2">
         <span className={eyebrow}>{label}</span>
         {action}
       </div>
@@ -344,7 +344,7 @@ export function LineInput({
         {focused && adjusterPanel()}
         {fields.map((field) => (
           <label key={field} className="min-w-0 flex-1">
-            <span className={floatLabel}>{FIELD_LABEL[field]}</span>
+            <span className={`${floatLabel} pb-0.5`}>{FIELD_LABEL[field]}</span>
             <input
               type="text"
               inputMode="decimal"

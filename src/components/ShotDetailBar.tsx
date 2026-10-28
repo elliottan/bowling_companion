@@ -267,7 +267,7 @@ export function ShotDetailBar({
         />
       )}
 
-      <div className="py-1">
+      <div className="py-2.5">
         <LineInput
           label="Intended"
           value={intended}
@@ -288,7 +288,7 @@ export function ShotDetailBar({
           used to autofill it, so a near miss on a control above recorded an
           Actual line the bowler never chose (ADR-114). The intended line is
           stance-based, so its foul-line board converts to a slide on the way in. */}
-      <div className="py-1">
+      <div className="py-2.5">
         <LineInput
           label="Actual"
           value={actualView}
@@ -357,11 +357,11 @@ export function ShotDetailBar({
       {/* Notes: fixed height and scrolled internally rather than auto-grown, so
           a long note can't push the rest of the panel off-screen. The height is
           set for the phone, where index.css forces every form control to 16px
-          to stop iOS zooming on focus: three lines at 16px, not the three lines
-          of 11px that the desktop size would suggest. */}
-      <div className="py-1">
+          to stop iOS zooming on focus: four lines at 16px, not the lines of 11px
+          that the desktop size would suggest. */}
+      <div className="py-2.5">
         <label className="block">
-          <span className={floatLabel}>Notes</span>
+          <span className={`${floatLabel} pb-1`}>Notes</span>
           <textarea
             value={notes}
             onPointerDown={blockLockedTap}
@@ -381,7 +381,7 @@ export function ShotDetailBar({
             }}
             rows={2}
             placeholder="This shot…"
-            className={`${FIELD_DENSE_TEXTAREA} h-20 overflow-y-auto text-[11px]`}
+            className={`${FIELD_DENSE_TEXTAREA} h-28 overflow-y-auto text-[11px]`}
           />
         </label>
       </div>
