@@ -33,6 +33,7 @@ had all shipped.
 - Start scoring on an empty Home opens the session form, so the first
   session can carry its alley, pattern and lanes. Every field can still be
   left blank (ADR-215).
+- A next step on Home closes with a small X instead of Not now.
 - Home's empty bag shows a ball and reads "Add balls to your bag".
 - The session form no longer has a Notes field, since nothing showed a
   session's notes. Notes already saved on a session are kept.

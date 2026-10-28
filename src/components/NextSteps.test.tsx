@@ -54,7 +54,7 @@ describe("NextSteps", () => {
     await screen.findByText("Add balls to your bag");
     // Each dismiss is named after the card it answers, so there is no need to
     // count them off the page.
-    fireEvent.click(screen.getAllByRole("button", { name: /^Not now: / })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: /^Dismiss: / })[0]);
 
     await waitFor(() =>
       expect(screen.queryByText("Add balls to your bag")).not.toBeInTheDocument()

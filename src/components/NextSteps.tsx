@@ -1,5 +1,6 @@
-import { type LucideIcon } from "lucide-react";
+import { X, type LucideIcon } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { IconButton } from "./ui/IconButton";
 import { BowlingBallIcon, LanePairIcon, OilPatternIcon, SpareLineIcon } from "./icons";
 import { GROUP_HEADING } from "./ui/typography";
 import { TAP_TARGET_44 } from "./ui/Chip";
@@ -61,7 +62,7 @@ const COPY: Record<NextStepKey, StepCopy> = {
  * which is the normal state, so Home is not permanently carrying a chore list.
  *
  * Shaped like the install and backup banners rather than like list rows: each
- * step is a sentence with a way to act on it and a way to wave it off, and §4
+ * step is a sentence with a way to act on it and an X to wave it off, and §4
  * reserves the single-tap row for opening a thing.
  */
 export function NextSteps({
@@ -106,24 +107,21 @@ export function NextSteps({
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-ink">{copy.title}</p>
                 <p className="mt-0.5 text-xs text-ink-secondary">{copy.description}</p>
-                <div className="mt-2 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={open[step]}
-                    className={`relative text-xs font-bold text-accent underline hover:no-underline ${TAP_TARGET_44}`}
-                  >
-                    {copy.action}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void dismissNextStep(step)}
-                    aria-label={`Not now: ${copy.title}`}
-                    className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold text-ink-secondary hover:underline ${TAP_TARGET_44}`}
-                  >
-                    Not now
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={open[step]}
+                  className={`relative mt-2 text-xs font-bold text-accent underline hover:no-underline ${TAP_TARGET_44}`}
+                >
+                  {copy.action}
+                </button>
               </div>
+              <IconButton
+                label={`Dismiss: ${copy.title}`}
+                onClick={() => void dismissNextStep(step)}
+                className="-mr-2 -mt-1.5 text-ink-secondary"
+              >
+                <X size={16} aria-hidden="true" />
+              </IconButton>
             </li>
           );
         })}
