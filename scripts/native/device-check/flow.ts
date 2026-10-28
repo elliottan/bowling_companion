@@ -296,10 +296,18 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
 
   await f.check("first run: start fresh and pick a hand", async () => {
     await f.tap("^Start fresh$", "Set up Headpin");
+    // The first touch after a cold launch is sometimes lost on the simulator:
+    // the tap lands on Start fresh and the welcome stays (runs 37, 41, 43 and
+    // 45, with and without the phone's tab bar up). One more tap tells a lost
+    // touch from a dead button, and the result says it was needed.
+    const form = `__dc.find("right-handed", "Set up Headpin")`;
+    const opened = await f.until(form, "the setup form", 5_000).then(() => true, () => false);
+    if (!opened) await f.tap("^Start fresh$", "Set up Headpin");
     await f.tap("right-handed", "Set up Headpin");
     await f.tap("^Next$", "Set up Headpin");
     await f.until(`!__dc.dialogs().some((n) => /Set up Headpin/i.test(n))`, "the first run to close");
     await f.snap("home");
+    return opened ? undefined : "the first tap on Start fresh was lost; the second opened the form";
   });
 
   await f.check("pattern catalog seeds the bowler's patterns", async () => {

@@ -9,11 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.70.1: Start fresh works again in the iPhone app (2026-10-28)
+## 0.70.1: App Review notes for the one-screen setup (2026-10-28)
 
-- Fixed: in the iPhone app, tapping Start fresh on the welcome did nothing,
-  so setup could not begin. The phone's tab bar is now left off until setup
-  is done, rather than put up and hidden straight away.
+- No change to the app. The App Review notes and the review recording's shot
+  list name the Next button on the setup screen.
+- The iPhone device check taps Start fresh once more when the first touch
+  after launch is lost, and says so, rather than failing every step after it.
 
 ## 0.70.0: First run asks how you bowl in one form (2026-10-28)
 
