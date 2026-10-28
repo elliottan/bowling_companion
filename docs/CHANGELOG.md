@@ -14,6 +14,9 @@ had all shipped.
 - Setting up now asks which hand you bowl with, one hand or two, and what to
   call you, on one screen, and goes on when you tap Next. Tapping a hand no
   longer finishes setup on the spot. The name can be left blank.
+- The "Your line" sheet behind Release offset and Drift names each term
+  (stance, target, drift, slide, release offset, laydown) with one line on
+  what it is, and shows a drawn example instead of a screenshot.
 - Bowling profile and Appearance: each setting's name is larger and easier
   to find, and the sentence under it is gone.
 - Settings: Get Headpin Pro reads "Deeper stats, line and layout tools",

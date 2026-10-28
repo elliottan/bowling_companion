@@ -448,49 +448,59 @@ function Stepper({
   );
 }
 
+/** The words on the scorer's line, each named and said in one line. */
+const LINE_TERMS: ReadonlyArray<{ term: string; meaning: string }> = [
+  { term: "Stance", meaning: "The board your slide foot starts on." },
+  { term: "Target", meaning: "The board you aim at, usually an arrow." },
+  { term: "Drift", meaning: "How many boards your feet move between stance and slide." },
+  { term: "Slide", meaning: "The board your slide foot finishes on: your stance, moved by your drift." },
+  { term: "Release offset", meaning: "How many boards from your slide foot, toward your bowling hand, the ball lands." },
+  { term: "Laydown", meaning: "The board the ball lands on: your slide, moved by your release offset." }
+];
+
 /**
- * What the release offset and drift are for, with a picture of the scorer's
- * line fields between the two halves of the explanation. The picture sits on a
- * tinted mat with a caption: bare, a screenshot of fields looks like fields on
- * this page, and the page is read-only until the pencil. It is a picture of the
- * real panel (`npm run shots`), one per theme, switched with the app's own
- * theme attribute.
+ * What the release offset and drift are for: each term on the scorer's line
+ * with what it means, then one worked example drawn from the page's own
+ * chrome. It replaced a screenshot of the scorer's fields on a tinted mat,
+ * which read as a field cut out of another screen.
  */
 function LinePanelInfoSheet({ onClose }: { onClose: () => void }) {
-  const alt =
-    "The scorer's line fields: intended stance 24 and target 10, with slide 24 and laydown 18 worked out from them.";
   return (
     <FormSheet title="Your line" onClose={onClose} dismissAs="done">
-      <div className="space-y-4">
-        <p className="text-sm leading-relaxed text-ink-secondary">
-          In score entry you say where you stand and where you aim. The app works out where
-          your foot finishes and where the ball lands.
+      <div className="space-y-5">
+        <p className="text-sm text-ink-secondary">
+          You enter your stance and target. The app works out your slide and laydown.
         </p>
-        <figure className="pointer-events-none select-none rounded-2xl bg-surface-muted p-4">
-          <img
-            src="/help/line-panel-light.png"
-            width={360}
-            height={232}
-            alt={alt}
-            draggable={false}
-            className="mx-auto h-auto w-44 rounded-xl dark:hidden"
-          />
-          <img
-            src="/help/line-panel-dark.png"
-            width={360}
-            height={232}
-            alt={alt}
-            draggable={false}
-            className="mx-auto hidden h-auto w-44 rounded-xl dark:block"
-          />
-          <figcaption className="mt-3 text-center text-xs text-ink">
-            Picture from score entry
+        <dl className="space-y-3">
+          {LINE_TERMS.map(({ term, meaning }) => (
+            <div key={term}>
+              <dt className="text-[15px] font-semibold text-ink">{term}</dt>
+              <dd className="text-sm text-ink-secondary">{meaning}</dd>
+            </div>
+          ))}
+        </dl>
+        <figure className="rounded-2xl border border-edge bg-surface p-4">
+          <figcaption className="text-xs font-semibold text-ink-secondary">
+            Example: no drift, release offset 6
           </figcaption>
+          <ol className="mt-3 flex items-center justify-between gap-1 text-center">
+            {[
+              ["Stance", "24"],
+              ["Slide", "24"],
+              ["Laydown", "18"]
+            ].map(([label, board], n) => (
+              <li key={label} className="flex items-center gap-1">
+                {n > 0 && <ChevronRight size={16} aria-hidden="true" className="text-ink-tertiary" />}
+                <span className="min-w-16 rounded-xl bg-surface-muted px-3 py-2">
+                  <span className="block text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">
+                    {label}
+                  </span>
+                  <span className="block text-lg font-bold tabular-nums text-ink">{board}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
         </figure>
-        <p className="text-sm leading-relaxed text-ink-secondary">
-          Slide comes from your stance and your drift. Laydown is your slide moved by your
-          release offset.
-        </p>
       </div>
     </FormSheet>
   );

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BowlingProfileView } from "./BowlingProfileView";
 import { db } from "../db/bowlingDb";
@@ -151,18 +151,18 @@ describe("BowlingProfileView", () => {
     expect(screen.queryByText("Switching flips every board number. Saved sessions keep theirs.")).not.toBeInTheDocument();
   });
 
-  it("keeps the picture of the line fields out of the page, behind an info button", async () => {
+  it("keeps what the line terms mean out of the page, behind an info button", async () => {
     renderPrefs();
-    expect(screen.queryByRole("img", { name: /intended stance 24/ })).not.toBeInTheDocument();
+    expect(screen.queryByText("Laydown")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "About release offset" }));
-    expect(screen.getByRole("dialog", { name: "Your line" })).toBeInTheDocument();
-    const figures = screen.getAllByRole("img", { name: /intended stance 24 and target 10/ });
-    expect(figures.map((f) => f.getAttribute("src"))).toEqual([
-      "/help/line-panel-light.png",
-      "/help/line-panel-dark.png"
-    ]);
-    expect(screen.getByText("Picture from score entry")).toBeInTheDocument();
+    const sheet = screen.getByRole("dialog", { name: "Your line" });
+    // Every term on the scorer's line is named, then said in one line.
+    for (const term of ["Stance", "Target", "Drift", "Slide", "Release offset", "Laydown"]) {
+      expect(within(sheet).getAllByText(term).length).toBeGreaterThan(0);
+    }
+    expect(within(sheet).getByText("Example: no drift, release offset 6")).toBeInTheDocument();
+    expect(within(sheet).queryByText("Picture from score entry")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Done|Close/ }));
     return waitFor(() =>
