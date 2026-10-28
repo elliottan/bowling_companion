@@ -131,12 +131,6 @@ export function BowlingProfileView({
     changeDrift({ ...driftModel, drift: { ...driftModel.drift, [zone]: v } });
   }
 
-  const zoneRange: Record<(typeof ZONES)[number], string> = {
-    outside: `1 to ${driftModel.outside_max}`,
-    middle: `${driftModel.outside_max + 0.5} to ${driftModel.inside_min - 0.5}`,
-    inside: `${driftModel.inside_min} to ${BOARD_MAX}`
-  };
-
   const body = (
     // Reading, every control is off, which would leave the scrolling page with
     // nothing to focus by keyboard; the page itself takes the stop.
@@ -222,7 +216,7 @@ export function BowlingProfileView({
           onInsideMinChange={editing ? setInsideMin : undefined}
         />
 
-        {editing ? (
+        {editing && (
           <div className="mt-3 space-y-2">
             {ZONES.map((zone) => (
               <div key={zone} className="rounded-xl border border-edge bg-surface p-3">
@@ -238,28 +232,9 @@ export function BowlingProfileView({
                     />
                   </div>
                 </div>
-                <p className="mt-1.5 text-xs text-ink-secondary">
-                  {describeDrift(driftModel.drift[zone], value, zoneRange[zone])}
-                </p>
               </div>
             ))}
           </div>
-        ) : (
-          // Read, a zone is its name and its sentence: no box, no stepper.
-          <ul className="mt-3 space-y-2">
-            {ZONES.map((zone) => (
-              <li key={zone} className="flex items-start gap-2">
-                <span
-                  className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${ZONE_ACCENT[zone].swatch}`}
-                  aria-hidden="true"
-                />
-                <p className="text-sm text-ink">
-                  <span className="font-semibold capitalize">{zone}.</span>{" "}
-                  {describeDrift(driftModel.drift[zone], value, zoneRange[zone])}
-                </p>
-              </li>
-            ))}
-          </ul>
         )}
       </Group>
     </div>
@@ -343,15 +318,6 @@ function Group({
       {children}
     </section>
   );
-}
-
-/** One zone's drift as a sentence, in the direction the foot actually moves. */
-function describeDrift(drift: number, hand: Handedness, range: string): string {
-  const dir = driftDirection(drift, hand);
-  const stance = `when your stance is on boards ${range}`;
-  if (dir === "none") return `You do not drift ${stance}.`;
-  const n = Math.abs(drift);
-  return `You drift ${n} ${n === 1 ? "board" : "boards"} ${dir} ${stance}.`;
 }
 
 /** Label on the left, control flush right: one grid for every input on the page. */

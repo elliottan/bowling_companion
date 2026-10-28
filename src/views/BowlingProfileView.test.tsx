@@ -82,8 +82,8 @@ describe("BowlingProfileView", () => {
     expect(screen.queryByLabelText("Over")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Increase release offset" })).not.toBeInTheDocument();
     expect(screen.queryByRole("slider")).not.toBeInTheDocument();
-    // The drift zones read as sentences.
-    expect(screen.getAllByText(/You (do not drift|drift)/).length).toBe(3);
+    // The drift zones read off the chart alone, with no sentence under it.
+    expect(screen.queryByText(/You (do not drift|drift)/)).not.toBeInTheDocument();
   });
 
   it("answers the grip, one-handed until told otherwise, once saved", async () => {
@@ -279,7 +279,7 @@ describe("BowlingProfileView", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it("says each zone's drift in a sentence under its row", () => {
+  it("puts no sentence under the drift chart: the chart says each zone's drift", () => {
     render(
       <BowlingProfileView
         handedness="right"
@@ -289,8 +289,6 @@ describe("BowlingProfileView", () => {
         onDriftModelChange={vi.fn()}
       />
     );
-    expect(screen.getByText(/You drift 2 boards \w+ when your stance is on boards 1 to 14\./)).toBeInTheDocument();
-    expect(screen.getByText("You do not drift when your stance is on boards 14.5 to 24.5.")).toBeInTheDocument();
-    expect(screen.getByText(/You drift 1 board \w+ when your stance is on boards 25 to 39\./)).toBeInTheDocument();
+    expect(screen.queryByText(/when your stance is on boards/)).not.toBeInTheDocument();
   });
 });
