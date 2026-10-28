@@ -24,9 +24,13 @@ function chart(): SVGSVGElement {
 }
 
 describe("MetricTrendChart", () => {
-  it("draws nothing when no point has a value", () => {
-    const { container } = plot(slots([null, null]));
-    expect(container).toBeEmptyDOMElement();
+  it("keeps its card and picker when no point has a value, and plots nothing", () => {
+    // A 300 has no spare chance, so its spare rate is null. The card used to go
+    // with its picker, and a remembered pick then hid the chart for good.
+    plot(slots([null, null]), { header: <button type="button">Spare %</button> });
+    expect(screen.getByRole("button", { name: "Spare %" })).toBeInTheDocument();
+    expect(screen.getByText("Nothing to chart yet")).toBeInTheDocument();
+    expect(chart()).toBeNull();
   });
 
   it("names each point by its title and value", () => {

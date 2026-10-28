@@ -25,6 +25,9 @@ had all shipped.
 - Settings: Get Headpin Pro reads "Deeper stats, line and layout tools",
   Restore purchase drops its second line, and a row's second line wraps
   instead of being cut off.
+- Fixed: picking a stat on the Stats chart that had nothing to plot, such as
+  the spare rate after a 300, made the whole chart disappear, chips and all,
+  and it stayed gone. The chart now stays and says there is nothing to chart.
 - Stats counts finished games only. A game still being bowled no longer
   shows in the pocket, strike or spare rates (ADR-216).
 - Start scoring on an empty Home opens the session form, so the first
