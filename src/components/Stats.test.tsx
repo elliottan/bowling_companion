@@ -537,8 +537,9 @@ describe("leave cells", () => {
     render(<Stats stats={STATS} leaves={[tenPin]} />);
     fireEvent.click(screen.getByRole("button", { name: "Open Pin 10" }));
     expect(await screen.findByRole("dialog", { name: "Pin 10" })).toBeInTheDocument();
-    // Read first: editing is behind the pencil.
-    expect(screen.getByRole("button", { name: "Edit spare line" })).toBeInTheDocument();
+    // No line saved for it yet, so it opens ready to type (the save tick),
+    // not on a pencil.
+    expect(screen.getByRole("button", { name: "Save spare line" })).toBeInTheDocument();
     expect(screen.getByText("Converted")).toBeInTheDocument();
   });
 
@@ -935,7 +936,7 @@ describe("while Pro is locked (ADR-154)", () => {
 
   it("says once what Pro adds", () => {
     renderLocked();
-    expect(screen.getByText(/Pro adds carry, strike and the first ball's other numbers/)).toBeInTheDocument();
+    expect(screen.getByText("Get a deeper analysis of your stats.")).toBeInTheDocument();
   });
 
   it("shows every leave, with no lock, on the card and behind View all (ADR-201)", () => {

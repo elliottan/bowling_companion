@@ -3,7 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FirstRun } from "./FirstRun";
 import { db } from "../db/bowlingDb";
 import { createBackup } from "../services/backupRepository";
-import { createSession } from "../services/bowlingRepository";
+import {
+  createSession,
+  getBowlerName,
+  getGripStyle,
+  setBowlerName
+} from "../services/bowlingRepository";
 
 /** A backup file holding one session, ready to drop on the hidden input. */
 async function backupFileWith(alley: string): Promise<File> {
@@ -56,7 +61,7 @@ describe("FirstRun", () => {
     });
   });
 
-  it("walks a new bowler through to the handedness question and back", () => {
+  it("walks a new bowler through to the handedness question and back", async () => {
     const onSelectHandedness = vi.fn();
     render(<FirstRun onSelectHandedness={onSelectHandedness} />);
 
@@ -68,7 +73,40 @@ describe("FirstRun", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Start fresh" }));
     fireEvent.click(screen.getByRole("button", { name: "Right-handed" }));
-    expect(onSelectHandedness).toHaveBeenCalledWith("right");
+    expect(onSelectHandedness).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    await waitFor(() => expect(onSelectHandedness).toHaveBeenCalledWith("right"));
+  });
+
+  /** One form, finished by Next: a tap on a hand used to end the first run
+   *  before the grip or a name could be given. */
+  it("takes the hand, the grip and a name together, and only on Next", async () => {
+    const onSelectHandedness = vi.fn();
+    render(<FirstRun onSelectHandedness={onSelectHandedness} />);
+    fireEvent.click(screen.getByRole("button", { name: "Start fresh" }));
+
+    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Left-handed" }));
+    fireEvent.click(screen.getByRole("button", { name: "Two-handed" }));
+    fireEvent.change(screen.getByLabelText("What do we call you?"), { target: { value: "  Sam " } });
+    expect(onSelectHandedness).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    await waitFor(() => expect(onSelectHandedness).toHaveBeenCalledWith("left"));
+    expect(await getGripStyle()).toBe("2h");
+    expect(await getBowlerName()).toBe("Sam");
+  });
+
+  it("needs no name, and leaves one already stored alone", async () => {
+    await setBowlerName("Alex");
+    const onSelectHandedness = vi.fn();
+    render(<FirstRun onSelectHandedness={onSelectHandedness} hasSavedData />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Right-handed" }));
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    await waitFor(() => expect(onSelectHandedness).toHaveBeenCalledWith("right"));
+    expect(await getGripStyle()).toBe("1h");
+    expect(await getBowlerName()).toBe("Alex");
   });
 
   /**

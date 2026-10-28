@@ -396,7 +396,7 @@ function ProSection() {
             description={
               busy === "buy"
                 ? waiting
-                : "One purchase: every analysis, and every one added later"
+                : "Deeper stats, line and layout tools"
             }
             onClick={() => (openOffer ? openOffer() : void buy())}
           />
@@ -407,7 +407,7 @@ function ProSection() {
           <ListRow
             icon={RotateCcw}
             label="Restore purchase"
-            description={busy === "restore" ? waiting : "Bought Pro before on this Apple ID"}
+            description={busy === "restore" ? waiting : undefined}
             onClick={() => void restore()}
           />
         )}

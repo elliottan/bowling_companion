@@ -499,7 +499,7 @@ describe("LayoutLabView", () => {
 
   it("keeps each slider's explanation in a popup behind its own label", () => {
     renderLab();
-    const hint = /Flare is highest around 4 inches/i;
+    const hint = /Around 4 inches gives the most flare/i;
     expect(screen.queryByText(hint)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Pin to PAP/i }));
     expect(screen.getByText(hint)).toBeVisible();

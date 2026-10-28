@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BowlingProfileView } from "./BowlingProfileView";
 import { db } from "../db/bowlingDb";
@@ -82,8 +82,8 @@ describe("BowlingProfileView", () => {
     expect(screen.queryByLabelText("Over")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Increase release offset" })).not.toBeInTheDocument();
     expect(screen.queryByRole("slider")).not.toBeInTheDocument();
-    // The drift zones read as sentences.
-    expect(screen.getAllByText(/You (do not drift|drift)/).length).toBe(3);
+    // The drift zones read off the chart alone, with no sentence under it.
+    expect(screen.queryByText(/You (do not drift|drift)/)).not.toBeInTheDocument();
   });
 
   it("answers the grip, one-handed until told otherwise, once saved", async () => {
@@ -145,24 +145,24 @@ describe("BowlingProfileView", () => {
     expect(screen.getByRole("button", { name: "Two-handed" })).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("has no guide behind it: what matters is said under the heading it belongs to", () => {
+  it("has no guide behind it, and no sentence under its headings", () => {
     renderPrefs();
     expect(screen.queryByRole("button", { name: "Why it matters" })).not.toBeInTheDocument();
-    expect(screen.getByText("Switching flips every board number. Saved sessions keep theirs.")).toBeInTheDocument();
+    expect(screen.queryByText("Switching flips every board number. Saved sessions keep theirs.")).not.toBeInTheDocument();
   });
 
-  it("keeps the picture of the line fields out of the page, behind an info button", async () => {
+  it("keeps what the line terms mean out of the page, behind an info button", async () => {
     renderPrefs();
-    expect(screen.queryByRole("img", { name: /intended stance 24/ })).not.toBeInTheDocument();
+    expect(screen.queryByText("Laydown")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "About release offset" }));
-    expect(screen.getByRole("dialog", { name: "Your line" })).toBeInTheDocument();
-    const figures = screen.getAllByRole("img", { name: /intended stance 24 and target 10/ });
-    expect(figures.map((f) => f.getAttribute("src"))).toEqual([
-      "/help/line-panel-light.png",
-      "/help/line-panel-dark.png"
-    ]);
-    expect(screen.getByText("Picture from score entry")).toBeInTheDocument();
+    const sheet = screen.getByRole("dialog", { name: "Your line" });
+    // Every term on the scorer's line is named, then said in one line.
+    for (const term of ["Stance", "Target", "Drift", "Slide", "Release offset", "Laydown"]) {
+      expect(within(sheet).getAllByText(term).length).toBeGreaterThan(0);
+    }
+    expect(within(sheet).getByText("Example: no drift, release offset 6")).toBeInTheDocument();
+    expect(within(sheet).queryByText("Picture from score entry")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Done|Close/ }));
     return waitFor(() =>
@@ -279,7 +279,7 @@ describe("BowlingProfileView", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it("says each zone's drift in a sentence under its row", () => {
+  it("puts no sentence under the drift chart: the chart says each zone's drift", () => {
     render(
       <BowlingProfileView
         handedness="right"
@@ -289,8 +289,6 @@ describe("BowlingProfileView", () => {
         onDriftModelChange={vi.fn()}
       />
     );
-    expect(screen.getByText(/You drift 2 boards \w+ when your stance is on boards 1 to 14\./)).toBeInTheDocument();
-    expect(screen.getByText("You do not drift when your stance is on boards 14.5 to 24.5.")).toBeInTheDocument();
-    expect(screen.getByText(/You drift 1 board \w+ when your stance is on boards 25 to 39\./)).toBeInTheDocument();
+    expect(screen.queryByText(/when your stance is on boards/)).not.toBeInTheDocument();
   });
 });

@@ -133,7 +133,7 @@ export function LayoutEditor({
             idPrefix={idPrefix}
             locked={frozen}
             label="Pin to PAP"
-            hint="Distance from the pin to your PAP. Flare is highest around 4 inches and drops off either side."
+            hint="Distance from the pin to your PAP. Around 4 inches gives the most flare."
             value={layout.pinToPap}
             min={0.5}
             max={6}
@@ -160,7 +160,7 @@ export function LayoutEditor({
             idPrefix={idPrefix}
             locked={frozen}
             label="Pin to PAP"
-            hint="Distance from the pin to your PAP. Flare is highest around 4 inches and drops off either side."
+            hint="Distance from the pin to your PAP. Around 4 inches gives the most flare."
             value={vls.pinToPap}
             min={0.5}
             max={6}
@@ -196,6 +196,26 @@ export function LayoutEditor({
             unit="in"
             onChange={(buffer) => setVls({ pinBuffer: buffer })}
           />
+          {/* A symmetric ball has a row fewer, and the card shrinking by a row
+              made the whole sheet jump on every Asym and Sym swap. An unseen
+              copy of a row holds the card at three rows. */}
+          {vls.psaToPap == null && (
+            // `invisible` is visibility: hidden, so the copy takes no focus and
+            // is not read out, and it keeps the row's exact height.
+            <div aria-hidden="true" className="invisible">
+              <Slider
+                idPrefix={`${idPrefix}-spacer`}
+                label="PSA to PAP"
+                hint=""
+                value={0}
+                min={0}
+                max={1}
+                step={1}
+                unit="in"
+                onChange={() => {}}
+              />
+            </div>
+          )}
         </div>
       )}
       </NumbersVeil>

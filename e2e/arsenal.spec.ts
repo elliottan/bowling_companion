@@ -24,7 +24,7 @@ test("adds a ball, edits it, and deletes it", async ({ page }) => {
   await openArsenal(page);
   await expect(page.getByText(/no balls yet/i)).toBeVisible();
 
-  await page.getByRole("button", { name: "Add ball" }).first().click();
+  await page.getByRole("button", { name: "Add ball", exact: true }).first().click();
   await page.getByPlaceholder("e.g. Storm Phaze II").fill("Phaze II");
   await page.getByRole("button", { name: "Add", exact: true }).click();
 
@@ -56,7 +56,7 @@ test("adds a ball, edits it, and deletes it", async ({ page }) => {
 
 test("a ball added in the arsenal is selectable on a shot", async ({ page }) => {
   await openArsenal(page);
-  await page.getByRole("button", { name: "Add ball" }).first().click();
+  await page.getByRole("button", { name: "Add ball", exact: true }).first().click();
   await page.getByPlaceholder("e.g. Storm Phaze II").fill("Hy-Road");
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await expect(page.getByText("Hy-Road")).toBeVisible();

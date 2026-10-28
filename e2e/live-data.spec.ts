@@ -33,7 +33,7 @@ test("deleting a session updates the list it was deleted from", async ({ page })
 
 test("a ball deleted in its editor leaves the arsenal list at once", async ({ page }) => {
   await openArsenalFromHome(page);
-  await page.getByRole("button", { name: "Add ball" }).first().click();
+  await page.getByRole("button", { name: "Add ball", exact: true }).first().click();
   await page.getByPlaceholder("e.g. Storm Phaze II").fill("Live Ball");
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await expect(page.getByText("Live Ball")).toBeVisible();

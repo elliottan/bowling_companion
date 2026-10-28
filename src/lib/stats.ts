@@ -79,6 +79,18 @@ export interface BowlingStats {
 }
 
 /**
+ * Only finished games, for the Stats screen (ADR-216). A game still being
+ * bowled has a first ball or two and no score, and counted in it made the
+ * pocket and strike rates read off a handful of balls beside "0 games". A
+ * session left with no finished game drops out too.
+ */
+export function finishedGamesOnly(sessions: SessionSummary[]): SessionSummary[] {
+  return sessions
+    .map((s) => ({ ...s, games: s.games.filter((g) => typeof g.final_score === "number") }))
+    .filter((s) => s.games.length > 0);
+}
+
+/**
  * Aggregate stats across all sessions. Pure, consumes the SessionSummary[]
  * the repository already builds. Averages and the high game use COMPLETED
  * games only (final_score set); strike/spare rates use every ball actually

@@ -26,11 +26,7 @@ export function SessionHistory({
 
   if (sessions.length === 0) {
     return (
-      <EmptyState
-        icon={History}
-        title="No sessions yet"
-        description="A session is one trip to the alley. Start one and every game in it lands here."
-      />
+      <EmptyState icon={History} title="No sessions yet" />
     );
   }
 

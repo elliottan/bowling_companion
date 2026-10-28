@@ -15,22 +15,21 @@ async function freshInstall(page: Parameters<typeof startSession>[0]) {
 }
 
 /**
- * The fast path (ADR-080): a bowler who has just installed the app reaches the
- * pin deck without naming an alley or opening the form at all.
+ * Empty Home's one way in opens the session form (ADR-215), and a bowler can
+ * still start without filling anything in (ADR-080).
  */
-test("scores without filling anything in", async ({ page }) => {
+test("starts the first session from the form, with nothing filled in", async ({ page }) => {
   await freshInstall(page);
   await page.getByRole("button", { name: "Start fresh" }).click();
   await page.getByRole("button", { name: "right-handed" }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
 
-  // Home's one way in on a device that has never scored (ADR-150).
   await page.getByRole("button", { name: "Start scoring" }).click();
+  const sheet = page.getByRole("dialog", { name: "Start session" });
+  await sheet.getByRole("button", { name: "Start session" }).click();
+  await page.getByRole("dialog", { name: /lanes/i }).getByRole("button", { name: "Close" }).click();
 
-  // Straight onto the pin deck, no form and no lane editor in the way. The
-  // deck is visible under a sheet too, so the sheet's absence is what tells.
   await expect(page.getByRole("button", { name: RECORD_SHOT })).toBeVisible();
-  await expect(page.getByRole("dialog", { name: /lanes/i })).toHaveCount(0);
-
   // The session it made is real, and says so where it has no alley to print.
   await expect(page.getByText("Unnamed session").first()).toBeVisible();
 });
@@ -85,9 +84,10 @@ test("walks new bowlers through to the app", async ({ page }) => {
   await freshInstall(page);
 
   await page.getByRole("button", { name: "Start fresh" }).click();
-  await expect(page.getByText("Which hand do you bowl with?")).toBeVisible();
+  await expect(page.getByText("How do you bowl?")).toBeVisible();
 
   await page.getByRole("button", { name: "right-handed" }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
 
   // The first run is done and hands over to the app.
   await expect(page.getByRole("dialog", { name: "Set up Headpin" })).toHaveCount(0);
@@ -144,6 +144,7 @@ test("a restore brings the history back and never asks the hand twice", async ({
   await freshInstall(page);
   await page.getByRole("button", { name: "Start fresh" }).click();
   await page.getByRole("button", { name: "left-handed" }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
 
   await startSession(page, "Restored Lanes");
   for (let i = 0; i < 12; i++) await recordShot(page, []);
@@ -174,6 +175,7 @@ test("a bowler who already has sessions is never asked if they are new", async (
   await freshInstall(page);
   await page.getByRole("button", { name: "Start fresh" }).click();
   await page.getByRole("button", { name: "right-handed" }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
   await startSession(page, "Returning Lanes");
   await recordShot(page, []);
 
@@ -193,6 +195,7 @@ test("a bowler who already has sessions is never asked if they are new", async (
 
   // Answering it lands on Home, with the history still there.
   await firstRun.getByRole("button", { name: "right-handed" }).click();
+  await firstRun.getByRole("button", { name: "Next", exact: true }).click();
   await expect(firstRun).toHaveCount(0);
   await page.getByRole("button", { name: "History" }).click();
   await expect(page.getByRole("button", { name: /Returning Lanes/ })).toBeVisible();

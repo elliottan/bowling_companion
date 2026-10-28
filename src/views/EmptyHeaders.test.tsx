@@ -32,15 +32,22 @@ describe("the History and Stats headers before there is anything to read", () =>
     expect(await screen.findByRole("button", { name: /filter/i })).toBeInTheDocument();
   });
 
-  it("Stats shows neither the filter nor the share until there is a session", async () => {
+  it("Stats shows neither the filter nor the share until there is a finished game", async () => {
     const { unmount } = render(<StatsView onOpenSession={vi.fn()} onOpenSessionGame={vi.fn()} />);
     expect(await screen.findByText("No stats yet")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /filter/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Share these stats" })).not.toBeInTheDocument();
     unmount();
 
+    // A game still being bowled is not read by Stats (ADR-216).
     const id = Number(await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" }));
-    await addGameToSession(id, { game_number: 1 });
+    const gameId = await addGameToSession(id, { game_number: 1 });
+    const second = render(<StatsView onOpenSession={vi.fn()} onOpenSessionGame={vi.fn()} />);
+    expect(await screen.findByText("No stats yet")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Share these stats" })).not.toBeInTheDocument();
+    second.unmount();
+
+    await db.games.update(gameId, { final_score: 150 });
     render(<StatsView onOpenSession={vi.fn()} onOpenSessionGame={vi.fn()} />);
     expect(await screen.findByRole("button", { name: /filter/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Share these stats" })).toBeInTheDocument();

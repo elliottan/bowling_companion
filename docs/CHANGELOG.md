@@ -9,6 +9,62 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.70.0: First run asks how you bowl in one form (2026-10-28)
+
+- Setting up now asks which hand you bowl with, one hand or two, and what to
+  call you, on one screen, and goes on when you tap Next. Tapping a hand no
+  longer finishes setup on the spot. The name can be left blank.
+- The "Your line" sheet behind Release offset and Drift names each term
+  (stance, target, drift, slide, release offset, laydown) with one line on
+  what it is, and shows a drawn example instead of a screenshot.
+- Bowling profile and Appearance: each setting's name is larger and easier
+  to find, and the sentence under it is gone. The three drift sentences under
+  the chart are gone too; the chart already shows each zone's drift.
+- The Headpin Pro banner on Stats reads "Get a deeper analysis of your
+  stats."
+- Settings: Get Headpin Pro reads "Deeper stats, line and layout tools",
+  Restore purchase drops its second line, and a row's second line wraps
+  instead of being cut off.
+- Fixed: picking a stat on the Stats chart that had nothing to plot, such as
+  the spare rate after a 300, made the whole chart disappear, chips and all,
+  and it stayed gone. The chart now stays and says there is nothing to chart.
+- Stats counts finished games only. A game still being bowled no longer
+  shows in the pocket, strike or spare rates (ADR-216).
+- Start scoring on an empty Home opens the session form, so the first
+  session can carry its alley, pattern and lanes. Every field can still be
+  left blank (ADR-215).
+- Score entry: the Intended, Actual and Notes sections have room between
+  them and under their headings again, and the Notes box is taller.
+- Undo takes back a ball you recorded in the last 10 seconds without asking.
+  Later than that, or a second undo in a row, still asks (ADR-217).
+- A session's Lanes tab, empty, reads "No lane notes yet" with no sentence
+  under it. It used to read "No lanes yet for" with a blank alley.
+- The session sheet centres a one-lane game's pin decks when nothing else
+  (ball, line or note) is beside them.
+- A spare line's sheet: a leave with no line opens ready to type; read, its
+  boards are values that take no focus (no caret, selection or AutoFill bar);
+  Delete shows only while editing; the lane icon shows once both boards are
+  in; and a leave never left shows its deck alone, centred, with no sentence.
+- A next step on Home closes with a small X instead of Not now.
+- Home's empty bag shows a ball and reads "Add balls to your bag".
+- The session form no longer has a Notes field, since nothing showed a
+  session's notes. Notes already saved on a session are kept.
+- The scoring tip now reads "Tap or slide to toggle the pins left standing",
+  closes with an X instead of Got it, and goes away on its own once you toggle
+  a pin.
+- History and Stats, empty, show just their title, without the sentence
+  under it. An empty Arsenal says what a ball is for: "Add a ball, then pick
+  it for each shot as you score."
+- Swapping a layout between Asym and Sym no longer makes the screen jump:
+  the slider card keeps its height.
+- The pin to PAP hint gets to the point: "Around 4 inches gives the most
+  flare."
+- On first launch in the iPhone app, the tab bar floated over the welcome
+  screen, under Start fresh and Restore from a backup. It now steps aside until
+  a hand is chosen, as it already did for sheets and the keyboard.
+- The App Store review notes now answer the seven questions App Review asks a
+  new developer, and the submission checklist covers the screen recording.
+
 ## 0.69.5: No refresh button on the ball catalog (2026-10-27)
 
 ### Removed

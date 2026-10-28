@@ -122,7 +122,7 @@ async function dismissPrompts(page) {
     await settle(page);
   }
 
-  for (const name of ["Dismiss backup reminder", "Dismiss share offer", "Got it"]) {
+  for (const name of ["Dismiss backup reminder", "Dismiss share offer", "Got it", "Dismiss tip"]) {
     const btn = page.getByRole("button", { name });
     if (await btn.count()) await btn.first().click().catch(() => {});
   }
@@ -239,16 +239,10 @@ async function setLanes(page) {
 
 async function startSession(page, alley) {
   // A finished game leaves you on the Score tab; the start control is on Home.
-  // Home's empty state skips the form (ADR-150), so the first session's form
-  // is opened from the Score tab, which has no game running yet.
+  // Home's start control opens the form, empty Home's included (ADR-215).
   const nav = page.getByRole("navigation");
   await nav.getByRole("button", { name: "Home" }).click();
-  const start = page.getByRole("button", { name: /^(Start session|Start scoring)$/ }).first();
-  await start.waitFor();
-  if ((await start.textContent())?.includes("Start scoring")) {
-    await nav.getByRole("button", { name: "Score", exact: true }).click();
-  }
-  await page.getByRole("button", { name: "Start session" }).first().click();
+  await page.getByRole("button", { name: /^(Start session|Start scoring)$/ }).first().click();
   const startSheet = page.getByRole("dialog", { name: "Start session" });
   await startSheet.getByPlaceholder("Pinecrest Lanes").fill(alley);
   await startSheet.getByRole("button", { name: "Start session" }).click();
@@ -389,6 +383,7 @@ await page.reload();
 await setTheme(page, "dark");
 await page.getByRole("button", { name: "Start fresh" }).click();
 await page.getByRole("button", { name: "right-handed" }).click();
+await page.getByRole("button", { name: "Next", exact: true }).click();
 
 // Real balls, so the arsenal is a screen with something on it and the shot
 // panel has a ball to name.

@@ -60,7 +60,9 @@ export function SpareDetailsSheet({ pins, leaves, edit = false, prefill, onClose
         initialLine={start?.line}
         initialStrikeOffset={start?.strike_offset}
         initialNotes={saved?.notes}
-        startInView={!adding && !edit}
+        // A leave with no line yet opens ready to type: reading an empty
+        // line first hid the way in behind a pencil nobody looked for.
+        startInView={!adding && !edit && hasAnswer(saved)}
         leaves={leaves}
         spareLines={spareLines}
         onSaved={onClose}

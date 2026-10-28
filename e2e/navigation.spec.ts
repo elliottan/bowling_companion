@@ -89,7 +89,7 @@ test("the same screen reached from Settings pushes inside the tab", async ({ pag
 
 test("back closes the sheet in front before the screen behind it", async ({ page }) => {
   await openArsenalFromHome(page);
-  await page.getByRole("button", { name: "Add ball" }).first().click();
+  await page.getByRole("button", { name: "Add ball", exact: true }).first().click();
   const editor = page.getByPlaceholder("e.g. Storm Phaze II");
   await expect(editor).toBeVisible();
 
@@ -143,7 +143,7 @@ test("an unreadable link opens the app rather than breaking it", async ({ page }
 
 test("back closes the oil pattern manager, not the session form under it", async ({ page }) => {
   await openSessionForm(page);
-  await page.getByPlaceholder("Ball choice, surface, carry…").fill("keep me");
+  await page.getByPlaceholder("League, practice, tournament…").fill("keep me");
 
   // The manager used to be a hand-rolled fixed overlay with no Escape and no
   // place on the back stack, so Android's back closed the form underneath and
@@ -154,7 +154,7 @@ test("back closes the oil pattern manager, not the session form under it", async
   await page.goBack();
 
   await expect(page.getByRole("dialog", { name: "Oil patterns" })).toHaveCount(0);
-  await expect(page.getByPlaceholder("Ball choice, surface, carry…")).toHaveValue("keep me");
+  await expect(page.getByPlaceholder("League, practice, tournament…")).toHaveValue("keep me");
 });
 
 test("Stats opened from the alley report is a push, and back returns to it", async ({ page }) => {
@@ -167,8 +167,11 @@ test("Stats opened from the alley report is a push, and back returns to it", asy
   // entry, so back would leave the app with nothing to return to, which is the
   // right behaviour for a link and the wrong test for a push.
   //
-  // One session first: with nothing to read, Stats hides its share (ADR-150).
+  // One finished game first: with nothing to read, Stats hides its share
+  // (ADR-150), and it reads finished games only (ADR-216).
   await startSession(page, "Push Lanes");
+  for (let i = 0; i < 12; i++) await recordShot(page, []);
+  await waitForScoresPersisted(page);
   await page.goto("/app/?pro#/home/game-plan");
   await expect(page.getByRole("dialog", { name: "Alley report" })).toBeVisible();
 

@@ -9157,3 +9157,65 @@ log a `⚡️  Headpin link` line, so the console shows where a link got to.
 - A link is raised once and then dropped, so the reload it causes cannot open
   it again, without the session flag the launch URL needed.
 
+## ADR-215: Empty Home's "Start scoring" opens the session form
+
+**Status.** Accepted, 2026-10-28, by the owner's decision. Amends ADR-150's
+first bullet, which sent empty Home's one action straight to the deck.
+
+**Context.** A bowler who goes straight to the deck starts their first session
+as "Unnamed session", with no alley, pattern or lanes. Those fields are what
+the alley report, lane notes and pattern lookups read, and a bowler who skips
+them at the start rarely goes back to fill them in.
+
+**Decision.** Empty Home keeps its one action, "Start scoring", and it opens
+the same session form the floating "Start session" button opens. Nothing in
+the form becomes required (ADR-080): a bowler in a hurry taps Start session
+with every field blank and still reaches the deck. The Score tab keeps its
+"Score now" path to the deck without the form.
+
+**Consequences.** The first session usually carries an alley and pattern, so
+the first alley report and lane note have something to hang on. The first
+start is one tap longer for a bowler who fills nothing in. The empty state
+drops its sentence about adding the alley later, which no longer describes
+the flow.
+
+## ADR-216: Stats reads finished games only
+
+**Status.** Accepted, 2026-10-28, by the owner's decision.
+
+**Context.** `calculateStats` and the other Stats readers took every game,
+finished or not. Average, high and low already used finished games only, since
+they need a final score, but the per-frame rates did not. A bowler with one game
+just started saw "0 games" beside a pocket rate of 100% read off a single ball.
+
+**Decision.** The Stats screen passes its sessions through `finishedGamesOnly`
+(`src/lib/stats.ts`) before any reader sees them. A game counts once it has a
+final score. A session with no finished game drops out, so the session count,
+"Last 10" and the range control see finished sessions only. The filter button
+and range control stay hidden until a finished game exists, as they did before
+the first session. History, the session screen, the alley report, spare line
+records and a game's own numbers are unchanged and still read every game.
+
+**Consequences.** The first-ball card and every rate agree with the game count.
+A game in progress shows up on Stats once it is finished, not frame by frame.
+
+## ADR-217: Undo takes a ball just recorded back without asking
+
+**Status.** Accepted, 2026-10-28, by the owner's decision. Amends the undo of
+ADR-079, which asked before every undo.
+
+**Context.** The commonest undo is a slip caught at once: the wrong pins
+tapped, Next pressed a beat early. Asking "Undo your last ball?" then is one
+more tap between the bowler and the fix, for a ball they saw go in a second
+ago.
+
+**Decision.** An undo within `QUICK_UNDO_MS` (10 seconds,
+`src/components/ActiveGameScorer.tsx`) of recording a ball in the scorer takes
+it back without asking. Past that, and for the second undo in a row (which
+reaches a ball recorded earlier), it asks as before, naming the ball. The clock
+is the scorer's own: a reload, or a game reopened later, starts with no recent
+ball, so its first undo asks.
+
+**Consequences.** The quick fix is one tap shorter. An undo that reaches into a
+frame the bowler has moved past still asks, because by then it was not a slip.
+

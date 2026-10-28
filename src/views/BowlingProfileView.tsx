@@ -12,7 +12,7 @@ import { HandednessPicker } from "../components/HandednessPicker";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
 import type { GripStyle, Handedness } from "../types/bowling";
 import { driftDirection, type DriftModel } from "../lib/driftModel";
-import { GROUP_HEADING } from "../components/ui/typography";
+import { SETTING_HEADING } from "../components/ui/typography";
 import { FormSheet } from "../components/ui/FormSheet";
 
 interface BowlingProfileViewProps {
@@ -131,12 +131,6 @@ export function BowlingProfileView({
     changeDrift({ ...driftModel, drift: { ...driftModel.drift, [zone]: v } });
   }
 
-  const zoneRange: Record<(typeof ZONES)[number], string> = {
-    outside: `1 to ${driftModel.outside_max}`,
-    middle: `${driftModel.outside_max + 0.5} to ${driftModel.inside_min - 0.5}`,
-    inside: `${driftModel.inside_min} to ${BOARD_MAX}`
-  };
-
   const body = (
     // Reading, every control is off, which would leave the scrolling page with
     // nothing to focus by keyboard; the page itself takes the stop.
@@ -148,10 +142,7 @@ export function BowlingProfileView({
       className={`mx-auto w-full max-w-3xl min-w-0 space-y-7 border-0 px-3 py-4 sm:px-6 ${editing ? "" : "[&_*]:pointer-events-none"}`}
     >
       <div>
-        <h2 className={GROUP_HEADING}>Handedness</h2>
-        <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">
-          Switching flips every board number. Saved sessions keep theirs.
-        </p>
+        <h2 className={`mb-3 ${SETTING_HEADING}`}>Handedness</h2>
         {editing ? (
           <HandednessPicker value={value} onSelect={(next) => change({ hand: next })} />
         ) : (
@@ -160,7 +151,7 @@ export function BowlingProfileView({
       </div>
 
       <div>
-        <h2 className={`mb-3 ${GROUP_HEADING}`}>Grip</h2>
+        <h2 className={`mb-3 ${SETTING_HEADING}`}>Grip</h2>
         {editing ? (
           <SegmentedControl
             label="Grip style"
@@ -178,7 +169,6 @@ export function BowlingProfileView({
 
       <Group
         heading="Your PAP"
-        description="Measured from the center of your grip. Your pro shop can measure it for you."
       >
         {editing ? (
           <div className="space-y-2 rounded-xl border border-edge bg-surface p-3">
@@ -194,7 +184,6 @@ export function BowlingProfileView({
       <Group
         heading="Release offset"
         onInfo={() => setInfoOpen(true)}
-        description="How many boards from your slide foot the ball lands."
       >
         {editing ? (
           <div className="rounded-xl border border-edge bg-surface px-3">
@@ -219,7 +208,6 @@ export function BowlingProfileView({
       <Group
         heading="Drift"
         onInfo={() => setInfoOpen(true)}
-        description="How many boards you drift, left or right, from your stance to your finishing slide position. With your release offset, the lane view uses it to work out your slide and laydown, based on the stance you enter."
       >
         <DriftZoneLane
           model={driftModel}
@@ -228,7 +216,7 @@ export function BowlingProfileView({
           onInsideMinChange={editing ? setInsideMin : undefined}
         />
 
-        {editing ? (
+        {editing && (
           <div className="mt-3 space-y-2">
             {ZONES.map((zone) => (
               <div key={zone} className="rounded-xl border border-edge bg-surface p-3">
@@ -244,28 +232,9 @@ export function BowlingProfileView({
                     />
                   </div>
                 </div>
-                <p className="mt-1.5 text-xs text-ink-secondary">
-                  {describeDrift(driftModel.drift[zone], value, zoneRange[zone])}
-                </p>
               </div>
             ))}
           </div>
-        ) : (
-          // Read, a zone is its name and its sentence: no box, no stepper.
-          <ul className="mt-3 space-y-2">
-            {ZONES.map((zone) => (
-              <li key={zone} className="flex items-start gap-2">
-                <span
-                  className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${ZONE_ACCENT[zone].swatch}`}
-                  aria-hidden="true"
-                />
-                <p className="text-sm text-ink">
-                  <span className="font-semibold capitalize">{zone}.</span>{" "}
-                  {describeDrift(driftModel.drift[zone], value, zoneRange[zone])}
-                </p>
-              </li>
-            ))}
-          </ul>
         )}
       </Group>
     </div>
@@ -308,33 +277,31 @@ export function BowlingProfileView({
 
 /** A value on the page while it is only being read: plain text, with nothing
  *  around it that looks like a field. It takes the accent colour so it reads as
- *  the answer under its heading, apart from the grey description above it. The
+ *  the answer under its heading. The
  *  controls come back with the pencil. */
 function ReadValue({ children }: { children: React.ReactNode }) {
   return <p className="text-base font-semibold text-accent">{children}</p>;
 }
 
 /**
- * A titled block of the page. The heading is the app's one group heading band
- * rather than a third heading size invented here: three sections each opening
- * with their own bold line read as three pages stacked, not as one screen.
+ * A titled block of the page: the setting's name, an info button where it
+ * needs explaining, and its control. No sentence under the name; the info
+ * sheet carries the explanation for the two that need one.
  */
 function Group({
   heading,
-  description,
   onInfo,
   children
 }: {
   heading: string;
-  description: React.ReactNode;
   /** Opens the explanation for the block, from an info button on the heading. */
   onInfo?: () => void;
   children: React.ReactNode;
 }) {
   return (
     <section>
-      <div className="flex items-center gap-1">
-        <h2 className={GROUP_HEADING}>{heading}</h2>
+      <div className="mb-3 flex items-center gap-1">
+        <h2 className={SETTING_HEADING}>{heading}</h2>
         {onInfo && (
           <IconButton
             compact
@@ -348,19 +315,9 @@ function Group({
           </IconButton>
         )}
       </div>
-      <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">{description}</p>
       {children}
     </section>
   );
-}
-
-/** One zone's drift as a sentence, in the direction the foot actually moves. */
-function describeDrift(drift: number, hand: Handedness, range: string): string {
-  const dir = driftDirection(drift, hand);
-  const stance = `when your stance is on boards ${range}`;
-  if (dir === "none") return `You do not drift ${stance}.`;
-  const n = Math.abs(drift);
-  return `You drift ${n} ${n === 1 ? "board" : "boards"} ${dir} ${stance}.`;
 }
 
 /** Label on the left, control flush right: one grid for every input on the page. */
@@ -457,49 +414,59 @@ function Stepper({
   );
 }
 
+/** The words on the scorer's line, each named and said in one line. */
+const LINE_TERMS: ReadonlyArray<{ term: string; meaning: string }> = [
+  { term: "Stance", meaning: "The board your slide foot starts on." },
+  { term: "Target", meaning: "The board you aim at, usually an arrow." },
+  { term: "Drift", meaning: "How many boards your feet move between stance and slide." },
+  { term: "Slide", meaning: "The board your slide foot finishes on: your stance, moved by your drift." },
+  { term: "Release offset", meaning: "How many boards from your slide foot, toward your bowling hand, the ball lands." },
+  { term: "Laydown", meaning: "The board the ball lands on: your slide, moved by your release offset." }
+];
+
 /**
- * What the release offset and drift are for, with a picture of the scorer's
- * line fields between the two halves of the explanation. The picture sits on a
- * tinted mat with a caption: bare, a screenshot of fields looks like fields on
- * this page, and the page is read-only until the pencil. It is a picture of the
- * real panel (`npm run shots`), one per theme, switched with the app's own
- * theme attribute.
+ * What the release offset and drift are for: each term on the scorer's line
+ * with what it means, then one worked example drawn from the page's own
+ * chrome. It replaced a screenshot of the scorer's fields on a tinted mat,
+ * which read as a field cut out of another screen.
  */
 function LinePanelInfoSheet({ onClose }: { onClose: () => void }) {
-  const alt =
-    "The scorer's line fields: intended stance 24 and target 10, with slide 24 and laydown 18 worked out from them.";
   return (
     <FormSheet title="Your line" onClose={onClose} dismissAs="done">
-      <div className="space-y-4">
-        <p className="text-sm leading-relaxed text-ink-secondary">
-          In score entry you say where you stand and where you aim. The app works out where
-          your foot finishes and where the ball lands.
+      <div className="space-y-5">
+        <p className="text-sm text-ink-secondary">
+          You enter your stance and target. The app works out your slide and laydown.
         </p>
-        <figure className="pointer-events-none select-none rounded-2xl bg-surface-muted p-4">
-          <img
-            src="/help/line-panel-light.png"
-            width={360}
-            height={232}
-            alt={alt}
-            draggable={false}
-            className="mx-auto h-auto w-44 rounded-xl dark:hidden"
-          />
-          <img
-            src="/help/line-panel-dark.png"
-            width={360}
-            height={232}
-            alt={alt}
-            draggable={false}
-            className="mx-auto hidden h-auto w-44 rounded-xl dark:block"
-          />
-          <figcaption className="mt-3 text-center text-xs text-ink">
-            Picture from score entry
+        <dl className="space-y-3">
+          {LINE_TERMS.map(({ term, meaning }) => (
+            <div key={term}>
+              <dt className="text-[15px] font-semibold text-ink">{term}</dt>
+              <dd className="text-sm text-ink-secondary">{meaning}</dd>
+            </div>
+          ))}
+        </dl>
+        <figure className="rounded-2xl border border-edge bg-surface p-4">
+          <figcaption className="text-xs font-semibold text-ink-secondary">
+            Example: no drift, release offset 6
           </figcaption>
+          <ol className="mt-3 flex items-center justify-between gap-1 text-center">
+            {[
+              ["Stance", "24"],
+              ["Slide", "24"],
+              ["Laydown", "18"]
+            ].map(([label, board], n) => (
+              <li key={label} className="flex items-center gap-1">
+                {n > 0 && <ChevronRight size={16} aria-hidden="true" className="text-ink-tertiary" />}
+                <span className="min-w-16 rounded-xl bg-surface-muted px-3 py-2">
+                  <span className="block text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">
+                    {label}
+                  </span>
+                  <span className="block text-lg font-bold tabular-nums text-ink">{board}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
         </figure>
-        <p className="text-sm leading-relaxed text-ink-secondary">
-          Slide comes from your stance and your drift. Laydown is your slide moved by your
-          release offset.
-        </p>
       </div>
     </FormSheet>
   );

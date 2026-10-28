@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import { OilPatternManager } from "./OilPatternManager";
 import { PushScreen } from "./PushScreen";
 import { IconButton } from "./ui/IconButton";
-import { FIELD, FIELD_LABEL, FIELD_TEXTAREA } from "./ui/field";
+import { FIELD, FIELD_LABEL } from "./ui/field";
 import { SuggestInput } from "./ui/SuggestInput";
 import type { CreateSessionInput } from "../services/bowlingRepository";
 import type { OilPattern } from "../types/bowling";
@@ -65,7 +65,6 @@ export function SessionForm({
   const [alleyName, setAlleyName] = useState(initial?.alley_name ?? "");
   const [date, setDate] = useState(initial?.date ?? today());
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [notes, setNotes] = useState(initial?.general_notes ?? "");
 
   const [alleys, setAlleys] = useState<string[]>([]);
   const [descriptions, setDescriptions] = useState<string[]>([]);
@@ -161,7 +160,9 @@ export function SessionForm({
       start_lane: undefined,
       date,
       oil_pattern_id: oilPatternId,
-      general_notes: notes.trim() || undefined
+      // No field for it: nothing showed a session's notes, so the form stopped
+      // asking. A session that already has some keeps them.
+      general_notes: initial?.general_notes
     });
   }
 
@@ -249,14 +250,6 @@ export function SessionForm({
             )}
           </div>
 
-          <Field label="Notes">
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className={`${FIELD_TEXTAREA} min-h-20`}
-              placeholder="Ball choice, surface, carry…"
-            />
-          </Field>
         </div>
 
       </form>

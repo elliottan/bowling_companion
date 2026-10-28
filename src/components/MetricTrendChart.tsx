@@ -79,7 +79,17 @@ export function MetricTrendChart({
 
   const shown = points.slice(-MAX_POINTS);
   const withValue = shown.filter((p) => p.value !== null);
-  if (withValue.length === 0) return null;
+  // Nothing to plot (a spare rate over a night with no spare chance, as in a
+  // 300): the card stays with its picker, or the chips that switch away went
+  // with it and a remembered pick hid the chart for good.
+  if (withValue.length === 0) {
+    return (
+      <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+        {header}
+        <p className="py-8 text-center text-sm text-ink-secondary">Nothing to chart yet</p>
+      </div>
+    );
+  }
 
   const values = withValue.map((p) => p.value as number);
   const top = Math.min(max, Math.max(...values) + minSpan / 4);

@@ -11,7 +11,7 @@ if (!Element.prototype.setPointerCapture) {
 }
 
 const NONE: PinNumber[] = [];
-const COACH = /Tap the pins left standing after your shot/;
+const COACH = /Tap or slide to toggle the pins left standing/;
 
 /** Nine strikes, so the tenth frame is one game-ending shot away. */
 function nineStrikes(): Frame[] {
@@ -35,10 +35,21 @@ describe("pin input coach line (ADR-006)", () => {
     expect(await screen.findByText(COACH)).toBeInTheDocument();
   });
 
-  it("goes away for good on Got it", async () => {
+  it("goes away for good on its X", async () => {
     render(<ActiveGameScorer gameKey={1} />);
     await screen.findByText(COACH);
-    fireEvent.click(screen.getByRole("button", { name: "Got it" }));
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss tip" }));
+
+    await waitFor(() => expect(screen.queryByText(COACH)).not.toBeInTheDocument());
+    expect(await db.settings.get("pin_input_coached_at")).toBeDefined();
+  });
+
+  it("goes away for good once a pin is toggled", async () => {
+    render(<ActiveGameScorer gameKey={1} />);
+    await screen.findByText(COACH);
+    const pin = await screen.findByRole("button", { name: /^Pin 7 / });
+    fireEvent.pointerDown(pin);
+    fireEvent.pointerUp(pin);
 
     await waitFor(() => expect(screen.queryByText(COACH)).not.toBeInTheDocument());
     expect(await db.settings.get("pin_input_coached_at")).toBeDefined();

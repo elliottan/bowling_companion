@@ -14,6 +14,7 @@ export async function dismissHandednessModal(page: Page) {
   const firstRun = page.getByRole("dialog", { name: "Set up Headpin" });
   await firstRun.getByRole("button", { name: "Start fresh" }).click();
   await firstRun.getByRole("button", { name: "right-handed" }).click();
+  await firstRun.getByRole("button", { name: "Next", exact: true }).click();
 }
 
 /** Wipe IndexedDB so each test starts from an empty database. */
@@ -32,17 +33,12 @@ export async function clearDatabase(page: Page) {
 /**
  * Open the start-session form from Home or the Score tab, whichever is up.
  *
- * Home opens it from its floating button once there are sessions. On a device
- * that has never scored, Home's one way in is "Start scoring", which skips the
- * form (ADR-150), so the form is opened from the Score tab instead.
+ * Home opens it from its floating button once there are sessions, and from
+ * "Start scoring" on a device that has never scored (ADR-215). The Score tab's
+ * own "Start session" opens it too.
  */
 export async function openSessionForm(page: Page) {
-  const start = page.getByRole("button", { name: /^(Start session|Start scoring)$/ }).first();
-  await start.waitFor();
-  if ((await start.textContent())?.includes("Start scoring")) {
-    await page.getByRole("navigation").getByRole("button", { name: "Score", exact: true }).click();
-  }
-  await page.getByRole("button", { name: "Start session" }).first().click();
+  await page.getByRole("button", { name: /^(Start session|Start scoring)$/ }).first().click();
 }
 
 /** Fill the start-session form and submit. Lands on the active scorer. */
@@ -154,12 +150,12 @@ export async function preferDownloadOverShare(page: Page) {
 
 /**
  * Open the arsenal from Home. The grid beside the greeting has no heading: an
- * empty bag is one "Add the balls you throw" box, and a full one is its balls,
+ * empty bag is one "Add balls to your bag" box, and a full one is its balls,
  * each of which opens the arsenal.
  */
 export async function openArsenalFromHome(page: Page) {
   await page
-    .getByRole("button", { name: "Add the balls you throw" })
+    .getByRole("button", { name: "Add balls to your bag" })
     .or(page.getByRole("list", { name: "Your arsenal" }).getByRole("button"))
     .first()
     .click();

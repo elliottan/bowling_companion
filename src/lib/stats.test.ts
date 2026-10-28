@@ -9,7 +9,8 @@ import {
   calculateSessionTrend,
   calculateStats,
   filterSessionsBy,
-  findRateLeaders
+  findRateLeaders,
+  finishedGamesOnly
 } from "./stats";
 import type { Ball, Frame, Game, PinNumber, SessionSummary, Shot } from "../types/bowling";
 
@@ -40,6 +41,25 @@ function game(finalScore: number | undefined, frames: Frame[]): Game & { frames:
 function session(alley: string, games: Array<Game & { frames: Frame[] }>): SessionSummary {
   return { session: { date: "2026-06-07", alley_name: alley }, games };
 }
+
+describe("finishedGamesOnly (ADR-216)", () => {
+  it("keeps finished games, and drops a session left with none", () => {
+    const strike = frame(1, NONE);
+    const done = game(150, [strike]);
+    const live = { ...game(undefined, [strike]), id: 2 };
+    const kept = finishedGamesOnly([session("Mixed", [done, live]), session("Live only", [live])]);
+
+    expect(kept).toHaveLength(1);
+    expect(kept[0].games).toEqual([done]);
+  });
+
+  it("leaves a game still being bowled out of the first-ball rates", () => {
+    const stats = calculateStats(finishedGamesOnly([session("Live", [game(undefined, [frame(1, NONE)])])]));
+    expect(stats.totalGames).toBe(0);
+    expect(stats.pocketPct).toBeNull();
+    expect(stats.strikePct).toBeNull();
+  });
+});
 
 describe("calculateStats", () => {
   it("returns null metrics for no data", () => {

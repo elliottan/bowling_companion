@@ -309,10 +309,7 @@ export function Stats({
       <EmptyState
         icon={BarChart3}
         title={empty?.title ?? "No stats yet"}
-        description={
-          empty?.description ??
-          "One finished game is enough to start. Strike rate, spare conversions and average come from there."
-        }
+        description={empty?.description}
       />
     );
   }
@@ -562,7 +559,7 @@ export function Stats({
 
       {/* Said once for the screen, under the bowler's own numbers rather than
           over them; each card above carries only a small mark. */}
-      <ProBanner what="Pro adds carry, strike and the first ball's other numbers, and every ball's record." />
+      <ProBanner what="Get a deeper analysis of your stats." />
 
       {/* Portalled to the body: on the session sheet the stats sit inside a
           panel that slides on a transform, and a transformed ancestor makes

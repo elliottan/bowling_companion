@@ -25,7 +25,7 @@ describe("NextSteps", () => {
 
   it("asks an empty database for the two things answerable before a first night", async () => {
     renderCard();
-    expect(await screen.findByText("Add the balls you throw")).toBeInTheDocument();
+    expect(await screen.findByText("Add balls to your bag")).toBeInTheDocument();
     expect(screen.getByText("Write down your spare lines")).toBeInTheDocument();
     // Which pattern you bowl on is learned at the house, so it waits.
     expect(screen.queryByText("Add the pattern you bowl on")).not.toBeInTheDocument();
@@ -51,13 +51,13 @@ describe("NextSteps", () => {
 
   it("retires one step for good without silencing the one beside it", async () => {
     renderCard();
-    await screen.findByText("Add the balls you throw");
+    await screen.findByText("Add balls to your bag");
     // Each dismiss is named after the card it answers, so there is no need to
     // count them off the page.
-    fireEvent.click(screen.getAllByRole("button", { name: /^Not now: / })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: /^Dismiss: / })[0]);
 
     await waitFor(() =>
-      expect(screen.queryByText("Add the balls you throw")).not.toBeInTheDocument()
+      expect(screen.queryByText("Add balls to your bag")).not.toBeInTheDocument()
     );
     expect(screen.getByText("Write down your spare lines")).toBeInTheDocument();
     expect(await db.settings.get("next_step_dismissed:arsenal")).toBeDefined();

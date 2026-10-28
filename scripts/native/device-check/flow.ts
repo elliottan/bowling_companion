@@ -297,6 +297,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   await f.check("first run: start fresh and pick a hand", async () => {
     await f.tap("^Start fresh$", "Set up Headpin");
     await f.tap("right-handed", "Set up Headpin");
+    await f.tap("^Next$", "Set up Headpin");
     await f.until(`!__dc.dialogs().some((n) => /Set up Headpin/i.test(n))`, "the first run to close");
     await f.snap("home");
   });
@@ -349,7 +350,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
 
   await f.check("arsenal: add a ball", async () => {
     await f.toTabs();
-    await f.tap("^(Add the balls you throw|Arsenal)$");
+    await f.tap("^(Add balls to your bag|Arsenal)$");
     await f.tap("^Add ball$");
     await f.fill("e.g. Storm Phaze II", "Device Phaze");
     await f.tap("^Add$");
@@ -359,9 +360,8 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
 
   await f.check("start a session", async () => {
     await f.toTabs();
-    const start = await f.js<{ x: number } | null>(`__dc.find("^Start scoring$")`);
-    if (start) await f.tab("Score");
-    await f.tap("^Start session$");
+    await f.tab("Home");
+    await f.tap("^Start scoring$");
     await f.fill("Pinecrest Lanes", ALLEY, "Start session");
     await f.snap("keyboard-up");
     await f.tap("^Start session$", "Start session");

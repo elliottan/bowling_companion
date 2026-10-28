@@ -55,6 +55,10 @@ function formatLeavePins(pins: PinNumber[]): string {
 /** Written once the bowler has been told how the deck reads, or has finished a
  *  game and so plainly worked it out. */
 const PIN_COACH_SEEN_KEY = "pin_input_coached_at";
+/** How long after a ball goes in that Undo takes it back without asking. */
+export const QUICK_UNDO_MS = 10_000;
+/** The clock, read in handlers only. */
+const clock = () => Date.now();
 
 /** Games currently in edit mode, i.e. whose "edit a finished game" prompt has
  *  been answered and not since closed with Done. Module level, so it outlives
@@ -261,11 +265,15 @@ export function ActiveGameScorer({
    *  of a finished game opened for editing. */
   const canFoul = !gameState.isComplete || (editingComplete && isEditing);
   const canUndoHere = Boolean(onUndoShot) && canUndo;
+  /** When the last ball was recorded here, for the quick undo. */
+  const lastRecordedAt = useRef<number | null>(null);
 
   // Wrapped, so "the query has not answered" is distinguishable from "the key
   // is unset" and the line does not flash onto every scorer that opens.
   const pinCoach = useLiveQuery(async () => ({ seenAt: await getSetting(PIN_COACH_SEEN_KEY) }));
   const showPinCoach = !!pinCoach && !pinCoach.seenAt;
+  // A pin toggled is the lesson taken, so the line goes then as well as on X.
+  const retirePinCoach = () => void setSetting(PIN_COACH_SEEN_KEY, new Date().toISOString()).catch(() => {});
 
   /** Gate every user edit on a completed game. Returns false (and raises the
    *  prompt) while locked; the caller must drop the edit. */
@@ -294,9 +302,19 @@ export function ActiveGameScorer({
     });
   }
 
-  /** Undo takes a recorded ball back, so it always asks, and names the ball. */
+  /**
+   * Undo takes a recorded ball back, so it asks, and names the ball (ADR-217). Except
+   * straight after the ball went in: an undo within QUICK_UNDO_MS of recording
+   * it is a slip being caught, and asking would only slow the fix. One quick
+   * undo per ball: the next one reaches a ball recorded earlier, and asks.
+   */
   function requestUndo() {
     setMoreAt(null);
+    const at = lastRecordedAt.current;
+    if (at !== null && clock() - at <= QUICK_UNDO_MS) {
+      void undoShot();
+      return;
+    }
     const ball = describeLastBall(gameState.frames) ?? "your last ball";
     setPendingChange({
       title: "Undo your last ball?",
@@ -576,6 +594,7 @@ export function ActiveGameScorer({
       standing
     );
     setGameState(submission.state);
+    lastRecordedAt.current = clock();
     // A cleared deck is a strike or a spare, and feels like one (ADR-160).
     void haptic(standing.length === 0 ? "mark" : "shot");
     const frameToPersist =
@@ -609,6 +628,7 @@ export function ActiveGameScorer({
     const result = undoLastShot(gameState.frames);
     if (!result.changedFrame && result.deletedFrameNumber === null) return;
 
+    lastRecordedAt.current = null;
     setGameState(hydrateFrameController(result.frames));
     setSelectedShot(null);
     setPendingSpareLeave(null);
@@ -826,20 +846,16 @@ export function ActiveGameScorer({
           other scorer works the other way round, so a new bowler taps the
           pins they knocked over and records the opposite of what happened.
           It sits directly above the deck it describes, and goes for good on
-          the first finished game or the first "Got it". */}
+          the first pin toggled, the first finished game, or its X. */}
       {showPinCoach && (
-        <div className="mt-3 flex items-start gap-2.5 rounded-lg border border-accent-fill bg-accent-soft p-3 text-sm text-ink">
-          <Hand size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-accent" />
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold">Tap the pins left standing after your shot.</p>
-            <button
-              type="button"
-              onClick={() => void setSetting(PIN_COACH_SEEN_KEY, new Date().toISOString())}
-              className={`relative mt-1 text-xs font-bold text-accent underline hover:no-underline ${TAP_TARGET_44}`}
-            >
-              Got it
-            </button>
-          </div>
+        <div className="mt-3 flex items-center gap-2.5 rounded-lg border border-accent-fill bg-accent-soft py-1 pl-3 pr-1 text-sm text-ink">
+          <Hand size={18} aria-hidden="true" className="shrink-0 text-accent" />
+          <p className="min-w-0 flex-1 text-xs font-semibold">
+            Tap or slide to toggle the pins left standing.
+          </p>
+          <IconButton label="Dismiss tip" onClick={retirePinCoach}>
+            <X size={16} aria-hidden="true" />
+          </IconButton>
         </div>
       )}
 
@@ -909,6 +925,7 @@ export function ActiveGameScorer({
             }
             onChange={(pins) => {
               if (!requestEdit()) return;
+              if (showPinCoach) retirePinCoach();
               if (isEditing) withEditConfirm(() => handleEditPins(pins));
               else updateStandingPins(pins);
             }}
