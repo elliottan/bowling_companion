@@ -330,11 +330,14 @@ function App() {
   // dialog, or the keyboard. Elsewhere, or if the app has no such bar, the page
   // draws its own below.
   const openSheets = useSyncExternalStore(subscribeSheets, getOpenSheets, getOpenSheets);
+  // First run owns the whole viewport, and the phone's bar sits above the page,
+  // so it has to step aside too or it floats over the welcome.
+  const firstRunShowing = boot.handednessKnown && (chosenHandedness ?? boot.handedness) === null;
   const nativeTabs = useNativeTabBar({
     enabled: boot.booted && isIOSApp(),
     items: NATIVE_TAB_ITEMS,
     active: view,
-    hidden: keyboardOpen || overlays.length > 0 || openSheets.length > 0,
+    hidden: firstRunShowing || keyboardOpen || overlays.length > 0 || openSheets.length > 0,
     onSelect: (id) => dispatch({ type: "goTo", view: id as AppView })
   });
   const nativeTabBar = nativeTabs.status !== "failed";
