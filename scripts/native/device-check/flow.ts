@@ -350,7 +350,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
 
   await f.check("arsenal: add a ball", async () => {
     await f.toTabs();
-    await f.tap("^(Add the balls you throw|Arsenal)$");
+    await f.tap("^(Add balls to your bag|Arsenal)$");
     await f.tap("^Add ball$");
     await f.fill("e.g. Storm Phaze II", "Device Phaze");
     await f.tap("^Add$");

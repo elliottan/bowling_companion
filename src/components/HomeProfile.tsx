@@ -1,4 +1,4 @@
-import { Plus, type LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { BowlingBallIcon, GamePlanIcon, LanePairIcon, SpareLineIcon } from "./icons";
 import { CatalogBallImage } from "./CatalogBallImage";
@@ -61,9 +61,9 @@ export function ArsenalGrid({ balls, onOpenArsenal }: ArsenalGridProps) {
           className="flex aspect-[2/1] w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-edge-strong bg-surface px-3 text-center active:bg-surface-muted"
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
-            <Plus size={18} aria-hidden="true" />
+            <BowlingBallIcon size={18} aria-hidden="true" />
           </span>
-          <span className="text-xs font-semibold text-ink">Add the balls you throw</span>
+          <span className="text-xs font-semibold text-ink">Add balls to your bag</span>
         </button>
       ) : (
         <ul className="grid grid-cols-4 gap-1.5" aria-label="Your arsenal">

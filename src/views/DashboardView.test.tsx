@@ -98,7 +98,7 @@ describe("Home (ADR-115)", () => {
 
     // The step owed next is the one shown instead.
     expect(await screen.findByText("Write down your spare lines")).toBeInTheDocument();
-    expect(screen.getAllByText("Add the balls you throw")).toHaveLength(1);
+    expect(screen.getAllByText("Add balls to your bag")).toHaveLength(1);
   });
 
   it("shows one prompt at a time: the backup card holds the setup step back", async () => {

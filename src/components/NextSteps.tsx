@@ -29,7 +29,7 @@ interface StepCopy {
 const COPY: Record<NextStepKey, StepCopy> = {
   arsenal: {
     icon: BowlingBallIcon,
-    title: "Add the balls you throw",
+    title: "Add balls to your bag",
     description: "Once a ball is in your arsenal you can name it on every shot, and the stats split by ball.",
     action: "Add a ball"
   },
