@@ -133,7 +133,7 @@ export function LayoutEditor({
             idPrefix={idPrefix}
             locked={frozen}
             label="Pin to PAP"
-            hint="Distance from the pin to your PAP. Flare is highest around 4 inches and drops off either side."
+            hint="Distance from the pin to your PAP. Around 4 inches gives the most flare."
             value={layout.pinToPap}
             min={0.5}
             max={6}
@@ -160,7 +160,7 @@ export function LayoutEditor({
             idPrefix={idPrefix}
             locked={frozen}
             label="Pin to PAP"
-            hint="Distance from the pin to your PAP. Flare is highest around 4 inches and drops off either side."
+            hint="Distance from the pin to your PAP. Around 4 inches gives the most flare."
             value={vls.pinToPap}
             min={0.5}
             max={6}

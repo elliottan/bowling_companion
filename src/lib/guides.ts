@@ -198,7 +198,7 @@ export const GUIDES: readonly Guide[] = [
           },
           {
             term: "Pin to PAP distance, in inches",
-            text: "How far the pin sits from your PAP. It sets flare, so it sets traction. Anything from 0 to 6 and 3/4 is possible. Flare peaks near 3 and 3/8 and drops toward both ends, so a pin to PAP of 1 or 6 gives a low flare, low traction ball on purpose."
+            text: "How far the pin sits from your PAP. It sets flare, and flare sets traction. It can be anything from 0 to 6 and 3/4. Flare is highest near 3 and 3/8, so a pin to PAP of 1 or 6 is a low flare ball on purpose."
           },
           {
             term: "VAL angle, in degrees",
