@@ -8,7 +8,8 @@ import { StatsView } from "./StatsView";
 async function seedSessions(n: number) {
   for (let i = 0; i < n; i++) {
     const id = Number(await createSession({ date: `2026-09-${String(i + 1).padStart(2, "0")}`, alley_name: "Orchid Bowl" }));
-    await addGameToSession(id, { game_number: 1 });
+    // Finished, since Stats reads finished games only (ADR-216).
+    await db.games.update(await addGameToSession(id, { game_number: 1 }), { final_score: 150 });
   }
 }
 

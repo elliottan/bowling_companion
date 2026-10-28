@@ -9179,3 +9179,23 @@ start is one tap longer for a bowler who fills nothing in. The empty state
 drops its sentence about adding the alley later, which no longer describes
 the flow.
 
+## ADR-216: Stats reads finished games only
+
+**Status.** Accepted, 2026-10-28, by the owner's decision.
+
+**Context.** `calculateStats` and the other Stats readers took every game,
+finished or not. Average, high and low already used finished games only, since
+they need a final score, but the per-frame rates did not. A bowler with one game
+just started saw "0 games" beside a pocket rate of 100% read off a single ball.
+
+**Decision.** The Stats screen passes its sessions through `finishedGamesOnly`
+(`src/lib/stats.ts`) before any reader sees them. A game counts once it has a
+final score. A session with no finished game drops out, so the session count,
+"Last 10" and the range control see finished sessions only. The filter button
+and range control stay hidden until a finished game exists, as they did before
+the first session. History, the session screen, the alley report, spare line
+records and a game's own numbers are unchanged and still read every game.
+
+**Consequences.** The first-ball card and every rate agree with the game count.
+A game in progress shows up on Stats once it is finished, not frame by frame.
+

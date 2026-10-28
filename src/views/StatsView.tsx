@@ -17,6 +17,7 @@ import {
   calculateSessionMetrics,
   calculateSessionTrend,
   calculateStats,
+  finishedGamesOnly,
   type BowlingStats
 } from "../lib/stats";
 import { buildStatsCard, describeFilter } from "../lib/shareCard";
@@ -96,6 +97,9 @@ export function StatsView({
 }: StatsViewProps) {
   const filters = useSessionFilters();
   const { activeLanes, isLoading } = filters;
+  // Stats reads finished games only (ADR-216); History still lists them all.
+  const finished = useMemo(() => finishedGamesOnly(filters.filtered), [filters.filtered]);
+  const anyFinished = useMemo(() => finishedGamesOnly(filters.history).length > 0, [filters.history]);
   // How far back to read, on top of the shared filters. Stats only: History
   // is a list in date order and has no use for a window (ADR-126).
   const [rangePick, setRange] = useRememberedState<StatsRange>("stats:range", "all");
@@ -103,12 +107,12 @@ export function StatsView({
   // with fewer it reads exactly what All does, and a share card would call a
   // handful of nights "Last 10 sessions". A choice remembered from a time with
   // more, or under a broader filter, reads as All until there are ten again.
-  const lastTenOpen = filters.filtered.length >= LAST_SESSIONS;
+  const lastTenOpen = finished.length >= LAST_SESSIONS;
   const range: StatsRange = rangePick === "last10" && !lastTenOpen ? "all" : rangePick;
   const rangeOptions = lastTenOpen ? RANGE_OPTIONS : RANGE_OPTIONS.filter((o) => o.value !== "last10");
   const filtered = useMemo(
-    () => sessionsInRange(filters.filtered, range, localDateKey(), activeLanes),
-    [filters.filtered, range, activeLanes]
+    () => sessionsInRange(finished, range, localDateKey(), activeLanes),
+    [finished, range, activeLanes]
   );
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -188,9 +192,9 @@ export function StatsView({
               {mode === "tab" && <h1 className={TAB_TITLE}>Stats</h1>}
               <div className="ml-auto flex shrink-0 items-center gap-1">
                 {/* Neither action has anything to act on before the first
-                    session: there is nothing to filter, and the share would be
+                    finished game: there is nothing to filter, and the share would be
                     a card of zeros. */}
-                {filters.history.length > 0 && (
+                {anyFinished && (
                   <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
                 )}
                 {/* The two drill-downs used to live behind this control, which meant
@@ -207,7 +211,7 @@ export function StatsView({
               </div>
               {/* Hidden until there is something to narrow: on a device with
                   no games the empty state is the whole screen. */}
-              {filters.filtered.length > 0 && (
+              {finished.length > 0 && (
                 <div className="w-44 min-w-0 shrink">
                   <SegmentedControl
                     label="Sessions counted"
@@ -244,7 +248,7 @@ export function StatsView({
             form={form}
             scopeLabel={scopeLabel}
             empty={
-              range === "months3" && filters.filtered.length > 0
+              range === "months3" && finished.length > 0
                 ? {
                     title: "Nothing in the last 3 months",
                     description: "Your earlier games are under All."

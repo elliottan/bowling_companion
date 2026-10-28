@@ -27,7 +27,7 @@ async function countSessions(page: import("@playwright/test").Page) {
  */
 test("adding a pattern from the session dialog does not submit the session form", async ({ page }) => {
   await openSessionForm(page);
-  await page.getByPlaceholder("Ball choice, surface, carry…").fill("keep me");
+  await page.getByPlaceholder("League, practice, tournament…").fill("keep me");
 
   await page.getByRole("button", { name: "Manage oil patterns" }).click();
   await page.getByRole("button", { name: "Add oil pattern" }).first().click();
@@ -44,7 +44,7 @@ test("adding a pattern from the session dialog does not submit the session form"
     .getByRole("dialog", { name: "Oil patterns" })
     .getByRole("button", { name: "Back", exact: true })
     .click();
-  await expect(page.getByPlaceholder("Ball choice, surface, carry…")).toHaveValue("keep me");
+  await expect(page.getByPlaceholder("League, practice, tournament…")).toHaveValue("keep me");
   // The pattern field suggests as you type, like the alley does. Typed only
   // once the manager has gone: as it leaves it hands focus back to the button
   // that opened it, which on a slow WebKit run landed after the typing and
