@@ -309,10 +309,7 @@ export function Stats({
       <EmptyState
         icon={BarChart3}
         title={empty?.title ?? "No stats yet"}
-        description={
-          empty?.description ??
-          "One finished game is enough to start. Strike rate, spare conversions and average come from there."
-        }
+        description={empty?.description}
       />
     );
   }
