@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { ActiveGameScorer } from "./ActiveGameScorer";
+import { ActiveGameScorer, QUICK_UNDO_MS } from "./ActiveGameScorer";
 import type { Frame, PinNumber } from "../types/bowling";
 
 /** The commit button reads "Next", with what it would record bracketed under
@@ -637,6 +637,51 @@ describe("undo", () => {
     // Back to the first ball of the first frame, with nothing left to undo.
     openMore();
     expect(undoItem()).toBeNull();
+  });
+
+  it("takes a ball just recorded back without asking (quick undo)", async () => {
+    const onUndoShot = vi.fn();
+    render(<ActiveGameScorer gameKey="undo-quick" onUndoShot={onUndoShot} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: /^Strike$/ }));
+    openMore();
+    fireEvent.click(undoItem()!);
+
+    await waitFor(() => expect(onUndoShot).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText("Undo your last ball?")).toBeNull();
+  });
+
+  it("asks again once the quick-undo window has passed", async () => {
+    const onUndoShot = vi.fn();
+    const now = vi.spyOn(Date, "now");
+    try {
+      now.mockReturnValue(1_000_000);
+      render(<ActiveGameScorer gameKey="undo-slow" onUndoShot={onUndoShot} />);
+      fireEvent.click(await screen.findByRole("button", { name: /^Strike$/ }));
+
+      now.mockReturnValue(1_000_000 + QUICK_UNDO_MS + 1);
+      openMore();
+      fireEvent.click(undoItem()!);
+      expect(screen.getByText("Undo your last ball?")).toBeInTheDocument();
+      expect(onUndoShot).not.toHaveBeenCalled();
+    } finally {
+      now.mockRestore();
+    }
+  });
+
+  it("asks for the second undo in a row: it reaches an older ball", async () => {
+    const onUndoShot = vi.fn();
+    render(<ActiveGameScorer gameKey="undo-twice" onUndoShot={onUndoShot} />);
+    fireEvent.click(await screen.findByRole("button", { name: /^Strike$/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Strike$/ }));
+
+    openMore();
+    fireEvent.click(undoItem()!);
+    await waitFor(() => expect(onUndoShot).toHaveBeenCalledTimes(1));
+
+    openMore();
+    fireEvent.click(undoItem()!);
+    expect(screen.getByText("Undo your last ball?")).toBeInTheDocument();
   });
 
   it("leaves the card alone when the undo question is cancelled", async () => {

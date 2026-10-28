@@ -9199,3 +9199,23 @@ records and a game's own numbers are unchanged and still read every game.
 **Consequences.** The first-ball card and every rate agree with the game count.
 A game in progress shows up on Stats once it is finished, not frame by frame.
 
+## ADR-217: Undo takes a ball just recorded back without asking
+
+**Status.** Accepted, 2026-10-28, by the owner's decision. Amends the undo of
+ADR-079, which asked before every undo.
+
+**Context.** The commonest undo is a slip caught at once: the wrong pins
+tapped, Next pressed a beat early. Asking "Undo your last ball?" then is one
+more tap between the bowler and the fix, for a ball they saw go in a second
+ago.
+
+**Decision.** An undo within `QUICK_UNDO_MS` (10 seconds,
+`src/components/ActiveGameScorer.tsx`) of recording a ball in the scorer takes
+it back without asking. Past that, and for the second undo in a row (which
+reaches a ball recorded earlier), it asks as before, naming the ball. The clock
+is the scorer's own: a reload, or a game reopened later, starts with no recent
+ball, so its first undo asks.
+
+**Consequences.** The quick fix is one tap shorter. An undo that reaches into a
+frame the bowler has moved past still asks, because by then it was not a slip.
+

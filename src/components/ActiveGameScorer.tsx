@@ -55,6 +55,10 @@ function formatLeavePins(pins: PinNumber[]): string {
 /** Written once the bowler has been told how the deck reads, or has finished a
  *  game and so plainly worked it out. */
 const PIN_COACH_SEEN_KEY = "pin_input_coached_at";
+/** How long after a ball goes in that Undo takes it back without asking. */
+export const QUICK_UNDO_MS = 10_000;
+/** The clock, read in handlers only. */
+const clock = () => Date.now();
 
 /** Games currently in edit mode, i.e. whose "edit a finished game" prompt has
  *  been answered and not since closed with Done. Module level, so it outlives
@@ -261,6 +265,8 @@ export function ActiveGameScorer({
    *  of a finished game opened for editing. */
   const canFoul = !gameState.isComplete || (editingComplete && isEditing);
   const canUndoHere = Boolean(onUndoShot) && canUndo;
+  /** When the last ball was recorded here, for the quick undo. */
+  const lastRecordedAt = useRef<number | null>(null);
 
   // Wrapped, so "the query has not answered" is distinguishable from "the key
   // is unset" and the line does not flash onto every scorer that opens.
@@ -296,9 +302,19 @@ export function ActiveGameScorer({
     });
   }
 
-  /** Undo takes a recorded ball back, so it always asks, and names the ball. */
+  /**
+   * Undo takes a recorded ball back, so it asks, and names the ball (ADR-217). Except
+   * straight after the ball went in: an undo within QUICK_UNDO_MS of recording
+   * it is a slip being caught, and asking would only slow the fix. One quick
+   * undo per ball: the next one reaches a ball recorded earlier, and asks.
+   */
   function requestUndo() {
     setMoreAt(null);
+    const at = lastRecordedAt.current;
+    if (at !== null && clock() - at <= QUICK_UNDO_MS) {
+      void undoShot();
+      return;
+    }
     const ball = describeLastBall(gameState.frames) ?? "your last ball";
     setPendingChange({
       title: "Undo your last ball?",
@@ -578,6 +594,7 @@ export function ActiveGameScorer({
       standing
     );
     setGameState(submission.state);
+    lastRecordedAt.current = clock();
     // A cleared deck is a strike or a spare, and feels like one (ADR-160).
     void haptic(standing.length === 0 ? "mark" : "shot");
     const frameToPersist =
@@ -611,6 +628,7 @@ export function ActiveGameScorer({
     const result = undoLastShot(gameState.frames);
     if (!result.changedFrame && result.deletedFrameNumber === null) return;
 
+    lastRecordedAt.current = null;
     setGameState(hydrateFrameController(result.frames));
     setSelectedShot(null);
     setPendingSpareLeave(null);

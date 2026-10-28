@@ -33,6 +33,8 @@ had all shipped.
 - Start scoring on an empty Home opens the session form, so the first
   session can carry its alley, pattern and lanes. Every field can still be
   left blank (ADR-215).
+- Undo takes back a ball you recorded in the last 10 seconds without asking.
+  Later than that, or a second undo in a row, still asks (ADR-217).
 - A session's Lanes tab, empty, reads "No lane notes yet" with no sentence
   under it. It used to read "No lanes yet for" with a blank alley.
 - The session sheet centres a one-lane game's pin decks when nothing else

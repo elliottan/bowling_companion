@@ -137,21 +137,20 @@ test("undoes the last ball from the More menu, and the score goes back with it",
   await more.click();
   await expect(undo).toBeVisible();
   await page.keyboard.press("Escape");
-  // Undo takes a recorded ball back, so it asks first, every time.
-  const confirmUndo = async () => {
-    await more.click();
-    await undo.click();
-    await expect(page.getByText("This removes frame", { exact: false })).toBeVisible();
-    await page.getByRole("button", { name: "Undo", exact: true }).click();
-  };
-
-  // Back to the second frame's first ball: the deck is a fresh rack again, so
+  // Straight after the ball went in, Undo takes it back without asking
+  // (ADR-217): back to the second frame's first ball, a fresh rack again, so
   // the commit button offers a strike rather than a count.
-  await confirmUndo();
+  await more.click();
+  await undo.click();
+  await expect(page.getByText("This removes frame", { exact: false })).toHaveCount(0);
   await expect(page.getByRole("button", { name: RECORD_SHOT })).toContainText("(Strike)");
 
-  // Again, and the strike in frame 1 is gone with it.
-  await confirmUndo();
+  // A second undo reaches a ball recorded earlier, so it asks, and the strike
+  // in frame 1 goes with it.
+  await more.click();
+  await undo.click();
+  await expect(page.getByText("This removes frame", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
   await more.click();
   await expect(undo).toHaveCount(0);
 
