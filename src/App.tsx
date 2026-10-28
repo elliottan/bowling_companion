@@ -625,7 +625,6 @@ function App() {
         {view === "dashboard" && (
           <DashboardView
             onStartSession={handleStartSession}
-            onScoreNow={handleScoreNow}
             isSubmitting={isStartingSession}
             error={startError}
             resumable={resumable}

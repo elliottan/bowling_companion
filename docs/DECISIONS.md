@@ -9157,3 +9157,25 @@ log a `⚡️  Headpin link` line, so the console shows where a link got to.
 - A link is raised once and then dropped, so the reload it causes cannot open
   it again, without the session flag the launch URL needed.
 
+## ADR-215: Empty Home's "Start scoring" opens the session form
+
+**Status.** Accepted, 2026-10-28, by the owner's decision. Amends ADR-150's
+first bullet, which sent empty Home's one action straight to the deck.
+
+**Context.** A bowler who goes straight to the deck starts their first session
+as "Unnamed session", with no alley, pattern or lanes. Those fields are what
+the alley report, lane notes and pattern lookups read, and a bowler who skips
+them at the start rarely goes back to fill them in.
+
+**Decision.** Empty Home keeps its one action, "Start scoring", and it opens
+the same session form the floating "Start session" button opens. Nothing in
+the form becomes required (ADR-080): a bowler in a hurry taps Start session
+with every field blank and still reaches the deck. The Score tab keeps its
+"Score now" path to the deck without the form.
+
+**Consequences.** The first session usually carries an alley and pattern, so
+the first alley report and lane note have something to hang on. The first
+start is one tap longer for a bowler who fills nothing in. The empty state
+drops its sentence about adding the alley later, which no longer describes
+the flow.
+

@@ -33,17 +33,12 @@ export async function clearDatabase(page: Page) {
 /**
  * Open the start-session form from Home or the Score tab, whichever is up.
  *
- * Home opens it from its floating button once there are sessions. On a device
- * that has never scored, Home's one way in is "Start scoring", which skips the
- * form (ADR-150), so the form is opened from the Score tab instead.
+ * Home opens it from its floating button once there are sessions, and from
+ * "Start scoring" on a device that has never scored (ADR-215). The Score tab's
+ * own "Start session" opens it too.
  */
 export async function openSessionForm(page: Page) {
-  const start = page.getByRole("button", { name: /^(Start session|Start scoring)$/ }).first();
-  await start.waitFor();
-  if ((await start.textContent())?.includes("Start scoring")) {
-    await page.getByRole("navigation").getByRole("button", { name: "Score", exact: true }).click();
-  }
-  await page.getByRole("button", { name: "Start session" }).first().click();
+  await page.getByRole("button", { name: /^(Start session|Start scoring)$/ }).first().click();
 }
 
 /** Fill the start-session form and submit. Lands on the active scorer. */

@@ -17,7 +17,6 @@ import type { ProAccess } from "../lib/pro";
 function renderHome(overrides: Partial<Parameters<typeof DashboardView>[0]> = {}) {
   const props = {
     onStartSession: vi.fn(),
-    onScoreNow: vi.fn(),
     onOpenSession: vi.fn(),
     onViewAll: vi.fn(),
     onOpenCatalog: vi.fn(),
@@ -67,17 +66,19 @@ describe("Home (ADR-115)", () => {
     ).toBeTruthy();
   });
 
-  it("offers one way in on a device that has never scored, straight to the deck", async () => {
-    const props = renderHome();
+  it("offers one way in on a device that has never scored, and it opens the form", async () => {
+    renderHome();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Start scoring" }));
-    expect(props.onScoreNow).toHaveBeenCalled();
     // Not three buttons that all start a session: no form button, no second
     // fast path, and no floating button over the empty state.
+    expect(await screen.findByRole("button", { name: "Start scoring" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Start session" })).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Score now, add details later" })
     ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Start scoring" }));
+    expect(await screen.findByRole("dialog", { name: "Start session" })).toBeInTheDocument();
   });
 
   it("names the floating button once there are sessions", async () => {
@@ -278,7 +279,6 @@ describe("Home and Pro (ADR-164)", () => {
       <ProAccessContext.Provider value={access}>
         <DashboardView
           onStartSession={vi.fn()}
-          onScoreNow={vi.fn()}
           onOpenSession={vi.fn()}
           onViewAll={vi.fn()}
           onOpenCatalog={vi.fn()}

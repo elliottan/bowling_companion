@@ -38,8 +38,6 @@ import type { SessionSummary } from "../types/bowling";
 
 interface DashboardViewProps {
   onStartSession: (values: NewSessionFormValues) => Promise<void> | void;
-  /** Start scoring with nothing filled in (ADR-080). */
-  onScoreNow: () => Promise<void> | void;
   isSubmitting?: boolean;
   error?: string;
   resumable?: ResumableGame | null;
@@ -75,7 +73,6 @@ const NO_SESSIONS: SessionSummary[] = [];
 
 export function DashboardView({
   onStartSession,
-  onScoreNow,
   isSubmitting = false,
   error,
   resumable,
@@ -207,18 +204,15 @@ export function DashboardView({
       {/* A game in progress leads the screen, so carrying on is one tap. A new
           session starts from the floating button, and a device that has never
           scored a game is told what the app is first (DESIGN-LANGUAGE §5). */}
-      {/* One way in for a bowler who has never scored, and it goes straight to
-          the pin deck: every detail the form would ask for can be added from
-          the session afterwards (ADR-080). Three buttons that all started a
-          session, two of them only differing in whether a form came first,
-          was a choice put to somebody with nothing to choose on (ADR-150). */}
+      {/* One way in for a bowler who has never scored (ADR-150), and it opens
+          the session form: the alley, pattern and lanes are worth having from
+          the first game, and every field can still be left blank (ADR-215). */}
       {coldStart ? (
         <EmptyState
           icon={PinIcon}
           title="Score your first session"
-          description="Tap in each shot as you bowl. Add the alley and lanes whenever you like."
         >
-          <Button variant="primary" disabled={isSubmitting} onClick={() => void onScoreNow()}>
+          <Button variant="primary" disabled={isSubmitting} onClick={() => setShowForm(true)}>
             Start scoring
           </Button>
         </EmptyState>

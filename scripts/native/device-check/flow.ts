@@ -360,9 +360,8 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
 
   await f.check("start a session", async () => {
     await f.toTabs();
-    const start = await f.js<{ x: number } | null>(`__dc.find("^Start scoring$")`);
-    if (start) await f.tab("Score");
-    await f.tap("^Start session$");
+    await f.tab("Home");
+    await f.tap("^Start scoring$");
     await f.fill("Pinecrest Lanes", ALLEY, "Start session");
     await f.snap("keyboard-up");
     await f.tap("^Start session$", "Start session");

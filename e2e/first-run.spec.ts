@@ -15,23 +15,21 @@ async function freshInstall(page: Parameters<typeof startSession>[0]) {
 }
 
 /**
- * The fast path (ADR-080): a bowler who has just installed the app reaches the
- * pin deck without naming an alley or opening the form at all.
+ * Empty Home's one way in opens the session form (ADR-215), and a bowler can
+ * still start without filling anything in (ADR-080).
  */
-test("scores without filling anything in", async ({ page }) => {
+test("starts the first session from the form, with nothing filled in", async ({ page }) => {
   await freshInstall(page);
   await page.getByRole("button", { name: "Start fresh" }).click();
   await page.getByRole("button", { name: "right-handed" }).click();
   await page.getByRole("button", { name: "Next", exact: true }).click();
 
-  // Home's one way in on a device that has never scored (ADR-150).
   await page.getByRole("button", { name: "Start scoring" }).click();
+  const sheet = page.getByRole("dialog", { name: "Start session" });
+  await sheet.getByRole("button", { name: "Start session" }).click();
+  await page.getByRole("dialog", { name: /lanes/i }).getByRole("button", { name: "Close" }).click();
 
-  // Straight onto the pin deck, no form and no lane editor in the way. The
-  // deck is visible under a sheet too, so the sheet's absence is what tells.
   await expect(page.getByRole("button", { name: RECORD_SHOT })).toBeVisible();
-  await expect(page.getByRole("dialog", { name: /lanes/i })).toHaveCount(0);
-
   // The session it made is real, and says so where it has no alley to print.
   await expect(page.getByText("Unnamed session").first()).toBeVisible();
 });
