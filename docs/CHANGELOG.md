@@ -18,7 +18,8 @@ had all shipped.
   closes with an X instead of Got it, and goes away on its own once you toggle
   a pin.
 - History and Stats, empty, show just their title, without the sentence
-  under it.
+  under it. An empty Arsenal says what a ball is for: "Add a ball, then pick
+  it for each shot as you score."
 - On first launch in the iPhone app, the tab bar floated over the welcome
   screen, under Start fresh and Restore from a backup. It now steps aside until
   a hand is chosen, as it already did for sheets and the keyboard.
