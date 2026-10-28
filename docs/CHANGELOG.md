@@ -57,6 +57,20 @@ had all shipped.
 - The App Store review notes now answer the seven questions App Review asks a
   new developer, and the submission checklist covers the screen recording.
 
+## 0.69.5: No refresh button on the ball catalog (2026-10-27)
+
+### Removed
+
+- The ball catalog's refresh button. The catalog checks for new balls by
+  itself whenever it opens online, so the button only ever repeated that. An
+  empty catalog still offers "Load the catalog".
+
+### Changed
+
+- `docs/PRO-LAUNCH.md` records what launch has done and the steps after
+  approval: a rating prompt, keywords from real searches, the listing in other
+  English storefronts, content rights, and later other languages.
+
 ## 0.69.4: A shared link opens its screen in the iPhone app (2026-10-27)
 
 - Tapping a shared line or layout link opened the iPhone app and left it where

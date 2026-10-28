@@ -1,4 +1,4 @@
-import { BookOpen, ExternalLink, Loader2, Palette, RefreshCw, X } from "lucide-react";
+import { BookOpen, ExternalLink, Loader2, Palette, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -538,11 +538,6 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
       title="Catalog"
       onBack={onBack}
       active={selectedBallId === null && addingBall === null}
-      trailing={
-        <IconButton onClick={handleRefresh} label="Refresh catalog" variant="round">
-          <RefreshCw size={20} aria-hidden="true" />
-        </IconButton>
-      }
     >
       {/* Search + filters stay pinned above the list they narrow. The block
           reaches up behind the nav bar, so the list passes under the two as

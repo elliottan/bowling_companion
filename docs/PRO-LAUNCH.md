@@ -171,11 +171,16 @@ switch.
 
 ### 0. Owner admin (before any build reaches review)
 
-- [ ] Apple Developer Program, as an individual (US$99 a year).
-- [ ] Apply to the App Store Small Business Program before the first sale, or
-      Apple takes 30% instead of 15%.
+- [x] Apple Developer Program, as an individual (US$99 a year), team
+      `CQ6FS6P6H2`.
+- [x] Apply to the App Store Small Business Program before the first sale, or
+      Apple takes 30% instead of 15%. Applied 2026-10-27.
 - [ ] Paid Apps agreement, bank account and tax forms in App Store Connect.
-- [ ] App record and the one non-consumable product, Headpin Pro, at US$9.99.
+      The bank account (SGD, Singapore) is added; the agreement turns Active
+      once the tax forms are done, and no purchase works until it does.
+- [x] App record ("Headpin: Bowling Score & Stats", SKU `headpin-ios`) and the
+      one non-consumable product, `app.headpin.pro`, at US$9.99. Its image and
+      review screenshot are in `marketing/app-store/`.
 - [ ] Tell MOTIV the app now sells Pro (ADR-061).
 
 ### 1. The iOS shell (a spike first)
@@ -197,13 +202,11 @@ switch.
       today (30 days of `Cache-Control`); whether that holds offline is the
       first thing to check on a device, and an on-device store follows if not.
 - [ ] Umami counts from the app (ADR-120), and the privacy label to match.
-- [ ] Universal links, so a shared headpin.app link opens in the app when it is
-      installed and in the web app when it is not (ADR-159). The apps claim the
-      links and open their screens, and headpin.app serves
-      `/.well-known/apple-app-site-association` for team `CQ6FS6P6H2`
-      (`src/test/universalLinks.test.ts` holds it to the Xcode project). Left:
-      tapping a shared `/app` link in Messages or Notes on a phone with a
-      Release build, and `/.well-known/assetlinks.json` for Android (needs the
+- [x] Universal links on iPhone, so a shared headpin.app link opens in the app
+      when it is installed and in the web app when it is not (ADR-159). Checked
+      on a phone on 2026-10-27: the entitlement is signed into every build
+      (ADR-213), and the app hands the link to the page itself (ADR-214).
+- [ ] Universal links on Android: `/.well-known/assetlinks.json` (needs the
       Play signing key's SHA-256).
 - [ ] A shared line or layout opens read-only without Pro, with the locked
       controls locked as "How Pro shows where it is locked" describes.
@@ -238,8 +241,12 @@ switch.
       manifest, arm64, iPhone only for 1.0 (ADR-160), and no export
       compliance question (`ITSAppUsesNonExemptEncryption`).
 
-- [ ] Screenshots, keywords and a description written for store search.
-- [ ] Review notes that explain the app works offline and what Pro unlocks.
+- [x] Screenshots, keywords and a description written for store search
+      (`docs/APP-STORE-LISTING.md`, `marketing/app-store/2026-10-27/`).
+- [x] Review notes that explain the app works offline and what Pro unlocks.
+- [x] 1.0 submitted for review, 2026-10-27, with Headpin Pro attached to it.
+      The build in review predates ADR-214, so a shared link opens the app
+      without its screen until the next build ships.
 - [ ] Offer codes for bowling creators and league friends at launch.
 
 ### 5. Android (after iOS is live)
@@ -251,6 +258,47 @@ switch.
       debug APK; not yet run on an emulator.
 - [ ] Play Billing for the same product, and the web's "Get the app" gains
       Android.
+
+### 6. After approval
+
+In this order. Launch first, then being found, then other languages.
+
+- [ ] **A rating prompt.** Ratings weigh heavily in store search, and a new
+      app with none ranks low. Apple's own prompt (`AppStore.requestReview`,
+      which Apple shows at most three times a year), after a good moment such
+      as a finished game or a new high game, never during scoring. It needs a
+      small native call, and it keeps to "No popups, no counters, no nags"
+      above because Apple, not the app, decides when it shows.
+- [ ] **Keywords from real searches.** Two to four weeks after launch, read
+      App Store Connect's Analytics for the searches that bring people in, and
+      swap out keywords that bring nothing (`docs/APP-STORE-LISTING.md`).
+- [ ] **Promotional text as news.** It changes without a build: a new pattern
+      pack, a new season, a new ball line.
+- [ ] **The store listing in other English storefronts.** United Kingdom,
+      Australia and Canada take the listing as it is, and each gives keyword
+      room of its own. Check Apple's current rules on which storefronts read
+      which listing before counting on the extra keywords.
+- [ ] **Content rights.** Written permission from the ball makers and pattern
+      publishers whose photos and sheets the app shows (ADR-039, ADR-119,
+      ADR-136), so the App Store's content rights answer holds for all of
+      them, not only MOTIV (ADR-061). The fallback is a placeholder in the
+      store app for any source that has not agreed.
+- [ ] **Photos offline on a phone.** Whether the web view's HTTP cache keeps
+      the arsenal's photos without a signal (phase 1).
+
+Later, when the numbers ask for it:
+
+- [ ] **The app in other languages.** Every string is written in place in
+      English, with no translation layer, so this is a large job. Start where
+      App Store Analytics shows downloads; Japan and Korea are the large
+      bowling markets.
+- [ ] **Promoting Headpin Pro on the product page.** The App Store can show
+      the purchase as a tile of its own, but only once the app handles a
+      purchase begun in the store (StoreKit 2's `PurchaseIntent`, in
+      `HeadpinStorePlugin.swift`), which takes a new version.
+- [ ] **Family Sharing for Pro.** Off at launch. It can be turned on later in
+      App Store Connect but never off again, and one purchase would then
+      cover up to six people. Decide on real sales.
 
 ## Still open
 
