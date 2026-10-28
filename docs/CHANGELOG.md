@@ -9,8 +9,11 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.69.5: The iPhone tab bar stays off the welcome screen (2026-10-28)
+## 0.70.0: First run asks how you bowl in one form (2026-10-28)
 
+- Setting up now asks which hand you bowl with, one hand or two, and what to
+  call you, on one screen, and goes on when you tap Next. Tapping a hand no
+  longer finishes setup on the spot. The name can be left blank.
 - On first launch in the iPhone app, the tab bar floated over the welcome
   screen, under Start fresh and Restore from a backup. It now steps aside until
   a hand is chosen, as it already did for sheets and the keyboard.

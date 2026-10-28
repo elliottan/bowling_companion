@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Button } from "./ui/Button";
 import { HandednessPicker } from "./HandednessPicker";
 import { prepareImport, replaceAllData, type PreparedImport } from "../services/backupRepository";
@@ -6,7 +6,15 @@ import { describeAge } from "../lib/backupNudge";
 import { formatTimestamp } from "../lib/dates";
 import { isStandalone } from "../lib/installPrompt";
 import { ReplaceConfirmDialog } from "./ReplaceConfirmDialog";
-import type { Handedness } from "../types/bowling";
+import type { GripStyle, Handedness } from "../types/bowling";
+import { SegmentedControl } from "./ui/SegmentedControl";
+import { FIELD, FIELD_LABEL } from "./ui/field";
+import {
+  BOWLER_NAME_MAX,
+  getGripStyle,
+  setBowlerName,
+  setGripStyle
+} from "../services/bowlingRepository";
 import { ErrorBanner } from "./ErrorBanner";
 import { useOverlay } from "../lib/useOverlay";
 import { isNativeApp } from "../lib/platform";
@@ -62,6 +70,39 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
   const overlayRef = useOverlay<HTMLDivElement>(() => {}, true, false);
   const [confirmText, setConfirmText] = useState("");
   const fileRef = useRef<HTMLInputElement | null>(null);
+  // The setup form's answers, held until Next. A tap on a hand used to finish
+  // the first run on the spot, before the grip or a name could be given.
+  const [hand, setHand] = useState<Handedness | null>(null);
+  const [grip, setGrip] = useState<GripStyle>("1h");
+  const [name, setName] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  // A bowler with history may have told us their grip already; keep it.
+  useEffect(() => {
+    let live = true;
+    void getGripStyle()
+      .then((saved) => {
+        if (live && saved) setGrip(saved);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  async function finishSetup(e?: FormEvent) {
+    e?.preventDefault();
+    if (!hand || saving) return;
+    setSaving(true);
+    try {
+      await setGripStyle(grip);
+      // A blank field leaves any name already stored alone.
+      if (name.trim()) await setBowlerName(name);
+    } catch {
+      // best-effort, like the hand: both can be set again in Settings
+    }
+    onSelectHandedness(hand);
+  }
 
   async function handleFile(file?: File) {
     if (!file) return;
@@ -165,16 +206,53 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
         )}
 
         {step === "handedness" && (
-          <>
+          <form onSubmit={(e) => void finishSetup(e)} className="flex flex-col">
             <h1 className="text-2xl font-extrabold tracking-tight text-ink">
-              Which hand do you bowl with?
+              How do you bowl?
             </h1>
             <p className="mt-2 text-base text-ink-secondary">
-              A move left or right depends on the hand you throw with. You can change this later in Settings.
+              A move left or right depends on the hand you throw with. You can change these later in Settings.
             </p>
             <div className="mt-8">
-              <HandednessPicker value={null} onSelect={onSelectHandedness} />
+              <p className={FIELD_LABEL}>Which hand do you bowl with?</p>
+              <HandednessPicker value={hand} onSelect={setHand} />
             </div>
+            <div className="mt-6">
+              <p className={FIELD_LABEL}>One hand or two?</p>
+              <SegmentedControl
+                label="Grip style"
+                value={grip}
+                onChange={setGrip}
+                options={[
+                  { value: "1h", label: "One-handed" },
+                  { value: "2h", label: "Two-handed" }
+                ]}
+              />
+            </div>
+            <div className="mt-6">
+              <label htmlFor="first-run-name" className={FIELD_LABEL}>
+                What do we call you?
+              </label>
+              <input
+                id="first-run-name"
+                className={FIELD}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                maxLength={BOWLER_NAME_MAX}
+                autoComplete="given-name"
+                autoCapitalize="words"
+                enterKeyHint="done"
+              />
+            </div>
+            <Button
+              type="submit"
+              size="lg"
+              variant="primary"
+              className="mt-8"
+              disabled={!hand || saving}
+            >
+              Next
+            </Button>
             {/* There is no way back for a bowler who already has data: the
                 welcome behind this asks whether they are new, and they are not. */}
             {!hasSavedData && (
@@ -186,7 +264,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
                 Back
               </button>
             )}
-          </>
+          </form>
         )}
 
         {step === "restore" && pending && (

@@ -297,6 +297,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   await f.check("first run: start fresh and pick a hand", async () => {
     await f.tap("^Start fresh$", "Set up Headpin");
     await f.tap("right-handed", "Set up Headpin");
+    await f.tap("^Next$", "Set up Headpin");
     await f.until(`!__dc.dialogs().some((n) => /Set up Headpin/i.test(n))`, "the first run to close");
     await f.snap("home");
   });

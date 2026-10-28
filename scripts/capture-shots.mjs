@@ -389,6 +389,7 @@ await page.reload();
 await setTheme(page, "dark");
 await page.getByRole("button", { name: "Start fresh" }).click();
 await page.getByRole("button", { name: "right-handed" }).click();
+await page.getByRole("button", { name: "Next", exact: true }).click();
 
 // Real balls, so the arsenal is a screen with something on it and the shot
 // panel has a ball to name.

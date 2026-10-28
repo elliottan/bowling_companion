@@ -14,6 +14,7 @@ export async function dismissHandednessModal(page: Page) {
   const firstRun = page.getByRole("dialog", { name: "Set up Headpin" });
   await firstRun.getByRole("button", { name: "Start fresh" }).click();
   await firstRun.getByRole("button", { name: "right-handed" }).click();
+  await firstRun.getByRole("button", { name: "Next", exact: true }).click();
 }
 
 /** Wipe IndexedDB so each test starts from an empty database. */

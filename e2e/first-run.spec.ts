@@ -22,6 +22,7 @@ test("scores without filling anything in", async ({ page }) => {
   await freshInstall(page);
   await page.getByRole("button", { name: "Start fresh" }).click();
   await page.getByRole("button", { name: "right-handed" }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
 
   // Home's one way in on a device that has never scored (ADR-150).
   await page.getByRole("button", { name: "Start scoring" }).click();
@@ -85,9 +86,10 @@ test("walks new bowlers through to the app", async ({ page }) => {
   await freshInstall(page);
 
   await page.getByRole("button", { name: "Start fresh" }).click();
-  await expect(page.getByText("Which hand do you bowl with?")).toBeVisible();
+  await expect(page.getByText("How do you bowl?")).toBeVisible();
 
   await page.getByRole("button", { name: "right-handed" }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
 
   // The first run is done and hands over to the app.
   await expect(page.getByRole("dialog", { name: "Set up Headpin" })).toHaveCount(0);
@@ -144,6 +146,7 @@ test("a restore brings the history back and never asks the hand twice", async ({
   await freshInstall(page);
   await page.getByRole("button", { name: "Start fresh" }).click();
   await page.getByRole("button", { name: "left-handed" }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
 
   await startSession(page, "Restored Lanes");
   for (let i = 0; i < 12; i++) await recordShot(page, []);
@@ -174,6 +177,7 @@ test("a bowler who already has sessions is never asked if they are new", async (
   await freshInstall(page);
   await page.getByRole("button", { name: "Start fresh" }).click();
   await page.getByRole("button", { name: "right-handed" }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
   await startSession(page, "Returning Lanes");
   await recordShot(page, []);
 
@@ -193,6 +197,7 @@ test("a bowler who already has sessions is never asked if they are new", async (
 
   // Answering it lands on Home, with the history still there.
   await firstRun.getByRole("button", { name: "right-handed" }).click();
+  await firstRun.getByRole("button", { name: "Next", exact: true }).click();
   await expect(firstRun).toHaveCount(0);
   await page.getByRole("button", { name: "History" }).click();
   await expect(page.getByRole("button", { name: /Returning Lanes/ })).toBeVisible();
