@@ -175,7 +175,7 @@ describe("SpareLineFormDialog's lane without Pro (ADR-199)", () => {
     render(
       <ProAccessContext.Provider value={{ locked: true, appStoreUrl: "https://apps.apple.com/app/id1" }}>
         <HandednessContext.Provider value="right">
-          <SpareLineFormDialog initialPins={[10]} lockPins onSaved={noop} onCancel={noop} />
+          <SpareLineFormDialog initialPins={[10]} lockPins initialLine={{ stance: 30, target: 15 }} onSaved={noop} onCancel={noop} />
         </HandednessContext.Provider>
       </ProAccessContext.Provider>
     );
@@ -183,5 +183,43 @@ describe("SpareLineFormDialog's lane without Pro (ADR-199)", () => {
     // Read-only: the lane tilts, and no point drags.
     expect(await screen.findByText("Drag the lane to tilt")).toBeInTheDocument();
     expect(screen.queryByText(/Drag a point to move it/)).toBeNull();
+  });
+});
+
+describe("SpareLineFormDialog read view", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("hides the eye until both boards are in", () => {
+    render(<SpareLineFormDialog initialPins={[10]} lockPins initialLine={{ stance: 30 }} onSaved={noop} onCancel={noop} />);
+    expect(screen.queryByLabelText("View line on the lane")).toBeNull();
+    fireEvent.change(screen.getByLabelText("Target"), { target: { value: "15" } });
+    expect(screen.getByLabelText("View line on the lane")).toBeInTheDocument();
+  });
+
+  it("reads its boards as values: not focusable, and no delete", () => {
+    render(
+      <SpareLineFormDialog
+        initialPins={[10]}
+        lockPins
+        startInView
+        initialLine={{ stance: 30, target: 15 }}
+        onDelete={noop}
+        onSaved={noop}
+        onCancel={noop}
+      />
+    );
+    expect(screen.getByLabelText("Stance")).toHaveAttribute("tabindex", "-1");
+    expect(screen.queryByRole("button", { name: /Delete spare line/ })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Edit spare line" }));
+    expect(screen.getByLabelText("Stance")).not.toHaveAttribute("tabindex");
+    expect(screen.getByRole("button", { name: /Delete spare line/ })).toBeInTheDocument();
+  });
+
+  it("puts no sentence beside a leave never left, and centres the deck", () => {
+    render(<SpareLineFormDialog initialPins={[10]} lockPins leaves={[]} onSaved={noop} onCancel={noop} />);
+    expect(screen.queryByText(/Not left in a recorded game yet/)).toBeNull();
   });
 });

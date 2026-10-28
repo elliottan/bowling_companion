@@ -33,6 +33,10 @@ had all shipped.
 - Start scoring on an empty Home opens the session form, so the first
   session can carry its alley, pattern and lanes. Every field can still be
   left blank (ADR-215).
+- A spare line's sheet: a leave with no line opens ready to type; read, its
+  boards are values that take no focus (no caret, selection or AutoFill bar);
+  Delete shows only while editing; the lane icon shows once both boards are
+  in; and a leave never left shows its deck alone, centred, with no sentence.
 - A next step on Home closes with a small X instead of Not now.
 - Home's empty bag shows a ball and reads "Add balls to your bag".
 - The session form no longer has a Notes field, since nothing showed a

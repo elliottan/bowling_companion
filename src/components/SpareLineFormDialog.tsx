@@ -184,7 +184,7 @@ export function SpareLineFormDialog({
           )}
           {/* The deck does not need the whole width, so the record of the
               leave sits beside it rather than under the fold. */}
-          {leaves ? (
+          {leaves && stats ? (
             <div className="flex items-center gap-3">
               <div className="w-[11.5rem] shrink-0">
                 <PinGrid
@@ -195,7 +195,19 @@ export function SpareLineFormDialog({
                   size="sm"
                 />
               </div>
-              <LeaveRecord stats={stats} empty={pins.length === 0} />
+              <LeaveRecord stats={stats} />
+            </div>
+          ) : leaves ? (
+            // No record of this leave yet: the deck alone, centred, at the
+            // size it has beside one.
+            <div className="mx-auto w-[11.5rem]">
+              <PinGrid
+                standingPins={pins}
+                availablePins={ALL_PINS}
+                onChange={setPins}
+                readOnly={lockPins || !editing}
+                size="sm"
+              />
             </div>
           ) : (
             <PinGrid
@@ -229,14 +241,17 @@ export function SpareLineFormDialog({
                   <Crosshair size={14} aria-hidden="true" />
                 </IconButton>
               )}
-              <IconButton
-                compact
-                label="View line on the lane"
-                title="View the line on the lane"
-                onClick={() => setShowViz(true)}
-              >
-                <Eye size={14} aria-hidden="true" />
-              </IconButton>
+              {/* Nothing to draw until both boards are in. */}
+              {line.stance != null && line.target != null && (
+                <IconButton
+                  compact
+                  label="View line on the lane"
+                  title="View the line on the lane"
+                  onClick={() => setShowViz(true)}
+                >
+                  <Eye size={14} aria-hidden="true" />
+                </IconButton>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -248,6 +263,10 @@ export function SpareLineFormDialog({
                   inputMode="decimal"
                   step="0.5"
                   readOnly={!editing}
+                  // Read, the field is a value, not a box: it takes no focus,
+                  // so no caret, no selection and no AutoFill bar.
+                  tabIndex={editing ? undefined : -1}
+                  autoComplete="off"
                   placeholder={editing ? undefined : "-"}
                   value={line[field] ?? ""}
                   onChange={(e) =>
@@ -256,7 +275,7 @@ export function SpareLineFormDialog({
                       [field]: e.target.value === "" ? undefined : Number(e.target.value)
                     })
                   }
-                  className={boardInput}
+                  className={`${boardInput} ${editing ? "" : "pointer-events-none select-none"}`}
                 />
               </label>
             ))}
@@ -302,8 +321,9 @@ export function SpareLineFormDialog({
 
         {/* Delete lives at the foot of the body as a danger-ghost button: the
             sheet's bar carries the commit, and a destructive action never
-            shares that slot (DESIGN-LANGUAGE §1). The caller confirms it. */}
-        {onDelete && (
+            shares that slot (DESIGN-LANGUAGE §1). The caller confirms it. Only
+            while editing: reading, the sheet changes nothing. */}
+        {onDelete && editing && (
           <Button
             variant="danger-ghost"
             onClick={onDelete}
@@ -365,13 +385,10 @@ export function SpareLineFormDialog({
   );
 }
 
-/** How the leave has gone: the rate, made over chances, and how often it was
+/** How the leave has gone, shown only once it has been left: the rate, made
+ *  over chances, and how often it was
  *  left. The same numbers as its cell on Stats, free for every leave (ADR-201). */
-function LeaveRecord({ stats, empty }: { stats?: LeaveStats; empty: boolean }) {
-  if (empty) return null;
-  if (!stats) {
-    return <p className="min-w-0 flex-1 text-xs text-ink-secondary">Not left in a recorded game yet.</p>;
-  }
+function LeaveRecord({ stats }: { stats: LeaveStats }) {
   return (
     <dl className="min-w-0 flex-1 space-y-2">
       <div>
@@ -463,7 +480,9 @@ export function MoveStepper({
           aria-label={`${label} move`}
           aria-live="polite"
           className={`flex min-w-0 flex-1 items-center justify-center px-0.5 text-sm font-semibold tabular-nums ${
-            current == null || current === 0 ? "text-ink-tertiary" : "text-ink"
+            // Secondary, not tertiary: "None" is read, and tertiary fails
+            // contrast on the light field.
+            current == null || current === 0 ? "text-ink-secondary" : "text-ink"
           }`}
         >
           {words}
