@@ -167,8 +167,11 @@ test("Stats opened from the alley report is a push, and back returns to it", asy
   // entry, so back would leave the app with nothing to return to, which is the
   // right behaviour for a link and the wrong test for a push.
   //
-  // One session first: with nothing to read, Stats hides its share (ADR-150).
+  // One finished game first: with nothing to read, Stats hides its share
+  // (ADR-150), and it reads finished games only (ADR-216).
   await startSession(page, "Push Lanes");
+  for (let i = 0; i < 12; i++) await recordShot(page, []);
+  await waitForScoresPersisted(page);
   await page.goto("/app/?pro#/home/game-plan");
   await expect(page.getByRole("dialog", { name: "Alley report" })).toBeVisible();
 
