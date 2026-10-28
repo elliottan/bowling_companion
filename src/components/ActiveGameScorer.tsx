@@ -266,6 +266,8 @@ export function ActiveGameScorer({
   // is unset" and the line does not flash onto every scorer that opens.
   const pinCoach = useLiveQuery(async () => ({ seenAt: await getSetting(PIN_COACH_SEEN_KEY) }));
   const showPinCoach = !!pinCoach && !pinCoach.seenAt;
+  // A pin toggled is the lesson taken, so the line goes then as well as on X.
+  const retirePinCoach = () => void setSetting(PIN_COACH_SEEN_KEY, new Date().toISOString()).catch(() => {});
 
   /** Gate every user edit on a completed game. Returns false (and raises the
    *  prompt) while locked; the caller must drop the edit. */
@@ -826,20 +828,16 @@ export function ActiveGameScorer({
           other scorer works the other way round, so a new bowler taps the
           pins they knocked over and records the opposite of what happened.
           It sits directly above the deck it describes, and goes for good on
-          the first finished game or the first "Got it". */}
+          the first pin toggled, the first finished game, or its X. */}
       {showPinCoach && (
-        <div className="mt-3 flex items-start gap-2.5 rounded-lg border border-accent-fill bg-accent-soft p-3 text-sm text-ink">
-          <Hand size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-accent" />
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold">Tap the pins left standing after your shot.</p>
-            <button
-              type="button"
-              onClick={() => void setSetting(PIN_COACH_SEEN_KEY, new Date().toISOString())}
-              className={`relative mt-1 text-xs font-bold text-accent underline hover:no-underline ${TAP_TARGET_44}`}
-            >
-              Got it
-            </button>
-          </div>
+        <div className="mt-3 flex items-center gap-2.5 rounded-lg border border-accent-fill bg-accent-soft py-1 pl-3 pr-1 text-sm text-ink">
+          <Hand size={18} aria-hidden="true" className="shrink-0 text-accent" />
+          <p className="min-w-0 flex-1 text-xs font-semibold">
+            Tap or slide to toggle the pins left standing.
+          </p>
+          <IconButton label="Dismiss tip" onClick={retirePinCoach}>
+            <X size={16} aria-hidden="true" />
+          </IconButton>
         </div>
       )}
 
@@ -909,6 +907,7 @@ export function ActiveGameScorer({
             }
             onChange={(pins) => {
               if (!requestEdit()) return;
+              if (showPinCoach) retirePinCoach();
               if (isEditing) withEditConfirm(() => handleEditPins(pins));
               else updateStandingPins(pins);
             }}

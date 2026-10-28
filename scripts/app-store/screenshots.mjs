@@ -134,7 +134,7 @@ const shot = (name) => SHOTS.find((s) => s.name.endsWith(name));
 /** Hides whatever the app offers between games: the backup nudge, the share
  *  offer, the spare-line toast. None of it is what a screenshot is about. */
 async function dismissPrompts() {
-  for (const name of ["Dismiss backup reminder", "Dismiss share offer", "Got it", "Not now"]) {
+  for (const name of ["Dismiss backup reminder", "Dismiss share offer", "Got it", "Dismiss tip", "Not now"]) {
     const btn = page.getByRole("button", { name });
     if (await btn.count()) await btn.first().click().catch(() => {});
   }

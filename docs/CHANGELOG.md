@@ -14,6 +14,9 @@ had all shipped.
 - Setting up now asks which hand you bowl with, one hand or two, and what to
   call you, on one screen, and goes on when you tap Next. Tapping a hand no
   longer finishes setup on the spot. The name can be left blank.
+- The scoring tip now reads "Tap or slide to toggle the pins left standing",
+  closes with an X instead of Got it, and goes away on its own once you toggle
+  a pin.
 - History and Stats, empty, show just their title, without the sentence
   under it.
 - On first launch in the iPhone app, the tab bar floated over the welcome
