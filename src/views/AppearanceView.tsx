@@ -1,6 +1,6 @@
 import { PushScreen } from "../components/PushScreen";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
-import { GROUP_HEADING } from "../components/ui/typography";
+import { SETTING_HEADING } from "../components/ui/typography";
 import { Check, Lock } from "lucide-react";
 import { useTheme, type ThemePreference } from "../lib/theme";
 import { PALETTES, usePalette } from "../lib/palette";
@@ -34,10 +34,7 @@ export function AppearanceView({ onBack }: AppearanceViewProps = {}) {
   const body = (
     <section className="mx-auto w-full max-w-3xl space-y-5 px-3 py-4 sm:px-6">
       <div>
-        <h2 className={GROUP_HEADING}>Theme</h2>
-        <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">
-          Follow your device setting, or pin the app to light or dark.
-        </p>
+        <h2 className={`mb-3 ${SETTING_HEADING}`}>Theme</h2>
         <SegmentedControl
           label="Theme"
           options={THEME_OPTIONS}
@@ -47,11 +44,7 @@ export function AppearanceView({ onBack }: AppearanceViewProps = {}) {
       </div>
 
       <div>
-        <h2 className={GROUP_HEADING}>Color</h2>
-        <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">
-          Sets the color of buttons, charts and the selected tab, in light and dark.
-          {access.locked && " Pro adds four more."}
-        </p>
+        <h2 className={`mb-3 ${SETTING_HEADING}`}>Color</h2>
         <div role="group" aria-label="Color" className="grid grid-cols-5 gap-2">
           {PALETTES.map((p) => {
             const locked = p.pro && access.locked;

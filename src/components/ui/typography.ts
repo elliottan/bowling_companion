@@ -6,6 +6,13 @@
 export const GROUP_HEADING = "text-xs font-semibold uppercase tracking-wide text-ink-secondary";
 
 /**
+ * The name of one setting on a settings page (Bowling profile, Appearance),
+ * where each block is one answer with its control under it. The small
+ * uppercase band was hard to find there; this reads as the block's title.
+ */
+export const SETTING_HEADING = "text-[17px] font-semibold leading-snug text-ink";
+
+/**
  * A tab's title, and the row it sits in. The row is as tall as the round
  * controls beside the title (44pt), whether a tab has any or not, so every
  * tab's title lands on the same line: Score, which has none, sat 8px higher

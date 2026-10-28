@@ -145,10 +145,10 @@ describe("BowlingProfileView", () => {
     expect(screen.getByRole("button", { name: "Two-handed" })).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("has no guide behind it: what matters is said under the heading it belongs to", () => {
+  it("has no guide behind it, and no sentence under its headings", () => {
     renderPrefs();
     expect(screen.queryByRole("button", { name: "Why it matters" })).not.toBeInTheDocument();
-    expect(screen.getByText("Switching flips every board number. Saved sessions keep theirs.")).toBeInTheDocument();
+    expect(screen.queryByText("Switching flips every board number. Saved sessions keep theirs.")).not.toBeInTheDocument();
   });
 
   it("keeps the picture of the line fields out of the page, behind an info button", async () => {

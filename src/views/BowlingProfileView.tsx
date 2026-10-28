@@ -12,7 +12,7 @@ import { HandednessPicker } from "../components/HandednessPicker";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
 import type { GripStyle, Handedness } from "../types/bowling";
 import { driftDirection, type DriftModel } from "../lib/driftModel";
-import { GROUP_HEADING } from "../components/ui/typography";
+import { SETTING_HEADING } from "../components/ui/typography";
 import { FormSheet } from "../components/ui/FormSheet";
 
 interface BowlingProfileViewProps {
@@ -148,10 +148,7 @@ export function BowlingProfileView({
       className={`mx-auto w-full max-w-3xl min-w-0 space-y-7 border-0 px-3 py-4 sm:px-6 ${editing ? "" : "[&_*]:pointer-events-none"}`}
     >
       <div>
-        <h2 className={GROUP_HEADING}>Handedness</h2>
-        <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">
-          Switching flips every board number. Saved sessions keep theirs.
-        </p>
+        <h2 className={`mb-3 ${SETTING_HEADING}`}>Handedness</h2>
         {editing ? (
           <HandednessPicker value={value} onSelect={(next) => change({ hand: next })} />
         ) : (
@@ -160,7 +157,7 @@ export function BowlingProfileView({
       </div>
 
       <div>
-        <h2 className={`mb-3 ${GROUP_HEADING}`}>Grip</h2>
+        <h2 className={`mb-3 ${SETTING_HEADING}`}>Grip</h2>
         {editing ? (
           <SegmentedControl
             label="Grip style"
@@ -178,7 +175,6 @@ export function BowlingProfileView({
 
       <Group
         heading="Your PAP"
-        description="Measured from the center of your grip. Your pro shop can measure it for you."
       >
         {editing ? (
           <div className="space-y-2 rounded-xl border border-edge bg-surface p-3">
@@ -194,7 +190,6 @@ export function BowlingProfileView({
       <Group
         heading="Release offset"
         onInfo={() => setInfoOpen(true)}
-        description="How many boards from your slide foot the ball lands."
       >
         {editing ? (
           <div className="rounded-xl border border-edge bg-surface px-3">
@@ -219,7 +214,6 @@ export function BowlingProfileView({
       <Group
         heading="Drift"
         onInfo={() => setInfoOpen(true)}
-        description="How many boards you drift, left or right, from your stance to your finishing slide position. With your release offset, the lane view uses it to work out your slide and laydown, based on the stance you enter."
       >
         <DriftZoneLane
           model={driftModel}
@@ -308,33 +302,31 @@ export function BowlingProfileView({
 
 /** A value on the page while it is only being read: plain text, with nothing
  *  around it that looks like a field. It takes the accent colour so it reads as
- *  the answer under its heading, apart from the grey description above it. The
+ *  the answer under its heading. The
  *  controls come back with the pencil. */
 function ReadValue({ children }: { children: React.ReactNode }) {
   return <p className="text-base font-semibold text-accent">{children}</p>;
 }
 
 /**
- * A titled block of the page. The heading is the app's one group heading band
- * rather than a third heading size invented here: three sections each opening
- * with their own bold line read as three pages stacked, not as one screen.
+ * A titled block of the page: the setting's name, an info button where it
+ * needs explaining, and its control. No sentence under the name; the info
+ * sheet carries the explanation for the two that need one.
  */
 function Group({
   heading,
-  description,
   onInfo,
   children
 }: {
   heading: string;
-  description: React.ReactNode;
   /** Opens the explanation for the block, from an info button on the heading. */
   onInfo?: () => void;
   children: React.ReactNode;
 }) {
   return (
     <section>
-      <div className="flex items-center gap-1">
-        <h2 className={GROUP_HEADING}>{heading}</h2>
+      <div className="mb-3 flex items-center gap-1">
+        <h2 className={SETTING_HEADING}>{heading}</h2>
         {onInfo && (
           <IconButton
             compact
@@ -348,7 +340,6 @@ function Group({
           </IconButton>
         )}
       </div>
-      <p className="mb-3 mt-1 text-sm leading-relaxed text-ink-secondary">{description}</p>
       {children}
     </section>
   );
