@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.69.5: App Review notes answer Apple's questions (2026-10-28)
+
+- The App Store review notes now answer the seven questions App Review asks a
+  new developer, and the submission checklist covers the screen recording.
+  Nothing in the app changes.
+
 ## 0.69.4: A shared link opens its screen in the iPhone app (2026-10-27)
 
 - Tapping a shared line or layout link opened the iPhone app and left it where

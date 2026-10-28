@@ -140,20 +140,40 @@ If you've bowled with Headpin on the web, export a backup there and import it he
 
 ## Review notes (under 4,000)
 
+Apple's guideline 2.1 request for the first submission asked for seven answers,
+in the Resolution Center and in the Notes field of App Review Information, for
+every later submission too. This is that text, numbered as Apple numbered it.
+The screen recording goes with it as an attachment; its shot list is in
+"Before submission". Every claim was checked against the code: the usage
+counts (ADR-120) report only from the host `headpin.app`, and the app's page
+is `localhost`, so the app sends none.
+
 ```
-Headpin is a bowling score keeper. It needs no account, no sign in and no network connection to review: every feature works offline, and only the ball photos and pattern sheets wait for a signal. Launch it, tap Start fresh, pick a hand, and start a session from Home.
+1. Screen recording
+Attached, recorded on an iPhone running the latest iOS with the submitted build. It starts at launch and shows first run, scoring a game, the line drawn on the lane, the ball catalog and arsenal, oil patterns, stats, buying Headpin Pro with a sandbox account, the unlocked features, Restore purchase, and backup export.
+The app has no accounts, no registration and no login, so there is no account creation or deletion flow. It has no user-generated content shared between users: nothing one user creates is shown to another inside the app, so no reporting or blocking mechanism applies.
 
-There is no backend. Scores, balls and lines are stored on the device only. The app fetches ball photos and oil pattern sheets from headpin.app when online and keeps them on the device afterwards. It sends no analytics from the app.
+2. Purpose and audience
+Headpin is a score keeper and game tracker for tenpin bowlers, mainly league and tournament bowlers who want to improve. Most score apps record only the score. Headpin records each shot: which ball was thrown, where it was played on the lane, and which pins were left. It then shows the bowler what is working: their line drawn over the oil pattern, pocket and spare percentages, the leaves that cost them most, and which ball scores best for them. It also includes a reference catalog of bowling balls and oil patterns, and a layout visualizer for planning a ball's drilling. It works fully offline, because bowling alleys often have no signal.
 
-In-app purchase: one non-consumable, "Headpin Pro", product ID app.headpin.pro, US$9.99. It is a single unlock tied to the Apple ID, with no subscription and no trial. Restore purchase is in Settings and uses the App Store's own restore.
+3. Setup and access
+No login, credentials or sample files are needed. Launch the app, tap Start fresh, choose a hand, and start a session from Home. Tap the pins left standing to score each ball. Stats, Arsenal (your balls and the ball catalog), oil patterns and the line sandbox are reached from the tab bar and Home. Settings has Backup & restore, which exports a file through the system share sheet and imports one. To see Pro: open Stats and tap any lock or "Get Headpin Pro", or use the Headpin Pro row in Settings. Use a sandbox tester account to purchase.
 
-What is free: scoring, every ball, line, lane, pattern and note, history, backup and export, the ball and oil pattern catalogs, share cards, and the stats: average, high game and series, the pocket rate, the spare rate, every leave and how often each is made, a chart of the average, the pocket and the spare by session and by game, and the best ball.
+4. External services
+- Apple StoreKit / In-App Purchase, for the one Pro unlock and Restore purchase.
+- headpin.app (our own static website, hosted on Vercel), from which the app downloads ball photos, oil pattern sheets and catalog updates when online. These are kept on the device. No user data is sent.
+- The system share sheet and Mail, used only when the user chooses to export a backup or send feedback.
+There is no backend, no authentication service, no AI service, no advertising, and no analytics or tracking SDK in the app. All scores and records are stored only on the device.
 
-What Pro unlocks: the rest of those same records read in depth. Carry, strike, strike on strike, first-ball pins and most strikes in a row, on the First ball card and as chart metrics, every other ball's rates and details, the alley report's per-ball averages, moving a line or shaping its hook in the line sandbox, changing the three numbers of a layout in the layout lab, and seeing a ball's own layout drawn from the arsenal. Without Pro those are drawn but locked under a lock icon, and reading a line or layout stays free. Nothing the bowler recorded is ever hidden.
+5. Regional differences
+None. The app works the same in all regions. Content is in English, and the In-App Purchase uses App Store pricing for each storefront.
 
-To see a Pro screen: open Stats, where the First ball card shows the pocket and locks the rest, the chart's locked metrics carry a lock, and the Balls card shows its first row and locks the next, and tap "Get Headpin Pro" at the foot of the screen, or a lock, or the Headpin Pro row in Settings. The Headpin Pro page opens and says what Pro adds; its button opens the App Store's purchase sheet. The same page has Restore purchase, and so does Settings. Use a sandbox tester account to buy.
+6. Regulated industry and third-party material
+The app is not in a regulated industry. The ball catalog lists publicly published manufacturer specifications, with product photos used to identify each ball, and the oil patterns are the publicly published PBA and Kegel pattern specifications. The App Store description and the app state that Headpin is independent and not affiliated with any manufacturer or bowling organization, and that ball names and images belong to their owners.
 
-Bringing games from the web: on first launch the app explains how to import a backup file exported from headpin.app (Settings, Backup & restore). Exporting uses the system share sheet.
+7. In-App Purchase
+One non-consumable: "Headpin Pro", product ID app.headpin.pro, US$9.99. It is a one-time unlock with no subscription and no trial. Pro adds deeper analysis of what the bowler has already recorded: carry, strike and first-ball stats; rates for every ball in the arsenal; per-ball averages in the alley report; moving and shaping lines in the line sandbox; changing layouts in the layout lab; and extra accent colors. Recording, history, backup, the catalogs and the core stats are free.
+To reach it: tap any lock icon, "Get Headpin Pro" at the foot of Stats, the banner on Home, or Settings > Headpin Pro. Each opens the Headpin Pro page, whose button opens the App Store purchase sheet. Restore purchase is on that page and in Settings.
 
 Contact: hello@headpin.app
 ```
@@ -243,3 +263,11 @@ Rules for the set:
   user-generated content shared with others.
 - Privacy "nutrition label": the app collects nothing it links to the bowler.
   Confirm against the final `legal/` page before answering the questionnaire.
+- The screen recording for the review notes, on a physical iPhone on the latest
+  iOS, with the submitted build from TestFlight, installed fresh and signed into
+  a sandbox Apple Account. One take, from the Home Screen: launch, first run,
+  score a game, a shot's line on the lane, the catalog and arsenal, a pattern,
+  Stats with its locks, the Pro page and the sandbox purchase, the same screens
+  unlocked, Restore purchase in Settings, and a backup export.
+- The Headpin Pro product is attached to the version under review, with its
+  review screenshot, or review fails on guideline 3.1.1.
