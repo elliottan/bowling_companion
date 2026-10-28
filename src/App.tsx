@@ -331,13 +331,14 @@ function App() {
   // draws its own below.
   const openSheets = useSyncExternalStore(subscribeSheets, getOpenSheets, getOpenSheets);
   // First run owns the whole viewport, and the phone's bar sits above the page,
-  // so it has to step aside too or it floats over the welcome.
+  // so the bar is not put up until it ends. Putting it up and hiding it at once
+  // (0.70.0) left the welcome's Start fresh dead to a tap in the iPhone app.
   const firstRunShowing = boot.handednessKnown && (chosenHandedness ?? boot.handedness) === null;
   const nativeTabs = useNativeTabBar({
-    enabled: boot.booted && isIOSApp(),
+    enabled: boot.booted && isIOSApp() && !firstRunShowing,
     items: NATIVE_TAB_ITEMS,
     active: view,
-    hidden: firstRunShowing || keyboardOpen || overlays.length > 0 || openSheets.length > 0,
+    hidden: keyboardOpen || overlays.length > 0 || openSheets.length > 0,
     onSelect: (id) => dispatch({ type: "goTo", view: id as AppView })
   });
   const nativeTabBar = nativeTabs.status !== "failed";

@@ -157,7 +157,7 @@ The app has no accounts, no registration and no login, so there is no account cr
 Headpin is a score keeper and game tracker for tenpin bowlers, mainly league and tournament bowlers who want to improve. Most score apps record only the score. Headpin records each shot: which ball was thrown, where it was played on the lane, and which pins were left. It then shows the bowler what is working: their line drawn over the oil pattern, pocket and spare percentages, the leaves that cost them most, and which ball scores best for them. It also includes a reference catalog of bowling balls and oil patterns, and a layout visualizer for planning a ball's drilling. It works fully offline, because bowling alleys often have no signal.
 
 3. Setup and access
-No login, credentials or sample files are needed. Launch the app, tap Start fresh, choose a hand, and start a session from Home. Tap the pins left standing to score each ball. Stats, Arsenal (your balls and the ball catalog), oil patterns and the line sandbox are reached from the tab bar and Home. Settings has Backup & restore, which exports a file through the system share sheet and imports one. To see Pro: open Stats and tap any lock or "Get Headpin Pro", or use the Headpin Pro row in Settings. Use a sandbox tester account to purchase.
+No login, credentials or sample files are needed. Launch the app, tap Start fresh, choose a hand (grip and name are optional), tap Next, and start a session from Home. Tap the pins left standing to score each ball. Stats, Arsenal (your balls and the ball catalog), oil patterns and the line sandbox are reached from the tab bar and Home. Settings has Backup & restore, which exports a file through the system share sheet and imports one. To see Pro: open Stats and tap any lock or "Get Headpin Pro", or use the Headpin Pro row in Settings. Use a sandbox tester account to purchase.
 
 4. External services
 - Apple StoreKit / In-App Purchase, for the one Pro unlock and Restore purchase.
@@ -265,7 +265,7 @@ Rules for the set:
   Confirm against the final `legal/` page before answering the questionnaire.
 - The screen recording for the review notes, on a physical iPhone on the latest
   iOS, with the submitted build from TestFlight, installed fresh and signed into
-  a sandbox Apple Account. One take, from the Home Screen: launch, first run,
+  a sandbox Apple Account. One take, from the Home Screen: launch, first run (Start fresh, a hand, Next),
   score a game, a shot's line on the lane, the catalog and arsenal, a pattern,
   Stats with its locks, the Pro page and the sandbox purchase, the same screens
   unlocked, Restore purchase in Settings, and a backup export.
