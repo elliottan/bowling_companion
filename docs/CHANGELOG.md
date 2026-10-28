@@ -20,6 +20,8 @@ had all shipped.
 - Bowling profile and Appearance: each setting's name is larger and easier
   to find, and the sentence under it is gone. The three drift sentences under
   the chart are gone too; the chart already shows each zone's drift.
+- The Headpin Pro banner on Stats reads "Get a deeper analysis of your
+  stats."
 - Settings: Get Headpin Pro reads "Deeper stats, line and layout tools",
   Restore purchase drops its second line, and a row's second line wraps
   instead of being cut off.

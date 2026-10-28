@@ -935,7 +935,7 @@ describe("while Pro is locked (ADR-154)", () => {
 
   it("says once what Pro adds", () => {
     renderLocked();
-    expect(screen.getByText(/Pro adds carry, strike and the first ball's other numbers/)).toBeInTheDocument();
+    expect(screen.getByText("Get a deeper analysis of your stats.")).toBeInTheDocument();
   });
 
   it("shows every leave, with no lock, on the card and behind View all (ADR-201)", () => {
