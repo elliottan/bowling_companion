@@ -33,6 +33,8 @@ had all shipped.
 - Start scoring on an empty Home opens the session form, so the first
   session can carry its alley, pattern and lanes. Every field can still be
   left blank (ADR-215).
+- The session sheet centres a one-lane game's pin decks when nothing else
+  (ball, line or note) is beside them.
 - A spare line's sheet: a leave with no line opens ready to type; read, its
   boards are values that take no focus (no caret, selection or AutoFill bar);
   Delete shows only while editing; the lane icon shows once both boards are

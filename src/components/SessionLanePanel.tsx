@@ -460,7 +460,8 @@ const emptyCell = (n: number) => (
 // Cross-lane: columns are FIXED by lane number (lower = left, higher = right),
 // so the physical left lane always sits on the left. Each frame lands in the
 // column matching its actual lane, so the frame cells alternate columns.
-// Single-lane: a single full-width column in frame order.
+// Single-lane: a single full-width column in frame order, centred when the
+// game has nothing but its decks.
 function GameGrid({
   game,
   ballOf,
@@ -494,6 +495,14 @@ function GameGrid({
 
   if (lanes.length < 2) {
     const laneLabel = lanes[0];
+    // A game with nothing beside its decks (no ball, line or note on any
+    // shot) is a column of decks alone, so it sits in the middle of the card
+    // instead of hugging its left edge. The column is one deck wide (the xs
+    // deck: four 0.75rem pins and three 0.125rem gaps), so every row's deck
+    // and frame number line up.
+    const bare = !game.frames.some((f) =>
+      f.shots.some((s) => s.ball_id != null || s.intended || s.actual || s.notes)
+    );
     return (
       <div className="overflow-hidden rounded-lg border border-edge">
         <div className="border-b border-edge bg-surface-muted py-1 text-center text-[11px] font-bold uppercase tracking-wide text-ink-secondary">
@@ -503,7 +512,7 @@ function GameGrid({
           const frame = byNumber.get(n);
           return (
             <div key={n} className="border-b border-edge p-1.5 last:border-b-0">
-              {cell(n, frame)}
+              {bare ? <div className="mx-auto w-[3.375rem]">{cell(n, frame)}</div> : cell(n, frame)}
             </div>
           );
         })}
