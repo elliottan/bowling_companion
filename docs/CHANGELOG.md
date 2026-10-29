@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.70.1: App Review notes for the one-screen setup (2026-10-28)
+
+- No change to the app. The App Review notes and the review recording's shot
+  list name the Next button on the setup screen.
+- The iPhone device check taps Start fresh once more when the first touch
+  after launch is lost, and says so, rather than failing every step after it.
+
 ## 0.70.0: First run asks how you bowl in one form (2026-10-28)
 
 - Setting up now asks which hand you bowl with, one hand or two, and what to
