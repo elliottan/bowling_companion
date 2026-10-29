@@ -3,7 +3,8 @@ import Capacitor
 import StoreKit
 import UIKit
 
-/// Headpin Pro, bought and restored through StoreKit 2 (ADR-158).
+/// Headpin Pro, bought and restored through StoreKit 2 (ADR-158), and Apple's
+/// rating prompt (ADR-218).
 ///
 /// The app's own plugin rather than a purchase service: Pro is one
 /// non-consumable product, Apple's receipt is the only record of it, and no
@@ -18,7 +19,8 @@ public class HeadpinStorePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "product", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "purchase", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "entitlements", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "restore", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "restore", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "requestReview", returnType: CAPPluginReturnPromise)
     ]
 
     private var updates: Task<Void, Never>?
@@ -134,6 +136,22 @@ public class HeadpinStorePlugin: CAPPlugin, CAPBridgedPlugin {
                 return
             }
             call.resolve(["ids": await HeadpinStorePlugin.owned()])
+        }
+    }
+
+    /// Asks for Apple's rating prompt (ADR-218). The page picks the moment, a
+    /// good game just finished; Apple decides whether it shows, at most three
+    /// times a year, and never says which. Resolves either way.
+    @objc func requestReview(_ call: CAPPluginCall) {
+        Task { @MainActor [weak self] in
+            if let scene = self?.bridge?.viewController?.view.window?.windowScene {
+                if #available(iOS 16.0, *) {
+                    AppStore.requestReview(in: scene)
+                } else {
+                    SKStoreReviewController.requestReview(in: scene)
+                }
+            }
+            call.resolve()
         }
     }
 

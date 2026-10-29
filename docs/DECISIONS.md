@@ -9219,3 +9219,46 @@ ball, so its first undo asks.
 **Consequences.** The quick fix is one tap shorter. An undo that reaches into a
 frame the bowler has moved past still asks, because by then it was not a slip.
 
+
+## ADR-218: The iPhone app asks for a rating after a good game, and keeps the arsenal's photos ahead
+
+**Status.** Accepted, 2026-10-29. Follows ADR-158 (the StoreKit plugin) and
+ADR-162 (the photo store). Unit tested; neither the prompt nor the offline
+photos have been seen on a phone yet.
+
+**Context.** Ratings weigh heavily in App Store search, and a new app with none
+ranks low (PRO-LAUNCH, phase 6). Separately, ADR-162 keeps a ball photo on the
+phone only once some screen has drawn it online. The web fetches the arsenal's
+photos ahead (`warmArsenalImages`), but into the service worker's cache, which
+the store app does not have, so a ball added and never looked at online had no
+photo at the alley.
+
+**Decision.**
+
+- **The rating prompt is Apple's own**, `AppStore.requestReview(in:)` (iOS 16;
+  `SKStoreReviewController` on 15), as a `requestReview` method on
+  `HeadpinStorePlugin`. Apple decides whether it shows and caps it at three a
+  year; it keeps to "No popups, no counters, no nags" because the app only
+  offers a moment.
+- **The moment** is a game just finished (`saveFrame`'s `finishedNow`, so an
+  edit to a finished game never counts), from the third finished game on,
+  scoring at or above the average of the bowler's other finished games, and
+  not within 120 days of the last ask (`src/lib/ratingPrompt.ts`). It waits
+  two seconds so the last mark and the final score land first. The ask is
+  recorded in `settings` (`rating_asked_at`) before asking, since Apple never
+  says whether it showed. iPhone app only: the web has no such prompt, and
+  Android's needs Play's review library, which waits on Android itself.
+- **The plugin's loader moved** to `src/lib/nativeStorePlugin.ts`, React-free,
+  so a service can ask without importing `proStore.ts`'s hooks. `proStore.ts`
+  re-exports it.
+- **The arsenal's photos are saved ahead on the phone**: `keepArsenalPhotos`
+  runs beside `warmArsenalImages` after launch and saves each arsenal photo
+  missing from the photo store, one at a time through the store's own queue.
+  A launch with all of them kept fetches nothing.
+
+**Consequences.** A bowler with a good game may see Apple's prompt; most never
+will twice. The arsenal's photos survive a first offline trip once the app has
+launched online once after the ball was added. The photo store still evicts
+first in, first out at 25 MB, so a bowler who browses hundreds of catalog
+photos can push an arsenal photo out; the next online launch saves it again.
+Pinning the arsenal against eviction is left until a device shows it matters.
