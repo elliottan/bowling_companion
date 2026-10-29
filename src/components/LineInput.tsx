@@ -51,7 +51,7 @@ const FIELD_LABEL: Record<BoardField, string> = {
 // still has to say whether it's a slide or a target.
 export const floatLabel = FIELD_MICRO_LABEL;
 // Section eyebrow (INTENDED / ACTUAL). Tight tracking, these are wide words.
-const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
+const eyebrow = "text-caption-2 font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 
 // Tap-gate for a locked (completed) game. Raising the prompt on `change` alone
 // let the field focus first, so the keyboard and caret appeared behind the
@@ -280,7 +280,7 @@ export function LineInput({
           onPointerUp={pressEnd}
           onPointerCancel={pressEnd}
           onClick={onAdjust(sideName, which === "in" ? onIn : onOut)}
-          className={`relative flex min-w-11 flex-1 items-center justify-center gap-0.5 text-[10px] font-bold uppercase text-ink-secondary active:bg-edge ${
+          className={`relative flex min-w-11 flex-1 items-center justify-center gap-0.5 text-caption-2 font-bold uppercase text-ink-secondary active:bg-edge ${
             arrow === "right" ? "flex-row-reverse" : ""
           }`}
         >
@@ -385,7 +385,7 @@ export function LineInput({
           type="button"
           onClick={onLaydownTap}
           title="Derived from what you entered. Tap to see it on the lane."
-          className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums hover:text-accent"
+          className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-caption-2 font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums hover:text-accent"
         >
           {chain.map((part, i) => (
             <span key={part} className="flex items-center gap-1 whitespace-nowrap">
@@ -425,7 +425,7 @@ export function LineInput({
         {adjusterRow(
           "nudge",
           <>
-            <span className="mb-0.5 text-[9px] font-bold uppercase tracking-wide text-ink-secondary">
+            <span className="mb-0.5 text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
               {FIELD_LABEL[focused]}
             </span>
             ±0.5

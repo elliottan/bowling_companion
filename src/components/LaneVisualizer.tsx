@@ -27,6 +27,7 @@ import {
   buildLinePath, breakpointFloorTiming, solveLine, projectBreakpoint, xToBoard, yToFeet, PLANE_W, PLANE_L,
   POCKET_BOARD, type Peg, arrowFeet, ARROWS_FEET, LANE_FEET, HOOK_START_FT, HOOK_LENGTH_FT,
 } from "../lib/laneGeometry";
+import { formatFixed } from "../lib/format";
 
 const BOWLER_DEG = 45;     // bowler's-eye tilt (looking down the lane)
 const TOPDOWN_DEG = 0;     // flat / top-down
@@ -603,7 +604,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
               final_distance: Math.round(spareAim.feet * 10) / 10,
             })
           }
-          className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
+          className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-caption-2 font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
         >
           Re-aim
         </button>
@@ -618,7 +619,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
         <button
           type="button"
           onClick={() => applyEdit({ final_board: POCKET_BOARD })}
-          className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
+          className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-caption-2 font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
         >
           Pocket
         </button>
@@ -638,8 +639,8 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
         pushed
           ? // On the body, above the sheets (a pattern's sheet opens it) and
             // under the Pro page's top layer, sliding in from the trailing edge.
-            `fixed inset-0 z-[70] flex flex-col bg-slate-900 ${exiting ? "" : "animate-push-in"}`
-          : "fixed inset-0 z-[70] flex flex-col bg-slate-900"
+            `type-cap-dense fixed inset-0 z-[70] flex flex-col bg-slate-900 ${exiting ? "" : "animate-push-in"}`
+          : "type-cap-dense fixed inset-0 z-[70] flex flex-col bg-slate-900"
       }
       style={
         pushed
@@ -861,7 +862,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
               </ProVeil>
             )}
             {/* One instruction to a line, in a column this narrow. */}
-            <p className="max-w-[8.5rem] text-center text-[11px] leading-snug text-white/70">
+            <p className="max-w-[8.5rem] text-center text-caption-2 leading-snug text-white/70">
               {onChange && <span className="block">Drag a point to move it</span>}
               <span className="block">Drag the lane to tilt</span>
             </p>
@@ -969,7 +970,7 @@ function QuickMoves({
         aria-label="Move presets"
         className={`${placement} z-10 w-44 rounded-xl border border-white/20 bg-slate-900/90 p-2 text-white shadow-lg backdrop-blur`}
       >
-        <p className="mb-1.5 px-1 text-[11px] font-bold uppercase tracking-wide text-white/50">
+        <p className="mb-1.5 px-1 text-caption-2 font-bold uppercase tracking-wide text-white/50">
           Move feet · eyes
         </p>
         <div className="flex flex-col gap-1.5">
@@ -979,19 +980,19 @@ function QuickMoves({
                 type="button"
                 aria-label={`Move ${p.label} ${leftIsIn ? "in" : "out"}`}
                 onClick={() => onMove(p.laydown, p.target, leftIsIn ? 1 : -1)}
-                className="flex w-11 shrink-0 items-center justify-center gap-0.5 text-[10px] font-bold uppercase text-white/70 hover:bg-white/10"
+                className="flex w-11 shrink-0 items-center justify-center gap-0.5 text-caption-2 font-bold uppercase text-white/70 hover:bg-white/10"
               >
                 <ChevronLeft size={12} aria-hidden="true" />
                 {leftIsIn ? "In" : "Out"}
               </button>
-              <span className="flex flex-1 items-center justify-center text-[13px] font-semibold tabular-nums">
+              <span className="flex flex-1 items-center justify-center text-footnote font-semibold tabular-nums">
                 {p.label}
               </span>
               <button
                 type="button"
                 aria-label={`Move ${p.label} ${leftIsIn ? "out" : "in"}`}
                 onClick={() => onMove(p.laydown, p.target, leftIsIn ? -1 : 1)}
-                className="flex w-11 shrink-0 items-center justify-center gap-0.5 text-[10px] font-bold uppercase text-white/70 hover:bg-white/10"
+                className="flex w-11 shrink-0 items-center justify-center gap-0.5 text-caption-2 font-bold uppercase text-white/70 hover:bg-white/10"
               >
                 {leftIsIn ? "Out" : "In"}
                 <ChevronRight size={12} aria-hidden="true" />
@@ -1125,8 +1126,8 @@ function OptionsSheet({
         {oil && (
           <div className="mb-4 border-b border-white/10 pb-3">
             <p className="text-xs tabular-nums text-white/60">
-              {oilName} · {Math.round(oil.length)} ft · {oil.volumeMl.toFixed(2)} mL
-              {oilRatio != null ? ` · ${oilRatio.toFixed(1)}:1` : ""}
+              {oilName} · {Math.round(oil.length)} ft · {formatFixed(oil.volumeMl, 2)} mL
+              {oilRatio != null ? ` · ${formatFixed(oilRatio, 1)}:1` : ""}
             </p>
           </div>
         )}
@@ -1214,7 +1215,7 @@ function Slider({
           className="h-8 w-full cursor-pointer accent-accent-fill"
         />
       )}
-      <div className="flex justify-between text-[11px] tabular-nums text-white/40">
+      <div className="flex justify-between text-caption-2 tabular-nums text-white/40">
         <span>{min} {suffix}</span>
         <span>{max} {suffix}</span>
       </div>
@@ -1254,7 +1255,7 @@ function StepperField({
   const leftDelta = lateral ? step * dir : -step;
   return (
     <div
-      className={`flex w-[4.75rem] flex-col gap-0.5 text-center text-[11px] font-semibold uppercase tracking-wide text-white/70 ${locked ? "opacity-60" : ""}`}
+      className={`flex w-[4.75rem] flex-col gap-0.5 text-center text-caption-2 font-semibold uppercase tracking-wide text-white/70 ${locked ? "opacity-60" : ""}`}
       // A locked field is its own unlock button: tapping the number (or either
       // arrow) releases the peg rather than doing nothing.
       onPointerDown={locked ? () => onUnlock?.() : undefined}
@@ -1298,7 +1299,7 @@ function StepperField({
           onFocus={(e) => { if (locked) { onUnlock?.(); return; } e.target.select(); }}
           onBlur={commit}
           onKeyDown={(e) => { if (e.key === "Enter") { commit(); (e.target as HTMLInputElement).blur(); } }}
-          className="min-w-0 flex-1 bg-transparent text-center text-[13px] font-medium tabular-nums text-white outline-none"
+          className="min-w-0 flex-1 bg-transparent text-center text-footnote font-medium tabular-nums text-white outline-none"
         />
         <button
           type="button"

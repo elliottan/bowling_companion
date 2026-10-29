@@ -91,7 +91,7 @@ export function SessionTrendChart({ sessions, header, onOpenSession, overall }: 
   const labelled = new Set([0, points.length - 1]);
 
   return (
-    <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+    <div className="type-cap-dense rounded-xl border border-edge bg-surface p-3 shadow-sm">
       {header}
       <svg
         viewBox={`0 0 ${W} ${H}`}
@@ -120,7 +120,7 @@ export function SessionTrendChart({ sessions, header, onOpenSession, overall }: 
             high !== low && (points[points.length - 1].average === high || points[points.length - 1].average === low)
           )}
           textAnchor="end"
-          className="fill-ink-tertiary text-[9px] tabular-nums"
+          className="fill-ink-tertiary text-caption-2 tabular-nums"
         >
           avg {Math.round(avg)}
         </text>
@@ -179,7 +179,7 @@ export function SessionTrendChart({ sessions, header, onOpenSession, overall }: 
                   x={x(i)}
                   y={y(p.average) - 8}
                   textAnchor="middle"
-                  className="fill-ink text-[10px] font-semibold tabular-nums"
+                  className="fill-ink text-caption-2 font-semibold tabular-nums"
                 >
                   {p.average}
                 </text>
@@ -189,7 +189,7 @@ export function SessionTrendChart({ sessions, header, onOpenSession, overall }: 
                   x={x(i)}
                   y={H - 3}
                   textAnchor={i === 0 ? "start" : "end"}
-                  className="fill-ink-tertiary text-[9px] tabular-nums"
+                  className="fill-ink-tertiary text-caption-2 tabular-nums"
                 >
                   {shortDate(p.date)}
                 </text>

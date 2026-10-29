@@ -31,6 +31,7 @@ import { FIELD } from "./ui/field";
 import { FormSheet } from "./ui/FormSheet";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
 import { IconButton } from "./ui/IconButton";
+import { formatFixed } from "../lib/format";
 
 /** Heaviest first: most bowlers throw 14 to 16, so the list opens near the
  *  answer, and it runs down to the 8 lb balls juniors and seniors throw. */
@@ -239,7 +240,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
                     <CatalogBallImage src={catalogRef.imageThumb} alt={catalogRef.name} brand={catalogRef.brand} size="thumb" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">Linked to catalog</p>
+                    <p className="text-caption-2 font-semibold uppercase tracking-wide text-accent">Linked to catalog</p>
                     <p className="truncate text-sm font-semibold text-ink">
                       {catalogRef.brand} {catalogRef.name}
                     </p>
@@ -247,8 +248,8 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
                       {[
                         catalogRef.coverstockCategory,
                         catalogRef.coreName,
-                        weightSpecs?.rg != null ? `RG ${weightSpecs.rg.toFixed(2)}` : null,
-                        weightSpecs?.diff != null ? `Diff ${weightSpecs.diff.toFixed(3)}` : null,
+                        weightSpecs?.rg != null ? `RG ${formatFixed(weightSpecs.rg, 2)}` : null,
+                        weightSpecs?.diff != null ? `Diff ${formatFixed(weightSpecs.diff, 3)}` : null,
                       ]
                         .filter(Boolean)
                         .join(" · ")}
@@ -577,10 +578,10 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
                   <CatalogBallImage src={b.imageThumb} alt={b.name} brand={b.brand as Manufacturer} size="thumb" lazy />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{b.brand}</p>
+                  <p className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{b.brand}</p>
                   <p className="truncate text-sm font-semibold text-ink">{b.name}</p>
                   <p className="text-xs text-ink-secondary">
-                    {[b.coverstockCategory, b.coreType, b.rg !== null ? `RG ${b.rg.toFixed(2)}` : null]
+                    {[b.coverstockCategory, b.coreType, b.rg !== null ? `RG ${formatFixed(b.rg, 2)}` : null]
                       .filter(Boolean)
                       .join(" · ")}
                   </p>

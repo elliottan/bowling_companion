@@ -12,7 +12,7 @@ export function ProBadge({ className = "" }: { className?: string }) {
       // The Pro mark's own graphite and gold (ProMark), not the accent: it is
       // the same mark, small, and the same in every palette.
       style={{ color: PRO_GOLD }}
-      className={`rounded-full bg-[#1c232d] px-1.5 py-px text-[9px] font-bold uppercase leading-tight tracking-wider ring-1 ring-[#e9b949]/40 ${className}`.trim()}
+      className={`rounded-full bg-[#1c232d] px-1.5 py-px text-caption-2 font-bold uppercase leading-tight tracking-wider ring-1 ring-[#e9b949]/40 ${className}`.trim()}
     >
       Pro
     </span>

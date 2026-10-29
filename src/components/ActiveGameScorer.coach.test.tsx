@@ -47,7 +47,7 @@ describe("pin input coach line (ADR-006)", () => {
   it("goes away for good once a pin is toggled", async () => {
     render(<ActiveGameScorer gameKey={1} />);
     await screen.findByText(COACH);
-    const pin = await screen.findByRole("button", { name: /^Pin 7 / });
+    const pin = await screen.findByRole("button", { name: /^Pin 7, / });
     fireEvent.pointerDown(pin);
     fireEvent.pointerUp(pin);
 
@@ -60,7 +60,7 @@ describe("pin input coach line (ADR-006)", () => {
     render(<ActiveGameScorer gameKey={1} />);
     // The ball list resolves first, so waiting on the deck proves the scorer
     // is past its loading state and the line genuinely never rendered.
-    await screen.findByRole("button", { name: /^Pin 1 / });
+    await screen.findByRole("button", { name: /^Pin 1, / });
     expect(screen.queryByText(COACH)).not.toBeInTheDocument();
   });
 

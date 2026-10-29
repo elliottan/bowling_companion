@@ -28,9 +28,9 @@ export type GuideFigureId = "ball-points" | "dual-angles" | "pin-buffer";
 // so the labels have a margin to sit in without a leader line crossing it.
 const VIEW_BOX = "0 0 300 236";
 
-const LABEL = "fill-ink-secondary text-[10px]";
-const ACCENT_LABEL = "fill-accent text-[10px] font-semibold";
-const PIN_LABEL = "fill-warning-700 text-[10px] font-semibold";
+const LABEL = "fill-ink-secondary text-caption-2";
+const ACCENT_LABEL = "fill-accent text-caption-2 font-semibold";
+const PIN_LABEL = "fill-warning-700 text-caption-2 font-semibold";
 
 function Ball() {
   return <circle cx={150} cy={118} r={86} className="fill-surface-muted stroke-edge" strokeWidth={1.5} />;

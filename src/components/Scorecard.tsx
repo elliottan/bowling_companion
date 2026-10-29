@@ -31,6 +31,20 @@ function speakMark(symbol: string | null | undefined): string {
   return symbol;
 }
 
+/** A whole frame, said once: "Frame 4, strike, 78". A split is named, since the
+ *  ring that marks it on the card is not something a reader can see. */
+function speakFrame(
+  frameNumber: number,
+  cells: FrameShotCell[],
+  splitShotIndices: Set<number> | undefined,
+  rollingTotal: number | null
+): string {
+  const marks = cells
+    .filter((c) => c.symbol)
+    .map((c) => speakMark(c.symbol) + (c.shotIndex !== null && splitShotIndices?.has(c.shotIndex) ? " (split)" : ""));
+  return [`Frame ${frameNumber}`, marks.length ? marks.join(", ") : "not bowled yet", ...(marks.length > 0 && rollingTotal != null ? [String(rollingTotal)] : [])].join(", ");
+}
+
 export function Scorecard({
   frames,
   activeFrameNumber,
@@ -98,7 +112,7 @@ export function Scorecard({
   });
 
   return (
-    <div className="overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
+    <div className="type-cap-dense overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
       {/* Mobile: 5×2 grid of compact frame chips. Fits 390px without overflow. */}
       <div className="grid grid-cols-5 gap-px bg-edge sm:hidden">
         {cells.map((cell) => (
@@ -141,16 +155,19 @@ function FrameCell({
   onShotTap,
   onLiveTap
 }: FrameCellProps) {
+  // One line for the whole frame, so a reader hears "Frame 4, strike, 78"
+  // before it goes cell by cell.
+  const frameLabel = speakFrame(frameNumber, shotCells, splitShotIndices, rollingTotal);
   const bg = isEditing ? "bg-lane-100 ring-2 ring-inset ring-accent-fill" : "bg-surface";
   const border = compact ? "" : "border-r border-edge last:border-r-0";
 
   return (
-    <div className={`relative pt-3.5 ${border} ${bg}`}>
+    <div role="group" aria-label={frameLabel} className={`relative pt-3.5 ${border} ${bg}`}>
       {/* The frame number rides the shot row's top border as a bubble instead
           of taking a row of its own, saves ~14px of height per frame row.
           `bg-inherit` so it masks the border on both the plain and the
           being-edited cell background. */}
-      <span className="absolute left-1/2 top-0 z-10 -translate-x-1/2 rounded-full bg-inherit px-1.5 text-[10px] font-bold leading-4 text-ink-secondary">
+      <span className="absolute left-1/2 top-0 z-10 -translate-x-1/2 rounded-full bg-inherit px-1.5 text-caption-2 font-bold leading-4 text-ink-secondary">
         {frameNumber}
       </span>
       {/*
@@ -230,10 +247,9 @@ function FrameCell({
           return (
             <div
               key={idx}
+              // The frame's own label says what is in it.
+              aria-hidden="true"
               className={`${baseClass} ${highlightClass}`}
-              aria-label={
-                cell.symbol ? `Frame ${frameNumber}: ${spokenMark}` : undefined
-              }
             >
               {content}
             </div>

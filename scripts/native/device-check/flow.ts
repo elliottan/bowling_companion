@@ -383,12 +383,12 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
     // with nothing tapped records ten.
     await f.tap("^Next");
     // Frame 2, 7 left standing then picked up: a spare.
-    await f.tap("^Pin 7 down$");
+    await f.tap("^Pin 7, down$");
     await f.tap("^Next");
-    await f.tap("^Pin 7 standing$");
+    await f.tap("^Pin 7, standing$");
     await f.tap("^Next");
     // Frame 3, an open: leave the 10, then miss it.
-    await f.tap("^Pin 10 down$");
+    await f.tap("^Pin 10, down$");
     await f.tap("^Next");
     await f.tap("^Next");
     // Frame 1 = 10 + 9 + 1 = 20, frame 2 = 10 + 9 = 39, frame 3 = 48.

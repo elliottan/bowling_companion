@@ -10,7 +10,7 @@ export const GROUP_HEADING = "text-xs font-semibold uppercase tracking-wide text
  * where each block is one answer with its control under it. The small
  * uppercase band was hard to find there; this reads as the block's title.
  */
-export const SETTING_HEADING = "text-[17px] font-semibold leading-snug text-ink";
+export const SETTING_HEADING = "text-body font-semibold leading-snug text-ink";
 
 /**
  * A tab's title, and the row it sits in. The row is as tall as the round
@@ -27,5 +27,5 @@ export const TAB_TITLE = "text-xl font-bold text-ink";
  * small and centred in a frosted bar as it goes (`CompactTitleBar`, ADR-191).
  * A tab whose controls stay pinned (History, Stats) keeps `TAB_TITLE`.
  */
-export const LARGE_TITLE = "text-[34px] font-bold leading-tight tracking-tight text-ink";
+export const LARGE_TITLE = "text-large-title font-bold leading-tight tracking-tight text-ink";
 export const TAB_TITLE_ROW = "flex min-h-11 items-center";

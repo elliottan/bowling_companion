@@ -71,11 +71,11 @@ export async function recordShot(page: Page, standingAfter: number[]) {
   for (let pin = 1; pin <= 10; pin++) {
     if (standingSet.has(pin)) {
       // Should be standing — click if currently "down" (and enabled).
-      const downBtn = page.locator(`button[aria-label="Pin ${pin} down"]:not([disabled])`);
+      const downBtn = page.locator(`button[aria-label="Pin ${pin}, down"]:not([disabled])`);
       if (await downBtn.count()) await downBtn.click();
     } else {
       // Should be knocked down — click if currently "standing" (and enabled).
-      const standingBtn = page.locator(`button[aria-label="Pin ${pin} standing"]:not([disabled])`);
+      const standingBtn = page.locator(`button[aria-label="Pin ${pin}, standing"]:not([disabled])`);
       if (await standingBtn.count()) await standingBtn.click();
     }
   }

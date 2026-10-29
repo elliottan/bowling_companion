@@ -13,6 +13,7 @@ reasoning and invariants the code cannot express.
 | Change what a shot opens with, or the line rules | [DECISIONS.md](./DECISIONS.md) ADR-052, ADR-053, ADR-054, ADR-113 |
 | Add or restructure a module | [ARCHITECTURE.md](./ARCHITECTURE.md) |
 | Build any UI | [DESIGN-LANGUAGE.md](./DESIGN-LANGUAGE.md) |
+| Write user-facing text, format a number or date, or add a language | [I18N.md](./I18N.md) |
 | Touch ball layouts, the dual angle system or the VLS conversion | `src/lib/ballLayout.ts` for the geometry and the motion model, `src/lib/ballProjection.ts` for how it is drawn |
 | Add or edit a guide article | `src/lib/guides.ts`, which carries the shape and why it is static data |
 | Draw an oil pattern on the lane | [DECISIONS.md](./DECISIONS.md) ADR-101 |

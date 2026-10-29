@@ -118,7 +118,7 @@ export function SegmentedControl<T extends string>({
       {shown >= 0 && (
         <span
           aria-hidden="true"
-          className={`pointer-events-none absolute left-0 transition-transform duration-[420ms] ease-[cubic-bezier(0.34,1.36,0.64,1)] ${
+          className={`pointer-events-none absolute left-0 transition-transform duration-[420ms] motion-reduce:transition-none ease-[cubic-bezier(0.34,1.36,0.64,1)] ${
             dense ? "inset-y-0.5 ml-0.5" : "inset-y-1 ml-1"
           }`}
           style={{
@@ -127,7 +127,7 @@ export function SegmentedControl<T extends string>({
           }}
         >
           <span
-            className={`segmented-pill block h-full w-full rounded-full transition-transform duration-200 ease-out ${
+            className={`segmented-pill block h-full w-full rounded-full transition-transform duration-200 ease-out motion-reduce:transition-none ${
               held !== null ? "scale-[1.07]" : ""
             }`}
           />

@@ -440,7 +440,7 @@ function LinePanelInfoSheet({ onClose }: { onClose: () => void }) {
         <dl className="space-y-3">
           {LINE_TERMS.map(({ term, meaning }) => (
             <div key={term}>
-              <dt className="text-[15px] font-semibold text-ink">{term}</dt>
+              <dt className="text-subhead font-semibold text-ink">{term}</dt>
               <dd className="text-sm text-ink-secondary">{meaning}</dd>
             </div>
           ))}
@@ -458,7 +458,7 @@ function LinePanelInfoSheet({ onClose }: { onClose: () => void }) {
               <li key={label} className="flex items-center gap-1">
                 {n > 0 && <ChevronRight size={16} aria-hidden="true" className="text-ink-tertiary" />}
                 <span className="min-w-16 rounded-xl bg-surface-muted px-3 py-2">
-                  <span className="block text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">
+                  <span className="block text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">
                     {label}
                   </span>
                   <span className="block text-lg font-bold tabular-nums text-ink">{board}</span>

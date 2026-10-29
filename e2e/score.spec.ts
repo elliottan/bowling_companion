@@ -42,7 +42,7 @@ test("editing a past shot inline (no edit button) re-derives the frame", async (
 
   // Select frame 2's second shot and clear the remaining pin → it becomes a spare.
   await page.getByRole("button", { name: /^Frame 2, shot 2:/ }).first().click();
-  await page.locator('button[aria-label="Pin 10 standing"]:not([disabled])').click();
+  await page.locator('button[aria-label="Pin 10, standing"]:not([disabled])').click();
 
   // Rewriting a recorded shot asks first, once for this visit to it.
   await page.getByRole("button", { name: "Edit", exact: true }).click();
@@ -171,7 +171,7 @@ test("the commit button reads Next, over what it would record", async ({ page })
   await expect(commit).toContainText("(Strike)");
 
   // Shot 1 starts all-down; tapping a pin stands it back up.
-  await page.getByRole("button", { name: /Pin 10 (down|standing)/ }).click();
+  await page.getByRole("button", { name: /Pin 10, (down|standing)/ }).click();
   await expect(commit).toContainText("(Hit 9)");
 });
 

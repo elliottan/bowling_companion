@@ -1,3 +1,6 @@
+import { i18n } from "@lingui/core";
+import type { MessageDescriptor } from "@lingui/core";
+import { msg } from "@lingui/core/macro";
 import {
   BarChart3,
   History,
@@ -39,7 +42,7 @@ import {
   type ResumableGame
 } from "./services/bowlingRepository";
 import { reportSessionStarted } from "./services/usageReporter";
-import { warmArsenalImages } from "./services/ballImageCache";
+import { keepArsenalPhotos, warmArsenalImages } from "./services/ballImageCache";
 import { syncCatalogForArsenal } from "./services/ballCatalogRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 import { HandednessContext } from "./lib/handednessContext";
@@ -121,33 +124,42 @@ function prefetchHeavyScreens() {
     // that pictures a ball has to wait on the network for one. The catalog
     // syncs first when the arsenal has a linked ball, which points each one at
     // its catalog photo today (ADR-143), so the warm-up fetches current files.
+    // The store app keeps them on the phone's disk instead (ADR-218).
     void syncCatalogForArsenal()
       .catch(() => false)
-      .then(() => warmArsenalImages());
+      .then(() => Promise.all([warmArsenalImages(), keepArsenalPhotos()]));
   };
   window.setTimeout(fetchThem, 3000);
 }
 
 type NavItem = {
   view: AppView;
-  label: string;
+  /** A descriptor, not a string: the list is built at import, before the
+   *  language is chosen, and is read in render (docs/I18N.md). */
+  label: MessageDescriptor;
   icon: LucideIcon;
 };
 
 const NAV_ITEMS: ReadonlyArray<NavItem> = [
-  { view: "dashboard", label: "Home", icon: Home },
+  { view: "dashboard", label: msg({ message: "Home", comment: "Tab name: the first screen, a summary of your bowling" }), icon: Home },
   // "Score", not "Active": the tab is named for what you do there, and
   // "Active" named a state the tab is usually not in (ADR-115).
-  { view: "active", label: "Score", icon: PinIcon },
-  { view: "history", label: "History", icon: History },
-  { view: "stats", label: "Stats", icon: BarChart3 },
-  { view: "settings", label: "Settings", icon: Settings }
+  { view: "active", label: msg({ message: "Score", comment: "Tab name, a verb: where you score a game as you bowl it" }), icon: PinIcon },
+  { view: "history", label: msg({ message: "History", comment: "Tab name: the list of past sessions" }), icon: History },
+  { view: "stats", label: msg({ message: "Stats", comment: "Tab name: averages and rates, short for statistics" }), icon: BarChart3 },
+  { view: "settings", label: msg({ message: "Settings", comment: "Tab name" }), icon: Settings }
 ];
 
 const MOBILE_NAV_ITEMS = NAV_ITEMS;
 
 /** The same tabs for the phone's own bar, which picks each one's symbol (ADR-161). */
-const NATIVE_TAB_ITEMS = NAV_ITEMS.map(({ view, label }) => ({ id: view, title: label }));
+let nativeTabItems: { id: AppView; title: string }[] | null = null;
+function nativeTabItemsOnce() {
+  // Built on first use, after the language is chosen, and kept: the phone's
+  // bar is handed this same list on every render.
+  nativeTabItems ??= NAV_ITEMS.map(({ view, label }) => ({ id: view, title: i18n._(label) }));
+  return nativeTabItems;
+}
 
 /** How long after leaving the Score tab an empty session is checked (ADR-116):
  *  long enough for the scorer's unmount flush of a tapped-in shot to land. */
@@ -335,7 +347,7 @@ function App() {
   const firstRunShowing = boot.handednessKnown && (chosenHandedness ?? boot.handedness) === null;
   const nativeTabs = useNativeTabBar({
     enabled: boot.booted && isIOSApp(),
-    items: NATIVE_TAB_ITEMS,
+    items: nativeTabItemsOnce(),
     active: view,
     hidden: firstRunShowing || keyboardOpen || overlays.length > 0 || openSheets.length > 0,
     onSelect: (id) => dispatch({ type: "goTo", view: id as AppView })
@@ -738,7 +750,7 @@ function App() {
           needs UIKit, so the iPhone app draws the phone's own (ADR-161). The
           strip beside the capsule passes taps through to the page. */}
       {!nativeTabBar && (
-      <nav className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
+      <nav className={`type-cap-dense pointer-events-none absolute inset-x-0 bottom-0 z-10 sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
         <div className="pointer-events-auto relative px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1">
           <div className="relative grid grid-cols-5 rounded-full border border-edge/70 bg-surface/75 p-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.35),0_6px_20px_rgb(0_0_0/0.14)] backdrop-blur-xl backdrop-saturate-150">
             <span
@@ -945,7 +957,7 @@ function NavLink({ item, active, disabled, onClick }: NavItemProps) {
       }`}
     >
       <Icon size={16} aria-hidden="true" />
-      {item.label}
+      {i18n._(item.label)}
     </button>
   );
 }
@@ -958,12 +970,12 @@ function TabBarButton({ item, active, disabled, onClick }: NavItemProps) {
       aria-current={active ? "page" : undefined}
       onClick={onClick}
       disabled={disabled}
-      className={`relative flex h-14 flex-col items-center justify-center gap-0.5 rounded-full text-[11px] disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`relative flex h-14 flex-col items-center justify-center gap-0.5 rounded-full text-caption-2 disabled:cursor-not-allowed disabled:opacity-40 ${
         active ? "font-bold text-accent" : "font-medium text-ink-secondary"
       }`}
     >
       <Icon size={20} aria-hidden="true" />
-      {item.label}
+      {i18n._(item.label)}
     </button>
   );
 }

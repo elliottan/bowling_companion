@@ -44,6 +44,7 @@ import { useProAccess } from "../lib/useProAccess";
 import { useProEntry } from "../components/ui/useProAction";
 import type { Ball, LayoutSystem } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
+import { formatFixed } from "../lib/format";
 
 interface SortableBallRowProps {
   ball: Ball;
@@ -72,8 +73,8 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
     ? [
         snap.coverstockCategory,
         snap.coreName,
-        snap.rg !== null ? `RG ${snap.rg.toFixed(2)}` : null,
-        snap.diff !== null ? `Diff ${snap.diff.toFixed(3)}` : null,
+        snap.rg !== null ? `RG ${formatFixed(snap.rg, 2)}` : null,
+        snap.diff !== null ? `Diff ${formatFixed(snap.diff, 3)}` : null,
       ]
         .filter(Boolean)
         .join(" · ")
@@ -132,7 +133,7 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
                 <span className="text-xs font-semibold tabular-nums text-ink-secondary">{ball.weight} lb</span>
               )}
               {ball.is_spare_ball && (
-                <span className="rounded-full bg-success-50 px-2 py-0.5 text-[11px] font-semibold text-success-700">
+                <span className="rounded-full bg-success-50 px-2 py-0.5 text-caption-2 font-semibold text-success-700">
                   Spare
                 </span>
               )}
@@ -200,7 +201,7 @@ function RetiredBallRow({
             </div>
           )}
         </div>
-        <span className="min-w-0 flex-1 truncate text-[17px] text-ink">{ball.name}</span>
+        <span className="min-w-0 flex-1 truncate text-body text-ink">{ball.name}</span>
       </button>
       <IconButton label={`Bring back ${ball.name}`} onClick={onRestore}>
         <RotateCcw size={16} aria-hidden="true" />

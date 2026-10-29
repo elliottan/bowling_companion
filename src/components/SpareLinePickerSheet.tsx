@@ -62,14 +62,14 @@ export function SpareLinePickerSheet({ spareLines, onPick, onClose, withMoves = 
               >
                 <MiniPins standing={sl.pins} size="sm" />
                 {hasLine(sl) && (
-                  <span className="text-[11px] font-bold tabular-nums text-ink">
+                  <span className="text-caption-2 font-bold tabular-nums text-ink">
                     {sl.line?.stance ?? "-"}
                     <span className="text-ink-tertiary"> / </span>
                     {sl.line?.target ?? "-"}
                   </span>
                 )}
                 {withMoves && hasMove(sl) && (
-                  <span className="text-[10px] font-semibold leading-tight tabular-nums text-accent">
+                  <span className="text-caption-2 font-semibold leading-tight tabular-nums text-accent">
                     Strike ball
                     <br />
                     {move(sl.strike_offset?.stance)}

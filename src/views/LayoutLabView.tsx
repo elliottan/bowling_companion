@@ -54,6 +54,7 @@ import {
 import { useHandedness } from "../lib/handednessContext";
 import type { GripStyle, Handedness, LayoutSystem } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
+import { formatFixed } from "../lib/format";
 
 interface LayoutLabViewProps {
   onBack: () => void;
@@ -85,9 +86,9 @@ function SeededBallCard({ seed }: { seed: LayoutSeed }) {
   const specs = snap
     ? [
         snap.coverstockCategory,
-        snap.rg !== null ? `RG ${snap.rg.toFixed(2)}` : null,
-        snap.diff !== null ? `Diff ${snap.diff.toFixed(3)}` : null,
-        snap.mbDiff !== null ? `MB ${snap.mbDiff.toFixed(3)}` : null
+        snap.rg !== null ? `RG ${formatFixed(snap.rg, 2)}` : null,
+        snap.diff !== null ? `Diff ${formatFixed(snap.diff, 3)}` : null,
+        snap.mbDiff !== null ? `MB ${formatFixed(snap.mbDiff, 3)}` : null
       ]
         .filter(Boolean)
         .join(" · ")

@@ -9220,6 +9220,170 @@ ball, so its first undo asks.
 frame the bowler has moved past still asks, because by then it was not a slip.
 
 
+## ADR-218: The iPhone app asks for a rating after a good game, and keeps the arsenal's photos ahead
+
+**Status.** Accepted, 2026-10-29. Follows ADR-158 (the StoreKit plugin) and
+ADR-162 (the photo store). Unit tested; neither the prompt nor the offline
+photos have been seen on a phone yet.
+
+**Context.** Ratings weigh heavily in App Store search, and a new app with none
+ranks low (PRO-LAUNCH, phase 6). Separately, ADR-162 keeps a ball photo on the
+phone only once some screen has drawn it online. The web fetches the arsenal's
+photos ahead (`warmArsenalImages`), but into the service worker's cache, which
+the store app does not have, so a ball added and never looked at online had no
+photo at the alley.
+
+**Decision.**
+
+- **The rating prompt is Apple's own**, `AppStore.requestReview(in:)` (iOS 16;
+  `SKStoreReviewController` on 15), as a `requestReview` method on
+  `HeadpinStorePlugin`. Apple decides whether it shows and caps it at three a
+  year; it keeps to "No popups, no counters, no nags" because the app only
+  offers a moment.
+- **The moment** is a game just finished (`saveFrame`'s `finishedNow`, so an
+  edit to a finished game never counts), from the third finished game on,
+  scoring at or above the average of the bowler's other finished games, and
+  not within 120 days of the last ask (`src/lib/ratingPrompt.ts`). It waits
+  two seconds so the last mark and the final score land first. The ask is
+  recorded in `settings` (`rating_asked_at`) before asking, since Apple never
+  says whether it showed. iPhone app only: the web has no such prompt, and
+  Android's needs Play's review library, which waits on Android itself.
+- **The plugin's loader moved** to `src/lib/nativeStorePlugin.ts`, React-free,
+  so a service can ask without importing `proStore.ts`'s hooks. `proStore.ts`
+  re-exports it.
+- **The arsenal's photos are saved ahead on the phone**: `keepArsenalPhotos`
+  runs beside `warmArsenalImages` after launch and saves each arsenal photo
+  missing from the photo store, one at a time through the store's own queue.
+  A launch with all of them kept fetches nothing.
+
+**Consequences.** A bowler with a good game may see Apple's prompt; most never
+will twice. The arsenal's photos survive a first offline trip once the app has
+launched online once after the ball was added. The photo store still evicts
+first in, first out at 25 MB, so a bowler who browses hundreds of catalog
+photos can push an arsenal photo out; the next online launch saves it again.
+Pinning the arsenal against eviction is left until a device shows it matters.
+
+## ADR-219: Type follows the phone's text size, on one named scale
+
+**Status.** Accepted, 2026-10-29, by the owner's decision.
+
+**Context.** The app set 46 files of type in fixed pixels (`text-[11px]`, 48
+times; `text-[9px]`, 16 times). iOS's web view ignores Dynamic Type for pixel
+sizes, so a bowler who had made their phone's text larger got none of it, and
+the smallest labels were 6 to 10px. The smallest grey labels (`ink-tertiary`)
+were 2.4:1 on white against the 4.5:1 text needs.
+
+**Decision.**
+- A type scale in `tailwind.config.js`: Apple's text styles (`large-title` 34,
+  `title-1` 28, `title-2` 22, `title-3` 20, `headline` 17 semibold, `body`
+  17, `callout` 16, `subhead` 15, `footnote` 13, `caption` 12, `caption-2`
+  11) in rem, each multiplied by `--type-scale`. Tailwind's `text-xs` to
+  `text-6xl` keep their old sizes on the same multiplier. Every pixel size was
+  replaced; a test forbids new ones. 9px, 10px and 8px labels became 11; 12, 13,
+  15, 17 and 34 map to the name of the same size. Only the pin numbers in
+  `MiniPins` stay below 11 (6 and 7px, `pin-xs`, `pin-sm`), as they sit in
+  pins 12 and 14px across and carry an accessible name. Text inside an SVG's own
+  units (lane, ball diagram) scales with the drawing.
+- Only type scales, not spacing: `--type-scale` multiplies the font size
+  alone, rem spacing is untouched, so a larger size grows the words and not
+  every margin.
+- **iOS.** `HeadpinViewController` (`SceneDelegate.swift`) writes
+  `--os-text-scale` on `<html>` as `UIFontMetrics(.body).scaledValue(for: 16) /
+  16`, in a document-start user script, again when a page starts loading, and on
+  `UIContentSizeCategory.didChangeNotification`. It was written without Xcode
+  and has not been compiled or run.
+- **Web.** Browsers scale rem from their default font size already.
+- **Android.** Not done. Whether the Capacitor web view follows the system font
+  scale was not verifiable here, and setting `WebSettings.textZoom` from
+  `Configuration.fontScale` risks scaling twice with the in-app setting. A
+  ROADMAP entry says how to check and what to do.
+- **In-app setting.** Appearance has Text size: Default 1, Large 1.15, Larger
+  1.3, Largest 1.5, multiplying the phone's. It is kept in the settings table
+  (`text_size`, so a backup carries it) and in localStorage (`textSize`) so a
+  pre-paint script can size the first paint, as the theme does.
+- **Bounds.** `--text-scale` is the product held between 0.85 and 1.6
+  (`TEXT_SCALE_MIN`, `TEXT_SCALE_MAX`; the stylesheet states the same and a
+  test compares them). `.type-cap-dense` re-points `--type-scale` to at most
+  1.2 on the scorecard grid, the scorer's pin deck and shot panel, the tab
+  bar, the lane visualizer, the charts and the ball tables;
+  `.type-cap-fixed` holds it at 1 for the pin deck's pins. Form fields are
+  `max(16px, 1rem * scale)`, so the iOS focus-zoom guard stays.
+- **Accessibility.** Each scorecard frame is a group named in one line
+  ("Frame 4, strike, 78", a split named), and its cells are hidden from the
+  reader as the group says it; the pin deck is a group, its pins read "Pin 7,
+  standing" (the `aria-pressed` that repeated the state is gone).
+  `ink-tertiary` is slate-500 in light and slate-400 in dark, the same as
+  `ink-secondary`, to reach 4.5:1; a test measures both tokens. The segmented
+  control's slide honours reduced motion. Sheets and pushes already did.
+
+**Consequences.** Text follows the phone on iPhone and the browser on the web,
+and the bowler can go bigger in the app. Secondary and tertiary grey are now the
+same colour, so the hierarchy between them is gone until a tertiary that
+clears 4.5:1 and still reads lighter is chosen; the owner may want that.
+Labels formerly 8 to 10px are 11px and may wrap sooner. Android is open.
+
+## ADR-220: Translatable text through Lingui, and numbers and dates through Intl
+
+**Status.** Accepted, 2026-10-29, by the owner's decision. Groundwork only: no
+language is shipped.
+
+**Context.** Every string was an English literal in a component, and numbers
+and dates were built by hand (`toFixed(1)`, `${n}%`, `toLocaleDateString`).
+Adding a language meant editing hundreds of components, and the hand-built
+formats were wrong in most languages ("187.5" for "187,5", "73%" for "73 %").
+Japanese and Korean were the first two in mind.
+
+**Decision.**
+- **Lingui** (`@lingui/core`, its macros, `@lingui/cli`, `@lingui/vite-plugin`,
+  `@lingui/babel-plugin-lingui-macro`, `@lingui/format-po`, 6.x). It was
+  chosen over i18next because the English stays in the source beside the code
+  that shows it, the extract builds the catalog, and the runtime is small. It
+  worked with this Vite 7, plugin-react, vitest and tsc setup without a
+  workaround, so the i18next fallback was not needed. The Babel plugin is passed
+  through `react({ babel })` in `vite.config.ts`, so vitest compiles the macros
+  as the build does.
+- **One language per launch.** `startI18n()` (`src/lib/i18n.ts`) picks a
+  supported language from `navigator.languages` (a regional tag matches its
+  language's catalog) and loads its catalog before the first render, from a lazy
+  chunk per language (`import.meta.glob`), so the web bundle does not grow with
+  each language. It sets `<html lang>`. A failed load leaves English on.
+  Changing the language is a reload, so the global `i18n` is read directly and
+  there is no provider. A message is therefore written inside a function or in
+  render, or as a `msg` descriptor read with `i18n._` where a list is built
+  at import (`NAV_ITEMS`, `TEXT_SIZES`).
+- **English is a catalog too.** The production build strips the source text from
+  a message, so `src/locales/en/messages.po` is loaded like any language. Tests
+  load it in `src/test/setup.ts`, so a message missing from it fails a test.
+- **Catalogs are checked in, and checked.** `npm run i18n:extract` writes them
+  with no line numbers (so an edit above a string is not a diff).
+  `npm run i18n:check` (`scripts/i18n-check.mjs`) re-extracts and fails if
+  anything changed; it is in `verify` and in CI after lint.
+- **Formatting.** `src/lib/format.ts` (`formatNumber`, `formatFixed`,
+  `formatAverage`, `formatPercent`, `formatRatio`, `formatDate`) formats with
+  `Intl` in the active language, cached per language and options.
+  `src/lib/dates.ts` and every `toFixed`, `%` template and `toLocale*` that
+  reached the screen use it. The active language, not the device's region,
+  decides: an English app on a German phone still writes "187.5".
+- **iOS.** `CFBundleLocalizations` in Info.plist lists `en` now. Declaring a
+  language there is what makes the phone offer it for the app and put it in
+  `navigator.languages`, so it is part of adding a language (docs/I18N.md).
+- **Converted slice**, to set the pattern: the tab names (and so the phone's tab
+  bar), Settings, Appearance and the Text size labels, the scorer's chrome and
+  confirmations, and the session screen's chrome and confirmations. Sentences
+  that were built from pieces became whole messages with `plural`
+  (`describeLastBackup`, `describeAge`, the delete confirmations and the undo
+  question). Bowling terms (strike, spare, foul, pocket) carry translator
+  comments. About 400 strings in 70 files remain
+  (`scripts/i18n-unconverted.mjs`).
+
+**Consequences.** A language is a translated `.po` file plus two lines of config
+and an Info.plist entry. The main bundle gains the Lingui runtime (about 4 kB
+gzipped) and the web start waits for one small chunk. A string written as a
+plain literal in a converted file is not caught by the build; the conversion is
+convention plus review until the rest is done, and a lint rule for it is open.
+Not covered: right-to-left layout, the guides and legal prose, and the Home
+Screen quick actions and App Store text, which need localizations of their own.
+
 ## ADR-221: The game being scored is a Live Activity on the iPhone
 
 **Status.** Accepted, 2026-10-29. Follows ADR-155, ADR-158 and ADR-161, whose

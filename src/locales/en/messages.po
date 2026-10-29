@@ -1,0 +1,618 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-10-29 14:08+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+
+#: src/lib/backupNudge.ts
+msgid "{days, plural, one {# day ago} other {# days ago}}"
+msgstr "{days, plural, one {# day ago} other {# days ago}}"
+
+#: src/lib/backupNudge.ts
+msgid "{days, plural, one {Last backup # day ago} other {Last backup # days ago}}"
+msgstr "{days, plural, one {Last backup # day ago} other {Last backup # days ago}}"
+
+#: src/views/ActiveSessionView.tsx
+msgid "{gameCount, plural, one {\"{alley}\" and its game will be permanently deleted. This can't be undone.} other {\"{alley}\" and all # games will be permanently deleted. This can't be undone.}}"
+msgstr "{gameCount, plural, one {\"{alley}\" and its game will be permanently deleted. This can't be undone.} other {\"{alley}\" and all # games will be permanently deleted. This can't be undone.}}"
+
+#: src/lib/backupNudge.ts
+msgid "{months, plural, one {# month ago} other {# months ago}}"
+msgstr "{months, plural, one {# month ago} other {# months ago}}"
+
+#: src/lib/backupNudge.ts
+msgid "{months, plural, one {Last backup # month ago} other {Last backup # months ago}}"
+msgstr "{months, plural, one {Last backup # month ago} other {Last backup # months ago}}"
+
+#: src/views/AppearanceView.tsx
+msgid "{name}, needs Headpin Pro"
+msgstr "{name}, needs Headpin Pro"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
+msgstr "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
+
+#: src/lib/backupNudge.ts
+msgid "{weeks, plural, one {# week ago} other {# weeks ago}}"
+msgstr "{weeks, plural, one {# week ago} other {# weeks ago}}"
+
+#: src/lib/backupNudge.ts
+msgid "{weeks, plural, one {Last backup # week ago} other {Last backup # weeks ago}}"
+msgstr "{weeks, plural, one {Last backup # week ago} other {Last backup # weeks ago}}"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Add game"
+msgstr "Add game"
+
+#: src/views/SettingsView.tsx
+msgid "Add name"
+msgstr "Add name"
+
+#: src/views/SettingsView.tsx
+msgid "Add your name"
+msgstr "Add your name"
+
+#: src/views/SettingsView.tsx
+msgid "App"
+msgstr "App"
+
+#: src/views/AppearanceView.tsx
+#: src/views/SettingsView.tsx
+msgid "Appearance"
+msgstr "Appearance"
+
+#: src/views/SettingsView.tsx
+msgid "Arsenal"
+msgstr "Arsenal"
+
+#: src/views/SettingsView.tsx
+msgid "Asking the App Store…"
+msgstr "Asking the App Store…"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Back"
+msgstr "Back"
+
+#: src/views/SettingsView.tsx
+msgid "Backup & restore"
+msgstr "Backup & restore"
+
+#: src/views/SettingsView.tsx
+msgid "Bowling profile"
+msgstr "Bowling profile"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Close session sheet"
+msgstr "Close session sheet"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Close session stats"
+msgstr "Close session stats"
+
+#: src/views/AppearanceView.tsx
+msgid "Color"
+msgstr "Color"
+
+#. Theme setting: the dark theme
+#: src/views/AppearanceView.tsx
+msgid "Dark"
+msgstr "Dark"
+
+#: src/views/SettingsView.tsx
+msgid "Deeper stats, line and layout tools"
+msgstr "Deeper stats, line and layout tools"
+
+#. Text size setting: the standard size
+#: src/lib/textScale.ts
+msgid "Default"
+msgstr "Default"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Delete game {gameNumber}"
+msgstr "Delete game {gameNumber}"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Delete session"
+msgstr "Delete session"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Delete this game?"
+msgstr "Delete this game?"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Delete this session?"
+msgstr "Delete this session?"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Dismiss"
+msgstr "Dismiss"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Dismiss game hint"
+msgstr "Dismiss game hint"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Dismiss share offer"
+msgstr "Dismiss share offer"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Dismiss tip"
+msgstr "Dismiss tip"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Done"
+msgstr "Done"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Edit"
+msgstr "Edit"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Edit game lanes"
+msgstr "Edit game lanes"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Edit game lanes. Frame 1 starts on lane {startLane}"
+msgstr "Edit game lanes. Frame 1 starts on lane {startLane}"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Edit session"
+msgstr "Edit session"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Edit shots"
+msgstr "Edit shots"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Edit this completed game?"
+msgstr "Edit this completed game?"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Edit this recorded shot?"
+msgstr "Edit this recorded shot?"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Enter whole numbers for both lanes."
+msgstr "Enter whole numbers for both lanes."
+
+#: src/views/SettingsView.tsx
+msgid "Export or import your data"
+msgstr "Export or import your data"
+
+#: src/views/ActiveSessionView.tsx
+msgid "First lane"
+msgstr "First lane"
+
+#. A bowling term: a foul, crossing the line. A menu item that records one.
+#: src/components/ActiveGameScorer.tsx
+msgid "Foul"
+msgstr "Foul"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "frame {frame}, ball {ball}"
+msgstr "frame {frame}, ball {ball}"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "frame {frame}, ball {ball} (foul)"
+msgstr "frame {frame}, ball {ball} (foul)"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "frame {frame}, ball {ball} (no pins)"
+msgstr "frame {frame}, ball {ball} (no pins)"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "frame {frame}, ball {ball} (spare)"
+msgstr "frame {frame}, ball {ball} (spare)"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "frame {frame}, ball {ball} (strike)"
+msgstr "frame {frame}, ball {ball} (strike)"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Frame {frameNumber}, ball {ball} is already recorded. Changing it rescores the game from that frame on."
+msgstr "Frame {frameNumber}, ball {ball} is already recorded. Changing it rescores the game from that frame on."
+
+#: src/views/ActiveSessionView.tsx
+msgid "Game {gameNumber}"
+msgstr "Game {gameNumber}"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Game {gameNumber} (score {deleteGameScore}) and its frames will be permanently deleted."
+msgstr "Game {gameNumber} (score {deleteGameScore}) and its frames will be permanently deleted."
+
+#: src/views/ActiveSessionView.tsx
+msgid "Game {gameNumber} and its frames will be permanently deleted."
+msgstr "Game {gameNumber} and its frames will be permanently deleted."
+
+#: src/views/ActiveSessionView.tsx
+msgid "Game {gameNumber} is in the books. Share the session?"
+msgstr "Game {gameNumber} is in the books. Share the session?"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Game {gameNumber} lanes"
+msgstr "Game {gameNumber} lanes"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Games"
+msgstr "Games"
+
+#: src/views/SettingsView.tsx
+msgid "Get Headpin Pro"
+msgstr "Get Headpin Pro"
+
+#: src/views/SettingsView.tsx
+msgid "Headpin {version}"
+msgstr "Headpin {version}"
+
+#: src/views/SettingsView.tsx
+msgid "Headpin Pro"
+msgstr "Headpin Pro"
+
+#: src/views/SettingsView.tsx
+msgid "Headpin Pro is restored."
+msgstr "Headpin Pro is restored."
+
+#. Tab name: the list of past sessions
+#: src/App.tsx
+msgid "History"
+msgstr "History"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Hit {pinsThisShot}"
+msgstr "Hit {pinsThisShot}"
+
+#. Tab name: the first screen, a summary of your bowling
+#: src/App.tsx
+msgid "Home"
+msgstr "Home"
+
+#: src/views/SettingsView.tsx
+msgid "How each lane plays at each alley"
+msgstr "How each lane plays at each alley"
+
+#: src/views/SettingsView.tsx
+msgid "Install Headpin"
+msgstr "Install Headpin"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Lane"
+msgstr "Lane"
+
+#: src/views/SettingsView.tsx
+msgid "Lane notes"
+msgstr "Lane notes"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Lane pair"
+msgstr "Lane pair"
+
+#. Text size setting: one step bigger than the standard size
+#: src/lib/textScale.ts
+msgid "Large"
+msgstr "Large"
+
+#. Text size setting: two steps bigger than the standard size
+#: src/lib/textScale.ts
+msgid "Larger"
+msgstr "Larger"
+
+#. Text size setting: the biggest size
+#: src/lib/textScale.ts
+msgid "Largest"
+msgstr "Largest"
+
+#: src/lib/backupNudge.ts
+msgid "Last backup today"
+msgstr "Last backup today"
+
+#: src/lib/backupNudge.ts
+msgid "Last backup yesterday"
+msgstr "Last backup yesterday"
+
+#: src/views/SettingsView.tsx
+msgid "Layouts, patterns, the catalog and guides"
+msgstr "Layouts, patterns, the catalog and guides"
+
+#: src/views/SettingsView.tsx
+msgid "Left-handed"
+msgstr "Left-handed"
+
+#. Theme setting: the light theme
+#: src/views/AppearanceView.tsx
+msgid "Light"
+msgstr "Light"
+
+#: src/views/SettingsView.tsx
+msgid "Live Activity on the Lock Screen"
+msgstr "Live Activity on the Lock Screen"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "More"
+msgstr "More"
+
+#: src/lib/backupNudge.ts
+msgid "never"
+msgstr "never"
+
+#: src/views/SettingsView.tsx
+msgid "Never backed up"
+msgstr "Never backed up"
+
+#: src/views/ActiveSessionView.tsx
+msgid "New game"
+msgstr "New game"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Next"
+msgstr "Next"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Next ({nextOutcome})"
+msgstr "Next ({nextOutcome})"
+
+#: src/views/ActiveSessionView.tsx
+msgid "No active game selected."
+msgstr "No active game selected."
+
+#: src/views/ActiveSessionView.tsx
+msgid "No active game was found for this session."
+msgstr "No active game was found for this session."
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Not a pocket hit"
+msgstr "Not a pocket hit"
+
+#: src/views/SettingsView.tsx
+msgid "One-handed"
+msgstr "One-handed"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Open session sheet and lane notes"
+msgstr "Open session sheet and lane notes"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Open session stats"
+msgstr "Open session stats"
+
+#. A bowling term: the ball hit the pocket, the gap between the 1 and the 3 pins. A small toggle button.
+#: src/components/ActiveGameScorer.tsx
+msgid "Pocket"
+msgstr "Pocket"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Pocket hit"
+msgstr "Pocket hit"
+
+#: src/views/SettingsView.tsx
+msgid "Pre-fill spare lines during score entry"
+msgstr "Pre-fill spare lines during score entry"
+
+#: src/views/SettingsView.tsx
+msgid "Privacy and terms"
+msgstr "Privacy and terms"
+
+#: src/views/SettingsView.tsx
+msgid "Put it on your home screen, so it opens like an app"
+msgstr "Put it on your home screen, so it opens like an app"
+
+#: src/views/SettingsView.tsx
+msgid "Restore purchase"
+msgstr "Restore purchase"
+
+#: src/views/SettingsView.tsx
+msgid "Right-handed"
+msgstr "Right-handed"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Save"
+msgstr "Save"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Save failed."
+msgstr "Save failed."
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Save this as your line for {leave}"
+msgstr "Save this as your line for {leave}"
+
+#. Tab name, a verb: where you score a game as you bowl it
+#: src/App.tsx
+msgid "Score"
+msgstr "Score"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Second lane"
+msgstr "Second lane"
+
+#: src/views/SettingsView.tsx
+msgid "See what Pro adds"
+msgstr "See what Pro adds"
+
+#: src/views/SettingsView.tsx
+msgid "Send feedback"
+msgstr "Send feedback"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Session"
+msgstr "Session"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Session not found."
+msgstr "Session not found."
+
+#: src/views/ActiveSessionView.tsx
+msgid "Session stats"
+msgstr "Session stats"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Set lanes"
+msgstr "Set lanes"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Sets the pair for this game only."
+msgstr "Sets the pair for this game only."
+
+#. Tab name
+#: src/App.tsx
+#: src/views/SettingsView.tsx
+msgid "Settings"
+msgstr "Settings"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Share"
+msgstr "Share"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Share this session"
+msgstr "Share this session"
+
+#. A bowling term: the leave cleared with the second ball. A button label.
+#: src/components/ActiveGameScorer.tsx
+msgid "Spare"
+msgstr "Spare"
+
+#: src/views/SettingsView.tsx
+msgid "Spare lines"
+msgstr "Spare lines"
+
+#. Tab name: averages and rates, short for statistics
+#: src/App.tsx
+msgid "Stats"
+msgstr "Stats"
+
+#. A bowling term: all ten pins down with the first ball. A button label.
+#: src/components/ActiveGameScorer.tsx
+msgid "Strike"
+msgstr "Strike"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Strike, Spare and Foul come back and change the shot you pick on the card. The game rescores from that frame on."
+msgstr "Strike, Spare and Foul come back and change the shot you pick on the card. The game rescores from that frame on."
+
+#: src/views/SettingsView.tsx
+msgid "Support"
+msgstr "Support"
+
+#: src/views/SettingsView.tsx
+msgid "Switched off for Headpin in the iPhone's Settings"
+msgstr "Switched off for Headpin in the iPhone's Settings"
+
+#. Theme setting: follow the phone's light or dark choice
+#: src/views/AppearanceView.tsx
+msgid "System"
+msgstr "System"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Tap or slide to toggle the pins left standing."
+msgstr "Tap or slide to toggle the pins left standing."
+
+#: src/views/AppearanceView.tsx
+msgid "Text size"
+msgstr "Text size"
+
+#: src/views/SettingsView.tsx
+msgid "The App Store did not answer: {reason}"
+msgstr "The App Store did not answer: {reason}"
+
+#: src/views/SettingsView.tsx
+msgid "The App Store did not answer. Try again in a moment."
+msgstr "The App Store did not answer. Try again in a moment."
+
+#: src/views/AppearanceView.tsx
+msgid "Theme"
+msgstr "Theme"
+
+#: src/views/SettingsView.tsx
+msgid "This Apple ID has not bought Headpin Pro."
+msgstr "This Apple ID has not bought Headpin Pro."
+
+#: src/components/ActiveGameScorer.tsx
+msgid "This removes {ball} from the card. To get it back, you will have to enter it again."
+msgstr "This removes {ball} from the card. To get it back, you will have to enter it again."
+
+#: src/components/ActiveGameScorer.tsx
+msgid "This removes your last ball from the card. To get it back, you will have to enter it again."
+msgstr "This removes your last ball from the card. To get it back, you will have to enter it again."
+
+#: src/lib/backupNudge.ts
+msgid "today"
+msgstr "today"
+
+#: src/views/SettingsView.tsx
+msgid "Tools and reference"
+msgstr "Tools and reference"
+
+#: src/views/SettingsView.tsx
+msgid "Two-handed"
+msgstr "Two-handed"
+
+#: src/views/ActiveSessionView.tsx
+msgid "Unable to add game."
+msgstr "Unable to add game."
+
+#: src/views/ActiveSessionView.tsx
+msgid "Unable to delete game."
+msgstr "Unable to delete game."
+
+#: src/views/ActiveSessionView.tsx
+msgid "Unable to delete session."
+msgstr "Unable to delete session."
+
+#: src/views/ActiveSessionView.tsx
+msgid "Unable to load session."
+msgstr "Unable to load session."
+
+#: src/views/ActiveSessionView.tsx
+msgid "Unable to update session."
+msgstr "Unable to update session."
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Undo"
+msgstr "Undo"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Undo failed."
+msgstr "Undo failed."
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Undo last shot"
+msgstr "Undo last shot"
+
+#: src/components/ActiveGameScorer.tsx
+msgid "Undo your last ball?"
+msgstr "Undo your last ball?"
+
+#: src/views/SettingsView.tsx
+msgid "Unlocked on this copy"
+msgstr "Unlocked on this copy"
+
+#: src/views/SettingsView.tsx
+msgid "Unlocked. Thank you for backing Headpin."
+msgstr "Unlocked. Thank you for backing Headpin."
+
+#: src/views/SettingsView.tsx
+msgid "Waiting for approval. Pro opens as soon as it comes through."
+msgstr "Waiting for approval. Pro opens as soon as it comes through."
+
+#: src/lib/backupNudge.ts
+msgid "yesterday"
+msgstr "yesterday"
+
+#: src/views/SettingsView.tsx
+msgid "Your balls and their layouts"
+msgstr "Your balls and their layouts"
+
+#: src/views/SettingsView.tsx
+msgid "Your bowling"
+msgstr "Your bowling"
+
+#: src/views/SettingsView.tsx
+msgid "Your game's score, frame by frame, while you bowl"
+msgstr "Your game's score, frame by frame, while you bowl"
+
+#: src/views/SettingsView.tsx
+msgid "Your name, {name}"
+msgstr "Your name, {name}"

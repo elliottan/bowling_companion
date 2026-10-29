@@ -45,7 +45,7 @@ function perfectGame(): Frame[] {
 }
 
 function tapPin(pin: number) {
-  const button = screen.getByRole("button", { name: new RegExp(`^Pin ${pin} `) });
+  const button = screen.getByRole("button", { name: new RegExp(`^Pin ${pin}, `) });
   fireEvent.pointerDown(button);
   fireEvent.pointerUp(button);
 }

@@ -107,7 +107,13 @@ private final class LinkMessageHandler: NSObject, WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         switch message.body as? String {
         case "ready": LinkInbox.shared.pageIsReady()
-        case "loading": LinkInbox.shared.pageIsLoading()
+        case "loading":
+            LinkInbox.shared.pageIsLoading()
+            // A page that starts loading is told the phone's text size again, in
+            // case it changed since the script that first carried it was made.
+            if let webView = LinkInbox.shared.webView {
+                webView.evaluateJavaScript(HeadpinViewController.textScaleScript(), completionHandler: nil)
+            }
         default: break
         }
     }
@@ -165,10 +171,43 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
             injectionTime: .atDocumentStart,
             forMainFrameOnly: true
         ))
+        // The phone's text size, from Dynamic Type (ADR-219). A web view ignores
+        // it for pixel sizes, so the page is told the ratio and sizes its own type
+        // from it. It is written before the page draws, and again whenever the
+        // bowler changes the size in Settings while the app is open.
+        content.addUserScript(WKUserScript(
+            source: HeadpinViewController.textScaleScript(),
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: true
+        ))
+        textScaleObserver = NotificationCenter.default.addObserver(
+            forName: UIContentSizeCategory.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.webView?.evaluateJavaScript(HeadpinViewController.textScaleScript(), completionHandler: nil)
+        }
         let edge = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(edgeSwiped(_:)))
         edge.edges = .left
         edge.delegate = self
         webView.addGestureRecognizer(edge)
+    }
+
+    private var textScaleObserver: NSObjectProtocol?
+
+    deinit {
+        if let observer = textScaleObserver { NotificationCenter.default.removeObserver(observer) }
+    }
+
+    /// The script that tells the page the phone's text size: what a 16pt body
+    /// is scaled to by Dynamic Type, over 16. 1 at the default size, about 1.35
+    /// at the largest of the standard sizes and about 3.1 at the largest
+    /// accessibility size. The page holds the combined size to its own ceiling
+    /// (`--text-scale` in `src/index.css`), so nothing here caps it.
+    static func textScaleScript() -> String {
+        let scaled = UIFontMetrics(forTextStyle: .body).scaledValue(for: 16)
+        let scale = String(format: "%.3f", Double(scaled / 16))
+        return "(function () { var root = document.documentElement; if (root) root.style.setProperty('--os-text-scale', '\(scale)'); })();"
     }
 
     /// What the native view behind the web view is painted until the page says

@@ -103,7 +103,7 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
         </div>
         <div className="flex shrink-0 flex-col items-end gap-0.5 text-right">
           {hasUnfinishedGame && (
-            <span className="inline-flex items-center rounded-full bg-accent-fill px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-accent-on-fill">
+            <span className="inline-flex items-center rounded-full bg-accent-fill px-2 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-accent-on-fill">
               Active
             </span>
           )}

@@ -2,6 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Type size (ADR-219). The phone's size and the bowler's Text size multiply,
+ * held to the bounds `src/lib/textScale.ts` names (a test keeps the two in
+ * step). `--os-text-scale` is written by the iPhone app from Dynamic Type and
+ * `--user-text-scale` by the Text size setting; both are 1 until something
+ * writes them. Every size in the type scale is its rem size times
+ * `--type-scale`, so a dense surface lowers only its own type by re-pointing
+ * that one variable.
+ */
+:root {
+  --text-scale: clamp(0.85, calc(var(--os-text-scale, 1) * var(--user-text-scale, 1)), 1.6);
+  --type-scale: var(--text-scale);
+}
+
+/* The scorecard grid, charts and tables, whose columns are drawn to fit a
+   number of characters: type grows with the bowler's size up to 1.2x. */
+.type-cap-dense {
+  --type-scale: min(var(--text-scale), 1.2);
+}
+
+/* A label inside a shape drawn at a fixed size (the pin deck, a mini pin): the
+   shape does not grow, so neither does the type in it. */
+.type-cap-fixed {
+  --type-scale: 1;
+}
+
 html,
 body,
 #root {
@@ -99,7 +125,7 @@ textarea,
   --color-ink: 2 6 23; /* slate-950 */
   --color-ink-strong: 51 65 85; /* slate-700, strong body / button text */
   --color-ink-secondary: 100 116 139; /* slate-500 */
-  --color-ink-tertiary: 148 163 184; /* slate-400 */
+  --color-ink-tertiary: 100 116 139; /* slate-500: 4.5:1 on white and the cream (ADR-219); slate-400 gave 2.4:1 */
   --color-edge: 226 232 240; /* slate-200 */
   --color-edge-strong: 203 213 225; /* slate-300 */
   --color-accent: 27 81 72; /* felt-700, for interactive text/icons */
@@ -127,7 +153,7 @@ textarea,
   --color-ink: 241 245 249; /* slate-100 */
   --color-ink-strong: 226 232 240; /* slate-200, strong body / button text */
   --color-ink-secondary: 148 163 184; /* slate-400 */
-  --color-ink-tertiary: 100 116 139; /* slate-500 */
+  --color-ink-tertiary: 148 163 184; /* slate-400: 5.7:1 on the card (ADR-219); slate-500 gave 3.1:1 */
   --color-edge: 51 65 85; /* slate-700 */
   --color-edge-strong: 71 85 105; /* slate-600 */
   --color-accent: 94 214 193; /* lightened felt, legible on dark */
@@ -222,7 +248,8 @@ select {
   input,
   select,
   textarea {
-    font-size: 16px !important;
+    /* 16px is the floor that stops the zoom; a larger text size raises it. */
+    font-size: max(16px, calc(1rem * var(--type-scale, 1))) !important;
   }
 }
 

@@ -152,11 +152,11 @@ export function FormSheet({
             )}
             {subtitle ? (
               <div className="min-w-0 flex-1 py-0.5 text-left">
-                <h2 className="text-[17px] font-semibold leading-tight text-ink">{title}</h2>
+                <h2 className="text-body font-semibold leading-tight text-ink">{title}</h2>
                 <p className="mt-0.5 line-clamp-2 text-xs text-ink-secondary">{subtitle}</p>
               </div>
             ) : (
-              <h2 className="flex-1 text-center text-[17px] font-semibold text-ink">{title}</h2>
+              <h2 className="flex-1 text-center text-body font-semibold text-ink">{title}</h2>
             )}
             {trailing ? (
               trailing

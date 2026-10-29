@@ -21,6 +21,7 @@ import { addBall, getBalls } from "../services/ballRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD, FIELD_DENSE_SELECT, FIELD_LABEL } from "../components/ui/field";
 import { formatReleaseDate } from "../lib/dates";
+import { formatDate, formatFixed } from "../lib/format";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
 
 // ---------------------------------------------------------------------------
@@ -187,7 +188,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
     <PushScreen title={ball.name} onBack={onBack} active={!addDialogOpen}>
       <div>
         <div className="mx-auto w-full max-w-xl px-3 py-5 sm:px-6">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</p>
+          <p className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</p>
           <div className="mt-2" />
           <ColorwayCarousel ball={ball} />
 
@@ -201,9 +202,9 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
             {ball.factoryFinish && <SpecItem label="Factory finish" value={ball.factoryFinish} />}
             {ball.coreName && <SpecItem label="Core" value={ball.coreName} />}
             <SpecItem label="Core type" value={ball.coreType ?? "-"} />
-            <SpecItem label="RG" value={ball.rg !== null ? ball.rg.toFixed(2) : "-"} />
-            <SpecItem label="Diff" value={ball.diff !== null ? ball.diff.toFixed(3) : "-"} />
-            {ball.mbDiff !== null && <SpecItem label="MB diff" value={ball.mbDiff.toFixed(3)} />}
+            <SpecItem label="RG" value={ball.rg !== null ? formatFixed(ball.rg, 2) : "-"} />
+            <SpecItem label="Diff" value={ball.diff !== null ? formatFixed(ball.diff, 3) : "-"} />
+            {ball.mbDiff !== null && <SpecItem label="MB diff" value={formatFixed(ball.mbDiff, 3)} />}
           </dl>
 
           {/* The manufacturer's own page for the ball, so the specs above can
@@ -674,7 +675,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                 step={0.01}
                 valueMin={filters.rgMin}
                 valueMax={filters.rgMax}
-                format={(v) => v.toFixed(2)}
+                format={(v) => formatFixed(v, 2)}
                 onChange={(min, max) => setFilters((f) => ({ ...f, rgMin: min, rgMax: max }))}
               />
 
@@ -686,7 +687,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                 step={0.001}
                 valueMin={filters.diffMin}
                 valueMax={filters.diffMax}
-                format={(v) => v.toFixed(3)}
+                format={(v) => formatFixed(v, 3)}
                 onChange={(min, max) => setFilters((f) => ({ ...f, diffMin: min, diffMax: max }))}
               />
 
@@ -733,13 +734,13 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
             )}
             {(filters.rgMin > RG_MIN || filters.rgMax < RG_MAX) && (
               <FilterChip
-                label={`RG ${filters.rgMin.toFixed(2)} to ${filters.rgMax.toFixed(2)}`}
+                label={`RG ${formatFixed(filters.rgMin, 2)} to ${formatFixed(filters.rgMax, 2)}`}
                 onRemove={() => setFilters((f) => ({ ...f, rgMin: RG_MIN, rgMax: RG_MAX }))}
               />
             )}
             {(filters.diffMin > DIFF_MIN || filters.diffMax < DIFF_MAX) && (
               <FilterChip
-                label={`Diff ${filters.diffMin.toFixed(3)} to ${filters.diffMax.toFixed(3)}`}
+                label={`Diff ${formatFixed(filters.diffMin, 3)} to ${formatFixed(filters.diffMax, 3)}`}
                 onRemove={() => setFilters((f) => ({ ...f, diffMin: DIFF_MIN, diffMax: DIFF_MAX }))}
               />
             )}
@@ -801,16 +802,16 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</span>
+                      <span className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</span>
                       {/* B8: Owned badge */}
                       {isOwned(ball) && (
-                        <span className="rounded-full bg-accent-soft px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-accent">
+                        <span className="rounded-full bg-accent-soft px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-accent">
                           Owned
                         </span>
                       )}
                       {/* Multi-colorway badge */}
                       {(ball.colorways?.length ?? 0) > 1 && (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-surface-muted px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink-secondary">
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-surface-muted px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
                           <Palette size={9} aria-hidden="true" />
                           {ball.colorways!.length} colors
                         </span>
@@ -823,8 +824,8 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                         formatReleaseDate(ball.releaseDate),
                         ball.coverstockCategory ?? null,
                         ball.coreType ?? null,
-                        ball.rg !== null ? `RG ${ball.rg.toFixed(2)}` : null,
-                        ball.diff !== null ? `Diff ${ball.diff.toFixed(3)}` : null,
+                        ball.rg !== null ? `RG ${formatFixed(ball.rg, 2)}` : null,
+                        ball.diff !== null ? `Diff ${formatFixed(ball.diff, 3)}` : null,
                       ].filter(Boolean).join(" · ") || "-"}
                     </p>
                   </div>
@@ -842,7 +843,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         {/* Footer */}
         {doneState && (
           <p className="mt-6 text-center text-xs text-ink-secondary">
-            Catalog v{doneState.version} · Updated {new Date(doneState.generatedAt).toLocaleDateString()}
+            Catalog v{doneState.version} · Updated {formatDate(new Date(doneState.generatedAt), { dateStyle: "medium" })}
           </p>
         )}
       </div>

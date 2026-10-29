@@ -6,6 +6,7 @@ import { FIELD, FIELD_LABEL } from "./ui/field";
 import type { OilPass, OilPattern } from "../types/bowling";
 import { oilStats, patternClass, PATTERN_CLASS_LABEL, headlineRatio } from "../lib/oilPattern";
 import { ErrorBanner } from "./ErrorBanner";
+import { formatFixed } from "../lib/format";
 
 const FORM_ID = "oil-pattern-form";
 
@@ -128,8 +129,8 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
                 {catalogName ?? initial?.name}
               </p>
               <p className="mt-1 text-xs tabular-nums text-ink-secondary">
-                {Math.round(table.length)} ft · {table.volumeMl.toFixed(2)} mL
-                {ratio != null ? ` · ${ratio.toFixed(1)}:1` : ""}
+                {Math.round(table.length)} ft · {formatFixed(table.volumeMl, 2)} mL
+                {ratio != null ? ` · ${formatFixed(ratio, 1)}:1` : ""}
                 {shape ? ` · ${PATTERN_CLASS_LABEL[shape]}` : ""}
               </p>
             </div>

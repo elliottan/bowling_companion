@@ -1,3 +1,4 @@
+import { formatPercent } from "../lib/format";
 import { useMemo, useState } from "react";
 import { RackIcon } from "../components/icons";
 import { LoadingCard } from "../components/ui/LoadingCard";
@@ -94,7 +95,7 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
                       {leave.conversions} of {leave.chances} made
                     </span>
                     <span className="block text-xs tabular-nums text-ink-secondary">
-                      {leave.conversionPct}%
+                      {leave.conversionPct !== null ? formatPercent(leave.conversionPct) : "-"}
                     </span>
                   </span>
                   {/* Per game, not a raw count: right-handers leave more 10
@@ -104,7 +105,7 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
                     <span className="block text-sm font-bold tabular-nums text-ink">
                       {leave.perGame}
                     </span>
-                    <span className="block text-[10px] leading-tight text-ink-tertiary">open frames<br />a game</span>
+                    <span className="block text-caption-2 leading-tight text-ink-tertiary">open frames<br />a game</span>
                   </span>
                 </li>
               ))}
@@ -133,7 +134,7 @@ function Kind({
       >
         {value ?? "-"}
       </span>
-      <span className="block text-[10px] font-semibold uppercase tracking-wide text-ink-secondary">
+      <span className="block text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">
         {label}
       </span>
     </span>
@@ -194,7 +195,7 @@ function OpenFrameTrend({ points }: { points: OpenFrameTrendPoint[] }) {
           className="stroke-edge"
           strokeWidth={1}
         />
-        <text x={INSET_X} y={H - 4} className="fill-ink-tertiary" fontSize="9">
+        <text x={INSET_X} y={H - 4} className="fill-ink-tertiary" fontSize="11">
           {shortDate(shown[0].date)}
         </text>
         <text
@@ -202,7 +203,7 @@ function OpenFrameTrend({ points }: { points: OpenFrameTrendPoint[] }) {
           y={H - 4}
           textAnchor="end"
           className="fill-ink-tertiary"
-          fontSize="9"
+          fontSize="11"
         >
           {shortDate(shown[shown.length - 1].date)}
         </text>

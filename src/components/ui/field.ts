@@ -6,7 +6,7 @@
  * hardcoded `slate-100` in `docs/DESIGN-LANGUAGE.md` §3, one level down.
  */
 export const FIELD =
-  "h-11 w-full min-w-0 box-border rounded-xl border border-transparent bg-ink/[0.06] px-3.5 text-[15px] text-ink placeholder:text-ink-tertiary outline-none focus:border-accent-fill focus:bg-surface focus:ring-2 focus:ring-accent-fill/20";
+  "h-11 w-full min-w-0 box-border rounded-xl border border-transparent bg-ink/[0.06] px-3.5 text-subhead text-ink placeholder:text-ink-tertiary outline-none focus:border-accent-fill focus:bg-surface focus:ring-2 focus:ring-accent-fill/20";
 
 /** The same chrome for a `<select>`, which needs room for its own chevron. */
 export const FIELD_SELECT = `${FIELD} appearance-none pr-10`;
@@ -17,7 +17,7 @@ export const FIELD_TEXTAREA = `${FIELD.replace("h-11", "min-h-11 py-2")} resize-
 /** Label above a field (§6), as iOS captions a group: small, in the secondary
  *  ink, a little in from the field's edge. Sentence case, because it is a
  *  label and not one of the small uppercase group headings. */
-export const FIELD_LABEL = "mb-1.5 block px-1 text-[13px] font-medium text-ink-secondary";
+export const FIELD_LABEL = "mb-1.5 block px-1 text-footnote font-medium text-ink-secondary";
 
 /**
  * The dense score panels' field label. It used to be parked on the field's own
@@ -27,7 +27,7 @@ export const FIELD_LABEL = "mb-1.5 block px-1 text-[13px] font-medium text-ink-s
  * dropped on top of the box. A plain band above costs 13px and reads.
  */
 export const FIELD_MICRO_LABEL =
-  "mb-0.5 block text-[10px] font-semibold uppercase leading-none tracking-[0.02em] text-ink-secondary";
+  "mb-0.5 block text-caption-2 font-semibold uppercase leading-none tracking-[0.02em] text-ink-secondary";
 
 /**
  * The dense variant, for the score panels: the shot detail bar, the spare line

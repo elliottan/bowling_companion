@@ -63,7 +63,7 @@ export function SessionFilterButton({
         // as sitting on the button's rim.
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -right-1 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-fill px-1 text-[11px] font-bold tabular-nums text-accent-on-fill"
+          className="pointer-events-none absolute -right-1 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-fill px-1 text-caption-2 font-bold tabular-nums text-accent-on-fill"
         >
           {count}
         </span>

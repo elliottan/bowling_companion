@@ -44,6 +44,7 @@ import { useProAccess } from "../lib/useProAccess";
 import { useProEntry } from "./ui/useProAction";
 import type { LockedProAccess } from "../lib/pro";
 import { byMostLeft, FREE_BALLS, previewSplit, standInBall } from "../lib/proPreview";
+import { formatFixed, formatPercent } from "../lib/format";
 
 /** The stats the chart can plot, and how each one is drawn.
  *
@@ -64,7 +65,7 @@ const METRICS = {
   pocketPct: {
     label: "Pocket",
     value: (s: BowlingStats) => s.pocketPct,
-    format: (v: number) => `${Math.round(v)}%`,
+    format: (v: number) => formatPercent(v),
     min: 0,
     max: 100,
     minSpan: 25
@@ -72,7 +73,7 @@ const METRICS = {
   sparePct: {
     label: "Spare",
     value: (s: BowlingStats) => s.sparePct,
-    format: (v: number) => `${Math.round(v)}%`,
+    format: (v: number) => formatPercent(v),
     min: 0,
     max: 100,
     minSpan: 25
@@ -80,7 +81,7 @@ const METRICS = {
   strikePct: {
     label: "Strike",
     value: (s: BowlingStats) => s.strikePct,
-    format: (v: number) => `${Math.round(v)}%`,
+    format: (v: number) => formatPercent(v),
     min: 0,
     max: 100,
     minSpan: 25
@@ -92,7 +93,7 @@ const METRICS = {
     // where this is how often a strike was followed by another.
     label: "Strike on strike",
     value: (s: BowlingStats) => s.strikeOnStrikePct,
-    format: (v: number) => `${Math.round(v)}%`,
+    format: (v: number) => formatPercent(v),
     min: 0,
     max: 100,
     minSpan: 25
@@ -100,7 +101,7 @@ const METRICS = {
   carryPct: {
     label: "Carry",
     value: (s: BowlingStats) => s.carryPct,
-    format: (v: number) => `${Math.round(v)}%`,
+    format: (v: number) => formatPercent(v),
     min: 0,
     max: 100,
     minSpan: 25
@@ -108,7 +109,7 @@ const METRICS = {
   firstBallAverage: {
     label: "1st ball",
     value: (s: BowlingStats) => s.firstBallAverage,
-    format: (v: number) => v.toFixed(1),
+    format: (v: number) => formatFixed(v, 1),
     min: 0,
     max: 10,
     minSpan: 2
@@ -726,7 +727,7 @@ function FirstBallCard({
           <Fragment key={label}>
             {i > 0 && <ArrowRight size={14} aria-hidden="true" className="text-ink-tertiary" />}
             <div className="flex flex-col-reverse">
-              <dt className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</dt>
+              <dt className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{label}</dt>
               <dd className={`text-2xl font-bold tabular-nums ${lead ? "text-accent" : "text-ink"}`}>{value}</dd>
             </div>
           </Fragment>
@@ -789,12 +790,12 @@ function LockedFirstBallCard({ pocketPct }: { pocketPct: number | null }) {
       <ProBlur what="Carry, strike and the first ball's other numbers" className="mt-3">
         <dl className="grid grid-cols-[1fr_auto_1fr] items-center text-center">
           <div className="flex flex-col-reverse">
-            <dt className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">Carry</dt>
+            <dt className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">Carry</dt>
             <dd className="text-2xl font-bold tabular-nums text-ink">63%</dd>
           </div>
           <ArrowRight size={14} aria-hidden="true" className="text-ink-tertiary" />
           <div className="flex flex-col-reverse">
-            <dt className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">Strike</dt>
+            <dt className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">Strike</dt>
             <dd className="text-2xl font-bold tabular-nums text-accent">48%</dd>
           </div>
         </dl>
@@ -919,7 +920,7 @@ const BALL_NAME_CELL =
  *  sit at an even step whatever they hold: right-aligned, a short figure
  *  ("9.0") opened a wider gap before it than a long one ("52%"), and the
  *  stacked "1st ball" heading leaned off its number. */
-const BALL_ROW = "flex gap-1";
+const BALL_ROW = "type-cap-dense flex gap-1";
 
 /** A one-word heading ("X-on-X") stays on one line: at the column's edge it
  *  broke at its hyphen and read as "X-ON-" over "X". Two words ("1st ball")
@@ -931,7 +932,7 @@ const NO_BREAK = (label: string) => (label.includes(" ") ? "" : "whitespace-nowr
 function BallRateHeadings() {
   return (
     <div
-      className={`${BALL_ROW} sticky top-0 z-[2] items-end bg-surface pb-1 text-[9px] font-semibold uppercase leading-tight text-ink-tertiary`}
+      className={`${BALL_ROW} sticky top-0 z-[2] items-end bg-surface pb-1 text-caption-2 font-semibold uppercase leading-tight text-ink-tertiary`}
       aria-hidden="true"
     >
       <span className={`${BALL_NAME_CELL} self-stretch`} />
@@ -956,7 +957,7 @@ function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labell
   const thin = ball.firstBalls < RATE_LEADER_MIN_BALLS;
   const tone = thin ? "text-ink-tertiary" : "text-ink";
   const line = (
-    <span className={`${BALL_ROW} w-full items-end text-left text-[13px]`}>
+    <span className={`${BALL_ROW} w-full items-end text-left text-footnote`}>
       <span className={`${BALL_NAME_CELL} self-center`}>
         <span className="h-7 w-7 shrink-0">
           {ball.imageThumb || ball.brand ? (
@@ -970,7 +971,7 @@ function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labell
           <span className="line-clamp-2 break-words font-medium leading-tight text-ink-strong">
             {ball.name}
           </span>
-          <span className="block text-[10px] tabular-nums text-ink-tertiary">
+          <span className="block text-caption-2 tabular-nums text-ink-tertiary">
             {ball.firstBalls} {ball.firstBalls === 1 ? "ball" : "balls"}
           </span>
         </span>
@@ -985,7 +986,7 @@ function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labell
         >
           {labelled && (
             <span
-              className={`block text-[9px] font-semibold uppercase leading-tight text-ink-tertiary ${NO_BREAK(c.label)}`}
+              className={`block text-caption-2 font-semibold uppercase leading-tight text-ink-tertiary ${NO_BREAK(c.label)}`}
               aria-hidden="true"
             >
               {c.label}
@@ -1031,7 +1032,7 @@ function BallDetails({
         aria-label={`${ball.name} by game`}
         className="scrollbar-none overflow-x-auto overscroll-x-none"
       >
-        <table className="min-w-full whitespace-nowrap text-[11px] tabular-nums">
+        <table className="min-w-full whitespace-nowrap text-caption-2 tabular-nums">
           <thead>
             <tr className="text-ink-tertiary">
               <th className={`${ROW_NAME_CELL} text-left font-semibold`}>By game</th>
@@ -1377,14 +1378,14 @@ function LeaveCountCell({ leave }: { leave: LeaveStats }) {
       <MiniPins standing={leave.pins} size="sm" />
       <span className="text-sm font-bold tabular-nums text-ink">
         {leave.attempts}
-        <span className="text-[11px] font-semibold text-ink-secondary">
+        <span className="text-caption-2 font-semibold text-ink-secondary">
           {leave.attempts === 1 ? " time" : " times"}
         </span>
       </span>
       {/* The count alone rewards the ball thrown most: a share of this ball's
           own fresh-rack balls is the number that compares across the rows. */}
       {leave.sharePct !== null && (
-        <span className="text-[11px] tabular-nums text-ink-tertiary">{leave.sharePct}%</span>
+        <span className="text-caption-2 tabular-nums text-ink-tertiary">{formatPercent(leave.sharePct)}</span>
       )}
     </div>
   );
@@ -1406,7 +1407,7 @@ function LeaveCell({ leave, onOpen }: { leave: LeaveStats; onOpen: () => void })
           rate hard right. Both are tabular so the columns line up cell to cell
           however many digits each one happens to have. */}
       <div className="flex w-full items-baseline gap-1">
-        <span className="min-w-0 flex-1 text-left text-[11px] tabular-nums text-ink-secondary">
+        <span className="min-w-0 flex-1 text-left text-caption-2 tabular-nums text-ink-secondary">
           {leave.conversions}/{leave.chances}
         </span>
         <span
@@ -1416,7 +1417,7 @@ function LeaveCell({ leave, onOpen }: { leave: LeaveStats; onOpen: () => void })
               : "text-ink"
           }`}
         >
-          {leave.conversionPct !== null ? `${leave.conversionPct}%` : "-"}
+          {leave.conversionPct !== null ? formatPercent(leave.conversionPct) : "-"}
         </span>
       </div>
     </button>
@@ -1429,11 +1430,11 @@ function fmt(value: number | null): string {
 }
 
 function pct(value: number | null): string {
-  return value === null ? "-" : `${value}%`;
+  return value === null ? "-" : formatPercent(value);
 }
 
 /** Always one decimal, so a first ball of 9 reads as 9.0 and the tile does not
  *  jump between two and three characters as the average crosses a whole pin. */
 function oneDp(value: number | null): string {
-  return value === null ? "-" : value.toFixed(1);
+  return value === null ? "-" : formatFixed(value, 1);
 }

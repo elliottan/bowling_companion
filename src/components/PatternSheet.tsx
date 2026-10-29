@@ -11,6 +11,7 @@ import { IconButton } from "./ui/IconButton";
 import { PushScreen } from "./PushScreen";
 import { LaneViewIcon } from "./icons";
 import { catalogSheet, type KeptSheet } from "../services/patternCatalog";
+import { formatFixed } from "../lib/format";
 
 /**
  * A pattern sheet, in the app (ADR-106).
@@ -90,15 +91,15 @@ export function PatternSheet({
               {/* The four figures a sheet leads with. */}
               <dl className="grid grid-cols-2 gap-2">
                 <Figure label="Distance" value={`${Math.round(stats.length)} ft`} />
-                <Figure label="Volume" value={`${stats.volumeMl.toFixed(2)} mL`} />
+                <Figure label="Volume" value={`${formatFixed(stats.volumeMl, 2)} mL`} />
                 <Figure
                   label="Ratio"
-                  value={ratio != null ? `${ratio.toFixed(2)}:1` : "unknown"}
+                  value={ratio != null ? `${formatFixed(ratio, 2)}:1` : "unknown"}
                   note={shape ? PATTERN_CLASS_LABEL[shape] : undefined}
                 />
                 <Figure
                   label="Forward / reverse"
-                  value={`${stats.forwardMl.toFixed(2)} / ${stats.reverseMl.toFixed(2)} mL`}
+                  value={`${formatFixed(stats.forwardMl, 2)} / ${formatFixed(stats.reverseMl, 2)} mL`}
                 />
               </dl>
 
@@ -187,11 +188,11 @@ function TrackZoneRow({ zones }: { zones: { label: string; ratio: number }[] }) 
           >
             {/* 9px and tight: seven of these share a phone's width, and a
                 label is only worth printing whole. */}
-            <span className="block whitespace-nowrap text-[9px] leading-tight tracking-tighter text-ink-tertiary">
+            <span className="block whitespace-nowrap text-caption-2 leading-tight tracking-tighter text-ink-tertiary">
               {label}
             </span>
             <span className="block text-sm font-semibold text-ink">
-              {ratio != null ? ratio.toFixed(2) : "-"}
+              {ratio != null ? formatFixed(ratio, 2) : "-"}
             </span>
           </li>
         );

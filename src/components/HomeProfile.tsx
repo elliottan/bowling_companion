@@ -132,7 +132,7 @@ function Tile({
     >
       <Icon size={24} aria-hidden="true" className="text-accent" />
       <span className="block w-full min-w-0">
-        <span className="block whitespace-nowrap text-[15px] font-semibold tracking-tight text-ink">
+        <span className="block whitespace-nowrap text-subhead font-semibold tracking-tight text-ink">
           {label}
         </span>
         {/* Two lines, not one: an empty tile says what it is for, and that
@@ -257,12 +257,12 @@ function SessionTile({
         {average !== null ? (
           <>
             <span className="text-lg font-bold leading-none text-accent">{average}</span>
-            <span className="text-[10px] font-bold tracking-wide text-accent">AVG</span>
+            <span className="text-caption-2 font-bold tracking-wide text-accent">AVG</span>
           </>
         ) : inProgress ? (
           <span className="text-xs font-semibold text-accent">In progress</span>
         ) : null}
-        <span className="truncate text-[10px] font-semibold tracking-wide text-ink-secondary">
+        <span className="truncate text-caption-2 font-semibold tracking-wide text-ink-secondary">
           ({games} {games === 1 ? "GM" : "GMS"})
         </span>
       </span>
