@@ -14,6 +14,15 @@ A free app with one Pro unlock, sold only in the store apps, with no accounts an
 no server (ADR-154). The phases, the free and Pro split, and how the catalog
 refreshes offline are in [PRO-LAUNCH.md](./PRO-LAUNCH.md).
 
+### The Live Activity, seen on a phone
+
+ADR-221 puts the game on the Lock Screen and in the Dynamic Island. It was
+written without Xcode or a phone, so the first job is to open the project, build
+it, and look at the three layouts on a device. After that: follow the accent
+palette the bowler chose (the widget has the felt palette only), end an activity
+that a closed app left behind when the app next opens, and renumber a showing
+game after a delete renumbers its session's games.
+
 ---
 
 ## Medium impact

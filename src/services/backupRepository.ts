@@ -1,6 +1,7 @@
 import { db, linkLegacySessionOilPatterns } from "../db/bowlingDb";
 import { validateBackup } from "../lib/backupValidation";
 import { shareFileFromApp } from "../lib/nativeShare";
+import { liveActivity } from "../lib/nativeLiveActivity";
 import { isNativeApp } from "../lib/platform";
 import { isSpare, isStrike } from "../lib/scoring";
 import { setSetting } from "./bowlingRepository";
@@ -254,6 +255,9 @@ export async function replaceAllData(
       await linkLegacySessionOilPatterns(db.sessions, db.oil_patterns);
     }
   );
+
+  // Every game the Lock Screen knew is gone, or is a different one now.
+  liveActivity.stop();
 
   return countBackup(backup);
 }

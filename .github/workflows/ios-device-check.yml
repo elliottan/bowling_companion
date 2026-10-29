@@ -64,10 +64,14 @@ jobs:
 
       - name: Build the app for the simulator
         run: |
+          # pipefail: without it the tail's exit code hides a failed build.
+          set -o pipefail
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
             -sdk iphonesimulator -destination "id=${{ steps.sim.outputs.udid }}" \
             -derivedDataPath ios-build CODE_SIGNING_ALLOWED=NO build | tail -40
           test -d ios-build/Build/Products/Debug-iphonesimulator/App.app
+          # The Live Activity's extension (ADR-221) is built and embedded.
+          test -f ios-build/Build/Products/Debug-iphonesimulator/App.app/PlugIns/HeadpinLiveActivity.appex/HeadpinLiveActivity
           # The web view is inspectable only when this reads true (Capacitor
           # reads it from Info.plist; debug.xcconfig sets it).
           plutil -p ios-build/Build/Products/Debug-iphonesimulator/App.app/Info.plist | grep -i capacitor

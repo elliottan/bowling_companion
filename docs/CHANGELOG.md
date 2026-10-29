@@ -9,6 +9,29 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.74.0: Your game on the Lock Screen and in the Dynamic Island (2026-10-29)
+
+- In the iPhone app, a game you are scoring now shows on the Lock Screen and in
+  the Dynamic Island (iPhone 14 Pro and later, and on the Lock Screen of any
+  iPhone with iOS 16.1 or later). The Lock Screen shows the session, the
+  bowling centre, the game, the running total and a small scorecard: each
+  frame's marks and total, with the frame you are bowling marked, and the
+  highest score still possible. The island shows the total beside the Headpin
+  pin, and opens to the game, the frame and the last few frames.
+- It is in your accent color, and light or dark as the app is: a theme of
+  System follows the phone.
+- It starts with the first ball of a game, updates as you record or undo a
+  ball, and when the game finishes it keeps the final score up for five
+  minutes. Deleting the game or its session takes it down at once.
+- Settings, under App, has "Live Activity on the Lock Screen", on to begin
+  with. Turning it off takes down what is showing. If the iPhone's own Settings
+  has Live Activities switched off for Headpin, the row says so. The row is in
+  the iPhone app only, and not on an iPhone older than iOS 16.1.
+- The web app and the Android app are unchanged. The app still runs on iOS 15.
+- The Lock Screen's marks and totals come from the same code as the scorecard:
+  the scorecard's running totals moved into one shared function
+  (`rollingTotalForCell`) so the two cannot differ (ADR-221).
+
 ## 0.73.0: Ready for more languages (2026-10-29)
 
 - No new language yet, and nothing looks different in English. The app can now

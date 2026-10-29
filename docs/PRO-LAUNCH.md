@@ -38,6 +38,7 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | Scoring | Sessions with alley, lane, pattern and type; score first, file later | ✓ | | Recording |
 | Scoring | Ball, stance, target and breakpoint on each shot, strike-ball moves | ✓ | | Recording, and what Pro later reads |
 | Scoring | Spare lines: the shot a leave opens with, and lines that follow your moves | ✓ | | Part of entering a shot, not analysis |
+| Scoring | The game on the iPhone's Lock Screen and Dynamic Island (ADR-221) | ✓ | | Recording: it shows what the bowler already entered |
 | History | Every session and game, filters, reopening a game | ✓ | | The bowler's own data |
 | History | Backup, export and import | ✓ | | Never gate the bowler's data |
 | Stats | Average, high game and series, game count, score trend chart | ✓ | | What every free app shows |
@@ -228,6 +229,10 @@ switch.
 - [x] Share sheet for cards, links and backups, which saves to Files (ADR-156).
 - [x] Haptics on the pin deck, no rubber band, no pinch zoom (ADR-160). Apple
       rejects a repackaged website (4.2).
+- [x] The game in progress on the Lock Screen and in the Dynamic Island, a
+      Live Activity from a widget extension of the iPhone app (ADR-221). Written
+      and unit tested on Linux; the Xcode target, the Swift and the look have
+      never been built or seen, so see "What the owner does in Xcode" in the ADR.
 - [x] The first-run import steps.
 - [x] Remove the donation link and the retailer link (ADR-119), their usage
       count, and their words on the legal page.

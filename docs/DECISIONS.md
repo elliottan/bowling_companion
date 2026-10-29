@@ -9384,3 +9384,155 @@ convention plus review until the rest is done, and a lint rule for it is open.
 Not covered: right-to-left layout, the guides and legal prose, and the Home
 Screen quick actions and App Store text, which need localizations of their own.
 
+## ADR-221: The game being scored is a Live Activity on the iPhone
+
+**Status.** Accepted, 2026-10-29. Follows ADR-155, ADR-158 and ADR-161, whose
+way of writing the app's own plugins this keeps. Written and unit tested on
+Linux. The Xcode target, the Swift and every layout are unbuilt and unseen; the
+list of what that leaves is under Consequences.
+
+**Context.** A bowler scores a game a ball at a time with the phone in a hand
+or a pocket, and looks at the total between balls. A Live Activity puts that
+score on the Lock Screen and in the Dynamic Island, which is where a phone that
+was just put down is looked at. ActivityKit needs iOS 16.1, the app's floor is
+15.0 (ADR-155), and the drawing has to be a WidgetKit extension: a separate
+target with its own bundle id, which the web view cannot reach. ADR-154 draws
+the line at "Recording is free; reading deeper is Pro". This shows what the
+bowler already entered, and costs nothing to anyone else.
+
+**Decision.**
+
+- **Free, and the iPhone app only.** Nothing is drawn or loaded on the web or
+  the Android app: the plugin is imported only when `isIOSApp()` is true
+  (`src/lib/nativeLiveActivity.ts`), the same lazy `registerPlugin` and
+  `unthenable` as the tab bar and the store.
+- **The page does the bowling; the phone draws strings.** `src/lib/liveActivity.ts`
+  turns a game's frames into the payload below from the scorecard's own
+  functions: `getFrameShotSymbols` for the marks, `rollingTotalForCell` (moved
+  out of `Scorecard` so both read one rule) for the totals under each frame,
+  `hydrateFrameController` for the current frame, and `maxPossibleScore`,
+  which bowls the rest of the game out as strikes and spares through
+  `submitShot` and scores it with `calculateGameScore`. Swift reads the strings
+  and totals and works out nothing. A Vitest test reads the Swift struct
+  (`src/test/liveActivityProject.test.ts`) and fails if its fields and the
+  payload's differ, since a Codable mismatch only shows on a phone.
+- **The payload (`ContentState`)** is about 0.6 KB, a sixth of ActivityKit's 4 KB:
+  `label` (the session's event, else its alley, at most 40 characters),
+  `location` (the alley, or "" when it is the label), `game`, `total`, `frame`
+  (1 to 10), `done`, `max` (the highest score still possible, null once done)
+  and `frames`: ten of `{ marks: string[], score: string }`, two marks a frame
+  and three in the tenth, a strike written in the second box as the card does,
+  `score` "" until the frame is settled. The attributes are only
+  `gameId`, so the phone and the page agree on which game an activity is.
+- **Lifecycle lives in `bowlingRepository`, not in a component,** because every
+  path that changes a game goes through it: `saveFrame` (a ball, an edit, a
+  finishing ball), `deleteFrame` (an undo that empties a frame), `deleteGame`,
+  `deleteSession`, and a backup import. After each, `syncLiveActivity(gameId)`
+  runs un-awaited and reads nothing at all off the iPhone app, so a recorded
+  shot never waits on it. It starts an activity at the first ball, updates it
+  on each later one and on an undo, ends it with the final score kept for
+  five minutes when the game finishes, and ends it at once when the game or
+  session is deleted or an undo takes the first ball back. Opening the Score tab
+  on a half-bowled game calls `resumeLiveActivity`, so a game picked up after
+  the app was closed is shown again; a finished game, and any session opened
+  from History to be read, is never started.
+- **One activity at a time, and the controller keeps balls from queueing.**
+  `createLiveActivityController` sends calls in order, one at a time, and while
+  one is out keeps only the newest of the rest. `start` is an upsert in Swift:
+  it updates the activity if the game has one, else ends any other and requests
+  a new one. The page's idea of what is showing is a hint: if `update` says
+  there is none (the app was closed and opened since) it starts one.
+- **A Settings switch, on by default.** "Live Activity on the Lock Screen", in
+  the App group, drawn by `ListSwitchRow` and HTML's own `switch`
+  (DESIGN-LANGUAGE section 4c). Stored as `live_activity` in the settings table,
+  which a backup carries; only "off" is written. It is drawn only where the
+  phone says it can (`status`: iOS 16.1 or later and the extension embedded),
+  and says where to allow it when `ActivityAuthorizationInfo().areActivitiesEnabled`
+  is false. Turning it off ends what is showing; turning it on waits for the
+  next ball.
+- **Swift.** `ios/App/App/HeadpinLiveActivityPlugin.swift` (`status`, `start`,
+  `update`, `end`), registered in `HeadpinViewController.capacitorDidLoad`. All
+  ActivityKit is in one `@available(iOS 16.1, *)` enum, and the iOS 16.2 forms
+  (`ActivityContent`) are used where they exist, the 16.1 ones before. The
+  app weak-links ActivityKit so iOS 15 still launches it. The widget extension
+  `HeadpinLiveActivity` (`ios/App/HeadpinLiveActivity`, bundle id
+  `app.headpin.LiveActivity`, deployment 16.1, same team, version and build as
+  the app) draws a Lock Screen banner (mark, label, location, "Game N", the
+  total, frame, max, and the ten-frame card with the current frame marked) and
+  the island (compact: the pin and the total; minimal: the total; expanded: the
+  game, the total, the frame and max, and the last four frames).
+  `ios/App/Shared/HeadpinGameAttributes.swift` is compiled into both targets.
+  The colours are the bowler's own: every update carries the palette the app is
+  showing (read off `<html>`, so a palette Pro has not opened reads as Felt)
+  and the theme choice. The Lock Screen draws that palette light or dark as the
+  app does, following the phone only when the theme is "system"; the island is
+  always dark and takes the palette's dark accent. The five palettes' accent
+  tokens are copied into `HeadpinTheme.swift`, since a widget cannot read a
+  stylesheet, and `liveActivityProject.test.ts` compares them with
+  `src/index.css` so they cannot drift. The mark is the app icon's pin, drawn
+  on the accent fill.
+  `NSSupportsLiveActivities` is in the app's Info.plist.
+- **The Xcode project was edited by hand,** as the earlier plugins were, with
+  the same readable ids (`C0FFEE...A9` to `...CA`): a second native target, its
+  Debug and Release configurations, Sources, Frameworks (WidgetKit, SwiftUI,
+  ActivityKit) and Resources phases, an "Embed Foundation Extensions" phase on
+  the app, and a target dependency, so the existing `App` scheme builds it.
+  `ci_post_clone.sh` needs no change: it prepares the web build and packages,
+  and the extension uses neither. The file parses with the `xcode` package's
+  openstep parser, every id is defined once and used, and
+  `liveActivityProject.test.ts` holds the facts that fail silently (embedded,
+  same version and team, shared attributes in both targets).
+
+**Consequences.**
+
+- **Not verified, and only a Mac and a phone can:** that the project opens in
+  Xcode and builds; that the Swift compiles (it is written against the 16.1
+  and 16.2 APIs from memory, and a failed build is most likely a typo here);
+  that the extension signs and embeds; that `Activity.request` succeeds; what
+  the three layouts look like at each Dynamic Type size and on a small phone,
+  and whether the card's ten frames fit the width; the colours against the Lock
+  Screen's own tint; that the tenth frame's three boxes are legible at 11 pt;
+  that `areActivitiesEnabled` and the Settings row's second line read right.
+- **Known gaps, none of them a crash.** A palette or theme changed mid-game
+  reaches the Lock Screen with the next ball, not at once. An activity a closed app leaves behind
+  stays until iOS ends it (at most eight hours) or the app next opens that
+  game. Deleting a game renumbers its session's later games, and an activity
+  showing one of those keeps its old "Game N" until the next ball. Editing a
+  session's name does not refresh a showing activity until the next ball.
+  There is no remote update (no push): only the app, while it runs, changes it.
+- **Owner, in Xcode and App Store Connect.** Open `ios/App/App.xcodeproj`. In
+  Signing and Capabilities, select the `HeadpinLiveActivity` target: Automatic
+  signing and team `CQ6FS6P6H2` should already be set. Xcode registers the App
+  ID `app.headpin.LiveActivity` on first build with a signed-in account; with
+  Xcode Cloud, the workflow's automatic ("cloud-managed") signing registers and
+  signs it, and the App Store Connect API key or the account that owns the team
+  must be allowed to create identifiers. No capability is added to the app: Live
+  Activities need only the Info.plist key. Check the extension's version and
+  build number track the app's (both read `MARKETING_VERSION` and
+  `CURRENT_PROJECT_VERSION`; the store rejects an extension that differs).
+  Build and run on a phone with iOS 16.1 or later, score a ball, lock the
+  phone. In the simulator, Live Activities work on an iOS 16.1 or later
+  simulator.
+- **If the hand edit does not open or build, add the target again by hand.**
+  Remove `HeadpinLiveActivity` and the files under `ios/App/HeadpinLiveActivity`
+  from the project if Xcode half-loaded them, then: (1) File, New, Target, iOS,
+  Widget Extension; product name `HeadpinLiveActivity`; uncheck "Include Live
+  Activity" and "Include Configuration App Intent"; Finish, and cancel the
+  "Activate scheme" prompt. (2) Delete the sample files Xcode made, and add the
+  four in `ios/App/HeadpinLiveActivity` (`HeadpinLiveActivityBundle.swift`,
+  `HeadpinGameViews.swift`, `HeadpinTheme.swift`, `Info.plist`) to that target
+  only, replacing Xcode's `Info.plist`. (3) Select `Shared/HeadpinGameAttributes.swift`
+  and in the File inspector tick Target Membership for both `App` and
+  `HeadpinLiveActivity`. (4) Select `App/HeadpinLiveActivityPlugin.swift` and
+  tick `App` only. (5) For the extension target, General: Minimum Deployments
+  iOS 16.1; Bundle Identifier `app.headpin.LiveActivity`; Version and Build the
+  same as the app's. Signing: Automatically manage signing, team `CQ6FS6P6H2`.
+  (6) For the `App` target, General, Frameworks, Libraries: add `ActivityKit.framework`
+  and set it to Optional. Build Phases: confirm "Embed Foundation Extensions"
+  lists `HeadpinLiveActivity.appex` (Xcode adds it), and Target Dependencies
+  lists `HeadpinLiveActivity`. (7) Info.plist of the app has
+  `NSSupportsLiveActivities` set to YES (already in this commit's `Info.plist`).
+  (8) Build the `App` scheme. Nothing in the page changes: it asks for the
+  plugin by the name `HeadpinLiveActivity`, and `status` answers
+  `supported: false` until the extension is embedded, so a build without it is
+  merely without the switch.

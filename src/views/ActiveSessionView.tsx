@@ -49,6 +49,7 @@ import {
   getSessionDetails,
   getSessionHistory,
   getSetting,
+  resumeLiveActivity,
   deleteFrame,
   saveFrame,
   setBackupNudgeSnoozedUntil,
@@ -225,6 +226,12 @@ export function ActiveSessionView({
     () => sessionDetails?.games.find((g) => g.id === activeGameId) ?? null,
     [activeGameId, sessionDetails]
   );
+
+  // A game opened half bowled is on the Lock Screen again (ADR-221). Only the
+  // session being bowled, never one opened from History to be read.
+  useEffect(() => {
+    if (mode === "tab" && activeGameId != null) void resumeLiveActivity(activeGameId);
+  }, [mode, activeGameId]);
 
   const loaded = sessionDetails != null;
   useEffect(() => {

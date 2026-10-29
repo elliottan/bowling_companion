@@ -325,6 +325,10 @@ msgstr "Left-handed"
 msgid "Light"
 msgstr "Light"
 
+#: src/views/SettingsView.tsx
+msgid "Live Activity on the Lock Screen"
+msgstr "Live Activity on the Lock Screen"
+
 #: src/components/ActiveGameScorer.tsx
 msgid "More"
 msgstr "More"
@@ -492,6 +496,10 @@ msgstr "Strike, Spare and Foul come back and change the shot you pick on the car
 msgid "Support"
 msgstr "Support"
 
+#: src/views/SettingsView.tsx
+msgid "Switched off for Headpin in the iPhone's Settings"
+msgstr "Switched off for Headpin in the iPhone's Settings"
+
 #. Theme setting: follow the phone's light or dark choice
 #: src/views/AppearanceView.tsx
 msgid "System"
@@ -600,6 +608,10 @@ msgstr "Your balls and their layouts"
 #: src/views/SettingsView.tsx
 msgid "Your bowling"
 msgstr "Your bowling"
+
+#: src/views/SettingsView.tsx
+msgid "Your game's score, frame by frame, while you bowl"
+msgstr "Your game's score, frame by frame, while you bowl"
 
 #: src/views/SettingsView.tsx
 msgid "Your name, {name}"

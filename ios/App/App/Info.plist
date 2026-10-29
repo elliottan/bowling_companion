@@ -104,6 +104,8 @@
       </array>
     </dict>
 	</dict>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Headpin saves the share cards you make to your photos when you ask it to.</string>
 	<key>UILaunchStoryboardName</key>
