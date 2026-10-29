@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { buildLiveActivityState, hasRecordedBall, maxPossibleScore } from "./liveActivity";
+import { afterEach, describe, expect, it } from "vitest";
+import { buildLiveActivityState, currentAppearance, hasRecordedBall, maxPossibleScore } from "./liveActivity";
 import { calculateGameScore } from "./scoring";
 import type { Frame, PinNumber, Shot } from "../types/bowling";
 
@@ -143,5 +143,36 @@ describe("maxPossibleScore", () => {
       frame(10, [], [], [])
     ];
     expect(maxPossibleScore(half)).toBe(calculateGameScore(best).total);
+  });
+});
+
+describe("the Live Activity's colors", () => {
+  afterEach(() => {
+    delete document.documentElement.dataset.palette;
+    localStorage.removeItem("theme");
+  });
+
+  it("carries the palette and theme it is given", () => {
+    const state = buildLiveActivityState(SESSION, GAME, strikes(1), { palette: "grape", theme: "dark" })!;
+    expect(state.palette).toBe("grape");
+    expect(state.theme).toBe("dark");
+  });
+
+  it("defaults to Felt following the phone", () => {
+    const state = buildLiveActivityState(SESSION, GAME, strikes(1))!;
+    expect(state.palette).toBe("felt");
+    expect(state.theme).toBe("system");
+  });
+
+  it("reads the palette the app is showing and the theme the bowler chose", () => {
+    document.documentElement.dataset.palette = "ocean";
+    localStorage.setItem("theme", "light");
+    expect(currentAppearance()).toEqual({ palette: "ocean", theme: "light" });
+  });
+
+  it("reads Felt when no palette is on the page, or an unknown one", () => {
+    expect(currentAppearance().palette).toBe("felt");
+    document.documentElement.dataset.palette = "mauve";
+    expect(currentAppearance().palette).toBe("felt");
   });
 });

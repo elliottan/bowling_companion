@@ -3,7 +3,7 @@ import { calculateGameScore } from "../lib/scoring";
 import { localDateKey } from "../lib/dates";
 import { nextGameStartLane } from "../lib/lanes";
 import { reportGameFinished } from "./usageReporter";
-import { buildLiveActivityState } from "../lib/liveActivity";
+import { buildLiveActivityState, currentAppearance } from "../lib/liveActivity";
 import { liveActivity } from "../lib/nativeLiveActivity";
 import { isIOSApp } from "../lib/platform";
 import {
@@ -67,7 +67,7 @@ async function syncLiveActivity(gameId: number): Promise<void> {
       return;
     }
     const frames = await db.frames.where("game_id").equals(gameId).toArray();
-    const state = buildLiveActivityState(session, game, frames);
+    const state = buildLiveActivityState(session, game, frames, currentAppearance());
     if (!state) {
       // An undo took the first ball back: there is no game to show.
       liveActivity.stop(gameId);

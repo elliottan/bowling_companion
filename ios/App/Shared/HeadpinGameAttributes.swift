@@ -37,6 +37,11 @@ struct HeadpinGameAttributes: ActivityAttributes {
         var max: Int?
         /// Always ten.
         var frames: [Frame]
+        /// The palette the app is showing: "felt", "ocean", "sunset", "grape"
+        /// or "rose".
+        var palette: String
+        /// "light" or "dark" as the bowler chose in the app, or "system".
+        var theme: String
     }
 
     /// The game's id in the app's database, so the app can tell which game an

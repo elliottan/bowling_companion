@@ -79,12 +79,15 @@ struct FrameStripView: View {
 /// card.
 struct LockScreenGameView: View {
     let state: HeadpinGameAttributes.ContentState
-    private let palette = HeadpinPalette.lockScreen
+    @Environment(\.colorScheme) private var phoneScheme
+
+    private var dark: Bool { HeadpinPalette.isDark(theme: state.theme, phone: phoneScheme) }
+    private var palette: HeadpinPalette { HeadpinPalette.lockScreen(palette: state.palette, dark: dark) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .center, spacing: 8) {
-                HeadpinMark(size: 28)
+                HeadpinMark(size: 28, fill: palette.accentFill)
                 VStack(alignment: .leading, spacing: 0) {
                     Text(state.label)
                         .font(.system(size: 15, weight: .semibold))
@@ -124,13 +127,16 @@ struct LockScreenGameView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
+        .environment(\.colorScheme, dark ? .dark : .light)
+        .activityBackgroundTint(palette.background)
+        .activitySystemActionForegroundColor(palette.accent)
     }
 }
 
 /// The island's expanded bottom: the last few frames, up to the one being bowled.
 struct RecentFramesView: View {
     let state: HeadpinGameAttributes.ContentState
-    private let palette = HeadpinPalette.island
+    let palette: HeadpinPalette
 
     var body: some View {
         let upTo = min(state.frames.count, state.done ? 10 : max(1, state.frame))

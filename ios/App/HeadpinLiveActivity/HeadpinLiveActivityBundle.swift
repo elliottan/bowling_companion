@@ -16,16 +16,15 @@ struct HeadpinGameLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: HeadpinGameAttributes.self) { context in
             // The Lock Screen, and the banner at the top of the screen.
+            // Its own background and tint, by the bowler's palette and theme.
             LockScreenGameView(state: context.state)
-                .activityBackgroundTint(HeadpinPalette.lockScreenBackground)
-                .activitySystemActionForegroundColor(HeadpinPalette.lockScreen.accent)
         } dynamicIsland: { context in
-            let island = HeadpinPalette.island
             let state = context.state
+            let island = HeadpinPalette.island(palette: state.palette)
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
                     HStack(spacing: 6) {
-                        HeadpinMark(size: 24)
+                        HeadpinMark(size: 24, fill: island.accentFill)
                         Text("Game \(state.game)")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(island.ink)
@@ -49,7 +48,7 @@ struct HeadpinGameLiveActivity: Widget {
                     }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    RecentFramesView(state: state)
+                    RecentFramesView(state: state, palette: island)
                 }
             } compactLeading: {
                 PinShape()

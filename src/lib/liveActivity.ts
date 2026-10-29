@@ -2,7 +2,9 @@ import type { Frame, Game, Session } from "../types/bowling";
 import { calculateGameScore } from "./scoring";
 import { hydrateFrameController, submitShot } from "./frameController";
 import { getFrameShotSymbols, rollingTotalForCell } from "./scoreDisplay";
+import { DEFAULT_PALETTE, PALETTES, type PaletteId } from "./palette";
 import { alleyLabel } from "./sessionLabels";
+import { readThemePreference, type ThemePreference } from "./theme";
 
 /**
  * What the iPhone's Lock Screen and Dynamic Island show of a game being scored
@@ -41,6 +43,34 @@ export interface LiveActivityState {
   max: number | null;
   /** Always ten. */
   frames: LiveActivityFrame[];
+  /** The accent the app is showing: the bowler's palette, or Felt while Pro is
+   *  not open (ADR-164). */
+  palette: PaletteId;
+  /** The app's own light or dark choice, or "system" to follow the phone. */
+  theme: ThemePreference;
+}
+
+/** The app's colors, as the Lock Screen should draw them. */
+export interface LiveActivityAppearance {
+  palette: PaletteId;
+  theme: ThemePreference;
+}
+
+const DEFAULT_APPEARANCE: LiveActivityAppearance = { palette: DEFAULT_PALETTE, theme: "system" };
+
+/**
+ * The palette and theme the app is showing now. The palette is read off
+ * `<html>`, not from storage, because that is the one Pro has let through
+ * (`useAppliedPalette`): a refunded Pro shows Felt here as in the app.
+ */
+export function currentAppearance(): LiveActivityAppearance {
+  try {
+    const shown = document.documentElement.dataset.palette;
+    const palette = PALETTES.find((p) => p.id === shown)?.id ?? DEFAULT_PALETTE;
+    return { palette, theme: readThemePreference() };
+  } catch {
+    return DEFAULT_APPEARANCE;
+  }
 }
 
 export interface LiveActivityPayload {
@@ -83,7 +113,8 @@ export function maxPossibleScore(frames: Frame[]): number {
 export function buildLiveActivityState(
   session: Pick<Session, "alley_name" | "description">,
   game: Pick<Game, "game_number">,
-  frames: Frame[]
+  frames: Frame[],
+  appearance: LiveActivityAppearance = DEFAULT_APPEARANCE
 ): LiveActivityState | null {
   if (!hasRecordedBall(frames)) return null;
 
@@ -121,6 +152,8 @@ export function buildLiveActivityState(
     frame: done ? 10 : Math.min(10, controller.currentFrameNumber),
     done,
     max: done ? null : maxPossibleScore(frames),
-    frames: cells
+    frames: cells,
+    palette: appearance.palette,
+    theme: appearance.theme
   };
 }

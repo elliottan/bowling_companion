@@ -15,7 +15,9 @@ const STATE: LiveActivityState = {
   frame: 2,
   done: false,
   max: 300,
-  frames: []
+  frames: [],
+  palette: "felt",
+  theme: "system"
 };
 const payload = (gameId: number, total = 20): LiveActivityPayload => ({ gameId, state: { ...STATE, total } });
 

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildLiveActivityState } from "../lib/liveActivity";
+import { PALETTES } from "../lib/palette";
 import type { Frame } from "../types/bowling";
 
 /**
@@ -120,4 +121,45 @@ describe("the app side", () => {
     expect(read("src/lib/nativeLiveActivity.ts")).toContain('registerPlugin<LiveActivityPlugin>("HeadpinLiveActivity")');
     expect(project).toContain("HeadpinLiveActivityPlugin.swift in Sources");
   });
+});
+
+describe("the Live Activity's palettes match the page's", () => {
+  const css = read("src/index.css");
+  const theme = read("ios/App/HeadpinLiveActivity/HeadpinTheme.swift");
+
+  /** A token's "r g b" from the CSS block for this theme and palette. */
+  function token(mode: "light" | "dark", palette: string, name: string): string {
+    const selector =
+      palette === "felt"
+        ? mode === "light"
+          ? ':root[data-theme="light"] {'
+          : ':root[data-theme="dark"] {'
+        : `:root[data-theme="${mode}"][data-palette="${palette}"] {`;
+    const body = block(css, selector);
+    const match = new RegExp(`--color-${name}:\\s*(\\d+ \\d+ \\d+)`).exec(body);
+    expect(match, `${mode} ${palette} ${name}`).not.toBeNull();
+    return match![1];
+  }
+
+  /** The same token as the Swift table writes it. */
+  function swift(mode: "light" | "dark", palette: string, name: "accent" | "soft" | "fill"): string {
+    const start = theme.indexOf(`static let ${mode}: [String: AccentTokens] = [`);
+    expect(start, mode).toBeGreaterThan(-1);
+    const table = theme.slice(start, theme.indexOf("\n    ]", start));
+    const row = table.split("\n").find((line) => line.trim().startsWith(`"${palette}":`));
+    expect(row, `${mode} ${palette}`).toBeDefined();
+    const value = new RegExp(`${name}: \\((\\d+), (\\d+), (\\d+)\\)`).exec(row!);
+    expect(value, `${mode} ${palette} ${name}`).not.toBeNull();
+    return value!.slice(1).join(" ");
+  }
+
+  for (const { id } of PALETTES) {
+    for (const mode of ["light", "dark"] as const) {
+      it(`has ${id} in ${mode} as the page draws it`, () => {
+        expect(swift(mode, id, "accent")).toBe(token(mode, id, "accent"));
+        expect(swift(mode, id, "soft")).toBe(token(mode, id, "accent-soft"));
+        expect(swift(mode, id, "fill")).toBe(token(mode, id, "accent-fill"));
+      });
+    }
+  }
 });

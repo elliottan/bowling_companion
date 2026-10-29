@@ -9298,8 +9298,15 @@ bowler already entered, and costs nothing to anyone else.
   the island (compact: the pin and the total; minimal: the total; expanded: the
   game, the total, the frame and max, and the last four frames).
   `ios/App/Shared/HeadpinGameAttributes.swift` is compiled into both targets.
-  The colours are the page's tokens for the felt palette, light and dark on the
-  Lock Screen and dark on the island; the mark is the app icon's pin, drawn.
+  The colours are the bowler's own: every update carries the palette the app is
+  showing (read off `<html>`, so a palette Pro has not opened reads as Felt)
+  and the theme choice. The Lock Screen draws that palette light or dark as the
+  app does, following the phone only when the theme is "system"; the island is
+  always dark and takes the palette's dark accent. The five palettes' accent
+  tokens are copied into `HeadpinTheme.swift`, since a widget cannot read a
+  stylesheet, and `liveActivityProject.test.ts` compares them with
+  `src/index.css` so they cannot drift. The mark is the app icon's pin, drawn
+  on the accent fill.
   `NSSupportsLiveActivities` is in the app's Info.plist.
 - **The Xcode project was edited by hand,** as the earlier plugins were, with
   the same readable ids (`C0FFEE...A9` to `...CA`): a second native target, its
@@ -9322,8 +9329,8 @@ bowler already entered, and costs nothing to anyone else.
   and whether the card's ten frames fit the width; the colours against the Lock
   Screen's own tint; that the tenth frame's three boxes are legible at 11 pt;
   that `areActivitiesEnabled` and the Settings row's second line read right.
-- **Known gaps, none of them a crash.** The widget has the felt palette only;
-  a bowler on another accent sees felt. An activity a closed app leaves behind
+- **Known gaps, none of them a crash.** A palette or theme changed mid-game
+  reaches the Lock Screen with the next ball, not at once. An activity a closed app leaves behind
   stays until iOS ends it (at most eight hours) or the app next opens that
   game. Deleting a game renumbers its session's later games, and an activity
   showing one of those keeps its old "Game N" until the next ball. Editing a

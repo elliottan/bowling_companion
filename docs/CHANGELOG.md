@@ -18,6 +18,8 @@ had all shipped.
   frame's marks and total, with the frame you are bowling marked, and the
   highest score still possible. The island shows the total beside the Headpin
   pin, and opens to the game, the frame and the last few frames.
+- It is in your accent color, and light or dark as the app is: a theme of
+  System follows the phone.
 - It starts with the first ball of a game, updates as you record or undo a
   ball, and when the game finishes it keeps the final score up for five
   minutes. Deleting the game or its session takes it down at once.
