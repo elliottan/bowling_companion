@@ -82,7 +82,10 @@ export function SegmentedControl<T extends string>({
       // Sideways is the control's; down still scrolls the page, and a scroll
       // taking the finger cancels the press without choosing anything.
       className={`segmented-track relative grid touch-pan-y select-none rounded-full ${dense ? "p-0.5" : "p-1"}`}
-      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+      // Plain `1fr`, whose floor is each label's own width: at a large text
+      // size every segment widens to the longest label and stays equal, so the
+      // pill still spans one, where `minmax(0, 1fr)` let labels overlap.
+      style={{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }}
       onPointerDown={(e) => {
         if (e.pointerType === "mouse" && e.button !== 0) return;
         e.currentTarget.setPointerCapture?.(e.pointerId);
@@ -152,7 +155,7 @@ export function SegmentedControl<T extends string>({
             // Ink either way, as the tab bar's labels and UIKit's are: weight
             // marks the answer, and the secondary grey on the track fell short
             // of the contrast floor.
-            className={`relative min-w-0 whitespace-nowrap rounded-full px-1 text-sm text-ink transition-[font-weight] ${
+            className={`relative whitespace-nowrap rounded-full px-1.5 text-sm text-ink transition-[font-weight] ${
               dense ? "h-9" : "h-10"
             } ${TAP_TARGET_44} ${selected ? "font-semibold" : "font-medium"}`}
           >

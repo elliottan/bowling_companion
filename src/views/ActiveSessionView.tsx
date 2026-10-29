@@ -654,7 +654,9 @@ export function ActiveSessionView({
         onClick={toggleStats}
         aria-expanded={showSheet}
         aria-label={showSheet ? t`Close session stats` : t`Open session stats`}
-        className="ml-1 shrink-0 rounded-md text-right active:bg-surface-muted"
+        // Capped as a dense readout: at full size the series took a third of
+        // the bar and cut the alley's name to its first word.
+        className="type-cap-dense ml-1 shrink-0 rounded-md text-right active:bg-surface-muted"
       >
         <span className="block text-2xl font-extrabold leading-none text-accent">
           {seriesTotal}

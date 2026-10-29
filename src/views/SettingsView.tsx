@@ -197,7 +197,9 @@ function SettingsMenu({
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-7 px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
-      <div className={`${TAB_TITLE_ROW} justify-between gap-3`}>
+      {/* Wraps, so at a large text size the chip drops under the title
+          rather than cutting the name to its first letter. */}
+      <div className={`${TAB_TITLE_ROW} flex-wrap justify-between gap-x-3`}>
         <h1 className={LARGE_TITLE}>{t`Settings`}</h1>
         {/* The bowler, as a profile chip: tap it to change the name. Held back
             until the name has loaded, so it never flashes "Add name". */}
@@ -206,7 +208,7 @@ function SettingsMenu({
             type="button"
             onClick={() => setEditingName(true)}
             aria-label={name ? t`Your name, ${name}` : t`Add your name`}
-            className="flex min-h-11 min-w-0 max-w-[60%] items-center gap-2 rounded-full py-1 pl-1 pr-3 active:bg-surface-muted"
+            className="ml-auto flex min-h-11 min-w-0 max-w-full items-center gap-2 rounded-full py-1 pl-1 pr-3 active:bg-surface-muted"
           >
             {owned && <ProBadge className="shrink-0" />}
             <span

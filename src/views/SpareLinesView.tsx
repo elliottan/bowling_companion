@@ -296,7 +296,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
         </div>
         <span className="min-w-0 flex-1">
           <span className="block text-caption-2 font-semibold uppercase tracking-wide text-accent">Spare ball</span>
-          <span className="block truncate text-sm font-semibold text-ink">
+          <span className="line-clamp-2 block break-words text-sm font-semibold text-ink">
             {spareBall ? spareBall.name : "Choose one"}
           </span>
         </span>

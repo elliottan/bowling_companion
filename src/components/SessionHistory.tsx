@@ -92,7 +92,7 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
             {alleyLabel(session.alley_name)}
           </p>
           {session.description && (
-            <p className="truncate text-xs font-medium text-ink-secondary">{session.description}</p>
+            <p className="line-clamp-2 break-words text-xs font-medium text-ink-secondary">{session.description}</p>
           )}
           <p className="text-xs text-ink-secondary">
             {[formatSessionDate(session.date), laneSummary(games)].filter(Boolean).join(" · ")}
@@ -101,7 +101,9 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
             <p className="text-xs font-medium text-ink-secondary">{session.oil_pattern}</p>
           )}
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-0.5 text-right">
+        {/* At most half the card, so a large text size wraps the series under
+            the game count instead of squeezing the alley to a word a line. */}
+        <div className="flex max-w-[50%] flex-col items-end gap-0.5 text-right">
           {hasUnfinishedGame && (
             <span className="inline-flex items-center rounded-full bg-accent-fill px-2 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-accent-on-fill">
               Active
@@ -110,14 +112,18 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
           {/* The average leads (ADR-152). Until a game is finished there is
               none, and the running series stands in for it. */}
           {(seriesAvg !== null || seriesTotal > 0) && (
-            <p className="text-lg font-extrabold leading-none text-accent">
+            <p className="whitespace-nowrap text-lg font-extrabold leading-none text-accent">
               {seriesAvg ?? seriesTotal}
               {seriesAvg !== null && <span className="ml-1 text-xs font-semibold text-ink-secondary">avg</span>}
             </p>
           )}
-          <p className={GROUP_HEADING}>
-            {games.length} {games.length === 1 ? "game" : "games"}
-            {seriesAvg !== null && games.length > 1 && ` · ${seriesTotal} series`}
+          <p className={`${GROUP_HEADING} flex flex-wrap justify-end gap-x-1`}>
+            <span className="whitespace-nowrap">
+              {games.length} {games.length === 1 ? "game" : "games"}
+            </span>
+            {seriesAvg !== null && games.length > 1 && (
+              <span className="whitespace-nowrap">{` · ${seriesTotal} series`}</span>
+            )}
           </p>
         </div>
       </div>

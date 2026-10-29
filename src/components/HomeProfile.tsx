@@ -132,7 +132,10 @@ function Tile({
     >
       <Icon size={24} aria-hidden="true" className="text-accent" />
       <span className="block w-full min-w-0">
-        <span className="block whitespace-nowrap text-subhead font-semibold tracking-tight text-ink">
+        {/* One line at the standard size; at a large text size a name
+            wider than its third of the row takes a second line rather than
+            running into the next tile. */}
+        <span className="block text-balance text-subhead font-semibold leading-tight tracking-tight text-ink">
           {label}
         </span>
         {/* Two lines, not one: an empty tile says what it is for, and that
@@ -243,26 +246,28 @@ function SessionTile({
       type="button"
       aria-label={`Open session: ${alley}, ${date}`}
       onClick={() => session.id && onOpen(session.id, !inProgress)}
-      className={`flex h-full w-40 flex-col rounded-[22px] bg-surface px-3.5 py-3 text-left active:bg-surface-muted ${
+      // The width grows with the text size, as the row scrolls sideways
+      // anyway: a fixed 10rem cut the alley and the average to "Chinese S...".
+      className={`flex h-full w-[calc(10rem*var(--type-scale))] flex-col rounded-[22px] bg-surface px-3.5 py-3 text-left active:bg-surface-muted ${
         isActive ? "ring-2 ring-inset ring-accent-fill" : ""
       }`}
     >
-      <span className="block w-full truncate text-sm font-semibold text-ink">{event || alley}</span>
+      <span className="line-clamp-2 block w-full break-words text-sm font-semibold leading-snug text-ink">{event || alley}</span>
       {event && <span className="block w-full truncate text-xs text-ink-secondary">{alley}</span>}
       <span className="block w-full truncate text-xs text-ink-secondary">{date}</span>
       {pattern && <span className="block w-full truncate text-xs text-ink-secondary">{pattern}</span>}
       {/* The average leads, in the accent: it is the number a bowler looks
           for. The game count rides beside it, smaller, as its context. */}
-      <span className="mt-auto flex w-full items-baseline gap-1 pt-2 tabular-nums">
+      <span className="mt-auto flex w-full flex-wrap items-baseline gap-x-1 pt-2 tabular-nums">
         {average !== null ? (
           <>
             <span className="text-lg font-bold leading-none text-accent">{average}</span>
             <span className="text-caption-2 font-bold tracking-wide text-accent">AVG</span>
           </>
         ) : inProgress ? (
-          <span className="text-xs font-semibold text-accent">In progress</span>
+          <span className="whitespace-nowrap text-xs font-semibold text-accent">In progress</span>
         ) : null}
-        <span className="truncate text-caption-2 font-semibold tracking-wide text-ink-secondary">
+        <span className="whitespace-nowrap text-caption-2 font-semibold tracking-wide text-ink-secondary">
           ({games} {games === 1 ? "GM" : "GMS"})
         </span>
       </span>

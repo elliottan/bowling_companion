@@ -33,8 +33,11 @@ const COLUMNS: ReadonlyArray<{ key: string; label: string; value: (c: Counted) =
   { key: "leaves made", label: "Made", value: (c) => pct(c.pickups, c.pickupChances) }
 ];
 
-const COLUMN = "w-8 shrink-0 text-right";
-const ESTIMATE_COLUMN = "w-10 shrink-0 text-right";
+/** Widths in rem times `--type-scale`, so a column grows with the numbers in
+ *  it: fixed, "100%" at a large text size ran into the next column. Every row
+ *  is `type-cap-dense`, so they all grow alike and stay aligned. */
+const COLUMN = "w-[calc(2.25rem*var(--type-scale))] shrink-0 text-right";
+const ESTIMATE_COLUMN = "w-[calc(2.5rem*var(--type-scale))] shrink-0 text-right";
 /** Leaves room for the chevron in the heading row, so the columns line up. */
 const CHEVRON_COLUMN = "w-3 shrink-0";
 
@@ -63,22 +66,26 @@ export function BallEstimates({ report, balls, free }: { report: Estimates; ball
       }
     >
       <li
-        className="type-cap-dense flex items-end gap-1 px-4 pb-1 pt-2 text-caption-2 font-semibold uppercase leading-tight text-ink-tertiary"
+        className="type-cap-dense flex items-end gap-1 px-4 pb-1 pt-2 font-semibold uppercase leading-tight text-ink-tertiary"
         aria-hidden="true"
       >
         <span className="min-w-0 flex-1" />
+        {/* The headings hold their base size inside columns that grow, so a
+            word fits its column at every text size. */}
         {COLUMNS.map((c) => (
           <span key={c.key} className={COLUMN}>
-            {c.label}
+            <span className="type-cap-fixed text-caption-2">{c.label}</span>
           </span>
         ))}
-        <span className={ESTIMATE_COLUMN}>Est.</span>
+        <span className={ESTIMATE_COLUMN}>
+          <span className="type-cap-fixed text-caption-2">Est.</span>
+        </span>
         <span className={CHEVRON_COLUMN} />
       </li>
       {/* Every ball together, as the row each ball is read against: its
           average is the real one, not an estimate. */}
       <li
-        className={`${LIST_DIVIDER} flex items-center gap-1 bg-surface-muted px-4 py-1.5 text-xs tabular-nums text-ink-secondary`}
+        className={`${LIST_DIVIDER} type-cap-dense flex items-center gap-1 bg-surface-muted px-4 py-1.5 text-xs tabular-nums text-ink-secondary`}
         aria-label="All balls"
       >
         <span className="min-w-0 flex-1">

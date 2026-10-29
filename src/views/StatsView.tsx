@@ -188,7 +188,7 @@ export function StatsView({
           <>
             {/* One row: the title, the two actions, then the range at the far
                 right, where it used to take a row of its own under the header. */}
-            <div className={`${TAB_TITLE_ROW} mb-3 gap-2`}>
+            <div className={`${TAB_TITLE_ROW} mb-3 flex-wrap gap-2`}>
               {mode === "tab" && <h1 className={TAB_TITLE}>Stats</h1>}
               <div className="ml-auto flex shrink-0 items-center gap-1">
                 {/* Neither action has anything to act on before the first
@@ -212,7 +212,7 @@ export function StatsView({
               {/* Hidden until there is something to narrow: on a device with
                   no games the empty state is the whole screen. */}
               {finished.length > 0 && (
-                <div className="w-44 min-w-0 shrink">
+                <div className="ml-auto min-w-44">
                   <SegmentedControl
                     label="Sessions counted"
                     options={rangeOptions}

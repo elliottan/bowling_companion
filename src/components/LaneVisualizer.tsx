@@ -862,7 +862,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
               </ProVeil>
             )}
             {/* One instruction to a line, in a column this narrow. */}
-            <p className="max-w-[8.5rem] text-center text-caption-2 leading-snug text-white/70">
+            <p className="type-cap-dense max-w-[8.5rem] text-center text-caption-2 leading-snug text-white/70">
               {onChange && <span className="block">Drag a point to move it</span>}
               <span className="block">Drag the lane to tilt</span>
             </p>
@@ -1254,8 +1254,10 @@ function StepperField({
   const nudge = (d: number) => onCommit(clamp((value ?? min) + d, min, max));
   const leftDelta = lateral ? step * dir : -step;
   return (
+    // Capped as a dense readout over the lane, and as wide as its type, so a
+    // large text size neither cuts "17.5" to "17." nor buries the lane.
     <div
-      className={`flex w-[4.75rem] flex-col gap-0.5 text-center text-caption-2 font-semibold uppercase tracking-wide text-white/70 ${locked ? "opacity-60" : ""}`}
+      className={`type-cap-dense flex w-[calc(4.75rem*var(--type-scale))] flex-col gap-0.5 text-center text-caption-2 font-semibold uppercase tracking-wide text-white/70 ${locked ? "opacity-60" : ""}`}
       // A locked field is its own unlock button: tapping the number (or either
       // arrow) releases the peg rather than doing nothing.
       onPointerDown={locked ? () => onUnlock?.() : undefined}
