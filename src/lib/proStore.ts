@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { unthenable } from "./nativePlugin";
+import { loadStorePlugin, type StorePlugin } from "./nativeStorePlugin";
 import { isNativeApp } from "./platform";
-import type { ProStore, PurchaseOutcome } from "./pro";
+import type { ProStore } from "./pro";
+
+export { loadStorePlugin, type StorePlugin };
 
 /**
  * Headpin Pro in the iOS app, through the app's own StoreKit plugin
@@ -17,13 +19,6 @@ export const PRO_PRODUCT_ID = "app.headpin.pro";
 
 const OWNED_KEY = "headpin.proOwned";
 
-export interface StorePlugin {
-  purchase(options: { id: string }): Promise<{ status: PurchaseOutcome }>;
-  entitlements(): Promise<{ ids: string[] }>;
-  restore(): Promise<{ ids: string[] }>;
-  addListener(event: "entitlements", listener: (data: { ids: string[] }) => void): Promise<{ remove: () => Promise<void> }>;
-}
-
 interface CapacitorPlatform {
   getPlatform?: () => string;
 }
@@ -33,19 +28,6 @@ interface CapacitorPlatform {
 export function sellsPro(scope: object = globalThis, native = isNativeApp(scope)): boolean {
   const platform = (scope as { Capacitor?: CapacitorPlatform }).Capacitor?.getPlatform?.();
   return native && platform === "ios";
-}
-
-/** The native plugin, loaded only where it exists, so the web bundle carries
- *  none of it. */
-let storePlugin: Promise<StorePlugin> | null = null;
-
-/** Registered once: Capacitor warns, and logs it, on every second registration
- *  of a name, which is every buy and every restore if this asks again. */
-export function loadStorePlugin(): Promise<StorePlugin> {
-  storePlugin ??= import("@capacitor/core").then(({ registerPlugin }) =>
-    unthenable(registerPlugin<StorePlugin>("HeadpinStore"))
-  );
-  return storePlugin;
 }
 
 function localStorageOrNull(): Storage | null {
