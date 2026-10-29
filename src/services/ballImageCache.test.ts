@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { warmArsenalImages } from "./ballImageCache";
+import { keepArsenalPhotos, warmArsenalImages } from "./ballImageCache";
 
 function fakeCache(cached: string[], failing: string[] = []) {
   const store = new Set(cached);
@@ -64,5 +64,37 @@ describe("warmArsenalImages", () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+});
+
+describe("keepArsenalPhotos", () => {
+  function fakeStore(kept: string[], failing: string[] = []) {
+    const files = new Set(kept);
+    return {
+      files,
+      lookup: vi.fn(async (url: string) => (files.has(url) ? `file://${url}` : null)),
+      save: vi.fn(async (url: string) => {
+        if (!failing.includes(url)) files.add(url);
+      })
+    };
+  }
+
+  it("saves only the arsenal photos not already on the phone, from headpin.app", async () => {
+    const store = fakeStore(["https://headpin.app/a.webp"]);
+    const kept = await keepArsenalPhotos({ store, urls: async () => ["/a.webp", "/b.webp"] });
+    expect(store.save.mock.calls.map(([url]) => url)).toEqual(["https://headpin.app/b.webp"]);
+    expect(kept).toBe(1);
+  });
+
+  it("keeps going past a photo that fails to save", async () => {
+    const store = fakeStore([], ["https://headpin.app/a.webp"]);
+    expect(await keepArsenalPhotos({ store, urls: async () => ["/a.webp", "/b.webp"] })).toBe(1);
+    expect(store.files.has("https://headpin.app/b.webp")).toBe(true);
+  });
+
+  it("does nothing on the web", async () => {
+    const urls = vi.fn(async () => ["/a.webp"]);
+    expect(await keepArsenalPhotos({ store: null, urls })).toBe(0);
+    expect(urls).not.toHaveBeenCalled();
   });
 });

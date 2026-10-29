@@ -23,6 +23,17 @@ had all shipped.
 - Every size of type is on one named scale (ADR-219). Labels that were 8 to
   10px are now 11px, so some column headings are a little larger.
 
+## 0.71.0: A rating prompt, and your arsenal's photos offline on iPhone (2026-10-29)
+
+- In the iPhone app, after a game at or above your usual (from your third
+  finished game on), Headpin may ask Apple to show its "Enjoying Headpin?"
+  rating prompt. Apple decides whether it appears and shows it at most three
+  times a year; Headpin asks at most once every 120 days, and never during a
+  game.
+- In the iPhone app, every ball in your arsenal has its photo saved to the
+  phone a few seconds after launch, so it shows at an alley with no signal
+  even if no screen had shown it yet.
+
 ## 0.70.1: App Review notes for the one-screen setup (2026-10-28)
 
 - No change to the app. The App Review notes and the review recording's shot

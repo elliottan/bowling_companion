@@ -39,7 +39,7 @@ import {
   type ResumableGame
 } from "./services/bowlingRepository";
 import { reportSessionStarted } from "./services/usageReporter";
-import { warmArsenalImages } from "./services/ballImageCache";
+import { keepArsenalPhotos, warmArsenalImages } from "./services/ballImageCache";
 import { syncCatalogForArsenal } from "./services/ballCatalogRepository";
 import type { NewSessionFormValues } from "./components/SessionForm";
 import { HandednessContext } from "./lib/handednessContext";
@@ -121,9 +121,10 @@ function prefetchHeavyScreens() {
     // that pictures a ball has to wait on the network for one. The catalog
     // syncs first when the arsenal has a linked ball, which points each one at
     // its catalog photo today (ADR-143), so the warm-up fetches current files.
+    // The store app keeps them on the phone's disk instead (ADR-218).
     void syncCatalogForArsenal()
       .catch(() => false)
-      .then(() => warmArsenalImages());
+      .then(() => Promise.all([warmArsenalImages(), keepArsenalPhotos()]));
   };
   window.setTimeout(fetchThem, 3000);
 }

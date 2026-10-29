@@ -13,6 +13,7 @@ function fakePlugin(over: Partial<StorePlugin> = {}) {
     purchase: vi.fn(async () => ({ status: "purchased" as const })),
     entitlements: vi.fn(async () => ({ ids: [] as string[] })),
     restore: vi.fn(async () => ({ ids: [PRO_PRODUCT_ID] })),
+    requestReview: vi.fn(async () => {}),
     addListener: vi.fn(async (_e, fn) => {
       listener = fn;
       return { remove: async () => {} };

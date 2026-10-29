@@ -1,6 +1,8 @@
 import { db } from "../db/bowlingDb";
 import { arsenalImageUrls, BALL_IMAGE_CACHE } from "../lib/ballImages";
-import { isNativeApp } from "../lib/platform";
+import { nativePhotoStore } from "../lib/nativePhotoStore";
+import { isNativeApp, siteUrl } from "../lib/platform";
+import type { PhotoStore } from "../lib/photoStore";
 
 export interface WarmDeps {
   /** Cache Storage, or null where there is none (an old browser, a test). */
@@ -46,4 +48,42 @@ export async function warmArsenalImages(deps: WarmDeps = defaultDeps()): Promise
   } catch {
     return 0;
   }
+}
+
+export interface KeepDeps {
+  /** The phone's photo store (ADR-162), or null on the web. */
+  store: Pick<PhotoStore, "lookup" | "save"> | null;
+  urls: () => Promise<string[]>;
+}
+
+/**
+ * The store app's half of `warmArsenalImages` (ADR-218): it has no service
+ * worker, so the arsenal's photos go to the photo store on the phone's disk
+ * (ADR-162) before any screen shows them. Without this a ball only kept a photo
+ * once some screen had drawn it online, so a bowler who added a ball and drove
+ * to an alley with no signal saw a grey silhouette. Only the missing ones are
+ * fetched, so a launch with everything kept costs no network at all.
+ */
+export async function keepArsenalPhotos(deps: KeepDeps = defaultKeepDeps()): Promise<number> {
+  const { store } = deps;
+  if (!store) return 0;
+  try {
+    let kept = 0;
+    for (const path of await deps.urls()) {
+      const url = siteUrl(path, true);
+      if (await store.lookup(url)) continue;
+      await store.save(url);
+      if (await store.lookup(url)) kept += 1;
+    }
+    return kept;
+  } catch {
+    return 0;
+  }
+}
+
+function defaultKeepDeps(): KeepDeps {
+  return {
+    store: nativePhotoStore(),
+    urls: async () => arsenalImageUrls(await db.balls.toArray())
+  };
 }
