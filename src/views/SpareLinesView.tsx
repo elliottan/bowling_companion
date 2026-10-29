@@ -52,7 +52,7 @@ function DerivedChain({ line, model, inline = false }: { line: LineSpec; model: 
   const laydown = line.laydown ?? (line.stance != null ? deriveLaydown(line.stance, model) : undefined);
   if (slide == null && laydown == null) return null;
   return (
-    <span className={`${inline ? "" : "mt-0.5 "}block text-[11px] font-semibold uppercase tracking-tight text-ink-secondary tabular-nums`}>
+    <span className={`${inline ? "" : "mt-0.5 "}block text-caption-2 font-semibold uppercase tracking-tight text-ink-secondary tabular-nums`}>
       {slide != null && `Slide ${slide}`}
       {slide != null && laydown != null && <span aria-hidden="true" className="text-ink-tertiary"> → </span>}
       {laydown != null && `Laydown ${laydown}`}
@@ -139,8 +139,8 @@ function LeaveTile({
         className="flex w-24 select-none flex-col items-center gap-1.5 rounded-lg border border-edge bg-surface p-2.5 text-center shadow-sm active:opacity-70"
       >
         <MiniPins standing={sl.pins} size="md" />
-        <span className="text-[11px] font-semibold tabular-nums text-ink">{formatLeave(sl.pins)}</span>
-        <span className="text-[11px] tabular-nums text-ink-secondary">
+        <span className="text-caption-2 font-semibold tabular-nums text-ink">{formatLeave(sl.pins)}</span>
+        <span className="text-caption-2 tabular-nums text-ink-secondary">
           {tile.attempts}×{tile.conversionPct != null ? ` · ${tile.conversionPct}%` : ""}
         </span>
       </button>
@@ -294,7 +294,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           )}
         </div>
         <span className="min-w-0 flex-1">
-          <span className="block text-[11px] font-semibold uppercase tracking-wide text-accent">Spare ball</span>
+          <span className="block text-caption-2 font-semibold uppercase tracking-wide text-accent">Spare ball</span>
           <span className="block truncate text-sm font-semibold text-ink">
             {spareBall ? spareBall.name : "Choose one"}
           </span>
@@ -428,7 +428,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
 }
 
 /** The grey names on a row's heading, under the white values. */
-const LABEL = "text-[10px] font-semibold uppercase tracking-tight text-ink-secondary";
+const LABEL = "text-caption-2 font-semibold uppercase tracking-tight text-ink-secondary";
 
 /** A row's spoken name: the boards it stands on and aims at, or its move. */
 function rowLabel(row: LineRow): string {

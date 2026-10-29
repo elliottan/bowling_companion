@@ -9262,3 +9262,62 @@ launched online once after the ball was added. The photo store still evicts
 first in, first out at 25 MB, so a bowler who browses hundreds of catalog
 photos can push an arsenal photo out; the next online launch saves it again.
 Pinning the arsenal against eviction is left until a device shows it matters.
+
+## ADR-219: Type follows the phone's text size, on one named scale
+
+**Status.** Accepted, 2026-10-29, by the owner's decision.
+
+**Context.** The app set 46 files of type in fixed pixels (`text-[11px]`, 48
+times; `text-[9px]`, 16 times). iOS's web view ignores Dynamic Type for pixel
+sizes, so a bowler who had made their phone's text larger got none of it, and
+the smallest labels were 6 to 10px. The smallest grey labels (`ink-tertiary`)
+were 2.4:1 on white against the 4.5:1 text needs.
+
+**Decision.**
+- A type scale in `tailwind.config.js`: Apple's text styles (`large-title` 34,
+  `title-1` 28, `title-2` 22, `title-3` 20, `headline` 17 semibold, `body`
+  17, `callout` 16, `subhead` 15, `footnote` 13, `caption` 12, `caption-2`
+  11) in rem, each multiplied by `--type-scale`. Tailwind's `text-xs` to
+  `text-6xl` keep their old sizes on the same multiplier. Every pixel size was
+  replaced; a test forbids new ones. 9px, 10px and 8px labels became 11; 12, 13,
+  15, 17 and 34 map to the name of the same size. Only the pin numbers in
+  `MiniPins` stay below 11 (6 and 7px, `pin-xs`, `pin-sm`), as they sit in
+  pins 12 and 14px across and carry an accessible name. Text inside an SVG's own
+  units (lane, ball diagram) scales with the drawing.
+- Only type scales, not spacing: `--type-scale` multiplies the font size
+  alone, rem spacing is untouched, so a larger size grows the words and not
+  every margin.
+- **iOS.** `HeadpinViewController` (`SceneDelegate.swift`) writes
+  `--os-text-scale` on `<html>` as `UIFontMetrics(.body).scaledValue(for: 16) /
+  16`, in a document-start user script, again when a page starts loading, and on
+  `UIContentSizeCategory.didChangeNotification`. It was written without Xcode
+  and has not been compiled or run.
+- **Web.** Browsers scale rem from their default font size already.
+- **Android.** Not done. Whether the Capacitor web view follows the system font
+  scale was not verifiable here, and setting `WebSettings.textZoom` from
+  `Configuration.fontScale` risks scaling twice with the in-app setting. A
+  ROADMAP entry says how to check and what to do.
+- **In-app setting.** Appearance has Text size: Default 1, Large 1.15, Larger
+  1.3, Largest 1.5, multiplying the phone's. It is kept in the settings table
+  (`text_size`, so a backup carries it) and in localStorage (`textSize`) so a
+  pre-paint script can size the first paint, as the theme does.
+- **Bounds.** `--text-scale` is the product held between 0.85 and 1.6
+  (`TEXT_SCALE_MIN`, `TEXT_SCALE_MAX`; the stylesheet states the same and a
+  test compares them). `.type-cap-dense` re-points `--type-scale` to at most
+  1.2 on the scorecard grid, the scorer's pin deck and shot panel, the tab
+  bar, the lane visualizer, the charts and the ball tables;
+  `.type-cap-fixed` holds it at 1 for the pin deck's pins. Form fields are
+  `max(16px, 1rem * scale)`, so the iOS focus-zoom guard stays.
+- **Accessibility.** Each scorecard frame is a group named in one line
+  ("Frame 4, strike, 78", a split named), and its cells are hidden from the
+  reader as the group says it; the pin deck is a group, its pins read "Pin 7,
+  standing" (the `aria-pressed` that repeated the state is gone).
+  `ink-tertiary` is slate-500 in light and slate-400 in dark, the same as
+  `ink-secondary`, to reach 4.5:1; a test measures both tokens. The segmented
+  control's slide honours reduced motion. Sheets and pushes already did.
+
+**Consequences.** Text follows the phone on iPhone and the browser on the web,
+and the bowler can go bigger in the app. Secondary and tertiary grey are now the
+same colour, so the hierarchy between them is gone until a tertiary that
+clears 4.5:1 and still reads lighter is chosen; the owner may want that.
+Labels formerly 8 to 10px are 11px and may wrap sooner. Android is open.

@@ -4,9 +4,9 @@ import { describePinsStanding } from "../lib/pins";
 const ROWS: PinNumber[][] = [[7, 8, 9, 10], [4, 5, 6], [2, 3], [1]];
 
 const SIZE_CLASSES = {
-  xs: "h-3 w-3 text-[6px] leading-3 text-center",
-  sm: "h-3.5 w-3.5 text-[7px] leading-[14px] text-center",
-  md: "flex h-5 w-5 items-center justify-center text-[9px]",
+  xs: "h-3 w-3 text-pin-xs leading-3 text-center",
+  sm: "h-3.5 w-3.5 text-pin-sm leading-[14px] text-center",
+  md: "flex h-5 w-5 items-center justify-center text-caption-2",
 } as const;
 
 type Size = keyof typeof SIZE_CLASSES;
@@ -16,7 +16,7 @@ export function MiniPins({ standing, size = "xs" }: { standing: PinNumber[]; siz
   const set = new Set(standing);
   return (
     <div
-      className="flex shrink-0 flex-col items-center gap-0.5"
+      className="type-cap-fixed flex shrink-0 flex-col items-center gap-0.5"
       role="img"
       aria-label={describePinsStanding(standing)}
     >
@@ -27,7 +27,7 @@ export function MiniPins({ standing, size = "xs" }: { standing: PinNumber[]; siz
               key={pin}
               className={`rounded-full font-bold ${SIZE_CLASSES[size]} ${
                 // `ink-strong` on the knocked-down pins. These numbers are the
-                // smallest text in the app (9px), so they need 4.5:1: the
+                // smallest text in the app (6 and 7px, the one documented exception to the 11px floor, ADR-219), so they need 4.5:1: the
                 // tertiary token gave 2.45:1 in light, and secondary only 3.6:1
                 // in dark. Strong clears it in both.
                 set.has(pin) ? "bg-accent-fill text-accent-on-fill" : "bg-surface-muted text-ink-strong"

@@ -102,10 +102,10 @@ export function ListRow({
         </span>
       )}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[17px] leading-snug text-ink">{label}</span>
+        <span className="block truncate text-body leading-snug text-ink">{label}</span>
         {description && (
           // Wraps rather than truncating: a longer translation keeps its words.
-          <span className="block text-[13px] leading-snug text-ink-secondary">{description}</span>
+          <span className="block text-footnote leading-snug text-ink-secondary">{description}</span>
         )}
       </span>
       {trailing ?? (

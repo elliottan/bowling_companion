@@ -116,7 +116,7 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
             </div>
 
             <div className="overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
-              <div className="flex items-center gap-2 px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wide text-ink-tertiary">
+              <div className="flex items-center gap-2 px-3 pb-1 pt-2 text-caption-2 font-bold uppercase tracking-wide text-ink-tertiary">
                 <span className="min-w-0 flex-1" aria-hidden="true" />
                 {(columns === "scoring" ? ["Avg", "Strike", "Spare"] : ["Pocket", "Carry"]).map(
                   (label) => (

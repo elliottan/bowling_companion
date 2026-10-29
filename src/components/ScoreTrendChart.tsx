@@ -80,7 +80,7 @@ export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartPr
   const chosen = selected === null ? null : scored.find((g) => g.game_number === selected) ?? null;
 
   return (
-    <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+    <div className="type-cap-dense rounded-xl border border-edge bg-surface p-3 shadow-sm">
       {header}
       <svg
         viewBox={`0 0 ${W} ${H}`}
@@ -104,7 +104,7 @@ export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartPr
           // Every game prints its score over its dot.
           y={averageLabelY(y(avg), y(scored[scored.length - 1].final_score), 9, true)}
           textAnchor="end"
-          className="fill-ink-tertiary text-[9px] tabular-nums"
+          className="fill-ink-tertiary text-caption-2 tabular-nums"
         >
           avg {Math.round(avg)}
         </text>
@@ -155,7 +155,7 @@ export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartPr
                 x={x(g.game_number)}
                 y={y(g.final_score) - 8}
                 textAnchor="middle"
-                className="fill-ink text-[10px] font-semibold tabular-nums"
+                className="fill-ink text-caption-2 font-semibold tabular-nums"
               >
                 {g.final_score}
               </text>
@@ -163,7 +163,7 @@ export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartPr
                 x={x(g.game_number)}
                 y={H - 3}
                 textAnchor="middle"
-                className="fill-ink-tertiary text-[9px] tabular-nums"
+                className="fill-ink-tertiary text-caption-2 tabular-nums"
               >
                 {g.game_number}
               </text>

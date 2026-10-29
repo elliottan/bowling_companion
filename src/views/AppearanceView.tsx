@@ -2,6 +2,8 @@ import { PushScreen } from "../components/PushScreen";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { SETTING_HEADING } from "../components/ui/typography";
 import { Check, Lock } from "lucide-react";
+import { useTextSize } from "../components/ui/useTextSize";
+import { TEXT_SIZES } from "../lib/textScale";
 import { useTheme, type ThemePreference } from "../lib/theme";
 import { PALETTES, usePalette } from "../lib/palette";
 import { useProAccess } from "../lib/useProAccess";
@@ -13,19 +15,23 @@ const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
   { value: "dark", label: "Dark" }
 ];
 
+/** On top of the phone's own text size (ADR-219). */
+const TEXT_SIZE_OPTIONS = TEXT_SIZES.map((s) => ({ value: s.id, label: s.label }));
+
 interface AppearanceViewProps {
   /** Present when pushed from Settings, which draws the shared nav bar. */
   onBack?: () => void;
 }
 
 /**
- * How the app looks. Split out of Preferences, which is about how you bowl.
+ * How the app looks, theme, text size and color. Split out of Preferences, which is about how you bowl.
  * The layout notation (dual angle or VLS) used to have a global switch here;
  * it went, because the Layouts page and each ball's form both carry their own.
  */
 export function AppearanceView({ onBack }: AppearanceViewProps = {}) {
   const [theme, setTheme] = useTheme();
   const [palette, setPalette] = usePalette();
+  const [textSize, setTextSize] = useTextSize();
   const access = useProAccess();
   const openOffer = useProOffer();
   // A stored Pro color is not on while Pro is not open (`useAppliedPalette`).
@@ -40,6 +46,16 @@ export function AppearanceView({ onBack }: AppearanceViewProps = {}) {
           options={THEME_OPTIONS}
           value={theme}
           onChange={setTheme}
+        />
+      </div>
+
+      <div>
+        <h2 className={`mb-3 ${SETTING_HEADING}`}>Text size</h2>
+        <SegmentedControl
+          label="Text size"
+          options={TEXT_SIZE_OPTIONS}
+          value={textSize}
+          onChange={setTextSize}
         />
       </div>
 

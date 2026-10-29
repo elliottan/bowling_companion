@@ -196,7 +196,7 @@ if (wanted("score") || wanted("home")) {
   }
   const RECORD = /^Next( \(|$)/;
   await page.getByRole("button", { name: RECORD }).waitFor();
-  const pinDown = (n) => page.locator(`button[aria-label="Pin ${n} down"]:not([disabled])`);
+  const pinDown = (n) => page.locator(`button[aria-label="Pin ${n}, down"]:not([disabled])`);
   const strike = () => page.getByRole("button", { name: "Strike", exact: true }).click();
   const spare = async (pin) => {
     await pinDown(pin).click();

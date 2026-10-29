@@ -84,7 +84,7 @@ export function MetricTrendChart({
   // with it and a remembered pick hid the chart for good.
   if (withValue.length === 0) {
     return (
-      <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+      <div className="type-cap-dense rounded-xl border border-edge bg-surface p-3 shadow-sm">
         {header}
         <p className="py-8 text-center text-sm text-ink-secondary">Nothing to chart yet</p>
       </div>
@@ -172,7 +172,7 @@ export function MetricTrendChart({
           );
 
   return (
-    <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+    <div className="type-cap-dense rounded-xl border border-edge bg-surface p-3 shadow-sm">
       {header}
       <svg
         viewBox={`0 0 ${plotW} ${H}`}
@@ -197,7 +197,7 @@ export function MetricTrendChart({
               x={plotW}
               y={overallLabelY}
               textAnchor="end"
-              className="fill-ink-tertiary text-[9px] tabular-nums"
+              className="fill-ink-tertiary text-caption-2 tabular-nums"
             >
               {format(overall)}
             </text>
@@ -255,7 +255,7 @@ export function MetricTrendChart({
                   x={Math.min(plotW - 4, Math.max(4, x(i)))}
                   y={y(p.value) - 8}
                   textAnchor={i === 0 ? "start" : i === shown.length - 1 ? "end" : "middle"}
-                  className="fill-ink text-[10px] font-semibold tabular-nums"
+                  className="fill-ink text-caption-2 font-semibold tabular-nums"
                 >
                   {format(p.value)}
                 </text>
@@ -265,7 +265,7 @@ export function MetricTrendChart({
                   x={x(i)}
                   y={H - 3}
                   textAnchor={i === 0 ? "start" : i === shown.length - 1 ? "end" : "middle"}
-                  className="fill-ink-tertiary text-[9px] tabular-nums"
+                  className="fill-ink-tertiary text-caption-2 tabular-nums"
                 >
                   {p.axis}
                 </text>

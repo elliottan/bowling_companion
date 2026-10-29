@@ -101,8 +101,8 @@ async function recordShot(page, standingAfter) {
   const standing = new Set(standingAfter);
   for (let pin = 1; pin <= 10; pin++) {
     const sel = standing.has(pin)
-      ? `button[aria-label="Pin ${pin} down"]:not([disabled])`
-      : `button[aria-label="Pin ${pin} standing"]:not([disabled])`;
+      ? `button[aria-label="Pin ${pin}, down"]:not([disabled])`
+      : `button[aria-label="Pin ${pin}, standing"]:not([disabled])`;
     const btn = page.locator(sel);
     if (await btn.count()) await btn.click();
   }
@@ -472,7 +472,7 @@ for (let i = 0; i < GAMES.length; i++) {
     await chooseBall(page, ballOfNight[i], decoyFor(i));
     const [tenthFirst] = game[9];
     for (const pin of tenthFirst) {
-      const btn = page.locator(`button[aria-label="Pin ${pin} down"]:not([disabled])`);
+      const btn = page.locator(`button[aria-label="Pin ${pin}, down"]:not([disabled])`);
       if (await btn.count()) await btn.click();
     }
     await fillLine(page, { stance: 24, intendedTarget: 10, slide: 23.5, actualTarget: 11 });

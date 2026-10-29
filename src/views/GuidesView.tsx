@@ -152,13 +152,13 @@ function Block({ block }: { block: GuideBlock }) {
       return <h3 className={`pt-2 ${GROUP_HEADING}`}>{block.text}</h3>;
 
     case "text":
-      return <p className="text-[15px] leading-relaxed text-ink">{block.text}</p>;
+      return <p className="text-subhead leading-relaxed text-ink">{block.text}</p>;
 
     case "list":
       return (
         <ul className="space-y-2">
           {block.items.map((item) => (
-            <li key={item} className="flex gap-2.5 text-[15px] leading-relaxed text-ink">
+            <li key={item} className="flex gap-2.5 text-subhead leading-relaxed text-ink">
               <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
               <span className="min-w-0">{item}</span>
             </li>
@@ -172,7 +172,7 @@ function Block({ block }: { block: GuideBlock }) {
           {block.items.map((item) => (
             <div key={item.term}>
               <dt className="text-sm font-bold text-ink">{item.term}</dt>
-              <dd className="mt-0.5 text-[15px] leading-relaxed text-ink-secondary">{item.text}</dd>
+              <dd className="mt-0.5 text-subhead leading-relaxed text-ink-secondary">{item.text}</dd>
             </div>
           ))}
         </dl>

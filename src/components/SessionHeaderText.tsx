@@ -48,7 +48,7 @@ export function SessionHeaderText({
   const meta = sessionMetaLine(session);
   return (
     <div className="min-w-0">
-      <Heading className="truncate text-[17px] font-semibold leading-tight text-ink">
+      <Heading className="truncate text-body font-semibold leading-tight text-ink">
         {alleyLabel(session.alley_name)}
       </Heading>
       {(meta || session.oil_pattern) && (

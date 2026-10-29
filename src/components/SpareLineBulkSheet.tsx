@@ -13,7 +13,7 @@ import { FIELD_DENSE, FIELD_MICRO_LABEL as floatLabel } from "./ui/field";
 import { FormSheet } from "./ui/FormSheet";
 import { IconButton } from "./ui/IconButton";
 
-const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
+const eyebrow = "text-caption-2 font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 const boardInput = `${FIELD_DENSE} px-1 text-center font-semibold tabular-nums`;
 
 /** A board typed as text, or nothing when the field is empty or not a number. */
@@ -139,7 +139,7 @@ export function SpareLineBulkSheet({ row, onClose }: { row: LineRow; onClose: ()
               ))}
             </div>
             {(slide != null || laydown != null) && (
-              <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums">
+              <p className="mt-1 text-caption-2 font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums">
                 {slide != null && `Slide ${slide}`}
                 {slide != null && laydown != null && (
                   <span aria-hidden="true" className="text-ink-tertiary"> → </span>
@@ -174,7 +174,7 @@ export function SpareLineBulkSheet({ row, onClose }: { row: LineRow; onClose: ()
                 className="flex flex-col items-center gap-1 rounded-lg border border-edge bg-surface p-2 text-center shadow-sm"
               >
                 <MiniPins standing={sl.pins} size="sm" />
-                <span className="text-[11px] font-semibold tabular-nums text-ink">{formatLeave(sl.pins)}</span>
+                <span className="text-caption-2 font-semibold tabular-nums text-ink">{formatLeave(sl.pins)}</span>
               </li>
             ))}
           </ul>

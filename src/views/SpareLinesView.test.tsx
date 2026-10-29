@@ -252,9 +252,9 @@ describe("SpareLinesView", () => {
     fireEvent.click(screen.getByRole("button", { name: "Pins" }));
     const sheet = await screen.findByRole("dialog", { name: "Pins" });
     // The deck is a pointer gesture, as on the scorer.
-    fireEvent.pointerDown(within(sheet).getByRole("button", { name: /Pin 2 (down|standing)/ }));
+    fireEvent.pointerDown(within(sheet).getByRole("button", { name: /Pin 2, (down|standing)/ }));
     fireEvent.pointerUp(window);
-    fireEvent.pointerDown(within(sheet).getByRole("button", { name: /Pin 10 (down|standing)/ }));
+    fireEvent.pointerDown(within(sheet).getByRole("button", { name: /Pin 10, (down|standing)/ }));
     fireEvent.pointerUp(window);
     // Every leave with both: the 2-10 only.
     await waitFor(() =>

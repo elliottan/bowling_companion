@@ -739,7 +739,7 @@ function App() {
           needs UIKit, so the iPhone app draws the phone's own (ADR-161). The
           strip beside the capsule passes taps through to the page. */}
       {!nativeTabBar && (
-      <nav className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
+      <nav className={`type-cap-dense pointer-events-none absolute inset-x-0 bottom-0 z-10 sm:hidden ${keyboardOpen ? "hidden" : ""}`}>
         <div className="pointer-events-auto relative px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1">
           <div className="relative grid grid-cols-5 rounded-full border border-edge/70 bg-surface/75 p-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.35),0_6px_20px_rgb(0_0_0/0.14)] backdrop-blur-xl backdrop-saturate-150">
             <span
@@ -959,7 +959,7 @@ function TabBarButton({ item, active, disabled, onClick }: NavItemProps) {
       aria-current={active ? "page" : undefined}
       onClick={onClick}
       disabled={disabled}
-      className={`relative flex h-14 flex-col items-center justify-center gap-0.5 rounded-full text-[11px] disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`relative flex h-14 flex-col items-center justify-center gap-0.5 rounded-full text-caption-2 disabled:cursor-not-allowed disabled:opacity-40 ${
         active ? "font-bold text-accent" : "font-medium text-ink-secondary"
       }`}
     >

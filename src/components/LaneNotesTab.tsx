@@ -190,7 +190,7 @@ function LaneCell({
       }`}
     >
       <div className="flex items-center justify-between gap-1">
-        <span className="text-[11px] font-bold uppercase tracking-wide text-ink-secondary">
+        <span className="text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
           Lane {lane}
         </span>
         {!editing && (

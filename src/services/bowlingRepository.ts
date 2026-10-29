@@ -11,6 +11,7 @@ import {
   type DriftModel
 } from "../lib/driftModel";
 import type { BackupNudgeState } from "../lib/backupNudge";
+import { DEFAULT_TEXT_SIZE, isTextSizeId, type TextSizeId } from "../lib/textScale";
 import type { PapMeasurement } from "../lib/ballLayout";
 import type {
   Frame,
@@ -33,6 +34,7 @@ const PAP_KEY = "pap";
 const GRIP_STYLE_KEY = "grip_style";
 const LAYOUT_SYSTEM_KEY = "layout_system";
 const BOWLER_NAME_KEY = "bowler_name";
+const TEXT_SIZE_KEY = "text_size";
 
 /** Longest name Home will greet. A greeting is one line on a phone. */
 export const BOWLER_NAME_MAX = 24;
@@ -103,6 +105,22 @@ export async function getGripStyle(): Promise<GripStyle | null> {
 
 export async function setGripStyle(value: GripStyle): Promise<void> {
   await setSetting(GRIP_STYLE_KEY, value);
+}
+
+/**
+ * The in-app Text size (ADR-219), as a `TextSizeId`. Null when never chosen,
+ * which is the default size. Kept here so a backup carries it; the page also
+ * keeps a copy in localStorage so it can size the first paint.
+ */
+export async function getTextSize(): Promise<TextSizeId | null> {
+  const v = await getSetting(TEXT_SIZE_KEY);
+  return isTextSizeId(v) ? v : null;
+}
+
+/** Store the size, or forget it when it goes back to the default. */
+export async function setTextSize(value: TextSizeId): Promise<void> {
+  if (value === DEFAULT_TEXT_SIZE) await db.settings.delete(TEXT_SIZE_KEY);
+  else await setSetting(TEXT_SIZE_KEY, value);
 }
 
 /**

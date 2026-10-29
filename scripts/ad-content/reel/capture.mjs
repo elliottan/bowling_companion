@@ -238,7 +238,7 @@ async function spareSystem(app) {
 
 const RECORD = /^Next( \(|$)/;
 /** A fresh rack reads as all down: tap the pins left standing. */
-const pinDown = (app, n) => app.locator(`button[aria-label="Pin ${n} down"]:not([disabled])`);
+const pinDown = (app, n) => app.locator(`button[aria-label="Pin ${n}, down"]:not([disabled])`);
 
 /** A session at Sunset Lanes with frames 1 to 7 bowled: X X 9/ X 8/ X X. */
 async function sessionToFrame8(app) {
@@ -321,7 +321,7 @@ await take("game", {
     await mark("scorer", { x: 0, y: 0, w: 390, h: 640 });
     // The scorer's three cards, for framing a shot on a card's own edges.
     await mark("card", app.locator('button[aria-label="Go to live entry frame 8"]').first().locator("xpath=ancestor::div[contains(@class,'overflow-hidden')][1]"));
-    await mark("deck", app.locator('button[aria-label="Pin 1 down"]').first().locator("xpath=ancestor::div[contains(@class,'space-y-2')][1]"));
+    await mark("deck", app.locator('button[aria-label="Pin 1, down"]').first().locator("xpath=ancestor::div[contains(@class,'space-y-2')][1]"));
     await mark("panel", stance.locator("xpath=ancestor::div[contains(@class,'divide-y')][1]"));
     await mark("intended", stance.locator("xpath=ancestor::div[contains(@class,'py-1')][1]"));
     // Frame 8, half done, held long enough to be seen whole before the camera

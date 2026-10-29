@@ -121,7 +121,7 @@ describe("what a new shot starts with", () => {
     /** Throw shot 1 and leave the 10 pin standing, the way a user gets here. */
     async function leaveTheTenPin() {
       await waitFor(() => expect(ballLabel()).toBeTruthy());
-      const pin = screen.getByRole("button", { name: /^Pin 10 / });
+      const pin = screen.getByRole("button", { name: /^Pin 10, / });
       fireEvent.pointerDown(pin);
       fireEvent.pointerUp(pin);
       fireEvent.click(screen.getByRole("button", { name: RECORD_SHOT }));
@@ -333,7 +333,7 @@ describe("what a recorded shot stores (B1)", () => {
 describe("a strike ball at a leave (B2, B3)", () => {
   async function leaveTheTenPin() {
     await waitFor(() => expect(ballLabel()).toBeTruthy());
-    const pin = screen.getByRole("button", { name: /^Pin 10 / });
+    const pin = screen.getByRole("button", { name: /^Pin 10, / });
     fireEvent.pointerDown(pin);
     fireEvent.pointerUp(pin);
     fireEvent.click(screen.getByRole("button", { name: RECORD_SHOT }));

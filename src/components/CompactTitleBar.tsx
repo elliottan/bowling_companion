@@ -20,7 +20,7 @@ export function CompactTitleBar({ title, shown }: { title: string; shown: boolea
       }`}
     >
       <div className="floating-header-ground absolute inset-x-0 -bottom-5 top-0" />
-      <p className="relative flex h-11 items-center justify-center text-[17px] font-semibold text-ink">{title}</p>
+      <p className="relative flex h-11 items-center justify-center text-body font-semibold text-ink">{title}</p>
     </div>
   );
 }

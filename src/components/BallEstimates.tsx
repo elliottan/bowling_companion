@@ -62,7 +62,7 @@ export function BallEstimates({ report, balls, free }: { report: Estimates; ball
       }
     >
       <li
-        className="flex items-end gap-1 px-4 pb-1 pt-2 text-[9px] font-semibold uppercase leading-tight text-ink-tertiary"
+        className="type-cap-dense flex items-end gap-1 px-4 pb-1 pt-2 text-caption-2 font-semibold uppercase leading-tight text-ink-tertiary"
         aria-hidden="true"
       >
         <span className="min-w-0 flex-1" />
@@ -82,7 +82,7 @@ export function BallEstimates({ report, balls, free }: { report: Estimates; ball
       >
         <span className="min-w-0 flex-1">
           <span className="block font-semibold">All balls</span>
-          <span className="block text-[10px] text-ink-tertiary">{report.counted.firstBalls} balls</span>
+          <span className="block text-caption-2 text-ink-tertiary">{report.counted.firstBalls} balls</span>
         </span>
         {COLUMNS.map((c) => (
           <span key={c.key} className={COLUMN} aria-label={`${c.key} ${c.value(report.counted)}`}>
@@ -137,7 +137,7 @@ function BallEstimateRow({ estimate, ball }: { estimate: BallEstimate; ball: Bal
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-1 px-4 py-2 text-left text-xs tabular-nums active:bg-surface-muted"
+        className="type-cap-dense flex w-full items-center gap-1 px-4 py-2 text-left text-xs tabular-nums active:bg-surface-muted"
       >
         <span className="flex min-w-0 flex-1 items-center gap-1.5">
           <span className="h-5 w-5 shrink-0">
@@ -155,10 +155,10 @@ function BallEstimateRow({ estimate, ball }: { estimate: BallEstimate; ball: Bal
             )}
           </span>
           <span className="min-w-0 flex-1">
-            <span className={`line-clamp-2 text-[13px] font-semibold leading-tight ${thin ? "text-ink-secondary" : "text-ink"}`}>
+            <span className={`line-clamp-2 text-footnote font-semibold leading-tight ${thin ? "text-ink-secondary" : "text-ink"}`}>
               {name}
             </span>
-            <span className="block text-[10px] text-ink-tertiary">
+            <span className="block text-caption-2 text-ink-tertiary">
               {estimate.firstBalls} {estimate.firstBalls === 1 ? "ball" : "balls"}
               {thin ? ", too few" : ""}
             </span>
@@ -170,11 +170,11 @@ function BallEstimateRow({ estimate, ball }: { estimate: BallEstimate; ball: Bal
           </span>
         ))}
         <span className={ESTIMATE_COLUMN}>
-          <span className={`block text-[13px] font-semibold leading-tight ${thin ? "text-ink-tertiary" : "text-ink-strong"}`}>
+          <span className={`block text-footnote font-semibold leading-tight ${thin ? "text-ink-tertiary" : "text-ink-strong"}`}>
             {headline}
           </span>
           {estimate.estimate !== null && (
-            <span className={`block text-[10px] font-semibold ${diffTone}`}>{signedPins(estimate.difference)}</span>
+            <span className={`block text-caption-2 font-semibold ${diffTone}`}>{signedPins(estimate.difference)}</span>
           )}
         </span>
         <ChevronDown

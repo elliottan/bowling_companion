@@ -187,7 +187,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
     <PushScreen title={ball.name} onBack={onBack} active={!addDialogOpen}>
       <div>
         <div className="mx-auto w-full max-w-xl px-3 py-5 sm:px-6">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</p>
+          <p className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</p>
           <div className="mt-2" />
           <ColorwayCarousel ball={ball} />
 
@@ -801,16 +801,16 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</span>
+                      <span className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</span>
                       {/* B8: Owned badge */}
                       {isOwned(ball) && (
-                        <span className="rounded-full bg-accent-soft px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-accent">
+                        <span className="rounded-full bg-accent-soft px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-accent">
                           Owned
                         </span>
                       )}
                       {/* Multi-colorway badge */}
                       {(ball.colorways?.length ?? 0) > 1 && (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-surface-muted px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink-secondary">
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-surface-muted px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
                           <Palette size={9} aria-hidden="true" />
                           {ball.colorways!.length} colors
                         </span>

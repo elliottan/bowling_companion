@@ -40,7 +40,7 @@ export function LegalView({ onBack }: { onBack: () => void }) {
       <div
         onClick={onClick}
         className={[
-          "mx-auto w-full max-w-xl px-4 py-4 pb-10 text-[15px] leading-relaxed text-ink-secondary sm:px-6",
+          "mx-auto w-full max-w-xl px-4 py-4 pb-10 text-subhead leading-relaxed text-ink-secondary sm:px-6",
           "[&_a]:font-semibold [&_a]:text-accent",
           "[&_h2]:mt-9 [&_h2]:scroll-mt-16 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-ink",
           "[&_h3]:mt-6 [&_h3]:font-bold [&_h3]:text-ink",

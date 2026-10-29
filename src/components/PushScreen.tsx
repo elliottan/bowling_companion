@@ -202,7 +202,7 @@ export function PushScreen({
             ) : (
               <>
                 <div className="pointer-events-none absolute left-1/2 max-w-[calc(100%-7rem)] -translate-x-1/2 text-center">
-                  <h1 className="truncate text-[17px] font-semibold leading-tight text-ink">{title}</h1>
+                  <h1 className="truncate text-body font-semibold leading-tight text-ink">{title}</h1>
                   {subtitle && <p className="truncate text-xs leading-tight text-ink-secondary">{subtitle}</p>}
                 </div>
                 <div className="ml-auto flex shrink-0 items-center">{trailing}</div>

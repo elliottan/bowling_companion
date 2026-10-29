@@ -98,7 +98,10 @@ export function PinGrid({
 
   return (
     <div
-      className={`relative rounded-lg border border-[#d3ac74] shadow-sm ${pad}`}
+      role="group"
+      aria-label="Pin deck"
+      // The pins are drawn at a fixed size, so their numbers are too (ADR-219).
+      className={`type-cap-fixed relative rounded-lg border border-[#d3ac74] shadow-sm ${pad}`}
       style={{
         touchAction: "none",
         backgroundColor: "#ecc78f",
@@ -117,8 +120,7 @@ export function PinGrid({
                   key={pin}
                   type="button"
                   data-pin={pin}
-                  aria-pressed={isStanding}
-                  aria-label={`Pin ${pin}${isStanding ? " standing" : " down"}`}
+                  aria-label={`Pin ${pin}, ${isStanding ? "standing" : "down"}`}
                   disabled={readOnly || !isAvailable}
                   onPointerDown={readOnly ? undefined : (e) => startGesture(e, pin)}
                   onPointerMove={readOnly ? undefined : moveGesture}

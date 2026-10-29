@@ -57,7 +57,7 @@ export function PatternFilterButton({ filters, onOpen }: { filters: PatternFilte
       {count > 0 && (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-fill px-1 text-[11px] font-bold tabular-nums text-accent-on-fill"
+          className="pointer-events-none absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-fill px-1 text-caption-2 font-bold tabular-nums text-accent-on-fill"
         >
           {count}
         </span>
