@@ -198,9 +198,8 @@ switch.
       calls `history.back()` (`HeadpinViewController`, ADR-157).
 - [x] Catalog, pattern and photo loading from `https://headpin.app`, with the
       built-in snapshot when offline (ADR-155).
-- [ ] Photos kept on the device. The app has only the web view's HTTP cache
-      today (30 days of `Cache-Control`); whether that holds offline is the
-      first thing to check on a device, and an on-device store follows if not.
+- [x] Photos kept on the device (ADR-162), and the arsenal's fetched to it
+      ahead of any screen (ADR-218). Not yet seen offline on a phone.
 - [ ] Umami counts from the app (ADR-120), and the privacy label to match.
 - [x] Universal links on iPhone, so a shared headpin.app link opens in the app
       when it is installed and in the web app when it is not (ADR-159). Checked
@@ -263,7 +262,7 @@ switch.
 
 In this order. Launch first, then being found, then other languages.
 
-- [ ] **A rating prompt.** Ratings weigh heavily in store search, and a new
+- [x] **A rating prompt** (ADR-218). Ratings weigh heavily in store search, and a new
       app with none ranks low. Apple's own prompt (`AppStore.requestReview`,
       which Apple shows at most three times a year), after a good moment such
       as a finished game or a new high game, never during scoring. It needs a
@@ -283,8 +282,10 @@ In this order. Launch first, then being found, then other languages.
       ADR-136), so the App Store's content rights answer holds for all of
       them, not only MOTIV (ADR-061). The fallback is a placeholder in the
       store app for any source that has not agreed.
-- [ ] **Photos offline on a phone.** Whether the web view's HTTP cache keeps
-      the arsenal's photos without a signal (phase 1).
+- [x] **Photos offline on a phone.** The arsenal's photos are saved to the
+      phone ahead of time (ADR-218), not left to the web view's HTTP cache.
+      Still to check on a device: airplane mode after a fresh install and one
+      online launch.
 
 Later, when the numbers ask for it:
 
