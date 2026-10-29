@@ -7,6 +7,7 @@ import { initInstallPrompt } from "./lib/installPrompt";
 import { applyNativeChrome, followThemeInSystemBars } from "./lib/nativeChrome";
 import { listenForLinks } from "./lib/deepLink";
 import { isNativeApp } from "./lib/platform";
+import { startTextSize } from "./lib/textScale";
 import { installPressCancel } from "./lib/pressCancel";
 import {
   initForegroundUpdateCheck,
@@ -37,6 +38,8 @@ if (!isNativeApp()) {
   initInstallPrompt();
 }
 
+// The bowler's Text size, before the first screen is drawn (ADR-219).
+startTextSize();
 applyNativeChrome();
 followThemeInSystemBars();
 // A touch dragged off a control before it lifts presses nothing (ADR-185).

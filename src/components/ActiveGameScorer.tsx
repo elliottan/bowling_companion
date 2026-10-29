@@ -862,7 +862,7 @@ export function ActiveGameScorer({
       {/* Pin deck (left) + shot details (right), side-by-side on every width. */}
       <div
         data-adjuster-host
-        className="mt-3 grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,360px)_1fr]"
+        className="type-cap-dense mt-3 grid grid-cols-2 items-start gap-3 lg:grid-cols-[minmax(0,360px)_1fr]"
       >
         {/* `data-adjuster-bounds`: while a line field is focused, its board
             adjusters float over this column, one to a row (ADR-117). */}
@@ -937,7 +937,7 @@ export function ActiveGameScorer({
                   onClick={togglePocket}
                   aria-pressed={pocketValue}
                   aria-label={pocketValue ? "Pocket hit" : "Not a pocket hit"}
-                  className={`rounded-md border px-1.5 py-1 text-[9px] font-bold uppercase tracking-wide ${
+                  className={`rounded-md border px-1.5 py-1 text-caption-2 font-bold uppercase tracking-wide ${
                     pocketValue
                       ? "border-accent-fill bg-accent-fill text-accent-on-fill"
                       : `${WOOD_PIN_DOWN} line-through`
@@ -985,7 +985,7 @@ export function ActiveGameScorer({
               >
                 <span className="text-sm font-semibold">Next</span>
                 {nextOutcome && (
-                  <span aria-hidden="true" className="mt-0.5 text-[10px] font-semibold text-ink-secondary">
+                  <span aria-hidden="true" className="mt-0.5 text-caption-2 font-semibold text-ink-secondary">
                     ({nextOutcome})
                   </span>
                 )}

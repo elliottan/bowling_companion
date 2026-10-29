@@ -23,8 +23,8 @@ test("adds a spare line for a leave, stores its boards, and deletes it", async (
 
   await page.getByRole("button", { name: "Add spare" }).click();
   // A leave starts with nothing selected: tap the pins left standing.
-  await page.getByRole("button", { name: /Pin 3 (down|standing)/ }).click();
-  await page.getByRole("button", { name: /Pin 10 (down|standing)/ }).click();
+  await page.getByRole("button", { name: /Pin 3, (down|standing)/ }).click();
+  await page.getByRole("button", { name: /Pin 10, (down|standing)/ }).click();
   await page.getByRole("button", { name: "Save spare line" }).click();
 
   const card = page.getByRole("button", { name: "Open spare line for pins 3, 10" });

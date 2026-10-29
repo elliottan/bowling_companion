@@ -29,6 +29,16 @@ property of the leave (derivable, since both are "the 6 pin is the target") or a
 choice the bowler makes per pair. Deriving it is wrong for anyone who plays a
 6-10 differently to a 6.
 
+### Android follows the system font size
+
+The iPhone app reads Dynamic Type and tells the page (ADR-219). Android has no
+equivalent yet: the Capacitor web view's `WebSettings.textZoom` may or may not
+follow `Configuration.fontScale` on a given device, and it was not checked on
+one. Test the Text size setting and the system font size on a real phone; if
+the web view does not follow, set `textZoom` from `fontScale` in
+`MainActivity` (care: it would stack with the Text size setting, so write
+`--os-text-scale` from the page instead and leave `textZoom` at 100).
+
 ### Effects that set state on mount
 
 ESLint reports 22 warnings and no errors: `set-state-in-effect` 10, `refs` 4,

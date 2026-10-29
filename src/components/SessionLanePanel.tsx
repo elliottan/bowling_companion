@@ -413,7 +413,7 @@ function SessionSheetTab({
               {/* A finished game is never "current", even if score entry is
                   parked on it. */}
               {game.id === currentGameId && game.final_score === undefined && !score.isComplete && (
-                <span className="rounded-full bg-accent-fill px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-accent-on-fill">
+                <span className="rounded-full bg-accent-fill px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-accent-on-fill">
                   Current
                 </span>
               )}
@@ -454,7 +454,7 @@ function scrollParent(el: HTMLElement): HTMLElement | null {
 }
 
 const emptyCell = (n: number) => (
-  <span className="text-[10px] font-bold uppercase leading-none text-ink-secondary">F{n}</span>
+  <span className="text-caption-2 font-bold uppercase leading-none text-ink-secondary">F{n}</span>
 );
 
 // Cross-lane: columns are FIXED by lane number (lower = left, higher = right),
@@ -505,7 +505,7 @@ function GameGrid({
     );
     return (
       <div className="overflow-hidden rounded-lg border border-edge">
-        <div className="border-b border-edge bg-surface-muted py-1 text-center text-[11px] font-bold uppercase tracking-wide text-ink-secondary">
+        <div className="border-b border-edge bg-surface-muted py-1 text-center text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
           {laneLabel ? `Lane ${laneLabel}` : "Lane"}
         </div>
         {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
@@ -531,7 +531,7 @@ function GameGrid({
 
   return (
     <div className="overflow-hidden rounded-lg border border-edge">
-      <div className="grid grid-cols-2 bg-surface-muted text-center text-[11px] font-bold uppercase tracking-wide text-ink-secondary">
+      <div className="grid grid-cols-2 bg-surface-muted text-center text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
         <div className="border-b border-r border-edge py-1">Lane {leftLane}</div>
         <div className="border-b border-edge py-1">Lane {rightLane}</div>
       </div>
@@ -578,7 +578,7 @@ function BallCorner({ ball }: { ball: Ball }) {
           size="thumb"
         />
       ) : (
-        <span className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-[8px] font-bold uppercase text-ink-secondary">
+        <span className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-caption-2 font-bold uppercase text-ink-secondary">
           {ball.name.trim().charAt(0)}
         </span>
       )}
@@ -674,7 +674,7 @@ function FrameCell({
             <div className="relative shrink-0">
               <MiniPins standing={shot.pins_standing} />
               {i === 0 && (
-                <span className="absolute bottom-0 left-0 text-[10px] font-bold uppercase leading-none text-ink-secondary">
+                <span className="absolute bottom-0 left-0 text-caption-2 font-bold uppercase leading-none text-ink-secondary">
                   F{frame.frame_number}
                 </span>
               )}
@@ -682,7 +682,7 @@ function FrameCell({
                 {symbol}
               </span>
             </div>
-            <div className="relative min-w-0 flex-1 text-[11px] leading-tight">
+            <div className="relative min-w-0 flex-1 text-caption-2 leading-tight">
               {ball && <BallCorner ball={ball} />}
               {/* Room for the corner icon beside the name. */}
               {name && <p className="truncate pr-5 font-medium text-ink">{name}</p>}

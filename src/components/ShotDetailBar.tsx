@@ -243,7 +243,7 @@ export function ShotDetailBar({
             >
               {selectedBall?.name ?? "No ball"}
               {selectedBall?.is_spare_ball && (
-                <span className="ml-1.5 rounded-full border border-edge-strong px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-secondary">
+                <span className="ml-1.5 rounded-full border border-edge-strong px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
                   Spare
                 </span>
               )}
@@ -305,7 +305,7 @@ export function ShotDetailBar({
                 <button
                   type="button"
                   onClick={copyIntended}
-                  className={`relative whitespace-nowrap text-[11px] font-bold text-accent active:opacity-60 ${UPWARD_TAP_TARGET}`}
+                  className={`relative whitespace-nowrap text-caption-2 font-bold text-accent active:opacity-60 ${UPWARD_TAP_TARGET}`}
                 >
                   As intended
                 </button>
@@ -381,7 +381,7 @@ export function ShotDetailBar({
             }}
             rows={2}
             placeholder="This shot…"
-            className={`${FIELD_DENSE_TEXTAREA} h-28 overflow-y-auto text-[11px]`}
+            className={`${FIELD_DENSE_TEXTAREA} h-28 overflow-y-auto text-caption-2`}
           />
         </label>
       </div>

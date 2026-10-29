@@ -93,7 +93,7 @@ export function BallsSample() {
   return (
     <Sample>
       <div className="rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-        <div className="flex gap-1 pb-1 text-[9px] font-semibold uppercase leading-tight text-ink-tertiary">
+        <div className="flex gap-1 pb-1 text-caption-2 font-semibold uppercase leading-tight text-ink-tertiary">
           <span className="min-w-0 flex-1" />
           {BALL_HEADINGS.map((h) => (
             <span key={h} className="w-10 shrink-0 text-right">
@@ -103,14 +103,14 @@ export function BallsSample() {
         </div>
         {BALLS.slice(0, 2).map((ball, n) => (
           <div key={ball.name} className="border-t border-edge py-1.5">
-            <div className="flex items-center gap-1 text-[13px]">
+            <div className="flex items-center gap-1 text-footnote">
               <span className="flex min-w-0 flex-1 items-center gap-1.5">
                 <span className="h-7 w-7 shrink-0">
                   <CatalogBallImage src={ball.thumb} alt="" brand={ball.brand} size="thumb" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium leading-tight text-ink-strong">{ball.name}</span>
-                  <span className="block text-[10px] tabular-nums text-ink-tertiary">{ball.balls} balls</span>
+                  <span className="block text-caption-2 tabular-nums text-ink-tertiary">{ball.balls} balls</span>
                 </span>
               </span>
               {ball.rates.map((rate, i) => (
@@ -120,7 +120,7 @@ export function BallsSample() {
               ))}
             </div>
             {n === 0 && (
-              <table className="mt-2 w-full rounded-lg bg-surface-muted text-[11px] tabular-nums">
+              <table className="mt-2 w-full rounded-lg bg-surface-muted text-caption-2 tabular-nums">
                 <thead>
                   <tr className="text-ink-tertiary">
                     <th className="px-2 pt-1.5 text-left font-semibold">By game</th>
@@ -169,7 +169,7 @@ export function FirstBallSample() {
               {i > 0 && <ArrowRight size={14} className="text-ink-tertiary" />}
               <div>
                 <p className={`text-2xl font-bold tabular-nums ${lead ? "text-accent" : "text-ink"}`}>{value}</p>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
+                <p className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{label}</p>
               </div>
             </Fragment>
           ))}
@@ -237,7 +237,7 @@ export function AlleySample() {
         <span className="rounded-full border border-edge-strong bg-surface px-3 py-1 text-ink-strong">Lanes 11-12</span>
       </div>
       <div className="overflow-hidden rounded-[22px] bg-surface">
-        <div className="flex items-end gap-1 px-3 pb-1 pt-2 text-[8px] font-semibold uppercase leading-tight text-ink-tertiary">
+        <div className="flex items-end gap-1 px-3 pb-1 pt-2 text-caption-2 font-semibold uppercase leading-tight text-ink-tertiary">
           <span className="min-w-0 flex-1" />
           {ALLEY_HEADINGS.map((h) => (
             <span key={h} className="w-8 shrink-0 text-center">
@@ -247,7 +247,7 @@ export function AlleySample() {
           <span className="w-9 shrink-0 text-right">Est.</span>
         </div>
         {ALLEY_BALLS.map((ball) => (
-          <div key={ball.name} className="flex items-center gap-1 border-t border-edge px-3 py-2 text-[12px]">
+          <div key={ball.name} className="flex items-center gap-1 border-t border-edge px-3 py-2 text-caption">
             <span className="flex min-w-0 flex-1 items-center gap-1.5">
               <span className="h-6 w-6 shrink-0">
                 <CatalogBallImage src={ball.thumb} alt="" brand={ball.brand} size="thumb" />
@@ -262,7 +262,7 @@ export function AlleySample() {
             <span className="w-9 shrink-0 text-right leading-tight">
               <span className="block font-bold tabular-nums text-ink">~{ball.est}</span>
               <span
-                className={`block text-[10px] tabular-nums ${ball.diff > 0 ? "text-success-700" : ball.diff < 0 ? "text-danger-700" : "text-ink-tertiary"}`}
+                className={`block text-caption-2 tabular-nums ${ball.diff > 0 ? "text-success-700" : ball.diff < 0 ? "text-danger-700" : "text-ink-tertiary"}`}
               >
                 {ball.diff > 0 ? `+${ball.diff}` : ball.diff < 0 ? `−${Math.abs(ball.diff)}` : "0"}
               </span>
@@ -307,7 +307,7 @@ export function LineSample() {
       <dl className="space-y-2">
         {PEGS.map(([label, board]) => (
           <div key={label} className="rounded-lg border border-white/15 bg-white/10 px-3 py-1.5 text-white">
-            <dt className="text-[10px] font-semibold uppercase tracking-wide text-white/70">{label}</dt>
+            <dt className="text-caption-2 font-semibold uppercase tracking-wide text-white/70">{label}</dt>
             <dd className="text-base font-bold tabular-nums">{board}</dd>
           </div>
         ))}

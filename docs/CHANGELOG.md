@@ -9,6 +9,20 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.72.0: Text size, and a pass on accessibility (2026-10-29)
+
+- Headpin follows your text size. On iPhone it follows the size set in
+  Settings, Display & Brightness, Text Size (and Accessibility sizes); on the
+  web it follows the browser's own size. Settings, Appearance has a new Text
+  size: Default, Large, Larger, Largest, on top of the phone's.
+- The scorecard, pin deck, shot panel, tab bar, lane view and charts grow only
+  as far as they can without breaking.
+- Small grey labels are darker, so they read at 4.5:1 or better.
+- The scorecard reads each frame as one line to VoiceOver ("Frame 4, strike,
+  78"), and says a split. Pins read "Pin 7, standing".
+- Every size of type is on one named scale (ADR-219). Labels that were 8 to
+  10px are now 11px, so some column headings are a little larger.
+
 ## 0.70.1: App Review notes for the one-screen setup (2026-10-28)
 
 - No change to the app. The App Review notes and the review recording's shot

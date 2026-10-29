@@ -66,7 +66,7 @@ export function GameRowsSheet<T extends GameRow>({
             >
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline justify-between gap-2">
-                  <span className="min-w-0 truncate text-[15px] font-semibold text-ink">{row.alley}</span>
+                  <span className="min-w-0 truncate text-subhead font-semibold text-ink">{row.alley}</span>
                   <span className="shrink-0 text-sm tabular-nums text-ink-secondary">
                     {formatShortDate(row.date)}
                   </span>

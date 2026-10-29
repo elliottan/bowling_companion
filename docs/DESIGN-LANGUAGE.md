@@ -34,7 +34,7 @@ Every push gets, without exception:
   "Back" for screen readers. It used to name the screen underneath ("‹ Settings"),
   which read as a lie once the same screen could be pushed from several places:
   opened from the dashboard it named a tab the user had never navigated from;
-- a centered title, one line, 17px semibold, always shown, however far the
+- a centered title, one line, in the `body` size semibold (17pt), always shown, however far the
   screen has scrolled, so the bowler always knows where they are (ADR-198);
 - at most **one** trailing action, an `IconButton` (§1b). The layout
   lab is the single exception: a share, which is what the screen is for once
@@ -430,6 +430,48 @@ opening it shows the leaves it costs most, never a sentence about what to throw
 alley and pattern it was thrown on, since which pattern is half of what a line
 means (ADR-148). Numbers in a table beat
 the same numbers in sentences: the screen is read standing at the lanes.
+
+## 4e. Type: the scale, and how it grows
+
+Every font size is a name from the type scale in `tailwind.config.js`
+(ADR-219), which is Apple's text styles in rem. Never write a size in pixels
+(`text-[11px]`): iOS does not scale a pixel size with the phone's Dynamic Type,
+and a test fails the build on one.
+
+| Name | Size | Use |
+|---|---|---|
+| `large-title` | 34 | A tab's large title (`LARGE_TITLE`) |
+| `title-1`, `title-2`, `title-3` | 28, 22, 20 | Headings inside content |
+| `headline` | 17 semibold | A row's or sheet's title |
+| `body` | 17 | A list row's label, reading text |
+| `callout` | 16 | Form fields (also the floor iOS needs, so a focus never zooms) |
+| `subhead` | 15 | Secondary lines, long reading text |
+| `footnote` | 13 | Descriptions, labels over fields, dense numbers |
+| `caption` | 12 | Small notes |
+| `caption-2` | 11 | The smallest type: column headings, chart axes, badges |
+
+Tailwind's own `text-xs` to `text-6xl` still work at their old sizes, on the
+same multiplier, so older markup did not move; reach for a name first.
+
+- **Nothing is smaller than 11 at the default size.** The one exception is the
+  pin numbers in `MiniPins` (`pin-xs`, `pin-sm`: 6 and 7), drawn inside a
+  pin 12 and 14px across, decoration beside an accessible name. Text drawn
+  inside an SVG in its own units (the lane, the ball diagram) scales with the
+  drawing instead.
+- **Type scales, spacing does not.** Each size is its rem size times
+  `--type-scale`, built in `src/index.css` from the phone's text size
+  (`--os-text-scale`, written by the iPhone app from Dynamic Type) and the
+  Text size setting in Appearance (`--user-text-scale`: Default 1, Large 1.15,
+  Larger 1.3, Largest 1.5), held between 0.85 and 1.6. A browser scales rem from
+  its own default size as well.
+- **A dense surface caps lower.** `type-cap-dense` holds its type to 1.2x: the
+  scorecard grid, the scorer's pin deck and shot panel, the tab bar, the lane
+  visualizer, the charts and the ball tables. `type-cap-fixed` holds it at 1x,
+  for a label inside a shape drawn at a fixed size (the pin deck's pins). Put
+  the class on the surface's root, never on one label.
+- **Grey labels meet 4.5:1.** `ink-secondary` and `ink-tertiary` both do, on the
+  page and the card, in both themes; a test measures them.
+- **Check a new screen at 360px wide and at the Largest size** before it ships.
 
 ## 5. Empty states
 

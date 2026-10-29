@@ -239,7 +239,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
                     <CatalogBallImage src={catalogRef.imageThumb} alt={catalogRef.name} brand={catalogRef.brand} size="thumb" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">Linked to catalog</p>
+                    <p className="text-caption-2 font-semibold uppercase tracking-wide text-accent">Linked to catalog</p>
                     <p className="truncate text-sm font-semibold text-ink">
                       {catalogRef.brand} {catalogRef.name}
                     </p>
@@ -577,7 +577,7 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
                   <CatalogBallImage src={b.imageThumb} alt={b.name} brand={b.brand as Manufacturer} size="thumb" lazy />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{b.brand}</p>
+                  <p className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{b.brand}</p>
                   <p className="truncate text-sm font-semibold text-ink">{b.name}</p>
                   <p className="text-xs text-ink-secondary">
                     {[b.coverstockCategory, b.coreType, b.rg !== null ? `RG ${b.rg.toFixed(2)}` : null]

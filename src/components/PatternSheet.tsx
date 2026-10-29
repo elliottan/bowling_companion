@@ -187,7 +187,7 @@ function TrackZoneRow({ zones }: { zones: { label: string; ratio: number }[] }) 
           >
             {/* 9px and tight: seven of these share a phone's width, and a
                 label is only worth printing whole. */}
-            <span className="block whitespace-nowrap text-[9px] leading-tight tracking-tighter text-ink-tertiary">
+            <span className="block whitespace-nowrap text-caption-2 leading-tight tracking-tighter text-ink-tertiary">
               {label}
             </span>
             <span className="block text-sm font-semibold text-ink">

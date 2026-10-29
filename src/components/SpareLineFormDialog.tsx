@@ -25,7 +25,7 @@ const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 // Field chrome mirrors the score-entry shot panel (ActiveGameScorer's LineInput)
 // so a spare line reads the same way a shot does.
 
-const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary";
+const eyebrow = "text-caption-2 font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 const boardInput = `${FIELD_DENSE} px-1 text-center font-semibold tabular-nums`;
 
 interface SpareLineFormDialogProps {
@@ -285,7 +285,7 @@ export function SpareLineFormDialog({
               type="button"
               onClick={() => setShowViz(true)}
               title="Derived from your stance. Tap to see it on the lane."
-              className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-[11px] font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums active:text-accent"
+              className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-caption-2 font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums active:text-accent"
             >
               {derivedSlide != null && <span className="whitespace-nowrap">Slide {derivedSlide}</span>}
               {derivedSlide != null && derivedLaydown != null && (

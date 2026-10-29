@@ -30,7 +30,7 @@ function Meter({
   const word = motionBand(value, ...words);
   return (
     <div aria-label={`${label}, ${word}`} role="group">
-      <div className="text-[11px] font-semibold leading-tight text-ink-strong">{label}</div>
+      <div className="text-caption-2 font-semibold leading-tight text-ink-strong">{label}</div>
       {/* The slider's own track colour: the rail sits on the sunken page
           colour, where the muted fill the old bars used all but vanished. */}
       <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-edge-strong">
@@ -39,7 +39,7 @@ function Meter({
           style={{ width: `${clamp(value, 0, 1) * 100}%` }}
         />
       </div>
-      <div className="mt-0.5 text-[11px] leading-tight text-ink-secondary">{word}</div>
+      <div className="mt-0.5 text-caption-2 leading-tight text-ink-secondary">{word}</div>
     </div>
   );
 }
