@@ -32,6 +32,7 @@ import {
   toPolyline,
   type Orientation
 } from "../lib/ballProjection";
+import { formatFixed } from "../lib/format";
 
 /**
  * The ball, drawn, with the layout on it, and draggable.
@@ -756,14 +757,14 @@ function describeDiagram(
   const marker = ball.symmetric ? "CG" : "PSA";
   const named =
     system === "vls"
-      ? `a ${layout.pinToPap.toFixed(2)} by ${coreToPap(layout, ball).toFixed(2)} by ` +
-        `${pinBuffer(layout.pinToPap, layout.valAngle).toFixed(2)} inch Storm VLS layout`
-      : `a ${Math.round(layout.drillingAngle)} by ${layout.pinToPap.toFixed(2)} inch by ` +
+      ? `a ${formatFixed(layout.pinToPap, 2)} by ${formatFixed(coreToPap(layout, ball), 2)} by ` +
+        `${formatFixed(pinBuffer(layout.pinToPap, layout.valAngle), 2)} inch Storm VLS layout`
+      : `a ${Math.round(layout.drillingAngle)} by ${formatFixed(layout.pinToPap, 2)} inch by ` +
         `${Math.round(layout.valAngle)} dual angle layout`;
   const drilled = grip === "2h" ? "two finger holes and no thumb hole" : "a thumb hole and two finger holes";
   return (
-    `A bowling ball drilled with ${drilled}, showing ${named}. The pin sits ${layout.pinToPap.toFixed(2)} inches from the PAP ` +
-    `with a ${pinBuffer(layout.pinToPap, layout.valAngle).toFixed(2)} inch pin buffer, and the ${marker} is ` +
-    `${coreToPap(layout, ball).toFixed(2)} inches from the PAP. Drag the ball, or use the arrow keys, to turn it.`
+    `A bowling ball drilled with ${drilled}, showing ${named}. The pin sits ${formatFixed(layout.pinToPap, 2)} inches from the PAP ` +
+    `with a ${formatFixed(pinBuffer(layout.pinToPap, layout.valAngle), 2)} inch pin buffer, and the ${marker} is ` +
+    `${formatFixed(coreToPap(layout, ball), 2)} inches from the PAP. Drag the ball, or use the arrow keys, to turn it.`
   );
 }

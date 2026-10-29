@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { LARGE_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { CompactTitleBar, LARGE_TITLE_SCROLL_PX } from "../components/CompactTitleBar";
 import { Archive, ArrowUpRight, Check, ChevronRight, Compass, Download, MessageSquare, Palette, RotateCcw, ScrollText, UserRound, UserRoundCog } from "lucide-react";
@@ -22,7 +23,7 @@ import { BowlingBallIcon, LanePairIcon, SpareLineIcon } from "../components/icon
 // Navigating to a section is a navigation action, so the union lives with the
 // rest of the navigation state.
 import type { SettingsSection } from "../lib/appNavigation";
-import { describeAge } from "../lib/backupNudge";
+import { describeLastBackup } from "../lib/backupNudge";
 import { useLiveQuery } from "dexie-react-hooks";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
 import { InstallPrompt } from "../components/InstallPrompt";
@@ -81,7 +82,7 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
   // reveals it mid-animation instead of sliding onto an empty page.
   return (
     <div className="relative h-full">
-      <CompactTitleBar title="Settings" shown={compact} />
+      <CompactTitleBar title={t`Settings`} shown={compact} />
       <div
         onScroll={(e) => {
           const next = e.currentTarget.scrollTop > LARGE_TITLE_SCROLL_PX;
@@ -108,7 +109,7 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
           <AppearanceView onBack={back} />
         ) : section === "tools" ? (
           // The same list as Home's, so a tool is found from either door.
-          <PushScreen mode="inline" title="Tools and reference" onBack={back}>
+          <PushScreen mode="inline" title={t`Tools and reference`} onBack={back}>
             <div className="mx-auto w-full max-w-3xl px-3 py-3 sm:px-6">
               <ToolsList
                 onOpenLayoutLab={onOpenLayoutLab}
@@ -173,14 +174,14 @@ function SettingsMenu({
 
   // Live rather than read once at mount: Settings does not unmount when the
   // backup screen is pushed over it, so a mount-only read left the row saying
-  // "Never backed up" straight after a backup.
+  // t`Never backed up` straight after a backup.
   const lastBackupAt = useLiveQuery(async () => (await getSetting("last_backup_at")) ?? null);
   const backupDescription =
     lastBackupAt === undefined
-      ? "Export or import your data"
+      ? t`Export or import your data`
       : lastBackupAt
-        ? `Last backup ${describeAge(lastBackupAt, new Date())}`
-        : "Never backed up";
+        ? describeLastBackup(lastBackupAt, new Date())
+        : t`Never backed up`;
   const grip: GripStyle = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
 
   // A link that leaves the app says so with the outward arrow, rather than the
@@ -190,19 +191,20 @@ function SettingsMenu({
   );
 
 
+  const version = __APP_VERSION__;
   const initial = name ? [...name][0]?.toUpperCase() : null;
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-7 px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
       <div className={`${TAB_TITLE_ROW} justify-between gap-3`}>
-        <h1 className={LARGE_TITLE}>Settings</h1>
+        <h1 className={LARGE_TITLE}>{t`Settings`}</h1>
         {/* The bowler, as a profile chip: tap it to change the name. Held back
             until the name has loaded, so it never flashes "Add name". */}
         {name !== undefined && (
           <button
             type="button"
             onClick={() => setEditingName(true)}
-            aria-label={name ? `Your name, ${name}` : "Add your name"}
+            aria-label={name ? t`Your name, ${name}` : t`Add your name`}
             className="flex min-h-11 min-w-0 max-w-[60%] items-center gap-2 rounded-full py-1 pl-1 pr-3 active:bg-surface-muted"
           >
             {owned && <ProBadge className="shrink-0" />}
@@ -212,7 +214,7 @@ function SettingsMenu({
             >
               {initial ?? <UserRound size={18} />}
             </span>
-            <span className="truncate text-sm font-semibold text-ink">{name ?? "Add name"}</span>
+            <span className="truncate text-sm font-semibold text-ink">{name ?? t`Add name`}</span>
           </button>
         )}
       </div>
@@ -227,37 +229,37 @@ function SettingsMenu({
           <Archive size={20} aria-hidden="true" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-bold text-ink">Backup & restore</span>
+          <span className="block truncate font-bold text-ink">{t`Backup & restore`}</span>
           <span className="block truncate text-sm text-ink">{backupDescription}</span>
         </span>
         <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-accent" />
       </button>
 
-      <ListGroup heading="Your bowling">
+      <ListGroup heading={t`Your bowling`}>
         <ListRow
           icon={UserRoundCog}
-          label="Bowling profile"
-          description={`${handedness === "right" ? "Right-handed" : "Left-handed"} · ${
-            grip === "2h" ? "Two-handed" : "One-handed"
+          label={t`Bowling profile`}
+          description={`${handedness === "right" ? t`Right-handed` : t`Left-handed`} · ${
+            grip === "2h" ? t`Two-handed` : t`One-handed`
           }`}
           onClick={() => onSectionChange("profile")}
         />
         <ListRow
           icon={BowlingBallIcon}
-          label="Arsenal"
-          description="Your balls and their layouts"
+          label={t`Arsenal`}
+          description={t`Your balls and their layouts`}
           onClick={onOpenArsenal}
         />
         <ListRow
           icon={SpareLineIcon}
-          label="Spare lines"
-          description="Pre-fill spare lines during score entry"
+          label={t`Spare lines`}
+          description={t`Pre-fill spare lines during score entry`}
           onClick={onOpenSpareLines}
         />
         <ListRow
           icon={LanePairIcon}
-          label="Lane notes"
-          description="How each lane plays at each alley"
+          label={t`Lane notes`}
+          description={t`How each lane plays at each alley`}
           onClick={onOpenLaneNotes}
         />
       </ListGroup>
@@ -267,47 +269,47 @@ function SettingsMenu({
       <ListGroup>
         <ListRow
           icon={Compass}
-          label="Tools and reference"
-          description="Layouts, patterns, the catalog and guides"
+          label={t`Tools and reference`}
+          description={t`Layouts, patterns, the catalog and guides`}
           onClick={() => onSectionChange("tools")}
         />
       </ListGroup>
 
       <ProSection />
 
-      <ListGroup heading="Support">
+      <ListGroup heading={t`Support`}>
         <ListRow
           icon={MessageSquare}
-          label="Send feedback"
+          label={t`Send feedback`}
           onClick={() => void openFeedbackEmail()}
           trailing={leavesTheApp}
         />
         <ListRow
           icon={ScrollText}
-          label="Privacy and terms"
+          label={t`Privacy and terms`}
           onClick={() => onSectionChange("legal")}
         />
       </ListGroup>
 
-      <ListGroup heading="App">
+      <ListGroup heading={t`App`}>
         {/* The way back to an install the Home card was waved away from.
             Hidden once the app is installed, when it would offer nothing. */}
         {installable && (
           <ListRow
             icon={Download}
-            label="Install Headpin"
-            description="Put it on your home screen, so it opens like an app"
+            label={t`Install Headpin`}
+            description={t`Put it on your home screen, so it opens like an app`}
             onClick={() => setInstallOpen(true)}
           />
         )}
         <ListRow
           icon={Palette}
-          label="Appearance"
+          label={t`Appearance`}
           onClick={() => onSectionChange("appearance")}
         />
       </ListGroup>
 
-      <p className="px-4 text-xs text-ink-secondary">Headpin {__APP_VERSION__}</p>
+      <p className="px-4 text-xs text-ink-secondary">{t`Headpin ${version}`}</p>
 
       <InstallPrompt open={installOpen} onClose={() => setInstallOpen(false)} />
 
@@ -340,11 +342,11 @@ function ProSection() {
     // Pro merely open (the Android app, a stray address) has nothing to show.
     if (!openOffer || (!access.locked && !owned)) return null;
     return (
-      <ListGroup heading="Headpin Pro">
+      <ListGroup heading={t`Headpin Pro`}>
         <ListRow
           leading={mark}
-          label="Headpin Pro"
-          description={owned ? "Unlocked on this copy" : "See what Pro adds"}
+          label={t`Headpin Pro`}
+          description={owned ? t`Unlocked on this copy` : t`See what Pro adds`}
           onClick={openOffer}
         />
       </ListGroup>
@@ -360,43 +362,45 @@ function ProSection() {
     } catch (err) {
       // Say why when the store did: "not available right now" and "offline" call
       // for different things from a bowler, and one line hid both.
-      const why = err instanceof Error && err.message ? `: ${err.message}` : ". Try again in a moment.";
-      setMessage(`The App Store did not answer${why}`);
+      const reason = err instanceof Error ? err.message : "";
+      setMessage(
+        reason ? t`The App Store did not answer: ${reason}` : t`The App Store did not answer. Try again in a moment.`
+      );
     } finally {
       setBusy(null);
     }
   }
 
-  const waiting = "Asking the App Store…";
+  const waiting = t`Asking the App Store…`;
   const buy = () =>
     run("buy", async (s) => {
       const outcome = await s.buy();
-      return outcome === "pending" ? "Waiting for approval. Pro opens as soon as it comes through." : null;
+      return outcome === "pending" ? t`Waiting for approval. Pro opens as soon as it comes through.` : null;
     });
   const restore = () =>
     run("restore", async (s) =>
-      (await s.restore()) ? "Headpin Pro is restored." : "This Apple ID has not bought Headpin Pro."
+      (await s.restore()) ? t`Headpin Pro is restored.` : t`This Apple ID has not bought Headpin Pro.`
     );
 
   return (
     <div className="space-y-2">
-      <ListGroup heading="Headpin Pro">
+      <ListGroup heading={t`Headpin Pro`}>
         {store.owned ? (
           <ListRow
             leading={mark}
-            label="Headpin Pro"
-            description="Unlocked. Thank you for backing Headpin."
+            label={t`Headpin Pro`}
+            description={t`Unlocked. Thank you for backing Headpin.`}
             trailing={<Check size={16} aria-hidden="true" className="shrink-0 text-accent" />}
             onClick={openOffer ?? undefined}
           />
         ) : (
           <ListRow
             leading={mark}
-            label="Get Headpin Pro"
+            label={t`Get Headpin Pro`}
             description={
               busy === "buy"
                 ? waiting
-                : "Deeper stats, line and layout tools"
+                : t`Deeper stats, line and layout tools`
             }
             onClick={() => (openOffer ? openOffer() : void buy())}
           />
@@ -406,7 +410,7 @@ function ProSection() {
         {!store.owned && (
           <ListRow
             icon={RotateCcw}
-            label="Restore purchase"
+            label={t`Restore purchase`}
             description={busy === "restore" ? waiting : undefined}
             onClick={() => void restore()}
           />

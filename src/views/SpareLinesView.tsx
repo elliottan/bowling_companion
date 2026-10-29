@@ -1,3 +1,4 @@
+import { formatPercent } from "../lib/format";
 import { ChevronRight, Plus, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -141,7 +142,7 @@ function LeaveTile({
         <MiniPins standing={sl.pins} size="md" />
         <span className="text-caption-2 font-semibold tabular-nums text-ink">{formatLeave(sl.pins)}</span>
         <span className="text-caption-2 tabular-nums text-ink-secondary">
-          {tile.attempts}×{tile.conversionPct != null ? ` · ${tile.conversionPct}%` : ""}
+          {tile.attempts}×{tile.conversionPct != null ? ` · ${formatPercent(tile.conversionPct)}` : ""}
         </span>
       </button>
     </li>

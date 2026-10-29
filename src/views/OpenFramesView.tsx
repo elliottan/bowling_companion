@@ -1,3 +1,4 @@
+import { formatPercent } from "../lib/format";
 import { useMemo, useState } from "react";
 import { RackIcon } from "../components/icons";
 import { LoadingCard } from "../components/ui/LoadingCard";
@@ -94,7 +95,7 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
                       {leave.conversions} of {leave.chances} made
                     </span>
                     <span className="block text-xs tabular-nums text-ink-secondary">
-                      {leave.conversionPct}%
+                      {leave.conversionPct !== null ? formatPercent(leave.conversionPct) : "-"}
                     </span>
                   </span>
                   {/* Per game, not a raw count: right-handers leave more 10

@@ -27,6 +27,7 @@ import {
   buildLinePath, breakpointFloorTiming, solveLine, projectBreakpoint, xToBoard, yToFeet, PLANE_W, PLANE_L,
   POCKET_BOARD, type Peg, arrowFeet, ARROWS_FEET, LANE_FEET, HOOK_START_FT, HOOK_LENGTH_FT,
 } from "../lib/laneGeometry";
+import { formatFixed } from "../lib/format";
 
 const BOWLER_DEG = 45;     // bowler's-eye tilt (looking down the lane)
 const TOPDOWN_DEG = 0;     // flat / top-down
@@ -1125,8 +1126,8 @@ function OptionsSheet({
         {oil && (
           <div className="mb-4 border-b border-white/10 pb-3">
             <p className="text-xs tabular-nums text-white/60">
-              {oilName} · {Math.round(oil.length)} ft · {oil.volumeMl.toFixed(2)} mL
-              {oilRatio != null ? ` · ${oilRatio.toFixed(1)}:1` : ""}
+              {oilName} · {Math.round(oil.length)} ft · {formatFixed(oil.volumeMl, 2)} mL
+              {oilRatio != null ? ` · ${formatFixed(oilRatio, 1)}:1` : ""}
             </p>
           </div>
         )}

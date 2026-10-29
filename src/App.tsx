@@ -1,3 +1,6 @@
+import { i18n } from "@lingui/core";
+import type { MessageDescriptor } from "@lingui/core";
+import { msg } from "@lingui/core/macro";
 import {
   BarChart3,
   History,
@@ -130,24 +133,32 @@ function prefetchHeavyScreens() {
 
 type NavItem = {
   view: AppView;
-  label: string;
+  /** A descriptor, not a string: the list is built at import, before the
+   *  language is chosen, and is read in render (docs/I18N.md). */
+  label: MessageDescriptor;
   icon: LucideIcon;
 };
 
 const NAV_ITEMS: ReadonlyArray<NavItem> = [
-  { view: "dashboard", label: "Home", icon: Home },
+  { view: "dashboard", label: msg({ message: "Home", comment: "Tab name: the first screen, a summary of your bowling" }), icon: Home },
   // "Score", not "Active": the tab is named for what you do there, and
   // "Active" named a state the tab is usually not in (ADR-115).
-  { view: "active", label: "Score", icon: PinIcon },
-  { view: "history", label: "History", icon: History },
-  { view: "stats", label: "Stats", icon: BarChart3 },
-  { view: "settings", label: "Settings", icon: Settings }
+  { view: "active", label: msg({ message: "Score", comment: "Tab name, a verb: where you score a game as you bowl it" }), icon: PinIcon },
+  { view: "history", label: msg({ message: "History", comment: "Tab name: the list of past sessions" }), icon: History },
+  { view: "stats", label: msg({ message: "Stats", comment: "Tab name: averages and rates, short for statistics" }), icon: BarChart3 },
+  { view: "settings", label: msg({ message: "Settings", comment: "Tab name" }), icon: Settings }
 ];
 
 const MOBILE_NAV_ITEMS = NAV_ITEMS;
 
 /** The same tabs for the phone's own bar, which picks each one's symbol (ADR-161). */
-const NATIVE_TAB_ITEMS = NAV_ITEMS.map(({ view, label }) => ({ id: view, title: label }));
+let nativeTabItems: { id: AppView; title: string }[] | null = null;
+function nativeTabItemsOnce() {
+  // Built on first use, after the language is chosen, and kept: the phone's
+  // bar is handed this same list on every render.
+  nativeTabItems ??= NAV_ITEMS.map(({ view, label }) => ({ id: view, title: i18n._(label) }));
+  return nativeTabItems;
+}
 
 /** How long after leaving the Score tab an empty session is checked (ADR-116):
  *  long enough for the scorer's unmount flush of a tapped-in shot to land. */
@@ -335,7 +346,7 @@ function App() {
   const firstRunShowing = boot.handednessKnown && (chosenHandedness ?? boot.handedness) === null;
   const nativeTabs = useNativeTabBar({
     enabled: boot.booted && isIOSApp(),
-    items: NATIVE_TAB_ITEMS,
+    items: nativeTabItemsOnce(),
     active: view,
     hidden: firstRunShowing || keyboardOpen || overlays.length > 0 || openSheets.length > 0,
     onSelect: (id) => dispatch({ type: "goTo", view: id as AppView })
@@ -945,7 +956,7 @@ function NavLink({ item, active, disabled, onClick }: NavItemProps) {
       }`}
     >
       <Icon size={16} aria-hidden="true" />
-      {item.label}
+      {i18n._(item.label)}
     </button>
   );
 }
@@ -963,7 +974,7 @@ function TabBarButton({ item, active, disabled, onClick }: NavItemProps) {
       }`}
     >
       <Icon size={20} aria-hidden="true" />
-      {item.label}
+      {i18n._(item.label)}
     </button>
   );
 }

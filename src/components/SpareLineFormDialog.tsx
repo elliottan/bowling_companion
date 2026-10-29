@@ -1,3 +1,4 @@
+import { formatPercent } from "../lib/format";
 import { Check, ChevronLeft, ChevronRight, Crosshair, Eye, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
@@ -398,7 +399,7 @@ function LeaveRecord({ stats }: { stats: LeaveStats }) {
             stats.conversionPct !== null && stats.conversionPct >= 70 ? "text-accent" : "text-ink"
           }`}
         >
-          {stats.conversionPct !== null ? `${stats.conversionPct}%` : "-"}
+          {stats.conversionPct !== null ? formatPercent(stats.conversionPct) : "-"}
         </dd>
       </div>
       <div>

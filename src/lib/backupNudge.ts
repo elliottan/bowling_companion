@@ -8,6 +8,8 @@
  * `nudgePolicy` and ADR-068.
  */
 
+import { plural, t } from "@lingui/core/macro";
+
 export interface BackupNudgeState {
   lastBackupAt: string | null;
   sessionsAtLastBackup: number;
@@ -95,13 +97,35 @@ export function daysSince(iso: string, now: Date): number {
 
 /** "today", "3 days ago", "6 weeks ago": how long since a backup, in words. */
 export function describeAge(iso: string | null, now: Date): string {
-  if (iso === null) return "never";
+  if (iso === null) return t`never`;
   const days = daysSince(iso, now);
-  if (days === 0) return "today";
-  if (days === 1) return "yesterday";
-  if (days < 14) return `${days} days ago`;
-  if (days < 60) return `${Math.round(days / 7)} weeks ago`;
-  return `${Math.round(days / 30)} months ago`;
+  if (days === 0) return t`today`;
+  if (days === 1) return t`yesterday`;
+  if (days < 14) return plural(days, { one: "# day ago", other: "# days ago" });
+  if (days < 60) {
+    const weeks = Math.round(days / 7);
+    return plural(weeks, { one: "# week ago", other: "# weeks ago" });
+  }
+  const months = Math.round(days / 30);
+  return plural(months, { one: "# month ago", other: "# months ago" });
+}
+
+/**
+ * The Settings row's whole line, "Last backup 3 days ago". A sentence of its
+ * own rather than "Last backup" and `describeAge` joined, because the order of
+ * those two parts is not the same in every language.
+ */
+export function describeLastBackup(iso: string, now: Date): string {
+  const days = daysSince(iso, now);
+  if (days === 0) return t`Last backup today`;
+  if (days === 1) return t`Last backup yesterday`;
+  if (days < 14) return plural(days, { one: "Last backup # day ago", other: "Last backup # days ago" });
+  if (days < 60) {
+    const weeks = Math.round(days / 7);
+    return plural(weeks, { one: "Last backup # week ago", other: "Last backup # weeks ago" });
+  }
+  const months = Math.round(days / 30);
+  return plural(months, { one: "Last backup # month ago", other: "Last backup # months ago" });
 }
 
 /**

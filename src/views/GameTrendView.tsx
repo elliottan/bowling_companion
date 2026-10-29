@@ -1,3 +1,4 @@
+import { formatPercent } from "../lib/format";
 import { useMemo } from "react";
 import { LayoutGrid } from "lucide-react";
 import { PushScreen } from "../components/PushScreen";
@@ -205,5 +206,5 @@ function fmt(value: number | null): string {
 }
 
 function pct(value: number | null): string {
-  return value === null ? "-" : `${value}%`;
+  return value === null ? "-" : formatPercent(value);
 }

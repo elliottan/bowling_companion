@@ -32,6 +32,7 @@ import { FIELD } from "./ui/field";
 import { getCatalogPatterns, type CatalogPattern } from "../services/patternCatalog";
 import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";
 import { GROUP_HEADING } from "./ui/typography";
+import { formatFixed } from "../lib/format";
 
 interface OilPatternManagerProps {
   /** Present when pushed from Settings, draws the shared nav bar. Absent when
@@ -351,8 +352,8 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
                       <span className="block truncate text-body leading-snug text-ink">{pattern.name}</span>
                       <span className="block truncate text-xs tabular-nums text-ink-secondary">
                         <PatternFeet pattern={pattern} />
-                        {pattern.volumeMl.toFixed(2)} mL
-                        {pattern.ratio != null ? ` · ${pattern.ratio.toFixed(1)}:1` : ""}
+                        {formatFixed(pattern.volumeMl, 2)} mL
+                        {pattern.ratio != null ? ` · ${formatFixed(pattern.ratio, 1)}:1` : ""}
                         {(pattern.shape ?? patternClass(pattern.ratio))
                           ? ` · ${PATTERN_CLASS_LABEL[(pattern.shape ?? patternClass(pattern.ratio))!]}`
                           : ""}
@@ -444,8 +445,8 @@ function summarize(pattern: OilPattern): string {
     const shape = patternClass(ratio);
     // The length leads this line (PatternFeet), so it is not repeated here.
     return [
-      `${stats.volumeMl.toFixed(2)} mL`,
-      ratio != null ? `${ratio.toFixed(1)}:1` : null,
+      `${formatFixed(stats.volumeMl, 2)} mL`,
+      ratio != null ? `${formatFixed(ratio, 1)}:1` : null,
       shape ? PATTERN_CLASS_LABEL[shape] : null,
     ].filter(Boolean).join(" · ");
   }
