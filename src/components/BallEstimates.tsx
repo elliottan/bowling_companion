@@ -11,6 +11,7 @@ import { previewSplit, standInEstimate } from "../lib/proPreview";
 import { type BallEstimate, type BallEstimates as Estimates, type Counted } from "../lib/scoreModel";
 import type { Ball } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
+import { formatPercent } from "../lib/format";
 
 /** Whole pins with a sign: "+7", "−3", "0". */
 function signedPins(value: number): string {
@@ -20,7 +21,7 @@ function signedPins(value: number): string {
 }
 
 function pct(made: number, of: number): string {
-  return of === 0 ? "-" : `${Math.round((made / of) * 100)}%`;
+  return of === 0 ? "-" : formatPercent((made / of) * 100);
 }
 
 /** The rates on a ball's row, in the Stats Balls card's order and size, so

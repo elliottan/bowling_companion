@@ -29,6 +29,14 @@ property of the leave (derivable, since both are "the 6 pin is the target") or a
 choice the bowler makes per pair. Deriving it is wrong for anyone who plays a
 6-10 differently to a 6.
 
+### A first language
+
+The groundwork is in (ADR-220, [I18N.md](./I18N.md)): a catalog, detection and
+`Intl` formatting, with about 400 strings still to mark and the guides, the
+legal pages and the landing page still English only. Japanese and Korean were
+the languages in mind. What is open is the conversion, the translation, and
+the decision on right-to-left, which the layout does not support.
+
 ### Android follows the system font size
 
 The iPhone app reads Dynamic Type and tells the page (ADR-219). Android has no

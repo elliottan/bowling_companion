@@ -26,11 +26,15 @@ export const TEXT_SCALE_MAX = 1.6;
 /** What `.type-cap-dense` holds the scorecard grid, charts and tables to. */
 export const TEXT_SCALE_DENSE_MAX = 1.2;
 
+import type { MessageDescriptor } from "@lingui/core";
+import { msg } from "@lingui/core/macro";
+
 export type TextSizeId = "default" | "large" | "larger" | "largest";
 
 export interface TextSize {
   id: TextSizeId;
-  label: string;
+  /** A descriptor, read through `i18n._` in render: this list is built at import. */
+  label: MessageDescriptor;
   /** Multiplies the phone's own size. */
   scale: number;
 }
@@ -38,10 +42,10 @@ export interface TextSize {
 export const DEFAULT_TEXT_SIZE: TextSizeId = "default";
 
 export const TEXT_SIZES: readonly TextSize[] = [
-  { id: "default", label: "Default", scale: 1 },
-  { id: "large", label: "Large", scale: 1.15 },
-  { id: "larger", label: "Larger", scale: 1.3 },
-  { id: "largest", label: "Largest", scale: 1.5 }
+  { id: "default", label: msg({ message: "Default", comment: "Text size setting: the standard size" }), scale: 1 },
+  { id: "large", label: msg({ message: "Large", comment: "Text size setting: one step bigger than the standard size" }), scale: 1.15 },
+  { id: "larger", label: msg({ message: "Larger", comment: "Text size setting: two steps bigger than the standard size" }), scale: 1.3 },
+  { id: "largest", label: msg({ message: "Largest", comment: "Text size setting: the biggest size" }), scale: 1.5 }
 ];
 
 const IDS = new Set<string>(TEXT_SIZES.map((s) => s.id));

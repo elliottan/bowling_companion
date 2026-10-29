@@ -1,3 +1,4 @@
+import { formatPercent } from "../lib/format";
 import type { BallGameSession } from "../lib/stats";
 import { GameRowsSheet } from "./GameRowsSheet";
 
@@ -52,12 +53,12 @@ function Rate({ label, made, of }: { label: string; made: number; of: number }) 
   const pct = of === 0 ? null : Math.round((made / of) * 100);
   const strong = pct !== null && pct >= 70;
   return (
-    <span aria-label={`${label.toLowerCase()} ${made} of ${of}${pct === null ? "" : `, ${pct}%`}`}>
+    <span aria-label={`${label.toLowerCase()} ${made} of ${of}${pct === null ? "" : `, ${formatPercent(pct)}`}`}>
       <span className="text-ink-secondary" aria-hidden="true">
         {label}
       </span>{" "}
       <span className={`font-semibold ${strong ? "text-accent" : "text-ink"}`} aria-hidden="true">
-        {pct === null ? "-" : `${pct}%`}
+        {pct === null ? "-" : formatPercent(pct)}
       </span>{" "}
       <span className="text-ink-tertiary" aria-hidden="true">
         {made}/{of}

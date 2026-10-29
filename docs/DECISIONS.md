@@ -9321,3 +9321,66 @@ and the bowler can go bigger in the app. Secondary and tertiary grey are now the
 same colour, so the hierarchy between them is gone until a tertiary that
 clears 4.5:1 and still reads lighter is chosen; the owner may want that.
 Labels formerly 8 to 10px are 11px and may wrap sooner. Android is open.
+
+## ADR-220: Translatable text through Lingui, and numbers and dates through Intl
+
+**Status.** Accepted, 2026-10-29, by the owner's decision. Groundwork only: no
+language is shipped.
+
+**Context.** Every string was an English literal in a component, and numbers
+and dates were built by hand (`toFixed(1)`, `${n}%`, `toLocaleDateString`).
+Adding a language meant editing hundreds of components, and the hand-built
+formats were wrong in most languages ("187.5" for "187,5", "73%" for "73 %").
+Japanese and Korean were the first two in mind.
+
+**Decision.**
+- **Lingui** (`@lingui/core`, its macros, `@lingui/cli`, `@lingui/vite-plugin`,
+  `@lingui/babel-plugin-lingui-macro`, `@lingui/format-po`, 6.x). It was
+  chosen over i18next because the English stays in the source beside the code
+  that shows it, the extract builds the catalog, and the runtime is small. It
+  worked with this Vite 7, plugin-react, vitest and tsc setup without a
+  workaround, so the i18next fallback was not needed. The Babel plugin is passed
+  through `react({ babel })` in `vite.config.ts`, so vitest compiles the macros
+  as the build does.
+- **One language per launch.** `startI18n()` (`src/lib/i18n.ts`) picks a
+  supported language from `navigator.languages` (a regional tag matches its
+  language's catalog) and loads its catalog before the first render, from a lazy
+  chunk per language (`import.meta.glob`), so the web bundle does not grow with
+  each language. It sets `<html lang>`. A failed load leaves English on.
+  Changing the language is a reload, so the global `i18n` is read directly and
+  there is no provider. A message is therefore written inside a function or in
+  render, or as a `msg` descriptor read with `i18n._` where a list is built
+  at import (`NAV_ITEMS`, `TEXT_SIZES`).
+- **English is a catalog too.** The production build strips the source text from
+  a message, so `src/locales/en/messages.po` is loaded like any language. Tests
+  load it in `src/test/setup.ts`, so a message missing from it fails a test.
+- **Catalogs are checked in, and checked.** `npm run i18n:extract` writes them
+  with no line numbers (so an edit above a string is not a diff).
+  `npm run i18n:check` (`scripts/i18n-check.mjs`) re-extracts and fails if
+  anything changed; it is in `verify` and in CI after lint.
+- **Formatting.** `src/lib/format.ts` (`formatNumber`, `formatFixed`,
+  `formatAverage`, `formatPercent`, `formatRatio`, `formatDate`) formats with
+  `Intl` in the active language, cached per language and options.
+  `src/lib/dates.ts` and every `toFixed`, `%` template and `toLocale*` that
+  reached the screen use it. The active language, not the device's region,
+  decides: an English app on a German phone still writes "187.5".
+- **iOS.** `CFBundleLocalizations` in Info.plist lists `en` now. Declaring a
+  language there is what makes the phone offer it for the app and put it in
+  `navigator.languages`, so it is part of adding a language (docs/I18N.md).
+- **Converted slice**, to set the pattern: the tab names (and so the phone's tab
+  bar), Settings, Appearance and the Text size labels, the scorer's chrome and
+  confirmations, and the session screen's chrome and confirmations. Sentences
+  that were built from pieces became whole messages with `plural`
+  (`describeLastBackup`, `describeAge`, the delete confirmations and the undo
+  question). Bowling terms (strike, spare, foul, pocket) carry translator
+  comments. About 400 strings in 70 files remain
+  (`scripts/i18n-unconverted.mjs`).
+
+**Consequences.** A language is a translated `.po` file plus two lines of config
+and an Info.plist entry. The main bundle gains the Lingui runtime (about 4 kB
+gzipped) and the web start waits for one small chunk. A string written as a
+plain literal in a converted file is not caught by the build; the conversion is
+convention plus review until the rest is done, and a lint rule for it is open.
+Not covered: right-to-left layout, the guides and legal prose, and the Home
+Screen quick actions and App Store text, which need localizations of their own.
+

@@ -29,6 +29,10 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # The translation catalogs match the strings in the source (ADR-220).
+      - name: Translation catalogs
+        run: npm run i18n:check
+
       - name: Unit tests (with coverage thresholds)
         run: npm run test:coverage
 

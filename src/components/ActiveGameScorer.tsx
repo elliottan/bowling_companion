@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import { Check, Hand, MoreHorizontal, Pencil, Plus, Undo2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -107,6 +108,12 @@ const MORE_MENU_WIDTH = ANCHORED_MENU_WIDTH;
 
 /** The last recorded ball, named the way the card draws it, for the undo
  *  question: "frame 2, ball 1 (9 pins)". Null on an untouched game. */
+/** The bowling terms on the two mark buttons (docs/I18N.md: bowling terms). */
+const strikeWord = () =>
+  t({ message: "Strike", comment: "A bowling term: all ten pins down with the first ball. A button label." });
+const spareWord = () =>
+  t({ message: "Spare", comment: "A bowling term: the leave cleared with the second ball. A button label." });
+
 function describeLastBall(frames: Frame[]): string | null {
   const last = [...frames]
     .sort((a, b) => b.frame_number - a.frame_number)
@@ -114,16 +121,22 @@ function describeLastBall(frames: Frame[]): string | null {
   if (!last) return null;
   const shotIndex = last.shots.length - 1;
   const symbol = getFrameShotCells(last).find((c) => c.shotIndex === shotIndex)?.symbol;
-  const mark =
-    symbol === "X" ? "strike"
-    : symbol === "/" ? "spare"
-    : symbol === "F" ? "foul"
-    : symbol === "-" ? "no pins"
-    : symbol === "1" ? "1 pin"
-    : symbol ? `${symbol} pins`
-    : null;
-  const where = `frame ${last.frame_number}, ball ${shotIndex + 1}`;
-  return mark ? `${where} (${mark})` : where;
+  const frame = last.frame_number;
+  const ball = shotIndex + 1;
+  // One whole message per outcome, never a place joined to a mark: the order of
+  // the two is the language's to choose.
+  if (symbol === "X") return t`frame ${frame}, ball ${ball} (strike)`;
+  if (symbol === "/") return t`frame ${frame}, ball ${ball} (spare)`;
+  if (symbol === "F") return t`frame ${frame}, ball ${ball} (foul)`;
+  if (symbol === "-") return t`frame ${frame}, ball ${ball} (no pins)`;
+  if (symbol && /^\d+$/.test(symbol)) {
+    const pins = Number(symbol);
+    return plural(pins, {
+      one: `frame ${frame}, ball ${ball} (# pin)`,
+      other: `frame ${frame}, ball ${ball} (# pins)`
+    });
+  }
+  return t`frame ${frame}, ball ${ball}`;
 }
 
 /** Pins available entering a given shot of a frame (for editing a past shot). */
@@ -250,8 +263,8 @@ export function ActiveGameScorer({
    */
   const nextOutcome = (() => {
     if (isEditing) return undefined;
-    if (isFreshRack) return pinsThisShot === 10 ? "Strike" : `Hit ${pinsThisShot}`;
-    return pinsThisShot === gameState.availablePins.length ? "Spare" : `Hit ${pinsThisShot}`;
+    if (isFreshRack) return pinsThisShot === 10 ? strikeWord() : t`Hit ${pinsThisShot}`;
+    return pinsThisShot === gameState.availablePins.length ? spareWord() : t`Hit ${pinsThisShot}`;
   })();
 
   /** Nothing to take back on an untouched game, and nothing to take back from a
@@ -265,6 +278,8 @@ export function ActiveGameScorer({
    *  of a finished game opened for editing. */
   const canFoul = !gameState.isComplete || (editingComplete && isEditing);
   const canUndoHere = Boolean(onUndoShot) && canUndo;
+  // Named for the message that quotes it (a placeholder is named by its variable).
+  const leave = pendingSpareLeave ? formatLeavePins(pendingSpareLeave.pins) : "";
   /** When the last ball was recorded here, for the quick undo. */
   const lastRecordedAt = useRef<number | null>(null);
 
@@ -291,10 +306,11 @@ export function ActiveGameScorer({
       return;
     }
     const ball = (selectedShot?.shotIndex ?? 0) + 1;
+    const frameNumber = selectedShot?.frameNumber ?? 0;
     setPendingChange({
-      title: "Edit this recorded shot?",
-      message: `Frame ${selectedShot?.frameNumber}, ball ${ball} is already recorded. Changing it rescores the game from that frame on.`,
-      confirmLabel: "Edit",
+      title: t`Edit this recorded shot?`,
+      message: t`Frame ${frameNumber}, ball ${ball} is already recorded. Changing it rescores the game from that frame on.`,
+      confirmLabel: t`Edit`,
       run: () => {
         setEditConfirmed(true);
         run();
@@ -315,11 +331,13 @@ export function ActiveGameScorer({
       void undoShot();
       return;
     }
-    const ball = describeLastBall(gameState.frames) ?? "your last ball";
+    const ball = describeLastBall(gameState.frames);
     setPendingChange({
-      title: "Undo your last ball?",
-      message: `This removes ${ball} from the card. To get it back, you will have to enter it again.`,
-      confirmLabel: "Undo",
+      title: t`Undo your last ball?`,
+      message: ball
+        ? t`This removes ${ball} from the card. To get it back, you will have to enter it again.`
+        : t`This removes your last ball from the card. To get it back, you will have to enter it again.`,
+      confirmLabel: t`Undo`,
       run: () => void undoShot()
     });
   }
@@ -330,10 +348,10 @@ export function ActiveGameScorer({
   const editStrikeOrSpareLabel = (() => {
     if (isEditing && recordedFrame && selectedShot) {
       return freshRackShotIndices(recordedFrame.shots).includes(selectedShot.shotIndex)
-        ? "Strike"
-        : "Spare";
+        ? strikeWord()
+        : spareWord();
     }
-    return isFreshRack ? "Strike" : "Spare";
+    return isFreshRack ? strikeWord() : spareWord();
   })();
 
   useEffect(() => {
@@ -492,7 +510,7 @@ export function ActiveGameScorer({
       await onFrameComplete?.(frame);
       setErrorMessage("");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Save failed.");
+      setErrorMessage(error instanceof Error ? error.message : t`Save failed.`);
     }
   }
 
@@ -614,7 +632,7 @@ export function ActiveGameScorer({
       }
       setErrorMessage("");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Save failed.");
+      setErrorMessage(error instanceof Error ? error.message : t`Save failed.`);
     }
   }
 
@@ -636,7 +654,7 @@ export function ActiveGameScorer({
       await onUndoShot?.(result);
       setErrorMessage("");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Undo failed.");
+      setErrorMessage(error instanceof Error ? error.message : t`Undo failed.`);
     }
   }
 
@@ -851,9 +869,9 @@ export function ActiveGameScorer({
         <div className="mt-3 flex items-center gap-2.5 rounded-lg border border-accent-fill bg-accent-soft py-1 pl-3 pr-1 text-sm text-ink">
           <Hand size={18} aria-hidden="true" className="shrink-0 text-accent" />
           <p className="min-w-0 flex-1 text-xs font-semibold">
-            Tap or slide to toggle the pins left standing.
+            {t`Tap or slide to toggle the pins left standing.`}
           </p>
-          <IconButton label="Dismiss tip" onClick={retirePinCoach}>
+          <IconButton label={t`Dismiss tip`} onClick={retirePinCoach}>
             <X size={16} aria-hidden="true" />
           </IconButton>
         </div>
@@ -874,7 +892,7 @@ export function ActiveGameScorer({
                   starts on 8 reads as a contradiction of the lane editor, so
                   the frame it is talking about is named here. */}
               <span className={`flex items-baseline gap-1 ${GROUP_HEADING}`}>
-                Lane
+                {t`Lane`}
                 {lanesList.length > 1 && (
                   <span className="font-bold normal-case tracking-normal text-ink-tertiary">
                     F{shownFrameNumber}
@@ -887,8 +905,8 @@ export function ActiveGameScorer({
                   onClick={() => { if (requestEdit()) onEditLanes(); }}
                   aria-label={
                     startLane && lanesList.length > 1
-                      ? `Edit game lanes. Frame 1 starts on lane ${startLane}`
-                      : "Edit game lanes"
+                      ? t`Edit game lanes. Frame 1 starts on lane ${startLane}`
+                      : t`Edit game lanes`
                   }
                   className={`relative inline-flex items-center gap-1 ${TAP_TARGET_44}`}
                 >
@@ -906,7 +924,7 @@ export function ActiveGameScorer({
                   ) : (
                     <span className="inline-flex h-6 items-center gap-1 rounded-md border border-accent-fill px-1.5 text-xs font-semibold text-accent">
                       <Plus size={12} aria-hidden="true" />
-                      Set lanes
+                      {t`Set lanes`}
                     </span>
                   )}
                 </button>
@@ -936,14 +954,14 @@ export function ActiveGameScorer({
                   type="button"
                   onClick={togglePocket}
                   aria-pressed={pocketValue}
-                  aria-label={pocketValue ? "Pocket hit" : "Not a pocket hit"}
+                  aria-label={pocketValue ? t`Pocket hit` : t`Not a pocket hit`}
                   className={`rounded-md border px-1.5 py-1 text-caption-2 font-bold uppercase tracking-wide ${
                     pocketValue
                       ? "border-accent-fill bg-accent-fill text-accent-on-fill"
                       : `${WOOD_PIN_DOWN} line-through`
                   }`}
                 >
-                  Pocket
+                  {t({ message: "Pocket", comment: "A bowling term: the ball hit the pocket, the gap between the 1 and the 3 pins. A small toggle button." })}
                 </button>
               ) : undefined
             }
@@ -980,10 +998,10 @@ export function ActiveGameScorer({
               <button
                 type="button"
                 onClick={() => (isEditing ? goLive() : void recordShot())}
-                aria-label={nextOutcome ? `Next (${nextOutcome})` : "Next"}
+                aria-label={nextOutcome ? t`Next (${nextOutcome})` : t`Next`}
                 className="inline-flex h-11 flex-1 flex-col items-center justify-center rounded-lg border border-accent-fill bg-surface leading-none text-accent hover:bg-surface-muted"
               >
-                <span className="text-sm font-semibold">Next</span>
+                <span className="text-sm font-semibold">{t`Next`}</span>
                 {nextOutcome && (
                   <span aria-hidden="true" className="mt-0.5 text-caption-2 font-semibold text-ink-secondary">
                     ({nextOutcome})
@@ -994,7 +1012,7 @@ export function ActiveGameScorer({
             {editingComplete && (
               <Button variant="secondary" className="flex-1" onClick={leaveEditMode}>
                 <Check size={14} aria-hidden="true" />
-                Done
+                {t`Done`}
               </Button>
             )}
           </div>
@@ -1009,7 +1027,7 @@ export function ActiveGameScorer({
               onClick={() => setShowEditPrompt(true)}
             >
               <Pencil size={14} aria-hidden="true" />
-              Edit shots
+              {t`Edit shots`}
             </Button>
           )}
 
@@ -1032,19 +1050,19 @@ export function ActiveGameScorer({
               }}
             >
               <MoreHorizontal size={16} aria-hidden="true" />
-              More
+              {t`More`}
             </Button>
           )}
           {moreAt && (
             <AnchoredMenu left={moreAt.left} bottom={moreAt.bottom} onClose={() => setMoreAt(null)}>
               {canFoul && (
                 <AnchoredMenuItem icon={FoulLineIcon} onClick={recordFoul}>
-                  Foul
+                  {t({ message: "Foul", comment: "A bowling term: a foul, crossing the line. A menu item that records one." })}
                 </AnchoredMenuItem>
               )}
               {canUndoHere && (
                 <AnchoredMenuItem icon={Undo2} onClick={requestUndo}>
-                  Undo last shot
+                  {t`Undo last shot`}
                 </AnchoredMenuItem>
               )}
             </AnchoredMenu>
@@ -1093,10 +1111,10 @@ export function ActiveGameScorer({
             onClick={() => setShowSpareLineDialog(true)}
             className="min-w-0 flex-1 text-left text-sm font-semibold text-accent"
           >
-            Save this as your line for {formatLeavePins(pendingSpareLeave.pins)}
+            {t`Save this as your line for ${leave}`}
           </button>
           <IconButton
-            label="Dismiss"
+            label={t`Dismiss`}
             onClick={() => setPendingSpareLeave(null)}
             className="shrink-0"
           >
@@ -1111,9 +1129,9 @@ export function ActiveGameScorer({
 
       <ConfirmDialog
         open={showEditPrompt}
-        title="Edit this completed game?"
-        message="Strike, Spare and Foul come back and change the shot you pick on the card. The game rescores from that frame on."
-        confirmLabel="Edit"
+        title={t`Edit this completed game?`}
+        message={t`Strike, Spare and Foul come back and change the shot you pick on the card. The game rescores from that frame on.`}
+        confirmLabel={t`Edit`}
         onConfirm={() => {
           unlockedGames.add(gameKey);
           setUnlocked(true);

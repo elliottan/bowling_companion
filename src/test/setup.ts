@@ -1,5 +1,11 @@
 import "@testing-library/jest-dom/vitest";
 import "fake-indexeddb/auto";
+import { i18n } from "@lingui/core";
+import { messages } from "../locales/en/messages.po";
+
+// Every test runs in English, from the real catalog, so a message that is
+// missing from it fails here the way it would in the app (ADR-220).
+i18n.loadAndActivate({ locale: "en", messages });
 
 // jsdom's Blob has no `text()`, which every browser has had for years and
 // which `readBackupInput` uses to read a picked file. Without it a unit test

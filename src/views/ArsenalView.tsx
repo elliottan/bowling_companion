@@ -44,6 +44,7 @@ import { useProAccess } from "../lib/useProAccess";
 import { useProEntry } from "../components/ui/useProAction";
 import type { Ball, LayoutSystem } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
+import { formatFixed } from "../lib/format";
 
 interface SortableBallRowProps {
   ball: Ball;
@@ -72,8 +73,8 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
     ? [
         snap.coverstockCategory,
         snap.coreName,
-        snap.rg !== null ? `RG ${snap.rg.toFixed(2)}` : null,
-        snap.diff !== null ? `Diff ${snap.diff.toFixed(3)}` : null,
+        snap.rg !== null ? `RG ${formatFixed(snap.rg, 2)}` : null,
+        snap.diff !== null ? `Diff ${formatFixed(snap.diff, 3)}` : null,
       ]
         .filter(Boolean)
         .join(" · ")

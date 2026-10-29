@@ -8,6 +8,7 @@ import { applyNativeChrome, followThemeInSystemBars } from "./lib/nativeChrome";
 import { listenForLinks } from "./lib/deepLink";
 import { isNativeApp } from "./lib/platform";
 import { startTextSize } from "./lib/textScale";
+import { startI18n } from "./lib/i18n";
 import { installPressCancel } from "./lib/pressCancel";
 import {
   initForegroundUpdateCheck,
@@ -47,10 +48,15 @@ installPressCancel();
 // A headpin.app link the phone opens in the store app (ADR-159).
 void listenForLinks();
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <AppErrorBoundary>
-      <App />
-    </AppErrorBoundary>
-  </React.StrictMode>
-);
+// The language is chosen before the first screen is drawn, so nothing flashes
+// in English first (ADR-220). `startI18n` falls back to English if a catalog
+// cannot be loaded, so it never leaves the app unrendered.
+void startI18n().then(() => {
+  ReactDOM.createRoot(document.getElementById("root")!).render(
+    <React.StrictMode>
+      <AppErrorBoundary>
+        <App />
+      </AppErrorBoundary>
+    </React.StrictMode>
+  );
+});

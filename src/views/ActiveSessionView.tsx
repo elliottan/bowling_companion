@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import { BarChart3, ChevronLeft, Plus, Trash2, X } from "lucide-react";
 import { ShareIosIcon } from "../components/icons";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -324,7 +325,7 @@ export function ActiveSessionView({
     const a = laneA.trim();
     const b = laneB.trim();
     if ((a && !isPositiveInt(a)) || (b && !isPositiveInt(b)) || (!a && b)) {
-      setLaneError("Enter whole numbers for both lanes.");
+      setLaneError(t`Enter whole numbers for both lanes.`);
       return;
     }
     setLaneError("");
@@ -347,7 +348,7 @@ export function ActiveSessionView({
 
   async function refreshSession(nextActiveGameId?: number) {
     const details = await getSessionDetails(sessionId);
-    if (!details) throw new Error("Session not found.");
+    if (!details) throw new Error(t`Session not found.`);
     setSessionDetails(details);
     const selected =
       details.games.find((g) => g.id === nextActiveGameId) ??
@@ -385,7 +386,7 @@ export function ActiveSessionView({
       try {
         const details = await getSessionDetails(sessionId);
         if (!isMounted) return;
-        if (!details) throw new Error("Session not found.");
+        if (!details) throw new Error(t`Session not found.`);
         setSessionDetails(details);
         // A drill-down names the game; otherwise carry on from the latest.
         const requested = initialGameId
@@ -396,7 +397,7 @@ export function ActiveSessionView({
         if (requested) onGameOpened?.();
       } catch (err) {
         if (isMounted) {
-          setError(err instanceof Error ? err.message : "Unable to load session.");
+          setError(err instanceof Error ? err.message : t`Unable to load session.`);
         }
       } finally {
         if (isMounted) setIsLoading(false);
@@ -412,7 +413,7 @@ export function ActiveSessionView({
   }, [sessionId]);
 
   async function handleFrameComplete(frame: Frame) {
-    if (!activeGame?.id) throw new Error("No active game selected.");
+    if (!activeGame?.id) throw new Error(t`No active game selected.`);
     await saveFrame(activeGame.id, frame);
     await refreshSession(activeGame.id);
   }
@@ -421,7 +422,7 @@ export function ActiveSessionView({
    *  it emptied. Either way the session is re-read, so the scorecard, the
    *  series total and the game chips all follow. */
   async function handleUndoShot(result: UndoResult) {
-    if (!activeGame?.id) throw new Error("No active game selected.");
+    if (!activeGame?.id) throw new Error(t`No active game selected.`);
     if (result.changedFrame) await saveFrame(activeGame.id, result.changedFrame);
     else if (result.deletedFrameNumber !== null) {
       await deleteFrame(activeGame.id, result.deletedFrameNumber);
@@ -437,7 +438,7 @@ export function ActiveSessionView({
       const nextGameId = await addNextGameToSession(sessionId);
       await refreshSession(nextGameId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to add game.");
+      setError(err instanceof Error ? err.message : t`Unable to add game.`);
     } finally {
       setIsAddingGame(false);
     }
@@ -455,7 +456,7 @@ export function ActiveSessionView({
       }
       await refreshSession(activeGameId ?? undefined);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to delete game.");
+      setError(err instanceof Error ? err.message : t`Unable to delete game.`);
     }
   }
 
@@ -466,7 +467,7 @@ export function ActiveSessionView({
       setShowEdit(false);
       onSessionDeleted();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to delete session.");
+      setError(err instanceof Error ? err.message : t`Unable to delete session.`);
     }
   }
 
@@ -476,7 +477,7 @@ export function ActiveSessionView({
       setShowEdit(false);
       await refreshSession(activeGameId ?? undefined);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update session.");
+      setError(err instanceof Error ? err.message : t`Unable to update session.`);
     }
   }
 
@@ -491,17 +492,17 @@ export function ActiveSessionView({
   if (!sessionDetails || !activeGame) {
     return (
       <section className="mx-auto w-full max-w-5xl px-4 py-6">
-        <ErrorBanner>{error || "No active game was found for this session."}</ErrorBanner>
+        <ErrorBanner>{error || t`No active game was found for this session.`}</ErrorBanner>
         {/* A session with no game is a session waiting for one, so the way out
             of this screen is forward as well as back. */}
         <div className="mt-3 flex flex-wrap gap-2">
           <Button variant="primary" onClick={() => void handleAddGame()}>
             <Plus size={16} aria-hidden="true" />
-            Add game
+            {t`Add game`}
           </Button>
           <Button variant="secondary" onClick={onBack}>
             <ChevronLeft size={16} aria-hidden="true" />
-            Back
+            {t`Back`}
           </Button>
         </div>
       </section>
@@ -577,9 +578,21 @@ export function ActiveSessionView({
       (((gameToDelete as Game & { frames: Frame[] }).frames.length > 0
         ? calculateGameScore((gameToDelete as Game & { frames: Frame[] }).frames).total
         : undefined)));
-  const deleteGameMessage = gameToDelete
-    ? `Game ${gameToDelete.game_number}${deleteGameScore ? ` (score ${deleteGameScore})` : ""} and its frames will be permanently deleted.`
-    : "";
+  const deleteGameMessage = (() => {
+    if (!gameToDelete) return "";
+    const gameNumber = gameToDelete.game_number;
+    return deleteGameScore
+      ? t`Game ${gameNumber} (score ${deleteGameScore}) and its frames will be permanently deleted.`
+      : t`Game ${gameNumber} and its frames will be permanently deleted.`;
+  })();
+  // One whole message per count, so a language with its own plural forms for
+  // "game" can have them (the alley's name goes in as it was typed).
+  const alley = alleyLabel(sessionDetails.session.alley_name);
+  const gameCount = games.length;
+  const deleteSessionMessage = plural(gameCount, {
+    one: `"${alley}" and its game will be permanently deleted. This can't be undone.`,
+    other: `"${alley}" and all # games will be permanently deleted. This can't be undone.`
+  });
 
   const lanes = laneSummary(games);
 
@@ -604,7 +617,7 @@ export function ActiveSessionView({
         // Its words stay however far the page scrolls, as a pushed title's
         // do (ADR-198).
         className="min-w-0 flex-1 rounded-md px-1 active:bg-surface-muted"
-        aria-label={showSheet ? "Close session sheet" : "Edit session"}
+        aria-label={showSheet ? t`Close session sheet` : t`Edit session`}
       >
         <SessionHeaderText session={sessionDetails.session} heading={mode === "tab" ? "h2" : "h1"} />
       </div>
@@ -612,8 +625,8 @@ export function ActiveSessionView({
           it is up, as the identity does: the control that opened it is where
           the thumb goes to put it away. */}
       <IconButton
-        label="Session stats"
-        title="Session stats"
+        label={t`Session stats`}
+        title={t`Session stats`}
         variant="round"
         className="shrink-0"
         aria-expanded={showSheet}
@@ -622,7 +635,7 @@ export function ActiveSessionView({
         <BarChart3 size={18} aria-hidden="true" />
       </IconButton>
       <IconButton
-        label="Share this session"
+        label={t`Share this session`}
         variant="round"
         className="shrink-0"
         onClick={() => setShareOpen(true)}
@@ -633,7 +646,7 @@ export function ActiveSessionView({
         type="button"
         onClick={toggleStats}
         aria-expanded={showSheet}
-        aria-label={showSheet ? "Close session stats" : "Open session stats"}
+        aria-label={showSheet ? t`Close session stats` : t`Open session stats`}
         className="ml-1 shrink-0 rounded-md text-right active:bg-surface-muted"
       >
         <span className="block text-2xl font-extrabold leading-none text-accent">
@@ -668,7 +681,7 @@ export function ActiveSessionView({
           <button
             type="button"
             onClick={() => openSheet("sheet")}
-            aria-label="Open session sheet and lane notes"
+            aria-label={t`Open session sheet and lane notes`}
             className="block max-w-full truncate rounded-md text-left text-xs text-ink-secondary active:bg-surface-muted"
           >
             {lanes}
@@ -725,8 +738,8 @@ export function ActiveSessionView({
             type="button"
             onClick={() => void handleAddGame()}
             disabled={!canAddGame}
-            aria-label="New game"
-            title="New game"
+            aria-label={t`New game`}
+            title={t`New game`}
             className={`relative inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full border border-edge-strong bg-surface text-accent hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50 ${TAP_TARGET_44}`}
           >
             <Plus size={16} aria-hidden="true" />
@@ -755,7 +768,7 @@ export function ActiveSessionView({
           <div className="mt-3 flex items-center gap-3 rounded-lg border border-edge bg-surface-muted p-3">
             <p className="flex-1 text-sm text-ink-strong">{gameHintText}</p>
             <IconButton
-              label="Dismiss game hint"
+              label={t`Dismiss game hint`}
               onClick={() => {
                 gameHintDismissed.add(activeGame.id!);
                 setHintTick((t) => t + 1);
@@ -772,19 +785,19 @@ export function ActiveSessionView({
         {offerShare && (
           <div className="mt-3 flex items-center gap-3 rounded-lg border border-accent-soft bg-accent-soft p-3">
             <p className="flex-1 text-sm font-semibold text-accent">
-              Game {activeGame.game_number} is in the books. Share the session?
+              {t`Game ${{ gameNumber: activeGame.game_number }} is in the books. Share the session?`}
             </p>
             <button
               type="button"
               onClick={() => answerShare("share")}
               className={`relative shrink-0 text-xs font-bold text-accent underline hover:no-underline ${TAP_TARGET_44}`}
             >
-              Share
+              {t`Share`}
             </button>
             {/* Named, not just "Dismiss": the line-capture prompt below it also has a
                 dismiss, and two identical labels on one screen leave a screen
                 reader user with no way to tell them apart. */}
-            <IconButton label="Dismiss share offer" onClick={() => answerShare("dismiss")} className="shrink-0">
+            <IconButton label={t`Dismiss share offer`} onClick={() => answerShare("dismiss")} className="shrink-0">
               <X size={16} aria-hidden="true" />
             </IconButton>
           </div>
@@ -854,8 +867,8 @@ export function ActiveSessionView({
 
       {createPortal(<SessionFormDialog
         open={showEdit}
-        title="Edit session"
-        submitLabel="Save"
+        title={t`Edit session`}
+        submitLabel={t`Save`}
         initial={{
           alley_name: sessionDetails.session.alley_name,
           date: sessionDetails.session.date,
@@ -870,8 +883,8 @@ export function ActiveSessionView({
         {/* Deleting sits with what it deletes, in the session's own editor,
             rather than behind a long press on a chip or a History row: a hold
             is a gesture nobody finds, and the one found by accident (ADR-184). */}
-        <section className="mt-6 border-t border-edge pt-4" aria-label="Games">
-          <h3 className={GROUP_HEADING}>Games</h3>
+        <section className="mt-6 border-t border-edge pt-4" aria-label={t`Games`}>
+          <h3 className={GROUP_HEADING}>{t`Games`}</h3>
           <ul className="mt-1 divide-y divide-edge">
             {games.map((g) => {
               const frames = (g as Game & { frames: Frame[] }).frames;
@@ -879,11 +892,11 @@ export function ActiveSessionView({
               return (
                 <li key={g.id} className="flex items-center gap-2 py-1">
                   <span className="flex-1 text-sm text-ink">
-                    Game {g.game_number}
+                    {t`Game ${{ gameNumber: g.game_number }}`}
                     {score != null && <span className="text-ink-secondary"> · {score}</span>}
                   </span>
                   <IconButton
-                    label={`Delete game ${g.game_number}`}
+                    label={t`Delete game ${{ gameNumber: g.game_number }}`}
                     variant="danger"
                     onClick={() => g.id != null && setConfirmDeleteGame(g.id)}
                   >
@@ -896,7 +909,7 @@ export function ActiveSessionView({
         </section>
         <Button variant="danger-ghost" onClick={() => setConfirmDeleteSession(true)} className="mt-4 w-full">
           <Trash2 size={16} aria-hidden="true" />
-          Delete session
+          {t`Delete session`}
         </Button>
       </SessionFormDialog>, document.body)}
 
@@ -905,17 +918,15 @@ export function ActiveSessionView({
         <>
           <ConfirmDialog
             open={confirmDeleteGame != null}
-            title="Delete this game?"
+            title={t`Delete this game?`}
             message={deleteGameMessage}
             onConfirm={handleDeleteGame}
             onCancel={() => setConfirmDeleteGame(null)}
           />
           <ConfirmDialog
             open={confirmDeleteSession}
-            title="Delete this session?"
-            message={`"${alleyLabel(sessionDetails.session.alley_name)}" and all ${games.length} ${
-              games.length === 1 ? "game" : "games"
-            } will be permanently deleted. This can't be undone.`}
+            title={t`Delete this session?`}
+            message={deleteSessionMessage}
             onConfirm={handleDeleteSession}
             onCancel={() => setConfirmDeleteSession(false)}
           />
@@ -926,21 +937,21 @@ export function ActiveSessionView({
       {/* Lanes save as you type, so the sheet carries a close and no commit. */}
       {showLaneEditor && (
         <FormSheet
-          title={`Game ${activeGame?.game_number ?? 1} lanes`}
+          title={t`Game ${{ gameNumber: activeGame?.game_number ?? 1 }} lanes`}
           onClose={() => setShowLaneEditor(false)}
         >
             <p className="text-xs text-ink-secondary">
-              Sets the pair for this game only.
+              {t`Sets the pair for this game only.`}
             </p>
 
-            <span className={`mt-4 block ${GROUP_HEADING}`}>Lane pair</span>
+            <span className={`mt-4 block ${GROUP_HEADING}`}>{t`Lane pair`}</span>
             <div className="mt-1.5 flex items-center gap-2">
               <input
                 value={laneA}
                 onChange={(e) => setLaneA(e.target.value.replace(/\D/g, ""))}
                 onBlur={() => saveLanes()}
                 inputMode="numeric"
-                aria-label="First lane"
+                aria-label={t`First lane`}
                 placeholder="12"
                 className={`${FIELD} h-11 w-16 text-center`}
               />
@@ -950,7 +961,7 @@ export function ActiveSessionView({
                 onChange={(e) => setLaneB(e.target.value.replace(/\D/g, ""))}
                 onBlur={() => saveLanes()}
                 inputMode="numeric"
-                aria-label="Second lane"
+                aria-label={t`Second lane`}
                 placeholder="13"
                 className={`${FIELD} h-11 w-16 text-center`}
               />
@@ -992,7 +1003,7 @@ export function ActiveSessionView({
   // empty bar.
   return (
     <PushScreen
-      title={sessionDetails ? alleyLabel(sessionDetails.session.alley_name) : "Session"}
+      title={sessionDetails ? alleyLabel(sessionDetails.session.alley_name) : t`Session`}
       bar={sessionBar}
       onBack={onBack}
       // The sheet is portalled out of the screen, so it is told to go with it.

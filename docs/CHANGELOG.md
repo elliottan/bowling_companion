@@ -9,6 +9,18 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.73.0: Ready for more languages (2026-10-29)
+
+- No new language yet, and nothing looks different in English. The app can now
+  be translated: the tabs, Settings, Appearance and the scoring and session
+  screens are marked for translation, and a language is added by translating
+  one file (docs/I18N.md, ADR-220).
+- The app takes its language from the phone's or browser's preferred languages.
+- Numbers, averages, percents and dates are written the way the app's language
+  writes them.
+- "Last backup 3 days ago" and the delete confirmations are whole sentences
+  with proper plurals, rather than sentences built in pieces.
+
 ## 0.72.0: Text size, and a pass on accessibility (2026-10-29)
 
 - Headpin follows your text size. On iPhone it follows the size set in

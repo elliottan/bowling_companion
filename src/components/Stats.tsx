@@ -44,6 +44,7 @@ import { useProAccess } from "../lib/useProAccess";
 import { useProEntry } from "./ui/useProAction";
 import type { LockedProAccess } from "../lib/pro";
 import { byMostLeft, FREE_BALLS, previewSplit, standInBall } from "../lib/proPreview";
+import { formatFixed, formatPercent } from "../lib/format";
 
 /** The stats the chart can plot, and how each one is drawn.
  *
@@ -64,7 +65,7 @@ const METRICS = {
   pocketPct: {
     label: "Pocket",
     value: (s: BowlingStats) => s.pocketPct,
-    format: (v: number) => `${Math.round(v)}%`,
+    format: (v: number) => formatPercent(v),
     min: 0,
     max: 100,
     minSpan: 25
@@ -72,7 +73,7 @@ const METRICS = {
   sparePct: {
     label: "Spare",
     value: (s: BowlingStats) => s.sparePct,
-    format: (v: number) => `${Math.round(v)}%`,
+    format: (v: number) => formatPercent(v),
     min: 0,
     max: 100,
     minSpan: 25
@@ -80,7 +81,7 @@ const METRICS = {
   strikePct: {
     label: "Strike",
     value: (s: BowlingStats) => s.strikePct,
-    format: (v: number) => `${Math.round(v)}%`,
+    format: (v: number) => formatPercent(v),
     min: 0,
     max: 100,
     minSpan: 25
@@ -92,7 +93,7 @@ const METRICS = {
     // where this is how often a strike was followed by another.
     label: "Strike on strike",
     value: (s: BowlingStats) => s.strikeOnStrikePct,
-    format: (v: number) => `${Math.round(v)}%`,
+    format: (v: number) => formatPercent(v),
     min: 0,
     max: 100,
     minSpan: 25
@@ -100,7 +101,7 @@ const METRICS = {
   carryPct: {
     label: "Carry",
     value: (s: BowlingStats) => s.carryPct,
-    format: (v: number) => `${Math.round(v)}%`,
+    format: (v: number) => formatPercent(v),
     min: 0,
     max: 100,
     minSpan: 25
@@ -108,7 +109,7 @@ const METRICS = {
   firstBallAverage: {
     label: "1st ball",
     value: (s: BowlingStats) => s.firstBallAverage,
-    format: (v: number) => v.toFixed(1),
+    format: (v: number) => formatFixed(v, 1),
     min: 0,
     max: 10,
     minSpan: 2
@@ -1384,7 +1385,7 @@ function LeaveCountCell({ leave }: { leave: LeaveStats }) {
       {/* The count alone rewards the ball thrown most: a share of this ball's
           own fresh-rack balls is the number that compares across the rows. */}
       {leave.sharePct !== null && (
-        <span className="text-caption-2 tabular-nums text-ink-tertiary">{leave.sharePct}%</span>
+        <span className="text-caption-2 tabular-nums text-ink-tertiary">{formatPercent(leave.sharePct)}</span>
       )}
     </div>
   );
@@ -1416,7 +1417,7 @@ function LeaveCell({ leave, onOpen }: { leave: LeaveStats; onOpen: () => void })
               : "text-ink"
           }`}
         >
-          {leave.conversionPct !== null ? `${leave.conversionPct}%` : "-"}
+          {leave.conversionPct !== null ? formatPercent(leave.conversionPct) : "-"}
         </span>
       </div>
     </button>
@@ -1429,11 +1430,11 @@ function fmt(value: number | null): string {
 }
 
 function pct(value: number | null): string {
-  return value === null ? "-" : `${value}%`;
+  return value === null ? "-" : formatPercent(value);
 }
 
 /** Always one decimal, so a first ball of 9 reads as 9.0 and the tile does not
  *  jump between two and three characters as the average crosses a whole pin. */
 function oneDp(value: number | null): string {
-  return value === null ? "-" : value.toFixed(1);
+  return value === null ? "-" : formatFixed(value, 1);
 }

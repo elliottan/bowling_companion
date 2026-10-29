@@ -21,6 +21,7 @@ shape to drift, by design.
 | Any UI work: screens, nav, controls, motion, copy | `docs/DESIGN-LANGUAGE.md`. It is the whole rule set, and ADR-040 is the why |
 | Navigation, back, or routing | `src/lib/appNavigation.ts` + `appRoute.ts` + `useHistoryRoute.ts`; ADR-041 for why back goes through history |
 | Add or restructure a module | `docs/ARCHITECTURE.md` for the import layering |
+| User-facing text, numbers and dates, or adding a language | `docs/I18N.md`; ADR-220. New text is a `t` message, never a string literal, and numbers and dates go through `src/lib/format.ts` |
 | Add balls to the catalog | `scripts/sync-catalog/data/HANDOUT.md` (backlog and state), then `scripts/sync-catalog/pipeline/` (select, promote, images); ADR-043 for the trust rules, ADR-135 for web-search readings, ADR-039 for the image position |
 | Backup, import or merge | ADR-038 + `src/services/backupRepository.ts` |
 | Ball layouts: dual angle, VAL, pin buffer, Storm VLS | `src/lib/ballLayout.ts` (geometry + motion) and `src/lib/ballProjection.ts` (drawing it), with their tests |

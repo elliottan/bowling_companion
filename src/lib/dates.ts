@@ -1,5 +1,7 @@
+import { formatDate } from "./format";
+
 /**
- * Dates, written the way the device writes dates.
+ * Dates, written the way the app's language writes dates (ADR-220).
  *
  * A session's `date` is a stored `YYYY-MM-DD` string, and it was being printed
  * raw: "2026-09-01" in the session header, in the history list and on the
@@ -25,7 +27,7 @@ function parseStoredDate(value: string): Date | null {
 export function formatSessionDate(value: string): string {
   const parsed = parseStoredDate(value);
   return parsed
-    ? parsed.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
+    ? formatDate(parsed, { day: "numeric", month: "short", year: "numeric" })
     : value;
 }
 
@@ -34,7 +36,7 @@ export function formatSessionDate(value: string): string {
 export function formatShortDate(value: string, now: Date = new Date()): string {
   const parsed = parseStoredDate(value);
   if (!parsed) return value;
-  return parsed.toLocaleDateString(undefined, {
+  return formatDate(parsed, {
     day: "numeric",
     month: "short",
     ...(parsed.getFullYear() !== now.getFullYear() && { year: "numeric" })
@@ -54,7 +56,7 @@ export function formatReleaseDate(value: string | null | undefined): string | nu
   if (!m[2]) return m[1];
   const month = Number(m[2]);
   if (month < 1 || month > 12) return m[1];
-  return new Date(Number(m[1]), month - 1, 1).toLocaleDateString(undefined, { month: "short", year: "numeric" });
+  return formatDate(new Date(Number(m[1]), month - 1, 1), { month: "short", year: "numeric" });
 }
 
 /** An ISO timestamp, to the minute. For a backup, where the time of day is
@@ -62,7 +64,7 @@ export function formatReleaseDate(value: string | null | undefined): string | nu
 export function formatTimestamp(iso: string): string {
   const parsed = parseStoredDate(iso);
   return parsed
-    ? parsed.toLocaleString(undefined, {
+    ? formatDate(parsed, {
         day: "numeric",
         month: "short",
         year: "numeric",

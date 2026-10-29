@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { version as pkgVersion } from "./package.json";
 import react from "@vitejs/plugin-react";
+import { lingui } from "@lingui/vite-plugin";
 import { VitePWA, type ManifestOptions } from "vite-plugin-pwa";
 import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
@@ -246,7 +247,10 @@ export default defineConfig({
     serveCleanUrls(),
     fingerprintLandingShots(),
     appStoreBanner(),
-    react(),
+    // The Lingui macros (`t`, `plural`, `<Trans>`) are rewritten by Babel at
+    // build time, and a `.po` catalog is compiled when it is imported (ADR-220).
+    react({ babel: { plugins: ["@lingui/babel-plugin-lingui-macro"] } }),
+    lingui(),
     VitePWA({
       registerType: "prompt",
       includeAssets: ["icons/*.png"],
