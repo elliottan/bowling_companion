@@ -101,13 +101,7 @@ enum HeadpinAccents {
 /// drawn on its own 100 by 155 grid and fitted to whatever rect it is given.
 struct PinShape: Shape {
     func path(in rect: CGRect) -> Path {
-        // The pin spans x 24 to 76 and y 5 to 151 on that grid.
-        let scale = min(rect.width / 52, rect.height / 146)
-        let originX = rect.midX - 50 * scale
-        let originY = rect.midY - 78 * scale
-        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
-            CGPoint(x: originX + x * scale, y: originY + y * scale)
-        }
+        let point = pinGrid(in: rect)
         var path = Path()
         path.move(to: point(50, 5))
         path.addCurve(to: point(63, 20), control1: point(57, 5), control2: point(63, 11))
@@ -128,6 +122,43 @@ struct PinShape: Shape {
     }
 }
 
+/// Maps the pin's 100 by 155 grid onto a rect. The pin spans x 24 to 76 and
+/// y 5 to 151 on that grid, and is fitted and centred on its own bounds.
+private func pinGrid(in rect: CGRect) -> (CGFloat, CGFloat) -> CGPoint {
+    let scale = min(rect.width / 52, rect.height / 146)
+    let originX = rect.midX - 50 * scale
+    let originY = rect.midY - 78 * scale
+    return { x, y in CGPoint(x: originX + x * scale, y: originY + y * scale) }
+}
+
+/// The two neck stripes of the app icon's pin, on the same grid as `PinShape`.
+/// Without them the bare silhouette reads as a bottle, not a pin.
+struct PinStripesShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        let point = pinGrid(in: rect)
+        var path = Path()
+        for top in [44.0, 53.0] as [CGFloat] {
+            let origin = point(41, top)
+            let end = point(59, top + 5)
+            let stripe = CGRect(x: origin.x, y: origin.y, width: end.x - origin.x, height: end.y - origin.y)
+            path.addRoundedRect(in: stripe, cornerSize: CGSize(width: stripe.height / 2, height: stripe.height / 2))
+        }
+        return path
+    }
+}
+
+/// The app icon's pin: cream, with its red neck stripes.
+struct HeadpinPin: View {
+    var body: some View {
+        ZStack {
+            PinShape()
+                .fill(Color(red: 255 / 255, green: 248 / 255, blue: 237 / 255))
+            PinStripesShape()
+                .fill(Color(red: 200 / 255, green: 16 / 255, blue: 46 / 255))
+        }
+    }
+}
+
 /// The app's mark: the cream pin on the bowler's accent.
 struct HeadpinMark: View {
     let size: CGFloat
@@ -137,8 +168,7 @@ struct HeadpinMark: View {
         ZStack {
             RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
                 .fill(fill)
-            PinShape()
-                .fill(Color(red: 255 / 255, green: 248 / 255, blue: 237 / 255))
+            HeadpinPin()
                 .frame(width: size * 0.5, height: size * 0.66)
         }
         .frame(width: size, height: size)

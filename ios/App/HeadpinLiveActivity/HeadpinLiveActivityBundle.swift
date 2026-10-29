@@ -51,9 +51,9 @@ struct HeadpinGameLiveActivity: Widget {
                     RecentFramesView(state: state, palette: island)
                 }
             } compactLeading: {
-                PinShape()
-                    .fill(island.accent)
-                    .frame(width: 10, height: 18)
+                HeadpinPin()
+                    .frame(width: 10, height: 20)
+                    .accessibilityElement()
                     .accessibilityLabel("Headpin")
             } compactTrailing: {
                 Text("\(state.total)")
