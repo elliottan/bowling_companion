@@ -23,5 +23,5 @@
     "types": ["vitest/globals"]
   },
   "include": ["src"],
-  "exclude": ["src/test/copy.test.ts", "src/test/scrollers.test.ts", "src/test/universalLinks.test.ts"]
+  "exclude": ["src/test/copy.test.ts", "src/test/scrollers.test.ts", "src/test/universalLinks.test.ts", "src/test/liveActivityProject.test.ts"]
 }

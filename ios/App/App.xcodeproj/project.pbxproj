@@ -7,6 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C0FFEE0000000000000000B6 /* HeadpinLiveActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000A9 /* HeadpinLiveActivityPlugin.swift */; };
+		C0FFEE0000000000000000B7 /* HeadpinGameAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000AA /* HeadpinGameAttributes.swift */; };
+		C0FFEE0000000000000000B8 /* HeadpinGameAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000AA /* HeadpinGameAttributes.swift */; };
+		C0FFEE0000000000000000B9 /* HeadpinLiveActivityBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000AB /* HeadpinLiveActivityBundle.swift */; };
+		C0FFEE0000000000000000BA /* HeadpinGameViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000AC /* HeadpinGameViews.swift */; };
+		C0FFEE0000000000000000BB /* HeadpinTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000B2 /* HeadpinTheme.swift */; };
+		C0FFEE0000000000000000BC /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000AF /* WidgetKit.framework */; };
+		C0FFEE0000000000000000BD /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000B0 /* SwiftUI.framework */; };
+		C0FFEE0000000000000000BE /* ActivityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000B1 /* ActivityKit.framework */; };
+		C0FFEE0000000000000000BF /* ActivityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000B1 /* ActivityKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		C0FFEE0000000000000000C0 /* HeadpinLiveActivity.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000AE /* HeadpinLiveActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C0FFEE0000000000000000A2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000A1 /* PrivacyInfo.xcprivacy */; };
 		C0FFEE0000000000000000A4 /* HeadpinStorePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000A3 /* HeadpinStorePlugin.swift */; };
 		C0FFEE0000000000000000A8 /* HeadpinTabBarPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000A7 /* HeadpinTabBarPlugin.swift */; };
@@ -21,7 +32,41 @@
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		C0FFEE0000000000000000C7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C0FFEE0000000000000000C5;
+			remoteInfo = HeadpinLiveActivity;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C0FFEE0000000000000000C4 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C0FFEE0000000000000000C0 /* HeadpinLiveActivity.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		C0FFEE0000000000000000A9 /* HeadpinLiveActivityPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadpinLiveActivityPlugin.swift; sourceTree = "<group>"; };
+		C0FFEE0000000000000000AA /* HeadpinGameAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadpinGameAttributes.swift; sourceTree = "<group>"; };
+		C0FFEE0000000000000000AB /* HeadpinLiveActivityBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadpinLiveActivityBundle.swift; sourceTree = "<group>"; };
+		C0FFEE0000000000000000AC /* HeadpinGameViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadpinGameViews.swift; sourceTree = "<group>"; };
+		C0FFEE0000000000000000B2 /* HeadpinTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadpinTheme.swift; sourceTree = "<group>"; };
+		C0FFEE0000000000000000AD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C0FFEE0000000000000000AE /* HeadpinLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HeadpinLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C0FFEE0000000000000000AF /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		C0FFEE0000000000000000B0 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		C0FFEE0000000000000000B1 /* ActivityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ActivityKit.framework; path = System/Library/Frameworks/ActivityKit.framework; sourceTree = SDKROOT; };
 		C0FFEE0000000000000000A1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		C0FFEE0000000000000000A3 /* HeadpinStorePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadpinStorePlugin.swift; sourceTree = "<group>"; };
 		C0FFEE0000000000000000A7 /* HeadpinTabBarPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadpinTabBarPlugin.swift; sourceTree = "<group>"; };
@@ -46,6 +91,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */,
+				C0FFEE0000000000000000BF /* ActivityKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C0FFEE0000000000000000C2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0FFEE0000000000000000BC /* WidgetKit.framework in Frameworks */,
+				C0FFEE0000000000000000BD /* SwiftUI.framework in Frameworks */,
+				C0FFEE0000000000000000BE /* ActivityKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -57,6 +113,9 @@
 			children = (
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
+				C0FFEE0000000000000000B3 /* Shared */,
+				C0FFEE0000000000000000B4 /* HeadpinLiveActivity */,
+				C0FFEE0000000000000000B5 /* Frameworks */,
 				504EC3051FED79650016851F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -65,6 +124,7 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* App.app */,
+				C0FFEE0000000000000000AE /* HeadpinLiveActivity.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -75,6 +135,7 @@
 				9582B6822FE993A50072D4E8 /* SceneDelegate.swift */,
 				C0FFEE0000000000000000A3 /* HeadpinStorePlugin.swift */,
 				C0FFEE0000000000000000A7 /* HeadpinTabBarPlugin.swift */,
+				C0FFEE0000000000000000A9 /* HeadpinLiveActivityPlugin.swift */,
 				C0FFEE0000000000000000A1 /* PrivacyInfo.xcprivacy */,
 				C0FFEE0000000000000000A5 /* App.entitlements */,
 				C0FFEE0000000000000000A6 /* Headpin.storekit */,
@@ -90,6 +151,35 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		C0FFEE0000000000000000B3 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				C0FFEE0000000000000000AA /* HeadpinGameAttributes.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		C0FFEE0000000000000000B4 /* HeadpinLiveActivity */ = {
+			isa = PBXGroup;
+			children = (
+				C0FFEE0000000000000000AB /* HeadpinLiveActivityBundle.swift */,
+				C0FFEE0000000000000000AC /* HeadpinGameViews.swift */,
+				C0FFEE0000000000000000B2 /* HeadpinTheme.swift */,
+				C0FFEE0000000000000000AD /* Info.plist */,
+			);
+			path = HeadpinLiveActivity;
+			sourceTree = "<group>";
+		};
+		C0FFEE0000000000000000B5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C0FFEE0000000000000000B1 /* ActivityKit.framework */,
+				C0FFEE0000000000000000B0 /* SwiftUI.framework */,
+				C0FFEE0000000000000000AF /* WidgetKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -100,10 +190,12 @@
 				504EC3001FED79650016851F /* Sources */,
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
+				C0FFEE0000000000000000C4 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C0FFEE0000000000000000C6 /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -112,6 +204,23 @@
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
+		};
+		C0FFEE0000000000000000C5 /* HeadpinLiveActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C0FFEE0000000000000000CA /* Build configuration list for PBXNativeTarget "HeadpinLiveActivity" */;
+			buildPhases = (
+				C0FFEE0000000000000000C1 /* Sources */,
+				C0FFEE0000000000000000C2 /* Frameworks */,
+				C0FFEE0000000000000000C3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HeadpinLiveActivity;
+			productName = HeadpinLiveActivity;
+			productReference = C0FFEE0000000000000000AE /* HeadpinLiveActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -125,6 +234,10 @@
 					504EC3031FED79650016851F = {
 						CreatedOnToolsVersion = 9.2;
 						LastSwiftMigration = 1100;
+						ProvisioningStyle = Automatic;
+					};
+					C0FFEE0000000000000000C5 = {
+						CreatedOnToolsVersion = 14.1;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -146,6 +259,7 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* App */,
+				C0FFEE0000000000000000C5 /* HeadpinLiveActivity */,
 			);
 		};
 /* End PBXProject section */
@@ -165,6 +279,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C0FFEE0000000000000000C3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -176,10 +297,31 @@
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
 				C0FFEE0000000000000000A4 /* HeadpinStorePlugin.swift in Sources */,
 				C0FFEE0000000000000000A8 /* HeadpinTabBarPlugin.swift in Sources */,
+				C0FFEE0000000000000000B6 /* HeadpinLiveActivityPlugin.swift in Sources */,
+				C0FFEE0000000000000000B7 /* HeadpinGameAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C0FFEE0000000000000000C1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0FFEE0000000000000000B9 /* HeadpinLiveActivityBundle.swift in Sources */,
+				C0FFEE0000000000000000BA /* HeadpinGameViews.swift in Sources */,
+				C0FFEE0000000000000000BB /* HeadpinTheme.swift in Sources */,
+				C0FFEE0000000000000000B8 /* HeadpinGameAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C0FFEE0000000000000000C6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C0FFEE0000000000000000C5 /* HeadpinLiveActivity */;
+			targetProxy = C0FFEE0000000000000000C7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		504EC30B1FED79650016851F /* Main.storyboard */ = {
@@ -358,6 +500,52 @@
 			};
 			name = Release;
 		};
+		C0FFEE0000000000000000C8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CQ6FS6P6H2;
+				INFOPLIST_FILE = HeadpinLiveActivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.headpin.LiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+			};
+			name = Debug;
+		};
+		C0FFEE0000000000000000C9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CQ6FS6P6H2;
+				INFOPLIST_FILE = HeadpinLiveActivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.headpin.LiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -375,6 +563,15 @@
 			buildConfigurations = (
 				504EC3171FED79650016851F /* Debug */,
 				504EC3181FED79650016851F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C0FFEE0000000000000000CA /* Build configuration list for PBXNativeTarget "HeadpinLiveActivity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0FFEE0000000000000000C8 /* Debug */,
+				C0FFEE0000000000000000C9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

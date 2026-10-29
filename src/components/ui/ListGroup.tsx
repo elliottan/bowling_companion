@@ -1,6 +1,7 @@
 import { ChevronRight, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { GROUP_HEADING } from "./typography";
+import { Switch } from "./Switch";
 
 interface ListGroupProps {
   /** The band above the group. A string takes the shared small uppercase
@@ -136,6 +137,40 @@ export function ListRow({
           {inner}
         </button>
       )}
+    </li>
+  );
+}
+
+interface ListSwitchRowProps {
+  icon?: LucideIcon;
+  label: string;
+  description?: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}
+
+/**
+ * A row that is an on/off setting, not a way in: the whole row is the switch's
+ * label, so a tap anywhere on it flips it, and the system draws the switch
+ * (`Switch`). It takes `ListRow`'s shape, so it sits in a group among them.
+ */
+export function ListSwitchRow({ icon: Icon, label, description, checked, onChange }: ListSwitchRowProps) {
+  return (
+    <li className={Icon ? LIST_DIVIDER_INSET : LIST_DIVIDER}>
+      <label className="flex min-h-[52px] w-full items-center gap-3.5 px-4 py-2.5 text-left active:bg-surface-muted">
+        {Icon && (
+          <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] bg-accent-soft text-accent">
+            <Icon size={17} aria-hidden="true" />
+          </span>
+        )}
+        <span className="min-w-0 flex-1">
+          <span className="block text-[17px] leading-snug text-ink">{label}</span>
+          {description && (
+            <span className="block text-[13px] leading-snug text-ink-secondary">{description}</span>
+          )}
+        </span>
+        <Switch checked={checked} onChange={onChange} accent="rgb(var(--color-accent-fill))" />
+      </label>
     </li>
   );
 }

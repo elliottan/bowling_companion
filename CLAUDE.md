@@ -28,6 +28,7 @@ shape to drift, by design.
 | Oil patterns: load table, the film on the lane, exit point | `src/lib/oilPattern.ts` + its tests, `LaneSurface`; ADR-101 |
 | Add patterns to the catalog | `scripts/sync-patterns/` (ingest, then promote); ADR-104 for the trust rules, ADR-044 for the routing, ADR-112 for a KOSI program file, ADR-136 for the kept sheet PDFs |
 | The iOS or Android app (Capacitor), or code that behaves differently inside it | ADR-155, `src/lib/platform.ts`, `scripts/native/assemble.ts`, `capacitor.config.ts`; `docs/PRO-LAUNCH.md` for what is left; ADR-161 and `ios/App/App/HeadpinTabBarPlugin.swift` for the iPhone tab bar |
+| The Lock Screen / Dynamic Island Live Activity | `src/lib/liveActivity.ts` (the payload) + `nativeLiveActivity.ts`, `syncLiveActivity` in `bowlingRepository.ts`, `ios/App/App/HeadpinLiveActivityPlugin.swift`, the extension in `ios/App/HeadpinLiveActivity/`; ADR-221, which also holds the manual Xcode steps |
 | Viewport, rotation or scroll handling | `docs/VIEWPORT-BUG.md`, in full, before writing a line |
 | Add or edit a guide article | `src/lib/guides.ts` (static content, block union, sources) |
 | Ads or App Store screenshots | `scripts/ad-content/reel/README.md` (the reel), `scripts/app-store/screenshots.mjs` (the store set), `docs/APP-STORE-LISTING.md` (captions, listing text); ADR-154 for what is free and what is Pro |

@@ -1,17 +1,18 @@
 import { LARGE_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { CompactTitleBar, LARGE_TITLE_SCROLL_PX } from "../components/CompactTitleBar";
-import { Archive, ArrowUpRight, Check, ChevronRight, Compass, Download, MessageSquare, Palette, RotateCcw, ScrollText, UserRound, UserRoundCog } from "lucide-react";
+import { Archive, ArrowUpRight, Check, ChevronRight, Compass, Download, MessageSquare, Palette, RotateCcw, ScrollText, Smartphone, UserRound, UserRoundCog } from "lucide-react";
 import { ToolsList } from "../components/ToolsList";
 import { PushScreen } from "../components/PushScreen";
 import { AppearanceView } from "./AppearanceView";
 import { BowlingProfileView } from "./BowlingProfileView";
-import { getBowlerName, getGripStyle, getSetting } from "../services/bowlingRepository";
+import { getBowlerName, getGripStyle, getLiveActivityEnabled, getSetting, setLiveActivityEnabled } from "../services/bowlingRepository";
+import { readLiveActivityStatus, type LiveActivityStatus } from "../lib/nativeLiveActivity";
 import { BowlerNameSheet } from "../components/BowlerNameSheet";
 import type { GripStyle } from "../types/bowling";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
 import { openFeedbackEmail } from "../lib/diagnostics";
-import { ListGroup, ListRow } from "../components/ui/ListGroup";
+import { ListGroup, ListRow, ListSwitchRow } from "../components/ui/ListGroup";
 import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAccess";
 import { ProBadge } from "../components/ui/ProBadge";
 import { ProMark } from "../components/ui/ProMark";
@@ -26,7 +27,7 @@ import { describeAge } from "../lib/backupNudge";
 import { useLiveQuery } from "dexie-react-hooks";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
 import { InstallPrompt } from "../components/InstallPrompt";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 export type { SettingsSection };
 
 interface SettingsViewProps {
@@ -290,6 +291,7 @@ function SettingsMenu({
       </ListGroup>
 
       <ListGroup heading="App">
+        <LiveActivityRow />
         {/* The way back to an install the Home card was waved away from.
             Hidden once the app is installed, when it would offer nothing. */}
         {installable && (
@@ -315,6 +317,42 @@ function SettingsMenu({
         <BowlerNameSheet name={name} onClose={() => setEditingName(false)} />
       )}
     </section>
+  );
+}
+
+/**
+ * The Lock Screen's live score (ADR-221), in the iPhone app only and on an iOS
+ * that has Live Activities (16.1). Nothing is drawn until the phone has said it
+ * can, so the web, the Android app and an older iPhone never see a switch that
+ * does nothing. On by default: the toggle only ever turns it off.
+ */
+export function LiveActivityRow({ status: given }: { status?: LiveActivityStatus | null }) {
+  const [asked, setAsked] = useState<LiveActivityStatus | null>(null);
+  useEffect(() => {
+    if (given !== undefined) return;
+    let alive = true;
+    void readLiveActivityStatus().then((answer) => {
+      if (alive) setAsked(answer);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [given]);
+  const status = given === undefined ? asked : given;
+  const on = useLiveQuery(getLiveActivityEnabled, [], undefined);
+  if (!status?.supported || on === undefined) return null;
+  return (
+    <ListSwitchRow
+      icon={Smartphone}
+      label="Live Activity on the Lock Screen"
+      description={
+        status.enabled
+          ? "Your game's score, frame by frame, while you bowl"
+          : "Switched off for Headpin in the iPhone's Settings"
+      }
+      checked={on}
+      onChange={(next) => void setLiveActivityEnabled(next)}
+    />
   );
 }
 

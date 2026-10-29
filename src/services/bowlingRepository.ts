@@ -3,6 +3,9 @@ import { calculateGameScore } from "../lib/scoring";
 import { localDateKey } from "../lib/dates";
 import { nextGameStartLane } from "../lib/lanes";
 import { reportGameFinished } from "./usageReporter";
+import { buildLiveActivityState } from "../lib/liveActivity";
+import { liveActivity } from "../lib/nativeLiveActivity";
+import { isIOSApp } from "../lib/platform";
 import {
   migrateLegacyLaydownOffset,
   parseDriftModel,
@@ -32,6 +35,66 @@ const PAP_KEY = "pap";
 const GRIP_STYLE_KEY = "grip_style";
 const LAYOUT_SYSTEM_KEY = "layout_system";
 const BOWLER_NAME_KEY = "bowler_name";
+const LIVE_ACTIVITY_KEY = "live_activity";
+
+/** Whether the game in progress is shown on the Lock Screen (ADR-221). On
+ *  unless the bowler turned it off, so a stored "off" is the only thing kept. */
+export async function getLiveActivityEnabled(): Promise<boolean> {
+  return (await getSetting(LIVE_ACTIVITY_KEY)) !== "off";
+}
+
+/** Turning it off takes down what is showing; turning it on waits for the next
+ *  ball, which is what starts one. */
+export async function setLiveActivityEnabled(enabled: boolean): Promise<void> {
+  await setSetting(LIVE_ACTIVITY_KEY, enabled ? "on" : "off");
+  if (!enabled) liveActivity.stop();
+}
+
+/**
+ * Brings the Lock Screen up to date with a game after a ball, an undo or an
+ * edit was saved (ADR-221). Never awaited by the save that asks for it, and it
+ * reads nothing at all off the iPhone app, so a recorded shot pays nothing for
+ * it. Whatever fails here is the Lock Screen's loss, never the game's.
+ */
+async function syncLiveActivity(gameId: number): Promise<void> {
+  if (!isIOSApp()) return;
+  try {
+    if (!(await getLiveActivityEnabled())) return;
+    const game = await db.games.get(gameId);
+    const session = game ? await db.sessions.get(game.session_id) : undefined;
+    if (!game || !session) {
+      liveActivity.stop(gameId);
+      return;
+    }
+    const frames = await db.frames.where("game_id").equals(gameId).toArray();
+    const state = buildLiveActivityState(session, game, frames);
+    if (!state) {
+      // An undo took the first ball back: there is no game to show.
+      liveActivity.stop(gameId);
+    } else if (state.done) {
+      liveActivity.finish({ gameId, state });
+    } else {
+      liveActivity.show({ gameId, state });
+    }
+  } catch {
+    // Nothing to do: the next ball tries again.
+  }
+}
+
+/**
+ * The scorer opened on a game: if it is half bowled, put it on the Lock Screen
+ * (ADR-221), so a game resumed after the app was closed is shown again. A
+ * finished game is left alone: reading an old score is not bowling it.
+ */
+export async function resumeLiveActivity(gameId: number): Promise<void> {
+  if (!isIOSApp()) return;
+  try {
+    const game = await db.games.get(gameId);
+    if (game && game.final_score === undefined) await syncLiveActivity(gameId);
+  } catch {
+    // The Lock Screen's loss only.
+  }
+}
 
 /** Longest name Home will greet. A greeting is one line on a phone. */
 export const BOWLER_NAME_MAX = 24;
@@ -368,6 +431,7 @@ export async function saveFrame(gameId: number, frame: SaveFrameInput): Promise<
   // Only the ball that finishes a game counts, not an edit to one already
   // finished, so a corrected tenth frame is not a second game (ADR-120).
   if (finishedNow) void reportGameFinished();
+  void syncLiveActivity(gameId);
   return Number(id);
 }
 
@@ -390,18 +454,22 @@ export async function deleteFrame(gameId: number, frameNumber: number): Promise<
       final_score: score.isComplete ? score.total : undefined
     });
   });
+  void syncLiveActivity(gameId);
 }
 
 /** Delete a session and all of its games + frames. */
 export async function deleteSession(sessionId: number): Promise<void> {
-  await db.transaction("rw", db.sessions, db.games, db.frames, async () => {
+  const gameIds = await db.transaction("rw", db.sessions, db.games, db.frames, async () => {
     const games = await db.games.where("session_id").equals(sessionId).toArray();
     for (const game of games) {
       if (game.id) await db.frames.where("game_id").equals(game.id).delete();
     }
     await db.games.where("session_id").equals(sessionId).delete();
     await db.sessions.delete(sessionId);
+    return games.flatMap((g) => (g.id === undefined ? [] : [g.id]));
   });
+  // A game that is gone has no business on the Lock Screen (ADR-221).
+  for (const gameId of gameIds) liveActivity.stop(gameId);
 }
 
 /**
@@ -453,7 +521,7 @@ export async function pruneEmptySessions(keep: number | null = null): Promise<nu
 export async function deleteGame(
   gameId: number
 ): Promise<{ sessionDeleted: boolean; sessionId: number }> {
-  return db.transaction("rw", db.sessions, db.games, db.frames, async () => {
+  const result = await db.transaction("rw", db.sessions, db.games, db.frames, async () => {
     const game = await db.games.get(gameId);
     if (!game) throw new Error(`Cannot delete game. Game ${gameId} was not found.`);
     const sessionId = game.session_id;
@@ -478,6 +546,8 @@ export async function deleteGame(
     }
     return { sessionDeleted: false, sessionId };
   });
+  liveActivity.stop(gameId);
+  return result;
 }
 
 export interface ResumableGame {

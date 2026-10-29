@@ -1,4 +1,4 @@
-import { isSpare, isStrike, tenthFrameFollowUpPinfall } from "./scoring";
+import { isSpare, isStrike, tenthFrameFollowUpPinfall, type FrameScore } from "./scoring";
 import { knockedDownCount, pinsClearedBetween } from "./pins";
 import type { Frame } from "../types/bowling";
 
@@ -28,6 +28,34 @@ export function getFrameShotCells(frame: Frame): FrameShotCell[] {
     symbol,
     shotIndex: frame.shots[i] ? i : null
   }));
+}
+
+/**
+ * The running total drawn under a frame, or null while it is not shown.
+ *
+ * The 10th frame shows the game's running total even before it is
+ * mathematically resolvable, so an in-progress game always has a score in the
+ * last cell (no provisional "+"). Frames 1 to 9 only show a total once the
+ * frame is settled (both balls thrown, or a strike) and its rolling total
+ * resolves, never a provisional partial-frame score mid-frame.
+ */
+export function rollingTotalForCell({
+  frameNumber,
+  frame,
+  score,
+  gameTotal,
+  gameComplete
+}: {
+  frameNumber: number;
+  frame: Frame | undefined;
+  score: FrameScore | undefined;
+  gameTotal: number;
+  gameComplete: boolean;
+}): number | null {
+  const frameSettled =
+    !!frame && (frame.shots.length >= 2 || (frame.shots.length === 1 && isStrike(frame)));
+  if (frameNumber === 10 && !gameComplete) return gameTotal;
+  return frameSettled ? score?.rollingTotal ?? null : null;
 }
 
 export function getFrameShotSymbols(frame: Frame): string[] {

@@ -336,7 +336,11 @@ bowling profile, arsenal, spare lines, lane notes), then one **Tools and
 reference** row that opens Home's list of tools (`ToolsList`), so a tool is
 found from either door, then Support, with **Appearance last**: it is set once. The bowler's name is a profile chip beside
 the title (the first letter in a circle, then the name), not a row, and it is
-where more profile features can grow. "Privacy and terms" pushes a screen in
+where more profile features can grow. An on/off setting is a `ListSwitchRow`,
+not a `ListRow`: the whole row labels HTML's own `switch`, which the phone
+draws, and the row sits first in the App group (ADR-221). It appears only
+where the setting can do something: "Live Activity on the Lock Screen" is in the
+iPhone app on iOS 16.1 or later, and nowhere else. "Privacy and terms" pushes a screen in
 Settings with the site page's own text (ADR-181), not a trip to the site. Rows
 that leave the app, and that one, carry no sentence: a label that says "Privacy
 and terms" or "Send feedback" has nothing a second line could add.
