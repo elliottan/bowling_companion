@@ -4,6 +4,7 @@ import {
   PLANE_W, PLANE_L, LANE_BOARDS, LANE_FEET,
   boardToX, feetToY, xToBoard, yToFeet, buildLinePath, arrowFeet
 } from "../lib/laneGeometry";
+import { formatNumber } from "../lib/format";
 import { PIN_POSITIONS } from "../lib/pinGeometry";
 import { toHandBoard, type OilBand } from "../lib/oilPattern";
 
@@ -260,7 +261,7 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, oil, animat
             fill="#e2e8f0"
             fillOpacity="0.55"
           >
-            slide
+            {t({ message: "slide", comment: "Bowling term: the board the slide foot lands on at the foul line. A tiny label drawn on the lane, keep it short" })}
           </text>
         </g>
       )}
@@ -286,8 +287,8 @@ interface MarkerData {
  *  overprint their labels). Labels sit above their point, pushed apart top-down. */
 function buildMarkers(line: LineSpec | undefined, hand: Handedness, path: NonNullable<ReturnType<typeof buildLinePath>>): MarkerData[] {
   const list: Omit<MarkerData, "labelY" | "labelX" | "anchor">[] = [
-    { key: "laydown", p: path.points.laydown, color: PEG_COLOR.laydown, label: `Laydown ${line?.laydown ?? line?.stance}` },
-    { key: "target", p: path.points.target, color: PEG_COLOR.target, label: `Target ${line?.target}` },
+    { key: "laydown", p: path.points.laydown, color: PEG_COLOR.laydown, label: t({ message: `Laydown ${{ laydown: formatNumber(line?.laydown ?? line?.stance ?? 0, 1) }}`, comment: "Bowling term: the board where the ball first touches the lane, followed by the board number" }) },
+    { key: "target", p: path.points.target, color: PEG_COLOR.target, label: t({ message: `Target ${{ target: formatNumber(line?.target ?? 0, 1) }}`, comment: "Bowling term: the board the ball crosses at the arrows, followed by the board number. A small label drawn on the lane" }) },
   ];
   if (path.points.breakpoint) {
     list.push({
@@ -295,7 +296,7 @@ function buildMarkers(line: LineSpec | undefined, hand: Handedness, path: NonNul
       p: path.points.breakpoint,
       color: PEG_COLOR.breakpoint,
       // Derived: the curve's rightmost point (ADR-024), not a stored input.
-      label: `Break ${Math.round(xToBoard(path.points.breakpoint.x, hand) * 2) / 2}·${Math.round(yToFeet(path.points.breakpoint.y))}ft`,
+      label: t({ message: `Break ${{ board: formatNumber(Math.round(xToBoard(path.points.breakpoint.x, hand) * 2) / 2, 1) }}·${{ feet: formatNumber(Math.round(yToFeet(path.points.breakpoint.y))) }}ft`, comment: "Bowling term: the breakpoint, where the ball turns from skid to hook, as board then distance in feet (ft). A small label drawn on the lane, keep it short" }),
     });
   }
   // Read the board off the drawn point, not the stored final_board: on an
@@ -305,7 +306,7 @@ function buildMarkers(line: LineSpec | undefined, hand: Handedness, path: NonNul
     key: "final",
     p: path.points.final,
     color: PEG_COLOR.final,
-    label: `Final ${Math.round(xToBoard(path.points.final.x, hand) * 2) / 2}`,
+    label: t({ message: `Final ${{ board: formatNumber(Math.round(xToBoard(path.points.final.x, hand) * 2) / 2, 1) }}`, comment: "Bowling term: the board where the ball ends at the pins, followed by the board number. A small label drawn on the lane" }),
   });
 
   // Dodge labels: process top-first, keep each at least MIN_GAP below the previous.
@@ -410,7 +411,7 @@ function OilFilm({ oil, hand }: { oil: OilOverlay; hand: Handedness }) {
             x={PLANE_W - 1} y={endY - 2} textAnchor="end"
             fontSize="5" fontWeight="700" fill={OIL_EDGE} fillOpacity="0.9"
           >
-            {Math.round(oil.length)} ft
+            {t({ message: `${{ feet: formatNumber(Math.round(oil.length)) }} ft`, comment: "A distance in feet (ft), a tiny label on the lane marking how far the oil goes" })}
           </text>
         </>
       )}
@@ -431,7 +432,7 @@ function OilExit({ exit, hand }: { exit: { board: number; feet: number }; hand: 
         fontSize="5.5" fontWeight="800"
         fill="#0c4a6e" paintOrder="stroke" stroke="#e0f2fe" strokeWidth="1.4"
       >
-        {`Exit ${Math.round(exit.board * 2) / 2}·${Math.round(exit.feet)}ft`}
+        {t({ message: `Exit ${{ board: formatNumber(Math.round(exit.board * 2) / 2, 1) }}·${{ feet: formatNumber(Math.round(exit.feet)) }}ft`, comment: "Bowling term: where the ball leaves the oil, as board then distance in feet (ft). A small label drawn on the lane, keep it short" })}
       </text>
     </g>
   );

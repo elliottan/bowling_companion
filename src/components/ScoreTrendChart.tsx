@@ -1,4 +1,6 @@
+import { t } from "@lingui/core/macro";
 import { averageLabelY, trendInset } from "../lib/chartLabels";
+import { formatNumber } from "../lib/format";
 import { useState, type ReactNode } from "react";
 import type { Game } from "../types/bowling";
 
@@ -77,6 +79,9 @@ export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartPr
   // Wide enough to hit, never wider than the gap to the next game.
   const columnWidth =
     scored.length === 1 ? W : Math.max(18, (W - inset * 2) / Math.max(1, gameSpan));
+  const gameList = scored
+    .map((g) => t`Game ${{ gameNumber: g.game_number }}: ${{ score: formatNumber(g.final_score) }}`)
+    .join(", ");
   const chosen = selected === null ? null : scored.find((g) => g.game_number === selected) ?? null;
 
   return (
@@ -86,9 +91,7 @@ export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartPr
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
         role="img"
-        aria-label={`Score by game. ${scored
-          .map((g) => `Game ${g.game_number}: ${g.final_score}`)
-          .join(", ")}. Average ${Math.round(avg)}.`}
+        aria-label={t`Score by game. ${{ games: gameList }}. Average ${{ average: formatNumber(Math.round(avg)) }}.`}
       >
         <line
           x1={0}
@@ -106,7 +109,7 @@ export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartPr
           textAnchor="end"
           className="fill-ink-tertiary text-caption-2 tabular-nums"
         >
-          avg {Math.round(avg)}
+          {t({ message: `avg ${{ avg: formatNumber(Math.round(avg)) }}`, comment: "Short for average, labelling the dashed average line on a chart, the number after it" })}
         </text>
 
         {chosen && (
@@ -181,7 +184,7 @@ export function ScoreTrendChart({ games, header, onOpenGame }: ScoreTrendChartPr
             fill="transparent"
             role="button"
             tabIndex={0}
-            aria-label={`Game ${g.game_number}, ${g.final_score}`}
+            aria-label={t`Game ${{ gameNumber: g.game_number }}, ${{ score: formatNumber(g.final_score) }}`}
             onClick={() =>
               setSelected((curr) => (curr === g.game_number ? null : g.game_number))
             }

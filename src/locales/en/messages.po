@@ -40,12 +40,13 @@ msgstr "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}
 msgid "{0, plural, one {# ball, too few} other {# balls, too few}}"
 msgstr "{0, plural, one {# ball, too few} other {# balls, too few}}"
 
+#. placeholder {0}: ball.balls
 #. placeholder {0}: ball.firstBalls
 #. placeholder {0}: displayed.length
-#. placeholder {0}: estimate.firstBalls
 #: src/components/BallEstimates.tsx
 #: src/components/BallGameSessionsDialog.tsx
 #: src/components/FirstRun.tsx
+#: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 #: src/views/CatalogView.tsx
 #: src/views/GamePlanView.tsx
@@ -62,6 +63,7 @@ msgstr "{0, plural, one {# board} other {# boards}}"
 #. placeholder {0}: pending.incoming.games
 #: src/components/FirstRun.tsx
 #: src/components/SessionHistory.tsx
+#: src/components/SessionTrendChart.tsx
 #: src/components/Stats.tsx
 #: src/lib/shareCard.ts
 #: src/views/GameTrendView.tsx
@@ -112,9 +114,12 @@ msgstr "{0, plural, one {Edit {1} for all # leave} other {Edit {2} for all # lea
 msgid "{0, plural, one {Game {gameNumber}, # session} other {Game {gameNumber}, # sessions}}"
 msgstr "{0, plural, one {Game {gameNumber}, # session} other {Game {gameNumber}, # sessions}}"
 
+#. placeholder {0}: 2
 #. placeholder {0}: activeLanes.length
 #. placeholder {0}: parts.lanes.length
+#: src/components/ProOfferSamples.tsx
 #: src/components/SessionFilterBar.tsx
+#: src/components/SessionHeaderText.tsx
 #: src/lib/shareCard.ts
 msgid "{0, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{0, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
@@ -153,6 +158,11 @@ msgstr "{0, plural, one {time} other {times}}"
 msgid "{age}. Holds {sessions}, {games}, {balls}."
 msgstr "{age}. Holds {sessions}, {games}, {balls}."
 
+#. Short for average: a session's average score, the number first
+#: src/views/ActiveSessionView.tsx
+msgid "{avg} avg"
+msgstr "{avg} avg"
+
 #. A ball's name, then the boards it was thrown on
 #: src/components/alleyHistoryCopy.ts
 msgid "{ballName}, {boards}"
@@ -170,10 +180,12 @@ msgstr "{boards, plural, one {# board left} other {# boards left}}"
 msgid "{boards, plural, one {# board right} other {# boards right}}"
 msgstr "{boards, plural, one {# board right} other {# boards right}}"
 
+#: src/components/DriftZoneLane.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "{boards} left"
 msgstr "{boards} left"
 
+#: src/components/DriftZoneLane.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "{boards} right"
 msgstr "{boards} right"
@@ -190,6 +202,10 @@ msgstr "{conversions} of {chances} made"
 msgid "{count, plural, one {# game series} other {# game series}}"
 msgstr "{count, plural, one {# game series} other {# game series}}"
 
+#: src/components/SessionHeaderText.tsx
+msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
+msgstr "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
+
 #: src/components/Stats.tsx
 msgid "{count, plural, one {View all # ball} other {View all # balls}}"
 msgstr "{count, plural, one {View all # ball} other {View all # balls}}"
@@ -201,6 +217,14 @@ msgstr "{count, plural, one {View all # leave} other {View all # leaves}}"
 #: src/views/CatalogView.tsx
 msgid "{count} colors"
 msgstr "{count} colors"
+
+#: src/components/SessionTrendChart.tsx
+msgid "{date}, {alley}, average {average}"
+msgstr "{date}, {alley}, average {average}"
+
+#: src/components/SessionTrendChart.tsx
+msgid "{date}: {average}"
+msgstr "{date}: {average}"
 
 #: src/lib/backupNudge.ts
 msgid "{days, plural, one {# day ago} other {# days ago}}"
@@ -220,6 +244,8 @@ msgstr "{distance} left"
 msgid "{distance} right"
 msgstr "{distance} right"
 
+#. A distance in feet (ft), a tiny label on the lane marking how far the oil goes
+#: src/components/LaneSurface.tsx
 #: src/components/LaneVisualizer.tsx
 #: src/components/OilPatternManager.tsx
 #: src/components/PatternFilterSheet.tsx
@@ -382,6 +408,7 @@ msgid "{n, plural, one {# note} other {# notes}}"
 msgstr "{n, plural, one {# note} other {# notes}}"
 
 #: src/components/Stats.tsx
+#: src/views/GameTrendView.tsx
 msgid "{name} by game"
 msgstr "{name} by game"
 
@@ -462,9 +489,17 @@ msgstr "{stance} to {target}"
 msgid "{title} visualizer"
 msgstr "{title} visualizer"
 
+#: src/components/MetricTrendChart.tsx
+msgid "{title}, {value}"
+msgstr "{title}, {value}"
+
 #: src/components/ShareCardDialog.tsx
 msgid "{title}, {value} {label}"
 msgstr "{title}, {value} {label}"
+
+#: src/components/MetricTrendChart.tsx
+msgid "{title}, no value"
+msgstr "{title}, no value"
 
 #: src/components/PatternSheet.tsx
 msgid "{title}, page {page} of {pages}"
@@ -477,6 +512,14 @@ msgstr "{title}, stats"
 #: src/components/LaneVisualizer.tsx
 msgid "{title}: {from} to {to}"
 msgstr "{title}: {from} to {to}"
+
+#: src/components/MetricTrendChart.tsx
+msgid "{title}: {value}"
+msgstr "{title}: {value}"
+
+#: src/components/MetricTrendChart.tsx
+msgid "{title}: none"
+msgstr "{title}: none"
 
 #. Bowling term: the total of every game in one session.
 #: src/components/SessionHistory.tsx
@@ -503,6 +546,10 @@ msgstr "{weeks, plural, one {Last backup # week ago} other {Last backup # weeks 
 msgid "{weight} lb"
 msgstr "{weight} lb"
 
+#: src/components/SessionTrendChart.tsx
+msgid "<0>{average}</0> avg"
+msgstr "<0>{average}</0> avg"
+
 #: src/views/SpareLinesView.tsx
 msgid "<0>{suggestedLeave}</0> is likely the same shot as <1>{fromLeave}</1>. Use its line?"
 msgstr "<0>{suggestedLeave}</0> is likely the same shot as <1>{fromLeave}</1>. Use its line?"
@@ -519,12 +566,17 @@ msgstr "1H"
 #. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
 #. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
 #. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
+#. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
+#. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
+#: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "1st ball"
 msgstr "1st ball"
 
 #. Bowling term: the first ball of a frame, thrown at a full rack of ten pins; avg is short for average
 #. Bowling term: the first ball of a frame, thrown at a full rack of ten pins; avg is short for average
+#. Bowling term: the first ball of a frame, thrown at a full rack of ten pins; avg is short for average
+#: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "1st ball avg"
 msgstr "1st ball avg"
@@ -705,7 +757,9 @@ msgid "after a strike {value}"
 msgstr "after a strike {value}"
 
 #. Bowling term. A short column heading over the share of strikes thrown right after a strike.
+#. Bowling term. A short column heading over the share of strikes thrown right after a strike.
 #: src/components/BallEstimates.tsx
+#: src/components/ProOfferSamples.tsx
 msgid "After strike"
 msgstr "After strike"
 
@@ -790,6 +844,14 @@ msgstr "App"
 msgid "Appearance"
 msgstr "Appearance"
 
+#: src/components/DriftZoneLane.tsx
+msgid "Approach board diagram for a left-handed bowler, split into outside, middle and inside drift zones"
+msgstr "Approach board diagram for a left-handed bowler, split into outside, middle and inside drift zones"
+
+#: src/components/DriftZoneLane.tsx
+msgid "Approach board diagram for a right-handed bowler, split into outside, middle and inside drift zones"
+msgstr "Approach board diagram for a right-handed bowler, split into outside, middle and inside drift zones"
+
 #: src/components/HomeProfile.tsx
 #: src/views/ArsenalView.tsx
 #: src/views/SettingsView.tsx
@@ -841,6 +903,10 @@ msgstr "Automatic"
 msgid "Average"
 msgstr "Average"
 
+#: src/components/SessionTrendChart.tsx
+msgid "Average by session, oldest first. {sessions}. Overall average {average}."
+msgstr "Average by session, oldest first. {sessions}. Overall average {average}."
+
 #. Short for average, beside a session's average score.
 #: src/components/SessionHistory.tsx
 msgid "avg"
@@ -855,6 +921,13 @@ msgstr "Avg"
 #: src/components/HomeProfile.tsx
 msgid "AVG"
 msgstr "AVG"
+
+#. Short for average, labelling the dashed average line on a chart, the number after it
+#. Short for average, labelling the dashed average line on a chart, the number after it
+#: src/components/ScoreTrendChart.tsx
+#: src/components/SessionTrendChart.tsx
+msgid "avg {avg}"
+msgstr "avg {avg}"
 
 #. Bowling term: a filter on the spare lines screen for splits whose standing pins are next to each other and makeable
 #: src/lib/spareLines.ts
@@ -960,6 +1033,10 @@ msgstr "Balls"
 msgid "Benchmark"
 msgstr "Benchmark"
 
+#: src/components/DriftZoneLane.tsx
+msgid "Board {board}"
+msgstr "Board {board}"
+
 #: src/views/BowlingProfileView.tsx
 msgid "boards"
 msgstr "boards"
@@ -1011,7 +1088,14 @@ msgstr "Brand"
 msgid "Break {board} ({feet}ft)"
 msgstr "Break {board} ({feet}ft)"
 
+#. Bowling term: the breakpoint, where the ball turns from skid to hook, as board then distance in feet (ft). A small label drawn on the lane, keep it short
+#: src/components/LaneSurface.tsx
+msgid "Break {board}·{feet}ft"
+msgstr "Break {board}·{feet}ft"
+
 #. Bowling term: the point where the ball turns from skid to hook
+#. Bowling term: the point where the ball turns from skid to hook
+#: src/components/ProOfferSamples.tsx
 #: src/lib/shareCard.ts
 msgid "Breakpoint"
 msgstr "Breakpoint"
@@ -1028,6 +1112,7 @@ msgstr "Bring back to arsenal"
 msgid "Bulk edit"
 msgstr "Bulk edit"
 
+#: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "By game"
 msgstr "By game"
@@ -1049,6 +1134,9 @@ msgstr "carry"
 
 #. Bowling term: a card stat, the share of pocket hits that struck
 #. Bowling term: how often a ball that hit the pocket carried for a strike. A rate label.
+#. Bowling term: how often a ball that hit the pocket carried for a strike. A rate label.
+#. Bowling term: how often a ball that hit the pocket carried for a strike. A rate label.
+#. Bowling term: how often a ball that hit the pocket carried for a strike. A rate label.
 #. Bowling term: how often a ball that hit the pocket knocked all the pins down
 #. Bowling term: how often a ball that hit the pocket knocked all the pins down
 #. Bowling term: how often a ball that hit the pocket knocked all the pins down
@@ -1056,6 +1144,7 @@ msgstr "carry"
 #. Bowling term: how often a ball that hit the pocket knocked all the pins down
 #. Bowling term: how often a ball that hit the pocket strikes. Column heading, a rate.
 #: src/components/BallGameSessionsDialog.tsx
+#: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 #: src/lib/shareCard.ts
 #: src/views/GameTrendView.tsx
@@ -1568,7 +1657,9 @@ msgid "Enter whole numbers for both lanes."
 msgstr "Enter whole numbers for both lanes."
 
 #. Short column heading: estimated average.
+#. Short column heading: estimated average.
 #: src/components/BallEstimates.tsx
+#: src/components/ProOfferSamples.tsx
 msgid "Est."
 msgstr "Est."
 
@@ -1601,6 +1692,11 @@ msgstr "Everything in Pro is open here."
 #: src/views/BowlingProfileView.tsx
 msgid "Example: no drift, release offset 6"
 msgstr "Example: no drift, release offset 6"
+
+#. Bowling term: where the ball leaves the oil, as board then distance in feet (ft). A small label drawn on the lane, keep it short
+#: src/components/LaneSurface.tsx
+msgid "Exit {board}·{feet}ft"
+msgstr "Exit {board}·{feet}ft"
 
 #: src/components/AppErrorBoundary.tsx
 msgid "Export backup"
@@ -1719,6 +1815,11 @@ msgstr "Filters, {count} applied"
 msgid "Final"
 msgstr "Final"
 
+#. Bowling term: the board where the ball ends at the pins, followed by the board number. A small label drawn on the lane
+#: src/components/LaneSurface.tsx
+msgid "Final {board}"
+msgstr "Final {board}"
+
 #. Bowling term: how many feet down the lane the ball ends up. ft is feet; a short label over a number field
 #: src/components/LaneVisualizer.tsx
 msgid "Final ft"
@@ -1817,6 +1918,8 @@ msgid "G{game}"
 msgstr "G{game}"
 
 #. Short axis label for a game number on a chart, like G1
+#. Short axis label for a game number on a chart, like G1
+#: src/components/SessionTrendChart.tsx
 #: src/components/Stats.tsx
 msgid "G{gameNumber}"
 msgstr "G{gameNumber}"
@@ -1871,6 +1974,14 @@ msgstr "Game {gameNumber} is in the books. Share the session?"
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} lanes"
 msgstr "Game {gameNumber} lanes"
+
+#: src/components/ScoreTrendChart.tsx
+msgid "Game {gameNumber}, {score}"
+msgstr "Game {gameNumber}, {score}"
+
+#: src/components/ScoreTrendChart.tsx
+msgid "Game {gameNumber}: {score}"
+msgstr "Game {gameNumber}: {score}"
 
 #: src/views/GameTrendView.tsx
 msgid "Game by game"
@@ -2108,6 +2219,10 @@ msgstr "Import failed."
 msgid "In"
 msgstr "In"
 
+#: src/components/MetricTrendChart.tsx
+msgid "In order. {points}."
+msgstr "In order. {points}."
+
 #: src/components/HomeProfile.tsx
 msgid "In progress"
 msgstr "In progress"
@@ -2126,9 +2241,15 @@ msgid "Increase release offset"
 msgstr "Increase release offset"
 
 #. Bowling term: the inside zone of the lane, toward the center. A zone name in the drift settings.
+#. Bowling term: the inside zone of the lane, toward the center. A zone name in the drift settings.
+#: src/components/DriftZoneLane.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "Inside"
 msgstr "Inside"
+
+#: src/components/DriftZoneLane.tsx
+msgid "Inside zone starts at board"
+msgstr "Inside zone starts at board"
 
 #: src/components/InstallPrompt.tsx
 msgid "Install"
@@ -2276,8 +2397,10 @@ msgstr "Later"
 
 #. Bowling term: the board the ball first touches the lane
 #. Bowling term: the board the ball first touches the lane
+#. Bowling term: the board the ball first touches the lane
 #. Bowling term: the board where the ball is released onto the lane
 #: src/components/LaneVisualizer.tsx
+#: src/components/ProOfferSamples.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "Laydown"
 msgstr "Laydown"
@@ -2288,6 +2411,8 @@ msgid "Laydown {board}"
 msgstr "Laydown {board}"
 
 #. Bowling term: the board where the ball first touches the lane, followed by the board number
+#. Bowling term: the board where the ball first touches the lane, followed by the board number
+#: src/components/LaneSurface.tsx
 #: src/components/SpareLineFormDialog.tsx
 #: src/views/SpareLinesView.tsx
 msgid "Laydown {laydown}"
@@ -2502,8 +2627,10 @@ msgid "Low flare on purpose. Burns less board on the way down for fresh oil or a
 msgstr "Low flare on purpose. Burns less board on the way down for fresh oil or a spare-adjacent ball."
 
 #. Bowling term. A short column heading over the share of leaves picked up for a spare.
+#. Bowling term. A short column heading over the share of leaves picked up for a spare.
 #. Bowling term: spares made out of the chances. Shown as made/chances.
 #: src/components/BallEstimates.tsx
+#: src/components/ProOfferSamples.tsx
 #: src/components/SpareLineFormDialog.tsx
 msgid "Made"
 msgstr "Made"
@@ -2563,6 +2690,8 @@ msgid "Mid"
 msgstr "Mid"
 
 #. Bowling term: the middle zone of the lane. A zone name in the drift settings.
+#. Bowling term: the middle zone of the lane. A zone name in the drift settings.
+#: src/components/DriftZoneLane.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "Middle"
 msgstr "Middle"
@@ -2706,6 +2835,11 @@ msgstr "No balls to compare yet. Name the ball on your shots and each one's aver
 #: src/views/ArsenalView.tsx
 msgid "No balls yet"
 msgstr "No balls yet"
+
+#. Under a zone of the approach diagram: this zone does not move the slide foot
+#: src/components/DriftZoneLane.tsx
+msgid "no drift"
+msgstr "no drift"
 
 #: src/views/GameTrendView.tsx
 msgid "No games to compare yet"
@@ -2984,9 +3118,15 @@ msgid "Out"
 msgstr "Out"
 
 #. Bowling term: the outside zone of the lane, near the gutter. A zone name in the drift settings.
+#. Bowling term: the outside zone of the lane, near the gutter. A zone name in the drift settings.
+#: src/components/DriftZoneLane.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "Outside"
 msgstr "Outside"
+
+#: src/components/DriftZoneLane.tsx
+msgid "Outside zone ends at board"
+msgstr "Outside zone ends at board"
 
 #. Bowling term: PAP (positive axis point), how far over from the ball's center line the axis point sits, in inches.
 #. Bowling term: PAP (positive axis point), how far over from the ball's center line the axis point sits, in inches.
@@ -3137,9 +3277,13 @@ msgstr "pocket"
 #. Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance
 #. Bowling term: the pocket is where the ball hits the pins for the best chance of a strike. Column heading, a rate.
 #. Bowling term: the strike pocket, where the ball should hit the pins. A rate label.
+#. Bowling term: the strike pocket, where the ball should hit the pins. A rate label.
+#. Bowling term: the strike pocket, where the ball should hit the pins. A rate label.
+#. Bowling term: the strike pocket, where the ball should hit the pins. A rate label.
 #: src/components/ActiveGameScorer.tsx
 #: src/components/BallGameSessionsDialog.tsx
 #: src/components/LaneVisualizer.tsx
+#: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 #: src/lib/shareCard.ts
 #: src/views/GameTrendView.tsx
@@ -3498,6 +3642,10 @@ msgstr "Saving…"
 msgid "Score"
 msgstr "Score"
 
+#: src/components/ScoreTrendChart.tsx
+msgid "Score by game. {games}. Average {average}."
+msgstr "Score by game. {games}. Average {average}."
+
 #: src/views/NoSessionView.tsx
 msgid "Score now, add details later"
 msgstr "Score now, add details later"
@@ -3671,6 +3819,11 @@ msgstr "Single pins"
 msgid "Sleepers"
 msgstr "Sleepers"
 
+#. Bowling term: the board the slide foot lands on at the foul line. A tiny label drawn on the lane, keep it short
+#: src/components/LaneSurface.tsx
+msgid "slide"
+msgstr "slide"
+
 #. Bowling term: the board the bowler's slide foot finishes on at the foul line.
 #. Bowling term: the board the slide foot finishes on
 #. Bowling term: the board the slide foot finishes on
@@ -3772,9 +3925,11 @@ msgid "Specs and pictures of current balls"
 msgstr "Specs and pictures of current balls"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
+#. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins
 #. Bowling term: leaves with a gap between standing pins and the head pin down, a group on the Stats tab
 #: src/components/BallEstimates.tsx
+#: src/components/ProOfferSamples.tsx
 #: src/lib/pins.ts
 #: src/views/OpenFramesView.tsx
 msgid "Splits"
@@ -3831,6 +3986,7 @@ msgstr "Start fresh"
 msgid "Start scoring"
 msgstr "Start scoring"
 
+#: src/components/SessionFormDialog.tsx
 #: src/views/DashboardView.tsx
 #: src/views/NoSessionView.tsx
 msgid "Start session"
@@ -3864,6 +4020,10 @@ msgstr "strike"
 #. A bowling term: all ten pins down with the first ball. A button label.
 #. Bowling term. A short column heading over the share of first balls that were strikes.
 #. Bowling term: all ten pins down with the first ball. A rate label.
+#. Bowling term: all ten pins down with the first ball. A rate label.
+#. Bowling term: all ten pins down with the first ball. A rate label.
+#. Bowling term: all ten pins down with the first ball. A rate label.
+#. Bowling term: all ten pins down with the first ball. A rate label.
 #. Bowling term: all ten pins down with the first ball. Column heading.
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #. Bowling term: all ten pins knocked down with the first ball of a frame
@@ -3873,6 +4033,7 @@ msgstr "strike"
 #: src/components/ActiveGameScorer.tsx
 #: src/components/BallEstimates.tsx
 #: src/components/BallGameSessionsDialog.tsx
+#: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 #: src/views/GameTrendView.tsx
 msgid "Strike"
@@ -3911,6 +4072,8 @@ msgstr "strike on strike"
 #. Bowling term: a strike on the ball right after a strike
 #. Bowling term: a strike on the ball right after a strike
 #. Bowling term: a strike on the ball right after a strike
+#. Bowling term: a strike on the ball right after a strike
+#: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "Strike on strike"
 msgstr "Strike on strike"
@@ -3927,6 +4090,8 @@ msgstr "Strikes"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #. Bowling term: all ten pins knocked down with the first ball of a frame
+#. Bowling term: all ten pins knocked down with the first ball of a frame
+#: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "Strikes in a row"
 msgstr "Strikes in a row"
@@ -4012,6 +4177,7 @@ msgstr "target"
 
 #. Bowling term: the board the ball crosses at the arrows.
 #. Bowling term: the board the ball crosses at the arrows.
+#. Bowling term: the board the ball crosses at the arrows.
 #. Bowling term: the board the ball crosses at the arrows. A field label.
 #. Bowling term: the board the ball is aimed over at the arrows
 #. Bowling term: the board you aim at
@@ -4019,6 +4185,7 @@ msgstr "target"
 #. Bowling term: the board you aim at
 #: src/components/LaneVisualizer.tsx
 #: src/components/LineInput.tsx
+#: src/components/ProOfferSamples.tsx
 #: src/components/SpareLineBulkSheet.tsx
 #: src/components/SpareLineFormDialog.tsx
 #: src/views/BowlingProfileView.tsx
@@ -4030,6 +4197,11 @@ msgstr "Target"
 #: src/components/alleyHistoryCopy.ts
 msgid "target {target}"
 msgstr "target {target}"
+
+#. Bowling term: the board the ball crosses at the arrows, followed by the board number. A small label drawn on the lane
+#: src/components/LaneSurface.tsx
+msgid "Target {target}"
+msgstr "Target {target}"
 
 #. Bowling term: the board the ball crosses at the arrows, about 15 feet down the lane
 #: src/lib/shareCard.ts
@@ -4539,6 +4711,8 @@ msgid "Write down how you shoot each spare"
 msgstr "Write down how you shoot each spare"
 
 #. Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet
+#. Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet
+#: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "X-on-X"
 msgstr "X-on-X"

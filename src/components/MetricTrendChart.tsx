@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { t } from "@lingui/core/macro";
 import { averageLabelY, trendInset } from "../lib/chartLabels";
 
 /**
@@ -78,6 +79,9 @@ export function MetricTrendChart({
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
   const shown = points.slice(-MAX_POINTS);
+  const orderedList = shown
+    .map((p) => (p.value === null ? t`${{ title: p.title }}: none` : t`${{ title: p.title }}: ${{ value: format(p.value) }}`))
+    .join(", ");
   const withValue = shown.filter((p) => p.value !== null);
   // Nothing to plot (a spare rate over a night with no spare chance, as in a
   // 300): the card stays with its picker, or the chips that switch away went
@@ -178,9 +182,7 @@ export function MetricTrendChart({
         viewBox={`0 0 ${plotW} ${H}`}
         className="w-full"
         role="img"
-        aria-label={`In order. ${shown
-          .map((p) => `${p.title}: ${p.value === null ? "none" : format(p.value)}`)
-          .join(", ")}.`}
+        aria-label={t`In order. ${{ points: orderedList }}.`}
       >
         {overall !== null && overall <= hi && overall >= lo && (
           <>
@@ -286,7 +288,7 @@ export function MetricTrendChart({
             fill="transparent"
             role="button"
             tabIndex={0}
-            aria-label={`${p.title}, ${p.value === null ? "no value" : format(p.value)}`}
+            aria-label={p.value === null ? t`${{ title: p.title }}, no value` : t`${{ title: p.title }}, ${{ value: format(p.value) }}`}
             onClick={() => toggle(p)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {

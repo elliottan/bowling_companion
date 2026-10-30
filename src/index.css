@@ -116,6 +116,11 @@ textarea,
   font-family:
     ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans",
     "Yu Gothic UI", Meiryo, sans-serif;
+  /* Japanese has no spaces, so a line breaks between any two characters and
+     cuts a word in two ("カバーストッ" / "ク"). Chrome can break at phrase
+     boundaries instead; a browser without it ignores the line and breaks as
+     before. */
+  word-break: auto-phrase;
 }
 
 :root:lang(ko) {

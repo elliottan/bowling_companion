@@ -1,12 +1,14 @@
+import { plural } from "@lingui/core/macro";
 import { formatShortDate } from "../lib/dates";
 import { alleyLabel } from "../lib/sessionLabels";
 import type { SessionSummary } from "../types/bowling";
 
 /** One game's lanes: "Lanes 9/10", or "Lane 5" when it was played on one. */
-export function laneLabel(lanes: string[]): string {
-  const played = lanes.filter(Boolean);
+export function laneLabel(all: string[]): string {
+  const played = all.filter(Boolean);
   if (!played.length) return "";
-  return `${played.length > 1 ? "Lanes" : "Lane"} ${played.join("/")}`;
+  const lanes = played.join("/");
+  return plural(played.length, { one: `Lane ${lanes}`, other: `Lanes ${lanes}` });
 }
 
 // Lanes are per-game, so show each distinct lane PAIR bowled this session,
@@ -20,8 +22,10 @@ export function laneSummary(games: SessionSummary["games"]): string {
     if (!pairs.includes(label)) pairs.push(label);
   }
   if (!pairs.length) return "";
-  const noun = pairs.length === 1 && pairs[0].includes("/") ? "Lanes" : pairs.length > 1 ? "Lanes" : "Lane";
-  return `${noun} ${pairs.join(", ")}`;
+  const lanes = pairs.join(", ");
+  // One pair of lanes is plural too ("Lanes 9/10"); only a lone lane is singular.
+  const count = pairs.length === 1 && !pairs[0].includes("/") ? 1 : 2;
+  return plural(count, { one: `Lane ${lanes}`, other: `Lanes ${lanes}` });
 }
 
 /** The line under the alley: the event and a short date. The game count is
@@ -48,7 +52,9 @@ export function SessionHeaderText({
   const meta = sessionMetaLine(session);
   return (
     <div className="min-w-0">
-      <Heading className="truncate text-body font-semibold leading-tight text-ink">
+      {/* Two lines before it is cut: the series beside it is wider in some
+          languages, and an alley's name is the one thing here it must show. */}
+      <Heading className="line-clamp-2 break-words text-body font-semibold leading-tight text-ink">
         {alleyLabel(session.alley_name)}
       </Heading>
       {(meta || session.oil_pattern) && (

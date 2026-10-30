@@ -268,9 +268,9 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
 
 function SpecItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline justify-between border-b border-edge py-1.5">
-      <dt className="text-xs font-semibold text-ink-secondary">{label}</dt>
-      <dd className="text-sm font-medium text-ink">{value}</dd>
+    <div className="flex items-baseline justify-between gap-3 border-b border-edge py-1.5">
+      <dt className="max-w-[50%] shrink-0 text-xs font-semibold text-ink-secondary">{label}</dt>
+      <dd className="min-w-0 break-words text-right text-sm font-medium text-ink">{value}</dd>
     </div>
   );
 }
@@ -614,7 +614,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         </div>
 
         {/* Filter toggle + sort row */}
-        <div className="relative z-[2] mb-3 flex items-center gap-2">
+        <div className="relative z-[2] mb-3 flex flex-wrap items-center gap-2">
           <Chip selected={showFilters} onClick={() => setShowFilters((v) => !v)}>
             {t`Filters`}
             {activeFilterCount > 0 ? (
@@ -622,9 +622,10 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
             ) : null}
           </Chip>
 
-          <div className="flex-1" />
-
-          <label className="flex items-center gap-1.5 text-sm text-ink-strong">
+          {/* Not shrinkable: the select is as wide as its longest option in
+              this language, and where that does not fit beside Filters the
+              sort takes the next line rather than clipping its value. */}
+          <label className="ml-auto flex shrink-0 items-center gap-1.5 text-sm text-ink-strong">
             <span className="font-medium">{t`Sort:`}</span>
             <select
               value={sort}

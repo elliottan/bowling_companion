@@ -11,6 +11,7 @@ import { GAME_LABELS_UP_TO, METRIC_KEYS, metricNote, metricSpec, type MetricKey 
 import { calculateGameNumberMetrics, type GameNumberMetricPoint } from "../lib/stats";
 import { useHandedness } from "../lib/handednessContext";
 import { useRememberedState } from "../lib/viewMemory";
+import { columnWidth } from "../lib/headingWidth";
 import { useSessionFilters } from "./useSessionFilters";
 import { Chip } from "../components/ui/Chip";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
@@ -49,6 +50,22 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
   );
 
   const spec = metricSpec(metric);
+  const headings = [
+    ...(columns === "scoring"
+      ? [
+          t({ message: "Avg", comment: "Column heading, short for average" }),
+          t({ message: "Strike", comment: "Bowling term: all ten pins down with the first ball. Column heading." }),
+          t({ message: "Spare", comment: "Bowling term: all ten pins down with two balls. Column heading." })
+        ]
+      : [
+          t({ message: "Pocket", comment: "Bowling term: the pocket is where the ball hits the pins for the best chance of a strike. Column heading, a rate." }),
+          t({ message: "Carry", comment: "Bowling term: how often a ball that hit the pocket strikes. Column heading, a rate." })
+        ]),
+    t`Games`
+  ];
+  // Each column is as wide as its heading needs (and its numbers), and the rows
+  // (separate boxes) get the same widths, so they stay under their headings.
+  const columnPx = headings.map((h) => columnWidth(2.5, [h], true));
   const scored = trend.filter((p) => p.stats.averageScore !== null);
 
   return (
@@ -86,7 +103,7 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
               }))}
               header={
                 <div className="mb-1">
-                  <h2 className={GROUP_HEADING}>{spec.label} by game</h2>
+                  <h2 className={GROUP_HEADING}>{t`${{ name: spec.label }} by game`}</h2>
                   <p className="mt-1 text-xs text-ink-secondary">{metricNote(metric)}</p>
                 </div>
               }
@@ -123,22 +140,11 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
             <div className="type-cap-dense overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
               <div className="flex items-end gap-2 px-3 pb-1 pt-2 text-caption-2 font-bold uppercase leading-tight text-ink-tertiary">
                 <span className="min-w-0 flex-1" aria-hidden="true" />
-                {(columns === "scoring"
-                  ? [
-                      t({ message: "Avg", comment: "Column heading, short for average" }),
-                      t({ message: "Strike", comment: "Bowling term: all ten pins down with the first ball. Column heading." }),
-                      t({ message: "Spare", comment: "Bowling term: all ten pins down with two balls. Column heading." })
-                    ]
-                  : [
-                      t({ message: "Pocket", comment: "Bowling term: the pocket is where the ball hits the pins for the best chance of a strike. Column heading, a rate." }),
-                      t({ message: "Carry", comment: "Bowling term: how often a ball that hit the pocket strikes. Column heading, a rate." })
-                    ]
-                ).map((label) => (
-                  <span key={label} className="w-12 shrink-0 text-right [overflow-wrap:anywhere]">
+                {headings.map((label, i) => (
+                  <span key={label} className="shrink-0 text-right [overflow-wrap:normal] break-keep" style={{ width: columnPx[i] }}>
                     {label}
                   </span>
                 ))}
-                <span className="w-12 shrink-0 text-right [overflow-wrap:anywhere]">{t`Games`}</span>
               </div>
               <ul className="divide-y divide-edge">
                 {trend.map((slot) => (
@@ -146,6 +152,7 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
                     key={slot.gameNumber}
                     slot={slot}
                     columns={columns}
+                    columnSizes={columnPx}
                     onClick={() => {
                       // The filter is shared, so the tab underneath is already
                       // narrowed by the time this screen slides away.
@@ -170,10 +177,12 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
 function GameRow({
   slot,
   columns,
+  columnSizes,
   onClick
 }: {
   slot: GameNumberMetricPoint;
   columns: Columns;
+  columnSizes: string[];
   onClick: () => void;
 }) {
   const thin = slot.games < THIN;
@@ -197,14 +206,15 @@ function GameRow({
         {cells.map((cell, i) => (
           <span
             key={i}
-            className={`w-12 shrink-0 text-right text-xs font-semibold tabular-nums ${
+            style={{ width: columnSizes[i] }}
+            className={`shrink-0 text-right text-xs font-semibold tabular-nums ${
               thin ? "text-ink-secondary" : "text-ink"
             }`}
           >
             {cell}
           </span>
         ))}
-        <span className="w-12 shrink-0 text-right text-xs tabular-nums text-ink-tertiary">
+        <span style={{ width: columnSizes[cells.length] }} className="shrink-0 text-right text-xs tabular-nums text-ink-tertiary">
           {slot.games}
         </span>
       </button>

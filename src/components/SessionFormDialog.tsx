@@ -1,4 +1,5 @@
 import { useCallback, useState, type ReactNode } from "react";
+import { t } from "@lingui/core/macro";
 import { FormSheet } from "./ui/FormSheet";
 import { SessionForm, type NewSessionFormValues, type SessionFormInitial } from "./SessionForm";
 
@@ -32,8 +33,8 @@ export function SessionFormDialog({
   onCancel,
   isSubmitting = false,
   initial,
-  title = "Start session",
-  submitLabel = "Start session",
+  title = t`Start session`,
+  submitLabel = t`Start session`,
   onOpenAlleyReport,
   children,
   active = true
