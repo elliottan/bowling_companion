@@ -1,4 +1,5 @@
 import { plural, t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import { formatPercent } from "../lib/format";
 import { ChevronRight, Plus, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -330,7 +331,10 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           onDismiss={() => void snoozeHint(suggestionKey(suggestion))}
           dismissLabel={t`Not the same shot`}
         >
-          {t`${{ leave: suggestedLeave }} is likely the same shot as ${{ from: fromLeave }}. Use its line?`}
+          <Trans>
+            <span className="font-semibold text-ink">{suggestedLeave}</span> is likely the same shot
+            as <span className="font-semibold text-ink">{fromLeave}</span>. Use its line?
+          </Trans>
         </Hint>
       )}
 
@@ -344,7 +348,10 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           onDismiss={() => void snoozeHint(askKey(ask.pins))}
           dismissLabel={t`Not now`}
         >
-          {t`You leave ${{ leave: askedLeave }} most often (${{ times: askedTimes }}) and have no line for it.`}
+          <Trans>
+            You leave <span className="font-semibold text-ink">{askedLeave}</span> most often (
+            {askedTimes}) and have no line for it.
+          </Trans>
         </Hint>
       )}
 

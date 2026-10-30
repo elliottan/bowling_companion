@@ -9569,3 +9569,29 @@ session's second game.
 **Consequences.** One more method for the Xcode build to confirm. A game whose
 final score is lingering when a delete renumbers it keeps its old number for
 the few minutes it lingers; it is ended, and not worth a second path.
+
+## ADR-223: `<Trans>` reads the global `i18n`, so a sentence keeps its markup
+
+**Status.** Accepted, 2026-10-30. Follows ADR-220, which left markup inside a
+message open.
+
+**Context.** ADR-220 has no `I18nProvider`: one language per launch, read
+through the global `i18n`. Lingui's runtime `Trans` reads its `i18n` from the
+provider's context and throws without one, so the conversion wrote every
+sentence as plain `t`. Five sentences had markup in them and lost it: the bold
+"replaces" in Backup, the bold leave names in the two spare-line hints, the bold
+lead of the catalog sync error, and the bold legacy layout in the ball form
+(split around it), and the Safari install hint (split around the Share icon).
+A sentence split in two cannot be reordered by a translator.
+
+**Decision.** `runtimeConfigModule` in `lingui.config.ts` sends the compiled
+`<Trans>` macro to `src/lib/i18nTrans.tsx`, a three-line wrapper that renders
+Lingui's `TransNoContext` with the global `i18n`. The module is named by an
+alias, `@headpin/trans`, in `vite.config.ts`, because the macro writes the same
+import into every file and a relative path would not resolve from all of them.
+The five sentences are each one `<Trans>` again, with the markup as numbered
+tags in the catalog.
+
+**Consequences.** Still no provider and no re-render on a language change,
+which stays a reload. A tool that compiles the macro outside Vite (none today)
+would need the alias too.

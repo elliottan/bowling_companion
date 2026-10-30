@@ -1,4 +1,5 @@
 import { plural, t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import { BookOpen, ExternalLink, Loader2, Palette, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
@@ -584,7 +585,10 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         )}
         {syncState.status === "error" && (
           <div className="mb-3 rounded-lg border border-warning-200 bg-warning-50 px-3 py-2 text-sm text-warning-700">
-            {t`Could not update the catalog: ${{ reason: syncMessage }}. Showing last saved data.`}
+            <Trans>
+              <span className="font-semibold">Could not update the catalog:</span> {syncMessage}.
+              Showing last saved data.
+            </Trans>
           </div>
         )}
 

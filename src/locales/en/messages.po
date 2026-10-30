@@ -325,10 +325,6 @@ msgstr "{label}, what it does"
 msgid "{label}. {action}"
 msgstr "{label}. {action}"
 
-#: src/views/SpareLinesView.tsx
-msgid "{leave} is likely the same shot as {from}. Use its line?"
-msgstr "{leave} is likely the same shot as {from}. Use its line?"
-
 #. Bowling term: a spare line for a leave of several pins, named by their numbers, e.g. 2-4-5-8 spare
 #: src/lib/shareCard.ts
 msgid "{leaveName} spare"
@@ -507,6 +503,14 @@ msgstr "{weeks, plural, one {Last backup # week ago} other {Last backup # weeks 
 msgid "{weight} lb"
 msgstr "{weight} lb"
 
+#: src/views/SpareLinesView.tsx
+msgid "<0>{suggestedLeave}</0> is likely the same shot as <1>{fromLeave}</1>. Use its line?"
+msgstr "<0>{suggestedLeave}</0> is likely the same shot as <1>{fromLeave}</1>. Use its line?"
+
+#: src/views/CatalogView.tsx
+msgid "<0>Could not update the catalog:</0> {syncMessage}. Showing last saved data."
+msgstr "<0>Could not update the catalog:</0> {syncMessage}. Showing last saved data."
+
 #. Short for one-handed. A narrow segment of a control.
 #: src/views/LayoutLabView.tsx
 msgid "1H"
@@ -542,8 +546,8 @@ msgid "3 months"
 msgstr "3 months"
 
 #: src/views/BackupRestoreView.tsx
-msgid "A backup is one file, kept on this device or wherever you put it. Restoring replaces everything on this device with what is in the file. Your current data is saved off first."
-msgstr "A backup is one file, kept on this device or wherever you put it. Restoring replaces everything on this device with what is in the file. Your current data is saved off first."
+msgid "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. Your current data is saved off first."
+msgstr "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. Your current data is saved off first."
 
 #: src/components/BallLayoutDiagram.tsx
 msgid "A bowling ball drilled with a thumb hole and two finger holes, showing a {drillingAngle} by {pinToPap} inch by {valAngle} dual angle layout."
@@ -1219,10 +1223,6 @@ msgstr "Core type"
 msgid "Costliest leaves"
 msgstr "Costliest leaves"
 
-#: src/views/CatalogView.tsx
-msgid "Could not update the catalog: {reason}. Showing last saved data."
-msgstr "Could not update the catalog: {reason}. Showing last saved data."
-
 #. Bowling term: the outer shell material of a ball
 #. Bowling term: the outer shell material of a ball
 #: src/views/CatalogView.tsx
@@ -1561,10 +1561,6 @@ msgstr "Edit this recorded shot?"
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "Enter whole numbers for both lanes."
-
-#: src/components/BallFormDialog.tsx
-msgid "Entering it below replaces the text with numbers."
-msgstr "Entering it below replaces the text with numbers."
 
 #. Short column heading: estimated average.
 #: src/components/BallEstimates.tsx
@@ -2108,8 +2104,8 @@ msgid "In progress"
 msgstr "In progress"
 
 #: src/components/InstallPrompt.tsx
-msgid "In Safari, tap Share"
-msgstr "In Safari, tap Share"
+msgid "In Safari, tap Share <0/> then \"Add to Home Screen\". Chrome and Firefox on iOS cannot do this, so open the page in Safari first."
+msgstr "In Safari, tap Share <0/> then \"Add to Home Screen\". Chrome and Firefox on iOS cannot do this, so open the page in Safari first."
 
 #. Step 2 of moving games from the web to the app
 #: src/lib/moveGames.ts
@@ -4137,10 +4133,6 @@ msgstr "The stance and target you saved for this leave are gone. Your shots keep
 msgid "Theme"
 msgstr "Theme"
 
-#: src/components/InstallPrompt.tsx
-msgid "then \"Add to Home Screen\". Chrome and Firefox on iOS cannot do this, so open the page in Safari first."
-msgstr "then \"Add to Home Screen\". Chrome and Firefox on iOS cannot do this, so open the page in Safari first."
-
 #: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "This Apple ID has not bought Headpin Pro."
@@ -4151,8 +4143,8 @@ msgid "This backup was made by a newer Headpin. Update the app, then try again."
 msgstr "This backup was made by a newer Headpin. Update the app, then try again."
 
 #: src/components/BallFormDialog.tsx
-msgid "This ball carries the layout you typed before:"
-msgstr "This ball carries the layout you typed before:"
+msgid "This ball carries the layout you typed before: <0><1>{legacyText}</1></0>. Entering it below replaces the text with numbers."
+msgstr "This ball carries the layout you typed before: <0><1>{legacyText}</1></0>. Entering it below replaces the text with numbers."
 
 #: src/components/FirstRun.tsx
 msgid "This brings back your sessions, balls, lines and settings, including which hand you bowl with."
@@ -4551,8 +4543,12 @@ msgid "You have Headpin Pro. Thanks for the support."
 msgstr "You have Headpin Pro. Thanks for the support."
 
 #: src/views/SpareLinesView.tsx
-msgid "You leave {leave} most often ({times}) and have no line for it."
-msgstr "You leave {leave} most often ({times}) and have no line for it."
+msgid "You leave <0>{askedLeave}</0> most often ({askedTimes}) and have no line for it."
+msgstr "You leave <0>{askedLeave}</0> most often ({askedTimes}) and have no line for it."
+
+#: src/lib/i18nTrans.test.tsx
+msgid "You leave <0>{leave}</0> most often."
+msgstr "You leave <0>{leave}</0> most often."
 
 #: src/components/FeedbackPrompt.tsx
 msgid "You've bowled a few sessions now. What's missing, or what's getting in your way?"

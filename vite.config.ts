@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { version as pkgVersion } from "./package.json";
 import react from "@vitejs/plugin-react";
 import { lingui } from "@lingui/vite-plugin";
@@ -202,6 +203,14 @@ export default defineConfig({
   // the app entirely. There are two real HTML entries and no server routing to
   // fake, so the fallback is not wanted.
   appType: "mpa",
+  // Where a compiled `<Trans>` macro gets its component (`runtimeConfigModule`
+  // in lingui.config.ts): one that reads the global `i18n`, so a sentence with
+  // bold or an icon in it needs no provider (ADR-223).
+  resolve: {
+    alias: {
+      "@headpin/trans": fileURLToPath(new URL("./src/lib/i18nTrans.tsx", import.meta.url))
+    }
+  },
   build: {
     rollupOptions: {
       input: {
