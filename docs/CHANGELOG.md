@@ -18,6 +18,9 @@ had all shipped.
   Hong Kong or Macau opens in Traditional, and for mainland China, Singapore
   or Malaysia in Simplified. The guides, the legal pages and the website are
   still in English.
+- Settings, Appearance, Language picks the app's language whatever the phone's
+  is: Automatic follows the phone. On Android 13 and later it can also be set
+  for Headpin alone in the system's App languages.
 - A few sentences have their bold back: "replaces" in Backup, the leave names
   in the two spare-line hints on Spare lines, the start of the catalog's
   "Could not update" message, and the layout you typed before in the ball

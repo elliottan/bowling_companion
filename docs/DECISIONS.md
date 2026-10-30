@@ -9633,3 +9633,35 @@ which the skill makes a few minutes of subagent work. The translations were
 made by a model from the glossaries and have had no native speaker's read; the
 App Store listing drafts in `docs/APP-STORE-LISTING-TRANSLATED.md` are in the
 same state.
+
+## ADR-225: The bowler picks the language in Settings, and text must fit in every one
+
+**Status.** Accepted, 2026-10-30. Follows ADR-220 and ADR-224.
+
+**Context.** The language followed the phone alone. On iPhone a bowler can set
+it for one app in the system's Settings, but Android before 13 and the web have
+no such setting, and a bowler whose phone is in one language may bowl in
+another. Six languages also mean six lengths of every label, at four text
+sizes, and checking each by eye does not scale past the first.
+
+**Decision.**
+
+- **A Language section in Settings, Appearance**: Automatic (the phone's
+  language, named) and each language by its own name, never translated. The
+  pick is kept in localStorage (`readLanguagePreference` in `src/lib/i18n.ts`),
+  read before the first screen as the text size is, and not carried in a
+  backup: a restored file should not change the language of the phone it lands
+  on. A change reloads the app, keeping ADR-220's one language per launch.
+- **Android 13 and later** list the languages in `locales_config.xml`, so the
+  system's per-app language setting offers them as iOS does.
+- **Every list of the languages is tested to agree**: `SUPPORTED_LOCALES`, the
+  picker, `lingui.config.ts`, the catalogs on disk, `CFBundleLocalizations` and
+  `locales_config.xml` (`src/lib/i18nLocales.test.ts`).
+- **Text fit is a test, not a review**: `e2e/text-fit.spec.ts` opens the main
+  screens in every language at the largest text size and fails on text that
+  is clipped or pushes past the screen. A new language is covered by adding it
+  to `SUPPORTED_LOCALES`.
+
+**Consequences.** A bowler can bowl in a language other than the phone's, on
+every platform. The fit test catches overflow, not text that fits but reads
+badly or overlaps another element, which a screenshot review still finds.
