@@ -39,11 +39,11 @@ choice the bowler makes per pair. Deriving it is wrong for anyone who plays a
 
 ### The next languages
 
-Japanese ships (0.75.0), and a sentence keeps its bold and icons (ADR-223).
-Open: a native speaker's read of the Japanese catalog, the guides, the legal
+Japanese, Korean and Traditional Chinese ship (0.75.0), and a sentence keeps
+its bold and icons (ADR-223). Open: a native speaker's read of each catalog, the guides, the legal
 pages and the landing page (English only), the Home Screen quick actions and
-the App Store listing in Japanese, and the decision on right-to-left, which the
-layout does not support. Suggested next: Korean, Spanish, Traditional Chinese.
+the App Store listing in those languages, and the decision on right-to-left, which the
+layout does not support. Suggested next: Spanish, then Simplified Chinese.
 
 ### Android follows the system font size
 

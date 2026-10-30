@@ -108,12 +108,26 @@ textarea,
     sans-serif;
 }
 
-/* Japanese glyphs where the system face has none (Windows' Segoe UI). On
-   iPhone and Android, system-ui already picks a Japanese face from <html lang>. */
+/* Each language's own face where the system face has none (Windows' Segoe
+   UI), and the right glyphs for Han characters, which differ between
+   Japanese, Korean and Traditional Chinese. On iPhone and Android, system-ui
+   already picks from <html lang>. */
 :root:lang(ja) {
   font-family:
     ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans",
     "Yu Gothic UI", Meiryo, sans-serif;
+}
+
+:root:lang(ko) {
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Malgun Gothic", sans-serif;
+}
+
+:root:lang(zh-Hant) {
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang TC",
+    "Microsoft JhengHei", sans-serif;
 }
 
 /*

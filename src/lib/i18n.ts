@@ -16,7 +16,7 @@ import type { Messages } from "@lingui/core";
 
 /** Every language a catalog exists for. Adding one is a line here, a line in
  *  `lingui.config.ts` and, on iOS, a line in Info.plist (docs/I18N.md). */
-export const SUPPORTED_LOCALES = ["en", "ja"] as const;
+export const SUPPORTED_LOCALES = ["en", "ja", "ko", "zh-Hant"] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 export const SOURCE_LOCALE: Locale = "en";
 
@@ -36,10 +36,29 @@ export function resolveLocale(
     if (!tag) continue;
     const exact = have.get(tag);
     if (exact) return exact;
+    const script = chineseScript(tag);
+    const written = script && have.get(`zh-${script}`);
+    if (written) return written;
     const base = have.get(tag.split("-")[0]);
     if (base) return base;
   }
   return SOURCE_LOCALE;
+}
+
+/**
+ * Which script a Chinese tag is written in, "hant" or "hans", or null for a
+ * tag that is not Chinese. Chinese is matched by script, not by language: a
+ * phone in Taiwan says "zh-TW" or "zh-Hant-TW", and neither is a "zh-Hant"
+ * catalog by its letters. Taiwan, Hong Kong and Macau write Traditional; a
+ * Chinese tag with neither a script nor one of those regions is Simplified,
+ * which has no catalog yet, so it falls through to the next language asked.
+ */
+function chineseScript(tag: string): "hant" | "hans" | null {
+  const parts = tag.split("-");
+  if (parts[0] !== "zh") return null;
+  if (parts.includes("hant")) return "hant";
+  if (parts.includes("hans")) return "hans";
+  return parts.some((p) => p === "tw" || p === "hk" || p === "mo") ? "hant" : "hans";
 }
 
 /** The phone's or browser's preferred languages, most wanted first. On iOS

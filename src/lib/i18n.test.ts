@@ -28,6 +28,22 @@ describe("resolveLocale", () => {
     expect(resolveLocale(["pt_br"], supported)).toBe("pt-BR");
   });
 
+  it("matches Chinese by script: Taiwan, Hong Kong and Macau read Traditional", () => {
+    const chinese = ["en", "zh-Hant"];
+    expect(resolveLocale(["zh-TW"], chinese)).toBe("zh-Hant");
+    expect(resolveLocale(["zh-Hant-TW"], chinese)).toBe("zh-Hant");
+    expect(resolveLocale(["zh-HK"], chinese)).toBe("zh-Hant");
+    expect(resolveLocale(["zh_MO"], chinese)).toBe("zh-Hant");
+    expect(resolveLocale(["zh-Hant"], chinese)).toBe("zh-Hant");
+  });
+
+  it("never gives Simplified Chinese the Traditional catalog", () => {
+    const chinese = ["en", "ja", "zh-Hant"];
+    expect(resolveLocale(["zh-CN", "ja"], chinese)).toBe("ja");
+    expect(resolveLocale(["zh-Hans-CN"], chinese)).toBe(SOURCE_LOCALE);
+    expect(resolveLocale(["zh"], chinese)).toBe(SOURCE_LOCALE);
+  });
+
   it("falls back to the source language when nothing matches or nothing is asked", () => {
     expect(resolveLocale(["de", "fr"], supported)).toBe(SOURCE_LOCALE);
     expect(resolveLocale([], supported)).toBe(SOURCE_LOCALE);
@@ -58,6 +74,15 @@ describe("activateLocale", () => {
     // A catalog missing an entry would show the id; one with a broken plural
     // throws here instead of on a bowler's screen.
     expect(describeLastBackup("2026-06-01T00:00:00.000Z", new Date("2026-06-30T12:00:00Z"))).toMatch(/[\u3040-\u30ff\u4e00-\u9fff]/);
+  });
+
+  it.each([
+    ["ko", /[\uac00-\ud7af]/],
+    ["zh-Hant", /[\u4e00-\u9fff]/]
+  ])("ships %s: its catalog loads, compiles and answers", async (locale, script) => {
+    expect(await activateLocale(locale)).toBe(locale);
+    expect(document.documentElement.lang).toBe(locale);
+    expect(describeLastBackup("2026-06-01T00:00:00.000Z", new Date("2026-06-30T12:00:00Z"))).toMatch(script);
   });
 
   it("falls back to English for a language that has no catalog", async () => {
