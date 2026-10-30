@@ -3184,7 +3184,7 @@ msgstr "プリセット、{preset}"
 #: src/views/LegalView.tsx
 #: src/views/SettingsView.tsx
 msgid "Privacy and terms"
-msgstr "プライバシーと利用規約"
+msgstr "プライバシーと規約"
 
 #: src/views/ProOfferView.tsx
 msgid "Pro is bought in the iPhone app, which is not in the App Store yet."

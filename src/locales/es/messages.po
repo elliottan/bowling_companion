@@ -884,7 +884,7 @@ msgstr "Parte final"
 #: src/views/BackupRestoreView.tsx
 #: src/views/SettingsView.tsx
 msgid "Backup & restore"
-msgstr "Respaldo y restauración"
+msgstr "Respaldos"
 
 #: src/views/BackupRestoreView.tsx
 msgid "Backup downloaded. Move it somewhere off this device."
@@ -1267,7 +1267,7 @@ msgstr "Estadísticas más a fondo y herramientas de líneas y layouts"
 #. Text size setting: the standard size
 #: src/lib/textScale.ts
 msgid "Default"
-msgstr "Predeterminado"
+msgstr "Normal"
 
 #. Backend reading: a defined turn
 #: src/lib/ballLayout.ts
@@ -2231,12 +2231,12 @@ msgstr "Grande"
 #. Text size setting: two steps bigger than the standard size
 #: src/lib/textScale.ts
 msgid "Larger"
-msgstr "Más grande"
+msgstr "Mayor"
 
 #. Text size setting: the biggest size
 #: src/lib/textScale.ts
 msgid "Largest"
-msgstr "El más grande"
+msgstr "Máximo"
 
 #. Stats tab window: the last ten sessions, a short segment label
 #: src/lib/statsRange.ts
@@ -3184,7 +3184,7 @@ msgstr "Predefinidos, {preset}"
 #: src/views/LegalView.tsx
 #: src/views/SettingsView.tsx
 msgid "Privacy and terms"
-msgstr "Privacidad y términos"
+msgstr "Aviso legal"
 
 #: src/views/ProOfferView.tsx
 msgid "Pro is bought in the iPhone app, which is not in the App Store yet."
@@ -4225,7 +4225,7 @@ msgstr "hoy"
 #: src/views/DashboardView.tsx
 #: src/views/SettingsView.tsx
 msgid "Tools and reference"
-msgstr "Herramientas y referencia"
+msgstr "Herramientas"
 
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"

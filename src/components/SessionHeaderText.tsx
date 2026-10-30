@@ -52,7 +52,9 @@ export function SessionHeaderText({
         {alleyLabel(session.alley_name)}
       </Heading>
       {(meta || session.oil_pattern) && (
-        <p className="truncate text-xs leading-tight text-ink-secondary">
+        // One line in a bar, as iOS cuts a subtitle: the event, date and
+        // pattern are the bowler's own and can be any length (ADR-225).
+        <p data-fit="exempt" className="truncate text-xs leading-tight text-ink-secondary">
           {meta}
           {session.oil_pattern && (
             <>

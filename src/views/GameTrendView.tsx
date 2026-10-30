@@ -105,9 +105,10 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
               }}
             />
 
-            <div className="mb-2 mt-4 flex items-center justify-between gap-3">
+            <div className="mb-2 mt-4 flex flex-wrap items-center justify-between gap-3">
               <h2 className={GROUP_HEADING}>{t`All of them`}</h2>
-              <div className="w-44 shrink-0">
+              {/* At least its width in English, wider for a longer label. */}
+              <div className="min-w-44">
                 <SegmentedControl
                   label={t`Columns`}
                   value={columns}
@@ -117,8 +118,10 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
-              <div className="flex items-center gap-2 px-3 pb-1 pt-2 text-caption-2 font-bold uppercase tracking-wide text-ink-tertiary">
+            {/* Dense like the app's other tables (ADR-219), so the columns
+                hold their headings at every text size and in every language. */}
+            <div className="type-cap-dense overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
+              <div className="flex items-end gap-2 px-3 pb-1 pt-2 text-caption-2 font-bold uppercase leading-tight text-ink-tertiary">
                 <span className="min-w-0 flex-1" aria-hidden="true" />
                 {(columns === "scoring"
                   ? [
@@ -131,11 +134,11 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
                       t({ message: "Carry", comment: "Bowling term: how often a ball that hit the pocket strikes. Column heading, a rate." })
                     ]
                 ).map((label) => (
-                  <span key={label} className="w-12 shrink-0 text-right">
+                  <span key={label} className="w-12 shrink-0 text-right [overflow-wrap:anywhere]">
                     {label}
                   </span>
                 ))}
-                <span className="w-10 shrink-0 text-right">{t`Games`}</span>
+                <span className="w-12 shrink-0 text-right [overflow-wrap:anywhere]">{t`Games`}</span>
               </div>
               <ul className="divide-y divide-edge">
                 {trend.map((slot) => (
@@ -201,7 +204,7 @@ function GameRow({
             {cell}
           </span>
         ))}
-        <span className="w-10 shrink-0 text-right text-xs tabular-nums text-ink-tertiary">
+        <span className="w-12 shrink-0 text-right text-xs tabular-nums text-ink-tertiary">
           {slot.games}
         </span>
       </button>

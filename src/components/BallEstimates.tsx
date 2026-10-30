@@ -192,7 +192,7 @@ function BallEstimateRow({ estimate, ball }: { estimate: BallEstimate; ball: Bal
             )}
           </span>
           <span className="min-w-0 flex-1">
-            <span className={`line-clamp-2 text-footnote font-semibold leading-tight ${thin ? "text-ink-secondary" : "text-ink"}`}>
+            <span className={`line-clamp-3 text-footnote font-semibold leading-tight [overflow-wrap:anywhere] ${thin ? "text-ink-secondary" : "text-ink"}`}>
               {name}
             </span>
             <span className="block text-caption-2 text-ink-tertiary">
