@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
 import {
   PLANE_W, PLANE_L, LANE_BOARDS, LANE_FEET,
@@ -75,7 +76,7 @@ export function LaneSurface({ line, hand, leave, showMarkers = true, oil, animat
       viewBox={`0 0 ${PLANE_W} ${PLANE_L}`}
       preserveAspectRatio="xMidYMid meet"
       className="h-full w-full"
-      aria-label="Bowling lane line diagram"
+      aria-label={t`Bowling lane line diagram`}
     >
       <defs>
         <linearGradient id="lane-wood" x1="0" y1="0" x2="0" y2="1">

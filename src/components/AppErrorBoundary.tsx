@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { isStaleShellError } from "../lib/swUpdate";
 import { exportBackup } from "../services/backupRepository";
@@ -60,29 +61,29 @@ export class AppErrorBoundary extends Component<Props, State> {
 
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface p-6 text-center text-ink">
-        <h1 className="text-lg font-semibold">The app crashed</h1>
+        <h1 className="text-lg font-semibold">{t`The app crashed`}</h1>
         <p className="text-sm text-ink-secondary">
-          Your scores are still on this device.
+          {t`Your scores are still on this device.`}
         </p>
         <p className="max-w-sm truncate rounded-lg bg-surface-muted px-3 py-2 text-xs text-ink-secondary">
           {error.message}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button variant="primary" onClick={this.handleReload}>
-            Reload
+            {t`Reload`}
           </Button>
           <Button variant="secondary" onClick={this.handleExport}>
-            Export backup
+            {t`Export backup`}
           </Button>
           <Button variant="secondary" onClick={this.handleRestore}>
-            Restore a backup
+            {t`Restore a backup`}
           </Button>
         </div>
         {exportState === "success" && (
-          <p className="text-xs text-success-700">Backup exported.</p>
+          <p className="text-xs text-success-700">{t`Backup exported.`}</p>
         )}
         {exportState === "failure" && (
-          <p className="text-xs text-danger-700">Export failed. Try again.</p>
+          <p className="text-xs text-danger-700">{t`Export failed. Try again.`}</p>
         )}
       </div>
     );

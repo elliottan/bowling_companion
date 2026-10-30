@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import { Check } from "lucide-react";
 import { useState } from "react";
 import { ErrorBanner } from "./ErrorBanner";
@@ -5,6 +6,7 @@ import { MiniPins } from "./MiniPins";
 import { MoveStepper } from "./SpareLineFormDialog";
 import { useDriftModel } from "../lib/driftModelContext";
 import { deriveLaydown, deriveSlide, syncStanceLaydown } from "../lib/driftModel";
+import { formatNumber } from "../lib/format";
 import { formatLeave } from "../lib/pins";
 import type { LineRow } from "../lib/spareLines";
 import { updateSpareLines } from "../services/ballRepository";
@@ -44,8 +46,7 @@ export function SpareLineBulkSheet({ row, onClose }: { row: LineRow; onClose: ()
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const leaves = row.tiles.map((t) => t.spareLine);
-  const count = `${leaves.length} ${leaves.length === 1 ? "leave" : "leaves"}`;
+  const leaves = row.tiles.map((tile) => tile.spareLine);
 
   const stanceBoard = board(stance);
   const slide = stanceBoard != null ? deriveSlide(stanceBoard, driftModel) : undefined;
@@ -85,15 +86,25 @@ export function SpareLineBulkSheet({ row, onClose }: { row: LineRow; onClose: ()
       );
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save the spare lines.");
+      setError(err instanceof Error ? err.message : t`Failed to save the spare lines.`);
       setIsSaving(false);
     }
   }
 
   return (
     <FormSheet
-      title="Bulk edit"
-      subtitle={`${kind === "move" ? "Strike ball move" : "Spare ball line"} for ${count}`}
+      title={t`Bulk edit`}
+      subtitle={
+        kind === "move"
+          ? plural(leaves.length, {
+              one: "Strike ball move for # leave",
+              other: "Strike ball move for # leaves"
+            })
+          : plural(leaves.length, {
+              one: "Spare ball line for # leave",
+              other: "Spare ball line for # leaves"
+            })
+      }
       onClose={onClose}
       size="tall"
       trailing={
@@ -101,7 +112,7 @@ export function SpareLineBulkSheet({ row, onClose }: { row: LineRow; onClose: ()
           variant="confirm"
           onClick={() => void save()}
           disabled={isSaving}
-          label={`Save for all ${count}`}
+          label={plural(leaves.length, { one: "Save for all # leave", other: "Save for all # leaves" })}
         >
           <Check size={20} aria-hidden="true" />
         </IconButton>
@@ -117,15 +128,15 @@ export function SpareLineBulkSheet({ row, onClose }: { row: LineRow; onClose: ()
       >
         {kind === "line" ? (
           <div>
-            <p className={`mb-0.5 ${eyebrow}`}>Spare ball line</p>
+            <p className={`mb-0.5 ${eyebrow}`}>{t`Spare ball line`}</p>
             <div className="flex items-center gap-1.5">
               {(
                 [
-                  ["Stance", stance, setStance],
-                  ["Target", target, setTarget]
+                  ["stance", t({ message: "Stance", comment: "Bowling term: the board the bowler stands on at the foul line." }), stance, setStance],
+                  ["target", t({ message: "Target", comment: "Bowling term: the board the ball crosses at the arrows." }), target, setTarget]
                 ] as const
-              ).map(([label, value, set]) => (
-                <label key={label} className="min-w-0 flex-1">
+              ).map(([field, label, value, set]) => (
+                <label key={field} className="min-w-0 flex-1">
                   <span className={floatLabel}>{label}</span>
                   <input
                     type="number"
@@ -140,22 +151,26 @@ export function SpareLineBulkSheet({ row, onClose }: { row: LineRow; onClose: ()
             </div>
             {(slide != null || laydown != null) && (
               <p className="mt-1 text-caption-2 font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums">
-                {slide != null && `Slide ${slide}`}
+                {slide != null && t`Slide ${{ board: formatNumber(slide, 2) }}`}
                 {slide != null && laydown != null && (
                   <span aria-hidden="true" className="text-ink-tertiary"> → </span>
                 )}
-                {laydown != null && `Laydown ${laydown}`}
+                {laydown != null && t`Laydown ${{ board: formatNumber(laydown, 2) }}`}
               </p>
             )}
           </div>
         ) : (
           <div>
-            <p className={`mb-0.5 ${eyebrow}`}>Strike ball move</p>
+            <p className={`mb-0.5 ${eyebrow}`}>{t`Strike ball move`}</p>
             <div className="flex items-center gap-1.5">
               {(["stance", "target"] as const).map((field) => (
                 <MoveStepper
                   key={field}
-                  label={field}
+                  label={
+                    field === "stance"
+                      ? t({ message: "stance", comment: "Bowling term: the board the bowler stands on at the foul line. Lower case, a field name." })
+                      : t({ message: "target", comment: "Bowling term: the board the ball crosses at the arrows. Lower case, a field name." })
+                  }
                   value={move[field]}
                   readOnly={false}
                   onChange={(next) => setMove((m) => ({ ...m, [field]: next }))}
@@ -166,8 +181,8 @@ export function SpareLineBulkSheet({ row, onClose }: { row: LineRow; onClose: ()
         )}
 
         <div>
-          <p className={`mb-1.5 ${eyebrow}`}>Changes every one of these</p>
-          <ul aria-label="Leaves on this line" className="grid grid-cols-3 gap-1.5">
+          <p className={`mb-1.5 ${eyebrow}`}>{t`Changes every one of these`}</p>
+          <ul aria-label={t`Leaves on this line`} className="grid grid-cols-3 gap-1.5">
             {leaves.map((sl) => (
               <li
                 key={sl.id ?? sl.pins.join("-")}

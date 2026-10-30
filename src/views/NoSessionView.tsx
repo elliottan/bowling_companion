@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { PlayCircle } from "lucide-react";
 import { useState } from "react";
@@ -27,23 +28,23 @@ export function NoSessionView({ onStartSession, onScoreNow, isSubmitting, error 
   return (
     <section className="mx-auto w-full max-w-xl px-3 pb-5 pt-3 sm:px-6 sm:pt-5">
       <div className={`${TAB_TITLE_ROW} mb-3`}>
-        <h1 className={TAB_TITLE}>Score</h1>
+        <h1 className={TAB_TITLE}>{t`Score`}</h1>
       </div>
 
       {error && <ErrorBanner className="mb-4">{error}</ErrorBanner>}
 
       <EmptyState
         icon={PlayCircle}
-        title="No session running"
-        description="Start a session and you score it here, shot by shot."
+        title={t`No session running`}
+        description={t`Start a session and you score it here, shot by shot.`}
       >
         <Button variant="primary" onClick={() => setShowForm(true)}>
-          Start session
+          {t`Start session`}
         </Button>
         {/* The way past the form for a bowler who is already standing at the
             lane. The alley and the rest can be filled in afterwards. */}
         <Button variant="ghost" disabled={isSubmitting} onClick={() => void onScoreNow()}>
-          Score now, add details later
+          {t`Score now, add details later`}
         </Button>
       </EmptyState>
 

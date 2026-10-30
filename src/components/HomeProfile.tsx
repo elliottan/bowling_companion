@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { BowlingBallIcon, GamePlanIcon, LanePairIcon, SpareLineIcon } from "./icons";
@@ -51,7 +52,7 @@ export function ArsenalGrid({ balls, onOpenArsenal }: ArsenalGridProps) {
   const overflow = count > ARSENAL_SLOTS;
   const shown = balls ? balls.slice(0, overflow ? ARSENAL_SLOTS - 1 : ARSENAL_SLOTS) : [];
   return (
-    <section aria-label="Arsenal">
+    <section aria-label={t`Arsenal`}>
       {balls === undefined ? (
         <div className="aspect-[2/1]" />
       ) : balls.length === 0 ? (
@@ -63,10 +64,10 @@ export function ArsenalGrid({ balls, onOpenArsenal }: ArsenalGridProps) {
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
             <BowlingBallIcon size={18} aria-hidden="true" />
           </span>
-          <span className="text-xs font-semibold text-ink">Add balls to your bag</span>
+          <span className="text-xs font-semibold text-ink">{t`Add balls to your bag`}</span>
         </button>
       ) : (
-        <ul className="grid grid-cols-4 gap-1.5" aria-label="Your arsenal">
+        <ul className="grid grid-cols-4 gap-1.5" aria-label={t`Your arsenal`}>
           {shown.map((ball) => (
             <li key={ball.id}>
               <button
@@ -97,7 +98,7 @@ export function ArsenalGrid({ balls, onOpenArsenal }: ArsenalGridProps) {
               <button
                 type="button"
                 onClick={onOpenArsenal}
-                aria-label={`${count - shown.length} more balls`}
+                aria-label={plural(count - shown.length, { one: "# more ball", other: "# more balls" })}
                 className="flex aspect-square w-full items-center justify-center rounded-full bg-accent-soft text-sm font-bold tabular-nums text-accent active:opacity-70"
               >
                 +{count - shown.length}
@@ -163,12 +164,11 @@ interface ProfileTilesProps {
  */
 function counted(
   n: number | undefined,
-  one: string,
-  many: string,
+  count: (n: number) => string,
   empty: string
 ): string | undefined {
   if (n == null) return undefined;
-  return n === 0 ? empty : `${n} ${n === 1 ? one : many}`;
+  return n === 0 ? empty : count(n);
 }
 
 /** The three other things that are the bowler's own, side by side as equal
@@ -186,20 +186,32 @@ export function ProfileTiles({
     <div className="grid grid-cols-3 gap-2">
       <Tile
         icon={SpareLineIcon}
-        label="Spare lines"
-        detail={counted(spareLines, "leave", "leaves", "Where you shoot each spare")}
+        label={t`Spare lines`}
+        detail={counted(
+          spareLines,
+          (n) => plural(n, { one: "# leave", other: "# leaves" }),
+          t`Where you shoot each spare`
+        )}
         onClick={onOpenSpareLines}
       />
       <Tile
         icon={LanePairIcon}
-        label="Lane notes"
-        detail={counted(laneNotes, "note", "notes", "How each lane plays")}
+        label={t`Lane notes`}
+        detail={counted(
+          laneNotes,
+          (n) => plural(n, { one: "# note", other: "# notes" }),
+          t`How each lane plays`
+        )}
         onClick={onOpenLaneNotes}
       />
       <Tile
         icon={GamePlanIcon}
-        label="Alley report"
-        detail={counted(alleys, "alley", "alleys", "Your numbers at each alley")}
+        label={t`Alley report`}
+        detail={counted(
+          alleys,
+          (n) => plural(n, { one: "# alley", other: "# alleys" }),
+          t`Your numbers at each alley`
+        )}
         onClick={onOpenAlleyReport}
       />
     </div>
@@ -244,7 +256,7 @@ function SessionTile({
   return (
     <button
       type="button"
-      aria-label={`Open session: ${alley}, ${date}`}
+      aria-label={t`Open session: ${{ alley }}, ${{ date }}`}
       onClick={() => session.id && onOpen(session.id, !inProgress)}
       // The width grows with the text size, as the row scrolls sideways
       // anyway: a fixed 10rem cut the alley and the average to "Chinese S...".
@@ -262,13 +274,13 @@ function SessionTile({
         {average !== null ? (
           <>
             <span className="text-lg font-bold leading-none text-accent">{average}</span>
-            <span className="text-caption-2 font-bold tracking-wide text-accent">AVG</span>
+            <span className="text-caption-2 font-bold tracking-wide text-accent">{t({ message: "AVG", comment: "Bowling term: short for average, the mean score per game. Keep it very short, it sits in a small tile." })}</span>
           </>
         ) : inProgress ? (
-          <span className="whitespace-nowrap text-xs font-semibold text-accent">In progress</span>
+          <span className="whitespace-nowrap text-xs font-semibold text-accent">{t`In progress`}</span>
         ) : null}
         <span className="whitespace-nowrap text-caption-2 font-semibold tracking-wide text-ink-secondary">
-          ({games} {games === 1 ? "GM" : "GMS"})
+          {plural(games, { one: "(# GM)", other: "(# GMS)" })}
         </span>
       </span>
     </button>
@@ -296,7 +308,7 @@ export function RecentSessionStrip({
   return (
     <section>
       <RowHeading
-        label="Recent sessions"
+        label={t`Recent sessions`}
         trailing={
           hasMore && (
             <button
@@ -304,12 +316,12 @@ export function RecentSessionStrip({
               onClick={onViewAll}
               className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
             >
-              View all
+              {t`View all`}
             </button>
           )
         }
       />
-      <ul className={STRIP} aria-label="Recent sessions">
+      <ul className={STRIP} aria-label={t`Recent sessions`}>
         {sessions.map((summary) => (
           <li key={summary.session.id} className="shrink-0">
             <SessionTile

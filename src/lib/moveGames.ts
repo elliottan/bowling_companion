@@ -8,10 +8,27 @@
  * card say the same thing.
  */
 
-export const MOVE_GAMES_TITLE = "Bowled with Headpin on the web?";
+import { i18n } from "@lingui/core";
+import type { MessageDescriptor } from "@lingui/core";
+import { msg, t } from "@lingui/core/macro";
 
-export const MOVE_GAMES_STEPS: readonly string[] = [
-  "On headpin.app, open Settings, then Backup & restore, and export your games.",
-  "In the app, open Settings, then Backup & restore, and import.",
-  "Pick the file from Files."
+/** The heading, read in the active language. */
+export function moveGamesTitle(): string {
+  return t`Bowled with Headpin on the web?`;
+}
+
+const STEP_MESSAGES: MessageDescriptor[] = [
+  msg({ message: "On headpin.app, open Settings, then Backup & restore, and export your games.", comment: "Step 1 of moving games from the web to the app. headpin.app is a web address and stays as it is" }),
+  msg({ message: "In the app, open Settings, then Backup & restore, and import.", comment: "Step 2 of moving games from the web to the app" }),
+  msg({ message: "Pick the file from Files.", comment: "Step 3 of moving games from the web to the app. Files is the phone's Files app" })
 ];
+
+/** The steps, each read in the active language when used: every entry is a
+ *  getter over its message, so nothing is fixed at import. */
+export const MOVE_GAMES_STEPS: readonly string[] = (() => {
+  const list: string[] = [];
+  STEP_MESSAGES.forEach((descriptor, i) => {
+    Object.defineProperty(list, i, { get: () => i18n._(descriptor), enumerable: true });
+  });
+  return list;
+})();

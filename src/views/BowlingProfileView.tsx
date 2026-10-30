@@ -1,9 +1,12 @@
+import { i18n, type MessageDescriptor } from "@lingui/core";
+import { msg, plural, t } from "@lingui/core/macro";
 import { Check, ChevronLeft, ChevronRight, Info, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { PapEditor } from "../components/PapEditor";
 import { IconButton } from "../components/ui/IconButton";
 import { DEFAULT_PAP, formatInches } from "../lib/ballLayout";
+import { formatNumber } from "../lib/format";
 import type { PapMeasurement } from "../lib/ballLayout";
 import { getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
 import { PushScreen } from "../components/PushScreen";
@@ -43,6 +46,19 @@ function hasOpenedProfile(): boolean {
 const BOARD_MAX = 39; // upper board bound (matches deriveLaydown's clamp range)
 
 const ZONES = ["outside", "middle", "inside"] as const;
+
+/** A zone of the approach the drift is set for, and the words that move its drift. */
+function zoneLabel(zone: (typeof ZONES)[number]): string {
+  if (zone === "outside") return t({ message: "Outside", comment: "Bowling term: the outside zone of the lane, near the gutter. A zone name in the drift settings." });
+  if (zone === "middle") return t({ message: "Middle", comment: "Bowling term: the middle zone of the lane. A zone name in the drift settings." });
+  return t({ message: "Inside", comment: "Bowling term: the inside zone of the lane, toward the center. A zone name in the drift settings." });
+}
+
+function zoneDriftMove(zone: (typeof ZONES)[number], side: "left" | "right"): string {
+  if (zone === "outside") return side === "left" ? t`Move outside drift left` : t`Move outside drift right`;
+  if (zone === "middle") return side === "left" ? t`Move middle drift left` : t`Move middle drift right`;
+  return side === "left" ? t`Move inside drift left` : t`Move inside drift right`;
+}
 
 /**
  * Everything personal to how this bowler throws, on one page behind one
@@ -137,38 +153,39 @@ export function BowlingProfileView({
     <div tabIndex={editing ? undefined : 0} className="outline-none focus-visible:ring-2 focus-visible:ring-accent-fill">
     <div
       role="group"
-      aria-label="Bowling profile"
+      aria-label={t`Bowling profile`}
       // A read page lets scrolling pass over every control without touching it.
       className={`mx-auto w-full max-w-3xl min-w-0 space-y-7 border-0 px-3 py-4 sm:px-6 ${editing ? "" : "[&_*]:pointer-events-none"}`}
     >
       <div>
-        <h2 className={`mb-3 ${SETTING_HEADING}`}>Handedness</h2>
+        <h2 className={`mb-3 ${SETTING_HEADING}`}>{t`Handedness`}</h2>
         {editing ? (
           <HandednessPicker value={value} onSelect={(next) => change({ hand: next })} />
         ) : (
-          <ReadValue>{value === "right" ? "Right-handed" : "Left-handed"}</ReadValue>
+          <ReadValue>{value === "right" ? t`Right-handed` : t`Left-handed`}</ReadValue>
         )}
       </div>
 
       <div>
-        <h2 className={`mb-3 ${SETTING_HEADING}`}>Grip</h2>
+        <h2 className={`mb-3 ${SETTING_HEADING}`}>{t({ message: "Grip", comment: "How the bowler holds the ball: one-handed or two-handed" })}</h2>
         {editing ? (
           <SegmentedControl
-            label="Grip style"
+            label={t`Grip style`}
             value={grip}
             onChange={(next) => change({ grip: next })}
             options={[
-              { value: "1h", label: "One-handed" },
-              { value: "2h", label: "Two-handed" }
+              { value: "1h", label: t`One-handed` },
+              { value: "2h", label: t`Two-handed` }
             ]}
           />
         ) : (
-          <ReadValue>{grip === "2h" ? "Two-handed" : "One-handed"}</ReadValue>
+          <ReadValue>{grip === "2h" ? t`Two-handed` : t`One-handed`}</ReadValue>
         )}
       </div>
 
       <Group
-        heading="Your PAP"
+        heading={t({ message: "Your PAP", comment: "Bowling term: PAP is the positive axis point, a measurement of the bowler's axis of rotation" })}
+        aboutLabel={t`About your PAP`}
       >
         {editing ? (
           <div className="space-y-2 rounded-xl border border-edge bg-surface p-3">
@@ -176,20 +193,24 @@ export function BowlingProfileView({
           </div>
         ) : (
           <ReadValue>
-            {formatInches(pap.over)} over, {formatInches(Math.abs(pap.up))} {pap.up < 0 ? "down" : "up"}
+            {pap.up < 0
+              ? t({ message: `${{ over: formatInches(pap.over) }} over, ${{ down: formatInches(Math.abs(pap.up)) }} down`, comment: "Bowling term: PAP (positive axis point) written as inches over and inches down from the center of the grip" })
+              : t({ message: `${{ over: formatInches(pap.over) }} over, ${{ up: formatInches(Math.abs(pap.up)) }} up`, comment: "Bowling term: PAP (positive axis point) written as inches over and inches up from the center of the grip" })}
           </ReadValue>
         )}
       </Group>
 
       <Group
-        heading="Release offset"
+        heading={t({ message: "Release offset", comment: "Bowling term: how many boards from the slide foot the ball is released toward the bowling hand" })}
+        aboutLabel={t`About release offset`}
         onInfo={() => setInfoOpen(true)}
       >
         {editing ? (
           <div className="rounded-xl border border-edge bg-surface px-3">
-            <Row label="Offset" hint="boards">
+            <Row label={t({ message: "Offset", comment: "Short for release offset, a bowling term" })} hint={t`boards`}>
               <Stepper
-                ariaLabel="release offset"
+                decreaseLabel={t`Decrease release offset`}
+                increaseLabel={t`Increase release offset`}
                 value={driftModel.release_offset}
                 step={0.5}
                 min={0}
@@ -200,13 +221,14 @@ export function BowlingProfileView({
           </div>
         ) : (
           <ReadValue>
-            {driftModel.release_offset} {driftModel.release_offset === 1 ? "board" : "boards"}
+            {plural(driftModel.release_offset, { one: "# board", other: "# boards" })}
           </ReadValue>
         )}
       </Group>
 
       <Group
-        heading="Drift"
+        heading={t({ message: "Drift", comment: "Bowling term: how far the bowler's feet move sideways during the approach" })}
+        aboutLabel={t`About drift`}
         onInfo={() => setInfoOpen(true)}
       >
         <DriftZoneLane
@@ -222,10 +244,10 @@ export function BowlingProfileView({
               <div key={zone} className="rounded-xl border border-edge bg-surface p-3">
                 <div className="flex items-center gap-2">
                   <span className={`h-2.5 w-2.5 rounded-full ${ZONE_ACCENT[zone].swatch}`} aria-hidden="true" />
-                  <span className="text-sm font-semibold capitalize text-ink">{zone}</span>
+                  <span className="text-sm font-semibold capitalize text-ink">{zoneLabel(zone)}</span>
                   <div className="ml-auto shrink-0">
                     <DriftStepper
-                      ariaLabel={`${zone} drift`}
+                      zone={zone}
                       value={driftModel.drift[zone]}
                       hand={value}
                       onChange={(v) => setDrift(zone, v)}
@@ -255,15 +277,15 @@ export function BowlingProfileView({
   return (
     <PushScreen
       mode="inline"
-      title="Bowling profile"
+      title={t`Bowling profile`}
       onBack={onBack}
       trailing={
         editing ? (
-          <IconButton variant="confirm" label="Save bowling profile" onClick={() => void commit()}>
+          <IconButton variant="confirm" label={t`Save bowling profile`} onClick={() => void commit()}>
             <Check size={20} aria-hidden="true" />
           </IconButton>
         ) : (
-          <IconButton variant="round" label="Edit bowling profile" onClick={() => setDraft({})}>
+          <IconButton variant="round" label={t`Edit bowling profile`} onClick={() => setDraft({})}>
             <Pencil size={18} aria-hidden="true" />
           </IconButton>
         )
@@ -290,10 +312,13 @@ function ReadValue({ children }: { children: React.ReactNode }) {
  */
 function Group({
   heading,
+  aboutLabel,
   onInfo,
   children
 }: {
   heading: string;
+  /** What a screen reader calls the info button. */
+  aboutLabel: string;
   /** Opens the explanation for the block, from an info button on the heading. */
   onInfo?: () => void;
   children: React.ReactNode;
@@ -305,7 +330,7 @@ function Group({
         {onInfo && (
           <IconButton
             compact
-            label={`About ${heading.toLowerCase()}`}
+            label={aboutLabel}
             onClick={onInfo}
             // The read page lets scrolling pass over everything; this is the
             // one thing on it that is meant to be tapped.
@@ -338,12 +363,12 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
  *  the foot left, which means the arrows mirror for a left-hander, since
  *  positive drift walks a left-hander left (see `driftDirection`). */
 function DriftStepper({
-  ariaLabel,
+  zone,
   value,
   hand,
   onChange
 }: {
-  ariaLabel: string;
+  zone: (typeof ZONES)[number];
   value: number;
   hand: Handedness;
   onChange: (v: number) => void;
@@ -355,18 +380,18 @@ function DriftStepper({
     <div className="inline-flex items-center rounded-lg border border-edge bg-surface">
       <button
         type="button"
-        aria-label={`Move ${ariaLabel} left`}
+        aria-label={zoneDriftMove(zone, "left")}
         onClick={() => nudge(leftStep)}
         className="inline-flex h-11 w-11 items-center justify-center rounded-l-lg text-ink-secondary hover:bg-surface-muted"
       >
         <ChevronLeft size={16} aria-hidden="true" />
       </button>
       <span className="w-28 text-center text-sm font-bold tabular-nums text-ink">
-        {dir === "none" ? "None" : `${Math.abs(value)} ${dir}`}
+        {dir === "none" ? t`None` : dir === "left" ? t`${{ boards: formatNumber(Math.abs(value), 1) }} left` : t`${{ boards: formatNumber(Math.abs(value), 1) }} right`}
       </span>
       <button
         type="button"
-        aria-label={`Move ${ariaLabel} right`}
+        aria-label={zoneDriftMove(zone, "right")}
         onClick={() => nudge(-leftStep)}
         className="inline-flex h-11 w-11 items-center justify-center rounded-r-lg text-ink-secondary hover:bg-surface-muted"
       >
@@ -377,14 +402,16 @@ function DriftStepper({
 }
 
 function Stepper({
-  ariaLabel,
+  decreaseLabel,
+  increaseLabel,
   value,
   step,
   min,
   max,
   onChange
 }: {
-  ariaLabel: string;
+  decreaseLabel: string;
+  increaseLabel: string;
   value: number;
   step: number;
   min: number;
@@ -395,16 +422,16 @@ function Stepper({
     <div className="inline-flex items-center rounded-lg border border-edge bg-surface">
       <button
         type="button"
-        aria-label={`Decrease ${ariaLabel}`}
+        aria-label={decreaseLabel}
         onClick={() => onChange(Math.max(min, value - step))}
         className="inline-flex h-11 w-11 items-center justify-center rounded-l-lg text-ink-secondary hover:bg-surface-muted"
       >
         <ChevronLeft size={16} aria-hidden="true" />
       </button>
-      <span className="w-28 text-center text-sm font-bold tabular-nums text-ink">{value}</span>
+      <span className="w-28 text-center text-sm font-bold tabular-nums text-ink">{formatNumber(value, 1)}</span>
       <button
         type="button"
-        aria-label={`Increase ${ariaLabel}`}
+        aria-label={increaseLabel}
         onClick={() => onChange(Math.min(max, value + step))}
         className="inline-flex h-11 w-11 items-center justify-center rounded-r-lg text-ink-secondary hover:bg-surface-muted"
       >
@@ -415,13 +442,19 @@ function Stepper({
 }
 
 /** The words on the scorer's line, each named and said in one line. */
-const LINE_TERMS: ReadonlyArray<{ term: string; meaning: string }> = [
-  { term: "Stance", meaning: "The board your slide foot starts on." },
-  { term: "Target", meaning: "The board you aim at, usually an arrow." },
-  { term: "Drift", meaning: "How many boards your feet move between stance and slide." },
-  { term: "Slide", meaning: "The board your slide foot finishes on: your stance, moved by your drift." },
-  { term: "Release offset", meaning: "How many boards from your slide foot, toward your bowling hand, the ball lands." },
-  { term: "Laydown", meaning: "The board the ball lands on: your slide, moved by your release offset." }
+const LINE_TERMS: ReadonlyArray<{ term: MessageDescriptor; meaning: MessageDescriptor }> = [
+  { term: msg({ message: "Stance", comment: "Bowling term: the board your slide foot starts on" }), meaning: msg`The board your slide foot starts on.` },
+  { term: msg({ message: "Target", comment: "Bowling term: the board you aim at" }), meaning: msg`The board you aim at, usually an arrow.` },
+  { term: msg({ message: "Drift", comment: "Bowling term: how far the bowler's feet move sideways during the approach" }), meaning: msg`How many boards your feet move between stance and slide.` },
+  { term: msg({ message: "Slide", comment: "Bowling term: the board the slide foot finishes on" }), meaning: msg`The board your slide foot finishes on: your stance, moved by your drift.` },
+  { term: msg({ message: "Release offset", comment: "Bowling term: how many boards from the slide foot the ball is released toward the bowling hand" }), meaning: msg`How many boards from your slide foot, toward your bowling hand, the ball lands.` },
+  { term: msg({ message: "Laydown", comment: "Bowling term: the board the ball first touches the lane" }), meaning: msg`The board the ball lands on: your slide, moved by your release offset.` }
+];
+
+const EXAMPLE_STEPS: ReadonlyArray<{ label: MessageDescriptor; board: string }> = [
+  { label: msg({ message: "Stance", comment: "Bowling term: the board your slide foot starts on" }), board: "24" },
+  { label: msg({ message: "Slide", comment: "Bowling term: the board the slide foot finishes on" }), board: "24" },
+  { label: msg({ message: "Laydown", comment: "Bowling term: the board the ball first touches the lane" }), board: "18" }
 ];
 
 /**
@@ -432,34 +465,30 @@ const LINE_TERMS: ReadonlyArray<{ term: string; meaning: string }> = [
  */
 function LinePanelInfoSheet({ onClose }: { onClose: () => void }) {
   return (
-    <FormSheet title="Your line" onClose={onClose} dismissAs="done">
+    <FormSheet title={t`Your line`} onClose={onClose} dismissAs="done">
       <div className="space-y-5">
         <p className="text-sm text-ink-secondary">
-          You enter your stance and target. The app works out your slide and laydown.
+          {t`You enter your stance and target. The app works out your slide and laydown.`}
         </p>
         <dl className="space-y-3">
           {LINE_TERMS.map(({ term, meaning }) => (
-            <div key={term}>
-              <dt className="text-subhead font-semibold text-ink">{term}</dt>
-              <dd className="text-sm text-ink-secondary">{meaning}</dd>
+            <div key={term.id}>
+              <dt className="text-subhead font-semibold text-ink">{i18n._(term)}</dt>
+              <dd className="text-sm text-ink-secondary">{i18n._(meaning)}</dd>
             </div>
           ))}
         </dl>
         <figure className="rounded-2xl border border-edge bg-surface p-4">
           <figcaption className="text-xs font-semibold text-ink-secondary">
-            Example: no drift, release offset 6
+            {t`Example: no drift, release offset 6`}
           </figcaption>
           <ol className="mt-3 flex items-center justify-between gap-1 text-center">
-            {[
-              ["Stance", "24"],
-              ["Slide", "24"],
-              ["Laydown", "18"]
-            ].map(([label, board], n) => (
-              <li key={label} className="flex items-center gap-1">
+            {EXAMPLE_STEPS.map(({ label, board }, n) => (
+              <li key={label.id} className="flex items-center gap-1">
                 {n > 0 && <ChevronRight size={16} aria-hidden="true" className="text-ink-tertiary" />}
                 <span className="min-w-16 rounded-xl bg-surface-muted px-3 py-2">
                   <span className="block text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">
-                    {label}
+                    {i18n._(label)}
                   </span>
                   <span className="block text-lg font-bold tabular-nums text-ink">{board}</span>
                 </span>

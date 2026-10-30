@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { isBabySplit, isSplit, isWashout, resolvePocketHit } from "./pins";
 import { freshRackShotIndices, laneForFrame } from "./lanes";
 import type {
@@ -838,7 +839,7 @@ export function calculateBallPerformance(
 
   const perBall = [...acc.entries()].map(([ballId, e]) => ({
     ballId,
-    name: byId.get(ballId)?.name ?? `Ball #${ballId}`,
+    name: byId.get(ballId)?.name ?? t`Ball #${ballId}`,
     imageThumb: byId.get(ballId)?.catalog_snapshot?.imageThumb ?? null,
     brand: byId.get(ballId)?.catalog_snapshot?.brand ?? null,
     firstBalls: e.firstBalls,

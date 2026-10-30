@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { ShieldAlert, X } from "lucide-react";
 import { useState } from "react";
 import { shareBackup } from "../services/backupRepository";
@@ -45,7 +46,7 @@ export function SaveCopyPrompt({ urgency, onLater, onDismiss }: SaveCopyPromptPr
       // A cancelled share records nothing, so the prompt correctly stays up.
       await shareBackup();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Export failed.");
+      setError(err instanceof Error ? err.message : t`Export failed.`);
     } finally {
       setBusy(false);
     }
@@ -67,7 +68,7 @@ export function SaveCopyPrompt({ urgency, onLater, onDismiss }: SaveCopyPromptPr
         <div className="flex items-start gap-2.5">
           <ShieldAlert size={18} aria-hidden="true" className="mt-0.5 shrink-0" />
           <p className="flex-1 text-sm font-semibold">
-            Saved on this phone only. Save a copy before closing the tab.
+            {t`Saved on this phone only. Save a copy before closing the tab.`}
           </p>
           {/* Closes it either way. What that means depends on the urgency: a
               week's snooze while it is only due, and until the next launch once
@@ -75,7 +76,7 @@ export function SaveCopyPrompt({ urgency, onLater, onDismiss }: SaveCopyPromptPr
           <IconButton
             variant="default"
             onClick={urgency === "overdue" ? onDismiss : onLater}
-            label="Dismiss backup reminder"
+            label={t`Dismiss backup reminder`}
           >
             <X size={16} aria-hidden="true" />
           </IconButton>
@@ -83,7 +84,7 @@ export function SaveCopyPrompt({ urgency, onLater, onDismiss }: SaveCopyPromptPr
         {error && <p className="mt-2 pl-7 text-xs font-semibold">{error}</p>}
         <div className="mt-2 pl-7">
           <Button variant="primary" onClick={handleSave} disabled={busy}>
-            {busy ? "Saving…" : "Save a copy"}
+            {busy ? t`Saving…` : t`Save a copy`}
           </Button>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { GripStyle, Handedness } from "../types/bowling";
 import {
@@ -225,16 +226,17 @@ export function BallLayoutDiagram({
     [orientation]
   );
 
+  const psaLabel = t({ message: "PSA", comment: "Bowling term: preferred spin axis, a mark on the ball. Keep the abbreviation. A label on a ball diagram." });
   const landmarks: Landmark[] = [
-    { id: "pin", point: geometry.pin, label: "Pin", color: "#f8fafc", shape: "pin" },
+    { id: "pin", point: geometry.pin, label: t({ message: "Pin", comment: "Bowling term: the pin mark on a ball, near the top of the core's weight. Not a bowling pin. A label on a ball diagram." }), color: "#f8fafc", shape: "pin" },
     {
       id: "core",
       point: geometry.core,
-      label: ball.symmetric ? "CG" : "PSA",
+      label: ball.symmetric ? t({ message: "CG", comment: "Bowling term: center of gravity of a ball core. Keep the abbreviation. A label on a ball diagram." }) : psaLabel,
       color: "#fbbf24",
       shape: "core"
     },
-    { id: "pap", point: geometry.pap, label: "PAP", color: "#38bdf8", shape: "pap" }
+    { id: "pap", point: geometry.pap, label: t({ message: "PAP", comment: "Bowling term: positive axis point, the spot on the ball the axis of rotation runs through. Keep the abbreviation. A label on a ball diagram." }), color: "#38bdf8", shape: "pap" }
   ];
 
   const holes = useMemo(
@@ -266,7 +268,7 @@ export function BallLayoutDiagram({
     landmarks.push({
       id: "psa",
       point: thumb.point,
-      label: "PSA",
+      label: psaLabel,
       color: "#fbbf24",
       shape: "psa"
     });
@@ -433,7 +435,7 @@ export function BallLayoutDiagram({
                   b={walk(geometry.pap, geometry.valDirection, arcToAngle(2))}
                   color="#38bdf8"
                   value={Math.round(layout.valAngle)}
-                  name="VAL"
+                  name={t({ message: "VAL", comment: "Bowling term: vertical axis line, a reference line across the ball through the PAP. Keep the abbreviation. A tiny label under an angle on a ball diagram." })}
                   orientation={orientation}
                 />
                 {/* Vertex at the pin: pin-to-PAP against pin-to-core. */}
@@ -443,7 +445,7 @@ export function BallLayoutDiagram({
                   b={geometry.core}
                   color="#fbbf24"
                   value={Math.round(layout.drillingAngle)}
-                  name="DRILL"
+                  name={t({ message: "DRILL", comment: "Bowling term: short for drilling angle, the angle from the pin-to-PAP line to the pin-to-core line. A tiny label under an angle on a ball diagram, so keep it very short." })}
                   orientation={orientation}
                 />
               </>
@@ -754,17 +756,25 @@ function describeDiagram(
   system: "dual" | "vls",
   grip: GripStyle
 ): string {
-  const marker = ball.symmetric ? "CG" : "PSA";
-  const named =
-    system === "vls"
-      ? `a ${formatFixed(layout.pinToPap, 2)} by ${formatFixed(coreToPap(layout, ball), 2)} by ` +
-        `${formatFixed(pinBuffer(layout.pinToPap, layout.valAngle), 2)} inch Storm VLS layout`
-      : `a ${Math.round(layout.drillingAngle)} by ${formatFixed(layout.pinToPap, 2)} inch by ` +
-        `${Math.round(layout.valAngle)} dual angle layout`;
-  const drilled = grip === "2h" ? "two finger holes and no thumb hole" : "a thumb hole and two finger holes";
-  return (
-    `A bowling ball drilled with ${drilled}, showing ${named}. The pin sits ${formatFixed(layout.pinToPap, 2)} inches from the PAP ` +
-    `with a ${formatFixed(pinBuffer(layout.pinToPap, layout.valAngle), 2)} inch pin buffer, and the ${marker} is ` +
-    `${formatFixed(coreToPap(layout, ball), 2)} inches from the PAP. Drag the ball, or use the arrow keys, to turn it.`
-  );
+  const pinToPap = formatFixed(layout.pinToPap, 2);
+  const core = formatFixed(coreToPap(layout, ball), 2);
+  const buffer = formatFixed(pinBuffer(layout.pinToPap, layout.valAngle), 2);
+  const thumbed = grip !== "2h";
+  const drillingAngle = Math.round(layout.drillingAngle);
+  const valAngle = Math.round(layout.valAngle);
+
+  let opening: string;
+  if (system === "vls") {
+    opening = thumbed
+      ? t`A bowling ball drilled with a thumb hole and two finger holes, showing a ${{ pinToPap }} by ${{ core }} by ${{ buffer }} inch Storm VLS layout.`
+      : t`A bowling ball drilled with two finger holes and no thumb hole, showing a ${{ pinToPap }} by ${{ core }} by ${{ buffer }} inch Storm VLS layout.`;
+  } else {
+    opening = thumbed
+      ? t`A bowling ball drilled with a thumb hole and two finger holes, showing a ${{ drillingAngle }} by ${{ pinToPap }} inch by ${{ valAngle }} dual angle layout.`
+      : t`A bowling ball drilled with two finger holes and no thumb hole, showing a ${{ drillingAngle }} by ${{ pinToPap }} inch by ${{ valAngle }} dual angle layout.`;
+  }
+  const distances = ball.symmetric
+    ? t`The pin sits ${{ pinToPap }} inches from the PAP with a ${{ buffer }} inch pin buffer, and the CG is ${{ core }} inches from the PAP.`
+    : t`The pin sits ${{ pinToPap }} inches from the PAP with a ${{ buffer }} inch pin buffer, and the PSA is ${{ core }} inches from the PAP.`;
+  return `${opening} ${distances} ${t`Drag the ball, or use the arrow keys, to turn it.`}`;
 }

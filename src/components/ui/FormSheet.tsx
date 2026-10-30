@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { Check, X } from "lucide-react";
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useOverlay } from "../../lib/useOverlay";
@@ -71,7 +72,7 @@ export function FormSheet({
   title,
   onClose,
   onConfirm,
-  confirmLabel = "Save",
+  confirmLabel = t`Save`,
   confirmDisabled = false,
   banner,
   subtitle,
@@ -144,7 +145,7 @@ export function FormSheet({
             {...dragHandlers}
           >
             {dismissAs === "close" ? (
-              <IconButton onClick={() => dismiss()} label="Close" variant="round">
+              <IconButton onClick={() => dismiss()} label={t`Close`} variant="round">
                 <X size={20} aria-hidden="true" />
               </IconButton>
             ) : (
@@ -172,7 +173,7 @@ export function FormSheet({
             ) : dismissAs === "done" ? (
               // Leaves through `dismiss` like the X it replaces, so the sheet
               // still plays its exit rather than blinking out.
-              <IconButton variant="confirm" onClick={() => dismiss()} label="Done">
+              <IconButton variant="confirm" onClick={() => dismiss()} label={t`Done`}>
                 <Check size={20} aria-hidden="true" />
               </IconButton>
             ) : subtitle ? null : (

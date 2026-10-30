@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useLayoutEffect, useState } from "react";
 
 /**
@@ -19,12 +20,13 @@ export interface Palette {
 
 export const DEFAULT_PALETTE: PaletteId = "felt";
 
+// Names are getters, read in the active language when used, not at import.
 export const PALETTES: readonly Palette[] = [
-  { id: "felt", name: "Felt", swatch: "#2d8a78", pro: false },
-  { id: "ocean", name: "Ocean", swatch: "#3b82f6", pro: true },
-  { id: "sunset", name: "Sunset", swatch: "#f97316", pro: true },
-  { id: "grape", name: "Grape", swatch: "#8b5cf6", pro: true },
-  { id: "rose", name: "Rose", swatch: "#f43f5e", pro: true }
+  { id: "felt", get name() { return t({ message: "Felt", comment: "Accent color name: a teal green, like the felt on a card table" }); }, swatch: "#2d8a78", pro: false },
+  { id: "ocean", get name() { return t({ message: "Ocean", comment: "Accent color name: a blue" }); }, swatch: "#3b82f6", pro: true },
+  { id: "sunset", get name() { return t({ message: "Sunset", comment: "Accent color name: an orange" }); }, swatch: "#f97316", pro: true },
+  { id: "grape", get name() { return t({ message: "Grape", comment: "Accent color name: a purple" }); }, swatch: "#8b5cf6", pro: true },
+  { id: "rose", get name() { return t({ message: "Rose", comment: "Accent color name: a pink-red" }); }, swatch: "#f43f5e", pro: true }
 ];
 
 const KEY = "palette";

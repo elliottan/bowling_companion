@@ -33,6 +33,10 @@ export interface LiveActivityPlugin {
    *  named. `state` is the last thing it shows while it lingers for
    *  `dismissAfter` seconds (0 or absent: gone at once). */
   end(options: { gameId?: number; state?: LiveActivityState; dismissAfter?: number }): Promise<void>;
+  /** The games whose activities are showing now, ended ones not counted. An
+   *  app closed mid-game leaves its activity up, and the page that opens next
+   *  has no memory of it. */
+  showing(): Promise<{ gameIds: number[] }>;
 }
 
 let plugin: Promise<LiveActivityPlugin> | null = null;
@@ -58,6 +62,12 @@ export interface LiveActivityController {
   /** The game or its session is gone, or the bowler turned the feature off:
    *  take the activity down now. Without a game, whatever is showing. */
   stop(gameId?: number): void;
+  /** The game changed without a ball (its number, after a delete renumbered
+   *  the session): bring what shows up to date, but never start one. */
+  refresh(payload: LiveActivityPayload): void;
+  /** On launch: ask the phone what it is still showing, and for each game
+   *  either update it (`decide` gives a payload) or take it down (null). */
+  tidy(decide: (gameId: number) => Promise<LiveActivityPayload | null>): void;
 }
 
 /**
@@ -130,6 +140,31 @@ export function createLiveActivityController(
         const live = await load();
         showing = null;
         await live.end(gameId === undefined ? {} : { gameId });
+      });
+    },
+    refresh(payload) {
+      if (!enabled()) return;
+      enqueue(async () => {
+        if (showing !== payload.gameId) return;
+        const live = await load();
+        const { active } = await live.update(payload);
+        if (!active) showing = null;
+      });
+    },
+    tidy(decide) {
+      if (!enabled()) return;
+      enqueue(async () => {
+        const live = await load();
+        const { gameIds } = await live.showing();
+        for (const gameId of gameIds) {
+          const payload = await decide(gameId);
+          if (payload && !payload.state.done) {
+            const { active } = await live.update(payload);
+            if (active) showing = gameId;
+          } else {
+            await live.end({ gameId });
+          }
+        }
       });
     }
   };

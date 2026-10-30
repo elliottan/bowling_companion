@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import type { BriefingFilter } from "./briefing";
 import { freshRackShotIndices, laneForFrame } from "./lanes";
 import { resolvePocketHit } from "./pins";
@@ -107,7 +108,9 @@ export interface LineReport {
 }
 
 /** What a ball is called when a shot names none, or one since deleted. */
-export const NO_BALL = "No ball";
+export function noBallName(): string {
+  return t`No ball`;
+}
 
 export function lineId(ballId: number | undefined, stance?: number, target?: number): string {
   return `${ballId ?? "none"}_${stance ?? ""}_${target ?? ""}`;
@@ -141,7 +144,7 @@ export function buildLineReport(
       b.session.date.localeCompare(a.session.date) || (b.session.id ?? 0) - (a.session.id ?? 0)
   );
   const nameOf = (ballId: number | undefined) =>
-    balls.find((b) => b.id === ballId)?.name ?? NO_BALL;
+    balls.find((b) => b.id === ballId)?.name ?? noBallName();
 
   const byBall = new Map<number | undefined, BallRead>();
   const byLine = new Map<string, LineRead>();
@@ -311,9 +314,13 @@ export function bestLines(report: LineReport, limit: number = BEST_LINES): LineR
 export function wherePlayed(shots: Array<Pick<LineShot, "alley" | "pattern">>): string {
   const alleys = [...new Set(shots.map((s) => s.alley.trim()).filter(Boolean))];
   const patterns = [...new Set(shots.map((s) => s.pattern?.trim()).filter(Boolean))] as string[];
-  const alley = alleys.length > 1 ? `${alleys.length} alleys` : alleys[0];
+  const alley = alleys.length > 1 ? plural(alleys.length, { one: "# alley", other: "# alleys" }) : alleys[0];
   const pattern =
-    patterns.length === 0 ? "no pattern" : patterns.length > 2 ? `${patterns.length} patterns` : patterns.join(", ");
+    patterns.length === 0
+      ? t`no pattern`
+      : patterns.length > 2
+        ? plural(patterns.length, { one: "# pattern", other: "# patterns" })
+        : patterns.join(", ");
   return [alley, pattern].filter(Boolean).join(" \u00b7 ");
 }
 

@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import {
   DndContext,
   PointerSensor,
@@ -73,8 +74,8 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
     ? [
         snap.coverstockCategory,
         snap.coreName,
-        snap.rg !== null ? `RG ${formatFixed(snap.rg, 2)}` : null,
-        snap.diff !== null ? `Diff ${formatFixed(snap.diff, 3)}` : null,
+        snap.rg !== null ? t({ message: `RG ${{ rg: formatFixed(snap.rg, 2) }}`, comment: "Bowling term: RG is the radius of gyration, a ball spec, followed by its value" }) : null,
+        snap.diff !== null ? t({ message: `Diff ${{ diff: formatFixed(snap.diff, 3) }}`, comment: "Bowling term: the differential, a ball spec (short for differential RG), followed by its value" }) : null,
       ]
         .filter(Boolean)
         .join(" · ")
@@ -98,7 +99,7 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
           type="button"
           {...attributes}
           {...listeners}
-          aria-label={`Drag to reorder ${ball.name}`}
+          aria-label={t`Drag to reorder ${{ name: ball.name }}`}
           className="inline-flex h-14 w-8 shrink-0 touch-none items-center justify-center text-ink-tertiary"
         >
           <GripVertical size={18} aria-hidden="true" />
@@ -130,11 +131,11 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
               {/* The weight beside the name: two copies of one ball in
                   different weights are told apart here first. */}
               {ball.weight != null && (
-                <span className="text-xs font-semibold tabular-nums text-ink-secondary">{ball.weight} lb</span>
+                <span className="text-xs font-semibold tabular-nums text-ink-secondary">{t`${{ weight: ball.weight }} lb`}</span>
               )}
               {ball.is_spare_ball && (
                 <span className="rounded-full bg-success-50 px-2 py-0.5 text-caption-2 font-semibold text-success-700">
-                  Spare
+                  {t({ message: "Spare", comment: "Bowling term: a badge on a ball used for picking up spares" })}
                 </span>
               )}
             </div>
@@ -159,8 +160,8 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
             what are the numbers, and what do they do. */}
         {ball.layout_spec && onViewLayout && (
           <IconButton
-            label={`View the layout on ${ball.name}`}
-            title="View layout"
+            label={t`View the layout on ${{ name: ball.name }}`}
+            title={t`View layout`}
             onClick={() => onViewLayout(ball)}
           >
             {/* The layout lab's own glyph from Home, since that is where it goes. */}
@@ -189,7 +190,7 @@ function RetiredBallRow({
       <button
         type="button"
         onClick={onEdit}
-        aria-label={`Edit ${ball.name}`}
+        aria-label={t`Edit ${{ name: ball.name }}`}
         className="flex min-h-[52px] min-w-0 flex-1 items-center gap-3 px-4 py-2 text-left active:bg-surface-muted"
       >
         <div className="h-10 w-10 shrink-0">
@@ -203,7 +204,7 @@ function RetiredBallRow({
         </div>
         <span className="min-w-0 flex-1 truncate text-body text-ink">{ball.name}</span>
       </button>
-      <IconButton label={`Bring back ${ball.name}`} onClick={onRestore}>
+      <IconButton label={t`Bring back ${{ name: ball.name }}`} onClick={onRestore}>
         <RotateCcw size={16} aria-hidden="true" />
       </IconButton>
     </li>
@@ -287,7 +288,7 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
     try {
       await reorderBalls(next.map((b) => b.id!));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save new order.");
+      setError(err instanceof Error ? err.message : t`Failed to save new order.`);
     } finally {
       // Either the write landed and the live query already agrees, or it
       // failed and the stored order is the truth.
@@ -301,7 +302,7 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
     try {
       await setBallRetired(ball.id!, retire);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update ball.");
+      setError(err instanceof Error ? err.message : t`Failed to update ball.`);
     }
   }
 
@@ -312,18 +313,18 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
     try {
       await deleteBall(ball.id!);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete ball.");
+      setError(err instanceof Error ? err.message : t`Failed to delete ball.`);
     }
   }
 
   return (
     <>
       <PushScreen
-        title="Arsenal"
+        title={t`Arsenal`}
         onBack={onBack}
         active={form === null && pendingDelete === null}
         trailing={
-          <IconButton onClick={() => setForm({ ball: null })} label="Add ball" variant="round">
+          <IconButton onClick={() => setForm({ ball: null })} label={t`Add ball`} variant="round">
             <Plus size={24} aria-hidden="true" />
           </IconButton>
         }
@@ -332,16 +333,16 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
           {error && <ErrorBanner className="mb-3">{error}</ErrorBanner>}
 
           {isLoading ? (
-            <p className="text-sm text-ink-secondary">Loading…</p>
+            <p className="text-sm text-ink-secondary">{t`Loading…`}</p>
           ) : balls.length === 0 && retired.length === 0 ? (
             <EmptyState
               icon={BowlingBallIcon}
-              title="No balls yet"
-              description="Add a ball, then pick it for each shot as you score."
+              title={t`No balls yet`}
+              description={t`Add a ball, then pick it for each shot as you score.`}
             >
               <Button variant="primary" size="lg" onClick={() => setForm({ ball: null })}>
                 <Plus size={18} aria-hidden="true" />
-                Add a ball
+                {t`Add a ball`}
               </Button>
             </EmptyState>
           ) : (
@@ -367,7 +368,7 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
               </DndContext>
               {balls.length === 0 && (
                 <p className="px-1 text-sm text-ink-secondary">
-                  Every ball you have is retired. Add one, or bring one back.
+                  {t`Every ball you have is retired. Add one, or bring one back.`}
                 </p>
               )}
 
@@ -379,7 +380,7 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
                     aria-expanded={showRetired}
                     className={`mt-5 px-1 ${GROUP_HEADING}`}
                   >
-                    {showRetired ? "Hide" : "Show"} retired ({retired.length})
+                    {showRetired ? t`Hide retired (${{ count: retired.length }})` : t`Show retired (${{ count: retired.length }})`}
                   </button>
                   {showRetired && (
                     <div className="mt-1.5">
@@ -428,8 +429,8 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
 
       <ConfirmDialog
         open={pendingDelete !== null}
-        title={`Delete ${pendingDelete?.name ?? "ball"}?`}
-        message="Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
+        title={pendingDelete ? t`Delete ${{ name: pendingDelete.name }}?` : t`Delete ball?`}
+        message={t`Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead.`}
         onConfirm={() => pendingDelete && void handleDelete(pendingDelete)}
         onCancel={() => setPendingDelete(null)}
       />
@@ -457,12 +458,12 @@ function LayoutProPrompt({
     <>
       <ConfirmDialog
         open={open}
-        title="Get Pro to visualize your ball layout"
-        message="Your layout is saved on the ball. Headpin Pro draws it on the ball and shows what it will do on the lane."
+        title={t`Get Pro to visualize your ball layout`}
+        message={t`Your layout is saved on the ball. Headpin Pro draws it on the ball and shows what it will do on the lane.`}
         confirmLabel={entry.label}
         confirmVariant="primary"
         confirmDisabled={entry.unavailable}
-        cancelLabel="Not now"
+        cancelLabel={t`Not now`}
         onConfirm={() => {
           onClose();
           entry.start();

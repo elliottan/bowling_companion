@@ -1,4 +1,5 @@
 import { ChevronRight, Plus, RotateCcw } from "lucide-react";
+import { plural, t } from "@lingui/core/macro";
 import { OilPatternIcon } from "./icons";
 import { useMemo, useState, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -32,7 +33,7 @@ import { FIELD } from "./ui/field";
 import { getCatalogPatterns, type CatalogPattern } from "../services/patternCatalog";
 import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";
 import { GROUP_HEADING } from "./ui/typography";
-import { formatFixed } from "../lib/format";
+import { formatFixed, formatNumber, formatRatio } from "../lib/format";
 
 interface OilPatternManagerProps {
   /** Present when pushed from Settings, draws the shared nav bar. Absent when
@@ -106,13 +107,13 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
           // bowler's (ADR-105).
           catalog_id: pattern.id,
         });
-        setNotice(`${target.name} now draws ${pattern.name}.`);
+        setNotice(t`${{ name: target.name }} now draws ${{ pattern: pattern.name }}.`);
         return;
       }
       await addOilPattern(pattern.name, undefined, pattern.passes);
-      setNotice(`Added ${pattern.name}.`);
+      setNotice(t`Added ${{ name: pattern.name }}.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to add that pattern.");
+      setError(err instanceof Error ? err.message : t`Unable to add that pattern.`);
     }
   }
 
@@ -163,13 +164,17 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
     setError("");
     try {
       const result = await removeOilPattern(pattern.id);
+      const name = pattern.name;
       setNotice(
         result.outcome === "archived"
-          ? `"${pattern.name}" is still used by ${result.sessions} ${result.sessions === 1 ? "session" : "sessions"}. Archived instead of deleted.`
-          : `"${pattern.name}" deleted.`
+          ? plural(result.sessions, {
+              one: `"${name}" is still used by # session. Archived instead of deleted.`,
+              other: `"${name}" is still used by # sessions. Archived instead of deleted.`
+            })
+          : t`"${{ name: pattern.name }}" deleted.`
       );
       } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to remove pattern.");
+      setError(err instanceof Error ? err.message : t`Unable to remove pattern.`);
     }
   }
 
@@ -180,7 +185,7 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
       await setOilPatternArchived(pattern.id, false);
       setNotice("");
       } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to restore pattern.");
+      setError(err instanceof Error ? err.message : t`Unable to restore pattern.`);
     }
   }
 
@@ -198,8 +203,8 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
     <section className="mx-auto w-full max-w-3xl px-3 py-4 sm:px-6">
       {!onBack && (
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h1 className="text-xl font-bold text-ink">Oil patterns</h1>
-          <IconButton onClick={openAdd} label="Add oil pattern" variant="round">
+          <h1 className="text-xl font-bold text-ink">{t`Oil patterns`}</h1>
+          <IconButton onClick={openAdd} label={t`Add oil pattern`} variant="round">
             <Plus size={20} aria-hidden="true" />
           </IconButton>
         </div>
@@ -223,8 +228,8 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className={`${FIELD} min-w-0 flex-1`}
-              placeholder="Name or length, like 40"
-              aria-label="Search patterns"
+              placeholder={t`Name or length, like 40`}
+              aria-label={t`Search patterns`}
             />
             <PatternFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
           </div>
@@ -232,34 +237,34 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
       )}
 
       {isLoading ? (
-        <p className="text-sm text-ink-secondary">Loading…</p>
+        <p className="text-sm text-ink-secondary">{t`Loading…`}</p>
       ) : active.length === 0 && all.length > 0 && query.trim() ? (
         // A search that found nothing: the catalog may not have it yet. Adding
         // it by hand stays one tap away.
         <CatalogRequestEmpty kind="pattern" query={query}>
           <Button variant="ghost" onClick={openAdd}>
-            Add it yourself
+            {t`Add it yourself`}
           </Button>
         </CatalogRequestEmpty>
       ) : active.length === 0 && all.length > 0 ? (
         <EmptyState
           icon={OilPatternIcon}
-          title="No patterns match these filters"
-          description="Loosen a filter to see more patterns."
+          title={t`No patterns match these filters`}
+          description={t`Loosen a filter to see more patterns.`}
         >
           <Button variant="primary" onClick={() => setFilters(NO_PATTERN_FILTERS)}>
-            Clear filters
+            {t`Clear filters`}
           </Button>
         </EmptyState>
       ) : active.length === 0 ? (
         <EmptyState
           icon={OilPatternIcon}
-          title="No oil patterns yet"
-          description="Save patterns with a link to their sheet. They show up when you start a session."
+          title={t`No oil patterns yet`}
+          description={t`Save patterns with a link to their sheet. They show up when you start a session.`}
         >
           <Button variant="primary" size="lg" onClick={openAdd}>
             <Plus size={18} aria-hidden="true" />
-            Add a pattern
+            {t`Add a pattern`}
           </Button>
         </EmptyState>
       ) : (
@@ -284,7 +289,9 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
             onClick={() => setShowArchived((v) => !v)}
             className={`mt-5 px-1 ${GROUP_HEADING}`}
           >
-            {showArchived ? "Hide" : "Show"} archived ({archived.length})
+            {showArchived
+              ? t`Hide archived (${{ count: archived.length }})`
+              : t`Show archived (${{ count: archived.length }})`}
           </button>
           {showArchived && (
             <div className="mt-1.5">
@@ -320,7 +327,7 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
 
       {showCatalog && (
         <FormSheet
-          title={`Load table for ${linkTo?.name ?? "this pattern"}`}
+          title={linkTo ? t`Load table for ${{ name: linkTo.name }}` : t`Load table for this pattern`}
           onClose={() => { setShowCatalog(false); setLinkTo(null); }}
           active={!filtersOpen}
         >
@@ -330,8 +337,8 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className={`${FIELD} min-w-0 flex-1`}
-              placeholder="Name or length, like 40"
-              aria-label="Search patterns"
+              placeholder={t`Name or length, like 40`}
+              aria-label={t`Search patterns`}
             />
             <PatternFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
           </div>
@@ -352,8 +359,8 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
                       <span className="line-clamp-2 block break-words text-body leading-snug text-ink">{pattern.name}</span>
                       <span className="block truncate text-xs tabular-nums text-ink-secondary">
                         <PatternFeet pattern={pattern} />
-                        {formatFixed(pattern.volumeMl, 2)} mL
-                        {pattern.ratio != null ? ` · ${formatFixed(pattern.ratio, 1)}:1` : ""}
+                        {t`${{ volume: formatFixed(pattern.volumeMl, 2) }} mL`}
+                        {pattern.ratio != null ? ` · ${formatRatio(pattern.ratio, 1)}` : ""}
                         {(pattern.shape ?? patternClass(pattern.ratio))
                           ? ` · ${PATTERN_CLASS_LABEL[(pattern.shape ?? patternClass(pattern.ratio))!]}`
                           : ""}
@@ -366,7 +373,7 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
             </ListGroup>
           )}
           <p className="mt-2 px-1 text-xs text-ink-tertiary">
-            Catalog patterns match their official sheets. Linking replaces this pattern's details with the catalog's, but keeps your name for it and its sessions. You can't undo this.
+            {t`Catalog patterns match their official sheets. Linking replaces this pattern's details with the catalog's, but keeps your name for it and its sessions. You can't undo this.`}
           </p>
         </FormSheet>
       )}
@@ -407,9 +414,9 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
 
       <ConfirmDialog
         open={pendingRemove !== null}
-        title={`Remove ${pendingRemove?.name ?? "pattern"}?`}
-        message="Sessions already bowled on it keep the pattern. If any still use it, it is archived instead of deleted."
-        confirmLabel="Remove"
+        title={pendingRemove ? t`Remove ${{ name: pendingRemove.name }}?` : t`Remove pattern?`}
+        message={t`Sessions already bowled on it keep the pattern. If any still use it, it is archived instead of deleted.`}
+        confirmLabel={t`Remove`}
         onConfirm={() => pendingRemove && void handleRemove(pendingRemove)}
         onCancel={() => setPendingRemove(null)}
       />
@@ -421,11 +428,11 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
   return (
     <PushScreen
       mode={mode}
-      title="Oil patterns"
+      title={t`Oil patterns`}
       onBack={onBack}
       active={!dialogOpen && pendingRemove === null && sheetFor === null && !showCatalog && !filtersOpen}
       trailing={
-        <IconButton onClick={openAdd} label="Add oil pattern" variant="round">
+        <IconButton onClick={openAdd} label={t`Add oil pattern`} variant="round">
           <Plus size={24} aria-hidden="true" />
         </IconButton>
       }
@@ -445,14 +452,14 @@ function summarize(pattern: OilPattern): string {
     const shape = patternClass(ratio);
     // The length leads this line (PatternFeet), so it is not repeated here.
     return [
-      `${formatFixed(stats.volumeMl, 2)} mL`,
-      ratio != null ? `${formatFixed(ratio, 1)}:1` : null,
+      t`${{ volume: formatFixed(stats.volumeMl, 2) }} mL`,
+      ratio != null ? formatRatio(ratio, 1) : null,
       shape ? PATTERN_CLASS_LABEL[shape] : null,
     ].filter(Boolean).join(" · ");
   }
   // No table, so the length is whatever was typed, and there is no ratio to
   // classify by: a pattern you added yourself is a label, not a drawing.
-  return pattern.url ? "Pattern sheet saved" : "No link";
+  return pattern.url ? t`Pattern sheet saved` : t`No link`;
 }
 
 /**
@@ -465,7 +472,7 @@ function PatternFeet({ pattern }: { pattern: { name: string; passes?: OilPass[];
   if (feet == null) return null;
   return (
     <>
-      <span className="font-semibold text-accent">{Math.round(feet)} ft</span>
+      <span className="font-semibold text-accent">{t`${{ feet: formatNumber(Math.round(feet)) }} ft`}</span>
       {" · "}
     </>
   );
@@ -491,7 +498,7 @@ function PatternRow({
       <button
         type="button"
         onClick={primary}
-        aria-label={onOpenSheet ? `${pattern.name} details` : `Edit ${pattern.name}`}
+        aria-label={onOpenSheet ? t`${{ name: pattern.name }} details` : t`Edit ${{ name: pattern.name }}`}
         className="flex min-h-[52px] min-w-0 flex-1 items-center gap-3 px-4 py-2.5 text-left active:bg-surface-muted"
       >
         <span className="min-w-0 flex-1">
@@ -509,7 +516,7 @@ function PatternRow({
           pattern's sheet, which the row opens: a pencil on every row of a
           catalog this long was a second target down the whole edge. */}
       {onRestore && (
-        <IconButton label={`Restore ${pattern.name}`} onClick={onRestore}>
+        <IconButton label={t`Restore ${{ name: pattern.name }}`} onClick={onRestore}>
           <RotateCcw size={16} aria-hidden="true" />
         </IconButton>
       )}

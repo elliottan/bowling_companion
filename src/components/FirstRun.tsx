@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { plural, t } from "@lingui/core/macro";
 import { Button } from "./ui/Button";
 import { HandednessPicker } from "./HandednessPicker";
 import { prepareImport, replaceAllData, type PreparedImport } from "../services/backupRepository";
@@ -18,7 +19,7 @@ import {
 import { ErrorBanner } from "./ErrorBanner";
 import { useOverlay } from "../lib/useOverlay";
 import { isNativeApp } from "../lib/platform";
-import { MOVE_GAMES_TITLE } from "../lib/moveGames";
+import { moveGamesTitle } from "../lib/moveGames";
 import { MoveGamesSteps } from "./MoveGamesSteps";
 
 /** The stamp the file carries. It is the one fact that says which backup this
@@ -113,7 +114,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
       setPending(await prepareImport(file));
       setStep("restore");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That file could not be read.");
+      setError(err instanceof Error ? err.message : t`That file could not be read.`);
     } finally {
       setBusy(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -135,7 +136,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
       // the reload lands back here and asks for it.
       window.location.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "The restore failed.");
+      setError(err instanceof Error ? err.message : t`The restore failed.`);
       setBusy(false);
     }
   }
@@ -146,7 +147,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
       className="fixed inset-0 z-[60] flex flex-col overflow-y-auto bg-surface-sunken"
       role="dialog"
       aria-modal="true"
-      aria-label="Set up Headpin"
+      aria-label={t`Set up Headpin`}
     >
       <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-6 py-10">
         {step === "welcome" && (
@@ -160,11 +161,11 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
             />
             <h1 className="text-2xl font-extrabold tracking-tight text-ink">Headpin</h1>
             <p className="mt-2 text-base text-ink-secondary">
-              Keep score, plus the ball and line for every shot. It all stays on this phone.
+              {t`Keep score, plus the ball and line for every shot. It all stays on this phone.`}
             </p>
             <div className="mt-8 flex flex-col gap-2">
               <Button size="lg" variant="primary" onClick={() => setStep("handedness")}>
-                Start fresh
+                {t`Start fresh`}
               </Button>
               <Button
                 size="lg"
@@ -172,7 +173,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
                 onClick={() => fileRef.current?.click()}
                 disabled={busy}
               >
-                {busy ? "Reading…" : "Restore from a backup"}
+                {busy ? t`Reading…` : t`Restore from a backup`}
               </Button>
             </div>
             {/* A file that cannot be read is answered here rather than on a
@@ -185,7 +186,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
                 (docs/PRO-LAUNCH.md). */}
             {isNativeApp() && (
               <section className="mt-6 rounded-xl border border-edge bg-surface p-4">
-                <h2 className="text-sm font-bold text-ink">{MOVE_GAMES_TITLE}</h2>
+                <h2 className="text-sm font-bold text-ink">{moveGamesTitle()}</h2>
                 <MoveGamesSteps className="mt-2" />
               </section>
             )}
@@ -199,7 +200,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
                 href="/"
                 className="mt-6 self-start text-sm font-semibold text-ink-secondary hover:underline"
               >
-                What is Headpin?
+                {t`What is Headpin?`}
               </a>
             )}
           </>
@@ -208,30 +209,30 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
         {step === "handedness" && (
           <form onSubmit={(e) => void finishSetup(e)} className="flex flex-col">
             <h1 className="text-2xl font-extrabold tracking-tight text-ink">
-              How do you bowl?
+              {t`How do you bowl?`}
             </h1>
             <p className="mt-2 text-base text-ink-secondary">
-              A move left or right depends on the hand you throw with. You can change these later in Settings.
+              {t`A move left or right depends on the hand you throw with. You can change these later in Settings.`}
             </p>
             <div className="mt-8">
-              <p className={FIELD_LABEL}>Which hand do you bowl with?</p>
+              <p className={FIELD_LABEL}>{t`Which hand do you bowl with?`}</p>
               <HandednessPicker value={hand} onSelect={setHand} />
             </div>
             <div className="mt-6">
-              <p className={FIELD_LABEL}>One hand or two?</p>
+              <p className={FIELD_LABEL}>{t`One hand or two?`}</p>
               <SegmentedControl
-                label="Grip style"
+                label={t`Grip style`}
                 value={grip}
                 onChange={setGrip}
                 options={[
-                  { value: "1h", label: "One-handed" },
-                  { value: "2h", label: "Two-handed" }
+                  { value: "1h", label: t`One-handed` },
+                  { value: "2h", label: t`Two-handed` }
                 ]}
               />
             </div>
             <div className="mt-6">
               <label htmlFor="first-run-name" className={FIELD_LABEL}>
-                What do we call you?
+                {t`What do we call you?`}
               </label>
               <input
                 id="first-run-name"
@@ -251,7 +252,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
               className="mt-8"
               disabled={!hand || saving}
             >
-              Next
+              {t`Next`}
             </Button>
             {/* There is no way back for a bowler who already has data: the
                 welcome behind this asks whether they are new, and they are not. */}
@@ -261,7 +262,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
                 onClick={() => setStep("welcome")}
                 className="mt-6 self-start text-sm font-semibold text-ink-secondary hover:underline"
               >
-                Back
+                {t`Back`}
               </button>
             )}
           </form>
@@ -270,28 +271,25 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
         {step === "restore" && pending && (
           <>
             <h1 className="text-2xl font-extrabold tracking-tight text-ink">
-              Restore from a backup
+              {t`Restore from a backup`}
             </h1>
             <p className="mt-2 text-base text-ink-secondary">
-              This brings back your sessions, balls, lines and settings, including which hand you
-              bowl with.
+              {t`This brings back your sessions, balls, lines and settings, including which hand you bowl with.`}
             </p>
 
             <div className="mt-6 rounded-xl border border-edge bg-surface p-4">
               <p className="text-sm font-semibold text-ink">
-                Backed up {formatTimestamp(pending.backup.exported_at)}
+                {t`Backed up ${{ when: formatTimestamp(pending.backup.exported_at) }}`}
               </p>
               <p className="mt-1 text-sm text-ink-secondary">
-                {describeAge(pending.backup.exported_at, new Date())}. Holds{" "}
-                {pending.incoming.sessions}{" "}
-                {pending.incoming.sessions === 1 ? "session" : "sessions"},{" "}
-                {pending.incoming.games} {pending.incoming.games === 1 ? "game" : "games"},{" "}
-                {pending.incoming.balls} {pending.incoming.balls === 1 ? "ball" : "balls"}.
+                {t`${{ age: describeAge(pending.backup.exported_at, new Date()) }}. Holds ${{ sessions: plural(pending.incoming.sessions, { one: "# session", other: "# sessions" }) }}, ${{ games: plural(pending.incoming.games, { one: "# game", other: "# games" }) }}, ${{ balls: plural(pending.incoming.balls, { one: "# ball", other: "# balls" }) }}.`}
               </p>
               {pending.current.sessions > 0 && (
                 <p className="mt-2 text-sm font-semibold text-danger-600">
-                  This device already has {pending.current.sessions} sessions. Restoring replaces
-                  them.
+                  {plural(pending.current.sessions, {
+                    one: "This device already has # session. Restoring replaces it.",
+                    other: "This device already has # sessions. Restoring replaces them."
+                  })}
                 </p>
               )}
               <div className="mt-4 flex gap-2">
@@ -300,7 +298,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
                   onClick={() => fileRef.current?.click()}
                   disabled={busy}
                 >
-                  Pick another
+                  {t`Pick another`}
                 </Button>
                 <Button
                   variant="primary"
@@ -312,7 +310,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
                   }}
                   disabled={busy}
                 >
-                  {busy ? "Restoring…" : "Restore"}
+                  {busy ? t`Restoring…` : t`Restore`}
                 </Button>
               </div>
             </div>
@@ -328,7 +326,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
               }}
               className="mt-6 self-start text-sm font-semibold text-ink-secondary hover:underline"
             >
-              Back
+              {t`Back`}
             </button>
           </>
         )}
@@ -342,7 +340,7 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
           accept="application/json,.json"
           // Visually hidden, not hidden: `sr-only` leaves it in the
           // accessibility tree, so it needs a name like any other control.
-          aria-label="Choose a backup file"
+          aria-label={t`Choose a backup file`}
           className="sr-only"
           onChange={(e) => handleFile(e.target.files?.[0])}
         />

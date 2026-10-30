@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { SlidersHorizontal } from "lucide-react";
 import { Button } from "./ui/Button";
 import { Chip } from "./ui/Chip";
@@ -47,7 +48,7 @@ export function PatternFilterButton({ filters, onOpen }: { filters: PatternFilte
   return (
     <span className="relative inline-flex shrink-0">
       <IconButton
-        label={count === 0 ? "Filters" : `Filters, ${count} applied`}
+        label={count === 0 ? t`Filters` : t`Filters, ${{ count }} applied`}
         // The filled twin lights it while a filter is on.
         variant={count > 0 ? "confirm" : "round"}
         onClick={onOpen}
@@ -84,11 +85,11 @@ export function PatternFilterSheet({
     onChange({ ...filters, shapes: next });
   }
   return (
-    <FormSheet title="Filters" onClose={onClose} dismissAs="done">
+    <FormSheet title={t`Filters`} onClose={onClose} dismissAs="done">
       <div className="space-y-5">
         <div>
-          <p className={`mb-2 ${GROUP_HEADING}`}>Play style</p>
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Play style">
+          <p className={`mb-2 ${GROUP_HEADING}`}>{t`Play style`}</p>
+          <div className="flex flex-wrap gap-2" role="group" aria-label={t`Play style`}>
             {SHAPES.map((shape) => (
               <Chip key={shape} selected={filters.shapes.has(shape)} onClick={() => toggle(shape)}>
                 {PATTERN_CLASS_LABEL[shape]}
@@ -98,13 +99,13 @@ export function PatternFilterSheet({
         </div>
 
         <RangeSlider
-          label="Length"
+          label={t`Length`}
           min={bounds.min}
           max={bounds.max}
           step={1}
           valueMin={lo}
           valueMax={hi}
-          format={(v) => `${v} ft`}
+          format={(v) => t`${{ feet: v }} ft`}
           onChange={(min, max) =>
             onChange({
               ...filters,
@@ -116,7 +117,7 @@ export function PatternFilterSheet({
 
         {patternFilterCount(filters) > 0 && (
           <Button variant="ghost" onClick={() => onChange(NO_PATTERN_FILTERS)}>
-            Clear filters
+            {t`Clear filters`}
           </Button>
         )}
       </div>

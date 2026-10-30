@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Check, LayoutGrid, MoreHorizontal, RotateCcw } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -75,20 +76,20 @@ function currentSearch(): string {
  *  numbers, as the arsenal holds them. */
 function SeededBallCard({ seed }: { seed: LayoutSeed }) {
   const snap = seed.ballSnapshot;
-  const title = [seed.ballName, seed.ballWeight ? `${seed.ballWeight} lb` : null]
+  const title = [seed.ballName, seed.ballWeight ? t`${{ weight: seed.ballWeight }} lb` : null]
     .filter(Boolean)
     .join(" · ");
   const core = snap
-    ? [snap.coreName, seed.ball.symmetric ? "Symmetric" : "Asymmetric"].filter(Boolean).join(" · ")
+    ? [snap.coreName, seed.ball.symmetric ? t({ message: "Symmetric", comment: "Bowling term: a ball with a symmetric core, as opposed to asymmetric" }) : t({ message: "Asymmetric", comment: "Bowling term: a ball with an asymmetric core, as opposed to symmetric" })].filter(Boolean).join(" · ")
     : seed.ball.symmetric
-      ? "Symmetric"
-      : "Asymmetric";
+      ? t({ message: "Symmetric", comment: "Bowling term: a ball with a symmetric core, as opposed to asymmetric" })
+      : t({ message: "Asymmetric", comment: "Bowling term: a ball with an asymmetric core, as opposed to symmetric" });
   const specs = snap
     ? [
         snap.coverstockCategory,
-        snap.rg !== null ? `RG ${formatFixed(snap.rg, 2)}` : null,
-        snap.diff !== null ? `Diff ${formatFixed(snap.diff, 3)}` : null,
-        snap.mbDiff !== null ? `MB ${formatFixed(snap.mbDiff, 3)}` : null
+        snap.rg !== null ? t({ message: `RG ${{ rg: formatFixed(snap.rg, 2) }}`, comment: "Bowling term: RG is the radius of gyration, a ball spec, followed by its value" }) : null,
+        snap.diff !== null ? t({ message: `Diff ${{ diff: formatFixed(snap.diff, 3) }}`, comment: "Bowling term: the differential, a ball spec (short for differential RG), followed by its value" }) : null,
+        snap.mbDiff !== null ? t({ message: `MB ${{ mbDiff: formatFixed(snap.mbDiff, 3) }}`, comment: "Bowling term: the mass bias differential, a ball spec, followed by its value" }) : null
       ]
         .filter(Boolean)
         .join(" · ")
@@ -240,7 +241,10 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
 
   const motion = useMemo(() => readMotion(layout, ball), [layout, ball]);
   const vls = useMemo(() => toVls(layout, ball), [layout, ball]);
-  const papText = `${formatInches(pap.over)}" over, ${formatInches(Math.abs(pap.up))}" ${pap.up < 0 ? "down" : "up"}`;
+  const papText =
+    pap.up < 0
+      ? t({ message: `${{ over: formatInches(pap.over) }}" over, ${{ down: formatInches(Math.abs(pap.up)) }}" down`, comment: "Bowling term: PAP (positive axis point) written as inches over and inches down from the center of the grip. The quote marks are inch signs." })
+      : t({ message: `${{ over: formatInches(pap.over) }}" over, ${{ up: formatInches(Math.abs(pap.up)) }}" up`, comment: "Bowling term: PAP (positive axis point) written as inches over and inches up from the center of the grip. The quote marks are inch signs." });
 
   /** The card this layout makes, numbers first and the ball a frame later. */
   const buildCard = useCallback(() => {
@@ -361,7 +365,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
 
   return (
     <PushScreen
-      title="Layouts"
+      title={t({ message: "Layouts", comment: "Bowling term: the drilling layout of a ball" })}
       onBack={onBack}
       /* Escape belongs to whatever is layered on top. Without this the menu's
          own Escape and the screen's both fired, so dismissing the menu also
@@ -377,10 +381,10 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
          do to the card, so it lives on the card. */
       trailing={
         <>
-          <IconButton variant="round" label="Share layout" onClick={() => void shareLink()}>
+          <IconButton variant="round" label={t`Share layout`} onClick={() => void shareLink()}>
             <ShareIosIcon size={18} aria-hidden="true" />
           </IconButton>
-          <IconButton variant="round" label="More" className="ml-1" onClick={() => setYouOpen(true)}>
+          <IconButton variant="round" label={t`More`} className="ml-1" onClick={() => setYouOpen(true)}>
             <MoreHorizontal size={20} aria-hidden="true" />
           </IconButton>
         </>
@@ -432,12 +436,12 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
                 <div className="type-cap-fixed">
                   <SegmentedControl
                     dense
-                    label="Core type"
+                    label={t({ message: "Core type", comment: "Bowling term: whether a ball has a symmetric or asymmetric core" })}
                     value={symmetric ? "sym" : "asym"}
                     onChange={(v) => setSymmetric(v === "sym")}
                     options={[
-                      { value: "asym", label: "Asym", srLabel: "Asymmetric" },
-                      { value: "sym", label: "Sym", srLabel: "Symmetric" }
+                      { value: "asym", label: t({ message: "Asym", comment: "Short for asymmetric, a bowling term for a ball core. A narrow segment of a control." }), srLabel: t({ message: "Asymmetric", comment: "Bowling term: a ball with an asymmetric core, as opposed to symmetric" }) },
+                      { value: "sym", label: t({ message: "Sym", comment: "Short for symmetric, a bowling term for a ball core. A narrow segment of a control." }), srLabel: t({ message: "Symmetric", comment: "Bowling term: a ball with a symmetric core, as opposed to asymmetric" }) }
                     ]}
                   />
                 </div>
@@ -450,12 +454,12 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
                     type="button"
                     aria-haspopup="menu"
                     aria-expanded={presetAt != null}
-                    aria-label={`Presets, ${activePreset?.name ?? "Custom"}`}
+                    aria-label={t`Presets, ${{ preset: activePreset?.name ?? t`Custom` }}`}
                     onClick={(e) => setPresetAt(anchorUnder(e.currentTarget, ANCHORED_MENU_WIDTH))}
                     className="inline-flex w-full items-center justify-center gap-1 py-1 text-xs font-semibold text-accent active:opacity-80"
                   >
                     <LayoutGrid size={13} aria-hidden="true" />
-                    Presets
+                    {t`Presets`}
                   </button>
                 )}
               </div>
@@ -495,7 +499,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
       )}
 
       {youOpen && (
-        <FormSheet title="Your PAP and hand" onClose={() => setYouOpen(false)} dismissAs="done">
+        <FormSheet title={t({ message: "Your PAP and hand", comment: "Bowling term: PAP is the positive axis point, a measurement of the bowler's axis of rotation" })} onClose={() => setYouOpen(false)} dismissAs="done">
           {/* 2. Who is bowling. The PAP leads because it is the frame every other
               number is measured against: the VAL angle is measured at it and the
               pin-to-PAP distance is measured to it, so a layout read against the
@@ -513,11 +517,11 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
                 px of extra padding at the bottom, which reads as padding. */}
             <div className="flex items-stretch gap-2">
               <div className="min-w-0 flex-1 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-                <span className={FIELD_MICRO_LABEL}>Your PAP</span>
+                <span className={FIELD_MICRO_LABEL}>{t({ message: "Your PAP", comment: "Bowling term: PAP is the positive axis point, a measurement of the bowler's axis of rotation" })}</span>
                 <PapEditor pap={pap} onChange={updatePap} idPrefix="lab-pap" />
               </div>
               <div className="w-[7.5rem] shrink-0 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-                <span className={FIELD_MICRO_LABEL}>Hand</span>
+                <span className={FIELD_MICRO_LABEL}>{t({ message: "Hand", context: "bowling hand", comment: "Left or right handed bowler" })}</span>
                 {/* `space-y-2` is required, not chosen: a dense segmented control
                     is 36px drawn and 44pt to the finger, so two stacked any
                     closer than 8px would have overlapping hit regions and the
@@ -527,12 +531,12 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
                       reading: the letters sit where the hands do. */}
                   <SegmentedControl
                     dense
-                    label="Bowling hand"
+                    label={t`Bowling hand`}
                     value={hand}
                     onChange={chooseHand}
                     options={[
-                      { value: "left", label: "L", srLabel: "Left" },
-                      { value: "right", label: "R", srLabel: "Right" }
+                      { value: "left", label: t({ message: "L", comment: "Short for left, for the left-handed choice. A narrow segment of a control." }), srLabel: t`Left` },
+                      { value: "right", label: t({ message: "R", comment: "Short for right, for the right-handed choice. A narrow segment of a control." }), srLabel: t`Right` }
                     ]}
                   />
                   {/* One-handed or two-handed. It draws the ball the bowler
@@ -544,12 +548,12 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
                       be worse than saying nothing. */}
                   <SegmentedControl
                     dense
-                    label="Grip style"
+                    label={t`Grip style`}
                     value={grip}
                     onChange={chooseGrip}
                     options={[
-                      { value: "1h", label: "1H", srLabel: "One handed" },
-                      { value: "2h", label: "2H", srLabel: "Two handed" }
+                      { value: "1h", label: t({ message: "1H", comment: "Short for one-handed. A narrow segment of a control." }), srLabel: t`One handed` },
+                      { value: "2h", label: t({ message: "2H", comment: "Short for two-handed. A narrow segment of a control." }), srLabel: t`Two handed` }
                     ]}
                   />
                 </div>
@@ -571,7 +575,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
               }}
             >
               <RotateCcw size={16} aria-hidden="true" />
-              Reset to your saved settings
+              {t`Reset to your saved settings`}
             </Button>
           </section>
         </FormSheet>
@@ -579,15 +583,11 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
 
       <ConfirmDialog
         open={pendingPreset != null}
-        title={`Use the ${pendingPreset?.name.toLowerCase() ?? ""} layout?`}
+        title={t`Use the ${{ preset: pendingPreset?.name.toLowerCase() ?? "" }} layout?`}
         message={
-          <>
-            This replaces the layout on screen, {formatDualAngle(layout)}, with{" "}
-            {pendingPreset ? formatDualAngle(presetLayout(pendingPreset, ball)) : ""}. Your PAP,
-            hand and grip stay as they are.
-          </>
+          t`This replaces the layout on screen, ${{ current: formatDualAngle(layout) }}, with ${{ replacement: pendingPreset ? formatDualAngle(presetLayout(pendingPreset, ball)) : "" }}. Your PAP, hand and grip stay as they are.`
         }
-        confirmLabel="Replace"
+        confirmLabel={t`Replace`}
         onConfirm={() => pendingPreset && applyPreset(pendingPreset)}
         onCancel={() => setPendingPreset(null)}
       />
@@ -595,7 +595,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
       <ShareCardDialog
         open={card != null}
         card={card}
-        link={{ url: shareUrl, title: `Layout ${formatDualAngle(layout)}` }}
+        link={{ url: shareUrl, title: t`Layout ${{ layout: formatDualAngle(layout) }}` }}
         onClose={() => setCard(null)}
       />
     </PushScreen>

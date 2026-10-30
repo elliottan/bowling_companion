@@ -5,6 +5,7 @@ import {
   getHandedness,
   hasSavedData,
   pruneEmptySessions,
+  tidyLiveActivity,
   type ResumableGame
 } from "../services/bowlingRepository";
 import type { Handedness } from "../types/bowling";
@@ -73,6 +74,11 @@ export function useBoot(launchedWithRoute: boolean, keepSessionId: number | null
     // reads the list, so it never shows as a resumable game or a History row.
     void pruneEmptySessions(keepSessionId)
       .catch(() => 0)
+      .then(() => {
+        // What a closed app left on the Lock Screen, settled against what the
+        // games now are (ADR-222). Never awaited: the boot does not wait on it.
+        void tidyLiveActivity();
+      })
       .then(() =>
         Promise.all([
           getHandedness(),

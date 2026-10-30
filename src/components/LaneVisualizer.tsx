@@ -2,6 +2,7 @@ import { IconButton } from "./ui/IconButton";
 import { Check, ChevronLeft, ChevronRight, Lock, Minus, MoveHorizontal, Plus, SlidersHorizontal, X } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
+import { t } from "@lingui/core/macro";
 import type { Handedness, LineSpec, PinNumber } from "../types/bowling";
 import { HandednessContext, useHandedness } from "../lib/handednessContext";
 import { useDriftModel } from "../lib/driftModelContext";
@@ -27,7 +28,7 @@ import {
   buildLinePath, breakpointFloorTiming, solveLine, projectBreakpoint, xToBoard, yToFeet, PLANE_W, PLANE_L,
   POCKET_BOARD, type Peg, arrowFeet, ARROWS_FEET, LANE_FEET, HOOK_START_FT, HOOK_LENGTH_FT,
 } from "../lib/laneGeometry";
-import { formatFixed } from "../lib/format";
+import { formatFixed, formatNumber, formatRatio } from "../lib/format";
 
 const BOWLER_DEG = 45;     // bowler's-eye tilt (looking down the lane)
 const TOPDOWN_DEG = 0;     // flat / top-down
@@ -40,8 +41,8 @@ const TOPDOWN_DEG = 0;     // flat / top-down
  *  stopped a good way short of the controls and left the top of the screen
  *  empty. */
 function stageTransform(deg: number): string {
-  const t = deg / BOWLER_DEG;
-  return `translate(0%, ${(-14 * t).toFixed(2)}%) scale(${(1 + 0.28 * t).toFixed(3)}) rotateX(${deg}deg)`;
+  const k = deg / BOWLER_DEG;
+  return `translate(0%, ${(-14 * k).toFixed(2)}%) scale(${(1 + 0.28 * k).toFixed(3)}) rotateX(${deg}deg)`;
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
@@ -122,7 +123,7 @@ interface LaneVisualizerProps {
   editLocked?: boolean;
 }
 
-export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = "Line", onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId, seedPatternId, editLocked, presentation = "cover" }: LaneVisualizerProps) {
+export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, showStance = false, title = t`Line`, onEditAttempt, defaultLocks, suspended = false, handSwitchable = false, seedHand, seedPatternCatalogId, seedPatternId, editLocked, presentation = "cover" }: LaneVisualizerProps) {
   const appHand = useHandedness();
   const pushed = presentation === "push";
   // A pushed lane renders from the app shell's screen stack, but has to sit
@@ -562,19 +563,19 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
   // right of the lane, so theirs is on the left, and the other way round.
   const pegSide: "left" | "right" = hand === "left" ? "right" : "left";
   const laydownField = (
-    <StepperField label="Laydown" value={line?.laydown ?? line?.stance} min={1} max={59} lateral
+    <StepperField label={t({ message: "Laydown", comment: "Bowling term: the board where the ball is released onto the lane" })} value={line?.laydown ?? line?.stance} min={1} max={59} lateral
       locked={locked.has("laydown")}
       onUnlock={() => toggleLock("laydown")}
       onCommit={(v) => { lastAimEdit.current = "laydown"; applyEdit({ laydown: v }); }} />
   );
   const targetField = (
-    <StepperField label="Target" value={line?.target} min={1} max={39} lateral
+    <StepperField label={t({ message: "Target", comment: "Bowling term: the board the ball is aimed over at the arrows" })} value={line?.target} min={1} max={39} lateral
       locked={locked.has("target")}
       onUnlock={() => toggleLock("target")}
       onCommit={(v) => { lastAimEdit.current = "target"; applyEdit({ target: v }); }} />
   );
   const finalField = (
-    <StepperField label="Final" value={line?.final_board ?? POCKET_BOARD} min={1} max={39} lateral
+    <StepperField label={t({ message: "Final", comment: "Bowling term: the board where the ball ends up at the pins; a short label over a number field" })} value={line?.final_board ?? POCKET_BOARD} min={1} max={39} lateral
       locked={locked.has("final")}
       onUnlock={() => toggleLock("final")}
       onCommit={(v) => applyEdit({ final_board: v })} />
@@ -585,13 +586,13 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           appears where stance is the field of record (ADR-032), and the caller
           re-derives laydown from it through the drift model. */}
       {showStance && (
-        <StepperField label="Stance" value={line?.stance} min={1} max={59} lateral
+        <StepperField label={t({ message: "Stance", comment: "Bowling term: the board the bowler stands on before starting the approach" })} value={line?.stance} min={1} max={59} lateral
           onCommit={(v) => applyEdit({ stance: v })} />
       )}
       {laydownField}
       {targetField}
       {finalField}
-      <StepperField label="Final ft" value={line?.final_distance ?? 60} min={55} max={63} step={0.5}
+      <StepperField label={t({ message: "Final ft", comment: "Bowling term: how many feet down the lane the ball ends up. ft is feet; a short label over a number field" })} value={line?.final_distance ?? 60} min={55} max={63} step={0.5}
         locked={locked.has("final")}
         onUnlock={() => toggleLock("final")}
         onCommit={(v) => applyEdit({ final_distance: v })} />
@@ -606,7 +607,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           }
           className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-caption-2 font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
         >
-          Re-aim
+          {t`Re-aim`}
         </button>
       )}
     </>
@@ -621,7 +622,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           onClick={() => applyEdit({ final_board: POCKET_BOARD })}
           className="self-end rounded-full border border-emerald-300/40 bg-emerald-400/15 px-2.5 py-1 text-caption-2 font-bold uppercase tracking-wide text-emerald-300 hover:bg-emerald-400/25"
         >
-          Pocket
+          {t({ message: "Pocket", comment: "Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance" })}
         </button>
       )}
     </>
@@ -652,7 +653,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
       }
       role="dialog"
       aria-modal="true"
-      aria-label={`${title} visualizer`}
+      aria-label={t`${{ title }} visualizer`}
     >
       <div
         className="relative flex-1 touch-none overflow-hidden"
@@ -671,13 +672,13 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
         >
           {/* Round glass, as every screen's bar controls are (DESIGN-LANGUAGE
               §1b), in the lane's own dark glass. */}
-          <IconButton variant="lane" label="Share line" onClick={shareLine}>
+          <IconButton variant="lane" label={t`Share line`} onClick={shareLine}>
             <ShareIosIcon size={18} aria-hidden="true" />
           </IconButton>
           {/* A pushed lane backs out with the chevron on the left, as every
               pushed screen does; a covering one closes with the X. */}
           {!pushed && (
-            <IconButton variant="lane" label="Close" onClick={close}>
+            <IconButton variant="lane" label={t`Close`} onClick={close}>
               <X size={20} aria-hidden="true" />
             </IconButton>
           )}
@@ -689,7 +690,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
           onPointerDown={(e) => e.stopPropagation()}
         >
           {pushed && (
-            <IconButton variant="lane" label="Back" onClick={close}>
+            <IconButton variant="lane" label={t`Back`} onClick={close}>
               <ChevronLeft size={22} strokeWidth={2.5} aria-hidden="true" className="-ml-0.5" />
             </IconButton>
           )}
@@ -700,10 +701,10 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             onClick={() => setDeg((d) => (d <= 2 ? BOWLER_DEG : TOPDOWN_DEG))}
             className="glass-lane inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold transition-transform active:scale-95 active:opacity-80"
           >
-            {isTopDown ? "Bowler view" : "Top-down"}
+            {isTopDown ? t`Bowler view` : t`Top-down`}
           </button>
           {(onChange || editLocked === true || hasOil || pickable.length > 0 || handSwitchable) && (
-            <IconButton variant="lane" label="Lane options" onClick={() => setOptionsOpen(true)}>
+            <IconButton variant="lane" label={t`Lane options`} onClick={() => setOptionsOpen(true)}>
               <SlidersHorizontal size={18} aria-hidden="true" />
             </IconButton>
           )}
@@ -830,7 +831,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
                     ref={movesButtonRef}
                     type="button"
                     onClick={() => setMovesOpen((open) => !open)}
-                    aria-label="Quick moves"
+                    aria-label={t`Quick moves`}
                     aria-expanded={movesOpen}
                     className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition-transform active:scale-95 ${
                       movesOpen ? "bg-amber-400 text-slate-900" : "glass-lane"
@@ -855,7 +856,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             ) : (
               // Unblurred, each number still readable, with a small lock on
               // each field rather than one over the column (ADR-209).
-              <ProVeil lane clear bare what="Moving the line">
+              <ProVeil lane clear bare what={t`Moving the line`}>
                 <ProBadged.Provider value={true}>
                   <div className={pegRow}>{pegFields}</div>
                 </ProBadged.Provider>
@@ -863,15 +864,15 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
             )}
             {/* One instruction to a line, in a column this narrow. */}
             <p className="type-cap-dense max-w-[8.5rem] text-center text-caption-2 leading-snug text-white/70">
-              {onChange && <span className="block">Drag a point to move it</span>}
-              <span className="block">Drag the lane to tilt</span>
+              {onChange && <span className="block">{t`Drag a point to move it`}</span>}
+              <span className="block">{t`Drag the lane to tilt`}</span>
             </p>
           </div>
         )}
       </div>
 
       {/* With no fields to sit under, the hint keeps its own line. */}
-      {!showPegs && <p className="px-4 py-2 text-center text-xs text-white/60">Drag the lane to tilt</p>}
+      {!showPegs && <p className="px-4 py-2 text-center text-xs text-white/60">{t`Drag the lane to tilt`}</p>}
 
       {optionsOpen && (
         <OptionsSheet
@@ -897,7 +898,7 @@ export function LaneVisualizer({ line, onClose, onChange, leave, spare = false, 
         open={card != null}
         card={card}
         onClose={() => setCard(null)}
-        link={{ url: shareUrl, title: `${title}: ${line?.laydown ?? line?.stance ?? "?"} to ${line?.target ?? "?"}` }}
+        link={{ url: shareUrl, title: t`${{ title }}: ${{ from: line?.laydown ?? line?.stance ?? "?" }} to ${{ to: line?.target ?? "?" }}` }}
       />
     </div>
     </HandednessContext.Provider>
@@ -967,34 +968,34 @@ function QuickMoves({
       <div
         ref={panelRef}
         role="group"
-        aria-label="Move presets"
+        aria-label={t`Move presets`}
         className={`${placement} z-10 w-44 rounded-xl border border-white/20 bg-slate-900/90 p-2 text-white shadow-lg backdrop-blur`}
       >
         <p className="mb-1.5 px-1 text-caption-2 font-bold uppercase tracking-wide text-white/50">
-          Move feet · eyes
+          {t({ message: "Move feet · eyes", comment: "Bowling term: a move shifts the starting position (feet) and the aim (eyes) by a number of boards" })}
         </p>
         <div className="flex flex-col gap-1.5">
           {MOVE_PRESETS.map((p) => (
             <div key={p.label} className="flex items-stretch overflow-hidden rounded-lg border border-white/20 bg-white/10">
               <button
                 type="button"
-                aria-label={`Move ${p.label} ${leftIsIn ? "in" : "out"}`}
+                aria-label={leftIsIn ? t`Move ${{ move: p.label }} in` : t`Move ${{ move: p.label }} out`}
                 onClick={() => onMove(p.laydown, p.target, leftIsIn ? 1 : -1)}
                 className="flex w-11 shrink-0 items-center justify-center gap-0.5 text-caption-2 font-bold uppercase text-white/70 hover:bg-white/10"
               >
                 <ChevronLeft size={12} aria-hidden="true" />
-                {leftIsIn ? "In" : "Out"}
+                {leftIsIn ? t`In` : t`Out`}
               </button>
               <span className="flex flex-1 items-center justify-center text-footnote font-semibold tabular-nums">
                 {p.label}
               </span>
               <button
                 type="button"
-                aria-label={`Move ${p.label} ${leftIsIn ? "out" : "in"}`}
+                aria-label={leftIsIn ? t`Move ${{ move: p.label }} out` : t`Move ${{ move: p.label }} in`}
                 onClick={() => onMove(p.laydown, p.target, leftIsIn ? -1 : 1)}
                 className="flex w-11 shrink-0 items-center justify-center gap-0.5 text-caption-2 font-bold uppercase text-white/70 hover:bg-white/10"
               >
-                {leftIsIn ? "Out" : "In"}
+                {leftIsIn ? t`Out` : t`In`}
                 <ChevronRight size={12} aria-hidden="true" />
               </button>
             </div>
@@ -1064,27 +1065,27 @@ function OptionsSheet({
       >
         <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-white/25" />
         <div className="mb-3 flex items-center">
-          <h3 className="flex-1 text-sm font-bold">Lane options</h3>
+          <h3 className="flex-1 text-sm font-bold">{t`Lane options`}</h3>
           {/* Everything here applies as it moves, so leaving is a tick, as on
               every other sheet that keeps what is on screen (DESIGN-LANGUAGE
               §1a). */}
-          <IconButton variant="confirm" label="Done" onClick={onClose}>
+          <IconButton variant="confirm" label={t`Done`} onClick={onClose}>
             <Check size={20} aria-hidden="true" />
           </IconButton>
         </div>
         {hand && (
           <div className="mb-4 border-b border-white/10 pb-3">
             <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-white/60">
-              Bowling hand
+              {t`Bowling hand`}
             </span>
             {/* Left on the left, so the letters sit where the hands do. */}
             {/* The tab bar's capsule and pill in the lane's dark glass (ADR-189). */}
-            <div role="group" aria-label="Bowling hand" className="flex gap-1 rounded-full border border-white/15 bg-white/[0.06] p-1">
+            <div role="group" aria-label={t`Bowling hand`} className="flex gap-1 rounded-full border border-white/15 bg-white/[0.06] p-1">
               {(["left", "right"] as const).map((h) => (
                 <button
                   key={h}
                   type="button"
-                  aria-label={h === "left" ? "Left" : "Right"}
+                  aria-label={h === "left" ? t`Left` : t`Right`}
                   aria-pressed={hand === h}
                   onClick={() => onPickHand(h)}
                   className={`h-9 flex-1 rounded-full text-sm text-white ${
@@ -1093,7 +1094,7 @@ function OptionsSheet({
                       : "font-medium active:opacity-60"
                   }`}
                 >
-                  {h === "left" ? "L" : "R"}
+                  {h === "left" ? t({ message: "L", comment: "Single-letter abbreviation for left, as in left-handed" }) : t({ message: "R", comment: "Single-letter abbreviation for right, as in right-handed" })}
                 </button>
               ))}
             </div>
@@ -1106,7 +1107,7 @@ function OptionsSheet({
               htmlFor="visualizer-pattern"
               className="mb-1 block text-xs font-bold uppercase tracking-wide text-white/60"
             >
-              Oil pattern
+              {t`Oil pattern`}
             </label>
             {/* By name, which a pattern's own is unique to: the field types
                 names, and the id is looked up from the one chosen. */}
@@ -1115,8 +1116,8 @@ function OptionsSheet({
               value={pickable.find((p) => p.id === pickedId)?.name ?? ""}
               onChange={(name) => onPick(pickable.find((p) => p.name === name)?.id ?? null)}
               options={pickable.map((p) => ({ value: p.name, label: patternLabel(p) }))}
-              placeholder="No pattern"
-              clearLabel="Clear oil pattern"
+              placeholder={t`No pattern`}
+              clearLabel={t`Clear oil pattern`}
               tone="dark"
               className="h-11 w-full rounded-lg border border-white/20 bg-slate-900 px-3 text-sm text-white placeholder:text-white/40"
             />
@@ -1126,26 +1127,32 @@ function OptionsSheet({
         {oil && (
           <div className="mb-4 border-b border-white/10 pb-3">
             <p className="text-xs tabular-nums text-white/60">
-              {oilName} · {Math.round(oil.length)} ft · {formatFixed(oil.volumeMl, 2)} mL
-              {oilRatio != null ? ` · ${formatFixed(oilRatio, 1)}:1` : ""}
+              {[
+                oilName,
+                t`${{ feet: formatNumber(Math.round(oil.length)) }} ft`,
+                t`${{ volume: formatFixed(oil.volumeMl, 2) }} mL`,
+                oilRatio != null ? formatRatio(oilRatio, 1) : null
+              ]
+                .filter(Boolean)
+                .join(" · ")}
             </p>
           </div>
         )}
         {(editable || proLocked) && (
           <>
-            <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-white/60">Hook shape</h4>
+            <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-white/60">{t({ message: "Hook shape", comment: "Bowling term: the curve a ball takes on the lane" })}</h4>
             {/* Unblurred, with a lock on each slider's thumb rather than one
                 over the pair (ADR-209). */}
-            <ProVeil lane clear bare what="Changing the hook shape">
+            <ProVeil lane clear bare what={t`Changing the hook shape`}>
               <Slider
-                label="Hook start" suffix="ft" min={startMin} max={startMax} step={1}
+                label={t({ message: "Hook start", comment: "Bowling term: how far down the lane the ball starts to curve" })} min={startMin} max={startMax} step={1}
                 value={clamp(dS, startMin, startMax)}
                 locked={proLocked}
                 // Inert under the veil, and moving nothing past it (ADR-190).
                 onChange={(v) => editable && onChange({ hook_start_distance: v })}
               />
               <Slider
-                label="Hook length" suffix="ft" min={4} max={lenMax} step={1}
+                label={t({ message: "Hook length", comment: "Bowling term: how far down the lane the ball curves for" })} min={4} max={lenMax} step={1}
                 value={clamp(line?.hook_length ?? HOOK_LENGTH_FT, 4, lenMax)}
                 locked={proLocked}
                 onChange={(v) => editable && onChange({ hook_length: v })}
@@ -1163,10 +1170,9 @@ function OptionsSheet({
 const ProBadged = createContext(false);
 
 function Slider({
-  label, suffix, min, max, step, value, onChange, locked = false,
+  label, min, max, step, value, onChange, locked = false,
 }: {
   label: string;
-  suffix: string;
   min: number;
   max: number;
   step: number;
@@ -1179,7 +1185,7 @@ function Slider({
     <label className="mb-3 block py-1">
       <div className="mb-1 flex items-baseline justify-between text-xs font-semibold uppercase tracking-wide text-white/70">
         <span>{label}</span>
-        <span className="tabular-nums text-white/90">{Math.round(value)} {suffix}</span>
+        <span className="tabular-nums text-white/90">{t`${{ feet: formatNumber(Math.round(value)) }} ft`}</span>
       </div>
       {locked ? (
         // The platform thumb cannot be hidden, and its size differs between
@@ -1216,8 +1222,8 @@ function Slider({
         />
       )}
       <div className="flex justify-between text-caption-2 tabular-nums text-white/40">
-        <span>{min} {suffix}</span>
-        <span>{max} {suffix}</span>
+        <span>{t`${{ feet: formatNumber(min) }} ft`}</span>
+        <span>{t`${{ feet: formatNumber(max) }} ft`}</span>
       </div>
     </label>
   );
@@ -1285,7 +1291,7 @@ function StepperField({
       >
         <button
           type="button"
-          aria-label={locked ? `Unlock ${label}` : lateral ? `${label} left` : `${label} down`}
+          aria-label={locked ? t`Unlock ${{ label }}` : lateral ? t`${{ label }} left` : t`${{ label }} down`}
           onClick={() => (locked ? onUnlock?.() : nudge(leftDelta))}
           className="flex w-5 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
         >
@@ -1305,7 +1311,7 @@ function StepperField({
         />
         <button
           type="button"
-          aria-label={locked ? `Unlock ${label}` : lateral ? `${label} right` : `${label} up`}
+          aria-label={locked ? t`Unlock ${{ label }}` : lateral ? t`${{ label }} right` : t`${{ label }} up`}
           onClick={() => (locked ? onUnlock?.() : nudge(-leftDelta))}
           className="flex w-5 shrink-0 items-center justify-center text-white/70 hover:bg-white/10"
         >

@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { CatalogBallImage } from "./CatalogBallImage";
@@ -11,13 +12,13 @@ import { previewSplit, standInEstimate } from "../lib/proPreview";
 import { type BallEstimate, type BallEstimates as Estimates, type Counted } from "../lib/scoreModel";
 import type { Ball } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
-import { formatPercent } from "../lib/format";
+import { formatNumber, formatPercent } from "../lib/format";
 
 /** Whole pins with a sign: "+7", "−3", "0". */
 function signedPins(value: number): string {
   const n = Math.round(value);
-  if (n === 0) return "0";
-  return n > 0 ? `+${n}` : `−${Math.abs(n)}`;
+  if (n === 0) return formatNumber(0);
+  return n > 0 ? `+${formatNumber(n)}` : `−${formatNumber(Math.abs(n))}`;
 }
 
 function pct(made: number, of: number): string {
@@ -26,11 +27,37 @@ function pct(made: number, of: number): string {
 
 /** The rates on a ball's row, in the Stats Balls card's order and size, so
  *  every number is on screen without opening the ball (ADR-149). */
-const COLUMNS: ReadonlyArray<{ key: string; label: string; value: (c: Counted) => string }> = [
-  { key: "strike", label: "Strike", value: (c) => pct(c.strikes, c.firstBalls) },
-  { key: "after a strike", label: "After strike", value: (c) => pct(c.strikesAfterStrike, c.afterStrike) },
-  { key: "leaves that split", label: "Splits", value: (c) => pct(c.splits, c.leaves) },
-  { key: "leaves made", label: "Made", value: (c) => pct(c.pickups, c.pickupChances) }
+const COLUMNS: ReadonlyArray<{
+  key: string;
+  /** Read in render, since a message is not built at import. */
+  label: () => string;
+  aria: (value: string) => string;
+  value: (c: Counted) => string;
+}> = [
+  {
+    key: "strike",
+    label: () => t({ message: "Strike", comment: "Bowling term. A short column heading over the share of first balls that were strikes." }),
+    aria: (value) => t({ message: `strike ${value}`, comment: "Bowling term. Spoken name of the strike rate column, then its percentage." }),
+    value: (c) => pct(c.strikes, c.firstBalls)
+  },
+  {
+    key: "after a strike",
+    label: () => t({ message: "After strike", comment: "Bowling term. A short column heading over the share of strikes thrown right after a strike." }),
+    aria: (value) => t({ message: `after a strike ${value}`, comment: "Bowling term. Spoken name of the strike-after-a-strike rate column, then its percentage." }),
+    value: (c) => pct(c.strikesAfterStrike, c.afterStrike)
+  },
+  {
+    key: "leaves that split",
+    label: () => t({ message: "Splits", comment: "Bowling term. A short column heading over the share of leaves that were splits." }),
+    aria: (value) => t({ message: `leaves that split ${value}`, comment: "Bowling term. Spoken name of the split rate column, then its percentage." }),
+    value: (c) => pct(c.splits, c.leaves)
+  },
+  {
+    key: "leaves made",
+    label: () => t({ message: "Made", comment: "Bowling term. A short column heading over the share of leaves picked up for a spare." }),
+    aria: (value) => t({ message: `leaves made ${value}`, comment: "Bowling term. Spoken name of the spare conversion column, then its percentage." }),
+    value: (c) => pct(c.pickups, c.pickupChances)
+  }
 ];
 
 /** Widths in rem times `--type-scale`, so a column grows with the numbers in
@@ -56,11 +83,11 @@ export function BallEstimates({ report, balls, free }: { report: Estimates; ball
   const preview = free === undefined ? null : previewSplit(report.balls, free);
   return (
     <ListGroup
-      heading="Estimated average"
+      heading={t`Estimated average`}
       headingTrailing={
         report.actual !== null && (
           <span className="text-xs tabular-nums text-ink-secondary">
-            Actual overall average: {Math.round(report.actual)}
+            {t`Actual overall average: ${{ average: formatNumber(Math.round(report.actual)) }}`}
           </span>
         )
       }
@@ -74,11 +101,11 @@ export function BallEstimates({ report, balls, free }: { report: Estimates; ball
             word fits its column at every text size. */}
         {COLUMNS.map((c) => (
           <span key={c.key} className={COLUMN}>
-            <span className="type-cap-fixed text-caption-2">{c.label}</span>
+            <span className="type-cap-fixed text-caption-2">{c.label()}</span>
           </span>
         ))}
         <span className={ESTIMATE_COLUMN}>
-          <span className="type-cap-fixed text-caption-2">Est.</span>
+          <span className="type-cap-fixed text-caption-2">{t({ message: "Est.", comment: "Short column heading: estimated average." })}</span>
         </span>
         <span className={CHEVRON_COLUMN} />
       </li>
@@ -86,14 +113,16 @@ export function BallEstimates({ report, balls, free }: { report: Estimates; ball
           average is the real one, not an estimate. */}
       <li
         className={`${LIST_DIVIDER} type-cap-dense flex items-center gap-1 bg-surface-muted px-4 py-1.5 text-xs tabular-nums text-ink-secondary`}
-        aria-label="All balls"
+        aria-label={t`All balls`}
       >
         <span className="min-w-0 flex-1">
-          <span className="block font-semibold">All balls</span>
-          <span className="block text-caption-2 text-ink-tertiary">{report.counted.firstBalls} balls</span>
+          <span className="block font-semibold">{t`All balls`}</span>
+          <span className="block text-caption-2 text-ink-tertiary">
+            {plural(report.counted.firstBalls, { one: "# ball", other: "# balls" })}
+          </span>
         </span>
         {COLUMNS.map((c) => (
-          <span key={c.key} className={COLUMN} aria-label={`${c.key} ${c.value(report.counted)}`}>
+          <span key={c.key} className={COLUMN} aria-label={c.aria(c.value(report.counted))}>
             {c.value(report.counted)}
           </span>
         ))}
@@ -111,7 +140,7 @@ export function BallEstimates({ report, balls, free }: { report: Estimates; ball
       ))}
       {preview?.blurred && (
         <li className={LIST_DIVIDER}>
-          <ProBlur what="What you'd average with each ball here">
+          <ProBlur what={t`What you'd average with each ball here`}>
             <ul>
               <BallEstimateRow estimate={standInEstimate(preview.blurred)} ball={byId.get(preview.blurred.ballId)} />
             </ul>
@@ -124,7 +153,7 @@ export function BallEstimates({ report, balls, free }: { report: Estimates; ball
 
 function BallEstimateRow({ estimate, ball }: { estimate: BallEstimate; ball: Ball | undefined }) {
   const [open, setOpen] = useState(false);
-  const name = ball?.name ?? "Removed ball";
+  const name = ball?.name ?? t`Removed ball`;
   const { thin } = estimate;
   const diff = Math.round(estimate.difference);
   const diffTone = thin
@@ -136,7 +165,7 @@ function BallEstimateRow({ estimate, ball }: { estimate: BallEstimate; ball: Bal
         : "text-ink-tertiary";
   // The tilde says estimated before the number is read as a score.
   const headline =
-    estimate.estimate === null ? signedPins(estimate.difference) : `~${Math.round(estimate.estimate)}`;
+    estimate.estimate === null ? signedPins(estimate.difference) : `~${formatNumber(Math.round(estimate.estimate))}`;
   const tone = thin ? "text-ink-tertiary" : "text-ink";
 
   return (
@@ -167,13 +196,14 @@ function BallEstimateRow({ estimate, ball }: { estimate: BallEstimate; ball: Bal
               {name}
             </span>
             <span className="block text-caption-2 text-ink-tertiary">
-              {estimate.firstBalls} {estimate.firstBalls === 1 ? "ball" : "balls"}
-              {thin ? ", too few" : ""}
+              {thin
+                ? plural(estimate.firstBalls, { one: "# ball, too few", other: "# balls, too few" })
+                : plural(estimate.firstBalls, { one: "# ball", other: "# balls" })}
             </span>
           </span>
         </span>
         {COLUMNS.map((c) => (
-          <span key={c.key} className={`${COLUMN} ${tone}`} aria-label={`${c.key} ${c.value(estimate.counted)}`}>
+          <span key={c.key} className={`${COLUMN} ${tone}`} aria-label={c.aria(c.value(estimate.counted))}>
             {c.value(estimate.counted)}
           </span>
         ))}
@@ -199,23 +229,29 @@ function BallEstimateRow({ estimate, ball }: { estimate: BallEstimate; ball: Bal
 /** The leaves a ball costs most: its rates are already on its row, beside
  *  every ball's above them. */
 function BallEstimateDetail({ estimate }: { estimate: BallEstimate }) {
+  const costliestLeaves = t({
+    message: "Costliest leaves",
+    comment: "Bowling term. The pin leaves (what is left standing after the first ball) that cost this bowler the most."
+  });
   return (
     <div className="mx-3 mb-3 rounded-lg bg-surface-muted p-3 text-sm">
       {estimate.costliest.length === 0 && (
-        <p className="text-xs text-ink-secondary">No leave it gives you is one you often miss.</p>
+        <p className="text-xs text-ink-secondary">{t`No leave it gives you is one you often miss.`}</p>
       )}
       {estimate.costliest.length > 0 && (
         <section>
-          <h3 className={GROUP_HEADING}>Costliest leaves</h3>
-          <ul className="mt-1.5 space-y-1.5" aria-label="Costliest leaves">
+          <h3 className={GROUP_HEADING}>{costliestLeaves}</h3>
+          <ul className="mt-1.5 space-y-1.5" aria-label={costliestLeaves}>
             {estimate.costliest.map((leave) => (
               <li key={leave.pins.join("-")} className="flex items-center gap-3">
                 <MiniPins standing={leave.pins} />
                 <span className="min-w-0 flex-1 font-semibold text-ink">{formatLeave(leave.pins)}</span>
                 <span className="shrink-0 text-right text-xs tabular-nums text-ink-secondary">
-                  <span className="block">Left {leave.left}</span>
+                  <span className="block">{t`Left ${{ count: leave.left }}`}</span>
                   <span className="block font-semibold text-ink">
-                    {leave.made}/{leave.chances} made{leave.thin ? ", few" : ""}
+                    {leave.thin
+                      ? t`${{ made: leave.made }}/${{ chances: leave.chances }} made, few`
+                      : t`${{ made: leave.made }}/${{ chances: leave.chances }} made`}
                   </span>
                 </span>
               </li>

@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { canPromptInstall, isIOSSafari, isStandalone, promptInstall } from "../lib/installPrompt";
 import { useOverlay } from "../lib/useOverlay";
 import { useSheetDismiss } from "../lib/useSheetDismiss";
@@ -42,15 +43,15 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
         className={`w-full max-w-sm rounded-xl bg-surface p-5 shadow-xl ${exiting ? "" : "animate-pop-in"}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-base font-bold text-ink">Install Headpin</h2>
+        <h2 className="text-base font-bold text-ink">{t`Install Headpin`}</h2>
         {canInstall ? (
           <>
             <p className="mt-1.5 text-sm text-ink-secondary">
-              If you don't open it for a week, your browser may delete your scores. Add Headpin to your home screen and they're safe, and it opens full screen.
+              {t`If you don't open it for a week, your browser may delete your scores. Add Headpin to your home screen and they're safe, and it opens full screen.`}
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <Button variant="secondary" onClick={() => dismiss()}>
-                Not now
+                {t`Not now`}
               </Button>
               <Button
                 variant="primary"
@@ -59,21 +60,20 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
                   dismiss();
                 }}
               >
-                Install
+                {t`Install`}
               </Button>
             </div>
           </>
         ) : (
           <>
             <p className="mt-1.5 text-sm text-ink-secondary">
-              In Safari, tap Share{" "}
+              {t`In Safari, tap Share`}{" "}
               <ShareIosIcon size={15} aria-hidden="true" className="inline-block align-text-bottom" />{" "}
-              then "Add to Home Screen". Chrome and Firefox on iOS cannot do
-              this, so open the page in Safari first.
+              {t`then "Add to Home Screen". Chrome and Firefox on iOS cannot do this, so open the page in Safari first.`}
             </p>
             <div className="mt-5 flex justify-end">
               <Button variant="secondary" onClick={onClose}>
-                Got it
+                {t`Got it`}
               </Button>
             </div>
           </>

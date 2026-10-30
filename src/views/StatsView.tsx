@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ShareIosIcon } from "../components/icons";
@@ -59,18 +60,22 @@ const NO_BALLS: Ball[] = [];
 
 /** The window, as the share card names it. "Last 10" alone is a count of
  *  nothing on a card seen out of context. */
-const RANGE_ON_CARD: Record<StatsRange, string | undefined> = {
-  last10: "Last 10 sessions",
-  months3: "Last 3 months",
-  all: undefined
-};
+function rangeOnCard(range: StatsRange): string | undefined {
+  if (range === "last10") return t`Last 10 sessions`;
+  if (range === "months3") return t`Last 3 months`;
+  return undefined;
+}
 
 /** The range control's segments, short enough to share the header row with the
  *  title and both actions on a phone. The short label still says the whole
  *  name to a screen reader. */
-const RANGE_OPTIONS = STATS_RANGES.map((r) =>
-  r.value === "months3" ? { ...r, label: "3 mo", srLabel: r.label } : r
-);
+function rangeOptionsList() {
+  return STATS_RANGES.map((r) => {
+    if (r.value === "last10") return { ...r, label: t`Last 10` };
+    if (r.value === "months3") return { ...r, label: t({ message: "3 mo", comment: "Short for 3 months: a segment of a control, so it must stay very short" }), srLabel: t`3 months` };
+    return { ...r, label: t`All` };
+  });
+}
 
 const EMPTY: BowlingStats = {
   totalSessions: 0,
@@ -109,7 +114,8 @@ export function StatsView({
   // more, or under a broader filter, reads as All until there are ten again.
   const lastTenOpen = finished.length >= LAST_SESSIONS;
   const range: StatsRange = rangePick === "last10" && !lastTenOpen ? "all" : rangePick;
-  const rangeOptions = lastTenOpen ? RANGE_OPTIONS : RANGE_OPTIONS.filter((o) => o.value !== "last10");
+  const allRangeOptions = rangeOptionsList();
+  const rangeOptions = lastTenOpen ? allRangeOptions : allRangeOptions.filter((o) => o.value !== "last10");
   const filtered = useMemo(
     () => sessionsInRange(finished, range, localDateKey(), activeLanes),
     [finished, range, activeLanes]
@@ -164,7 +170,7 @@ export function StatsView({
         event: filters.event,
         gameNumber: filters.gameNumber,
         lanes: activeLanes,
-        range: RANGE_ON_CARD[range]
+        range: rangeOnCard(range)
       }),
     [filters.alley, filters.pattern, filters.event, filters.gameNumber, activeLanes, range]
   );
@@ -189,7 +195,7 @@ export function StatsView({
             {/* One row: the title, the two actions, then the range at the far
                 right, where it used to take a row of its own under the header. */}
             <div className={`${TAB_TITLE_ROW} mb-3 flex-wrap gap-2`}>
-              {mode === "tab" && <h1 className={TAB_TITLE}>Stats</h1>}
+              {mode === "tab" && <h1 className={TAB_TITLE}>{t`Stats`}</h1>}
               <div className="ml-auto flex shrink-0 items-center gap-1">
                 {/* Neither action has anything to act on before the first
                     finished game: there is nothing to filter, and the share would be
@@ -204,7 +210,7 @@ export function StatsView({
                     scroll; under the tiles is neither the bottom nor a menu), and the
                     header keeps its one action, which is the share. */}
                 {filtered.length > 0 && (
-                  <IconButton label="Share these stats" variant="round" onClick={() => setShareOpen(true)}>
+                  <IconButton label={t`Share these stats`} variant="round" onClick={() => setShareOpen(true)}>
                     <ShareIosIcon size={20} aria-hidden="true" />
                   </IconButton>
                 )}
@@ -214,7 +220,7 @@ export function StatsView({
               {finished.length > 0 && (
                 <div className="ml-auto min-w-44">
                   <SegmentedControl
-                    label="Sessions counted"
+                    label={t`Sessions counted`}
                     options={rangeOptions}
                     value={range}
                     onChange={setRange}
@@ -232,7 +238,7 @@ export function StatsView({
         <div className="px-3 pb-5 sm:px-6 sm:pb-8">
           {filters.error && (
             <ErrorBanner className="mb-3">
-              Your sessions could not be read. Reload the app, then try again.
+              {t`Your sessions could not be read. Reload the app, then try again.`}
             </ErrorBanner>
           )}
           <Stats
@@ -250,8 +256,8 @@ export function StatsView({
             empty={
               range === "months3" && finished.length > 0
                 ? {
-                    title: "Nothing in the last 3 months",
-                    description: "Your earlier games are under All."
+                    title: t`Nothing in the last 3 months`,
+                    description: t`Your earlier games are under All.`
                   }
                 : undefined
             }
@@ -275,7 +281,7 @@ export function StatsView({
 
   if (mode === "tab") return body;
   return (
-    <PushScreen title="Stats" onBack={onBack ?? (() => {})} active={!filtersOpen && !shareOpen}>
+    <PushScreen title={t`Stats`} onBack={onBack ?? (() => {})} active={!filtersOpen && !shareOpen}>
       {body}
     </PushScreen>
   );

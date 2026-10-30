@@ -7,6 +7,201 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: en\n"
 
+#: src/components/OilPatternManager.tsx
+msgid "\"{name}\" deleted."
+msgstr "\"{name}\" deleted."
+
+#: src/lib/oilPattern.ts
+msgid "({length} ft) {name}"
+msgstr "({length} ft) {name}"
+
+#. Abbreviation for pounds, the unit a bowling ball is weighed in
+#: src/components/BallFormDialog.tsx
+msgid "(lb)"
+msgstr "(lb)"
+
+#. placeholder {0}: result.sessions
+#: src/components/OilPatternManager.tsx
+msgid "{0, plural, one {\"{name}\" is still used by # session. Archived instead of deleted.} other {\"{name}\" is still used by # sessions. Archived instead of deleted.}}"
+msgstr "{0, plural, one {\"{name}\" is still used by # session. Archived instead of deleted.} other {\"{name}\" is still used by # sessions. Archived instead of deleted.}}"
+
+#. placeholder {0}: alleys.length
+#: src/lib/lineReport.ts
+msgid "{0, plural, one {# alley} other {# alleys}}"
+msgstr "{0, plural, one {# alley} other {# alleys}}"
+
+#. placeholder {0}: displayed.length
+#: src/views/CatalogView.tsx
+msgid "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}}"
+msgstr "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}}"
+
+#. placeholder {0}: estimate.firstBalls
+#: src/components/BallEstimates.tsx
+msgid "{0, plural, one {# ball, too few} other {# balls, too few}}"
+msgstr "{0, plural, one {# ball, too few} other {# balls, too few}}"
+
+#. placeholder {0}: ball.firstBalls
+#. placeholder {0}: displayed.length
+#. placeholder {0}: estimate.firstBalls
+#: src/components/BallEstimates.tsx
+#: src/components/BallGameSessionsDialog.tsx
+#: src/components/FirstRun.tsx
+#: src/components/Stats.tsx
+#: src/views/CatalogView.tsx
+#: src/views/GamePlanView.tsx
+msgid "{0, plural, one {# ball} other {# balls}}"
+msgstr "{0, plural, one {# ball} other {# balls}}"
+
+#. placeholder {0}: driftModel.release_offset
+#: src/views/BowlingProfileView.tsx
+msgid "{0, plural, one {# board} other {# boards}}"
+msgstr "{0, plural, one {# board} other {# boards}}"
+
+#. placeholder {0}: games.length
+#. placeholder {0}: p.games
+#. placeholder {0}: pending.incoming.games
+#: src/components/FirstRun.tsx
+#: src/components/SessionHistory.tsx
+#: src/components/Stats.tsx
+#: src/lib/shareCard.ts
+#: src/views/GameTrendView.tsx
+#: src/views/OpenFramesView.tsx
+msgid "{0, plural, one {# game} other {# games}}"
+msgstr "{0, plural, one {# game} other {# games}}"
+
+#. placeholder {0}: group.notes.length
+#: src/views/LaneNotesView.tsx
+msgid "{0, plural, one {# lane} other {# lanes}}"
+msgstr "{0, plural, one {# lane} other {# lanes}}"
+
+#. placeholder {0}: count - shown.length
+#: src/components/HomeProfile.tsx
+msgid "{0, plural, one {# more ball} other {# more balls}}"
+msgstr "{0, plural, one {# more ball} other {# more balls}}"
+
+#. placeholder {0}: patterns.length
+#: src/lib/lineReport.ts
+msgid "{0, plural, one {# pattern} other {# patterns}}"
+msgstr "{0, plural, one {# pattern} other {# patterns}}"
+
+#. placeholder {0}: pending.incoming.sessions
+#. placeholder {0}: report.sessions
+#. placeholder {0}: stats.totalSessions
+#: src/components/FirstRun.tsx
+#: src/lib/shareCard.ts
+#: src/views/GamePlanView.tsx
+msgid "{0, plural, one {# session} other {# sessions}}"
+msgstr "{0, plural, one {# session} other {# sessions}}"
+
+#. placeholder {0}: ask.attempts
+#. placeholder {0}: stats.attempts
+#: src/components/SpareLineFormDialog.tsx
+#: src/views/SpareLinesView.tsx
+msgid "{0, plural, one {# time} other {# times}}"
+msgstr "{0, plural, one {# time} other {# times}}"
+
+#. placeholder {0}: row.tiles.length
+#. placeholder {1}: rowLabel(row)
+#. placeholder {2}: rowLabel(row)
+#: src/views/SpareLinesView.tsx
+msgid "{0, plural, one {Edit {1} for all # leave} other {Edit {2} for all # leaves}}"
+msgstr "{0, plural, one {Edit {1} for all # leave} other {Edit {2} for all # leaves}}"
+
+#. placeholder {0}: sessions.length
+#: src/components/BallGameSessionsDialog.tsx
+msgid "{0, plural, one {Game {gameNumber}, # session} other {Game {gameNumber}, # sessions}}"
+msgstr "{0, plural, one {Game {gameNumber}, # session} other {Game {gameNumber}, # sessions}}"
+
+#. placeholder {0}: activeLanes.length
+#. placeholder {0}: parts.lanes.length
+#: src/components/SessionFilterBar.tsx
+#: src/lib/shareCard.ts
+msgid "{0, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
+msgstr "{0, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
+
+#. placeholder {0}: lanes.length
+#: src/components/Stats.tsx
+msgid "{0, plural, one {Lane {list}} other {Lanes {list}}}"
+msgstr "{0, plural, one {Lane {list}} other {Lanes {list}}}"
+
+#. placeholder {0}: leaves.length
+#: src/components/SpareLineBulkSheet.tsx
+msgid "{0, plural, one {Save for all # leave} other {Save for all # leaves}}"
+msgstr "{0, plural, one {Save for all # leave} other {Save for all # leaves}}"
+
+#. placeholder {0}: leaves.length
+#: src/components/SpareLineBulkSheet.tsx
+msgid "{0, plural, one {Spare ball line for # leave} other {Spare ball line for # leaves}}"
+msgstr "{0, plural, one {Spare ball line for # leave} other {Spare ball line for # leaves}}"
+
+#. placeholder {0}: leaves.length
+#: src/components/SpareLineBulkSheet.tsx
+msgid "{0, plural, one {Strike ball move for # leave} other {Strike ball move for # leaves}}"
+msgstr "{0, plural, one {Strike ball move for # leave} other {Strike ball move for # leaves}}"
+
+#. placeholder {0}: pending.current.sessions
+#: src/components/FirstRun.tsx
+msgid "{0, plural, one {This device already has # session. Restoring replaces it.} other {This device already has # sessions. Restoring replaces them.}}"
+msgstr "{0, plural, one {This device already has # session. Restoring replaces it.} other {This device already has # sessions. Restoring replaces them.}}"
+
+#. placeholder {0}: leave.attempts
+#: src/components/Stats.tsx
+msgid "{0, plural, one {time} other {times}}"
+msgstr "{0, plural, one {time} other {times}}"
+
+#: src/components/FirstRun.tsx
+msgid "{age}. Holds {sessions}, {games}, {balls}."
+msgstr "{age}. Holds {sessions}, {games}, {balls}."
+
+#. A ball's name, then the boards it was thrown on
+#: src/components/alleyHistoryCopy.ts
+msgid "{ballName}, {boards}"
+msgstr "{ballName}, {boards}"
+
+#: src/lib/shareCard.ts
+msgid "{board} at {feet} ft"
+msgstr "{board} at {feet} ft"
+
+#: src/components/alleyHistoryCopy.ts
+msgid "{boards, plural, one {# board left} other {# boards left}}"
+msgstr "{boards, plural, one {# board left} other {# boards left}}"
+
+#: src/components/alleyHistoryCopy.ts
+msgid "{boards, plural, one {# board right} other {# boards right}}"
+msgstr "{boards, plural, one {# board right} other {# boards right}}"
+
+#: src/views/BowlingProfileView.tsx
+msgid "{boards} left"
+msgstr "{boards} left"
+
+#: src/views/BowlingProfileView.tsx
+msgid "{boards} right"
+msgstr "{boards} right"
+
+#: src/components/Stats.tsx
+msgid "{column} {value}"
+msgstr "{column} {value}"
+
+#: src/views/OpenFramesView.tsx
+msgid "{conversions} of {chances} made"
+msgstr "{conversions} of {chances} made"
+
+#: src/lib/shareCard.ts
+msgid "{count, plural, one {# game series} other {# game series}}"
+msgstr "{count, plural, one {# game series} other {# game series}}"
+
+#: src/components/Stats.tsx
+msgid "{count, plural, one {View all # ball} other {View all # balls}}"
+msgstr "{count, plural, one {View all # ball} other {View all # balls}}"
+
+#: src/components/Stats.tsx
+msgid "{count, plural, one {View all # leave} other {View all # leaves}}"
+msgstr "{count, plural, one {View all # leave} other {View all # leaves}}"
+
+#: src/views/CatalogView.tsx
+msgid "{count} colors"
+msgstr "{count} colors"
+
 #: src/lib/backupNudge.ts
 msgid "{days, plural, one {# day ago} other {# days ago}}"
 msgstr "{days, plural, one {# day ago} other {# days ago}}"
@@ -15,9 +210,160 @@ msgstr "{days, plural, one {# day ago} other {# days ago}}"
 msgid "{days, plural, one {Last backup # day ago} other {Last backup # days ago}}"
 msgstr "{days, plural, one {Last backup # day ago} other {Last backup # days ago}}"
 
+#. A strike-ball move in boards toward the left side of the lane, e.g. 2 left
+#: src/lib/spareLines.ts
+msgid "{distance} left"
+msgstr "{distance} left"
+
+#. A strike-ball move in boards toward the right side of the lane, e.g. 2 right
+#: src/lib/spareLines.ts
+msgid "{distance} right"
+msgstr "{distance} right"
+
+#: src/components/LaneVisualizer.tsx
+#: src/components/OilPatternManager.tsx
+#: src/components/PatternFilterSheet.tsx
+#: src/components/PatternSheet.tsx
+#: src/lib/shareCard.ts
+msgid "{feet} ft"
+msgstr "{feet} ft"
+
+#: src/components/OilPatternFormDialog.tsx
+msgid "{feet} ft · {volume} mL"
+msgstr "{feet} ft · {volume} mL"
+
+#: src/components/PatternSheet.tsx
+msgid "{feet} ft. This pattern has no load table, so there is nothing more to show."
+msgstr "{feet} ft. This pattern has no load table, so there is nothing more to show."
+
+#: src/components/LineInput.tsx
+msgid "{field} {amount} in"
+msgstr "{field} {amount} in"
+
+#: src/components/LineInput.tsx
+msgid "{field} {amount} out"
+msgstr "{field} {amount} out"
+
+#: src/components/LineInput.tsx
+msgid "{field} board"
+msgstr "{field} board"
+
+#. Describes how much a ball layout flares (spreads its track) and how strong it reads overall
+#: src/lib/ballLayout.ts
+msgid "{flareBand, select, low {Low flare} medium {Medium flare} other {High flare}}, {strengthBand, select, weak {a weaker} controllable {a controllable} other {a strong}} look overall."
+msgstr "{flareBand, select, low {Low flare} medium {Medium flare} other {High flare}}, {strengthBand, select, weak {a weaker} controllable {a controllable} other {a strong}} look overall."
+
+#: src/components/PatternSheet.tsx
+msgid "{forward} / {reverse} mL"
+msgstr "{forward} / {reverse} mL"
+
+#: src/components/PatternSheet.tsx
+msgid "{from} to {to}"
+msgstr "{from} to {to}"
+
 #: src/views/ActiveSessionView.tsx
 msgid "{gameCount, plural, one {\"{alley}\" and its game will be permanently deleted. This can't be undone.} other {\"{alley}\" and all # games will be permanently deleted. This can't be undone.}}"
 msgstr "{gameCount, plural, one {\"{alley}\" and its game will be permanently deleted. This can't be undone.} other {\"{alley}\" and all # games will be permanently deleted. This can't be undone.}}"
+
+#: src/components/HomeProfile.tsx
+msgid "{games, plural, one {(# GM)} other {(# GMS)}}"
+msgstr "{games, plural, one {(# GM)} other {(# GMS)}}"
+
+#: src/components/Stats.tsx
+msgid "{gap} above your average"
+msgstr "{gap} above your average"
+
+#: src/components/Stats.tsx
+msgid "{gap} under your average"
+msgstr "{gap} under your average"
+
+#: src/components/LaneVisualizer.tsx
+msgid "{label} down"
+msgstr "{label} down"
+
+#: src/components/PapEditor.tsx
+msgid "{label} fraction"
+msgstr "{label} fraction"
+
+#: src/components/LaneVisualizer.tsx
+msgid "{label} left"
+msgstr "{label} left"
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "{label} move"
+msgstr "{label} move"
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "{label} move left half a board"
+msgstr "{label} move left half a board"
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "{label} move right half a board"
+msgstr "{label} move right half a board"
+
+#: src/components/LaneVisualizer.tsx
+msgid "{label} right"
+msgstr "{label} right"
+
+#: src/components/LaneVisualizer.tsx
+msgid "{label} up"
+msgstr "{label} up"
+
+#: src/components/MotionRail.tsx
+msgid "{label}, {word}"
+msgstr "{label}, {word}"
+
+#: src/views/GuidesView.tsx
+msgid "{label}, opens in a new tab"
+msgstr "{label}, opens in a new tab"
+
+#: src/components/LayoutEditor.tsx
+msgid "{label}, what it does"
+msgstr "{label}, what it does"
+
+#: src/components/Stats.tsx
+msgid "{label}. {action}"
+msgstr "{label}. {action}"
+
+#: src/views/SpareLinesView.tsx
+msgid "{leave} is likely the same shot as {from}. Use its line?"
+msgstr "{leave} is likely the same shot as {from}. Use its line?"
+
+#. Bowling term: a spare line for a leave of several pins, named by their numbers, e.g. 2-4-5-8 spare
+#: src/lib/shareCard.ts
+msgid "{leaveName} spare"
+msgstr "{leaveName} spare"
+
+#. Bowling term: a spare line for a single pin left standing, the pin number first, e.g. 7 pin spare
+#: src/lib/shareCard.ts
+msgid "{leavePin} pin spare"
+msgstr "{leavePin} pin spare"
+
+#. Describes how a ball layout will move down the lane. Breakpoint is the bowling term for where the ball turns from skid to hook
+#: src/lib/ballLayout.ts
+msgid "{lengthBand, select, early {Reads the lane early} mid {Picks up in the mid lane} other {Saves its energy for the back}} and {shapeBand, select, smooth {arcs smoothly through the breakpoint} defined {turns the corner with a defined shape} other {snaps hard at the breakpoint}}."
+msgstr "{lengthBand, select, early {Reads the lane early} mid {Picks up in the mid lane} other {Saves its energy for the back}} and {shapeBand, select, smooth {arcs smoothly through the breakpoint} defined {turns the corner with a defined shape} other {snaps hard at the breakpoint}}."
+
+#. The greeting on Home with the bowler's name on the end: a greeting, then the name
+#: src/lib/greeting.ts
+msgid "{line}, {who}"
+msgstr "{line}, {who}"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "{losingSessions, plural, one {This file is older than what is on this device. You would lose # session.} other {This file is older than what is on this device. You would lose # sessions.}}"
+msgstr "{losingSessions, plural, one {This file is older than what is on this device. You would lose # session.} other {This file is older than what is on this device. You would lose # sessions.}}"
+
+#: src/components/BallEstimates.tsx
+msgid "{made}/{chances} made"
+msgstr "{made}/{chances} made"
+
+#: src/components/BallEstimates.tsx
+msgid "{made}/{chances} made, few"
+msgstr "{made}/{chances} made, few"
+
+#: src/views/GuidesView.tsx
+msgid "{minutes} min read"
+msgstr "{minutes} min read"
 
 #: src/lib/backupNudge.ts
 msgid "{months, plural, one {# month ago} other {# months ago}}"
@@ -27,13 +373,125 @@ msgstr "{months, plural, one {# month ago} other {# months ago}}"
 msgid "{months, plural, one {Last backup # month ago} other {Last backup # months ago}}"
 msgstr "{months, plural, one {Last backup # month ago} other {Last backup # months ago}}"
 
+#: src/components/HomeProfile.tsx
+msgid "{n, plural, one {# alley} other {# alleys}}"
+msgstr "{n, plural, one {# alley} other {# alleys}}"
+
+#: src/components/HomeProfile.tsx
+msgid "{n, plural, one {# leave} other {# leaves}}"
+msgstr "{n, plural, one {# leave} other {# leaves}}"
+
+#: src/components/HomeProfile.tsx
+msgid "{n, plural, one {# note} other {# notes}}"
+msgstr "{n, plural, one {# note} other {# notes}}"
+
+#: src/components/Stats.tsx
+msgid "{name} by game"
+msgstr "{name} by game"
+
+#: src/components/Stats.tsx
+msgid "{name} columns"
+msgstr "{name} columns"
+
+#: src/components/OilPatternManager.tsx
+msgid "{name} details"
+msgstr "{name} details"
+
+#: src/components/OilPatternManager.tsx
+msgid "{name} now draws {pattern}."
+msgstr "{name} now draws {pattern}."
+
+#: src/views/CatalogView.tsx
+msgid "{name}, {color}"
+msgstr "{name}, {color}"
+
 #: src/views/AppearanceView.tsx
 msgid "{name}, needs Headpin Pro"
 msgstr "{name}, needs Headpin Pro"
 
+#: src/views/DashboardView.tsx
+msgid "{nudgeSessionsSince, plural, one {# session not backed up. Last backup: {lastBackup}.} other {# sessions not backed up. Last backup: {lastBackup}.}}"
+msgstr "{nudgeSessionsSince, plural, one {# session not backed up. Last backup: {lastBackup}.} other {# sessions not backed up. Last backup: {lastBackup}.}}"
+
+#. Bowling term: PAP (positive axis point) written as inches over and inches down from the center of the grip
+#: src/views/BowlingProfileView.tsx
+msgid "{over} over, {down} down"
+msgstr "{over} over, {down} down"
+
+#. Bowling term: PAP (positive axis point) written as inches over and inches up from the center of the grip
+#: src/views/BowlingProfileView.tsx
+msgid "{over} over, {up} up"
+msgstr "{over} over, {up} up"
+
+#. Bowling term: PAP (positive axis point) written as inches over and inches down from the center of the grip. The quote marks are inch signs.
+#: src/views/LayoutLabView.tsx
+msgid "{over}\" over, {down}\" down"
+msgstr "{over}\" over, {down}\" down"
+
+#. Bowling term: PAP (positive axis point) written as inches over and inches up from the center of the grip. The quote marks are inch signs.
+#: src/views/LayoutLabView.tsx
+msgid "{over}\" over, {up}\" up"
+msgstr "{over}\" over, {up}\" up"
+
+#: src/components/SessionForm.tsx
+msgid "{pattern} (archived)"
+msgstr "{pattern} (archived)"
+
+#: src/lib/pins.ts
+msgid "{pin} pin standing"
+msgstr "{pin} pin standing"
+
 #: src/components/ActiveGameScorer.tsx
 msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
 msgstr "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
+
+#: src/views/GamePlanView.tsx
+msgid "{shots}, {sessions}"
+msgstr "{shots}, {sessions}"
+
+#: src/components/BallGameSessionsDialog.tsx
+msgid "{spoken} {made} of {of}"
+msgstr "{spoken} {made} of {of}"
+
+#: src/components/BallGameSessionsDialog.tsx
+msgid "{spoken} {made} of {of}, {percent}"
+msgstr "{spoken} {made} of {of}, {percent}"
+
+#. A bowling line: the board the bowler stands on, then the board aimed at
+#: src/components/alleyHistoryCopy.ts
+msgid "{stance} to {target}"
+msgstr "{stance} to {target}"
+
+#: src/components/LaneVisualizer.tsx
+msgid "{title} visualizer"
+msgstr "{title} visualizer"
+
+#: src/components/ShareCardDialog.tsx
+msgid "{title}, {value} {label}"
+msgstr "{title}, {value} {label}"
+
+#: src/components/PatternSheet.tsx
+msgid "{title}, page {page} of {pages}"
+msgstr "{title}, page {page} of {pages}"
+
+#: src/components/ShareCardDialog.tsx
+msgid "{title}, stats"
+msgstr "{title}, stats"
+
+#: src/components/LaneVisualizer.tsx
+msgid "{title}: {from} to {to}"
+msgstr "{title}: {from} to {to}"
+
+#. Bowling term: the total of every game in one session.
+#: src/components/SessionHistory.tsx
+msgid "{total} series"
+msgstr "{total} series"
+
+#: src/components/LaneVisualizer.tsx
+#: src/components/OilPatternManager.tsx
+#: src/components/PatternSheet.tsx
+msgid "{volume} mL"
+msgstr "{volume} mL"
 
 #: src/lib/backupNudge.ts
 msgid "{weeks, plural, one {# week ago} other {# weeks ago}}"
@@ -43,17 +501,281 @@ msgstr "{weeks, plural, one {# week ago} other {# weeks ago}}"
 msgid "{weeks, plural, one {Last backup # week ago} other {Last backup # weeks ago}}"
 msgstr "{weeks, plural, one {Last backup # week ago} other {Last backup # weeks ago}}"
 
+#: src/components/BallFormDialog.tsx
+#: src/views/ArsenalView.tsx
+#: src/views/LayoutLabView.tsx
+msgid "{weight} lb"
+msgstr "{weight} lb"
+
+#. Short for one-handed. A narrow segment of a control.
+#: src/views/LayoutLabView.tsx
+msgid "1H"
+msgstr "1H"
+
+#. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
+#. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
+#. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
+#: src/components/Stats.tsx
+msgid "1st ball"
+msgstr "1st ball"
+
+#. Bowling term: the first ball of a frame, thrown at a full rack of ten pins; avg is short for average
+#. Bowling term: the first ball of a frame, thrown at a full rack of ten pins; avg is short for average
+#: src/components/Stats.tsx
+msgid "1st ball avg"
+msgstr "1st ball avg"
+
+#. Short for two-handed. A narrow segment of a control.
+#: src/views/LayoutLabView.tsx
+msgid "2H"
+msgstr "2H"
+
+#. Short for 3 months: a segment of a control, so it must stay very short
+#: src/views/StatsView.tsx
+msgid "3 mo"
+msgstr "3 mo"
+
+#. Stats tab window: the last three months, a short segment label
+#: src/lib/statsRange.ts
+#: src/views/StatsView.tsx
+msgid "3 months"
+msgstr "3 months"
+
+#: src/views/BackupRestoreView.tsx
+msgid "A backup is one file, kept on this device or wherever you put it. Restoring replaces everything on this device with what is in the file. Your current data is saved off first."
+msgstr "A backup is one file, kept on this device or wherever you put it. Restoring replaces everything on this device with what is in the file. Your current data is saved off first."
+
+#: src/components/BallLayoutDiagram.tsx
+msgid "A bowling ball drilled with a thumb hole and two finger holes, showing a {drillingAngle} by {pinToPap} inch by {valAngle} dual angle layout."
+msgstr "A bowling ball drilled with a thumb hole and two finger holes, showing a {drillingAngle} by {pinToPap} inch by {valAngle} dual angle layout."
+
+#: src/components/BallLayoutDiagram.tsx
+msgid "A bowling ball drilled with a thumb hole and two finger holes, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
+msgstr "A bowling ball drilled with a thumb hole and two finger holes, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
+
+#: src/components/BallLayoutDiagram.tsx
+msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {drillingAngle} by {pinToPap} inch by {valAngle} dual angle layout."
+msgstr "A bowling ball drilled with two finger holes and no thumb hole, showing a {drillingAngle} by {pinToPap} inch by {valAngle} dual angle layout."
+
+#: src/components/BallLayoutDiagram.tsx
+msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
+msgstr "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
+
+#: src/components/ToolsList.tsx
+msgid "A drilling layout, drawn on the ball"
+msgstr "A drilling layout, drawn on the ball"
+
+#: src/views/OpenFramesView.tsx
+msgid "a game"
+msgstr "a game"
+
+#: src/components/FirstRun.tsx
+msgid "A move left or right depends on the hand you throw with. You can change these later in Settings."
+msgstr "A move left or right depends on the hand you throw with. You can change these later in Settings."
+
+#: src/components/SessionForm.tsx
+msgid "A new pattern. Saving adds it to your oil patterns, where you can give it a load table."
+msgstr "A new pattern. Saving adds it to your oil patterns, where you can give it a load table."
+
+#. Bowling terms: a pocket shot is aimed at the pocket, the gap between the 1 and 3 pins; a leave is the pins left standing after the first ball; the strike line is where the bowler throws a strike.
+#: src/components/SpareLineFormDialog.tsx
+msgid "A pocket shot. With the 1 and 5 standing you throw your strike ball on your strike line, so this leave needs no spare line."
+msgstr "A pocket shot. With the 1 and 5 standing you throw your strike ball on your strike line, so this leave needs no spare line."
+
+#: src/views/OpenFramesView.tsx
+msgid "about {pins} pins a game"
+msgstr "about {pins} pins a game"
+
+#: src/views/BowlingProfileView.tsx
+msgid "About drift"
+msgstr "About drift"
+
+#: src/views/BowlingProfileView.tsx
+msgid "About release offset"
+msgstr "About release offset"
+
+#: src/views/BowlingProfileView.tsx
+msgid "About your PAP"
+msgstr "About your PAP"
+
+#. Badge on a session that still has a game in progress.
+#: src/components/SessionHistory.tsx
+msgid "Active"
+msgstr "Active"
+
+#: src/components/ShotDetailBar.tsx
+msgid "Actual"
+msgstr "Actual"
+
+#: src/components/ShotDetailBar.tsx
+msgid "Actual line"
+msgstr "Actual line"
+
+#: src/components/BallEstimates.tsx
+msgid "Actual overall average: {average}"
+msgstr "Actual overall average: {average}"
+
+#: src/components/BallFormDialog.tsx
+#: src/components/LaneNoteFormDialog.tsx
+#: src/views/SpareLinesView.tsx
+msgid "Add"
+msgstr "Add"
+
+#: src/components/ShotDetailBar.tsx
+#: src/views/ArsenalView.tsx
+msgid "Add a ball"
+msgstr "Add a ball"
+
+#: src/views/ArsenalView.tsx
+msgid "Add a ball, then pick it for each shot as you score."
+msgstr "Add a ball, then pick it for each shot as you score."
+
+#: src/views/LaneNotesView.tsx
+msgid "Add a lane note"
+msgstr "Add a lane note"
+
+#: src/components/OilPatternManager.tsx
+msgid "Add a pattern"
+msgstr "Add a pattern"
+
+#: src/components/BallFormDialog.tsx
+#: src/views/ArsenalView.tsx
+msgid "Add ball"
+msgstr "Add ball"
+
+#: src/components/HomeProfile.tsx
+msgid "Add balls to your bag"
+msgstr "Add balls to your bag"
+
 #: src/views/ActiveSessionView.tsx
 msgid "Add game"
 msgstr "Add game"
+
+#: src/components/OilPatternManager.tsx
+msgid "Add it yourself"
+msgstr "Add it yourself"
+
+#: src/components/LaneNoteFormDialog.tsx
+#: src/views/LaneNotesView.tsx
+msgid "Add lane note"
+msgstr "Add lane note"
+
+#: src/components/BallFormDialog.tsx
+msgid "Add layout"
+msgstr "Add layout"
 
 #: src/views/SettingsView.tsx
 msgid "Add name"
 msgstr "Add name"
 
+#: src/components/OilPatternFormDialog.tsx
+#: src/components/OilPatternManager.tsx
+msgid "Add oil pattern"
+msgstr "Add oil pattern"
+
+#: src/components/SpareLineFormDialog.tsx
+#: src/views/SpareLinesView.tsx
+msgid "Add spare line"
+msgstr "Add spare line"
+
+#: src/views/CatalogView.tsx
+msgid "Add to arsenal"
+msgstr "Add to arsenal"
+
+#: src/views/DashboardView.tsx
 #: src/views/SettingsView.tsx
 msgid "Add your name"
 msgstr "Add your name"
+
+#: src/components/OilPatternManager.tsx
+msgid "Added {name}."
+msgstr "Added {name}."
+
+#: src/components/LineInput.tsx
+msgid "Adjust line"
+msgstr "Adjust line"
+
+#. Bowling term. Spoken name of the strike-after-a-strike rate column, then its percentage.
+#: src/components/BallEstimates.tsx
+msgid "after a strike {value}"
+msgstr "after a strike {value}"
+
+#. Bowling term. A short column heading over the share of strikes thrown right after a strike.
+#: src/components/BallEstimates.tsx
+msgid "After strike"
+msgstr "After strike"
+
+#. Stats tab window: every session, a short segment label
+#: src/components/SessionFilterBar.tsx
+#: src/components/SpareFilterBar.tsx
+#: src/lib/statsRange.ts
+#: src/views/LaneNotesView.tsx
+#: src/views/StatsView.tsx
+msgid "All"
+msgstr "All"
+
+#: src/components/SessionFilterBar.tsx
+msgid "All alleys"
+msgstr "All alleys"
+
+#: src/components/BallEstimates.tsx
+msgid "All balls"
+msgstr "All balls"
+
+#: src/components/SessionFilterBar.tsx
+msgid "All events"
+msgstr "All events"
+
+#: src/views/GameTrendView.tsx
+msgid "All of them"
+msgstr "All of them"
+
+#: src/components/SessionFilterBar.tsx
+msgid "All patterns"
+msgstr "All patterns"
+
+#: src/lib/pins.ts
+msgid "All ten pins standing"
+msgstr "All ten pins standing"
+
+#: src/components/LaneNoteFormDialog.tsx
+#: src/components/SessionFilterBar.tsx
+#: src/components/SessionForm.tsx
+#: src/views/GamePlanView.tsx
+msgid "Alley"
+msgstr "Alley"
+
+#: src/components/LaneNoteFormDialog.tsx
+msgid "Alley and lane are required."
+msgstr "Alley and lane are required."
+
+#: src/components/HomeProfile.tsx
+#: src/views/GamePlanView.tsx
+msgid "Alley report"
+msgstr "Alley report"
+
+#: src/views/CatalogView.tsx
+msgid "Already in your arsenal"
+msgstr "Already in your arsenal"
+
+#. An open frame is a bowling term: a frame with pins left standing after both balls
+#: src/views/OpenFramesView.tsx
+msgid "An open frame gives up about 11 pins on average."
+msgstr "An open frame gives up about 11 pins on average."
+
+#. Bowling terms: PAP is the positive axis point; the axis line is the line the ball rotates around
+#: src/components/LayoutEditor.tsx
+msgid "Angle at the PAP between the pin and your axis line. Low puts the pin up for a sharper turn; high puts it down for a smoother one."
+msgstr "Angle at the PAP between the pin and your axis line. Low puts the pin up for a sharper turn; high puts it down for a smoother one."
+
+#. Bowling terms: PAP is the positive axis point, CG the center of gravity, PSA the preferred spin axis
+#: src/components/LayoutEditor.tsx
+msgid "Angle at the pin between your PAP and the CG or PSA. A low angle rolls early; a high one rolls later."
+msgstr "Angle at the pin between your PAP and the CG or PSA. A low angle rolls early; a high one rolls later."
+
+#: src/views/GamePlanView.tsx
+msgid "Any"
+msgstr "Any"
 
 #: src/views/SettingsView.tsx
 msgid "App"
@@ -64,25 +786,381 @@ msgstr "App"
 msgid "Appearance"
 msgstr "Appearance"
 
+#: src/components/HomeProfile.tsx
+#: src/views/ArsenalView.tsx
 #: src/views/SettingsView.tsx
 msgid "Arsenal"
 msgstr "Arsenal"
 
+#: src/components/ShotDetailBar.tsx
+msgid "As intended"
+msgstr "As intended"
+
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "Asking the App Store…"
 msgstr "Asking the App Store…"
 
+#. Bowling term, short for asymmetric: a core with uneven mass distribution
+#. Short for asymmetric, a ball core shaped differently on different sides
+#. Short for asymmetric, a bowling term for a ball core. A narrow segment of a control.
+#: src/components/BallFormDialog.tsx
+#: src/lib/shareCard.ts
+#: src/views/LayoutLabView.tsx
+msgid "Asym"
+msgstr "Asym"
+
+#. Bowling term: a ball with an asymmetric core, as opposed to symmetric
+#. Bowling term: a ball with an asymmetric core, as opposed to symmetric
+#. Bowling term: a ball with an asymmetric core, as opposed to symmetric
+#. Bowling term: a ball with an asymmetric core, as opposed to symmetric
+#: src/components/BallFormDialog.tsx
+#: src/views/CatalogView.tsx
+#: src/views/LayoutLabView.tsx
+msgid "Asymmetric"
+msgstr "Asymmetric"
+
+#. Bowling term: a ball whose core is shaped differently on different sides
+#: src/components/BallFormDialog.tsx
+msgid "Asymmetric core"
+msgstr "Asymmetric core"
+
+#. A bowling average: the score per game
+#. A bowling average: the score per game
+#: src/components/Stats.tsx
+#: src/lib/shareCard.ts
+msgid "Average"
+msgstr "Average"
+
+#. Short for average, beside a session's average score.
+#: src/components/SessionHistory.tsx
+msgid "avg"
+msgstr "avg"
+
+#. Column heading, short for average
+#: src/views/GameTrendView.tsx
+msgid "Avg"
+msgstr "Avg"
+
+#. Bowling term: short for average, the mean score per game. Keep it very short, it sits in a small tile.
+#: src/components/HomeProfile.tsx
+msgid "AVG"
+msgstr "AVG"
+
+#. Bowling term: a filter on the spare lines screen for splits whose standing pins are next to each other and makeable
+#: src/lib/spareLines.ts
+msgid "Baby splits"
+msgstr "Baby splits"
+
+#: src/components/FirstRun.tsx
+#: src/components/LaneVisualizer.tsx
 #: src/views/ActiveSessionView.tsx
 msgid "Back"
 msgstr "Back"
 
+#: src/components/PushScreen.tsx
+msgctxt "navigation"
+msgid "Back"
+msgstr "Back"
+
+#: src/components/FirstRun.tsx
+msgid "Backed up {when}"
+msgstr "Backed up {when}"
+
+#. Bowling term: how hard the ball turns at the end of the lane, a reading on the layout lab's rail
+#: src/lib/ballLayout.ts
+msgid "Backend"
+msgstr "Backend"
+
+#: src/views/BackupRestoreView.tsx
 #: src/views/SettingsView.tsx
 msgid "Backup & restore"
 msgstr "Backup & restore"
 
+#: src/views/BackupRestoreView.tsx
+msgid "Backup downloaded. Move it somewhere off this device."
+msgstr "Backup downloaded. Move it somewhere off this device."
+
+#: src/lib/backupValidation.ts
+msgid "Backup exported_at must be a string."
+msgstr "Backup exported_at must be a string."
+
+#: src/components/AppErrorBoundary.tsx
+msgid "Backup exported."
+msgstr "Backup exported."
+
+#: src/lib/backupValidation.ts
+msgid "Backup must be a JSON object."
+msgstr "Backup must be a JSON object."
+
+#: src/views/BackupRestoreView.tsx
+msgid "Backup sent. Save it somewhere off this device."
+msgstr "Backup sent. Save it somewhere off this device."
+
+#: src/lib/backupValidation.ts
+msgid "Backup table {name} has an invalid record at index {index}."
+msgstr "Backup table {name} has an invalid record at index {index}."
+
+#: src/lib/backupValidation.ts
+msgid "Backup table {name} must be an array."
+msgstr "Backup table {name} must be an array."
+
+#: src/lib/backupValidation.ts
+msgid "Backup tables must be an object."
+msgstr "Backup tables must be an object."
+
+#: src/lib/backupValidation.ts
+msgid "Backup version must be 1, 2, or 3."
+msgstr "Backup version must be 1, 2, or 3."
+
+#: src/components/BallFormDialog.tsx
+#: src/components/BallPickerSheet.tsx
+msgid "Ball"
+msgstr "Ball"
+
+#: src/lib/stats.ts
+msgid "Ball #{ballId}"
+msgstr "Ball #{ballId}"
+
+#: src/components/ToolsList.tsx
+msgid "Ball catalog"
+msgstr "Ball catalog"
+
+#: src/components/Stats.tsx
+msgid "Ball columns"
+msgstr "Ball columns"
+
+#: src/components/BallFormDialog.tsx
+msgid "Ball name is required."
+msgstr "Ball name is required."
+
+#: src/components/ShotDetailBar.tsx
+msgid "Ball: {name}. Tap to change"
+msgstr "Ball: {name}. Tap to change"
+
+#: src/components/ShotDetailBar.tsx
+msgid "Ball: none. Tap to change"
+msgstr "Ball: none. Tap to change"
+
+#: src/components/Stats.tsx
+msgid "Balls"
+msgstr "Balls"
+
+#. A drilling layout preset name on the layout lab: the middle of every range
+#: src/lib/ballLayout.ts
+msgid "Benchmark"
+msgstr "Benchmark"
+
+#: src/views/BowlingProfileView.tsx
+msgid "boards"
+msgstr "boards"
+
+#. Bowling term: the strips of wood across a lane; a table column heading
+#: src/components/PatternSheet.tsx
+msgid "Boards"
+msgstr "Boards"
+
+#: src/components/ShotDetailBar.tsx
+msgid "Borrow a saved spare line for this shot"
+msgstr "Borrow a saved spare line for this shot"
+
+#: src/views/GamePlanView.tsx
+msgid "Bowl a session to see your report"
+msgstr "Bowl a session to see your report"
+
+#: src/lib/moveGames.ts
+msgid "Bowled with Headpin on the web?"
+msgstr "Bowled with Headpin on the web?"
+
+#: src/components/LaneVisualizer.tsx
+msgid "Bowler view"
+msgstr "Bowler view"
+
+#: src/lib/shareCard.ts
+msgid "Bowling"
+msgstr "Bowling"
+
+#: src/components/LaneVisualizer.tsx
+#: src/views/LayoutLabView.tsx
+msgid "Bowling hand"
+msgstr "Bowling hand"
+
+#: src/components/LaneSurface.tsx
+msgid "Bowling lane line diagram"
+msgstr "Bowling lane line diagram"
+
+#: src/views/BowlingProfileView.tsx
 #: src/views/SettingsView.tsx
 msgid "Bowling profile"
 msgstr "Bowling profile"
+
+#: src/views/CatalogView.tsx
+msgid "Brand"
+msgstr "Brand"
+
+#: src/components/LineInput.tsx
+msgid "Break {board} ({feet}ft)"
+msgstr "Break {board} ({feet}ft)"
+
+#. Bowling term: the point where the ball turns from skid to hook
+#: src/lib/shareCard.ts
+msgid "Breakpoint"
+msgstr "Breakpoint"
+
+#: src/views/ArsenalView.tsx
+msgid "Bring back {name}"
+msgstr "Bring back {name}"
+
+#: src/components/BallFormDialog.tsx
+msgid "Bring back to arsenal"
+msgstr "Bring back to arsenal"
+
+#: src/components/SpareLineBulkSheet.tsx
+msgid "Bulk edit"
+msgstr "Bulk edit"
+
+#: src/components/Stats.tsx
+msgid "By game"
+msgstr "By game"
+
+#: src/components/Stats.tsx
+msgid "By session"
+msgstr "By session"
+
+#: src/components/LaneNotesTab.tsx
+msgid "Cancel"
+msgstr "Cancel"
+
+#. Bowling term: how often a ball that hit the pocket knocked all the pins down. Lower case: read aloud before a number
+#. Bowling term: pocket carry. Lower case, read aloud before a count.
+#: src/components/BallGameSessionsDialog.tsx
+#: src/components/Stats.tsx
+msgid "carry"
+msgstr "carry"
+
+#. Bowling term: a card stat, the share of pocket hits that struck
+#. Bowling term: how often a ball that hit the pocket carried for a strike. A rate label.
+#. Bowling term: how often a ball that hit the pocket knocked all the pins down
+#. Bowling term: how often a ball that hit the pocket knocked all the pins down
+#. Bowling term: how often a ball that hit the pocket knocked all the pins down
+#. Bowling term: how often a ball that hit the pocket knocked all the pins down
+#. Bowling term: how often a ball that hit the pocket knocked all the pins down
+#. Bowling term: how often a ball that hit the pocket strikes. Column heading, a rate.
+#: src/components/BallGameSessionsDialog.tsx
+#: src/components/Stats.tsx
+#: src/lib/shareCard.ts
+#: src/views/GameTrendView.tsx
+msgid "Carry"
+msgstr "Carry"
+
+#: src/components/Stats.tsx
+msgid "Carry, strike and the first ball's other numbers"
+msgstr "Carry, strike and the first ball's other numbers"
+
+#: src/components/BallFormDialog.tsx
+#: src/views/CatalogView.tsx
+msgid "Catalog"
+msgstr "Catalog"
+
+#: src/components/OilPatternManager.tsx
+msgid "Catalog patterns match their official sheets. Linking replaces this pattern's details with the catalog's, but keeps your name for it and its sessions. You can't undo this."
+msgstr "Catalog patterns match their official sheets. Linking replaces this pattern's details with the catalog's, but keeps your name for it and its sessions. You can't undo this."
+
+#: src/views/CatalogView.tsx
+msgid "Catalog v{version} · Updated {date}"
+msgstr "Catalog v{version} · Updated {date}"
+
+#: src/views/CatalogView.tsx
+msgid "Category"
+msgstr "Category"
+
+#. Bowling term: center of gravity of a ball core. Keep the abbreviation. A label on a ball diagram.
+#: src/components/BallLayoutDiagram.tsx
+msgid "CG"
+msgstr "CG"
+
+#. Bowling term: the middle oil pattern tier (Kegel's tiers are Sport, Challenge and Recreation)
+#: src/lib/oilPattern.ts
+msgid "Challenge"
+msgstr "Challenge"
+
+#: src/views/ProOfferView.tsx
+msgid "Change the angles and the pin buffer, see what the ball will do before you drill it, and see each ball in your arsenal drawn with its own layout."
+msgstr "Change the angles and the pin buffer, see what the ball will do before you drill it, and see each ball in your arsenal drawn with its own layout."
+
+#: src/components/SpareLineBulkSheet.tsx
+msgid "Changes every one of these"
+msgstr "Changes every one of these"
+
+#: src/components/LaneVisualizer.tsx
+msgid "Changing the hook shape"
+msgstr "Changing the hook shape"
+
+#: src/components/LayoutEditor.tsx
+msgid "Changing the layout"
+msgstr "Changing the layout"
+
+#: src/components/Stats.tsx
+msgid "Chart by"
+msgstr "Chart by"
+
+#: src/components/Stats.tsx
+msgid "Chart by game"
+msgstr "Chart by game"
+
+#: src/components/Stats.tsx
+msgid "Chart by session"
+msgstr "Chart by session"
+
+#: src/components/FirstRun.tsx
+#: src/views/BackupRestoreView.tsx
+msgid "Choose a backup file"
+msgstr "Choose a backup file"
+
+#: src/views/SpareLinesView.tsx
+msgid "Choose one"
+msgstr "Choose one"
+
+#: src/components/SessionFilterBar.tsx
+msgid "Clear"
+msgstr "Clear"
+
+#: src/components/OilPatternManager.tsx
+#: src/components/PatternFilterSheet.tsx
+#: src/components/Stats.tsx
+#: src/views/CatalogView.tsx
+#: src/views/SpareLinesView.tsx
+msgid "Clear filters"
+msgstr "Clear filters"
+
+#: src/components/LaneVisualizer.tsx
+#: src/components/SessionForm.tsx
+msgid "Clear oil pattern"
+msgstr "Clear oil pattern"
+
+#: src/views/GamePlanView.tsx
+msgid "Clear pattern"
+msgstr "Clear pattern"
+
+#: src/components/SessionFilterBar.tsx
+msgid "Clear pattern filter"
+msgstr "Clear pattern filter"
+
+#: src/components/SpareFilterBar.tsx
+msgid "Clear pins"
+msgstr "Clear pins"
+
+#: src/views/CatalogView.tsx
+msgid "Clear search"
+msgstr "Clear search"
+
+#: src/components/LaneVisualizer.tsx
+#: src/components/LaneVisualizerLazy.tsx
+#: src/components/LayoutEditor.tsx
+#: src/components/ShareCardDialog.tsx
+#: src/components/ui/FormSheet.tsx
+msgid "Close"
+msgstr "Close"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Close session sheet"
@@ -96,10 +1174,86 @@ msgstr "Close session stats"
 msgid "Color"
 msgstr "Color"
 
+#: src/views/CatalogView.tsx
+msgid "Colorway"
+msgstr "Colorway"
+
+#: src/views/GameTrendView.tsx
+msgid "Columns"
+msgstr "Columns"
+
+#: src/components/GetTheAppBanner.tsx
+msgid "Coming soon to the App Store"
+msgstr "Coming soon to the App Store"
+
+#: src/views/CatalogView.tsx
+msgid "Connect once to load the catalog"
+msgstr "Connect once to load the catalog"
+
+#. Bowling term: the share of spare chances for this leave that were made.
+#: src/components/SpareLineFormDialog.tsx
+msgid "Converted"
+msgstr "Converted"
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "Copy a saved spare line onto this leave"
+msgstr "Copy a saved spare line onto this leave"
+
+#. Bowling term: the weight block inside a ball
+#: src/views/CatalogView.tsx
+msgid "Core"
+msgstr "Core"
+
+#. Bowling term: the core is the weight block inside a ball; it is symmetric or asymmetric
+#. Bowling term: whether a ball has a symmetric or asymmetric core
+#. Bowling term: whether a ball has a symmetric or asymmetric core
+#. Bowling term: whether a ball has a symmetric or asymmetric core
+#: src/components/BallFormDialog.tsx
+#: src/views/CatalogView.tsx
+#: src/views/LayoutLabView.tsx
+msgid "Core type"
+msgstr "Core type"
+
+#. Bowling term. The pin leaves (what is left standing after the first ball) that cost this bowler the most.
+#: src/components/BallEstimates.tsx
+msgid "Costliest leaves"
+msgstr "Costliest leaves"
+
+#: src/views/CatalogView.tsx
+msgid "Could not update the catalog: {reason}. Showing last saved data."
+msgstr "Could not update the catalog: {reason}. Showing last saved data."
+
+#. Bowling term: the outer shell material of a ball
+#. Bowling term: the outer shell material of a ball
+#: src/views/CatalogView.tsx
+msgid "Coverstock"
+msgstr "Coverstock"
+
+#. Badge on the game being scored right now.
+#: src/components/SessionLanePanel.tsx
+msgid "Current"
+msgstr "Current"
+
+#: src/views/LayoutLabView.tsx
+msgid "Custom"
+msgstr "Custom"
+
 #. Theme setting: the dark theme
 #: src/views/AppearanceView.tsx
 msgid "Dark"
 msgstr "Dark"
+
+#: src/components/SessionForm.tsx
+msgid "Date"
+msgstr "Date"
+
+#: src/views/BowlingProfileView.tsx
+msgid "Decrease release offset"
+msgstr "Decrease release offset"
+
+#: src/views/ProOfferView.tsx
+msgid "Deeper stats"
+msgstr "Deeper stats"
 
 #: src/views/SettingsView.tsx
 msgid "Deeper stats, line and layout tools"
@@ -110,13 +1264,51 @@ msgstr "Deeper stats, line and layout tools"
 msgid "Default"
 msgstr "Default"
 
+#. Backend reading: a defined turn
+#: src/lib/ballLayout.ts
+msgid "Defined"
+msgstr "Defined"
+
+#: src/views/ArsenalView.tsx
+msgid "Delete {name}?"
+msgstr "Delete {name}?"
+
+#: src/components/BallFormDialog.tsx
+msgid "Delete ball"
+msgstr "Delete ball"
+
+#: src/views/ArsenalView.tsx
+msgid "Delete ball?"
+msgstr "Delete ball?"
+
 #: src/views/ActiveSessionView.tsx
 msgid "Delete game {gameNumber}"
 msgstr "Delete game {gameNumber}"
 
+#: src/components/LaneNotesTab.tsx
+msgid "Delete lane {lane} notes"
+msgstr "Delete lane {lane} notes"
+
+#: src/components/LaneNoteFormDialog.tsx
+msgid "Delete note"
+msgstr "Delete note"
+
 #: src/views/ActiveSessionView.tsx
 msgid "Delete session"
 msgstr "Delete session"
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "Delete spare line"
+msgstr "Delete spare line"
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "Delete spare line for pins {pins}"
+msgstr "Delete spare line for pins {pins}"
+
+#: src/components/LaneNoteFormDialog.tsx
+#: src/components/LaneNotesTab.tsx
+msgid "Delete the note for lane {lane}?"
+msgstr "Delete the note for lane {lane}?"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Delete this game?"
@@ -126,9 +1318,61 @@ msgstr "Delete this game?"
 msgid "Delete this session?"
 msgstr "Delete this session?"
 
+#: src/components/SpareDetailsSheet.tsx
+msgid "Delete this spare line?"
+msgstr "Delete this spare line?"
+
+#: src/components/LineInput.tsx
+msgid "Derived from what you entered. Tap to see it on the lane."
+msgstr "Derived from what you entered. Tap to see it on the lane."
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "Derived from your stance. Tap to see it on the lane."
+msgstr "Derived from your stance. Tap to see it on the lane."
+
+#: src/components/SessionForm.tsx
+msgid "Description"
+msgstr "Description"
+
+#. Bowling term: the differential, a ball spec (short for differential RG)
+#. Bowling term: the differential, a ball spec (short for differential RG)
+#: src/views/CatalogView.tsx
+msgid "Diff"
+msgstr "Diff"
+
+#. Bowling term: diff is the differential of radii of gyration, a measure of how much a ball flares
+#. placeholder {0}: formatFixed(weightSpecs.diff, 3)
+#: src/components/BallFormDialog.tsx
+msgid "Diff {0}"
+msgstr "Diff {0}"
+
+#. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
+#. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
+#. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
+#: src/views/ArsenalView.tsx
+#: src/views/CatalogView.tsx
+#: src/views/LayoutLabView.tsx
+msgid "Diff {diff}"
+msgstr "Diff {diff}"
+
+#. Bowling term: Diff is the differential, a ball spec. A range of values.
+#: src/views/CatalogView.tsx
+msgid "Diff {min} to {max}"
+msgstr "Diff {min} to {max}"
+
+#. Bowling term: Diff is the differential, a ball spec. A sort order.
+#: src/views/CatalogView.tsx
+msgid "Diff, high to low"
+msgstr "Diff, high to low"
+
 #: src/components/ActiveGameScorer.tsx
+#: src/components/UpdateToast.tsx
 msgid "Dismiss"
 msgstr "Dismiss"
+
+#: src/components/SaveCopyPrompt.tsx
+msgid "Dismiss backup reminder"
+msgstr "Dismiss backup reminder"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Dismiss game hint"
@@ -142,13 +1386,124 @@ msgstr "Dismiss share offer"
 msgid "Dismiss tip"
 msgstr "Dismiss tip"
 
+#: src/components/BallFormDialog.tsx
+msgid "Display name"
+msgstr "Display name"
+
+#: src/components/PatternSheet.tsx
+msgid "Distance"
+msgstr "Distance"
+
+#. Bowling terms: the axis line is the line the ball rotates around; the back end is the dry part of the lane near the pins
+#: src/components/LayoutEditor.tsx
+msgid "Distance from the pin to your axis line. Short reads the lane earlier and smoother; long saves more for the dry back end."
+msgstr "Distance from the pin to your axis line. Short reads the lane earlier and smoother; long saves more for the dry back end."
+
+#. Bowling terms: the pin is the ball's drilling marker, PAP the positive axis point, flare the track migration
+#. Bowling terms: the pin is the ball's drilling marker, PAP the positive axis point, flare the track migration
+#: src/components/LayoutEditor.tsx
+msgid "Distance from the pin to your PAP. Around 4 inches gives the most flare."
+msgstr "Distance from the pin to your PAP. Around 4 inches gives the most flare."
+
+#. Bowling terms: PSA is the preferred spin axis, PAP the positive axis point, side roll the sideways spin of the ball
+#: src/components/LayoutEditor.tsx
+msgid "Distance from the PSA to your PAP. It controls how quickly the ball gives up side roll, the job the drilling angle does in dual angle."
+msgstr "Distance from the PSA to your PAP. It controls how quickly the ball gives up side roll, the job the drilling angle does in dual angle."
+
 #: src/components/ActiveGameScorer.tsx
+#: src/components/LaneVisualizer.tsx
+#: src/components/ui/FormSheet.tsx
 msgid "Done"
 msgstr "Done"
+
+#. Bowling term: PAP, the axis point is below the ball's midline.
+#: src/components/PapEditor.tsx
+msgctxt "pap direction"
+msgid "Down"
+msgstr "Down"
+
+#: src/components/LaneVisualizer.tsx
+msgid "Drag a point to move it"
+msgstr "Drag a point to move it"
+
+#: src/components/BallLayoutDiagram.tsx
+msgid "Drag the ball, or use the arrow keys, to turn it."
+msgstr "Drag the ball, or use the arrow keys, to turn it."
+
+#: src/components/LaneVisualizer.tsx
+msgid "Drag the lane to tilt"
+msgstr "Drag the lane to tilt"
+
+#: src/views/ProOfferView.tsx
+msgid "Drag the laydown, target and breakpoint on the lane, shape the hook, and watch the path follow. It works in the line visualizer, on your spare lines and on any shot you have scored."
+msgstr "Drag the laydown, target and breakpoint on the lane, shape the hook, and watch the path follow. It works in the line visualizer, on your spare lines and on any shot you have scored."
+
+#: src/views/ArsenalView.tsx
+msgid "Drag to reorder {name}"
+msgstr "Drag to reorder {name}"
+
+#: src/components/ToolsList.tsx
+msgid "Draw a line on the lane, over the oil"
+msgstr "Draw a line on the lane, over the oil"
+
+#. Bowling term: how far the bowler's feet move sideways during the approach
+#. Bowling term: how far the bowler's feet move sideways during the approach
+#: src/views/BowlingProfileView.tsx
+msgid "Drift"
+msgstr "Drift"
+
+#. Bowling term: short for drilling angle, the angle from the pin-to-PAP line to the pin-to-core line. A tiny label under an angle on a ball diagram, so keep it very short.
+#: src/components/BallLayoutDiagram.tsx
+msgid "DRILL"
+msgstr "DRILL"
+
+#. Bowling term: the angle at the pin between the bowler's PAP and the ball's CG or PSA
+#. Bowling term: the angle from the grip midline to the pin line at the PAP. A label on a ball diagram, wrapped onto lines at its spaces.
+#: src/components/GuideFigure.tsx
+#: src/components/LayoutEditor.tsx
+msgid "Drilling angle"
+msgstr "Drilling angle"
+
+#. Bowling term: a ball layout written as a drilling angle, a pin to PAP distance and a VAL angle
+#: src/components/LayoutEditor.tsx
+msgid "Dual angle"
+msgstr "Dual angle"
+
+#. Bowling terms: dual angle and Storm VLS are two ways of writing how a ball is drilled
+#: src/components/BallFormDialog.tsx
+msgid "Dual angle or Storm VLS, on sliders. Opens on the benchmark."
+msgstr "Dual angle or Storm VLS, on sliders. Opens on the benchmark."
+
+#: src/components/BallFormDialog.tsx
+msgid "e.g. Storm Phaze II"
+msgstr "e.g. Storm Phaze II"
+
+#. Length reading: the ball turns early
+#: src/lib/ballLayout.ts
+msgid "Early"
+msgstr "Early"
+
+#. A drilling layout preset name on the layout lab: a layout that gets the ball rolling early
+#: src/lib/ballLayout.ts
+msgid "Early roll"
+msgstr "Early roll"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Edit"
 msgstr "Edit"
+
+#: src/components/OilPatternManager.tsx
+#: src/views/ArsenalView.tsx
+msgid "Edit {name}"
+msgstr "Edit {name}"
+
+#: src/components/BallFormDialog.tsx
+msgid "Edit ball"
+msgstr "Edit ball"
+
+#: src/views/BowlingProfileView.tsx
+msgid "Edit bowling profile"
+msgstr "Edit bowling profile"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Edit game lanes"
@@ -158,6 +1513,31 @@ msgstr "Edit game lanes"
 msgid "Edit game lanes. Frame 1 starts on lane {startLane}"
 msgstr "Edit game lanes. Frame 1 starts on lane {startLane}"
 
+#: src/components/LaneNotesTab.tsx
+msgid "Edit lane {lane} notes"
+msgstr "Edit lane {lane} notes"
+
+#: src/components/LaneNoteFormDialog.tsx
+msgid "Edit lane note"
+msgstr "Edit lane note"
+
+#. Bowling terms: RG is radius of gyration, diff is the differential of radii of gyration, the core is the weight block inside the ball and the coverstock is its outer shell
+#: src/components/BallFormDialog.tsx
+msgid "Edit links it, for its core, coverstock, RG and diff."
+msgstr "Edit links it, for its core, coverstock, RG and diff."
+
+#: src/views/LaneNotesView.tsx
+msgid "Edit note for {alley} lane {lane}"
+msgstr "Edit note for {alley} lane {lane}"
+
+#: src/components/OilPatternFormDialog.tsx
+msgid "Edit oil pattern"
+msgstr "Edit oil pattern"
+
+#: src/components/PatternSheet.tsx
+msgid "Edit pattern"
+msgstr "Edit pattern"
+
 #: src/views/ActiveSessionView.tsx
 msgid "Edit session"
 msgstr "Edit session"
@@ -165,6 +1545,10 @@ msgstr "Edit session"
 #: src/components/ActiveGameScorer.tsx
 msgid "Edit shots"
 msgstr "Edit shots"
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "Edit spare line"
+msgstr "Edit spare line"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Edit this completed game?"
@@ -178,13 +1562,215 @@ msgstr "Edit this recorded shot?"
 msgid "Enter whole numbers for both lanes."
 msgstr "Enter whole numbers for both lanes."
 
+#: src/components/BallFormDialog.tsx
+msgid "Entering it below replaces the text with numbers."
+msgstr "Entering it below replaces the text with numbers."
+
+#. Short column heading: estimated average.
+#: src/components/BallEstimates.tsx
+msgid "Est."
+msgstr "Est."
+
+#: src/components/BallEstimates.tsx
+#: src/views/ProOfferView.tsx
+msgid "Estimated average"
+msgstr "Estimated average"
+
+#: src/components/SessionFilterBar.tsx
+msgid "Event"
+msgstr "Event"
+
+#: src/views/ArsenalView.tsx
+msgid "Every ball you have is retired. Add one, or bring one back."
+msgstr "Every ball you have is retired. Add one, or bring one back."
+
+#: src/lib/shareCard.ts
+msgid "Every session"
+msgstr "Every session"
+
+#. Describes the Early roll drilling layout preset. Oil is the conditioner on the lane
+#: src/lib/ballLayout.ts
+msgid "Everything a touch smaller. Reads the front sooner for heavier oil or a later-rolling hand."
+msgstr "Everything a touch smaller. Reads the front sooner for heavier oil or a later-rolling hand."
+
+#: src/views/ProOfferView.tsx
+msgid "Everything in Pro is open here."
+msgstr "Everything in Pro is open here."
+
+#: src/views/BowlingProfileView.tsx
+msgid "Example: no drift, release offset 6"
+msgstr "Example: no drift, release offset 6"
+
+#: src/components/AppErrorBoundary.tsx
+msgid "Export backup"
+msgstr "Export backup"
+
+#: src/components/SaveCopyPrompt.tsx
+#: src/views/BackupRestoreView.tsx
+msgid "Export failed."
+msgstr "Export failed."
+
+#: src/components/AppErrorBoundary.tsx
+msgid "Export failed. Try again."
+msgstr "Export failed. Try again."
+
 #: src/views/SettingsView.tsx
 msgid "Export or import your data"
 msgstr "Export or import your data"
 
+#. Short for Frame, with its number: F1 to F10.
+#. Short for Frame, with its number: F1 to F10.
+#: src/components/SessionLanePanel.tsx
+msgid "F{frame}"
+msgstr "F{frame}"
+
+#. Bowling term: the surface finish a ball ships with, such as polished or sanded
+#: src/views/CatalogView.tsx
+msgid "Factory finish"
+msgstr "Factory finish"
+
+#: src/views/ArsenalView.tsx
+msgid "Failed to delete ball."
+msgstr "Failed to delete ball."
+
+#: src/components/SpareDetailsSheet.tsx
+msgid "Failed to delete spare line."
+msgstr "Failed to delete spare line."
+
+#: src/components/LaneNoteFormDialog.tsx
+msgid "Failed to delete."
+msgstr "Failed to delete."
+
+#: src/components/BallFormDialog.tsx
+#: src/views/CatalogView.tsx
+msgid "Failed to save ball."
+msgstr "Failed to save ball."
+
+#: src/views/ArsenalView.tsx
+msgid "Failed to save new order."
+msgstr "Failed to save new order."
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "Failed to save spare line."
+msgstr "Failed to save spare line."
+
+#: src/components/SpareLineBulkSheet.tsx
+msgid "Failed to save the spare lines."
+msgstr "Failed to save the spare lines."
+
+#: src/components/BowlerNameSheet.tsx
+msgid "Failed to save your name."
+msgstr "Failed to save your name."
+
+#: src/components/LaneNoteFormDialog.tsx
+msgid "Failed to save."
+msgstr "Failed to save."
+
+#: src/views/SpareLinesView.tsx
+msgid "Failed to set the spare ball."
+msgstr "Failed to set the spare ball."
+
+#: src/views/ArsenalView.tsx
+msgid "Failed to update ball."
+msgstr "Failed to update ball."
+
+#. A table column heading: distance down the lane in feet
+#: src/components/PatternSheet.tsx
+msgid "Feet"
+msgstr "Feet"
+
+#. Accent color name: a teal green, like the felt on a card table
+#: src/lib/palette.ts
+msgid "Felt"
+msgstr "Felt"
+
+#. Bowling terms: RG is radius of gyration, diff is the differential of radii of gyration, the core is the weight block inside the ball and the coverstock is its outer shell
+#: src/components/BallFormDialog.tsx
+msgid "Fills in the core, coverstock, RG and diff."
+msgstr "Fills in the core, coverstock, RG and diff."
+
+#. Bowling term: a leave is the set of pins left standing after the first ball
+#: src/components/Stats.tsx
+msgid "Filter leaves"
+msgstr "Filter leaves"
+
+#: src/views/SpareLinesView.tsx
+msgid "Filter spare lines"
+msgstr "Filter spare lines"
+
+#: src/views/CatalogView.tsx
+msgid "Filter the catalog"
+msgstr "Filter the catalog"
+
+#: src/components/PatternFilterSheet.tsx
+#: src/components/SessionFilterBar.tsx
+#: src/views/CatalogView.tsx
+msgid "Filters"
+msgstr "Filters"
+
+#: src/components/PatternFilterSheet.tsx
+#: src/components/SessionFilterBar.tsx
+msgid "Filters, {count} applied"
+msgstr "Filters, {count} applied"
+
+#. Bowling term: the board where the ball ends up at the pins; a short label over a number field
+#: src/components/LaneVisualizer.tsx
+msgid "Final"
+msgstr "Final"
+
+#. Bowling term: how many feet down the lane the ball ends up. ft is feet; a short label over a number field
+#: src/components/LaneVisualizer.tsx
+msgid "Final ft"
+msgstr "Final ft"
+
+#. A short greeting at the top of Home; the bowler's name may follow it. The pocket is the bowling term for the gap between the 1 and 3 pins that a good strike ball hits
+#: src/lib/greeting.ts
+msgid "Find the pocket"
+msgstr "Find the pocket"
+
+#: src/lib/shareCard.ts
+msgid "Finishes on"
+msgstr "Finishes on"
+
+#. Bowling term: the first ball of a frame, thrown at a full rack of ten pins. Lower case: read aloud before a number
+#: src/components/Stats.tsx
+msgid "first ball"
+msgstr "first ball"
+
+#. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
+#. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
+#. Bowling term: the first ball thrown in a frame
+#: src/components/Stats.tsx
+#: src/views/GameTrendView.tsx
+msgid "First ball"
+msgstr "First ball"
+
+#. Bowling term: all ten pins knocked down with the first ball of a frame
+#: src/components/Stats.tsx
+msgid "First balls at a full rack that struck."
+msgstr "First balls at a full rack that struck."
+
+#. Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance
+#: src/components/Stats.tsx
+msgid "First balls that hit the pocket."
+msgstr "First balls that hit the pocket."
+
 #: src/views/ActiveSessionView.tsx
 msgid "First lane"
 msgstr "First lane"
+
+#. Bowling term: how far the ball's track spreads as it rolls, a reading on the layout lab's rail
+#: src/lib/ballLayout.ts
+msgid "Flare"
+msgstr "Flare"
+
+#: src/components/PatternSheet.tsx
+msgid "Forward / reverse"
+msgstr "Forward / reverse"
+
+#: src/components/PatternSheet.tsx
+msgid "Forward passes"
+msgstr "Forward passes"
 
 #. A bowling term: a foul, crossing the line. A menu item that records one.
 #: src/components/ActiveGameScorer.tsx
@@ -215,7 +1801,38 @@ msgstr "frame {frame}, ball {ball} (strike)"
 msgid "Frame {frameNumber}, ball {ball} is already recorded. Changing it rescores the game from that frame on."
 msgstr "Frame {frameNumber}, ball {ball} is already recorded. Changing it rescores the game from that frame on."
 
+#: src/components/GetTheAppBanner.tsx
+msgid "Free on the App Store"
+msgstr "Free on the App Store"
+
+#. Short for Game, with its number: G1, G2.
+#. Short for Game, with its number: G1, G2.
+#: src/components/SessionHistory.tsx
+msgid "G{game}"
+msgstr "G{game}"
+
+#. Short axis label for a game number on a chart, like G1
+#: src/components/Stats.tsx
+msgid "G{gameNumber}"
+msgstr "G{gameNumber}"
+
+#: src/components/SessionFilterBar.tsx
+#: src/lib/shareCard.ts
+#: src/views/GamePlanView.tsx
+msgid "Game"
+msgstr "Game"
+
+#: src/views/GamePlanView.tsx
+msgid "game {gameNumber}"
+msgstr "game {gameNumber}"
+
+#: src/components/SessionFilterBar.tsx
+#: src/components/SessionLanePanel.tsx
+#: src/components/Stats.tsx
+#: src/lib/shareCard.ts
 #: src/views/ActiveSessionView.tsx
+#: src/views/DashboardView.tsx
+#: src/views/GameTrendView.tsx
 msgid "Game {gameNumber}"
 msgstr "Game {gameNumber}"
 
@@ -227,6 +1844,21 @@ msgstr "Game {gameNumber} (score {deleteGameScore}) and its frames will be perma
 msgid "Game {gameNumber} and its frames will be permanently deleted."
 msgstr "Game {gameNumber} and its frames will be permanently deleted."
 
+#. Bowling terms: the stance is the board the bowler stands on, the target the board aimed at. Each move reads like 2 boards left
+#: src/components/alleyHistoryCopy.ts
+msgid "Game {gameNumber} here: you usually move {stanceMove} at the stance and {targetMove} at the target."
+msgstr "Game {gameNumber} here: you usually move {stanceMove} at the stance and {targetMove} at the target."
+
+#. Bowling term: the stance is the board the bowler stands on. The move reads like 2 boards left
+#: src/components/alleyHistoryCopy.ts
+msgid "Game {gameNumber} here: you usually move {stanceMove} at the stance."
+msgstr "Game {gameNumber} here: you usually move {stanceMove} at the stance."
+
+#. Bowling term: the target is the board aimed at. The move reads like 2 boards left
+#: src/components/alleyHistoryCopy.ts
+msgid "Game {gameNumber} here: you usually move {targetMove} at the target."
+msgstr "Game {gameNumber} here: you usually move {targetMove} at the target."
+
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} is in the books. Share the session?"
 msgstr "Game {gameNumber} is in the books. Share the session?"
@@ -235,28 +1867,151 @@ msgstr "Game {gameNumber} is in the books. Share the session?"
 msgid "Game {gameNumber} lanes"
 msgstr "Game {gameNumber} lanes"
 
+#: src/views/GameTrendView.tsx
+msgid "Game by game"
+msgstr "Game by game"
+
+#: src/components/Stats.tsx
 #: src/views/ActiveSessionView.tsx
+#: src/views/GameTrendView.tsx
 msgid "Games"
 msgstr "Games"
+
+#: src/components/Stats.tsx
+msgid "Games behind {name}, game {gameNumber}"
+msgstr "Games behind {name}, game {gameNumber}"
+
+#. Button that opens the app in the App Store.
+#: src/components/GetTheAppBanner.tsx
+msgid "Get"
+msgstr "Get"
+
+#: src/components/Stats.tsx
+msgid "Get a deeper analysis of your stats."
+msgstr "Get a deeper analysis of your stats."
 
 #: src/views/SettingsView.tsx
 msgid "Get Headpin Pro"
 msgstr "Get Headpin Pro"
 
+#: src/views/ArsenalView.tsx
+msgid "Get Pro to visualize your ball layout"
+msgstr "Get Pro to visualize your ball layout"
+
+#: src/components/SessionLanePanel.tsx
+msgid "Go to frame {frameNumber}"
+msgstr "Go to frame {frameNumber}"
+
+#: src/components/InstallPrompt.tsx
+msgid "Got it"
+msgstr "Got it"
+
+#. Accent color name: a purple
+#: src/lib/palette.ts
+msgid "Grape"
+msgstr "Grape"
+
+#. How the bowler holds the ball: one-handed or two-handed
+#: src/views/BowlingProfileView.tsx
+msgid "Grip"
+msgstr "Grip"
+
+#. Bowling term: the middle point of the grip holes, where layout measurements start. A label on a ball diagram.
+#. Bowling term: the middle point of the grip holes, where layout measurements start. A label on a ball diagram.
+#: src/components/GuideFigure.tsx
+msgid "Grip center"
+msgstr "Grip center"
+
+#. Bowling term: the line through the grip center, running along the ball between the fingers and thumb holes. A label on a ball diagram.
+#: src/components/GuideFigure.tsx
+msgid "Grip midline"
+msgstr "Grip midline"
+
+#: src/components/FirstRun.tsx
+#: src/views/BowlingProfileView.tsx
+#: src/views/LayoutLabView.tsx
+msgid "Grip style"
+msgstr "Grip style"
+
+#: src/components/ToolsList.tsx
+#: src/views/GuidesView.tsx
+msgid "Guides"
+msgstr "Guides"
+
+#. Left or right handed bowler
+#: src/views/LayoutLabView.tsx
+msgctxt "bowling hand"
+msgid "Hand"
+msgstr "Hand"
+
+#: src/components/HandednessPicker.tsx
+#: src/views/BowlingProfileView.tsx
+msgid "Handedness"
+msgstr "Handedness"
+
+#. A filter on the spare lines screen: leaves the bowler has written a line (stance and target) for
+#: src/lib/spareLines.ts
+msgid "Has a line"
+msgstr "Has a line"
+
 #: src/views/SettingsView.tsx
 msgid "Headpin {version}"
 msgstr "Headpin {version}"
 
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Headpin downloads a copy of your current data first, so you can undo this."
+msgstr "Headpin downloads a copy of your current data first, so you can undo this."
+
+#: src/components/GetTheAppBanner.tsx
+msgid "Headpin for iPhone"
+msgstr "Headpin for iPhone"
+
+#: src/components/StaleShellScreen.tsx
+msgid "Headpin needs to update"
+msgstr "Headpin needs to update"
+
+#: src/components/ProHomeBanner.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "Headpin Pro"
 msgstr "Headpin Pro"
 
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "Headpin Pro is restored."
 msgstr "Headpin Pro is restored."
 
+#: src/components/ProHomeBanner.tsx
+msgid "Headpin Pro. See what it adds"
+msgstr "Headpin Pro. See what it adds"
+
+#. A short greeting at the top of Home; the bowler's name may follow it
+#: src/lib/greeting.ts
+msgid "Hey"
+msgstr "Hey"
+
+#: src/components/OilPatternManager.tsx
+msgid "Hide archived ({count})"
+msgstr "Hide archived ({count})"
+
+#: src/views/ArsenalView.tsx
+msgid "Hide retired ({count})"
+msgstr "Hide retired ({count})"
+
+#. Flare reading: the high third of the scale
+#. The highest game score
+#: src/components/Stats.tsx
+#: src/lib/ballLayout.ts
+msgid "High"
+msgstr "High"
+
+#: src/lib/shareCard.ts
+msgid "High game"
+msgstr "High game"
+
 #. Tab name: the list of past sessions
 #: src/App.tsx
+#: src/views/HistoryView.tsx
 msgid "History"
 msgstr "History"
 
@@ -269,25 +2024,195 @@ msgstr "Hit {pinsThisShot}"
 msgid "Home"
 msgstr "Home"
 
+#. Bowling term: how far down the lane the ball curves for
+#: src/components/LaneVisualizer.tsx
+msgid "Hook length"
+msgstr "Hook length"
+
+#. Bowling term: the curve a ball takes on the lane
+#: src/components/LaneVisualizer.tsx
+msgid "Hook shape"
+msgstr "Hook shape"
+
+#. Bowling term: how far down the lane the ball starts to curve
+#: src/components/LaneVisualizer.tsx
+msgid "Hook start"
+msgstr "Hook start"
+
+#: src/components/FirstRun.tsx
+msgid "How do you bowl?"
+msgstr "How do you bowl?"
+
+#: src/components/HomeProfile.tsx
+msgid "How each lane plays"
+msgstr "How each lane plays"
+
 #: src/views/SettingsView.tsx
 msgid "How each lane plays at each alley"
 msgstr "How each lane plays at each alley"
 
+#: src/components/Stats.tsx
+msgid "How each of your balls strikes, carries and spares"
+msgstr "How each of your balls strikes, carries and spares"
+
+#: src/views/BowlingProfileView.tsx
+msgid "How many boards from your slide foot, toward your bowling hand, the ball lands."
+msgstr "How many boards from your slide foot, toward your bowling hand, the ball lands."
+
+#: src/views/BowlingProfileView.tsx
+msgid "How many boards your feet move between stance and slide."
+msgstr "How many boards your feet move between stance and slide."
+
+#. Bowling term: boards are the strips of wood across a lane
+#: src/components/PatternSheet.tsx
+msgid "How many times more oil the middle carries than each band of boards, read left to right across the lane as the sheet prints it."
+msgstr "How many times more oil the middle carries than each band of boards, read left to right across the lane as the sheet prints it."
+
+#: src/components/LaneNoteFormDialog.tsx
+msgid "How this lane plays: transition, where it hooks, ball reaction…"
+msgstr "How this lane plays: transition, where it hooks, ball reaction…"
+
+#: src/components/LaneNotesTab.tsx
+msgid "How this lane plays…"
+msgstr "How this lane plays…"
+
+#: src/components/FeedbackPrompt.tsx
+msgid "How's Headpin working for you?"
+msgstr "How's Headpin working for you?"
+
+#. Bowling term: a coverstock type that blends solid and pearl
+#: src/views/CatalogView.tsx
+msgid "Hybrid"
+msgstr "Hybrid"
+
+#: src/components/InstallPrompt.tsx
+msgid "If you don't open it for a week, your browser may delete your scores. Add Headpin to your home screen and they're safe, and it opens full screen."
+msgstr "If you don't open it for a week, your browser may delete your scores. Add Headpin to your home screen and they're safe, and it opens full screen."
+
+#: src/components/ShareCardDialog.tsx
+msgid "Image saved"
+msgstr "Image saved"
+
+#: src/views/BackupRestoreView.tsx
+msgid "Import failed."
+msgstr "Import failed."
+
+#. Bowling term: toward the higher board numbers, nearer the middle of the lane for a right-hander. A nudge button.
+#: src/components/LaneVisualizer.tsx
+#: src/components/LineInput.tsx
+msgid "In"
+msgstr "In"
+
+#: src/components/HomeProfile.tsx
+msgid "In progress"
+msgstr "In progress"
+
+#: src/components/InstallPrompt.tsx
+msgid "In Safari, tap Share"
+msgstr "In Safari, tap Share"
+
+#. Step 2 of moving games from the web to the app
+#: src/lib/moveGames.ts
+msgid "In the app, open Settings, then Backup & restore, and import."
+msgstr "In the app, open Settings, then Backup & restore, and import."
+
+#: src/views/BowlingProfileView.tsx
+msgid "Increase release offset"
+msgstr "Increase release offset"
+
+#. Bowling term: the inside zone of the lane, toward the center. A zone name in the drift settings.
+#: src/views/BowlingProfileView.tsx
+msgid "Inside"
+msgstr "Inside"
+
+#: src/components/InstallPrompt.tsx
+msgid "Install"
+msgstr "Install"
+
+#: src/components/InstallPrompt.tsx
 #: src/views/SettingsView.tsx
 msgid "Install Headpin"
 msgstr "Install Headpin"
 
+#: src/components/ShotDetailBar.tsx
+msgid "Intended"
+msgstr "Intended"
+
+#: src/components/ShotDetailBar.tsx
+msgid "Intended line"
+msgstr "Intended line"
+
+#. Bowling term: the pocket is the gap between the 1 and 3 pins for a right-hander
+#: src/lib/shareCard.ts
+msgid "Into the pocket"
+msgstr "Into the pocket"
+
+#: src/views/CatalogView.tsx
+msgid "It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in."
+msgstr "It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in."
+
+#: src/components/BallFormDialog.tsx
+msgid "It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
+msgstr "It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
+
+#: src/views/GamePlanView.tsx
+msgid "It shows what you'd average with each ball at an alley, from the games you bowled there."
+msgstr "It shows what you'd average with each ball at an alley, from the games you bowled there."
+
+#: src/components/FirstRun.tsx
+msgid "Keep score, plus the ball and line for every shot. It all stays on this phone."
+msgstr "Keep score, plus the ball and line for every shot. It all stays on this phone."
+
+#. Short for left, for the left-handed choice. A narrow segment of a control.
+#. Single-letter abbreviation for left, as in left-handed
+#: src/components/LaneVisualizer.tsx
+#: src/views/LayoutLabView.tsx
+msgid "L"
+msgstr "L"
+
 #: src/components/ActiveGameScorer.tsx
+#: src/components/LaneNoteFormDialog.tsx
+#: src/components/SessionLanePanel.tsx
+#: src/views/GamePlanView.tsx
 msgid "Lane"
 msgstr "Lane"
 
+#: src/views/GamePlanView.tsx
+msgid "lane {lane}"
+msgstr "lane {lane}"
+
+#: src/components/LaneNotesTab.tsx
+#: src/components/SessionLanePanel.tsx
+msgid "Lane {lane}"
+msgstr "Lane {lane}"
+
+#: src/components/LaneNoteFormDialog.tsx
+msgid "Lane must be a whole number."
+msgstr "Lane must be a whole number."
+
+#: src/components/HomeProfile.tsx
+#: src/views/LaneNotesView.tsx
 #: src/views/SettingsView.tsx
 msgid "Lane notes"
 msgstr "Lane notes"
 
+#: src/components/LaneVisualizer.tsx
+msgid "Lane options"
+msgstr "Lane options"
+
 #: src/views/ActiveSessionView.tsx
 msgid "Lane pair"
 msgstr "Lane pair"
+
+#: src/components/SessionFilterBar.tsx
+#: src/components/SessionLanePanel.tsx
+msgid "Lanes"
+msgstr "Lanes"
+
+#. A short greeting at the top of Home; the bowler's name may follow it
+#: src/lib/greeting.ts
+msgid "Lanes are open"
+msgstr "Lanes are open"
 
 #. Text size setting: one step bigger than the standard size
 #: src/lib/textScale.ts
@@ -304,6 +2229,20 @@ msgstr "Larger"
 msgid "Largest"
 msgstr "Largest"
 
+#. Stats tab window: the last ten sessions, a short segment label
+#: src/lib/statsRange.ts
+#: src/views/StatsView.tsx
+msgid "Last 10"
+msgstr "Last 10"
+
+#: src/views/StatsView.tsx
+msgid "Last 10 sessions"
+msgstr "Last 10 sessions"
+
+#: src/views/StatsView.tsx
+msgid "Last 3 months"
+msgstr "Last 3 months"
+
 #: src/lib/backupNudge.ts
 msgid "Last backup today"
 msgstr "Last backup today"
@@ -312,28 +2251,399 @@ msgstr "Last backup today"
 msgid "Last backup yesterday"
 msgstr "Last backup yesterday"
 
+#. Length reading: the ball turns late
+#: src/lib/ballLayout.ts
+msgid "Late"
+msgstr "Late"
+
+#. A drilling layout preset name on the layout lab: a layout that saves energy for the back and turns hard
+#: src/lib/ballLayout.ts
+msgid "Late and angular"
+msgstr "Late and angular"
+
+#: src/views/DashboardView.tsx
+msgid "Later"
+msgstr "Later"
+
+#. Bowling term: the board the ball first touches the lane
+#. Bowling term: the board the ball first touches the lane
+#. Bowling term: the board where the ball is released onto the lane
+#: src/components/LaneVisualizer.tsx
+#: src/views/BowlingProfileView.tsx
+msgid "Laydown"
+msgstr "Laydown"
+
+#: src/components/LineInput.tsx
+#: src/components/SpareLineBulkSheet.tsx
+msgid "Laydown {board}"
+msgstr "Laydown {board}"
+
+#. Bowling term: the board where the ball first touches the lane, followed by the board number
+#: src/components/SpareLineFormDialog.tsx
+#: src/views/SpareLinesView.tsx
+msgid "Laydown {laydown}"
+msgstr "Laydown {laydown}"
+
+#. Bowling term: the board the ball is released over at the foul line
+#: src/lib/shareCard.ts
+msgid "Laydown board"
+msgstr "Laydown board"
+
+#. Bowling term: how a ball is drilled relative to its core
+#. Bowling term: how a ball is drilled relative to its core
+#: src/components/BallFormDialog.tsx
+msgid "Layout"
+msgstr "Layout"
+
+#: src/views/LayoutLabView.tsx
+msgid "Layout {layout}"
+msgstr "Layout {layout}"
+
+#. Bowling term: the drilling layout of a ball
+#: src/components/ToolsList.tsx
+#: src/views/LayoutLabView.tsx
+msgid "Layouts"
+msgstr "Layouts"
+
 #: src/views/SettingsView.tsx
 msgid "Layouts, patterns, the catalog and guides"
 msgstr "Layouts, patterns, the catalog and guides"
 
+#: src/components/SessionForm.tsx
+msgid "League, practice, tournament…"
+msgstr "League, practice, tournament…"
+
+#. Bowling term: the pins left standing after the first ball of a frame
+#: src/components/Stats.tsx
+msgid "Leaves"
+msgstr "Leaves"
+
+#. Bowling term: a leave is the set of pins left standing after the first ball
+#: src/components/Stats.tsx
+msgid "Leaves left most"
+msgstr "Leaves left most"
+
+#. Bowling term. Spoken name of the spare conversion column, then its percentage.
+#: src/components/BallEstimates.tsx
+msgid "leaves made {value}"
+msgstr "leaves made {value}"
+
+#: src/components/SpareLineBulkSheet.tsx
+msgid "Leaves on this line"
+msgstr "Leaves on this line"
+
+#. Bowling term. Spoken name of the split rate column, then its percentage.
+#: src/components/BallEstimates.tsx
+msgid "leaves that split {value}"
+msgstr "leaves that split {value}"
+
+#. Bowling term: the point on the lane where the oil pattern ends
+#: src/lib/shareCard.ts
+msgid "Leaves the oil"
+msgstr "Leaves the oil"
+
+#: src/components/LaneVisualizer.tsx
+#: src/views/LayoutLabView.tsx
+msgid "Left"
+msgstr "Left"
+
+#. Bowling term: how often this leave was left standing after the first ball.
+#: src/components/SpareLineFormDialog.tsx
+msgctxt "times a leave was left"
+msgid "Left"
+msgstr "Left"
+
+#: src/components/BallEstimates.tsx
+msgid "Left {count}"
+msgstr "Left {count}"
+
+#. A ball layout card: the bowler throws left-handed
+#: src/lib/shareCard.ts
+msgid "Left hand"
+msgstr "Left hand"
+
+#. A ball layout card: the bowler throws left-handed with two hands (2H, two-handed style)
+#: src/lib/shareCard.ts
+msgid "Left hand, 2H"
+msgstr "Left hand, 2H"
+
+#: src/components/HandednessPicker.tsx
+#: src/views/BowlingProfileView.tsx
 #: src/views/SettingsView.tsx
 msgid "Left-handed"
 msgstr "Left-handed"
+
+#. Bowling term: how far down the lane the ball travels before it turns, a reading on the layout lab's rail
+#: src/components/PatternFilterSheet.tsx
+#: src/lib/ballLayout.ts
+msgid "Length"
+msgstr "Length"
+
+#: src/components/OilPatternFormDialog.tsx
+msgid "Length (ft)"
+msgstr "Length (ft)"
+
+#: src/components/Stats.tsx
+msgid "level with your average"
+msgstr "level with your average"
 
 #. Theme setting: the light theme
 #: src/views/AppearanceView.tsx
 msgid "Light"
 msgstr "Light"
 
+#: src/components/LaneVisualizer.tsx
+msgid "Line"
+msgstr "Line"
+
+#: src/components/ProHomeBanner.tsx
+msgid "Line and layout tools, deeper stats, estimated averages and more colors. Pay once, future updates included."
+msgstr "Line and layout tools, deeper stats, estimated averages and more colors. Pay once, future updates included."
+
+#: src/App.tsx
+msgid "Line sandbox"
+msgstr "Line sandbox"
+
+#: src/components/ToolsList.tsx
+msgid "Line visualizer"
+msgstr "Line visualizer"
+
+#: src/components/ShareCardDialog.tsx
+#: src/views/GuidesView.tsx
+msgid "Link copied"
+msgstr "Link copied"
+
+#: src/components/BallFormDialog.tsx
+msgid "Link to catalog"
+msgstr "Link to catalog"
+
+#: src/components/BallFormDialog.tsx
+msgid "Linked to catalog"
+msgstr "Linked to catalog"
+
 #: src/views/SettingsView.tsx
 msgid "Live Activity on the Lock Screen"
 msgstr "Live Activity on the Lock Screen"
 
+#: src/components/OilPatternManager.tsx
+msgid "Load table for {name}"
+msgstr "Load table for {name}"
+
+#: src/components/OilPatternManager.tsx
+msgid "Load table for this pattern"
+msgstr "Load table for this pattern"
+
+#: src/views/CatalogView.tsx
+msgid "Load the catalog"
+msgstr "Load the catalog"
+
+#: src/components/LaneVisualizerLazy.tsx
+msgid "Loading"
+msgstr "Loading"
+
+#: src/components/BallFormDialog.tsx
+msgid "Loading catalog…"
+msgstr "Loading catalog…"
+
+#: src/components/LaneVisualizerLazy.tsx
+msgid "Loading the lane view"
+msgstr "Loading the lane view"
+
+#: src/components/LaneNotesTab.tsx
+#: src/components/OilPatternManager.tsx
+#: src/components/OverlayLoading.tsx
+#: src/views/ArsenalView.tsx
+#: src/views/LaneNotesView.tsx
+#: src/views/SpareLinesView.tsx
+msgid "Loading…"
+msgstr "Loading…"
+
+#. Bowling term: how many times the oil machine lays a pass of oil; a table column heading
+#: src/components/PatternSheet.tsx
+msgid "Loads"
+msgstr "Loads"
+
+#. Describes the Late and angular drilling layout preset. VAL angle is a drilling measurement; down-and-in is a ball motion bowling term
+#: src/lib/ballLayout.ts
+msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
+msgstr "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
+
+#: src/components/ToolsList.tsx
+msgid "Look up a pattern's length and oil"
+msgstr "Look up a pattern's length and oil"
+
+#: src/views/CatalogView.tsx
+msgid "Loosen a filter to see more of the catalog."
+msgstr "Loosen a filter to see more of the catalog."
+
+#: src/components/OilPatternManager.tsx
+msgid "Loosen a filter to see more patterns."
+msgstr "Loosen a filter to see more patterns."
+
+#. Flare reading: the low third of the scale
+#. The lowest game score
+#: src/components/Stats.tsx
+#: src/lib/ballLayout.ts
+msgid "Low"
+msgstr "Low"
+
+#. Describes the Short pin drilling layout preset. Board is a bowling term for one of the 39 strips of the lane
+#: src/lib/ballLayout.ts
+msgid "Low flare on purpose. Burns less board on the way down for fresh oil or a spare-adjacent ball."
+msgstr "Low flare on purpose. Burns less board on the way down for fresh oil or a spare-adjacent ball."
+
+#. Bowling term. A short column heading over the share of leaves picked up for a spare.
+#. Bowling term: spares made out of the chances. Shown as made/chances.
+#: src/components/BallEstimates.tsx
+#: src/components/SpareLineFormDialog.tsx
+msgid "Made"
+msgstr "Made"
+
+#. Bowling terms: a leave is the set of pins left standing after the first ball; the 10th is the tenth and last frame
+#: src/components/Stats.tsx
+msgid "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to follow it, so it is not on this card."
+msgstr "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to follow it, so it is not on this card."
+
+#. Bowling term: a leave that can be converted into a spare
+#: src/views/OpenFramesView.tsx
+msgid "Makeable"
+msgstr "Makeable"
+
+#. Bowling terms: a makeable leave is a set of standing pins that can be converted to a spare; a split leaves gaps between pins; a washout is a leave with the head pin standing and a gap behind it
+#: src/components/Stats.tsx
+msgid "Makeable leaves made. Not splits or washouts."
+msgstr "Makeable leaves made. Not splits or washouts."
+
+#. Bowling term: ordinary spare leaves a bowler can reasonably convert, a group on the Stats tab
+#: src/lib/pins.ts
+msgid "Makeables"
+msgstr "Makeables"
+
+#: src/components/BallPickerSheet.tsx
+msgid "Manage arsenal"
+msgstr "Manage arsenal"
+
+#: src/components/SessionForm.tsx
+msgid "Manage oil patterns"
+msgstr "Manage oil patterns"
+
+#. Bowling term: all ten pins knocked down with the first ball of a frame
+#: src/components/Stats.tsx
+msgid "Max consecutive strikes"
+msgstr "Max consecutive strikes"
+
+#. Bowling term: the mass bias differential, a ball spec, followed by its value
+#: src/views/LayoutLabView.tsx
+msgid "MB {mbDiff}"
+msgstr "MB {mbDiff}"
+
+#. Bowling term: the mass bias differential, a ball spec
+#: src/views/CatalogView.tsx
+msgid "MB diff"
+msgstr "MB diff"
+
+#. Flare reading: the middle third of the scale
+#. Strength reading: the middle third of the scale
+#: src/lib/ballLayout.ts
+msgid "Medium"
+msgstr "Medium"
+
+#. Length reading: the ball turns in the middle of the lane
+#: src/lib/ballLayout.ts
+msgid "Mid"
+msgstr "Mid"
+
+#. Bowling term: the middle zone of the lane. A zone name in the drift settings.
+#: src/views/BowlingProfileView.tsx
+msgid "Middle"
+msgstr "Middle"
+
 #: src/components/ActiveGameScorer.tsx
+#: src/components/BallFormDialog.tsx
+#: src/views/LayoutLabView.tsx
 msgid "More"
 msgstr "More"
 
+#: src/views/ProOfferView.tsx
+msgid "More colors"
+msgstr "More colors"
+
+#. Bowling terms: opens are open frames; makeables are leaves that can be converted to a spare
+#: src/views/OpenFramesView.tsx
+msgid "Most opens (makeables)"
+msgstr "Most opens (makeables)"
+
+#. Bowling term: all ten pins knocked down with the first ball of a frame
+#: src/components/Stats.tsx
+msgid "Most strikes in a row in one game."
+msgstr "Most strikes in a row in one game."
+
+#: src/components/LaneVisualizer.tsx
+#: src/components/LineInput.tsx
+msgid "Move {move} in"
+msgstr "Move {move} in"
+
+#: src/components/LaneVisualizer.tsx
+#: src/components/LineInput.tsx
+msgid "Move {move} out"
+msgstr "Move {move} out"
+
+#. Bowling term: a move shifts the starting position (feet) and the aim (eyes) by a number of boards
+#: src/components/LaneVisualizer.tsx
+msgid "Move feet · eyes"
+msgstr "Move feet · eyes"
+
+#: src/views/BowlingProfileView.tsx
+msgid "Move inside drift left"
+msgstr "Move inside drift left"
+
+#: src/views/BowlingProfileView.tsx
+msgid "Move inside drift right"
+msgstr "Move inside drift right"
+
+#: src/views/BowlingProfileView.tsx
+msgid "Move middle drift left"
+msgstr "Move middle drift left"
+
+#: src/views/BowlingProfileView.tsx
+msgid "Move middle drift right"
+msgstr "Move middle drift right"
+
+#: src/views/BowlingProfileView.tsx
+msgid "Move outside drift left"
+msgstr "Move outside drift left"
+
+#: src/views/BowlingProfileView.tsx
+msgid "Move outside drift right"
+msgstr "Move outside drift right"
+
+#: src/components/LaneVisualizer.tsx
+msgid "Move presets"
+msgstr "Move presets"
+
+#: src/views/ProOfferView.tsx
+msgid "Move your line"
+msgstr "Move your line"
+
+#: src/components/LaneVisualizer.tsx
+msgid "Moving the line"
+msgstr "Moving the line"
+
+#: src/components/OilPatternFormDialog.tsx
+#: src/views/CatalogView.tsx
+msgid "Name"
+msgstr "Name"
+
+#: src/components/OilPatternManager.tsx
+msgid "Name or length, like 40"
+msgstr "Name or length, like 40"
+
+#: src/views/CatalogView.tsx
+msgid "Name, A to Z"
+msgstr "Name, A to Z"
+
 #: src/lib/backupNudge.ts
+#: src/views/DashboardView.tsx
 msgid "never"
 msgstr "never"
 
@@ -341,11 +2651,20 @@ msgstr "never"
 msgid "Never backed up"
 msgstr "Never backed up"
 
+#: src/components/ActiveGameScorer.tsx
+msgid "New"
+msgstr "New"
+
 #: src/views/ActiveSessionView.tsx
 msgid "New game"
 msgstr "New game"
 
+#: src/views/CatalogView.tsx
+msgid "Newest first"
+msgstr "Newest first"
+
 #: src/components/ActiveGameScorer.tsx
+#: src/components/FirstRun.tsx
 msgid "Next"
 msgstr "Next"
 
@@ -361,13 +2680,259 @@ msgstr "No active game selected."
 msgid "No active game was found for this session."
 msgstr "No active game was found for this session."
 
+#: src/components/BallPickerSheet.tsx
+#: src/components/ShotDetailBar.tsx
+#: src/lib/lineReport.ts
+msgid "No ball"
+msgstr "No ball"
+
+#: src/views/CatalogView.tsx
+msgid "No balls match these filters"
+msgstr "No balls match these filters"
+
+#: src/views/GamePlanView.tsx
+msgid "No balls to compare yet. Name the ball on your shots and each one's average shows up here."
+msgstr "No balls to compare yet. Name the ball on your shots and each one's average shows up here."
+
+#: src/views/ArsenalView.tsx
+msgid "No balls yet"
+msgstr "No balls yet"
+
+#: src/views/GameTrendView.tsx
+msgid "No games to compare yet"
+msgstr "No games to compare yet"
+
+#: src/components/LaneNotesTab.tsx
+#: src/views/LaneNotesView.tsx
+msgid "No lane notes yet"
+msgstr "No lane notes yet"
+
+#: src/components/BallEstimates.tsx
+msgid "No leave it gives you is one you often miss."
+msgstr "No leave it gives you is one you often miss."
+
+#. Bowling term: a leave is the set of pins left standing after the first ball
+#: src/components/Stats.tsx
+msgid "No leaves fit these filters."
+msgstr "No leaves fit these filters."
+
+#. A filter on the spare lines screen: leaves the bowler has not written a line (stance and target) for
+#: src/lib/spareLines.ts
+#: src/views/SpareLinesView.tsx
+msgid "No line yet"
+msgstr "No line yet"
+
+#: src/components/SpareLinePickerSheet.tsx
+msgid "No lines saved yet"
+msgstr "No lines saved yet"
+
+#: src/components/OilPatternManager.tsx
+msgid "No link"
+msgstr "No link"
+
+#: src/components/LaneNotesTab.tsx
+msgid "No notes"
+msgstr "No notes"
+
+#: src/components/OilPatternManager.tsx
+msgid "No oil patterns yet"
+msgstr "No oil patterns yet"
+
+#: src/lib/lineReport.ts
+msgid "no pattern"
+msgstr "no pattern"
+
+#: src/components/LaneVisualizer.tsx
+msgid "No pattern"
+msgstr "No pattern"
+
+#: src/components/OilPatternManager.tsx
+msgid "No patterns match these filters"
+msgstr "No patterns match these filters"
+
+#: src/lib/pins.ts
+msgid "No pins standing"
+msgstr "No pins standing"
+
+#: src/views/NoSessionView.tsx
+msgid "No session running"
+msgstr "No session running"
+
+#: src/components/SessionHistory.tsx
+msgid "No sessions yet"
+msgstr "No sessions yet"
+
+#: src/components/SessionLanePanel.tsx
+msgid "No shots yet."
+msgstr "No shots yet."
+
+#: src/views/SpareLinesView.tsx
+msgid "No spare lines yet"
+msgstr "No spare lines yet"
+
+#: src/components/Stats.tsx
+msgid "No stats yet"
+msgstr "No stats yet"
+
+#: src/components/FeedbackPrompt.tsx
+msgid "No thanks"
+msgstr "No thanks"
+
+#: src/views/SpareLinesView.tsx
+msgid "none"
+msgstr "none"
+
+#: src/components/SpareLineFormDialog.tsx
+#: src/lib/spareLines.ts
+#: src/views/BowlingProfileView.tsx
+msgid "None"
+msgstr "None"
+
+#: src/views/SpareLinesView.tsx
+msgid "None of your saved leaves fit these filters."
+msgstr "None of your saved leaves fit these filters."
+
+#: src/components/BallFormDialog.tsx
+msgid "None yet"
+msgstr "None yet"
+
 #: src/components/ActiveGameScorer.tsx
 msgid "Not a pocket hit"
 msgstr "Not a pocket hit"
 
+#: src/components/BallFormDialog.tsx
+msgid "Not linked to the catalog"
+msgstr "Not linked to the catalog"
+
+#: src/components/GetTheAppBanner.tsx
+#: src/components/InstallPrompt.tsx
+#: src/components/MoveGamesDialog.tsx
+#: src/views/ArsenalView.tsx
+#: src/views/SpareLinesView.tsx
+msgid "Not now"
+msgstr "Not now"
+
+#: src/views/SpareLinesView.tsx
+msgid "Not the same shot"
+msgstr "Not the same shot"
+
+#: src/components/LaneNoteFormDialog.tsx
+#: src/components/ShotDetailBar.tsx
+msgid "Notes"
+msgstr "Notes"
+
+#: src/views/StatsView.tsx
+msgid "Nothing in the last 3 months"
+msgstr "Nothing in the last 3 months"
+
+#: src/views/SpareLinesView.tsx
+msgid "Nothing matches"
+msgstr "Nothing matches"
+
+#: src/views/OpenFramesView.tsx
+msgid "Nothing open yet"
+msgstr "Nothing open yet"
+
+#: src/views/GamePlanView.tsx
+msgid "Nothing recorded for {where} yet."
+msgstr "Nothing recorded for {where} yet."
+
+#: src/views/GamePlanView.tsx
+msgid "Nothing recorded for this yet."
+msgstr "Nothing recorded for this yet."
+
+#: src/views/LaneNotesView.tsx
+msgid "Nothing written yet"
+msgstr "Nothing written yet"
+
+#. Accent color name: a blue
+#: src/lib/palette.ts
+msgid "Ocean"
+msgstr "Ocean"
+
+#: src/views/ProOfferView.tsx
+msgid "Ocean, Sunset, Grape and Rose, next to the Felt green."
+msgstr "Ocean, Sunset, Grape and Rose, next to the Felt green."
+
+#. Bowling term: a makeable leave is a set of standing pins that can be converted to a spare
+#: src/components/Stats.tsx
+msgid "of makeables made"
+msgstr "of makeables made"
+
+#. Short for release offset, a bowling term
+#: src/views/BowlingProfileView.tsx
+msgid "Offset"
+msgstr "Offset"
+
+#: src/components/PatternSheet.tsx
+msgid "Oil on the lane"
+msgstr "Oil on the lane"
+
+#: src/components/PatternSheet.tsx
+msgid "Oil on the lane, ending at {feet} ft"
+msgstr "Oil on the lane, ending at {feet} ft"
+
+#: src/components/LaneVisualizer.tsx
+#: src/components/SessionFilterBar.tsx
+#: src/components/SessionForm.tsx
+msgid "Oil pattern"
+msgstr "Oil pattern"
+
+#: src/components/OilPatternManager.tsx
+#: src/components/SessionForm.tsx
+#: src/components/ToolsList.tsx
+msgid "Oil patterns"
+msgstr "Oil patterns"
+
+#. Step 1 of moving games from the web to the app. headpin.app is a web address and stays as it is
+#: src/lib/moveGames.ts
+msgid "On headpin.app, open Settings, then Backup & restore, and export your games."
+msgstr "On headpin.app, open Settings, then Backup & restore, and export your games."
+
+#: src/components/FirstRun.tsx
+msgid "One hand or two?"
+msgstr "One hand or two?"
+
+#: src/views/LayoutLabView.tsx
+msgid "One handed"
+msgstr "One handed"
+
+#: src/components/FirstRun.tsx
+#: src/views/BowlingProfileView.tsx
 #: src/views/SettingsView.tsx
 msgid "One-handed"
 msgstr "One-handed"
+
+#: src/components/SpareFilterBar.tsx
+msgid "Only these pins"
+msgstr "Only these pins"
+
+#: src/components/Stats.tsx
+msgid "Open {leave}"
+msgstr "Open {leave}"
+
+#: src/components/Stats.tsx
+msgid "Open {name}"
+msgstr "Open {name}"
+
+#. Bowling term: frames left open. Two-line label, followed by a line reading a game
+#: src/views/OpenFramesView.tsx
+msgid "open frames"
+msgstr "open frames"
+
+#. Bowling term: a frame that ended with pins still standing, neither a strike nor a spare
+#: src/views/OpenFramesView.tsx
+msgid "Open frames"
+msgstr "Open frames"
+
+#. Bowling term: an open frame is one with pins left standing after both balls. Lowercase label next to a number.
+#: src/views/OpenFramesView.tsx
+msgid "open frames a game"
+msgstr "open frames a game"
+
+#: src/views/OpenFramesView.tsx
+msgid "Open frames a game by session, oldest first. {points}."
+msgstr "Open frames a game by session, oldest first. {points}."
 
 #: src/views/ActiveSessionView.tsx
 msgid "Open session sheet and lane notes"
@@ -377,8 +2942,198 @@ msgstr "Open session sheet and lane notes"
 msgid "Open session stats"
 msgstr "Open session stats"
 
+#: src/components/HomeProfile.tsx
+#: src/components/SessionHistory.tsx
+msgid "Open session: {alley}, {date}"
+msgstr "Open session: {alley}, {date}"
+
+#: src/views/SpareLinesView.tsx
+msgid "Open spare line for pins {pins}"
+msgstr "Open spare line for pins {pins}"
+
+#: src/components/MoveGamesDialog.tsx
+msgid "Open the App Store"
+msgstr "Open the App Store"
+
+#: src/components/PatternSheet.tsx
+msgid "Open the PDF"
+msgstr "Open the PDF"
+
+#: src/views/BackupRestoreView.tsx
+msgid "Or drop a backup file here."
+msgstr "Or drop a backup file here."
+
+#: src/components/OilPatternFormDialog.tsx
+#: src/components/PatternSheet.tsx
+msgid "Original pattern sheet"
+msgstr "Original pattern sheet"
+
+#. Bowling term: toward the lower board numbers, nearer the gutter for a right-hander. A nudge button.
+#: src/components/LaneVisualizer.tsx
+#: src/components/LineInput.tsx
+msgid "Out"
+msgstr "Out"
+
+#. Bowling term: the outside zone of the lane, near the gutter. A zone name in the drift settings.
+#: src/views/BowlingProfileView.tsx
+msgid "Outside"
+msgstr "Outside"
+
+#. Bowling term: PAP (positive axis point), how far over from the ball's center line the axis point sits, in inches.
+#. Bowling term: PAP (positive axis point), how far over from the ball's center line the axis point sits, in inches.
+#: src/components/PapEditor.tsx
+msgid "Over"
+msgstr "Over"
+
+#: src/components/Stats.tsx
+msgid "over your last {sessions} sessions, {against}"
+msgstr "over your last {sessions} sessions, {against}"
+
+#. A badge on a ball you already have in your arsenal
+#: src/views/CatalogView.tsx
+msgid "Owned"
+msgstr "Owned"
+
+#. Bowling term: positive axis point, the spot on the ball the axis of rotation runs through. Keep the abbreviation. A label on a ball diagram.
+#. Bowling term: positive axis point, the spot on the ball the axis of rotation runs through. Keep the abbreviation. A label on a ball diagram.
+#: src/components/BallLayoutDiagram.tsx
+#: src/components/GuideFigure.tsx
+msgid "PAP"
+msgstr "PAP"
+
+#. Bowling term: PAP is the positive axis point, where the ball's axis of rotation sits on its surface; the value follows
+#: src/lib/shareCard.ts
+msgid "PAP {pap}"
+msgstr "PAP {pap}"
+
+#: src/views/GamePlanView.tsx
+msgid "Pattern"
+msgstr "Pattern"
+
+#: src/lib/shareCard.ts
+msgid "Pattern length"
+msgstr "Pattern length"
+
+#: src/components/OilPatternFormDialog.tsx
+msgid "Pattern sheet link"
+msgstr "Pattern sheet link"
+
+#: src/components/OilPatternManager.tsx
+msgid "Pattern sheet saved"
+msgstr "Pattern sheet saved"
+
+#: src/views/ProOfferView.tsx
+msgid "Pay once and it is yours, with every Pro feature added later included. No subscription, no account."
+msgstr "Pay once and it is yours, with every Pro feature added later included. No subscription, no account."
+
+#. Bowling term: a coverstock type, a shiny cover with mica that skids and then hooks
+#: src/views/CatalogView.tsx
+msgid "Pearl"
+msgstr "Pearl"
+
+#: src/components/SessionFilterBar.tsx
+msgid "Pick an alley to filter by lane."
+msgstr "Pick an alley to filter by lane."
+
+#: src/components/FirstRun.tsx
+msgid "Pick another"
+msgstr "Pick another"
+
+#. Step 3 of moving games from the web to the app. Files is the phone's Files app
+#: src/lib/moveGames.ts
+msgid "Pick the file from Files."
+msgstr "Pick the file from Files."
+
+#. Bowling term: the pin mark on a ball, near the top of the core's weight. Not a bowling pin. A label on a ball diagram.
+#. Bowling term: the pin mark on a ball, the top of the core's weight. Not a bowling pin. A label on a ball diagram.
+#. Bowling term: the pin mark on a ball, the top of the core's weight. Not a bowling pin. A label on a ball diagram.
+#. Bowling term: the pin mark on a ball, the top of the core's weight. Not a bowling pin. A label on a ball diagram.
+#: src/components/BallLayoutDiagram.tsx
+#: src/components/GuideFigure.tsx
+msgid "Pin"
+msgstr "Pin"
+
+#. Bowling term: the name of a leave of a single standing pin, e.g. Pin 7
+#: src/lib/pins.ts
+msgid "Pin {pin}"
+msgstr "Pin {pin}"
+
+#: src/components/PinGrid.tsx
+msgid "Pin {pin}, down"
+msgstr "Pin {pin}, down"
+
+#: src/components/PinGrid.tsx
+msgid "Pin {pin}, standing"
+msgstr "Pin {pin}, standing"
+
+#. Bowling term: the distance from the ball's pin to the bowler's axis line
+#. Bowling term: the distance from the pin to the VAL, across the ball. A label on a ball diagram.
+#: src/components/GuideFigure.tsx
+#: src/components/LayoutEditor.tsx
+msgid "Pin buffer"
+msgstr "Pin buffer"
+
+#: src/components/PinGrid.tsx
+msgid "Pin deck"
+msgstr "Pin deck"
+
+#. A drilling layout preset name on the layout lab: the pin sits low, giving a smooth shape
+#: src/lib/ballLayout.ts
+msgid "Pin down"
+msgstr "Pin down"
+
+#. Bowling term: the distance from the ball's pin to the bowler's PAP (positive axis point)
+#. Bowling term: the distance from the ball's pin to the bowler's PAP (positive axis point)
+#. Bowling term: the distance from the pin to the PAP on the ball. A label on a ball diagram.
+#. Bowling term: the distance from the pin to the PAP on the ball. A label on a ball diagram.
+#: src/components/GuideFigure.tsx
+#: src/components/LayoutEditor.tsx
+msgid "Pin to PAP"
+msgstr "Pin to PAP"
+
+#: src/components/SpareFilterBar.tsx
+msgid "Pins"
+msgstr "Pins"
+
+#: src/components/SpareFilterBar.tsx
+msgid "Pins {pins}"
+msgstr "Pins {pins}"
+
+#: src/lib/pins.ts
+msgid "Pins standing: {pins}"
+msgstr "Pins standing: {pins}"
+
+#. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
+#: src/components/Stats.tsx
+msgid "Pins the first ball knocks down, on average."
+msgstr "Pins the first ball knocks down, on average."
+
+#: src/components/PatternFilterSheet.tsx
+msgid "Play style"
+msgstr "Play style"
+
+#. Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance. Lower case: read aloud before a number
+#. Bowling term: the strike pocket. Lower case, read aloud before a count.
+#: src/components/BallGameSessionsDialog.tsx
+#: src/components/Stats.tsx
+msgid "pocket"
+msgstr "pocket"
+
 #. A bowling term: the ball hit the pocket, the gap between the 1 and the 3 pins. A small toggle button.
+#. Bowling term: a card stat, the share of first balls that hit the pocket (the gap between the 1 and 3 pins for a right-hander)
+#. Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance
+#. Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance
+#. Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance
+#. Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance
+#. Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance
+#. Bowling term: the pocket is where the ball hits the pins for the best chance of a strike. Column heading, a rate.
+#. Bowling term: the strike pocket, where the ball should hit the pins. A rate label.
 #: src/components/ActiveGameScorer.tsx
+#: src/components/BallGameSessionsDialog.tsx
+#: src/components/LaneVisualizer.tsx
+#: src/components/Stats.tsx
+#: src/lib/shareCard.ts
+#: src/views/GameTrendView.tsx
 msgid "Pocket"
 msgstr "Pocket"
 
@@ -386,42 +3141,379 @@ msgstr "Pocket"
 msgid "Pocket hit"
 msgstr "Pocket hit"
 
+#. Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance
+#: src/components/Stats.tsx
+msgid "pocket hits"
+msgstr "pocket hits"
+
+#. Bowling term: how often a ball that hit the pocket knocked all the pins down
+#: src/components/Stats.tsx
+msgid "Pocket hits that struck."
+msgstr "Pocket hits that struck."
+
+#: src/views/ProOfferView.tsx
+msgid "Pocket, carry and strike rates, overall and for each ball, game by game."
+msgstr "Pocket, carry and strike rates, overall and for each ball, game by game."
+
+#. Bowling term: a coverstock material, plastic, used for straight shots and spares
+#: src/views/CatalogView.tsx
+msgid "Polyester"
+msgstr "Polyester"
+
 #: src/views/SettingsView.tsx
 msgid "Pre-fill spare lines during score entry"
 msgstr "Pre-fill spare lines during score entry"
 
+#: src/views/LayoutLabView.tsx
+msgid "Presets"
+msgstr "Presets"
+
+#: src/views/LayoutLabView.tsx
+msgid "Presets, {preset}"
+msgstr "Presets, {preset}"
+
+#: src/views/LegalView.tsx
 #: src/views/SettingsView.tsx
 msgid "Privacy and terms"
 msgstr "Privacy and terms"
+
+#: src/views/ProOfferView.tsx
+msgid "Pro is bought in the iPhone app, which is not in the App Store yet."
+msgstr "Pro is bought in the iPhone app, which is not in the App Store yet."
+
+#: src/views/ProOfferView.tsx
+msgid "Pro is bought in the iPhone app."
+msgstr "Pro is bought in the iPhone app."
+
+#. Bowling term: preferred spin axis, a mark on the ball. Keep the abbreviation. A label on a ball diagram.
+#: src/components/BallLayoutDiagram.tsx
+msgid "PSA"
+msgstr "PSA"
+
+#. Bowling term: the distance from the ball's preferred spin axis to the bowler's PAP (positive axis point)
+#. Bowling term: the distance from the ball's preferred spin axis to the bowler's PAP (positive axis point)
+#: src/components/LayoutEditor.tsx
+msgid "PSA to PAP"
+msgstr "PSA to PAP"
 
 #: src/views/SettingsView.tsx
 msgid "Put it on your home screen, so it opens like an app"
 msgstr "Put it on your home screen, so it opens like an app"
 
+#: src/components/LaneVisualizer.tsx
+msgid "Quick moves"
+msgstr "Quick moves"
+
+#. Short for right, for the right-handed choice. A narrow segment of a control.
+#. Single-letter abbreviation for right, as in right-handed
+#: src/components/LaneVisualizer.tsx
+#: src/views/LayoutLabView.tsx
+msgid "R"
+msgstr "R"
+
+#: src/components/PatternSheet.tsx
+msgid "Ratio"
+msgstr "Ratio"
+
+#: src/components/LaneVisualizer.tsx
+msgid "Re-aim"
+msgstr "Re-aim"
+
+#: src/components/FirstRun.tsx
+msgid "Reading…"
+msgstr "Reading…"
+
+#. A short greeting at the top of Home; the bowler's name may follow it
+#: src/lib/greeting.ts
+msgid "Ready to roll"
+msgstr "Ready to roll"
+
+#: src/components/HomeProfile.tsx
+msgid "Recent sessions"
+msgstr "Recent sessions"
+
+#. Bowling term: the easiest oil pattern tier, a high oil ratio (Kegel's tiers are Sport, Challenge and Recreation)
+#: src/lib/oilPattern.ts
+msgid "Recreation"
+msgstr "Recreation"
+
+#. Bowling term: how many boards from the slide foot the ball is released toward the bowling hand
+#. Bowling term: how many boards from the slide foot the ball is released toward the bowling hand
+#: src/views/BowlingProfileView.tsx
+msgid "Release offset"
+msgstr "Release offset"
+
+#: src/views/CatalogView.tsx
+msgid "Released {date}"
+msgstr "Released {date}"
+
+#: src/components/AppErrorBoundary.tsx
+#: src/components/StaleShellScreen.tsx
+msgid "Reload"
+msgstr "Reload"
+
+#: src/components/OilPatternManager.tsx
+msgid "Remove"
+msgstr "Remove"
+
+#: src/components/OilPatternManager.tsx
+msgid "Remove {name}?"
+msgstr "Remove {name}?"
+
+#: src/components/SessionFilterBar.tsx
+msgid "Remove filter {filter}"
+msgstr "Remove filter {filter}"
+
+#: src/views/CatalogView.tsx
+msgid "Remove filter: {label}"
+msgstr "Remove filter: {label}"
+
+#: src/components/BallFormDialog.tsx
+msgid "Remove layout"
+msgstr "Remove layout"
+
+#: src/components/OilPatternFormDialog.tsx
+msgid "Remove pattern"
+msgstr "Remove pattern"
+
+#: src/components/OilPatternManager.tsx
+msgid "Remove pattern?"
+msgstr "Remove pattern?"
+
+#: src/components/BallEstimates.tsx
+msgid "Removed ball"
+msgstr "Removed ball"
+
+#: src/views/LayoutLabView.tsx
+msgid "Replace"
+msgstr "Replace"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Replace all data?"
+msgstr "Replace all data?"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Replace everything"
+msgstr "Replace everything"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Replacing"
+msgstr "Replacing"
+
+#: src/views/CatalogView.tsx
+msgid "Reset all filters"
+msgstr "Reset all filters"
+
+#: src/views/LayoutLabView.tsx
+msgid "Reset to your saved settings"
+msgstr "Reset to your saved settings"
+
+#: src/components/FirstRun.tsx
+msgid "Restore"
+msgstr "Restore"
+
+#: src/components/OilPatternManager.tsx
+msgid "Restore {name}"
+msgstr "Restore {name}"
+
+#: src/components/AppErrorBoundary.tsx
+#: src/views/BackupRestoreView.tsx
+msgid "Restore a backup"
+msgstr "Restore a backup"
+
+#: src/components/FirstRun.tsx
+msgid "Restore from a backup"
+msgstr "Restore from a backup"
+
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "Restore purchase"
 msgstr "Restore purchase"
 
+#: src/components/FirstRun.tsx
+msgid "Restoring…"
+msgstr "Restoring…"
+
+#: src/views/DashboardView.tsx
+msgid "Resume game"
+msgstr "Resume game"
+
+#: src/components/BallFormDialog.tsx
+msgid "Retire"
+msgstr "Retire"
+
+#: src/components/BallFormDialog.tsx
+msgid "Retire {name}?"
+msgstr "Retire {name}?"
+
+#: src/components/BallFormDialog.tsx
+msgid "Retire ball"
+msgstr "Retire ball"
+
+#: src/components/BallFormDialog.tsx
+msgid "Retire this ball?"
+msgstr "Retire this ball?"
+
+#: src/components/PatternSheet.tsx
+msgid "Reverse passes"
+msgstr "Reverse passes"
+
+#. Bowling term: radius of gyration, a ball spec
+#. Bowling term: radius of gyration, a ball spec
+#: src/views/CatalogView.tsx
+msgid "RG"
+msgstr "RG"
+
+#. Bowling term: RG is radius of gyration, a measure of how quickly a ball revs up
+#. Bowling term: RG is radius of gyration, a measure of how quickly a ball revs up
+#. placeholder {0}: formatFixed(b.rg, 2)
+#. placeholder {0}: formatFixed(weightSpecs.rg, 2)
+#: src/components/BallFormDialog.tsx
+msgid "RG {0}"
+msgstr "RG {0}"
+
+#. Bowling term: RG is the radius of gyration, a ball spec. A range of values.
+#: src/views/CatalogView.tsx
+msgid "RG {min} to {max}"
+msgstr "RG {min} to {max}"
+
+#. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
+#. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
+#. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
+#: src/views/ArsenalView.tsx
+#: src/views/CatalogView.tsx
+#: src/views/LayoutLabView.tsx
+msgid "RG {rg}"
+msgstr "RG {rg}"
+
+#. Bowling term: RG is the radius of gyration, a ball spec. A sort order.
+#: src/views/CatalogView.tsx
+msgid "RG, low to high"
+msgstr "RG, low to high"
+
+#: src/components/LaneVisualizer.tsx
+#: src/views/LayoutLabView.tsx
+msgid "Right"
+msgstr "Right"
+
+#. A ball layout card: the bowler throws right-handed
+#: src/lib/shareCard.ts
+msgid "Right hand"
+msgstr "Right hand"
+
+#. A ball layout card: the bowler throws right-handed with two hands (2H, two-handed style)
+#: src/lib/shareCard.ts
+msgid "Right hand, 2H"
+msgstr "Right hand, 2H"
+
+#: src/components/HandednessPicker.tsx
+#: src/views/BowlingProfileView.tsx
 #: src/views/SettingsView.tsx
 msgid "Right-handed"
 msgstr "Right-handed"
 
+#. Accent color name: a pink-red
+#: src/lib/palette.ts
+msgid "Rose"
+msgstr "Rose"
+
+#: src/components/BallFormDialog.tsx
+#: src/components/LaneNoteFormDialog.tsx
+#: src/components/LaneNotesTab.tsx
+#: src/components/OilPatternFormDialog.tsx
+#: src/components/ui/FormSheet.tsx
 #: src/views/ActiveSessionView.tsx
 msgid "Save"
 msgstr "Save"
+
+#: src/views/BackupRestoreView.tsx
+msgid "Save a backup"
+msgstr "Save a backup"
+
+#: src/components/SaveCopyPrompt.tsx
+#: src/views/DashboardView.tsx
+msgid "Save a copy"
+msgstr "Save a copy"
+
+#: src/components/SpareLinePickerSheet.tsx
+msgid "Save a line for one leave and you can borrow it for another."
+msgstr "Save a line for one leave and you can borrow it for another."
+
+#: src/views/BowlingProfileView.tsx
+msgid "Save bowling profile"
+msgstr "Save bowling profile"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Save failed."
 msgstr "Save failed."
 
+#: src/components/ShareCardDialog.tsx
+msgid "Save image"
+msgstr "Save image"
+
+#: src/components/BowlerNameSheet.tsx
+msgid "Save name"
+msgstr "Save name"
+
+#: src/components/OilPatternManager.tsx
+msgid "Save patterns with a link to their sheet. They show up when you start a session."
+msgstr "Save patterns with a link to their sheet. They show up when you start a session."
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "Save spare line"
+msgstr "Save spare line"
+
 #: src/components/ActiveGameScorer.tsx
 msgid "Save this as your line for {leave}"
 msgstr "Save this as your line for {leave}"
 
+#: src/views/SpareLinesView.tsx
+msgid "Save where you stand and where you aim for a leave, and it is there the next time you face it."
+msgstr "Save where you stand and where you aim for a leave, and it is there the next time you face it."
+
+#: src/components/SaveCopyPrompt.tsx
+msgid "Saved on this phone only. Save a copy before closing the tab."
+msgstr "Saved on this phone only. Save a copy before closing the tab."
+
+#: src/components/ShareCardDialog.tsx
+msgid "Saving failed."
+msgstr "Saving failed."
+
+#: src/components/SaveCopyPrompt.tsx
+msgid "Saving…"
+msgstr "Saving…"
+
 #. Tab name, a verb: where you score a game as you bowl it
 #: src/App.tsx
+#: src/views/NoSessionView.tsx
 msgid "Score"
 msgstr "Score"
+
+#: src/views/NoSessionView.tsx
+msgid "Score now, add details later"
+msgstr "Score now, add details later"
+
+#: src/views/DashboardView.tsx
+msgid "Score your first session"
+msgstr "Score your first session"
+
+#: src/views/GameTrendView.tsx
+msgid "Scoring"
+msgstr "Scoring"
+
+#. Bowling term: the coverstock is the outer shell of a ball
+#: src/components/BallFormDialog.tsx
+#: src/views/CatalogView.tsx
+msgid "Search name, brand, coverstock…"
+msgstr "Search name, brand, coverstock…"
+
+#: src/components/OilPatternManager.tsx
+msgid "Search patterns"
+msgstr "Search patterns"
+
+#: src/views/CatalogView.tsx
+msgid "Search the catalog"
+msgstr "Search the catalog"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Second lane"
@@ -431,9 +3523,21 @@ msgstr "Second lane"
 msgid "See what Pro adds"
 msgstr "See what Pro adds"
 
+#: src/components/SessionForm.tsx
+msgid "See your lines here"
+msgstr "See your lines here"
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "Select at least one pin for this leave."
+msgstr "Select at least one pin for this leave."
+
 #: src/views/SettingsView.tsx
 msgid "Send feedback"
 msgstr "Send feedback"
+
+#: src/lib/shareCard.ts
+msgid "Series"
+msgstr "Series"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Session"
@@ -443,13 +3547,33 @@ msgstr "Session"
 msgid "Session not found."
 msgstr "Session not found."
 
+#: src/components/SessionLanePanel.tsx
+msgid "Session sheet"
+msgstr "Session sheet"
+
+#: src/components/SessionLanePanel.tsx
+msgid "Session sheet section"
+msgstr "Session sheet section"
+
 #: src/views/ActiveSessionView.tsx
 msgid "Session stats"
 msgstr "Session stats"
 
+#: src/components/OilPatternManager.tsx
+msgid "Sessions already bowled on it keep the pattern. If any still use it, it is archived instead of deleted."
+msgstr "Sessions already bowled on it keep the pattern. If any still use it, it is archived instead of deleted."
+
+#: src/views/StatsView.tsx
+msgid "Sessions counted"
+msgstr "Sessions counted"
+
 #: src/components/ActiveGameScorer.tsx
 msgid "Set lanes"
 msgstr "Set lanes"
+
+#: src/components/FirstRun.tsx
+msgid "Set up Headpin"
+msgstr "Set up Headpin"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Sets the pair for this game only."
@@ -461,36 +3585,357 @@ msgstr "Sets the pair for this game only."
 msgid "Settings"
 msgstr "Settings"
 
+#: src/components/ShareCardDialog.tsx
 #: src/views/ActiveSessionView.tsx
 msgid "Share"
 msgstr "Share"
+
+#: src/views/GuidesView.tsx
+msgid "Share guide"
+msgstr "Share guide"
+
+#: src/components/ShareCardDialog.tsx
+msgid "Share image"
+msgstr "Share image"
+
+#: src/views/LayoutLabView.tsx
+msgid "Share layout"
+msgstr "Share layout"
+
+#: src/components/LaneVisualizer.tsx
+msgid "Share line"
+msgstr "Share line"
+
+#: src/components/ShareCardDialog.tsx
+msgid "Share link"
+msgstr "Share link"
+
+#: src/views/StatsView.tsx
+msgid "Share these stats"
+msgstr "Share these stats"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Share this session"
 msgstr "Share this session"
 
+#: src/components/ShareCardDialog.tsx
+msgid "Sharing failed."
+msgstr "Sharing failed."
+
+#: src/components/ShareCardDialog.tsx
+msgid "Sharing…"
+msgstr "Sharing…"
+
+#. Backend reading: a sharp, angular turn
+#: src/lib/ballLayout.ts
+msgid "Sharp"
+msgstr "Sharp"
+
+#: src/components/SessionLanePanel.tsx
+msgid "Sheet"
+msgstr "Sheet"
+
+#. A drilling layout preset name on the layout lab: the pin sits close to the axis, giving low flare
+#: src/lib/ballLayout.ts
+msgid "Short pin"
+msgstr "Short pin"
+
+#: src/views/ArsenalView.tsx
+msgid "Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
+msgstr "Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
+
+#: src/components/OilPatternManager.tsx
+msgid "Show archived ({count})"
+msgstr "Show archived ({count})"
+
+#: src/views/ArsenalView.tsx
+msgid "Show retired ({count})"
+msgstr "Show retired ({count})"
+
+#. A filter on the spare lines screen: leaves of one standing pin
+#: src/lib/spareLines.ts
+msgid "Single pins"
+msgstr "Single pins"
+
+#. Bowling term: a filter on the spare lines screen for leaves where one pin hides directly behind another, like the 2-8
+#: src/lib/spareLines.ts
+msgid "Sleepers"
+msgstr "Sleepers"
+
+#. Bowling term: the board the bowler's slide foot finishes on at the foul line.
+#. Bowling term: the board the slide foot finishes on
+#. Bowling term: the board the slide foot finishes on
+#: src/components/LineInput.tsx
+#: src/views/BowlingProfileView.tsx
+msgid "Slide"
+msgstr "Slide"
+
+#: src/components/LineInput.tsx
+#: src/components/SpareLineBulkSheet.tsx
+msgid "Slide {board}"
+msgstr "Slide {board}"
+
+#. Bowling term: the board the bowler slides to at the foul line.
+#. Bowling term: the board where the bowler releases the ball, followed by the board number
+#: src/components/SpareLineFormDialog.tsx
+#: src/views/SpareLinesView.tsx
+msgid "Slide {slide}"
+msgstr "Slide {slide}"
+
+#. Backend reading: a smooth arc
+#: src/lib/ballLayout.ts
+msgid "Smooth"
+msgstr "Smooth"
+
+#. Bowling term: a coverstock type, a matte cover that grips early
+#: src/views/CatalogView.tsx
+msgid "Solid"
+msgstr "Solid"
+
+#: src/views/CatalogView.tsx
+msgid "Sort:"
+msgstr "Sort:"
+
+#: src/views/GuidesView.tsx
+msgid "Sources"
+msgstr "Sources"
+
+#: src/components/BallPickerSheet.tsx
+msgid "spare"
+msgstr "spare"
+
 #. A bowling term: the leave cleared with the second ball. A button label.
+#. Bowling term: a badge on a ball used for picking up spares
+#. Bowling term: all remaining pins knocked down with the second ball of a frame
+#. Bowling term: all ten pins down with two balls. Column heading.
 #: src/components/ActiveGameScorer.tsx
+#: src/components/Stats.tsx
+#: src/views/ArsenalView.tsx
+#: src/views/GameTrendView.tsx
 msgid "Spare"
 msgstr "Spare"
 
+#. Bowling term: marks a ball as a spare ball, the plastic ball used to shoot at spares. A small badge beside the ball name.
+#: src/components/ShotDetailBar.tsx
+msgctxt "spare ball badge"
+msgid "Spare"
+msgstr "Spare"
+
+#. Bowling term: the ball used for spare shots
+#: src/views/SpareLinesView.tsx
+msgid "Spare ball"
+msgstr "Spare ball"
+
+#. Bowling term: the line (stance and target boards) thrown with the ball used for spares.
+#: src/components/SpareLineBulkSheet.tsx
+#: src/components/SpareLineFormDialog.tsx
+msgid "Spare ball line"
+msgstr "Spare ball line"
+
+#. Bowling term: the line (stance and target) thrown to pick up a spare
+#: src/components/SpareLineFormDialog.tsx
+#: src/lib/shareCard.ts
+msgid "Spare line"
+msgstr "Spare line"
+
+#. Bowling term: your saved line (where you stand and aim) for each spare leave
+#: src/components/HomeProfile.tsx
 #: src/views/SettingsView.tsx
+#: src/views/SpareLinesView.tsx
 msgid "Spare lines"
 msgstr "Spare lines"
 
+#. Bowling terms: a makeable leave is a set of standing pins that can be converted to a spare; a split leaves gaps between pins; a washout is a leave with the head pin standing and a gap behind it
+#: src/components/Stats.tsx
+msgid "Spare: makeable leaves converted, excludes splits and washouts."
+msgstr "Spare: makeable leaves converted, excludes splits and washouts."
+
+#. Bowling term: a card stat, the share of spare chances that were converted
+#. Bowling term: a card stat, the share of spare chances that were converted
+#. Bowling term: all remaining pins knocked down with the second ball of a frame
+#: src/components/Stats.tsx
+#: src/lib/shareCard.ts
+msgid "Spares"
+msgstr "Spares"
+
+#: src/components/ToolsList.tsx
+msgid "Specs and pictures of current balls"
+msgstr "Specs and pictures of current balls"
+
+#. Bowling term. A short column heading over the share of leaves that were splits.
+#. Bowling term: a leave with a gap between the standing pins
+#. Bowling term: leaves with a gap between standing pins and the head pin down, a group on the Stats tab
+#: src/components/BallEstimates.tsx
+#: src/lib/pins.ts
+#: src/views/OpenFramesView.tsx
+msgid "Splits"
+msgstr "Splits"
+
+#. Bowling term: the most demanding oil pattern tier, a low oil ratio (Kegel's tiers are Sport, Challenge and Recreation)
+#: src/lib/oilPattern.ts
+msgid "Sport"
+msgstr "Sport"
+
+#. Bowling term: the board the bowler stands on at the foul line. Lower case, a field name.
+#. Bowling term: the board the bowler stands on at the foul line. Lower case, a field name.
+#: src/components/SpareLineBulkSheet.tsx
+#: src/components/SpareLineFormDialog.tsx
+msgid "stance"
+msgstr "stance"
+
+#. Bowling term: the board the bowler stands on at the foul line.
+#. Bowling term: the board the bowler stands on at the foul line.
+#. Bowling term: the board the bowler stands on at the foul line. A field label.
+#. Bowling term: the board the bowler stands on before starting the approach
+#. Bowling term: the board you stand on
+#. Bowling term: the board you stand on
+#. Bowling term: the board your slide foot starts on
+#. Bowling term: the board your slide foot starts on
+#: src/components/LaneVisualizer.tsx
+#: src/components/LineInput.tsx
+#: src/components/SpareLineBulkSheet.tsx
+#: src/components/SpareLineFormDialog.tsx
+#: src/views/BowlingProfileView.tsx
+#: src/views/SpareLinesView.tsx
+msgid "Stance"
+msgstr "Stance"
+
+#. Bowling term: the board the bowler stands on, with its number
+#: src/components/alleyHistoryCopy.ts
+msgid "stance {stance}"
+msgstr "stance {stance}"
+
+#: src/views/SpareLinesView.tsx
+msgid "Stance {stance}, target {target}"
+msgstr "Stance {stance}, target {target}"
+
+#: src/views/NoSessionView.tsx
+msgid "Start a session and you score it here, shot by shot."
+msgstr "Start a session and you score it here, shot by shot."
+
+#: src/components/FirstRun.tsx
+msgid "Start fresh"
+msgstr "Start fresh"
+
+#: src/views/DashboardView.tsx
+#: src/views/GamePlanView.tsx
+msgid "Start scoring"
+msgstr "Start scoring"
+
+#: src/views/DashboardView.tsx
+#: src/views/NoSessionView.tsx
+msgid "Start session"
+msgstr "Start session"
+
+#. Tab name: averages and rates, short for statistics
 #. Tab name: averages and rates, short for statistics
 #: src/App.tsx
+#: src/components/SessionLanePanel.tsx
+#: src/views/StatsView.tsx
 msgid "Stats"
 msgstr "Stats"
 
+#. Bowling term: Storm's Value Layout System, a ball layout written as pin to PAP, PSA to PAP and pin buffer. Storm is a brand; the three letters are an abbreviation
+#: src/components/LayoutEditor.tsx
+msgid "Storm VLS"
+msgstr "Storm VLS"
+
+#. Bowling term: the overall hooking power of the ball, a reading on the layout lab's rail
+#: src/lib/ballLayout.ts
+msgid "Strength"
+msgstr "Strength"
+
+#. Bowling term: a strike. Lower case, read aloud before a count.
+#. Bowling term: all ten pins knocked down with the first ball of a frame. Lower case: read aloud before a number
+#: src/components/BallGameSessionsDialog.tsx
+#: src/components/Stats.tsx
+msgid "strike"
+msgstr "strike"
+
 #. A bowling term: all ten pins down with the first ball. A button label.
+#. Bowling term. A short column heading over the share of first balls that were strikes.
+#. Bowling term: all ten pins down with the first ball. A rate label.
+#. Bowling term: all ten pins down with the first ball. Column heading.
+#. Bowling term: all ten pins knocked down with the first ball of a frame
+#. Bowling term: all ten pins knocked down with the first ball of a frame
+#. Bowling term: all ten pins knocked down with the first ball of a frame
+#. Bowling term: all ten pins knocked down with the first ball of a frame
+#. Bowling term: all ten pins knocked down with the first ball of a frame
 #: src/components/ActiveGameScorer.tsx
+#: src/components/BallEstimates.tsx
+#: src/components/BallGameSessionsDialog.tsx
+#: src/components/Stats.tsx
+#: src/views/GameTrendView.tsx
 msgid "Strike"
 msgstr "Strike"
+
+#. Bowling term. Spoken name of the strike rate column, then its percentage.
+#: src/components/BallEstimates.tsx
+msgid "strike {value}"
+msgstr "strike {value}"
+
+#. Bowling term: the ball thrown at a strike, the first ball of a frame, as opposed to the shot at a spare.
+#. Bowling term: the ball thrown for strikes, as opposed to the spare ball
+#. Bowling term: the ball thrown for strikes, as opposed to the spare ball
+#: src/components/SpareLinePickerSheet.tsx
+#: src/views/SpareLinesView.tsx
+msgid "Strike ball"
+msgstr "Strike ball"
+
+#. Bowling term: how far the bowler moves their strike-ball line to shoot this leave.
+#: src/components/SpareLineBulkSheet.tsx
+#: src/components/SpareLineFormDialog.tsx
+msgid "Strike ball move"
+msgstr "Strike ball move"
+
+#. Bowling term: the line (stance and target) thrown for a strike
+#: src/lib/shareCard.ts
+msgid "Strike line"
+msgstr "Strike line"
+
+#. Bowling term: a strike on the ball right after a strike. Lower case: read aloud before a number
+#: src/components/Stats.tsx
+msgid "strike on strike"
+msgstr "strike on strike"
+
+#. Bowling term: a strike on the ball right after a strike
+#. Bowling term: a strike on the ball right after a strike
+#. Bowling term: a strike on the ball right after a strike
+#. Bowling term: a strike on the ball right after a strike
+#: src/components/Stats.tsx
+msgid "Strike on strike"
+msgstr "Strike on strike"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Strike, Spare and Foul come back and change the shot you pick on the card. The game rescores from that frame on."
 msgstr "Strike, Spare and Foul come back and change the shot you pick on the card. The game rescores from that frame on."
+
+#. Bowling term: a card stat, the share of first balls that knocked all ten pins down
+#. Bowling term: a card stat, the share of first balls that knocked all ten pins down
+#: src/lib/shareCard.ts
+msgid "Strikes"
+msgstr "Strikes"
+
+#. Bowling term: all ten pins knocked down with the first ball of a frame
+#. Bowling term: all ten pins knocked down with the first ball of a frame
+#: src/components/Stats.tsx
+msgid "Strikes in a row"
+msgstr "Strikes in a row"
+
+#. Bowling term: a strike on the ball right after a strike
+#: src/components/Stats.tsx
+msgid "Strikes the next ball struck too."
+msgstr "Strikes the next ball struck too."
+
+#. Strength reading: the high third of the scale
+#: src/lib/ballLayout.ts
+msgid "Strong"
+msgstr "Strong"
+
+#. Accent color name: an orange
+#: src/lib/palette.ts
+msgid "Sunset"
+msgstr "Sunset"
 
 #: src/views/SettingsView.tsx
 msgid "Support"
@@ -500,34 +3945,248 @@ msgstr "Support"
 msgid "Switched off for Headpin in the iPhone's Settings"
 msgstr "Switched off for Headpin in the iPhone's Settings"
 
+#. Bowling term, short for symmetric: a core with the same mass on both sides
+#. Short for symmetric, a ball core with the same shape from every side
+#. Short for symmetric, a bowling term for a ball core. A narrow segment of a control.
+#: src/components/BallFormDialog.tsx
+#: src/lib/shareCard.ts
+#: src/views/LayoutLabView.tsx
+msgid "Sym"
+msgstr "Sym"
+
+#. Bowling term: a ball with a symmetric core, as opposed to asymmetric
+#. Bowling term: a ball with a symmetric core, as opposed to asymmetric
+#. Bowling term: a ball with a symmetric core, as opposed to asymmetric
+#. Bowling term: a ball with a symmetric core, as opposed to asymmetric
+#: src/components/BallFormDialog.tsx
+#: src/views/CatalogView.tsx
+#: src/views/LayoutLabView.tsx
+msgid "Symmetric"
+msgstr "Symmetric"
+
+#. Bowling term: a ball whose core has the same shape from every side
+#: src/components/BallFormDialog.tsx
+msgid "Symmetric core"
+msgstr "Symmetric core"
+
+#: src/views/CatalogView.tsx
+msgid "Syncing catalog…"
+msgstr "Syncing catalog…"
+
 #. Theme setting: follow the phone's light or dark choice
 #: src/views/AppearanceView.tsx
 msgid "System"
 msgstr "System"
 
+#: src/views/GameTrendView.tsx
+msgid "Tap a game to filter every stat to it. Games with fewer than {thin} played are grayed out."
+msgstr "Tap a game to filter every stat to it. Games with fewer than {thin} played are grayed out."
+
+#: src/views/SpareLinesView.tsx
+msgid "Tap a leave and enter the board you stand on and the board you aim at. The next time you leave it in a game, that line is filled in for you, with the spare ball you pick below."
+msgstr "Tap a leave and enter the board you stand on and the board you aim at. The next time you leave it in a game, that line is filled in for you, with the spare ball you pick below."
+
 #: src/components/ActiveGameScorer.tsx
 msgid "Tap or slide to toggle the pins left standing."
 msgstr "Tap or slide to toggle the pins left standing."
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "Tap the pins left standing."
+msgstr "Tap the pins left standing."
+
+#. Bowling term: the board the ball crosses at the arrows. Lower case, a field name.
+#. Bowling term: the board the ball crosses at the arrows. Lower case, a field name.
+#: src/components/SpareLineBulkSheet.tsx
+#: src/components/SpareLineFormDialog.tsx
+msgid "target"
+msgstr "target"
+
+#. Bowling term: the board the ball crosses at the arrows.
+#. Bowling term: the board the ball crosses at the arrows.
+#. Bowling term: the board the ball crosses at the arrows. A field label.
+#. Bowling term: the board the ball is aimed over at the arrows
+#. Bowling term: the board you aim at
+#. Bowling term: the board you aim at
+#. Bowling term: the board you aim at
+#: src/components/LaneVisualizer.tsx
+#: src/components/LineInput.tsx
+#: src/components/SpareLineBulkSheet.tsx
+#: src/components/SpareLineFormDialog.tsx
+#: src/views/BowlingProfileView.tsx
+#: src/views/SpareLinesView.tsx
+msgid "Target"
+msgstr "Target"
+
+#. Bowling term: the board aimed at on the lane, with its number
+#: src/components/alleyHistoryCopy.ts
+msgid "target {target}"
+msgstr "target {target}"
+
+#. Bowling term: the board the ball crosses at the arrows, about 15 feet down the lane
+#: src/lib/shareCard.ts
+msgid "Target at the arrows"
+msgstr "Target at the arrows"
+
+#: src/components/LineInput.tsx
+msgid "Target board (arrows)"
+msgstr "Target board (arrows)"
+
+#: src/components/FeedbackPrompt.tsx
+msgid "Tell me"
+msgstr "Tell me"
 
 #: src/views/AppearanceView.tsx
 msgid "Text size"
 msgstr "Text size"
 
+#: src/components/FirstRun.tsx
+msgid "That file could not be read."
+msgstr "That file could not be read."
+
+#: src/lib/backupValidation.ts
+msgid "That file is not a Headpin backup."
+msgstr "That file is not a Headpin backup."
+
+#: src/components/AppErrorBoundary.tsx
+msgid "The app crashed"
+msgstr "The app crashed"
+
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "The App Store did not answer: {reason}"
 msgstr "The App Store did not answer: {reason}"
 
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "The App Store did not answer. Try again in a moment."
 msgstr "The App Store did not answer. Try again in a moment."
+
+#: src/views/BowlingProfileView.tsx
+msgid "The board the ball lands on: your slide, moved by your release offset."
+msgstr "The board the ball lands on: your slide, moved by your release offset."
+
+#: src/views/BowlingProfileView.tsx
+msgid "The board you aim at, usually an arrow."
+msgstr "The board you aim at, usually an arrow."
+
+#: src/views/BowlingProfileView.tsx
+msgid "The board your slide foot finishes on: your stance, moved by your drift."
+msgstr "The board your slide foot finishes on: your stance, moved by your drift."
+
+#: src/views/BowlingProfileView.tsx
+msgid "The board your slide foot starts on."
+msgstr "The board your slide foot starts on."
+
+#: src/views/CatalogView.tsx
+msgid "The catalog has not loaded"
+msgstr "The catalog has not loaded"
+
+#: src/components/BallFormDialog.tsx
+msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
+msgstr "The catalog has not loaded yet. It needs one connection, then it works offline."
+
+#: src/components/ShareCardDialog.tsx
+msgid "The image could not be created."
+msgstr "The image could not be created."
+
+#. Bowling terms: boards are the 39 strips of wood across a lane, the foul line marks where the lane starts, buffing spreads oil without adding any
+#: src/components/PatternSheet.tsx
+msgid "The lane as the sheet draws it: boards across, feet up from the foul line, darker where there is more oil. The faint wash is where the machine only buffs, laying no oil of its own."
+msgstr "The lane as the sheet draws it: boards across, feet up from the foul line, darker where there is more oil. The faint wash is where the machine only buffs, laying no oil of its own."
+
+#. A leave is the set of pins left standing after the first ball (bowling term)
+#: src/views/OpenFramesView.tsx
+msgid "The leaves you keep missing rank here, most often first. Finish a game to start the count."
+msgstr "The leaves you keep missing rank here, most often first. Finish a game to start the count."
+
+#. Describes the Benchmark drilling layout preset
+#: src/lib/ballLayout.ts
+msgid "The middle of every range. Drill this first on a new ball and move from what it shows you."
+msgstr "The middle of every range. Drill this first on a new ball and move from what it shows you."
+
+#: src/components/BallLayoutDiagram.tsx
+msgid "The pin sits {pinToPap} inches from the PAP with a {buffer} inch pin buffer, and the CG is {core} inches from the PAP."
+msgstr "The pin sits {pinToPap} inches from the PAP with a {buffer} inch pin buffer, and the CG is {core} inches from the PAP."
+
+#: src/components/BallLayoutDiagram.tsx
+msgid "The pin sits {pinToPap} inches from the PAP with a {buffer} inch pin buffer, and the PSA is {core} inches from the PAP."
+msgstr "The pin sits {pinToPap} inches from the PAP with a {buffer} inch pin buffer, and the PSA is {core} inches from the PAP."
+
+#: src/components/FirstRun.tsx
+msgid "The restore failed."
+msgstr "The restore failed."
+
+#: src/lib/shareCard.ts
+msgid "The share image could not be created."
+msgstr "The share image could not be created."
+
+#. Describes the Pin down drilling layout preset. Back ends means the end of the lane
+#: src/lib/ballLayout.ts
+msgid "The smoothest shape the chart describes. Controls the breakpoint when the back ends are too clean."
+msgstr "The smoothest shape the chart describes. Controls the breakpoint when the back ends are too clean."
+
+#: src/views/CatalogView.tsx
+msgid "The specs come across with it. Change the name now if you call it something else."
+msgstr "The specs come across with it. Change the name now if you call it something else."
+
+#: src/components/SpareDetailsSheet.tsx
+msgid "The stance and target you saved for this leave are gone. Your shots keep their scores."
+msgstr "The stance and target you saved for this leave are gone. Your shots keep their scores."
 
 #: src/views/AppearanceView.tsx
 msgid "Theme"
 msgstr "Theme"
 
+#: src/components/InstallPrompt.tsx
+msgid "then \"Add to Home Screen\". Chrome and Firefox on iOS cannot do this, so open the page in Safari first."
+msgstr "then \"Add to Home Screen\". Chrome and Firefox on iOS cannot do this, so open the page in Safari first."
+
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "This Apple ID has not bought Headpin Pro."
 msgstr "This Apple ID has not bought Headpin Pro."
+
+#: src/lib/backupValidation.ts
+msgid "This backup was made by a newer Headpin. Update the app, then try again."
+msgstr "This backup was made by a newer Headpin. Update the app, then try again."
+
+#: src/components/BallFormDialog.tsx
+msgid "This ball carries the layout you typed before:"
+msgstr "This ball carries the layout you typed before:"
+
+#: src/components/FirstRun.tsx
+msgid "This brings back your sessions, balls, lines and settings, including which hand you bowl with."
+msgstr "This brings back your sessions, balls, lines and settings, including which hand you bowl with."
+
+#: src/lib/shareCard.ts
+msgid "This browser cannot draw the share image."
+msgstr "This browser cannot draw the share image."
+
+#: src/views/BackupRestoreView.tsx
+msgid "This browser has agreed not to clear your scores on its own."
+msgstr "This browser has agreed not to clear your scores on its own."
+
+#: src/views/BackupRestoreView.tsx
+msgid "This browser may clear your scores if it runs short of space. Install the app and back up."
+msgstr "This browser may clear your scores if it runs short of space. Install the app and back up."
+
+#. placeholder {0}: current.sessions
+#. placeholder {1}: current.games
+#. placeholder {2}: current.balls
+#. placeholder {3}: incoming.sessions
+#. placeholder {4}: incoming.games
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "This deletes everything on this device: {0, plural, one {# session} other {# sessions}}, {1, plural, one {# game} other {# games}}, {2, plural, one {# ball} other {# balls}}. It installs the file's {3, plural, one {# session} other {# sessions}}, {4, plural, one {# game} other {# games}} instead, saved {age}."
+msgstr "This deletes everything on this device: {0, plural, one {# session} other {# sessions}}, {1, plural, one {# game} other {# games}}, {2, plural, one {# ball} other {# balls}}. It installs the file's {3, plural, one {# session} other {# sessions}}, {4, plural, one {# game} other {# games}} instead, saved {age}."
+
+#: src/components/LaneNoteFormDialog.tsx
+#: src/components/LaneNotesTab.tsx
+msgid "This deletes your note on this lane. Your games aren't affected."
+msgstr "This deletes your note on this lane. Your games aren't affected."
+
+#: src/components/PatternSheet.tsx
+msgid "This pattern has no load table, so there is nothing to show."
+msgstr "This pattern has no load table, so there is nothing to show."
 
 #: src/components/ActiveGameScorer.tsx
 msgid "This removes {ball} from the card. To get it back, you will have to enter it again."
@@ -537,21 +4196,74 @@ msgstr "This removes {ball} from the card. To get it back, you will have to ente
 msgid "This removes your last ball from the card. To get it back, you will have to enter it again."
 msgstr "This removes your last ball from the card. To get it back, you will have to enter it again."
 
+#: src/views/LayoutLabView.tsx
+msgid "This replaces the layout on screen, {current}, with {replacement}. Your PAP, hand and grip stay as they are."
+msgstr "This replaces the layout on screen, {current}, with {replacement}. Your PAP, hand and grip stay as they are."
+
+#: src/components/ShotDetailBar.tsx
+msgid "This shot…"
+msgstr "This shot…"
+
+#: src/components/StaleShellScreen.tsx
+msgid "This tab is running an older version of the app than your scores were saved with. Everything is still on this device."
+msgstr "This tab is running an older version of the app than your scores were saved with. Everything is still on this device."
+
+#. A short greeting at the top of Home; the bowler's name may follow it
+#: src/lib/greeting.ts
+msgid "Time to bowl"
+msgstr "Time to bowl"
+
 #: src/lib/backupNudge.ts
 msgid "today"
 msgstr "today"
 
+#: src/views/DashboardView.tsx
 #: src/views/SettingsView.tsx
 msgid "Tools and reference"
 msgstr "Tools and reference"
 
+#: src/components/LaneVisualizer.tsx
+msgid "Top-down"
+msgstr "Top-down"
+
+#. Bowling term: bands of boards across the lane, as an oil pattern sheet prints them
+#: src/components/PatternSheet.tsx
+msgid "Track zones"
+msgstr "Track zones"
+
+#: src/components/PatternSheet.tsx
+msgid "Try in the line visualizer"
+msgstr "Try in the line visualizer"
+
+#: src/views/ProOfferView.tsx
+msgid "Try your layouts"
+msgstr "Try your layouts"
+
+#: src/views/LayoutLabView.tsx
+msgid "Two handed"
+msgstr "Two handed"
+
+#: src/views/GameTrendView.tsx
+msgid "Two sessions is enough to put your first game next to your last."
+msgstr "Two sessions is enough to put your first game next to your last."
+
+#: src/components/FirstRun.tsx
+#: src/views/BowlingProfileView.tsx
 #: src/views/SettingsView.tsx
 msgid "Two-handed"
 msgstr "Two-handed"
 
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Type {word} to confirm"
+msgstr "Type {word} to confirm"
+
 #: src/views/ActiveSessionView.tsx
 msgid "Unable to add game."
 msgstr "Unable to add game."
+
+#: src/components/OilPatternManager.tsx
+msgid "Unable to add that pattern."
+msgstr "Unable to add that pattern."
 
 #: src/views/ActiveSessionView.tsx
 msgid "Unable to delete game."
@@ -565,9 +4277,29 @@ msgstr "Unable to delete session."
 msgid "Unable to load session."
 msgstr "Unable to load session."
 
+#: src/components/OilPatternManager.tsx
+msgid "Unable to remove pattern."
+msgstr "Unable to remove pattern."
+
+#: src/components/OilPatternManager.tsx
+msgid "Unable to restore pattern."
+msgstr "Unable to restore pattern."
+
+#: src/components/OilPatternFormDialog.tsx
+msgid "Unable to save pattern."
+msgstr "Unable to save pattern."
+
+#: src/App.tsx
+msgid "Unable to start session."
+msgstr "Unable to start session."
+
 #: src/views/ActiveSessionView.tsx
 msgid "Unable to update session."
 msgstr "Unable to update session."
+
+#: src/views/CatalogView.tsx
+msgid "Unclassified"
+msgstr "Unclassified"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Undo"
@@ -585,6 +4317,14 @@ msgstr "Undo last shot"
 msgid "Undo your last ball?"
 msgstr "Undo your last ball?"
 
+#: src/components/PatternSheet.tsx
+msgid "unknown"
+msgstr "unknown"
+
+#: src/components/LaneVisualizer.tsx
+msgid "Unlock {label}"
+msgstr "Unlock {label}"
+
 #: src/views/SettingsView.tsx
 msgid "Unlocked on this copy"
 msgstr "Unlocked on this copy"
@@ -593,13 +4333,234 @@ msgstr "Unlocked on this copy"
 msgid "Unlocked. Thank you for backing Headpin."
 msgstr "Unlocked. Thank you for backing Headpin."
 
+#. The title of a session whose alley was never named
+#: src/lib/sessionLabels.ts
+msgid "Unnamed session"
+msgstr "Unnamed session"
+
+#. Bowling term: PAP, the axis point is above the ball's midline.
+#: src/components/PapEditor.tsx
+msgctxt "pap direction"
+msgid "Up"
+msgstr "Up"
+
+#. Bowling term: PAP (positive axis point), whether the axis point sits above or below the ball's midline.
+#: src/components/PapEditor.tsx
+msgid "Up or down"
+msgstr "Up or down"
+
+#. Bowling term: PAP (positive axis point), whether the axis point sits above or below the ball's midline.
+#: src/components/PapEditor.tsx
+msgid "Up or down direction"
+msgstr "Up or down direction"
+
+#: src/components/UpdateToast.tsx
+msgid "Update"
+msgstr "Update"
+
+#: src/components/UpdateToast.tsx
+msgid "Update available"
+msgstr "Update available"
+
+#: src/components/StaleShellScreen.tsx
+msgid "Updating…"
+msgstr "Updating…"
+
+#. Bowling term: a coverstock material, a smooth low-friction cover
+#: src/views/CatalogView.tsx
+msgid "Urethane"
+msgstr "Urethane"
+
+#: src/components/OilPatternFormDialog.tsx
+msgid "Use a load table from the catalog"
+msgstr "Use a load table from the catalog"
+
+#: src/components/ShotDetailBar.tsx
+#: src/components/SpareLineFormDialog.tsx
+#: src/components/SpareLinePickerSheet.tsx
+msgid "Use another leave's line"
+msgstr "Use another leave's line"
+
+#: src/views/LayoutLabView.tsx
+msgid "Use the {preset} layout?"
+msgstr "Use the {preset} layout?"
+
+#: src/components/SpareLinePickerSheet.tsx
+msgid "Use the line for pins {pins}"
+msgstr "Use the line for pins {pins}"
+
+#: src/components/ToolsList.tsx
+msgid "Using Headpin, layouts and equipment"
+msgstr "Using Headpin, layouts and equipment"
+
+#. Bowling term: vertical axis line, a reference line across the ball through the PAP, square to the grip midline. Keep the abbreviation. A label on a ball diagram.
+#. Bowling term: vertical axis line, a reference line across the ball through the PAP. Keep the abbreviation. A tiny label under an angle on a ball diagram.
+#: src/components/BallLayoutDiagram.tsx
+#: src/components/GuideFigure.tsx
+msgid "VAL"
+msgstr "VAL"
+
+#. Bowling term: the angle from the VAL to the pin line at the PAP. A label on a ball diagram.
+#. Bowling term: valid axis line angle, the angle at the PAP between the pin and the bowler's axis line
+#: src/components/GuideFigure.tsx
+#: src/components/LayoutEditor.tsx
+msgid "VAL angle"
+msgstr "VAL angle"
+
+#: src/components/ShotDetailBar.tsx
+msgid "View actual line"
+msgstr "View actual line"
+
+#: src/components/ShotDetailBar.tsx
+msgid "View actual line on the lane"
+msgstr "View actual line on the lane"
+
+#: src/components/HomeProfile.tsx
+msgid "View all"
+msgstr "View all"
+
+#: src/components/Stats.tsx
+msgid "View all {count}"
+msgstr "View all {count}"
+
+#: src/views/CatalogView.tsx
+msgid "View colorway {number}"
+msgstr "View colorway {number}"
+
+#: src/views/CatalogView.tsx
+msgid "View colorway {number}: {color}"
+msgstr "View colorway {number}: {color}"
+
+#: src/components/ShotDetailBar.tsx
+msgid "View intended line"
+msgstr "View intended line"
+
+#: src/components/ShotDetailBar.tsx
+msgid "View intended line on the lane"
+msgstr "View intended line on the lane"
+
+#: src/components/BallFormDialog.tsx
+#: src/views/ArsenalView.tsx
+msgid "View layout"
+msgstr "View layout"
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "View line on the lane"
+msgstr "View line on the lane"
+
+#: src/views/CatalogView.tsx
+msgid "View on {brand}"
+msgstr "View on {brand}"
+
+#: src/components/BallFormDialog.tsx
+msgid "View the layout on {ballName}"
+msgstr "View the layout on {ballName}"
+
+#: src/views/ArsenalView.tsx
+msgid "View the layout on {name}"
+msgstr "View the layout on {name}"
+
+#: src/components/SpareLineFormDialog.tsx
+msgid "View the line on the lane"
+msgstr "View the line on the lane"
+
+#: src/components/PatternSheet.tsx
+msgid "Volume"
+msgstr "Volume"
+
+#: src/views/CatalogView.tsx
+msgid "Waiting for a connection"
+msgstr "Waiting for a connection"
+
 #: src/views/SettingsView.tsx
 msgid "Waiting for approval. Pro opens as soon as it comes through."
 msgstr "Waiting for approval. Pro opens as soon as it comes through."
 
+#. Bowling term: a leave with the head pin gone and pins scattered on both sides
+#. Bowling term: leaves where the head pin is standing with a gap behind it, a group on the Stats tab
+#: src/lib/pins.ts
+#: src/views/OpenFramesView.tsx
+msgid "Washouts"
+msgstr "Washouts"
+
+#. Strength reading: the low third of the scale
+#: src/lib/ballLayout.ts
+msgid "Weak"
+msgstr "Weak"
+
+#: src/components/BallFormDialog.tsx
+msgid "Weight"
+msgstr "Weight"
+
+#. A short greeting at the top of Home; the bowler's name may follow it
+#: src/lib/greeting.ts
+msgid "Welcome back"
+msgstr "Welcome back"
+
+#: src/components/FirstRun.tsx
+msgid "What do we call you?"
+msgstr "What do we call you?"
+
+#: src/components/BowlerNameSheet.tsx
+msgid "What do you want to be called?"
+msgstr "What do you want to be called?"
+
+#: src/components/FirstRun.tsx
+msgid "What is Headpin?"
+msgstr "What is Headpin?"
+
+#: src/components/MotionRail.tsx
+msgid "What it will do"
+msgstr "What it will do"
+
+#: src/components/BallEstimates.tsx
+msgid "What you'd average with each ball here"
+msgstr "What you'd average with each ball here"
+
+#: src/components/HomeProfile.tsx
+msgid "Where you shoot each spare"
+msgstr "Where you shoot each spare"
+
+#: src/components/FirstRun.tsx
+msgid "Which hand do you bowl with?"
+msgstr "Which hand do you bowl with?"
+
+#: src/views/LaneNotesView.tsx
+msgid "Write down how a lane plays, and it'll be here next time you're on it."
+msgstr "Write down how a lane plays, and it'll be here next time you're on it."
+
+#: src/views/SpareLinesView.tsx
+msgid "Write down how you shoot each spare"
+msgstr "Write down how you shoot each spare"
+
+#. Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet
+#: src/components/Stats.tsx
+msgid "X-on-X"
+msgstr "X-on-X"
+
 #: src/lib/backupNudge.ts
 msgid "yesterday"
 msgstr "yesterday"
+
+#: src/views/BowlingProfileView.tsx
+msgid "You enter your stance and target. The app works out your slide and laydown."
+msgstr "You enter your stance and target. The app works out your slide and laydown."
+
+#: src/views/ProOfferView.tsx
+msgid "You have Headpin Pro. Thanks for the support."
+msgstr "You have Headpin Pro. Thanks for the support."
+
+#: src/views/SpareLinesView.tsx
+msgid "You leave {leave} most often ({times}) and have no line for it."
+msgstr "You leave {leave} most often ({times}) and have no line for it."
+
+#: src/components/FeedbackPrompt.tsx
+msgid "You've bowled a few sessions now. What's missing, or what's getting in your way?"
+msgstr "You've bowled a few sessions now. What's missing, or what's getting in your way?"
+
+#: src/components/HomeProfile.tsx
+msgid "Your arsenal"
+msgstr "Your arsenal"
 
 #: src/views/SettingsView.tsx
 msgid "Your balls and their layouts"
@@ -609,10 +4570,74 @@ msgstr "Your balls and their layouts"
 msgid "Your bowling"
 msgstr "Your bowling"
 
+#: src/views/StatsView.tsx
+msgid "Your earlier games are under All."
+msgstr "Your earlier games are under All."
+
+#: src/views/ProOfferView.tsx
+msgid "Your estimated average with each ball, by alley, lane pair and pattern."
+msgstr "Your estimated average with each ball, by alley, lane pair and pattern."
+
 #: src/views/SettingsView.tsx
 msgid "Your game's score, frame by frame, while you bowl"
 msgstr "Your game's score, frame by frame, while you bowl"
 
+#: src/components/MoveGamesDialog.tsx
+msgid "Your games stay in this browser. Bring them along:"
+msgstr "Your games stay in this browser. Bring them along:"
+
+#: src/views/ArsenalView.tsx
+msgid "Your layout is saved on the ball. Headpin Pro draws it on the ball and shows what it will do on the lane."
+msgstr "Your layout is saved on the ball. Headpin Pro draws it on the ball and shows what it will do on the lane."
+
+#: src/views/BowlingProfileView.tsx
+msgid "Your line"
+msgstr "Your line"
+
+#: src/components/BowlerNameSheet.tsx
+msgid "Your name"
+msgstr "Your name"
+
 #: src/views/SettingsView.tsx
 msgid "Your name, {name}"
 msgstr "Your name, {name}"
+
+#: src/components/HomeProfile.tsx
+msgid "Your numbers at each alley"
+msgstr "Your numbers at each alley"
+
+#. Bowling term: PAP is the positive axis point, a measurement of the bowler's axis of rotation
+#. Bowling term: PAP is the positive axis point, a measurement of the bowler's axis of rotation
+#: src/views/BowlingProfileView.tsx
+#: src/views/LayoutLabView.tsx
+msgid "Your PAP"
+msgstr "Your PAP"
+
+#. Bowling term: PAP is the positive axis point, a measurement of the bowler's axis of rotation
+#: src/views/LayoutLabView.tsx
+msgid "Your PAP and hand"
+msgstr "Your PAP and hand"
+
+#: src/components/Stats.tsx
+msgid "Your score per finished game."
+msgstr "Your score per finished game."
+
+#: src/components/AppErrorBoundary.tsx
+msgid "Your scores are still on this device."
+msgstr "Your scores are still on this device."
+
+#: src/views/GamePlanView.tsx
+#: src/views/GameTrendView.tsx
+#: src/views/HistoryView.tsx
+#: src/views/OpenFramesView.tsx
+#: src/views/StatsView.tsx
+msgid "Your sessions could not be read. Reload the app, then try again."
+msgstr "Your sessions could not be read. Reload the app, then try again."
+
+#: src/components/PatternSheet.tsx
+msgid "Zoom in"
+msgstr "Zoom in"
+
+#: src/components/PatternSheet.tsx
+msgid "Zoom out"
+msgstr "Zoom out"

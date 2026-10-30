@@ -16,12 +16,11 @@ refreshes offline are in [PRO-LAUNCH.md](./PRO-LAUNCH.md).
 
 ### The Live Activity, seen on a phone
 
-ADR-221 puts the game on the Lock Screen and in the Dynamic Island. It was
-written without Xcode or a phone, so the first job is to open the project, build
-it, and look at the three layouts on a device. After that: follow the accent
-palette the bowler chose (the widget has the felt palette only), end an activity
-that a closed app left behind when the app next opens, and renumber a showing
-game after a delete renumbers its session's games.
+ADR-221 puts the game on the Lock Screen and in the Dynamic Island, in the
+bowler's palette, and ADR-222 settles an activity a closed app left behind and
+redraws a renumbered game. All of it was written without Xcode or a phone, so
+the job is to open the project, build it, and look at the three layouts on a
+device.
 
 ---
 
@@ -40,11 +39,12 @@ choice the bowler makes per pair. Deriving it is wrong for anyone who plays a
 
 ### A first language
 
-The groundwork is in (ADR-220, [I18N.md](./I18N.md)): a catalog, detection and
-`Intl` formatting, with about 400 strings still to mark and the guides, the
-legal pages and the landing page still English only. Japanese and Korean were
-the languages in mind. What is open is the conversion, the translation, and
-the decision on right-to-left, which the layout does not support.
+The groundwork is in (ADR-220, [I18N.md](./I18N.md)) and the screens are
+marked (0.74.2, about 990 messages). Open: inline markup in a message (no
+`Trans` yet, see I18N.md), the guides, the legal pages and the landing page
+(English only), the translations themselves, and the decision on right-to-left,
+which the layout does not support. Suggested order: Japanese, Korean, Spanish,
+Traditional Chinese.
 
 ### Android follows the system font size
 

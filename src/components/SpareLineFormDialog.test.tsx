@@ -180,8 +180,9 @@ describe("SpareLineFormDialog's lane without Pro (ADR-199)", () => {
       </ProAccessContext.Provider>
     );
     fireEvent.click(screen.getByLabelText("View line on the lane"));
-    // Read-only: the lane tilts, and no point drags.
-    expect(await screen.findByText("Drag the lane to tilt")).toBeInTheDocument();
+    // Read-only: the lane tilts, and no point drags. The lane is a lazy chunk,
+    // which takes longer than findByText's default second under a full run.
+    expect(await screen.findByText("Drag the lane to tilt", {}, { timeout: 5000 })).toBeInTheDocument();
     expect(screen.queryByText(/Drag a point to move it/)).toBeNull();
   });
 });

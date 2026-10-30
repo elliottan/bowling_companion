@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "./ui/Button";
 import { Chip, TAP_TARGET_44 } from "./ui/Chip";
@@ -49,7 +50,7 @@ export function SessionFilterButton({
   return (
     <span className="relative inline-flex shrink-0">
       <IconButton
-        label={count === 0 ? "Filters" : `Filters, ${count} applied`}
+        label={count === 0 ? t`Filters` : t`Filters, ${{ count }} applied`}
         variant="round"
         onClick={onOpen}
       >
@@ -96,11 +97,14 @@ export function SessionFilterChips({ filters }: { filters: SessionFilters }) {
       {pattern && <AppliedChip label={pattern} onRemove={() => setPattern("")} />}
       {event && <AppliedChip label={event} onRemove={() => setEvent("")} />}
       {gameNumber != null && (
-        <AppliedChip label={`Game ${gameNumber}`} onRemove={() => setGameNumber(null)} />
+        <AppliedChip label={t`Game ${{ gameNumber }}`} onRemove={() => setGameNumber(null)} />
       )}
       {activeLanes.length > 0 && (
         <AppliedChip
-          label={`${activeLanes.length === 1 ? "Lane" : "Lanes"} ${activeLanes.join(", ")}`}
+          label={plural(activeLanes.length, {
+            one: `Lane ${{ lanes: activeLanes.join(", ") }}`,
+            other: `Lanes ${{ lanes: activeLanes.join(", ") }}`
+          })}
           onRemove={clearLanes}
         />
       )}
@@ -110,7 +114,7 @@ export function SessionFilterChips({ filters }: { filters: SessionFilters }) {
           className="shrink-0 px-2 text-xs font-medium text-ink-secondary"
           onClick={clearAll}
         >
-          Clear
+          {t`Clear`}
         </Button>
       )}
     </div>
@@ -124,7 +128,7 @@ function AppliedChip({ label, onRemove }: { label: string; onRemove: () => void 
     <button
       type="button"
       onClick={onRemove}
-      aria-label={`Remove filter ${label}`}
+      aria-label={t`Remove filter ${{ filter: label }}`}
       className={`relative inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-accent-fill bg-accent-soft px-3 text-xs font-semibold text-accent ${TAP_TARGET_44}`}
     >
       <span className="max-w-[9rem] truncate">{label}</span>
@@ -170,11 +174,11 @@ export function SessionFilterSheet({
   return (
     // A tick rather than an X: every control here has already applied itself,
     // so there is nothing to cancel and leaving only confirms what is on screen.
-    <FormSheet title="Filters" onClose={onClose} dismissAs="done">
+    <FormSheet title={t`Filters`} onClose={onClose} dismissAs="done">
       <div className="space-y-4 px-4 py-4">
         <div>
           <label className={FIELD_LABEL} htmlFor="filter-alley">
-            Alley
+            {t`Alley`}
           </label>
           <select
             id="filter-alley"
@@ -182,7 +186,7 @@ export function SessionFilterSheet({
             onChange={(e) => setAlley(e.target.value)}
             className={FIELD_SELECT}
           >
-            <option value="">All alleys</option>
+            <option value="">{t`All alleys`}</option>
             {allAlleys.map((a) => (
               <option key={a} value={a}>
                 {a}
@@ -193,22 +197,22 @@ export function SessionFilterSheet({
 
         <div>
           <label className={FIELD_LABEL} htmlFor="filter-pattern">
-            Oil pattern
+            {t`Oil pattern`}
           </label>
           <ChoiceInput
             id="filter-pattern"
             value={pattern}
             onChange={setPattern}
             options={allPatterns}
-            placeholder="All patterns"
-            clearLabel="Clear pattern filter"
+            placeholder={t`All patterns`}
+            clearLabel={t`Clear pattern filter`}
           />
         </div>
 
         {allEvents.length > 0 && (
           <div>
             <label className={FIELD_LABEL} htmlFor="filter-event">
-              Event
+              {t`Event`}
             </label>
             <select
               id="filter-event"
@@ -216,7 +220,7 @@ export function SessionFilterSheet({
               onChange={(e) => setEvent(e.target.value)}
               className={FIELD_SELECT}
             >
-              <option value="">All events</option>
+              <option value="">{t`All events`}</option>
               {allEvents.map((e) => (
                 <option key={e} value={e}>
                   {e}
@@ -228,13 +232,13 @@ export function SessionFilterSheet({
 
         {allGameNumbers.length > 1 && (
           <div>
-            <span className={GROUP_HEADING}>Game</span>
+            <span className={GROUP_HEADING}>{t`Game`}</span>
             {/* gap-2 is load-bearing: Chip expands its tap target 4px past its
                 own box top and bottom, so anything tighter would overlap hit
                 regions on a wrapped row. */}
             <div className="mt-2 flex flex-wrap gap-2">
               <Chip selected={gameNumber === null} onClick={() => setGameNumber(null)}>
-                All
+                {t`All`}
               </Chip>
               {allGameNumbers.map((n) => (
                 <Chip
@@ -252,14 +256,14 @@ export function SessionFilterSheet({
         {allLanes.length > 0 && (
           <div>
             <div className="flex items-center justify-between">
-              <span className={GROUP_HEADING}>Lanes</span>
+              <span className={GROUP_HEADING}>{t`Lanes`}</span>
               {lanes.length > 0 && (
                 <Button
                   variant="ghost"
                   className="px-2 text-xs font-medium text-ink-secondary"
                   onClick={clearLanes}
                 >
-                  Clear
+                  {t`Clear`}
                 </Button>
               )}
             </div>
@@ -275,7 +279,7 @@ export function SessionFilterSheet({
 
         {allLanes.length === 0 && (
           <p className="text-xs text-ink-secondary">
-            Pick an alley to filter by lane.
+            {t`Pick an alley to filter by lane.`}
           </p>
         )}
       </div>

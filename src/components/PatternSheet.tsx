@@ -1,4 +1,5 @@
 import { ArrowUpRight, ChevronRight, Pencil } from "lucide-react";
+import { t } from "@lingui/core/macro";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import type { OilPass, OilPattern } from "../types/bowling";
 import {
@@ -11,7 +12,7 @@ import { IconButton } from "./ui/IconButton";
 import { PushScreen } from "./PushScreen";
 import { LaneViewIcon } from "./icons";
 import { catalogSheet, type KeptSheet } from "../services/patternCatalog";
-import { formatFixed } from "../lib/format";
+import { formatFixed, formatNumber, formatRatio } from "../lib/format";
 
 /**
  * A pattern sheet, in the app (ADR-106).
@@ -73,7 +74,7 @@ export function PatternSheet({
       active={active}
       trailing={
         onOpenInLineVisualizer && stats.length > 0 ? (
-          <IconButton label="Try in the line visualizer" onClick={onOpenInLineVisualizer} variant="round">
+          <IconButton label={t`Try in the line visualizer`} onClick={onOpenInLineVisualizer} variant="round">
             <LaneViewIcon size={22} aria-hidden="true" />
           </IconButton>
         ) : undefined
@@ -83,49 +84,54 @@ export function PatternSheet({
           {stats.length === 0 ? (
             <p className="text-sm text-ink-secondary">
               {feet != null
-                ? `${Math.round(feet)} ft. This pattern has no load table, so there is nothing more to show.`
-                : "This pattern has no load table, so there is nothing to show."}
+                ? t`${{ feet: formatNumber(Math.round(feet)) }} ft. This pattern has no load table, so there is nothing more to show.`
+                : t`This pattern has no load table, so there is nothing to show.`}
             </p>
           ) : (
             <>
               {/* The four figures a sheet leads with. */}
               <dl className="grid grid-cols-2 gap-2">
-                <Figure label="Distance" value={`${Math.round(stats.length)} ft`} />
-                <Figure label="Volume" value={`${formatFixed(stats.volumeMl, 2)} mL`} />
+                <Figure label={t`Distance`} value={t`${{ feet: formatNumber(Math.round(stats.length)) }} ft`} />
+                <Figure label={t`Volume`} value={t`${{ volume: formatFixed(stats.volumeMl, 2) }} mL`} />
                 <Figure
-                  label="Ratio"
-                  value={ratio != null ? `${formatFixed(ratio, 2)}:1` : "unknown"}
+                  label={t`Ratio`}
+                  value={ratio != null ? formatRatio(ratio, 2) : t`unknown`}
                   note={shape ? PATTERN_CLASS_LABEL[shape] : undefined}
                 />
                 <Figure
-                  label="Forward / reverse"
-                  value={`${formatFixed(stats.forwardMl, 2)} / ${formatFixed(stats.reverseMl, 2)} mL`}
+                  label={t`Forward / reverse`}
+                  value={t`${{ forward: formatFixed(stats.forwardMl, 2) }} / ${{ reverse: formatFixed(stats.reverseMl, 2) }} mL`}
                 />
               </dl>
 
               <section>
-                <h3 className={GROUP_HEADING}>Oil on the lane</h3>
+                <h3 className={GROUP_HEADING}>{t`Oil on the lane`}</h3>
                 <p className="mt-0.5 text-xs text-ink-tertiary">
-                  The lane as the sheet draws it: boards across, feet up from the
-                  foul line, darker where there is more oil. The faint wash is where
-                  the machine only buffs, laying no oil of its own.
+                  {t({
+                    message:
+                      "The lane as the sheet draws it: boards across, feet up from the foul line, darker where there is more oil. The faint wash is where the machine only buffs, laying no oil of its own.",
+                    comment: "Bowling terms: boards are the 39 strips of wood across a lane, the foul line marks where the lane starts, buffing spreads oil without adding any"
+                  })}
                 </p>
                 <LaneMap passes={pattern.passes ?? []} length={stats.length} />
               </section>
 
               {zones.length > 0 && (
                 <section>
-                  <h3 className={GROUP_HEADING}>Track zones</h3>
+                  <h3 className={GROUP_HEADING}>{t({ message: "Track zones", comment: "Bowling term: bands of boards across the lane, as an oil pattern sheet prints them" })}</h3>
                   <p className="mt-0.5 text-xs text-ink-tertiary">
-                    How many times more oil the middle carries than each band of
-                    boards, read left to right across the lane as the sheet prints it.
+                    {t({
+                      message:
+                        "How many times more oil the middle carries than each band of boards, read left to right across the lane as the sheet prints it.",
+                      comment: "Bowling term: boards are the strips of wood across a lane"
+                    })}
                   </p>
                   <TrackZoneRow zones={zones} />
                 </section>
               )}
 
-              <PassTable title="Forward" passes={forward} />
-              {reverse.length > 0 && <PassTable title="Reverse" passes={reverse} />}
+              <PassTable direction="forward" passes={forward} />
+              {reverse.length > 0 && <PassTable direction="reverse" passes={reverse} />}
             </>
           )}
 
@@ -135,7 +141,7 @@ export function PatternSheet({
               onClick={() => setViewing(true)}
               className={SHEET_ROW}
             >
-              Original pattern sheet
+              {t`Original pattern sheet`}
               <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
             </button>
           ) : (
@@ -143,7 +149,7 @@ export function PatternSheet({
               // A link the bowler typed for a pattern of their own. It leaves
               // the app, so it carries the outward arrow (DESIGN-LANGUAGE §4).
               <a href={pattern.url} target="_blank" rel="noopener noreferrer" className={SHEET_ROW}>
-                Original pattern sheet
+                {t`Original pattern sheet`}
                 <ArrowUpRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
               </a>
             )
@@ -151,7 +157,7 @@ export function PatternSheet({
 
           {onEdit && (
             <button type="button" onClick={onEdit} className={SHEET_ROW}>
-              Edit pattern
+              {t`Edit pattern`}
               <Pencil size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
             </button>
           )}
@@ -308,7 +314,7 @@ function SheetViewer({ title, sheet, onClose }: { title: string; sheet: KeptShee
       backCloses
       trailing={
         <IconButton
-          label="Open the PDF"
+          label={t`Open the PDF`}
           variant="round"
           onClick={() => window.open(sheet.pdf, "_blank", "noopener,noreferrer")}
         >
@@ -332,7 +338,7 @@ function SheetViewer({ title, sheet, onClose }: { title: string; sheet: KeptShee
             <button
               key={page}
               type="button"
-              aria-label={zoomed ? "Zoom out" : "Zoom in"}
+              aria-label={zoomed ? t`Zoom out` : t`Zoom in`}
               onClick={(event: MouseEvent<HTMLButtonElement>) =>
                 zoomTo(zoomed ? 1 : TAP_ZOOM, event.clientX, event.clientY)
               }
@@ -340,7 +346,7 @@ function SheetViewer({ title, sheet, onClose }: { title: string; sheet: KeptShee
             >
               <img
                 src={page}
-                alt={`${title}, page ${i + 1} of ${sheet.pages.length}`}
+                alt={t`${{ title }}, page ${{ page: i + 1 }} of ${{ pages: sheet.pages.length }}`}
                 className="block w-full rounded bg-white shadow-sm"
               />
             </button>
@@ -415,7 +421,7 @@ function LaneMap({ passes, length }: { passes: OilPass[]; length: number }) {
       viewBox={`0 0 ${W} ${BASE + 6}`}
       className="mt-1.5 w-full"
       role="img"
-      aria-label={`Oil on the lane, ending at ${Math.round(length)} ft`}
+      aria-label={t`Oil on the lane, ending at ${{ feet: formatNumber(Math.round(length)) }} ft`}
     >
       {/* The wood. */}
       <rect x={LEFT} y={BASE - H} width={LANE_RIGHT - LEFT} height={H} className="fill-surface-muted" />
@@ -508,7 +514,7 @@ function LaneMap({ passes, length }: { passes: OilPass[]; length: number }) {
         className="stroke-ink" strokeWidth={0.35} strokeDasharray="1.4 0.9"
       />
       <text x={LANE_RIGHT - 0.5} y={y(length) - 1.2} textAnchor="end" fontSize="3.6" fontWeight={700} className="fill-ink">
-        {Math.round(length)} ft
+        {t`${{ feet: formatNumber(Math.round(length)) }} ft`}
       </text>
 
       {/* Boards, counted in from each gutter, as on the graph below. */}
@@ -523,31 +529,32 @@ function LaneMap({ passes, length }: { passes: OilPass[]; length: number }) {
 }
 
 /** Every pass, in the sheet's own terms. */
-function PassTable({ title, passes }: { title: string; passes: OilPass[] }) {
+function PassTable({ direction, passes }: { direction: "forward" | "reverse"; passes: OilPass[] }) {
   if (passes.length === 0) return null;
+  const heading = direction === "forward" ? t`Forward passes` : t`Reverse passes`;
   return (
     <section>
-      <h3 className={GROUP_HEADING}>{title} passes</h3>
+      <h3 className={GROUP_HEADING}>{heading}</h3>
       <div className="mt-1.5 overflow-hidden rounded-xl border border-edge bg-surface">
         <table className="w-full text-xs tabular-nums">
           <thead>
             <tr className="border-b border-edge text-ink-tertiary">
-              <th className="px-2 py-1.5 text-left font-medium">Boards</th>
-              <th className="px-2 py-1.5 text-right font-medium">Loads</th>
+              <th className="px-2 py-1.5 text-left font-medium">{t({ message: "Boards", comment: "Bowling term: the strips of wood across a lane; a table column heading" })}</th>
+              <th className="px-2 py-1.5 text-right font-medium">{t({ message: "Loads", comment: "Bowling term: how many times the oil machine lays a pass of oil; a table column heading" })}</th>
               <th className="px-2 py-1.5 text-right font-medium">µL</th>
-              <th className="px-2 py-1.5 text-right font-medium">Feet</th>
+              <th className="px-2 py-1.5 text-right font-medium">{t({ message: "Feet", comment: "A table column heading: distance down the lane in feet" })}</th>
             </tr>
           </thead>
           <tbody>
             {passes.map((pass, i) => (
               <tr key={i} className="border-t border-edge/60">
                 <td className="px-2 py-1.5 text-ink">
-                  {formatSheetBoard(pass.left_board)} to {formatSheetBoard(pass.right_board)}
+                  {t`${{ from: formatSheetBoard(pass.left_board) }} to ${{ to: formatSheetBoard(pass.right_board) }}`}
                 </td>
                 <td className="px-2 py-1.5 text-right text-ink-secondary">{pass.loads}</td>
                 <td className="px-2 py-1.5 text-right text-ink-secondary">{pass.microliters}</td>
                 <td className="px-2 py-1.5 text-right text-ink-secondary">
-                  {pass.start_distance} to {pass.end_distance}
+                  {t`${{ from: pass.start_distance }} to ${{ to: pass.end_distance }}`}
                 </td>
               </tr>
             ))}

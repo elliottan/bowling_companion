@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useRef } from "react";
 import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { useHandedness } from "../lib/handednessContext";
@@ -99,7 +100,7 @@ export function PinGrid({
   return (
     <div
       role="group"
-      aria-label="Pin deck"
+      aria-label={t`Pin deck`}
       // The pins are drawn at a fixed size, so their numbers are too (ADR-219).
       className={`type-cap-fixed relative rounded-lg border border-[#d3ac74] shadow-sm ${pad}`}
       style={{
@@ -120,7 +121,7 @@ export function PinGrid({
                   key={pin}
                   type="button"
                   data-pin={pin}
-                  aria-label={`Pin ${pin}, ${isStanding ? "standing" : "down"}`}
+                  aria-label={isStanding ? t`Pin ${{ pin }}, standing` : t`Pin ${{ pin }}, down`}
                   disabled={readOnly || !isAvailable}
                   onPointerDown={readOnly ? undefined : (e) => startGesture(e, pin)}
                   onPointerMove={readOnly ? undefined : moveGesture}

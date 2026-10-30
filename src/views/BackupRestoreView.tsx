@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { Download, ShieldAlert, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -46,12 +47,12 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
         // one. `shareBackup` has not recorded it either.
         setMessage("");
       } else if (where === "shared") {
-        setMessage("Backup sent. Save it somewhere off this device.");
+        setMessage(t`Backup sent. Save it somewhere off this device.`);
       } else {
-        setMessage("Backup downloaded. Move it somewhere off this device.");
+        setMessage(t`Backup downloaded. Move it somewhere off this device.`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Export failed.");
+      setError(err instanceof Error ? err.message : t`Export failed.`);
     } finally {
       setIsBusy(false);
     }
@@ -66,7 +67,7 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
       // Nothing is written yet, the user confirms against real counts first.
       setPending(await prepareImport(file));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Import failed.");
+      setError(err instanceof Error ? err.message : t`Import failed.`);
     } finally {
       setIsBusy(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -92,7 +93,7 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
       window.location.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Import failed.");
+      setError(err instanceof Error ? err.message : t`Import failed.`);
       setIsBusy(false);
     }
   }
@@ -100,10 +101,7 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
   const body = (
     <section className="mx-auto w-full max-w-2xl px-3 py-4 sm:px-6">
       <p className="text-sm text-ink-secondary">
-        A backup is one file, kept on this device or wherever you put it.
-        Restoring <strong className="font-semibold text-ink">replaces</strong>{" "}
-        everything on this device with what is in the file. Your current data is
-        saved off first.
+        {t`A backup is one file, kept on this device or wherever you put it. Restoring replaces everything on this device with what is in the file. Your current data is saved off first.`}
       </p>
 
       {/* A browser that may bin the scores is a warning, and was set in the
@@ -115,14 +113,13 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
         <p className="mt-3 flex items-start gap-2 rounded-xl border border-warning-200 bg-warning-50 p-3 text-sm text-warning-700">
           <ShieldAlert size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
           <span>
-            This browser may clear your scores if it runs short of space. Install the app and
-            back up.
+            {t`This browser may clear your scores if it runs short of space. Install the app and back up.`}
           </span>
         </p>
       )}
       {!native && persisted === true && (
         <p className="mt-2 text-xs text-ink-secondary">
-          This browser has agreed not to clear your scores on its own.
+          {t`This browser has agreed not to clear your scores on its own.`}
         </p>
       )}
 
@@ -137,24 +134,24 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
         <div className="grid gap-2 sm:grid-cols-2">
           <Button variant="primary" onClick={handleExport} disabled={isBusy}>
             <Download size={16} aria-hidden="true" />
-            Save a backup
+            {t`Save a backup`}
           </Button>
 
           <input
             ref={fileInputRef}
             type="file"
             accept="application/json,.json"
-            aria-label="Choose a backup file"
+            aria-label={t`Choose a backup file`}
             className="hidden"
             onChange={(e) => void handleFile(e.target.files?.[0])}
           />
           <Button variant="secondary" onClick={() => fileInputRef.current?.click()} disabled={isBusy}>
             <Upload size={16} aria-hidden="true" />
-            Restore a backup
+            {t`Restore a backup`}
           </Button>
         </div>
         <p className="mt-3 text-center text-xs text-ink-secondary">
-          Or drop a backup file here.
+          {t`Or drop a backup file here.`}
         </p>
       </div>
 
@@ -187,7 +184,7 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
   if (!onBack) return body;
 
   return (
-    <PushScreen mode={mode} title="Backup & restore" onBack={onBack}>
+    <PushScreen mode={mode} title={t`Backup & restore`} onBack={onBack}>
       {body}
     </PushScreen>
   );

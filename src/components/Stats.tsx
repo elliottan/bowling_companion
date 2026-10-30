@@ -1,6 +1,7 @@
 import { ArrowRight, BarChart3, ChevronRight, Lock, TrendingDown, TrendingUp } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { plural, t } from "@lingui/core/macro";
 import { getSpareLinesAll } from "../services/ballRepository";
 import { leaveKey, matchesLeaveFilters, matchesPins } from "../lib/spareLines";
 import { useSpareFilters } from "../lib/useSpareFilters";
@@ -44,7 +45,7 @@ import { useProAccess } from "../lib/useProAccess";
 import { useProEntry } from "./ui/useProAction";
 import type { LockedProAccess } from "../lib/pro";
 import { byMostLeft, FREE_BALLS, previewSplit, standInBall } from "../lib/proPreview";
-import { formatFixed, formatPercent } from "../lib/format";
+import { formatDate, formatFixed, formatNumber, formatPercent } from "../lib/format";
 
 /** The stats the chart can plot, and how each one is drawn.
  *
@@ -55,15 +56,19 @@ import { formatFixed, formatPercent } from "../lib/format";
  *  get magnified into a cliff. */
 const METRICS = {
   average: {
-    label: "Average",
+    get label() {
+      return t({ message: "Average", comment: "A bowling average: the score per game" });
+    },
     value: (s: BowlingStats) => s.averageScore,
-    format: (v: number) => String(Math.round(v)),
+    format: (v: number) => formatNumber(Math.round(v)),
     min: 0,
     max: 300,
     minSpan: 80
   },
   pocketPct: {
-    label: "Pocket",
+    get label() {
+      return t({ message: "Pocket", comment: "Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance" });
+    },
     value: (s: BowlingStats) => s.pocketPct,
     format: (v: number) => formatPercent(v),
     min: 0,
@@ -71,7 +76,9 @@ const METRICS = {
     minSpan: 25
   },
   sparePct: {
-    label: "Spare",
+    get label() {
+      return t({ message: "Spare", comment: "Bowling term: all remaining pins knocked down with the second ball of a frame" });
+    },
     value: (s: BowlingStats) => s.sparePct,
     format: (v: number) => formatPercent(v),
     min: 0,
@@ -79,7 +86,9 @@ const METRICS = {
     minSpan: 25
   },
   strikePct: {
-    label: "Strike",
+    get label() {
+      return t({ message: "Strike", comment: "Bowling term: all ten pins knocked down with the first ball of a frame" });
+    },
     value: (s: BowlingStats) => s.strikePct,
     format: (v: number) => formatPercent(v),
     min: 0,
@@ -91,7 +100,9 @@ const METRICS = {
     // scoresheet's own mark for a strike (STRIKE_ON_STRIKE_SHORT). "Double"
     // was tried and is not the same thing: a double is two strikes in a row,
     // where this is how often a strike was followed by another.
-    label: "Strike on strike",
+    get label() {
+      return t({ message: "Strike on strike", comment: "Bowling term: a strike on the ball right after a strike" });
+    },
     value: (s: BowlingStats) => s.strikeOnStrikePct,
     format: (v: number) => formatPercent(v),
     min: 0,
@@ -99,7 +110,9 @@ const METRICS = {
     minSpan: 25
   },
   carryPct: {
-    label: "Carry",
+    get label() {
+      return t({ message: "Carry", comment: "Bowling term: how often a ball that hit the pocket knocked all the pins down" });
+    },
     value: (s: BowlingStats) => s.carryPct,
     format: (v: number) => formatPercent(v),
     min: 0,
@@ -107,7 +120,9 @@ const METRICS = {
     minSpan: 25
   },
   firstBallAverage: {
-    label: "1st ball",
+    get label() {
+      return t({ message: "1st ball", comment: "Bowling term: the first ball of a frame, thrown at a full rack of ten pins" });
+    },
     value: (s: BowlingStats) => s.firstBallAverage,
     format: (v: number) => formatFixed(v, 1),
     min: 0,
@@ -115,9 +130,11 @@ const METRICS = {
     minSpan: 2
   },
   bestStreak: {
-    label: "Max consecutive strikes",
+    get label() {
+      return t({ message: "Max consecutive strikes", comment: "Bowling term: all ten pins knocked down with the first ball of a frame" });
+    },
     value: (s: BowlingStats) => s.bestStreak,
-    format: (v: number) => String(Math.round(v)),
+    format: (v: number) => formatNumber(Math.round(v)),
     min: 0,
     max: 12,
     minSpan: 4
@@ -148,24 +165,47 @@ export function metricNote(metric: MetricKey): string {
 }
 
 // A tapped definition, for a number off the chart: the Spares heading.
-const SPARE_NOTE = "Spare: makeable leaves converted, excludes splits and washouts.";
+const spareNote = () =>
+  t({
+    message: "Spare: makeable leaves converted, excludes splits and washouts.",
+    comment: "Bowling terms: a makeable leave is a set of standing pins that can be converted to a spare; a split leaves gaps between pins; a washout is a leave with the head pin standing and a gap behind it"
+  });
 
 /** One line under the chart picker saying what the picked metric counts, always
  *  on (ADR-127). Behind an info button the definition was a tap nobody made, and
  *  a chip's one word ("Streak", "Carry") does not say it. Kept to one line on a
  *  phone, so short enough to read in passing. */
 const METRIC_NOTE: Record<MetricKey, string> = {
-  average: "Your score per finished game.",
-  strikePct: "First balls at a full rack that struck.",
-  strikeOnStrikePct: "Strikes the next ball struck too.",
-  bestStreak: "Most strikes in a row in one game.",
-  sparePct: "Makeable leaves made. Not splits or washouts.",
-  pocketPct: "First balls that hit the pocket.",
-  carryPct: "Pocket hits that struck.",
-  firstBallAverage: "Pins the first ball knocks down, on average."
+  get average() {
+    return t`Your score per finished game.`;
+  },
+  get strikePct() {
+    return t({ message: "First balls at a full rack that struck.", comment: "Bowling term: all ten pins knocked down with the first ball of a frame" });
+  },
+  get strikeOnStrikePct() {
+    return t({ message: "Strikes the next ball struck too.", comment: "Bowling term: a strike on the ball right after a strike" });
+  },
+  get bestStreak() {
+    return t({ message: "Most strikes in a row in one game.", comment: "Bowling term: all ten pins knocked down with the first ball of a frame" });
+  },
+  get sparePct() {
+    return t({ message: "Makeable leaves made. Not splits or washouts.", comment: "Bowling terms: a makeable leave is a set of standing pins that can be converted to a spare; a split leaves gaps between pins; a washout is a leave with the head pin standing and a gap behind it" });
+  },
+  get pocketPct() {
+    return t({ message: "First balls that hit the pocket.", comment: "Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance" });
+  },
+  get carryPct() {
+    return t({ message: "Pocket hits that struck.", comment: "Bowling term: how often a ball that hit the pocket knocked all the pins down" });
+  },
+  get firstBallAverage() {
+    return t({ message: "Pins the first ball knocks down, on average.", comment: "Bowling term: the first ball of a frame, thrown at a full rack of ten pins" });
+  }
 };
-const LEAVE_NOTE =
-  "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to follow it, so it is not on this card.";
+const leaveNote = () =>
+  t({
+    message: "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to follow it, so it is not on this card.",
+    comment: "Bowling terms: a leave is the set of pins left standing after the first ball; the 10th is the tenth and last frame"
+  });
 
 interface StatsProps {
   stats: BowlingStats;
@@ -269,8 +309,8 @@ export function Stats({
       {canSlice && (
         <div className="mb-2">
           <SegmentedControl
-            label="Chart by"
-            options={CHART_BY}
+            label={t`Chart by`}
+            options={chartByOptions()}
             value={chartBy}
             onChange={setChartBy}
             dense
@@ -280,7 +320,7 @@ export function Stats({
       <div className="flex items-center gap-1">
         <div
           role="group"
-          aria-label={`Chart by ${gameMetrics || chartBy === "game" ? "game" : "session"}`}
+          aria-label={gameMetrics || chartBy === "game" ? t`Chart by game` : t`Chart by session`}
           className="scrollbar-none -mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto overscroll-x-none px-1 py-1"
         >
           {METRIC_KEYS.map((key) =>
@@ -309,7 +349,7 @@ export function Stats({
     return (
       <EmptyState
         icon={BarChart3}
-        title={empty?.title ?? "No stats yet"}
+        title={empty?.title ?? t`No stats yet`}
         description={empty?.description}
       />
     );
@@ -345,9 +385,9 @@ export function Stats({
             <MetricTrendChart
               points={gameMetrics.map((p) => ({
                 key: `g${p.gameId ?? p.gameNumber}`,
-                axis: `G${p.gameNumber}`,
-                title: `Game ${p.gameNumber}`,
-                detail: p.lanes.length ? `Lane${p.lanes.length > 1 ? "s" : ""} ${p.lanes.join(", ")}` : undefined,
+                axis: gameAxis(p.gameNumber),
+                title: t`Game ${{ gameNumber: p.gameNumber }}`,
+                detail: p.lanes.length ? lanesLabel(p.lanes) : undefined,
                 value: spec.value(p.stats)
               }))}
               header={header}
@@ -374,9 +414,9 @@ export function Stats({
           <MetricTrendChart
             points={gameNumberMetrics.map((p) => ({
               key: `n${p.gameNumber}`,
-              axis: `G${p.gameNumber}`,
-              title: `Game ${p.gameNumber}`,
-              detail: `${p.games} ${p.games === 1 ? "game" : "games"}`,
+              axis: gameAxis(p.gameNumber),
+              title: t`Game ${{ gameNumber: p.gameNumber }}`,
+              detail: plural(p.games, { one: "# game", other: "# games" }),
               value: spec.value(p.stats)
             }))}
             header={header}
@@ -427,9 +467,9 @@ export function Stats({
               <MetricTrendChart
                 points={sessionMetrics.map((p) => ({
                   key: `s${p.sessionId ?? ""}:${p.date}`,
-                  axis: p.date.slice(5).replace("-", "/"),
+                  axis: shortDate(p.date),
                   title: p.alley,
-                  detail: [p.event, `${p.games} ${p.games === 1 ? "game" : "games"}`, p.oilPattern]
+                  detail: [p.event, plural(p.games, { one: "# game", other: "# games" }), p.oilPattern]
                     .filter(Boolean)
                     .join(" · "),
                   value: spec.value(p.stats)
@@ -457,20 +497,20 @@ export function Stats({
         <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <h2>
-              <button type="button" onClick={() => toggleNote(SPARE_NOTE)} className={GROUP_HEADING}>
-                Spares
+              <button type="button" onClick={() => toggleNote(spareNote())} className={GROUP_HEADING}>
+                {t({ message: "Spares", comment: "Bowling term: all remaining pins knocked down with the second ball of a frame" })}
               </button>
             </h2>
           </div>
           {/* Of the makeables, since that is what the rate counts: splits and
-              washouts are left out of it (SPARE_NOTE). */}
+              washouts are left out of it (spareNote). */}
           <p className="mt-1 flex items-baseline gap-2">
             <span className="text-3xl font-bold tabular-nums text-ink">{pct(stats.sparePct)}</span>
-            <span className="text-sm text-ink-secondary">of makeables made</span>
+            <span className="text-sm text-ink-secondary">{t({ message: "of makeables made", comment: "Bowling term: a makeable leave is a set of standing pins that can be converted to a spare" })}</span>
           </p>
-          {note === SPARE_NOTE && (
+          {note === spareNote() && (
             <div className="mt-2">
-              <StatNote text={SPARE_NOTE} onDismiss={() => setNote(null)} />
+              <StatNote text={spareNote()} onDismiss={() => setNote(null)} />
             </div>
           )}
           {leftMost.length > 0 && (
@@ -478,7 +518,7 @@ export function Stats({
             // scroller inside the scrolling screen was a second scroll to
             // find and to fight (ADR-196). Every leave is free (ADR-201).
             <div className="mt-3">
-              <LeaveGrid leaves={leftMost} onOpen={setOpenLeave} label="Leaves left most" />
+              <LeaveGrid leaves={leftMost} onOpen={setOpenLeave} label={t({ message: "Leaves left most", comment: "Bowling term: a leave is the set of pins left standing after the first ball" })} />
             </div>
           )}
           {/* How many there are, so the bowler knows the size of what is
@@ -492,7 +532,7 @@ export function Stats({
       {ranked.length > 0 && (
           <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
             <div className="flex items-center justify-between gap-3">
-              <h2 className={GROUP_HEADING}>Balls</h2>
+              <h2 className={GROUP_HEADING}>{t`Balls`}</h2>
             </div>
             {ballPreview ? (
               // Without Pro: the best ball in full, and the next one blurred
@@ -500,13 +540,13 @@ export function Stats({
               <div className="scrollbar-none mt-1 overflow-x-auto overscroll-x-none">
                 <div className="min-w-fit">
                   <BallRateHeadings />
-                  <ul aria-label="Balls" className="divide-y divide-edge">
+                  <ul aria-label={t`Balls`} className="divide-y divide-edge">
                     {ballPreview.shown.map((b) => (
                       <li key={b.ballId}>
                         <button
                           type="button"
                           onClick={() => setBallsOpen({ focus: b.ballId })}
-                          aria-label={`Open ${b.name}`}
+                          aria-label={t`Open ${{ name: b.name }}`}
                           className="group flex w-full py-2 active:bg-surface-muted"
                         >
                           <BallSummary ball={b} />
@@ -515,7 +555,7 @@ export function Stats({
                     ))}
                     {ballPreview.blurred && (
                       <li>
-                        <ProBlur what="How each of your balls strikes, carries and spares">
+                        <ProBlur what={t`How each of your balls strikes, carries and spares`}>
                           <div className="flex py-2">
                             <BallSummary ball={standInBall(ballPreview.blurred)} />
                           </div>
@@ -532,7 +572,7 @@ export function Stats({
             // ball's name pinned at the left (ADR-139).
             <div
               role="region"
-              aria-label="Ball columns"
+              aria-label={t`Ball columns`}
               className="scrollbar-none mt-1 overflow-x-auto overscroll-x-none"
             >
               <div className="min-w-fit">
@@ -543,7 +583,7 @@ export function Stats({
                       <button
                         type="button"
                         onClick={() => setBallsOpen({ focus: b.ballId })}
-                        aria-label={`Open ${b.name}`}
+                        aria-label={t`Open ${{ name: b.name }}`}
                         className="group flex w-full py-2 active:bg-surface-muted"
                       >
                         <BallSummary ball={b} />
@@ -560,7 +600,7 @@ export function Stats({
 
       {/* Said once for the screen, under the bowler's own numbers rather than
           over them; each card above carries only a small mark. */}
-      <ProBanner what="Get a deeper analysis of your stats." />
+      <ProBanner what={t`Get a deeper analysis of your stats.`} />
 
       {/* Portalled to the body: on the session sheet the stats sit inside a
           panel that slides on a transform, and a transformed ancestor makes
@@ -613,7 +653,7 @@ function Headline({ stats, form }: { stats: BowlingStats; form?: RecentForm | nu
     <section className="rounded-xl border border-edge bg-surface px-3 py-2.5 shadow-sm">
       <div className="flex items-end gap-3">
         <div className="min-w-0 flex-1">
-          <h2 className={GROUP_HEADING}>Average</h2>
+          <h2 className={GROUP_HEADING}>{t({ message: "Average", comment: "A bowling average: the score per game" })}</h2>
           {/* In the accent: it is the answer the screen leads with. */}
           <p className="mt-0.5 text-4xl font-bold leading-none tabular-nums text-accent">
             {fmt(stats.averageScore)}
@@ -622,9 +662,9 @@ function Headline({ stats, form }: { stats: BowlingStats; form?: RecentForm | nu
         <Companions
           className="shrink-0 gap-4"
           items={[
-            ["High", fmt(stats.highGame)],
-            ["Low", fmt(stats.lowGame)],
-            ["Games", String(stats.completedGames)]
+            [t({ message: "High", comment: "The highest game score" }), fmt(stats.highGame)],
+            [t({ message: "Low", comment: "The lowest game score" }), fmt(stats.lowGame)],
+            [t`Games`, formatNumber(stats.completedGames)]
           ]}
         />
       </div>
@@ -638,10 +678,13 @@ function Headline({ stats, form }: { stats: BowlingStats; form?: RecentForm | nu
 function FormLine({ form }: { form: RecentForm }) {
   const { average, difference } = form;
   const Icon = difference > 0 ? TrendingUp : difference < 0 ? TrendingDown : null;
+  const gap = formatNumber(Math.abs(difference));
   const against =
     difference === 0
-      ? "level with your average"
-      : `${Math.abs(difference)} ${difference > 0 ? "above" : "under"} your average`;
+      ? t`level with your average`
+      : difference > 0
+        ? t`${{ gap }} above your average`
+        : t`${{ gap }} under your average`;
   return (
     <p className="mt-2 flex items-start gap-1.5 text-xs text-ink-secondary">
       {Icon && (
@@ -655,7 +698,7 @@ function FormLine({ form }: { form: RecentForm }) {
         <span className={`font-semibold tabular-nums ${difference > 0 ? "text-accent" : "text-ink"}`}>
           {average}
         </span>{" "}
-        over your last {RECENT_SESSIONS} sessions, {against}
+        {t`over your last ${{ sessions: RECENT_SESSIONS }} sessions, ${{ against }}`}
       </span>
     </p>
   );
@@ -715,13 +758,13 @@ function FirstBallCard({
   const { locked } = useProAccess();
   if (locked) return <LockedFirstBallCard pocketPct={stats.pocketPct} />;
   const links: Array<[string, string, boolean]> = [
-    ["Pocket", pct(stats.pocketPct), false],
-    ["Carry", pct(stats.carryPct), false],
-    ["Strike", pct(stats.strikePct), true]
+    [t({ message: "Pocket", comment: "Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance" }), pct(stats.pocketPct), false],
+    [t({ message: "Carry", comment: "Bowling term: how often a ball that hit the pocket knocked all the pins down" }), pct(stats.carryPct), false],
+    [t({ message: "Strike", comment: "Bowling term: all ten pins knocked down with the first ball of a frame" }), pct(stats.strikePct), true]
   ];
   return (
     <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
-      <h2 className={GROUP_HEADING}>First ball</h2>
+      <h2 className={GROUP_HEADING}>{t({ message: "First ball", comment: "Bowling term: the first ball of a frame, thrown at a full rack of ten pins" })}</h2>
       <dl className="mt-2 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-center">
         {links.map(([label, value, lead], i) => (
           <Fragment key={label}>
@@ -736,9 +779,9 @@ function FirstBallCard({
       <Companions
         className="mt-3 border-t border-edge pt-2.5"
         items={[
-          ["1st ball avg", oneDp(stats.firstBallAverage)],
-          ["Strike on strike", pct(stats.strikeOnStrikePct)],
-          ["Strikes in a row", fmt(stats.bestStreak)]
+          [t({ message: "1st ball avg", comment: "Bowling term: the first ball of a frame, thrown at a full rack of ten pins; avg is short for average" }), oneDp(stats.firstBallAverage)],
+          [t({ message: "Strike on strike", comment: "Bowling term: a strike on the ball right after a strike" }), pct(stats.strikeOnStrikePct)],
+          [t({ message: "Strikes in a row", comment: "Bowling term: all ten pins knocked down with the first ball of a frame" }), fmt(stats.bestStreak)]
         ]}
       />
     </section>
@@ -764,7 +807,7 @@ function LockedChip({ access, label }: { access: LockedProAccess; label: string 
       <Chip
         selected={false}
         onClick={entry.start}
-        aria-label={`${label}. ${entry.label}`}
+        aria-label={t`${{ label }}. ${{ action: entry.label }}`}
         className="shrink-0 gap-1 text-ink-secondary"
       >
         {label}
@@ -782,29 +825,29 @@ function LockedChip({ access, label }: { access: LockedProAccess; label: string 
 function LockedFirstBallCard({ pocketPct }: { pocketPct: number | null }) {
   return (
     <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
-      <h2 className={GROUP_HEADING}>First ball</h2>
+      <h2 className={GROUP_HEADING}>{t({ message: "First ball", comment: "Bowling term: the first ball of a frame, thrown at a full rack of ten pins" })}</h2>
       <p className="mt-1 flex items-baseline gap-2">
         <span className="text-3xl font-bold tabular-nums text-ink">{pct(pocketPct)}</span>
-        <span className="text-sm text-ink-secondary">pocket hits</span>
+        <span className="text-sm text-ink-secondary">{t({ message: "pocket hits", comment: "Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance" })}</span>
       </p>
-      <ProBlur what="Carry, strike and the first ball's other numbers" className="mt-3">
+      <ProBlur what={t`Carry, strike and the first ball's other numbers`} className="mt-3">
         <dl className="grid grid-cols-[1fr_auto_1fr] items-center text-center">
           <div className="flex flex-col-reverse">
-            <dt className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">Carry</dt>
+            <dt className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{t({ message: "Carry", comment: "Bowling term: how often a ball that hit the pocket knocked all the pins down" })}</dt>
             <dd className="text-2xl font-bold tabular-nums text-ink">63%</dd>
           </div>
           <ArrowRight size={14} aria-hidden="true" className="text-ink-tertiary" />
           <div className="flex flex-col-reverse">
-            <dt className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">Strike</dt>
+            <dt className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{t({ message: "Strike", comment: "Bowling term: all ten pins knocked down with the first ball of a frame" })}</dt>
             <dd className="text-2xl font-bold tabular-nums text-accent">48%</dd>
           </div>
         </dl>
         <Companions
           className="mt-3 border-t border-edge pt-2.5"
           items={[
-            ["1st ball avg", "8.8"],
-            ["Strike on strike", "45%"],
-            ["Strikes in a row", "6"]
+            [t({ message: "1st ball avg", comment: "Bowling term: the first ball of a frame, thrown at a full rack of ten pins; avg is short for average" }), "8.8"],
+            [t({ message: "Strike on strike", comment: "Bowling term: a strike on the ball right after a strike" }), "45%"],
+            [t({ message: "Strikes in a row", comment: "Bowling term: all ten pins knocked down with the first ball of a frame" }), "6"]
           ]}
         />
       </ProBlur>
@@ -814,10 +857,27 @@ function LockedFirstBallCard({ pocketPct }: { pocketPct: number | null }) {
 
 type ChartBy = "session" | "game";
 
-const CHART_BY: ReadonlyArray<{ value: ChartBy; label: string }> = [
-  { value: "session", label: "By session" },
-  { value: "game", label: "By game" }
+const chartByOptions = (): ReadonlyArray<{ value: ChartBy; label: string }> => [
+  { value: "session", label: t`By session` },
+  { value: "game", label: t`By game` }
 ];
+
+/** A game's short label on a chart axis: G1, G2. */
+function gameAxis(gameNumber: number): string {
+  return t({ message: `G${gameNumber}`, comment: "Short axis label for a game number on a chart, like G1" });
+}
+
+/** A session's date on a chart axis, month and day only. */
+function shortDate(isoDate: string): string {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  return formatDate(new Date(y, m - 1, d), { month: "2-digit", day: "2-digit" });
+}
+
+/** The lanes a game was bowled on: "Lane 3", "Lanes 3, 4". */
+function lanesLabel(lanes: readonly string[]): string {
+  const list = lanes.join(", ");
+  return plural(lanes.length, { one: `Lane ${list}`, other: `Lanes ${list}` });
+}
 
 /** Game slots on the by-game chart that each get a label. "G12" is short, so a
  *  long day of league and practice still names every slot (ADR-145). */
@@ -837,10 +897,20 @@ const CARD_BALLS = 6;
  * so the bowler knows the size of what is behind it; the noun is for a screen
  * reader, since the card's heading already says what is counted.
  */
-function ViewAll({ count, noun, onClick }: { count: number; noun: string; onClick: () => void }) {
+function ViewAll({ count, noun, onClick }: { count: number; noun: "leaves" | "balls"; onClick: () => void }) {
+  const spoken =
+    noun === "leaves"
+      ? plural(count, {
+          one: "View all # leave",
+          other: "View all # leaves"
+        })
+      : plural(count, {
+          one: "View all # ball",
+          other: "View all # balls"
+        });
   return (
-    <Button variant="glass" onClick={onClick} className="mt-3 w-full" aria-label={`View all ${count} ${noun}`}>
-      View all {count}
+    <Button variant="glass" onClick={onClick} className="mt-3 w-full" aria-label={spoken}>
+      {t`View all ${{ count }}`}
       <ChevronRight size={16} aria-hidden="true" className="-mr-1" />
     </Button>
   )
@@ -880,7 +950,8 @@ function StatNote({ text, onDismiss }: { text: string; onDismiss: () => void }) 
 
 /** Strike on strike where there is no room for the words: X is the strike's
  *  mark on a scoresheet, so a bowler reads it at a glance. */
-const STRIKE_ON_STRIKE_SHORT = "X-on-X";
+const strikeOnStrikeShort = () =>
+  t({ message: "X-on-X", comment: "Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet" });
 
 /** Every ball column's width: 44px, the width of "POCKET", the widest
  *  one-word heading, which at 36px ran into "CARRY" beside it. Scaled with
@@ -894,19 +965,67 @@ const BALL_COLUMN_WIDTH = "w-[calc(2.75rem*var(--type-scale))]";
  *  fit beside the name on a 390px phone at the standard size (ADR-144). */
 const BALL_COLUMNS: ReadonlyArray<{
   key: string;
+  /** The column heading. */
   label: string;
+  /** What a screen reader hears with the number. */
+  spoken: string;
   width: string;
   value: (b: BallPerformance) => string;
 }> = [
-  { key: "pocket", label: "Pocket", width: BALL_COLUMN_WIDTH, value: (b) => pct(b.pocketPct) },
-  { key: "carry", label: "Carry", width: BALL_COLUMN_WIDTH, value: (b) => pct(b.carryPct) },
-  { key: "strike", label: "Strike", width: BALL_COLUMN_WIDTH, value: (b) => pct(b.strikePct) },
-  { key: "first ball", label: "1st ball", width: BALL_COLUMN_WIDTH, value: (b) => oneDp(b.firstBallAverage) },
+  {
+    key: "pocket",
+    get label() {
+      return t({ message: "Pocket", comment: "Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance" });
+    },
+    get spoken() {
+      return t({ message: "pocket", comment: "Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance. Lower case: read aloud before a number" });
+    },
+    width: BALL_COLUMN_WIDTH,
+    value: (b) => pct(b.pocketPct)
+  },
+  {
+    key: "carry",
+    get label() {
+      return t({ message: "Carry", comment: "Bowling term: how often a ball that hit the pocket knocked all the pins down" });
+    },
+    get spoken() {
+      return t({ message: "carry", comment: "Bowling term: how often a ball that hit the pocket knocked all the pins down. Lower case: read aloud before a number" });
+    },
+    width: BALL_COLUMN_WIDTH,
+    value: (b) => pct(b.carryPct)
+  },
+  {
+    key: "strike",
+    get label() {
+      return t({ message: "Strike", comment: "Bowling term: all ten pins knocked down with the first ball of a frame" });
+    },
+    get spoken() {
+      return t({ message: "strike", comment: "Bowling term: all ten pins knocked down with the first ball of a frame. Lower case: read aloud before a number" });
+    },
+    width: BALL_COLUMN_WIDTH,
+    value: (b) => pct(b.strikePct)
+  },
+  {
+    key: "first ball",
+    get label() {
+      return t({ message: "1st ball", comment: "Bowling term: the first ball of a frame, thrown at a full rack of ten pins" });
+    },
+    get spoken() {
+      return t({ message: "first ball", comment: "Bowling term: the first ball of a frame, thrown at a full rack of ten pins. Lower case: read aloud before a number" });
+    },
+    width: BALL_COLUMN_WIDTH,
+    value: (b) => oneDp(b.firstBallAverage)
+  },
   // The key is what a screen reader hears with each number; the heading is
   // the short form, which fits one line where the words took three.
   {
     key: "strike on strike",
-    label: STRIKE_ON_STRIKE_SHORT,
+    get label() {
+      return strikeOnStrikeShort();
+    },
+    get spoken() {
+      return t({ message: "strike on strike", comment: "Bowling term: a strike on the ball right after a strike. Lower case: read aloud before a number" });
+    },
     width: BALL_COLUMN_WIDTH,
     value: (b) => pct(b.strikeOnStrikePct)
   }
@@ -979,7 +1098,7 @@ function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labell
             {ball.name}
           </span>
           <span className="block text-caption-2 tabular-nums text-ink-tertiary">
-            {ball.firstBalls} {ball.firstBalls === 1 ? "ball" : "balls"}
+            {plural(ball.firstBalls, { one: "# ball", other: "# balls" })}
           </span>
         </span>
       </span>
@@ -989,7 +1108,7 @@ function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labell
           className={`${c.width} shrink-0 text-center font-semibold tabular-nums ${tone} ${
             labelled ? "" : "self-center"
           }`}
-          aria-label={`${c.key} ${c.value(ball)}`}
+          aria-label={t`${{ column: c.spoken }} ${{ value: c.value(ball) }}`}
         >
           {labelled && (
             <span
@@ -1008,7 +1127,7 @@ function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labell
   return (
     <div
       role="region"
-      aria-label={`${ball.name} columns`}
+      aria-label={t`${{ name: ball.name }} columns`}
       className="scrollbar-none overflow-x-auto overscroll-x-none"
     >
       {line}
@@ -1036,20 +1155,20 @@ function BallDetails({
           spare room, and "1 2 3 4" landed at uneven gaps. */}
       <div
         role="region"
-        aria-label={`${ball.name} by game`}
+        aria-label={t`${{ name: ball.name }} by game`}
         className="scrollbar-none overflow-x-auto overscroll-x-none"
       >
         <table className="min-w-full whitespace-nowrap text-caption-2 tabular-nums">
           <thead>
             <tr className="text-ink-tertiary">
-              <th className={`${ROW_NAME_CELL} text-left font-semibold`}>By game</th>
+              <th className={`${ROW_NAME_CELL} text-left font-semibold`}>{t`By game`}</th>
               {ball.byGame.map((c) => (
                 <th key={c.gameNumber} className={`${GAME_CELL} font-semibold`}>
                   {onDrill && c.sessions.length > 0 ? (
                     <button
                       type="button"
                       onClick={() => onDrill(c)}
-                      aria-label={`Games behind ${ball.name}, game ${c.gameNumber}`}
+                      aria-label={t`Games behind ${{ name: ball.name }}, game ${{ gameNumber: c.gameNumber }}`}
                       className="underline decoration-dotted underline-offset-2"
                     >
                       {c.gameNumber}
@@ -1062,21 +1181,21 @@ function BallDetails({
             </tr>
           </thead>
           <tbody className="text-ink-secondary">
-            <MetricRow label="Pocket" cells={ball.byGame.map((c) => rateOf(c.pocket, c.firstBalls))} />
-            <MetricRow label="Carry" cells={ball.byGame.map((c) => rateOf(c.pocketStrikes, c.pocket))} />
-            <MetricRow label="Strike" cells={ball.byGame.map((c) => rateOf(c.strikes, c.firstBalls))} />
+            <MetricRow label={t({ message: "Pocket", comment: "Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance" })} cells={ball.byGame.map((c) => rateOf(c.pocket, c.firstBalls))} />
+            <MetricRow label={t({ message: "Carry", comment: "Bowling term: how often a ball that hit the pocket knocked all the pins down" })} cells={ball.byGame.map((c) => rateOf(c.pocketStrikes, c.pocket))} />
+            <MetricRow label={t({ message: "Strike", comment: "Bowling term: all ten pins knocked down with the first ball of a frame" })} cells={ball.byGame.map((c) => rateOf(c.strikes, c.firstBalls))} />
             <MetricRow
-              label="1st ball"
+              label={t({ message: "1st ball", comment: "Bowling term: the first ball of a frame, thrown at a full rack of ten pins" })}
               cells={ball.byGame.map((c) => pinsPerBall(c.firstBallPins, c.firstBalls))}
               format={oneDp}
             />
             <MetricRow
-              label={STRIKE_ON_STRIKE_SHORT}
-              spoken="Strike on strike"
+              label={strikeOnStrikeShort()}
+              spoken={t({ message: "Strike on strike", comment: "Bowling term: a strike on the ball right after a strike" })}
               cells={ball.byGame.map((c) => rateOf(c.followUps, c.followUpOpps))}
             />
             <tr>
-              <td className={`${ROW_NAME_CELL} text-left text-ink-tertiary`}>Balls</td>
+              <td className={`${ROW_NAME_CELL} text-left text-ink-tertiary`}>{t`Balls`}</td>
               {ball.byGame.map((c) => (
                 <td key={c.gameNumber} className={`${GAME_CELL} text-ink-tertiary`}>
                   {c.firstBalls}
@@ -1171,7 +1290,7 @@ function AllBallsSheet({
   return (
     // The scope rides in the bar, under the title, so it never scrolls away
     // and takes none of the list's room (ADR-130).
-    <FormSheet title="Balls" subtitle={scopeLabel} onClose={onClose} size="tall" active={drill === null}>
+    <FormSheet title={t`Balls`} subtitle={scopeLabel} onClose={onClose} size="tall" active={drill === null}>
       <div>
         <div>
           <ul ref={listRef} className="-mt-3 divide-y divide-edge">
@@ -1183,7 +1302,7 @@ function AllBallsSheet({
             ))}
             {blurred && (
               <li className="py-3">
-                <ProBlur what="How each of your balls strikes, carries and spares">
+                <ProBlur what={t`How each of your balls strikes, carries and spares`}>
                   <BallSummary ball={standInBall(blurred)} labelled />
                 </ProBlur>
               </li>
@@ -1243,7 +1362,7 @@ function AllLeavesSheet({
   );
   return (
     <FormSheet
-      title="Leaves"
+      title={t({ message: "Leaves", comment: "Bowling term: the pins left standing after the first ball of a frame" })}
       subtitle={scopeLabel}
       onClose={onClose}
       size="tall"
@@ -1255,21 +1374,21 @@ function AllLeavesSheet({
         <SheetHeader>
           <SpareFilterBar
             state={spareFilters}
-            label="Filter leaves"
+            label={t({ message: "Filter leaves", comment: "Bowling term: a leave is the set of pins left standing after the first ball" })}
             pinsOpen={pinsOpen}
             onPinsOpenChange={setPinsOpen}
           />
         </SheetHeader>
-        {note && <StatNote text={LEAVE_NOTE} onDismiss={() => setNote(false)} />}
+        {note && <StatNote text={leaveNote()} onDismiss={() => setNote(false)} />}
         {kept.length === 0 ? (
           <div className="space-y-2 py-6 text-center">
-            <p className="text-sm text-ink-secondary">No leaves fit these filters.</p>
+            <p className="text-sm text-ink-secondary">{t({ message: "No leaves fit these filters.", comment: "Bowling term: a leave is the set of pins left standing after the first ball" })}</p>
             <button
               type="button"
               onClick={spareFilters.clear}
               className={`relative text-sm font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
             >
-              Clear filters
+              {t`Clear filters`}
             </button>
           </div>
         ) : (
@@ -1385,9 +1504,10 @@ function LeaveCountCell({ leave }: { leave: LeaveStats }) {
     <div className="flex flex-col items-center gap-1 rounded-xl border border-edge bg-surface px-1.5 py-2 text-center shadow-sm">
       <MiniPins standing={leave.pins} size="sm" />
       <span className="text-sm font-bold tabular-nums text-ink">
-        {leave.attempts}
+        {formatNumber(leave.attempts)}
         <span className="text-caption-2 font-semibold text-ink-secondary">
-          {leave.attempts === 1 ? " time" : " times"}
+          {" "}
+          {plural(leave.attempts, { one: "time", other: "times" })}
         </span>
       </span>
       {/* The count alone rewards the ball thrown most: a share of this ball's
@@ -1407,7 +1527,7 @@ function LeaveCell({ leave, onOpen }: { leave: LeaveStats; onOpen: () => void })
     <button
       type="button"
       onClick={onOpen}
-      aria-label={`Open ${formatLeave(leave.pins)}`}
+      aria-label={t`Open ${{ leave: formatLeave(leave.pins) }}`}
       className="flex w-full flex-col items-center gap-1 rounded-xl border border-edge bg-surface px-1.5 py-2 text-center shadow-sm active:bg-surface-muted"
     >
       <MiniPins standing={leave.pins} size="sm" />
@@ -1417,7 +1537,7 @@ function LeaveCell({ leave, onOpen }: { leave: LeaveStats; onOpen: () => void })
           the two no longer fit side by side, and the rate wraps under. */}
       <div className="flex w-full flex-wrap items-baseline justify-between gap-x-1">
         <span className="whitespace-nowrap text-left text-caption-2 tabular-nums text-ink-secondary">
-          {leave.conversions}/{leave.chances}
+          {formatNumber(leave.conversions)}/{formatNumber(leave.chances)}
         </span>
         <span
           className={`ml-auto whitespace-nowrap text-right text-sm font-bold tabular-nums ${
@@ -1433,9 +1553,8 @@ function LeaveCell({ leave, onOpen }: { leave: LeaveStats; onOpen: () => void })
   );
 }
 
-/** "1 ball", "6 balls". */
 function fmt(value: number | null): string {
-  return value === null ? "-" : String(value);
+  return value === null ? "-" : formatNumber(value);
 }
 
 function pct(value: number | null): string {

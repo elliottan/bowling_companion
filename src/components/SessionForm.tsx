@@ -3,6 +3,7 @@ import type { FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { localDateKey } from "../lib/dates";
 import { createPortal } from "react-dom";
+import { t } from "@lingui/core/macro";
 import { OilPatternManager } from "./OilPatternManager";
 import { PushScreen } from "./PushScreen";
 import { IconButton } from "./ui/IconButton";
@@ -91,7 +92,7 @@ export function SessionForm({
       .then((list) => {
         setOilPatterns(list);
         const current = list.find((op) => op.id === initial?.oil_pattern_id);
-        if (current) setPatternText((t) => t || current.name);
+        if (current) setPatternText((prev) => prev || current.name);
       })
       .catch(() => {});
     getDistinctAlleys().then(setAlleys).catch(() => {});
@@ -119,7 +120,7 @@ export function SessionForm({
     () =>
       oilPatterns.map((op) => ({
         value: op.name,
-        label: op.archived ? `${patternLabel(op)} (archived)` : patternLabel(op)
+        label: op.archived ? t`${{ pattern: patternLabel(op) }} (archived)` : patternLabel(op)
       })),
     [oilPatterns]
   );
@@ -170,7 +171,7 @@ export function SessionForm({
     <>
       <form id={formId} onSubmit={handleSubmit}>
         <div className="space-y-3">
-          <Field label="Alley">
+          <Field label={t`Alley`}>
             <SuggestInput
               value={alleyName}
               onChange={setAlleyName}
@@ -183,12 +184,12 @@ export function SessionForm({
                 onClick={() => onOpenAlleyReport(knownAlley)}
                 className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-accent"
               >
-                See your lines here
+                {t`See your lines here`}
               </button>
             )}
           </Field>
 
-          <Field label="Date">
+          <Field label={t`Date`}>
             <input
               required
               type="date"
@@ -198,12 +199,12 @@ export function SessionForm({
             />
           </Field>
 
-          <Field label="Description">
+          <Field label={t`Description`}>
             <SuggestInput
               value={description}
               onChange={setDescription}
               suggestions={descriptions}
-              placeholder="League, practice, tournament…"
+              placeholder={t`League, practice, tournament…`}
             />
           </Field>
 
@@ -212,11 +213,11 @@ export function SessionForm({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <label htmlFor="oil-pattern" className={`${FIELD_LABEL} mb-0`}>
-                Oil pattern
+                {t`Oil pattern`}
               </label>
               <IconButton
                 onClick={() => setShowPatternManager(true)}
-                label="Manage oil patterns"
+                label={t`Manage oil patterns`}
                 className="-my-2 text-accent"
               >
                 <Settings2 size={18} aria-hidden="true" />
@@ -235,7 +236,7 @@ export function SessionForm({
               {patternText !== "" && (
                 <button
                   type="button"
-                  aria-label="Clear oil pattern"
+                  aria-label={t`Clear oil pattern`}
                   onClick={() => setPatternText("")}
                   className="absolute inset-y-0 right-1 my-auto flex h-8 w-8 items-center justify-center rounded-full text-ink-tertiary hover:bg-surface-muted hover:text-ink-secondary"
                 >
@@ -245,7 +246,7 @@ export function SessionForm({
             </div>
             {patternText.trim() !== "" && !matchedPattern && (
               <p className="text-xs text-ink-secondary">
-                A new pattern. Saving adds it to your oil patterns, where you can give it a load table.
+                {t`A new pattern. Saving adds it to your oil patterns, where you can give it a load table.`}
               </p>
             )}
           </div>
@@ -268,7 +269,7 @@ export function SessionForm({
           // stack, where back closes the topmost layer and nothing else.
           // On the top layer: the session form is a sheet (z-60), and a shell
           // push (z-55) slid in under the sheet that opened it.
-          <PushScreen title="Oil patterns" onBack={closePatternManager} backCloses layer="top">
+          <PushScreen title={t`Oil patterns`} onBack={closePatternManager} backCloses layer="top">
             <div className="mx-auto w-full max-w-3xl">
               <OilPatternManager />
             </div>

@@ -842,7 +842,7 @@ export function ActiveGameScorer({
       {mode === "standalone" && (
         <div className="mb-2 flex items-center justify-between gap-3">
           <Button variant="secondary" onClick={newGame}>
-            New
+            {t`New`}
           </Button>
           <p className="text-2xl font-extrabold leading-none text-accent">{gameScore.total}</p>
         </div>

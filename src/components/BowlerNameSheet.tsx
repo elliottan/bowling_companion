@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useState } from "react";
 import { FormSheet } from "./ui/FormSheet";
 import { ErrorBanner } from "./ErrorBanner";
@@ -28,23 +29,23 @@ export function BowlerNameSheet({ name, onClose }: BowlerNameSheetProps) {
       await setBowlerName(value);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save your name.");
+      setError(err instanceof Error ? err.message : t`Failed to save your name.`);
       setSaving(false);
     }
   }
 
   return (
     <FormSheet
-      title="Your name"
+      title={t`Your name`}
       onClose={onClose}
       onConfirm={() => void save()}
-      confirmLabel="Save name"
+      confirmLabel={t`Save name`}
       confirmDisabled={saving}
       banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
     >
       <form onSubmit={(e) => void save(e)}>
         <label htmlFor="bowler-name" className={FIELD_LABEL}>
-          What do you want to be called?
+          {t`What do you want to be called?`}
         </label>
         <input
           id="bowler-name"

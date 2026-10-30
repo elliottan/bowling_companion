@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { MessageSquare } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { TAP_TARGET_44 } from "./ui/Chip";
@@ -29,9 +30,9 @@ export function FeedbackPrompt() {
         <MessageSquare size={18} aria-hidden="true" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-ink">How's Headpin working for you?</p>
+        <p className="text-sm font-semibold text-ink">{t`How's Headpin working for you?`}</p>
         <p className="mt-0.5 text-xs text-ink-secondary">
-          You've bowled a few sessions now. What's missing, or what's getting in your way?
+          {t`You've bowled a few sessions now. What's missing, or what's getting in your way?`}
         </p>
         <div className="mt-2 flex items-center gap-3">
           <button
@@ -42,14 +43,14 @@ export function FeedbackPrompt() {
             }}
             className={`relative text-xs font-bold text-accent underline hover:no-underline ${TAP_TARGET_44}`}
           >
-            Tell me
+            {t`Tell me`}
           </button>
           <button
             type="button"
             onClick={done}
             className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold text-ink-secondary hover:underline ${TAP_TARGET_44}`}
           >
-            No thanks
+            {t`No thanks`}
           </button>
         </div>
       </div>

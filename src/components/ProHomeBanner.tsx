@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { ChevronRight } from "lucide-react";
 import { ProMark } from "./ui/ProMark";
 import { useProAccess } from "../lib/useProAccess";
@@ -22,14 +23,14 @@ function Banner({ access }: { access: Extract<ReturnType<typeof useProAccess>, {
       <button
         type="button"
         onClick={entry.start}
-        aria-label="Headpin Pro. See what it adds"
+        aria-label={t`Headpin Pro. See what it adds`}
         className="mt-4 flex w-full items-center gap-3 rounded-[22px] bg-surface px-4 py-3 text-left active:bg-surface-muted"
       >
         <ProMark size={40} />
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-bold text-ink">Headpin Pro</span>
+          <span className="block text-sm font-bold text-ink">{t`Headpin Pro`}</span>
           <span className="block text-xs text-ink-secondary">
-            Line and layout tools, deeper stats, estimated averages and more colors. Pay once, future updates included.
+            {t`Line and layout tools, deeper stats, estimated averages and more colors. Pay once, future updates included.`}
           </span>
         </span>
         <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />

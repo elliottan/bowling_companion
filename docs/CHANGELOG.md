@@ -9,6 +9,18 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.74.2: Lock Screen fixes, and the app ready to translate (2026-10-30)
+
+- A game left on the Lock Screen by an app that was closed mid-game is tidied
+  when the app next opens: a game still being bowled is brought up to date,
+  and a finished or deleted one is taken down (ADR-222).
+- Deleting a game in a session renumbers the games after it, and the Lock
+  Screen now shows the new number.
+- Counts read right in the singular where they did not ("1 session", not
+  "1 sessions", on the first run).
+- Behind the scenes, almost every word the app shows is now ready to be
+  translated. English is still the only language.
+
 ## 0.74.1: Large text sizes fit every screen (2026-10-29)
 
 - At the larger text sizes (Settings, Appearance, Text size, or the iPhone's own

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Info, Lock, X } from "lucide-react";
+import { t } from "@lingui/core/macro";
 import { IconButton } from "./ui/IconButton";
 import { ProVeil } from "./ui/ProLock";
 import { useProAccess } from "../lib/useProAccess";
@@ -101,13 +102,13 @@ export function LayoutEditor({
           hidden to get it. */}
       <div className="grid grid-cols-2 gap-2">
         <SystemCard
-          label="Dual angle"
+          label={t({ message: "Dual angle", comment: "Bowling term: a ball layout written as a drilling angle, a pin to PAP distance and a VAL angle" })}
           value={formatDualAngle(layout)}
           selected={system === "dual"}
           onClick={() => onSystemChange("dual")}
         />
         <SystemCard
-          label="Storm VLS"
+          label={t({ message: "Storm VLS", comment: "Bowling term: Storm's Value Layout System, a ball layout written as pin to PAP, PSA to PAP and pin buffer. Storm is a brand; the three letters are an abbreviation" })}
           value={formatVls(vls)}
           selected={system === "vls"}
           onClick={() => onSystemChange("vls")}
@@ -120,8 +121,8 @@ export function LayoutEditor({
           <Slider
             idPrefix={idPrefix}
             locked={frozen}
-            label="Drilling angle"
-            hint="Angle at the pin between your PAP and the CG or PSA. A low angle rolls early; a high one rolls later."
+            label={t({ message: "Drilling angle", comment: "Bowling term: the angle at the pin between the bowler's PAP and the ball's CG or PSA" })}
+            hint={t({ message: "Angle at the pin between your PAP and the CG or PSA. A low angle rolls early; a high one rolls later.", comment: "Bowling terms: PAP is the positive axis point, CG the center of gravity, PSA the preferred spin axis" })}
             value={layout.drillingAngle}
             min={0}
             max={90}
@@ -132,8 +133,8 @@ export function LayoutEditor({
           <Slider
             idPrefix={idPrefix}
             locked={frozen}
-            label="Pin to PAP"
-            hint="Distance from the pin to your PAP. Around 4 inches gives the most flare."
+            label={t({ message: "Pin to PAP", comment: "Bowling term: the distance from the ball's pin to the bowler's PAP (positive axis point)" })}
+            hint={t({ message: "Distance from the pin to your PAP. Around 4 inches gives the most flare.", comment: "Bowling terms: the pin is the ball's drilling marker, PAP the positive axis point, flare the track migration" })}
             value={layout.pinToPap}
             min={0.5}
             max={6}
@@ -144,8 +145,8 @@ export function LayoutEditor({
           <Slider
             idPrefix={idPrefix}
             locked={frozen}
-            label="VAL angle"
-            hint="Angle at the PAP between the pin and your axis line. Low puts the pin up for a sharper turn; high puts it down for a smoother one."
+            label={t({ message: "VAL angle", comment: "Bowling term: valid axis line angle, the angle at the PAP between the pin and the bowler's axis line" })}
+            hint={t({ message: "Angle at the PAP between the pin and your axis line. Low puts the pin up for a sharper turn; high puts it down for a smoother one.", comment: "Bowling terms: PAP is the positive axis point; the axis line is the line the ball rotates around" })}
             value={layout.valAngle}
             min={0}
             max={90}
@@ -159,8 +160,8 @@ export function LayoutEditor({
           <Slider
             idPrefix={idPrefix}
             locked={frozen}
-            label="Pin to PAP"
-            hint="Distance from the pin to your PAP. Around 4 inches gives the most flare."
+            label={t({ message: "Pin to PAP", comment: "Bowling term: the distance from the ball's pin to the bowler's PAP (positive axis point)" })}
+            hint={t({ message: "Distance from the pin to your PAP. Around 4 inches gives the most flare.", comment: "Bowling terms: the pin is the ball's drilling marker, PAP the positive axis point, flare the track migration" })}
             value={vls.pinToPap}
             min={0.5}
             max={6}
@@ -174,8 +175,8 @@ export function LayoutEditor({
             <Slider
               idPrefix={idPrefix}
               locked={frozen}
-              label="PSA to PAP"
-              hint="Distance from the PSA to your PAP. It controls how quickly the ball gives up side roll, the job the drilling angle does in dual angle."
+              label={t({ message: "PSA to PAP", comment: "Bowling term: the distance from the ball's preferred spin axis to the bowler's PAP (positive axis point)" })}
+              hint={t({ message: "Distance from the PSA to your PAP. It controls how quickly the ball gives up side roll, the job the drilling angle does in dual angle.", comment: "Bowling terms: PSA is the preferred spin axis, PAP the positive axis point, side roll the sideways spin of the ball" })}
               value={vls.psaToPap}
               min={Math.max(0.25, Math.abs(ball.pinToCore - vls.pinToPap))}
               max={Math.min(6.7, ball.pinToCore + vls.pinToPap)}
@@ -187,8 +188,8 @@ export function LayoutEditor({
           <Slider
             idPrefix={idPrefix}
             locked={frozen}
-            label="Pin buffer"
-            hint="Distance from the pin to your axis line. Short reads the lane earlier and smoother; long saves more for the dry back end."
+            label={t({ message: "Pin buffer", comment: "Bowling term: the distance from the ball's pin to the bowler's axis line" })}
+            hint={t({ message: "Distance from the pin to your axis line. Short reads the lane earlier and smoother; long saves more for the dry back end.", comment: "Bowling terms: the axis line is the line the ball rotates around; the back end is the dry part of the lane near the pins" })}
             value={vls.pinBuffer}
             min={0}
             max={Math.min(vls.pinToPap, 6)}
@@ -205,7 +206,7 @@ export function LayoutEditor({
             <div aria-hidden="true" className="invisible">
               <Slider
                 idPrefix={`${idPrefix}-spacer`}
-                label="PSA to PAP"
+                label={t({ message: "PSA to PAP", comment: "Bowling term: the distance from the ball's preferred spin axis to the bowler's PAP (positive axis point)" })}
                 hint=""
                 value={0}
                 min={0}
@@ -232,7 +233,7 @@ function NumbersVeil({ on, children }: { on: boolean; children: ReactNode }) {
     // As they are, unfaded, and still, with each thumb drawn as a lock: the
     // lock sits on the thing that will not move rather than over the card
     // (ADR-209). The whole card is still the one tap.
-    <ProVeil clear bare what="Changing the layout">
+    <ProVeil clear bare what={t`Changing the layout`}>
       {children}
     </ProVeil>
   );
@@ -347,11 +348,11 @@ export function Slider({
         <div
           id={`${id}-hint`}
           role="dialog"
-          aria-label={`${label}, what it does`}
+          aria-label={t`${{ label }}, what it does`}
           className="absolute left-0 right-0 top-10 z-20 flex items-start gap-2 rounded-lg border border-edge bg-surface p-2 text-xs leading-snug text-ink-secondary shadow-lg"
         >
           <p className="min-w-0 flex-1">{hint}</p>
-          <IconButton compact label="Close" onClick={() => setHintOpen(false)}>
+          <IconButton compact label={t`Close`} onClick={() => setHintOpen(false)}>
             <X size={14} aria-hidden="true" />
           </IconButton>
         </div>

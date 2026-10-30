@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { MiniPins } from "./MiniPins";
 import { FormSheet } from "./ui/FormSheet";
 import { EmptyState } from "./ui/EmptyState";
@@ -35,12 +36,12 @@ export function SpareLinePickerSheet({ spareLines, onPick, onClose, withMoves = 
   const move = (n: number | undefined) => (n ? describeMove(n, handedness) : "-");
 
   return (
-    <FormSheet title="Use another leave's line" onClose={onClose}>
+    <FormSheet title={t`Use another leave's line`} onClose={onClose}>
       {offered.length === 0 ? (
         <EmptyState
           icon={Crosshair}
-          title="No lines saved yet"
-          description="Save a line for one leave and you can borrow it for another."
+          title={t`No lines saved yet`}
+          description={t`Save a line for one leave and you can borrow it for another.`}
         />
       ) : (
         <ul className={`grid gap-1.5 ${withMoves ? "grid-cols-3" : "grid-cols-4"}`}>
@@ -57,7 +58,7 @@ export function SpareLinePickerSheet({ spareLines, onPick, onClose, withMoves = 
                     withMoves && hasMove(sl) ? sl.strike_offset : undefined
                   )
                 }
-                aria-label={`Use the line for pins ${sl.pins.join(", ")}`}
+                aria-label={t`Use the line for pins ${{ pins: sl.pins.join(", ") }}`}
                 className="flex w-full flex-col items-center gap-1 rounded-lg border border-edge bg-surface p-2 text-center shadow-sm active:opacity-70"
               >
                 <MiniPins standing={sl.pins} size="sm" />
@@ -70,7 +71,7 @@ export function SpareLinePickerSheet({ spareLines, onPick, onClose, withMoves = 
                 )}
                 {withMoves && hasMove(sl) && (
                   <span className="text-caption-2 font-semibold leading-tight tabular-nums text-accent">
-                    Strike ball
+                    {t({ message: "Strike ball", comment: "Bowling term: the ball thrown at a strike, the first ball of a frame, as opposed to the shot at a spare." })}
                     <br />
                     {move(sl.strike_offset?.stance)}
                     <span className="text-ink-tertiary"> / </span>

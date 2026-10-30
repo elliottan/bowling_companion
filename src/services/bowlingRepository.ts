@@ -4,7 +4,7 @@ import { localDateKey } from "../lib/dates";
 import { nextGameStartLane } from "../lib/lanes";
 import { considerRatingPrompt } from "./ratingPrompt";
 import { reportGameFinished } from "./usageReporter";
-import { buildLiveActivityState, currentAppearance } from "../lib/liveActivity";
+import { buildLiveActivityState, currentAppearance, type LiveActivityState } from "../lib/liveActivity";
 import { liveActivity } from "../lib/nativeLiveActivity";
 import { isIOSApp } from "../lib/platform";
 import {
@@ -52,6 +52,48 @@ export async function setLiveActivityEnabled(enabled: boolean): Promise<void> {
   if (!enabled) liveActivity.stop();
 }
 
+/** What the Lock Screen should say of a game, or null when the game, its
+ *  session or its first ball is gone. */
+async function readLiveActivityState(gameId: number): Promise<LiveActivityState | null> {
+  const game = await db.games.get(gameId);
+  const session = game ? await db.sessions.get(game.session_id) : undefined;
+  if (!game || !session) return null;
+  const frames = await db.frames.where("game_id").equals(gameId).toArray();
+  return buildLiveActivityState(session, game, frames, currentAppearance());
+}
+
+/**
+ * On launch, settles what an earlier run left on the Lock Screen (ADR-222): an
+ * app closed mid-game leaves its activity up, and the game may since have
+ * been finished, deleted or restored over. A game still being bowled is
+ * brought up to date; anything else, or everything while the bowler has the
+ * feature off, is taken down.
+ */
+export async function tidyLiveActivity(): Promise<void> {
+  if (!isIOSApp()) return;
+  try {
+    const enabled = await getLiveActivityEnabled();
+    liveActivity.tidy(async (gameId) => {
+      if (!enabled) return null;
+      const state = await readLiveActivityState(gameId);
+      return state ? { gameId, state } : null;
+    });
+  } catch {
+    // The Lock Screen's loss only.
+  }
+}
+
+/** A game's number changed under the Lock Screen (ADR-222): redraw it if it is
+ *  the one showing. */
+async function refreshLiveActivity(gameId: number): Promise<void> {
+  try {
+    const state = await readLiveActivityState(gameId);
+    if (state) liveActivity.refresh({ gameId, state });
+  } catch {
+    // The Lock Screen's loss only.
+  }
+}
+
 /**
  * Brings the Lock Screen up to date with a game after a ball, an undo or an
  * edit was saved (ADR-221). Never awaited by the save that asks for it, and it
@@ -62,14 +104,7 @@ async function syncLiveActivity(gameId: number): Promise<void> {
   if (!isIOSApp()) return;
   try {
     if (!(await getLiveActivityEnabled())) return;
-    const game = await db.games.get(gameId);
-    const session = game ? await db.sessions.get(game.session_id) : undefined;
-    if (!game || !session) {
-      liveActivity.stop(gameId);
-      return;
-    }
-    const frames = await db.frames.where("game_id").equals(gameId).toArray();
-    const state = buildLiveActivityState(session, game, frames, currentAppearance());
+    const state = await readLiveActivityState(gameId);
     if (!state) {
       // An undo took the first ball back: there is no game to show.
       liveActivity.stop(gameId);
@@ -546,6 +581,8 @@ export async function pruneEmptySessions(keep: number | null = null): Promise<nu
 export async function deleteGame(
   gameId: number
 ): Promise<{ sessionDeleted: boolean; sessionId: number }> {
+  // Games whose number moved down, which the Lock Screen may be showing.
+  const renumbered: number[] = [];
   const result = await db.transaction("rw", db.sessions, db.games, db.frames, async () => {
     const game = await db.games.get(gameId);
     if (!game) throw new Error(`Cannot delete game. Game ${gameId} was not found.`);
@@ -567,11 +604,13 @@ export async function deleteGame(
       const want = i + 1;
       if (remaining[i].id && remaining[i].game_number !== want) {
         await db.games.update(remaining[i].id!, { game_number: want });
+        renumbered.push(remaining[i].id!);
       }
     }
     return { sessionDeleted: false, sessionId };
   });
   liveActivity.stop(gameId);
+  if (isIOSApp()) for (const id of renumbered) void refreshLiveActivity(id);
   return result;
 }
 

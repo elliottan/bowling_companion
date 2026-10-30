@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import type { PreparedImport } from "../services/backupRepository";
 import { describeAge } from "../lib/backupNudge";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -35,8 +36,8 @@ export function ReplaceConfirmDialog({
   return (
     <ConfirmDialog
       open
-      title="Replace all data?"
-      confirmLabel={isBusy ? "Replacing" : "Replace everything"}
+      title={t`Replace all data?`}
+      confirmLabel={isBusy ? t`Replacing` : t`Replace everything`}
       confirmDisabled={isBusy || confirmText.trim() !== REQUIRED_CONFIRMATION}
       onConfirm={onConfirm}
       onCancel={onCancel}
@@ -46,23 +47,29 @@ export function ReplaceConfirmDialog({
               side read the same whichever way the restore runs (ADR-067). */}
           {losingSessions > 0 && (
             <p className="rounded-lg border border-danger-200 bg-danger-50 p-2 font-semibold text-danger-700">
-              This file is older than what is on this device. You would lose{" "}
-              {losingSessions} {losingSessions === 1 ? "session" : "sessions"}.
+              {plural(losingSessions, {
+                one: "This file is older than what is on this device. You would lose # session.",
+                other: "This file is older than what is on this device. You would lose # sessions."
+              })}
             </p>
           )}
           <p>
-            This deletes everything on this device: {current.sessions}{" "}
-            {current.sessions === 1 ? "session" : "sessions"}, {current.games}{" "}
-            {current.games === 1 ? "game" : "games"}, {current.balls}{" "}
-            {current.balls === 1 ? "ball" : "balls"}. It installs the file's{" "}
-            {incoming.sessions} {incoming.sessions === 1 ? "session" : "sessions"},{" "}
-            {incoming.games} {incoming.games === 1 ? "game" : "games"} instead, saved {age}.
+            {t`This deletes everything on this device: ${plural(current.sessions, {
+              one: "# session",
+              other: "# sessions"
+            })}, ${plural(current.games, { one: "# game", other: "# games" })}, ${plural(current.balls, {
+              one: "# ball",
+              other: "# balls"
+            })}. It installs the file's ${plural(incoming.sessions, {
+              one: "# session",
+              other: "# sessions"
+            })}, ${plural(incoming.games, { one: "# game", other: "# games" })} instead, saved ${age}.`}
           </p>
           {safetyCopy && (
-            <p>Headpin downloads a copy of your current data first, so you can undo this.</p>
+            <p>{t`Headpin downloads a copy of your current data first, so you can undo this.`}</p>
           )}
           <label className="block pt-1">
-            <span className={FIELD_LABEL}>Type {REQUIRED_CONFIRMATION} to confirm</span>
+            <span className={FIELD_LABEL}>{t`Type ${{ word: REQUIRED_CONFIRMATION }} to confirm`}</span>
             <input
               autoFocus
               value={confirmText}

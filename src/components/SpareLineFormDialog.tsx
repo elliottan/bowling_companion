@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import { formatPercent } from "../lib/format";
 import { Check, ChevronLeft, ChevronRight, Crosshair, Eye, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -114,7 +115,7 @@ export function SpareLineFormDialog({
     e?.preventDefault();
     if (!editing) return;
     if (pins.length === 0) {
-      setError("Select at least one pin for this leave.");
+      setError(t`Select at least one pin for this leave.`);
       return;
     }
     if (pocket) return;
@@ -143,7 +144,7 @@ export function SpareLineFormDialog({
       if (startInView) setEditing(false);
       else onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save spare line.");
+      setError(err instanceof Error ? err.message : t`Failed to save spare line.`);
     } finally {
       setIsSaving(false);
     }
@@ -156,12 +157,12 @@ export function SpareLineFormDialog({
       variant="confirm"
       onClick={() => void handleSubmit()}
       disabled={isSaving}
-      label="Save spare line"
+      label={t`Save spare line`}
     >
       <Check size={20} aria-hidden="true" />
     </IconButton>
   ) : (
-    <IconButton variant="round" onClick={() => setEditing(true)} label="Edit spare line">
+    <IconButton variant="round" onClick={() => setEditing(true)} label={t`Edit spare line`}>
       <Pencil size={18} aria-hidden="true" />
     </IconButton>
   );
@@ -170,7 +171,7 @@ export function SpareLineFormDialog({
 
   return (
     <FormSheet
-      title={pins.length === 0 ? "Add spare line" : formatLeave(pins)}
+      title={pins.length === 0 ? t`Add spare line` : formatLeave(pins)}
       onClose={onCancel}
       trailing={trailing}
       active={!showViz && !showPicker && !covered}
@@ -181,7 +182,7 @@ export function SpareLineFormDialog({
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         <div>
           {editing && !lockPins && (
-            <p className="mb-2 text-xs text-ink-secondary">Tap the pins left standing.</p>
+            <p className="mb-2 text-xs text-ink-secondary">{t`Tap the pins left standing.`}</p>
           )}
           {/* The deck does not need the whole width, so the record of the
               leave sits beside it rather than under the fold. */}
@@ -222,21 +223,20 @@ export function SpareLineFormDialog({
 
         {pocket ? (
           <p className="text-sm text-ink-secondary">
-            A pocket shot. With the 1 and 5 standing you throw your strike ball on
-            your strike line, so this leave needs no spare line.
+            {t({ message: "A pocket shot. With the 1 and 5 standing you throw your strike ball on your strike line, so this leave needs no spare line.", comment: "Bowling terms: a pocket shot is aimed at the pocket, the gap between the 1 and 3 pins; a leave is the pins left standing after the first ball; the strike line is where the bowler throws a strike." })}
           </p>
         ) : (
         <>
         <div>
           {/* The eye sits in the heading row, as on the scorer's line. */}
           <div className="mb-0.5 flex items-center justify-between gap-2">
-            <span className={eyebrow}>Spare ball line</span>
+            <span className={eyebrow}>{t({ message: "Spare ball line", comment: "Bowling term: the line (stance and target boards) thrown with the ball used for spares." })}</span>
             <div className="flex items-center gap-1">
               {editing && borrowable.length > 0 && (
                 <IconButton
                   compact
-                  label="Use another leave's line"
-                  title="Copy a saved spare line onto this leave"
+                  label={t`Use another leave's line`}
+                  title={t`Copy a saved spare line onto this leave`}
                   onClick={() => setShowPicker(true)}
                 >
                   <Crosshair size={14} aria-hidden="true" />
@@ -246,8 +246,8 @@ export function SpareLineFormDialog({
               {line.stance != null && line.target != null && (
                 <IconButton
                   compact
-                  label="View line on the lane"
-                  title="View the line on the lane"
+                  label={t`View line on the lane`}
+                  title={t`View the line on the lane`}
                   onClick={() => setShowViz(true)}
                 >
                   <Eye size={14} aria-hidden="true" />
@@ -256,7 +256,12 @@ export function SpareLineFormDialog({
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            {([["stance", "Stance"], ["target", "Target"]] as const).map(([field, label]) => (
+            {(
+              [
+                ["stance", t({ message: "Stance", comment: "Bowling term: the board the bowler stands on at the foul line. A field label." })],
+                ["target", t({ message: "Target", comment: "Bowling term: the board the ball crosses at the arrows. A field label." })]
+              ] as const
+            ).map(([field, label]) => (
               <label key={field} className="min-w-0 flex-1">
                 <span className={floatLabel}>{label}</span>
                 <input
@@ -285,15 +290,15 @@ export function SpareLineFormDialog({
             <button
               type="button"
               onClick={() => setShowViz(true)}
-              title="Derived from your stance. Tap to see it on the lane."
+              title={t`Derived from your stance. Tap to see it on the lane.`}
               className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-caption-2 font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums active:text-accent"
             >
-              {derivedSlide != null && <span className="whitespace-nowrap">Slide {derivedSlide}</span>}
+              {derivedSlide != null && <span className="whitespace-nowrap">{t({ message: `Slide ${{ slide: derivedSlide }}`, comment: "Bowling term: the board the bowler slides to at the foul line." })}</span>}
               {derivedSlide != null && derivedLaydown != null && (
                 <span aria-hidden="true" className="text-ink-tertiary">→</span>
               )}
               {derivedLaydown != null && (
-                <span className="whitespace-nowrap">Laydown {derivedLaydown}</span>
+                <span className="whitespace-nowrap">{t`Laydown ${{ laydown: derivedLaydown }}`}</span>
               )}
             </button>
           )}
@@ -304,12 +309,16 @@ export function SpareLineFormDialog({
             lane changing under you, and follows you across strike balls.
             ADR-053. */}
         <div>
-          <p className={`mb-0.5 ${eyebrow}`}>Strike ball move</p>
+          <p className={`mb-0.5 ${eyebrow}`}>{t({ message: "Strike ball move", comment: "Bowling term: how far the bowler moves their strike-ball line to shoot this leave." })}</p>
           <div className="flex items-center gap-1.5">
             {(["stance", "target"] as const).map((field) => (
               <MoveStepper
                 key={field}
-                label={field}
+                label={
+                  field === "stance"
+                    ? t({ message: "stance", comment: "Bowling term: the board the bowler stands on at the foul line. Lower case, a field name." })
+                    : t({ message: "target", comment: "Bowling term: the board the ball crosses at the arrows. Lower case, a field name." })
+                }
                 value={move[field]}
                 readOnly={!editing}
                 onChange={(next) => setMove((m) => ({ ...m, [field]: next }))}
@@ -329,11 +338,11 @@ export function SpareLineFormDialog({
             variant="danger-ghost"
             onClick={onDelete}
             disabled={isSaving}
-            aria-label={`Delete spare line for pins ${pins.join(", ")}`}
+            aria-label={t`Delete spare line for pins ${{ pins: pins.join(", ") }}`}
             className="w-full"
           >
             <Trash2 size={16} aria-hidden="true" />
-            Delete spare line
+            {t`Delete spare line`}
           </Button>
         )}
 
@@ -343,7 +352,7 @@ export function SpareLineFormDialog({
 
       {showViz && (
         <LaneVisualizerLazy
-          title="Spare line"
+          title={t`Spare line`}
           line={line}
           leave={pins}
           spare
@@ -393,7 +402,7 @@ function LeaveRecord({ stats }: { stats: LeaveStats }) {
   return (
     <dl className="min-w-0 flex-1 space-y-2">
       <div>
-        <dt className={eyebrow}>Converted</dt>
+        <dt className={eyebrow}>{t({ message: "Converted", comment: "Bowling term: the share of spare chances for this leave that were made." })}</dt>
         <dd
           className={`text-2xl font-bold leading-tight tabular-nums ${
             stats.conversionPct !== null && stats.conversionPct >= 70 ? "text-accent" : "text-ink"
@@ -403,15 +412,15 @@ function LeaveRecord({ stats }: { stats: LeaveStats }) {
         </dd>
       </div>
       <div>
-        <dt className={eyebrow}>Made</dt>
+        <dt className={eyebrow}>{t({ message: "Made", comment: "Bowling term: spares made out of the chances. Shown as made/chances." })}</dt>
         <dd className="text-sm font-semibold tabular-nums text-ink">
           {stats.conversions}/{stats.chances}
         </dd>
       </div>
       <div>
-        <dt className={eyebrow}>Left</dt>
+        <dt className={eyebrow}>{t({ message: "Left", context: "times a leave was left", comment: "Bowling term: how often this leave was left standing after the first ball." })}</dt>
         <dd className="text-sm font-semibold tabular-nums text-ink">
-          {stats.attempts} {stats.attempts === 1 ? "time" : "times"}
+          {plural(stats.attempts, { one: "# time", other: "# times" })}
         </dd>
       </div>
     </dl>
@@ -462,7 +471,11 @@ export function MoveStepper({
     return (
       <button
         type="button"
-        aria-label={`${label} move ${side} half a board`}
+        aria-label={
+          side === "left"
+            ? t`${{ label }} move left half a board`
+            : t`${{ label }} move right half a board`
+        }
         onClick={() => nudge(up ? MOVE_STEP : -MOVE_STEP)}
         className="flex w-9 shrink-0 items-center justify-center text-ink-strong active:bg-edge"
       >
@@ -471,14 +484,14 @@ export function MoveStepper({
     );
   };
 
-  const words = current == null || current === 0 ? (readOnly ? "-" : "None") : describeMove(current, handedness);
+  const words = current == null || current === 0 ? (readOnly ? "-" : t`None`) : describeMove(current, handedness);
   return (
     <div className="min-w-0 flex-1">
       <span className={floatLabel}>{label}</span>
       <div className="flex h-9 items-stretch overflow-hidden rounded-lg border border-edge-strong bg-surface-muted">
         {!readOnly && arrow("left")}
         <output
-          aria-label={`${label} move`}
+          aria-label={t`${{ label }} move`}
           aria-live="polite"
           className={`flex min-w-0 flex-1 items-center justify-center px-0.5 text-sm font-semibold tabular-nums ${
             // Secondary, not tertiary: "None" is read, and tertiary fails

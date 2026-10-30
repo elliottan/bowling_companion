@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import type { Handedness } from "../types/bowling";
 import { SegmentedControl } from "./ui/SegmentedControl";
 
@@ -19,12 +20,12 @@ interface HandednessPickerProps {
 export function HandednessPicker({ value, onSelect }: HandednessPickerProps) {
   return (
     <SegmentedControl
-      label="Handedness"
+      label={t`Handedness`}
       value={value}
       onChange={onSelect}
       options={[
-        { value: "left", label: "Left-handed" },
-        { value: "right", label: "Right-handed" }
+        { value: "left", label: t`Left-handed` },
+        { value: "right", label: t`Right-handed` }
       ]}
     />
   );

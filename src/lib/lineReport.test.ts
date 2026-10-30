@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bestLines, buildLineReport, findLine, lastSession, lineId, MAX_MOVES, NO_BALL, wherePlayed } from "./lineReport";
+import { bestLines, buildLineReport, findLine, lastSession, lineId, MAX_MOVES, noBallName, wherePlayed } from "./lineReport";
 import type { Ball, Frame, Game, PinNumber, SessionSummary, Shot } from "../types/bowling";
 
 const BALLS: Ball[] = [
@@ -151,7 +151,7 @@ describe("lines at an alley", () => {
     const named = report.balls.find((b) => b.name === "Pitch Black")!;
     expect(named.thrown).toBe(2);
     expect(named.lines.map((l) => [l.stance, l.target])).toEqual([[undefined, 7]]);
-    expect(report.balls.find((b) => b.name === NO_BALL)!.lines[0].id).toBe(lineId(undefined, 5, 7));
+    expect(report.balls.find((b) => b.name === noBallName())!.lines[0].id).toBe(lineId(undefined, 5, 7));
     expect(report.moves).toEqual([]);
   });
 

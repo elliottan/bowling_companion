@@ -1,9 +1,11 @@
+import { t } from "@lingui/core/macro";
 /**
  * The two-board line editor (foul-line board + target) with its focus-reveal
  * adjuster panel (nudge and move presets) and derived readout chain. Split out of
  * ActiveGameScorer, which hosts it twice through ShotDetailBar: once for the
  * Intended line, once for the Actual one.
  */
+import { formatNumber } from "../lib/format";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -42,11 +44,17 @@ interface LineInputProps {
 type FoulField = "stance" | "slide";
 // The board fields an input edits, the foul-line one plus the arrows.
 type BoardField = FoulField | "target";
-const FIELD_LABEL: Record<BoardField, string> = {
-  stance: "Stance",
-  slide: "Slide",
-  target: "Target"
-};
+/** Read in render, since a message is not built at import. */
+function fieldLabel(field: BoardField): string {
+  switch (field) {
+    case "stance":
+      return t({ message: "Stance", comment: "Bowling term: the board the bowler stands on at the foul line." });
+    case "slide":
+      return t({ message: "Slide", comment: "Bowling term: the board the bowler's slide foot finishes on at the foul line." });
+    case "target":
+      return t({ message: "Target", comment: "Bowling term: the board the ball crosses at the arrows." });
+  }
+}
 // Re-exported under the name the shot panels already use: a filled-in "23"
 // still has to say whether it's a slide or a target.
 export const floatLabel = FIELD_MICRO_LABEL;
@@ -263,13 +271,16 @@ export function LineInput({
   const adjusterRow = (
     key: string,
     label: React.ReactNode,
-    name: string,
+    names: { in: string; out: string },
     onIn: () => void,
     onOut: () => void
   ) => {
     const side = (which: "in" | "out", arrow: "left" | "right") => {
-      const sideName = `${name} ${which}`;
-      const pressed = flash?.name === sideName ? flash.n : null;
+      // The spoken name is the translated one; the flash is told apart by the
+      // row and the side, which do not change with the language.
+      const sideName = names[which];
+      const flashName = `${key}-${which}`;
+      const pressed = flash?.name === flashName ? flash.n : null;
       const Chevron = arrow === "left" ? ChevronLeft : ChevronRight;
       return (
         <button
@@ -279,7 +290,7 @@ export function LineInput({
           onPointerDown={pressStart}
           onPointerUp={pressEnd}
           onPointerCancel={pressEnd}
-          onClick={onAdjust(sideName, which === "in" ? onIn : onOut)}
+          onClick={onAdjust(flashName, which === "in" ? onIn : onOut)}
           className={`relative flex min-w-11 flex-1 items-center justify-center gap-0.5 text-caption-2 font-bold uppercase text-ink-secondary active:bg-edge ${
             arrow === "right" ? "flex-row-reverse" : ""
           }`}
@@ -300,7 +311,11 @@ export function LineInput({
               pressed != null ? `animate-adjust-kick-${arrow}` : ""
             }`}
           />
-          <span className="relative">{which === "in" ? "In" : "Out"}</span>
+          <span className="relative">
+            {which === "in"
+              ? t({ message: "In", comment: "Bowling term: toward the higher board numbers, nearer the middle of the lane for a right-hander. A nudge button." })
+              : t({ message: "Out", comment: "Bowling term: toward the lower board numbers, nearer the gutter for a right-hander. A nudge button." })}
+          </span>
         </button>
       );
     };
@@ -326,11 +341,11 @@ export function LineInput({
   // Rendered as one tappable chain rather than separate pills: they are a
   // sequence, and reading them as one line is both truer and shorter.
   const chain: string[] = [];
-  if (derivedSlide != null) chain.push(`Slide ${derivedSlide}`);
-  if (derivedLaydown != null) chain.push(`Laydown ${derivedLaydown}`);
+  if (derivedSlide != null) chain.push(t`Slide ${{ board: formatNumber(derivedSlide, 2) }}`);
+  if (derivedLaydown != null) chain.push(t`Laydown ${{ board: formatNumber(derivedLaydown, 2) }}`);
   if (derivedBreakpoint != null) {
     chain.push(
-      `Break ${Math.round(derivedBreakpoint.board * 2) / 2} (${Math.round(derivedBreakpoint.feet)}ft)`
+      t`Break ${{ board: formatNumber(Math.round(derivedBreakpoint.board * 2) / 2, 1) }} (${{ feet: formatNumber(Math.round(derivedBreakpoint.feet)) }}ft)`
     );
   }
 
@@ -344,7 +359,7 @@ export function LineInput({
         {focused && adjusterPanel()}
         {fields.map((field) => (
           <label key={field} className="min-w-0 flex-1">
-            <span className={`${floatLabel} pb-0.5`}>{FIELD_LABEL[field]}</span>
+            <span className={`${floatLabel} pb-0.5`}>{fieldLabel(field)}</span>
             <input
               type="text"
               inputMode="decimal"
@@ -374,7 +389,7 @@ export function LineInput({
                 }, 0);
               }}
               className="h-9 w-full min-w-0 rounded-lg border border-edge-strong bg-surface-muted text-center text-sm font-semibold tabular-nums text-ink focus:border-accent-fill focus:bg-surface focus:outline-none"
-              title={field === "target" ? "Target board (arrows)" : `${FIELD_LABEL[field]} board`}
+              title={field === "target" ? t`Target board (arrows)` : t`${{ field: fieldLabel(field) }} board`}
             />
           </label>
         ))}
@@ -384,7 +399,7 @@ export function LineInput({
         <button
           type="button"
           onClick={onLaydownTap}
-          title="Derived from what you entered. Tap to see it on the lane."
+          title={t`Derived from what you entered. Tap to see it on the lane.`}
           className="mt-1 flex w-full flex-wrap items-center gap-x-1 text-left text-caption-2 font-semibold uppercase tracking-[0.01em] text-ink-secondary tabular-nums hover:text-accent"
         >
           {chain.map((part, i) => (
@@ -411,11 +426,12 @@ export function LineInput({
   function adjusterPanel() {
     if (!focused) return null;
     const presets = showPresets && (focused === "stance" || focused === "target");
-    const nudgeName = `${FIELD_LABEL[focused]} 0.5`;
+    const fieldName = fieldLabel(focused);
+    const half = formatNumber(0.5, 1);
     return (
       <div
         role="group"
-        aria-label="Adjust line"
+        aria-label={t`Adjust line`}
         onMouseDown={keepFocus}
         style={span ? { left: span.left, width: span.width } : undefined}
         className={`absolute z-30 flex flex-col gap-1.5 rounded-xl border border-edge bg-surface p-1.5 shadow-lg ${
@@ -426,11 +442,14 @@ export function LineInput({
           "nudge",
           <>
             <span className="mb-0.5 text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
-              {FIELD_LABEL[focused]}
+              {fieldName}
             </span>
-            ±0.5
+            ±{half}
           </>,
-          nudgeName,
+          {
+            in: t`${{ field: fieldName }} ${{ amount: half }} in`,
+            out: t`${{ field: fieldName }} ${{ amount: half }} out`
+          },
           () => nudge(focused, 0.5),
           () => nudge(focused, -0.5)
         )}
@@ -439,7 +458,7 @@ export function LineInput({
             adjusterRow(
               p.label,
               p.label,
-              `Move ${p.label}`,
+              { in: t`Move ${{ move: p.label }} in`, out: t`Move ${{ move: p.label }} out` },
               () => move(p.stance, p.target),
               () => move(-p.stance, -p.target)
             )

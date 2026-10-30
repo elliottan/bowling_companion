@@ -9,7 +9,8 @@ import {
   getLiveActivityEnabled,
   resumeLiveActivity,
   saveFrame,
-  setLiveActivityEnabled
+  setLiveActivityEnabled,
+  tidyLiveActivity
 } from "./bowlingRepository";
 import { liveActivity } from "../lib/nativeLiveActivity";
 import { isIOSApp } from "../lib/platform";
@@ -21,7 +22,7 @@ vi.mock("../lib/platform", async (importOriginal) => ({
   isIOSApp: vi.fn(() => true)
 }));
 vi.mock("../lib/nativeLiveActivity", () => ({
-  liveActivity: { show: vi.fn(), finish: vi.fn(), stop: vi.fn() }
+  liveActivity: { show: vi.fn(), finish: vi.fn(), stop: vi.fn(), refresh: vi.fn(), tidy: vi.fn() }
 }));
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
@@ -46,6 +47,8 @@ describe("Live Activity wiring", () => {
     vi.mocked(liveActivity.show).mockClear();
     vi.mocked(liveActivity.finish).mockClear();
     vi.mocked(liveActivity.stop).mockClear();
+    vi.mocked(liveActivity.refresh).mockClear();
+    vi.mocked(liveActivity.tidy).mockClear();
     vi.mocked(isIOSApp).mockReturnValue(true);
   });
 
@@ -163,5 +166,38 @@ describe("Live Activity wiring", () => {
     await resumeLiveActivity(done.gameId);
     expect(liveActivity.show).not.toHaveBeenCalled();
     expect(liveActivity.finish).not.toHaveBeenCalled();
+  });
+
+  it("redraws a game whose number a delete moved down", async () => {
+    const { sessionId, gameId: first } = await newGame();
+    await addNextGameToSession(sessionId);
+    const third = await addNextGameToSession(sessionId);
+    await saveFrame(third, strike(1));
+    await settle();
+    await deleteGame(first);
+    await settle();
+    const sent = vi.mocked(liveActivity.refresh).mock.calls.map(([p]) => [p.gameId, p.state.game]);
+    // Game 2 has no ball, so there is nothing of it on the Lock Screen to redraw.
+    expect(sent).toEqual([[third, 2]]);
+  });
+
+  it("on launch, keeps a game still being bowled and lets everything else go", async () => {
+    const half = await newGame();
+    await saveFrame(half.gameId, strike(1));
+    await tidyLiveActivity();
+    const decide = vi.mocked(liveActivity.tidy).mock.calls[0][0];
+    expect((await decide(half.gameId))?.state.game).toBe(1);
+    expect(await decide(9999)).toBeNull();
+
+    await setLiveActivityEnabled(false);
+    await tidyLiveActivity();
+    const off = vi.mocked(liveActivity.tidy).mock.calls[1][0];
+    expect(await off(half.gameId)).toBeNull();
+  });
+
+  it("tidies nothing off the iPhone app", async () => {
+    vi.mocked(isIOSApp).mockReturnValue(false);
+    await tidyLiveActivity();
+    expect(liveActivity.tidy).not.toHaveBeenCalled();
   });
 });

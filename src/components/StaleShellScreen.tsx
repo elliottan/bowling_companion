@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useState } from "react";
 import { applyUpdate, checkForUpdate } from "../lib/swUpdate";
 import { Button } from "./ui/Button";
@@ -27,13 +28,12 @@ export function StaleShellScreen() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface p-6 text-center text-ink">
-      <h1 className="text-lg font-semibold">Headpin needs to update</h1>
+      <h1 className="text-lg font-semibold">{t`Headpin needs to update`}</h1>
       <p className="max-w-sm text-sm text-ink-secondary">
-        This tab is running an older version of the app than your scores were
-        saved with. Everything is still on this device.
+        {t`This tab is running an older version of the app than your scores were saved with. Everything is still on this device.`}
       </p>
       <Button variant="primary" onClick={handleUpdate} disabled={busy}>
-        {busy ? "Updating…" : "Reload"}
+        {busy ? t`Updating…` : t`Reload`}
       </Button>
     </div>
   );
