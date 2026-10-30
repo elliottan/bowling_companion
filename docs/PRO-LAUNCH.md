@@ -176,9 +176,8 @@ switch.
       `CQ6FS6P6H2`.
 - [x] Apply to the App Store Small Business Program before the first sale, or
       Apple takes 30% instead of 15%. Applied 2026-10-27.
-- [ ] Paid Apps agreement, bank account and tax forms in App Store Connect.
-      The bank account (SGD, Singapore) is added; the agreement turns Active
-      once the tax forms are done, and no purchase works until it does.
+- [x] Paid Apps agreement, bank account (SGD, Singapore) and tax forms in App
+      Store Connect. Done by 2026-10-30.
 - [x] App record ("Headpin: Bowling Score & Stats", SKU `headpin-ios`) and the
       one non-consumable product, `app.headpin.pro`, at US$9.99. Its image and
       review screenshot are in `marketing/app-store/`.

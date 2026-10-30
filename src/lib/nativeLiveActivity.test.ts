@@ -26,7 +26,8 @@ function fake(active = true) {
     status: vi.fn().mockResolvedValue({ supported: true, enabled: true }),
     start: vi.fn().mockResolvedValue({ active }),
     update: vi.fn().mockResolvedValue({ active }),
-    end: vi.fn().mockResolvedValue(undefined)
+    end: vi.fn().mockResolvedValue(undefined),
+    showing: vi.fn().mockResolvedValue({ gameIds: [] as number[] })
   };
   return { live, load: async () => live as unknown as LiveActivityPlugin };
 }
@@ -160,6 +161,59 @@ describe("the live activity controller", () => {
     await settle();
     expect(live.update).not.toHaveBeenCalled();
     expect(live.start).toHaveBeenCalledTimes(2);
+  });
+
+  it("redraws the game it is showing when its number changes, and starts nothing", async () => {
+    const { live, load } = fake();
+    const controller = createLiveActivityController(load, () => true);
+    controller.refresh(payload(7));
+    await settle();
+    expect(live.update).not.toHaveBeenCalled();
+    expect(live.start).not.toHaveBeenCalled();
+
+    controller.show(payload(7));
+    await settle();
+    controller.refresh(payload(7, 48));
+    controller.refresh(payload(3));
+    await settle();
+    expect(live.update).toHaveBeenCalledTimes(1);
+    expect(live.update).toHaveBeenCalledWith(payload(7, 48));
+  });
+
+  it("on launch, updates a left-behind game still being bowled and ends the rest", async () => {
+    const { live, load } = fake();
+    live.showing.mockResolvedValueOnce({ gameIds: [7, 3, 5] });
+    const controller = createLiveActivityController(load, () => true);
+    const done = { ...payload(5), state: { ...STATE, done: true } };
+    controller.tidy(async (gameId) => (gameId === 7 ? payload(7, 48) : gameId === 5 ? done : null));
+    await settle();
+    expect(live.update).toHaveBeenCalledWith(payload(7, 48));
+    expect(live.end).toHaveBeenCalledWith({ gameId: 3 });
+    expect(live.end).toHaveBeenCalledWith({ gameId: 5 });
+    expect(live.start).not.toHaveBeenCalled();
+
+    // The adopted game is known to be showing: the next ball updates it.
+    controller.show(payload(7, 60));
+    await settle();
+    expect(live.update).toHaveBeenLastCalledWith(payload(7, 60));
+    expect(live.start).not.toHaveBeenCalled();
+  });
+
+  it("tidies nothing where there is no phone, or an older build without the call", async () => {
+    const off = fake();
+    createLiveActivityController(off.load, () => false).tidy(async () => null);
+    await settle();
+    expect(off.live.showing).not.toHaveBeenCalled();
+
+    const old = fake();
+    old.live.showing.mockRejectedValueOnce(new Error("showing is not implemented"));
+    const controller = createLiveActivityController(old.load, () => true);
+    controller.tidy(async () => null);
+    await settle();
+    expect(old.live.end).not.toHaveBeenCalled();
+    controller.show(payload(7));
+    await settle();
+    expect(old.live.start).toHaveBeenCalledTimes(1);
   });
 });
 

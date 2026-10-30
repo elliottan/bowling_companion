@@ -22,7 +22,8 @@ public class HeadpinLiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "status", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "start", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "update", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "end", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "end", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "showing", returnType: CAPPluginReturnPromise)
     ]
 
     /// Whether this phone can show one, and whether the bowler has allowed it
@@ -90,6 +91,17 @@ public class HeadpinLiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
             call.resolve()
         }
     }
+
+    /// The games whose activities are still showing. The page asks on launch,
+    /// because an app closed mid-game leaves its activity up and the page that
+    /// opens next does not remember it (ADR-222).
+    @objc func showing(_ call: CAPPluginCall) {
+        guard #available(iOS 16.1, *) else {
+            call.resolve(["gameIds": []])
+            return
+        }
+        call.resolve(["gameIds": HeadpinLiveActivities.showingGameIds])
+    }
 }
 
 /// ActivityKit, in one place that is wholly iOS 16.1 and later.
@@ -124,6 +136,10 @@ enum HeadpinLiveActivities {
     /// ended activity for a few minutes, and a new game must not adopt it.
     private static var showing: [Activity<Attributes>] {
         Activity<Attributes>.activities.filter { $0.activityState == .active }
+    }
+
+    static var showingGameIds: [Int] {
+        showing.map { $0.attributes.gameId }
     }
 
     static func start(gameId: Int, state: State) async -> Bool {

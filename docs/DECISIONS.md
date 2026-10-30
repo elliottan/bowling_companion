@@ -9536,3 +9536,36 @@ bowler already entered, and costs nothing to anyone else.
   plugin by the name `HeadpinLiveActivity`, and `status` answers
   `supported: false` until the extension is embedded, so a build without it is
   merely without the switch.
+
+## ADR-222: A Live Activity left behind is settled on launch, and a renumbered game is redrawn
+
+**Status.** Accepted, 2026-10-30. Follows ADR-221, which listed both as open.
+Written and unit tested on Linux; the one new Swift call is unbuilt.
+
+**Context.** The page keeps no memory of what the phone shows. An app closed
+mid-game leaves its activity up (iOS keeps one for up to eight hours), and the
+page that opens next does not know it is there. By then the game may have been
+finished on another run, deleted, or restored over by an import, and the Lock
+Screen goes on showing it. Separately, deleting a game renumbers the session's
+later games to stay 1..N, so an activity showing "Game 3" can be about the
+session's second game.
+
+**Decision.**
+
+- **The plugin gains `showing`**, the ids of the games whose activities are
+  still up (an ended one lingering with its final score is not counted, as in
+  `start`). It only reads.
+- **On launch**, after the empty sessions are pruned, the page asks it and
+  settles each one: a game still being bowled, with Live Activities on, is
+  updated in place and adopted, so the next ball is an update and not a second
+  activity; anything else is ended at once. Nothing is started: the bowler did
+  not ask to see a game by opening the app. The scorer still resumes one it
+  opens on (ADR-221).
+- **After a delete renumbers games**, each moved game is redrawn if, and only
+  if, it is the one showing. A redraw never starts an activity.
+- An older build without `showing` rejects the call, which the controller
+  already swallows: the launch tidy is then a no-op, as before.
+
+**Consequences.** One more method for the Xcode build to confirm. A game whose
+final score is lingering when a delete renumbers it keeps its old number for
+the few minutes it lingers; it is ended, and not worth a second path.
