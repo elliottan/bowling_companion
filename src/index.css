@@ -122,6 +122,9 @@ textarea,
   font-family:
     ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
     "Malgun Gothic", sans-serif;
+  /* Korean is spaced into words and wraps between them, never inside one:
+     the default breaks between any two syllables ("있어" / "요"). */
+  word-break: keep-all;
 }
 
 :root:lang(zh-Hant) {
