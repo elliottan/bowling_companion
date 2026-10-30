@@ -52,3 +52,43 @@ describe("the color picker (ADR-164)", () => {
     expect(screen.getByRole("button", { name: "Rose, needs Headpin Pro" })).toHaveAttribute("aria-pressed", "false");
   });
 });
+
+describe("the language picker (ADR-225)", () => {
+  beforeEach(() => localStorage.clear());
+
+  function renderPicker(reload = vi.fn()) {
+    render(
+      <ProAccessContext.Provider value={{ locked: true, appStoreUrl: null }}>
+        <ProOfferContext.Provider value={vi.fn()}>
+          <AppearanceView reload={reload} />
+        </ProOfferContext.Provider>
+      </ProAccessContext.Provider>
+    );
+    return reload;
+  }
+
+  it("follows the phone until a language is picked, and names each in its own language", () => {
+    renderPicker();
+    expect(screen.getByRole("button", { name: /Automatic/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "日本語" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByText("日本語")).toHaveAttribute("lang", "ja");
+    expect(screen.getByText("Español")).toBeInTheDocument();
+  });
+
+  it("remembers a pick and starts the app again in it", () => {
+    const reload = renderPicker();
+    fireEvent.click(screen.getByRole("button", { name: "한국어" }));
+    expect(localStorage.getItem("language")).toBe("ko");
+    expect(reload).toHaveBeenCalledOnce();
+  });
+
+  it("goes back to the phone's language, and does nothing for the language already on", () => {
+    localStorage.setItem("language", "es");
+    const reload = renderPicker();
+    fireEvent.click(screen.getByRole("button", { name: "Español" }));
+    expect(reload).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: /Automatic/ }));
+    expect(localStorage.getItem("language")).toBeNull();
+    expect(reload).toHaveBeenCalledOnce();
+  });
+});

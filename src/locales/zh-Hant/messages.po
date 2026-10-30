@@ -829,6 +829,11 @@ msgstr "非對稱"
 msgid "Asymmetric core"
 msgstr "非對稱球心"
 
+#. Language setting: speak the phone's language
+#: src/views/AppearanceView.tsx
+msgid "Automatic"
+msgstr "自動"
+
 #. A bowling average: the score per game
 #. A bowling average: the score per game
 #: src/components/Stats.tsx
@@ -1760,6 +1765,10 @@ msgstr "第一條球道"
 msgid "Flare"
 msgstr "油圈"
 
+#: src/views/AppearanceView.tsx
+msgid "Follows your phone: {language}"
+msgstr "跟隨手機：{language}"
+
 #: src/components/PatternSheet.tsx
 msgid "Forward / reverse"
 msgstr "正向 / 反向"
@@ -2209,6 +2218,10 @@ msgstr "球道"
 #: src/lib/greeting.ts
 msgid "Lanes are open"
 msgstr "球道開放了"
+
+#: src/views/AppearanceView.tsx
+msgid "Language"
+msgstr "語言"
 
 #. Text size setting: one step bigger than the standard size
 #: src/lib/textScale.ts

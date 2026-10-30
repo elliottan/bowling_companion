@@ -74,6 +74,54 @@ export function detectLocale(): string {
   return resolveLocale(preferredLanguages());
 }
 
+/**
+ * Each language by its own name, never translated: a bowler looking for their
+ * language reads it in that language. In the order the picker lists them.
+ */
+export const LANGUAGE_NAMES: Record<Locale, string> = {
+  en: "English",
+  es: "Español",
+  ja: "日本語",
+  ko: "한국어",
+  "zh-Hans": "简体中文",
+  "zh-Hant": "繁體中文"
+};
+
+const LANGUAGE_KEY = "language";
+
+function isLocale(v: unknown): v is Locale {
+  return typeof v === "string" && (SUPPORTED_LOCALES as readonly string[]).includes(v);
+}
+
+/**
+ * The language the bowler picked in Settings, or null to follow the phone. It
+ * lives in localStorage, as the text size does, because it is read before the
+ * first screen is drawn. It is this device's alone, and not in a backup: a
+ * restored file should not change the language of the phone it lands on.
+ */
+export function readLanguagePreference(): Locale | null {
+  try {
+    const v = localStorage.getItem(LANGUAGE_KEY);
+    return isLocale(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export function rememberLanguagePreference(locale: Locale | null) {
+  try {
+    if (locale) localStorage.setItem(LANGUAGE_KEY, locale);
+    else localStorage.removeItem(LANGUAGE_KEY);
+  } catch {
+    // Private mode: the choice holds until the app is closed.
+  }
+}
+
+/** The bowler's pick if there is one, else the phone's best match. */
+export function chooseLocale(): string {
+  return readLanguagePreference() ?? detectLocale();
+}
+
 type CatalogModule = { messages: Messages };
 
 // Lazy on purpose: one chunk per language, fetched only for that language.
@@ -114,7 +162,7 @@ export async function activateLocale(locale: string): Promise<string> {
   }
 }
 
-/** Detects the language and starts it: the one call `main.tsx` makes. */
+/** Chooses the language and starts it: the one call `main.tsx` makes. */
 export function startI18n(): Promise<string> {
-  return activateLocale(detectLocale());
+  return activateLocale(chooseLocale());
 }

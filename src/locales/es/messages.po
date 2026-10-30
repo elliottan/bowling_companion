@@ -829,6 +829,11 @@ msgstr "Asimétrico"
 msgid "Asymmetric core"
 msgstr "Núcleo asimétrico"
 
+#. Language setting: speak the phone's language
+#: src/views/AppearanceView.tsx
+msgid "Automatic"
+msgstr "Automático"
+
 #. A bowling average: the score per game
 #. A bowling average: the score per game
 #: src/components/Stats.tsx
@@ -1760,6 +1765,10 @@ msgstr "Primera pista"
 msgid "Flare"
 msgstr "Flare"
 
+#: src/views/AppearanceView.tsx
+msgid "Follows your phone: {language}"
+msgstr "Sigue a tu teléfono: {language}"
+
 #: src/components/PatternSheet.tsx
 msgid "Forward / reverse"
 msgstr "Adelante / atrás"
@@ -2209,6 +2218,10 @@ msgstr "Pistas"
 #: src/lib/greeting.ts
 msgid "Lanes are open"
 msgstr "Las pistas están abiertas"
+
+#: src/views/AppearanceView.tsx
+msgid "Language"
+msgstr "Idioma"
 
 #. Text size setting: one step bigger than the standard size
 #: src/lib/textScale.ts

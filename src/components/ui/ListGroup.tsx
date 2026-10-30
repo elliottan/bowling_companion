@@ -63,6 +63,10 @@ interface ListRowProps {
   href?: string;
   /** Spoken name, when the label alone is not it. */
   ariaLabel?: string;
+  /** A row that is one choice of several: whether it is the one picked. */
+  pressed?: boolean;
+  /** The language the label is written in, when it is not the app's own. */
+  labelLang?: string;
 }
 
 /**
@@ -92,7 +96,9 @@ export function ListRow({
   trailing,
   onClick,
   href,
-  ariaLabel
+  ariaLabel,
+  pressed,
+  labelLang
 }: ListRowProps) {
   const inner = (
     <>
@@ -104,7 +110,7 @@ export function ListRow({
       )}
       <span className="min-w-0 flex-1">
         {/* Wraps too, so a long title is read in full at a large text size. */}
-        <span className="block break-words text-body leading-snug text-ink">{label}</span>
+        <span lang={labelLang} className="block break-words text-body leading-snug text-ink">{label}</span>
         {description && (
           // Wraps rather than truncating: a longer translation keeps its words.
           <span className="block text-footnote leading-snug text-ink-secondary">{description}</span>
@@ -134,7 +140,7 @@ export function ListRow({
           {inner}
         </a>
       ) : (
-        <button type="button" onClick={onClick} aria-label={ariaLabel} className={className}>
+        <button type="button" onClick={onClick} aria-label={ariaLabel} aria-pressed={pressed} className={className}>
           {inner}
         </button>
       )}

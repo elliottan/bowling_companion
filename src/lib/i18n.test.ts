@@ -7,7 +7,10 @@ import {
   SUPPORTED_LOCALES,
   activateLocale,
   activeLocale,
+  chooseLocale,
   detectLocale,
+  readLanguagePreference,
+  rememberLanguagePreference,
   resolveLocale
 } from "./i18n";
 
@@ -124,5 +127,23 @@ describe("plurals through the library", () => {
     expect(describeLastBackup("2026-06-09T00:00:00.000Z", now)).toBe("Last backup 3 weeks ago");
     expect(describeLastBackup("2026-03-30T00:00:00.000Z", now)).toBe("Last backup 3 months ago");
     expect(describeAge("2026-06-16T00:00:00.000Z", now)).toBe("2 weeks ago");
+  });
+});
+
+describe("the language picked in Settings (ADR-225)", () => {
+  afterEach(() => localStorage.clear());
+
+  it("wins over the phone's language, and clearing it follows the phone again", () => {
+    rememberLanguagePreference("ja");
+    expect(readLanguagePreference()).toBe("ja");
+    expect(chooseLocale()).toBe("ja");
+    rememberLanguagePreference(null);
+    expect(readLanguagePreference()).toBeNull();
+    expect(chooseLocale()).toBe(detectLocale());
+  });
+
+  it("ignores a stored value that is not a language the app has", () => {
+    localStorage.setItem("language", "tlh");
+    expect(readLanguagePreference()).toBeNull();
   });
 });

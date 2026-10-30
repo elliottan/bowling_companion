@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The languages the app speaks, so Android 13 and later offer them for
+     Headpin alone in the system's App languages setting. Kept in step with
+     SUPPORTED_LOCALES in src/lib/i18n.ts and CFBundleLocalizations on iOS
+     (docs/I18N.md, ADR-225). -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en" />
+    <locale android:name="es" />
+    <locale android:name="ja" />
+    <locale android:name="ko" />
+    <locale android:name="zh-Hans" />
+    <locale android:name="zh-Hant" />
+</locale-config>
