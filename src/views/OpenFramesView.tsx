@@ -59,10 +59,10 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
                 <span className="text-4xl font-bold tabular-nums leading-none text-ink">
                   {oneDecimal(report.openFramesPerGame)}
                 </span>
-                <span className="text-sm font-semibold text-ink-secondary">
+                <span className="min-w-0 break-words text-sm font-semibold text-ink-secondary">
                   {t({ message: "open frames a game", comment: "Bowling term: an open frame is one with pins left standing after both balls. Lowercase label next to a number." })}
                 </span>
-                <span className="ml-auto text-xs tabular-nums text-ink-tertiary">
+                <span className="ml-auto shrink-0 text-xs tabular-nums text-ink-tertiary">
                   {plural(report.games, { one: "# game", other: "# games" })}
                 </span>
               </span>

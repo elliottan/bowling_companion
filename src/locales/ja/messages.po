@@ -810,7 +810,7 @@ msgstr "ボウリング場とレーンは必須です。"
 #: src/components/HomeProfile.tsx
 #: src/views/GamePlanView.tsx
 msgid "Alley report"
-msgstr "ボウリング場レポート"
+msgstr "センターレポート"
 
 #: src/views/CatalogView.tsx
 msgid "Already in your arsenal"
@@ -1078,7 +1078,7 @@ msgstr "ボウリングレーンのライン図"
 #: src/views/BowlingProfileView.tsx
 #: src/views/SettingsView.tsx
 msgid "Bowling profile"
-msgstr "ボウリングプロフィール"
+msgstr "プロフィール"
 
 #: src/views/CatalogView.tsx
 msgid "Brand"
@@ -4397,7 +4397,7 @@ msgstr "今日"
 #: src/views/DashboardView.tsx
 #: src/views/SettingsView.tsx
 msgid "Tools and reference"
-msgstr "ツールとリファレンス"
+msgstr "ツールと資料"
 
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"

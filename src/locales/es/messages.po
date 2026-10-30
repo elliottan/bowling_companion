@@ -3990,7 +3990,7 @@ msgstr "Empezar a anotar"
 #: src/views/DashboardView.tsx
 #: src/views/NoSessionView.tsx
 msgid "Start session"
-msgstr "Iniciar sesión de juego"
+msgstr "Nueva sesión"
 
 #. Tab name: averages and rates, short for statistics
 #. Tab name: averages and rates, short for statistics

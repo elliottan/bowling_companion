@@ -33,6 +33,27 @@ import { clearDatabase } from "./helpers";
  * `FIT_SHOTS=<dir>` also saves a screenshot per locale x screen x size.
  */
 
+/**
+ * The same faces on every machine. The app draws in the phone's own face
+ * (`system-ui`: SF on iPhone, Roboto on Android), which a Linux runner does
+ * not have: there `system-ui` falls back to whatever is installed, DejaVu Sans
+ * on CI and Inter here, and DejaVu is so much wider that English failed on CI
+ * and passed here. So the page is pinned to Inter, whose widths are close to
+ * SF's and Roboto's, and to Noto Sans CJK for Japanese, Korean and Chinese
+ * (CI installs both: `.github/workflows/ci.yml`). A machine without them
+ * measures wider than a phone, never narrower, so it fails rather than passes.
+ */
+function pinFonts() {
+  const css = `
+    :root, :root * { font-family: "Inter", "Noto Sans CJK JP", "Noto Sans JP", sans-serif !important; }
+    :root:lang(ko), :root:lang(ko) * { font-family: "Inter", "Noto Sans CJK KR", "Noto Sans KR", sans-serif !important; }
+    :root:lang(zh-Hans), :root:lang(zh-Hans) * { font-family: "Inter", "Noto Sans CJK SC", "Noto Sans SC", sans-serif !important; }
+    :root:lang(zh-Hant), :root:lang(zh-Hant) * { font-family: "Inter", "Noto Sans CJK TC", "Noto Sans TC", sans-serif !important; }`;
+  const style = document.createElement("style");
+  style.textContent = css;
+  document.documentElement.appendChild(style);
+}
+
 // `src/lib/i18n.ts` imports the message macro and `import.meta.glob`, neither
 // of which the Playwright runtime can load, so the list is read from the file.
 const I18N_SRC = readFileSync(fileURLToPath(new URL("../src/lib/i18n.ts", import.meta.url)), "utf8");
@@ -455,6 +476,7 @@ test.describe("text fit", () => {
 
   for (const locale of LOCALES) {
     test(`${locale} fits at the largest text size`, async ({ page }) => {
+      await page.addInitScript(pinFonts);
       await clearDatabase(page);
       const ids = await seed(page);
       const failures: Failure[] = [];
