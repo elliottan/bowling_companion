@@ -9,15 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.75.0: Headpin in Japanese, Korean and Traditional Chinese (2026-10-30)
+## 0.75.0: Headpin in Spanish, Japanese, Korean and Chinese (2026-10-30)
 
-- The app speaks Japanese, Korean and Traditional Chinese. On a phone or
-  browser set to one of them it opens in that language; on iPhone you can also
-  pick one for Headpin alone, in Settings, Headpin, Language. Numbers and dates
-  follow. Chinese set for Taiwan, Hong Kong or Macau, or written in
-  Traditional, opens in Traditional Chinese; Simplified Chinese stays in
-  English for now. The guides, the legal pages
-  and the website are still in English.
+- The app speaks Spanish, Japanese, Korean, and Chinese in both Traditional
+  and Simplified characters. On a phone or browser set to one of them it opens
+  in that language; on iPhone you can also pick one for Headpin alone, in
+  Settings, Headpin, Language. Numbers and dates follow. Chinese for Taiwan,
+  Hong Kong or Macau opens in Traditional, and for mainland China, Singapore
+  or Malaysia in Simplified. The guides, the legal pages and the website are
+  still in English.
 - A few sentences have their bold back: "replaces" in Backup, the leave names
   in the two spare-line hints on Spare lines, the start of the catalog's
   "Could not update" message, and the layout you typed before in the ball

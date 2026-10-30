@@ -39,11 +39,13 @@ choice the bowler makes per pair. Deriving it is wrong for anyone who plays a
 
 ### The next languages
 
-Japanese, Korean and Traditional Chinese ship (0.75.0), and a sentence keeps
-its bold and icons (ADR-223). Open: a native speaker's read of each catalog, the guides, the legal
-pages and the landing page (English only), the Home Screen quick actions and
-the App Store listing in those languages, and the decision on right-to-left, which the
-layout does not support. Suggested next: Spanish, then Simplified Chinese.
+Spanish, Japanese, Korean and both Chinese scripts ship (0.75.0, ADR-224), a
+sentence keeps its bold and icons (ADR-223), and no message can ship
+untranslated. Open: a native speaker's read of each catalog and of the App
+Store listing drafts (`APP-STORE-LISTING-TRANSLATED.md`), localized screenshots,
+the guides, the legal pages and the landing page (English only), the Home
+Screen quick actions, and the decision on right-to-left, which the layout does
+not support.
 
 ### Android follows the system font size
 

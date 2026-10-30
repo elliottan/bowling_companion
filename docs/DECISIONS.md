@@ -9595,3 +9595,41 @@ tags in the catalog.
 **Consequences.** Still no provider and no re-render on a language change,
 which stays a reload. A tool that compiles the macro outside Vite (none today)
 would need the alias too.
+
+## ADR-224: Six languages, Chinese by script, and no message left untranslated
+
+**Status.** Accepted, 2026-10-30. Follows ADR-220 and ADR-223.
+
+**Context.** ADR-220 made the app ready to translate with English alone.
+Japanese, Korean, Traditional and Simplified Chinese, and Spanish were then
+added together. Two things the groundwork did not settle came with them. A
+Chinese phone does not name a catalog: it says `zh-TW` or `zh-Hant-TW` for
+Traditional and `zh-CN` or `zh-SG` for Simplified, and matching on the language
+alone would hand one script the other's text. And Lingui fills a message a
+catalog has no translation for with the English, silently, so each new string
+would put English on a translated screen and nothing would say so.
+
+**Decision.**
+
+- **Languages.** `es`, `ja`, `ko`, `zh-Hans` and `zh-Hant`, beside `en`, in
+  `lingui.config.ts`, `SUPPORTED_LOCALES` and `CFBundleLocalizations`. Spanish is
+  one neutral Latin American catalog (no `es-MX` beside an `es-ES`).
+- **Chinese is matched by script** (`resolveLocale`): an explicit `Hant` or
+  `Hans` decides; otherwise Taiwan, Hong Kong and Macau read Traditional and
+  every other Chinese tag Simplified. Neither script falls back to the other.
+- **Every language translates every message.** `npm run i18n:check` (in
+  `verify` and CI) fails, listing the gaps, when a catalog has an empty
+  `msgstr`. A change that adds text translates it in the same PR, with the
+  `translate-strings` skill: `scripts/i18n-missing.mjs` writes the gaps out and
+  puts the answers back, and the glossary per language in the skill keeps the
+  house style (rules, tone, bowling vocabulary) for whoever translates.
+- **Fonts.** Each CJK language gets its own fallback faces under
+  `:root:lang(...)`, so Han characters take that language's glyphs on a system
+  whose default face would pick another's; Korean wraps between words
+  (`word-break: keep-all`).
+
+**Consequences.** Adding a string costs a translation pass in five languages,
+which the skill makes a few minutes of subagent work. The translations were
+made by a model from the glossaries and have had no native speaker's read; the
+App Store listing drafts in `docs/APP-STORE-LISTING-TRANSLATED.md` are in the
+same state.

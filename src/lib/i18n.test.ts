@@ -37,6 +37,16 @@ describe("resolveLocale", () => {
     expect(resolveLocale(["zh-Hant"], chinese)).toBe("zh-Hant");
   });
 
+  it("gives Simplified Chinese, from any region that writes it, the Simplified catalog", () => {
+    const chinese = ["en", "zh-Hans", "zh-Hant"];
+    expect(resolveLocale(["zh-CN"], chinese)).toBe("zh-Hans");
+    expect(resolveLocale(["zh-SG"], chinese)).toBe("zh-Hans");
+    expect(resolveLocale(["zh-MY"], chinese)).toBe("zh-Hans");
+    expect(resolveLocale(["zh-Hans-HK"], chinese)).toBe("zh-Hans");
+    expect(resolveLocale(["zh"], chinese)).toBe("zh-Hans");
+    expect(resolveLocale(["zh-HK"], chinese)).toBe("zh-Hant");
+  });
+
   it("never gives Simplified Chinese the Traditional catalog", () => {
     const chinese = ["en", "ja", "zh-Hant"];
     expect(resolveLocale(["zh-CN", "ja"], chinese)).toBe("ja");
@@ -77,7 +87,9 @@ describe("activateLocale", () => {
   });
 
   it.each([
+    ["es", /respaldo/i],
     ["ko", /[\uac00-\ud7af]/],
+    ["zh-Hans", /[\u4e00-\u9fff]/],
     ["zh-Hant", /[\u4e00-\u9fff]/]
   ])("ships %s: its catalog loads, compiles and answers", async (locale, script) => {
     expect(await activateLocale(locale)).toBe(locale);

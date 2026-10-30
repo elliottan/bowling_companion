@@ -110,7 +110,7 @@ textarea,
 
 /* Each language's own face where the system face has none (Windows' Segoe
    UI), and the right glyphs for Han characters, which differ between
-   Japanese, Korean and Traditional Chinese. On iPhone and Android, system-ui
+   Japanese, Korean and the two Chinese scripts. On iPhone and Android, system-ui
    already picks from <html lang>. */
 :root:lang(ja) {
   font-family:
@@ -125,6 +125,12 @@ textarea,
   /* Korean is spaced into words and wraps between them, never inside one:
      the default breaks between any two syllables ("있어" / "요"). */
   word-break: keep-all;
+}
+
+:root:lang(zh-Hans) {
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Microsoft YaHei", sans-serif;
 }
 
 :root:lang(zh-Hant) {

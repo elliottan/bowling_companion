@@ -6,6 +6,9 @@ it describes is `docs/PRO-LAUNCH.md` and `src/lib/pro.ts` (ADR-154); the voice
 is `docs/DESIGN-LANGUAGE.md` section 8 (sentence case, contractions, one word
 per thing, no exclamation marks, no em dashes).
 
+The same listing in Japanese, Korean, both Chinese scripts and Spanish is in
+[APP-STORE-LISTING-TRANSLATED.md](./APP-STORE-LISTING-TRANSLATED.md).
+
 Every limit below is Apple's, and each count was measured on the text as
 written here. Recount after any edit; the counts are in the headings.
 

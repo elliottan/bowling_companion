@@ -16,7 +16,7 @@ import type { Messages } from "@lingui/core";
 
 /** Every language a catalog exists for. Adding one is a line here, a line in
  *  `lingui.config.ts` and, on iOS, a line in Info.plist (docs/I18N.md). */
-export const SUPPORTED_LOCALES = ["en", "ja", "ko", "zh-Hant"] as const;
+export const SUPPORTED_LOCALES = ["en", "es", "ja", "ko", "zh-Hans", "zh-Hant"] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 export const SOURCE_LOCALE: Locale = "en";
 
@@ -50,8 +50,9 @@ export function resolveLocale(
  * tag that is not Chinese. Chinese is matched by script, not by language: a
  * phone in Taiwan says "zh-TW" or "zh-Hant-TW", and neither is a "zh-Hant"
  * catalog by its letters. Taiwan, Hong Kong and Macau write Traditional; a
- * Chinese tag with neither a script nor one of those regions is Simplified,
- * which has no catalog yet, so it falls through to the next language asked.
+ * Chinese tag with neither a script nor one of those regions is Simplified
+ * (mainland China, Singapore, Malaysia). Neither script ever gets the other's
+ * catalog.
  */
 function chineseScript(tag: string): "hant" | "hans" | null {
   const parts = tag.split("-");
