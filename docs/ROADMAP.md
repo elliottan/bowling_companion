@@ -37,14 +37,13 @@ property of the leave (derivable, since both are "the 6 pin is the target") or a
 choice the bowler makes per pair. Deriving it is wrong for anyone who plays a
 6-10 differently to a 6.
 
-### A first language
+### The next languages
 
-The groundwork is in (ADR-220, [I18N.md](./I18N.md)) and the screens are
-marked (0.74.2, about 990 messages). Open: inline markup in a message (no
-`Trans` yet, see I18N.md), the guides, the legal pages and the landing page
-(English only), the translations themselves, and the decision on right-to-left,
-which the layout does not support. Suggested order: Japanese, Korean, Spanish,
-Traditional Chinese.
+Japanese ships (0.75.0), and a sentence keeps its bold and icons (ADR-223).
+Open: a native speaker's read of the Japanese catalog, the guides, the legal
+pages and the landing page (English only), the Home Screen quick actions and
+the App Store listing in Japanese, and the decision on right-to-left, which the
+layout does not support. Suggested next: Korean, Spanish, Traditional Chinese.
 
 ### Android follows the system font size
 

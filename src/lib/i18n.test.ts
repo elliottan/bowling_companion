@@ -51,6 +51,15 @@ describe("activateLocale", () => {
     expect(document.documentElement.lang).toBe("en");
   });
 
+  it("ships Japanese: its catalog loads, compiles and answers every message", async () => {
+    expect(await activateLocale("ja")).toBe("ja");
+    expect(document.documentElement.lang).toBe("ja");
+    expect(describeAge(null, new Date())).not.toBe("never");
+    // A catalog missing an entry would show the id; one with a broken plural
+    // throws here instead of on a bowler's screen.
+    expect(describeLastBackup("2026-06-01T00:00:00.000Z", new Date("2026-06-30T12:00:00Z"))).toMatch(/[\u3040-\u30ff\u4e00-\u9fff]/);
+  });
+
   it("falls back to English for a language that has no catalog", async () => {
     expect(await activateLocale("tlh")).toBe("en");
     expect(activeLocale()).toBe("en");

@@ -16,7 +16,7 @@ import type { Messages } from "@lingui/core";
 
 /** Every language a catalog exists for. Adding one is a line here, a line in
  *  `lingui.config.ts` and, on iOS, a line in Info.plist (docs/I18N.md). */
-export const SUPPORTED_LOCALES = ["en"] as const;
+export const SUPPORTED_LOCALES = ["en", "ja"] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 export const SOURCE_LOCALE: Locale = "en";
 

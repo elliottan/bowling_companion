@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.75.0: Headpin in Japanese (2026-10-30)
+
+- The app speaks Japanese. On a phone or browser set to Japanese it opens in
+  Japanese; on iPhone you can also pick it for Headpin alone, in Settings,
+  Headpin, Language. Numbers and dates follow. The guides, the legal pages
+  and the website are still in English.
+- A few sentences have their bold back: "replaces" in Backup, the leave names
+  in the two spare-line hints on Spare lines, the start of the catalog's
+  "Could not update" message, and the layout you typed before in the ball
+  form. The Safari install hint is one sentence again around the Share icon.
+
 ## 0.74.2: Lock Screen fixes, and the app ready to translate (2026-10-30)
 
 - A game left on the Lock Screen by an app that was closed mid-game is tidied

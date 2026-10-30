@@ -108,6 +108,14 @@ textarea,
     sans-serif;
 }
 
+/* Japanese glyphs where the system face has none (Windows' Segoe UI). On
+   iPhone and Android, system-ui already picks a Japanese face from <html lang>. */
+:root:lang(ja) {
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans",
+    "Yu Gothic UI", Meiryo, sans-serif;
+}
+
 /*
  * Semantic color tokens as RGB channel triples (space-separated, no rgb())
  * so Tailwind can apply `/ <alpha-value>`. Names are roles, not shades: the
