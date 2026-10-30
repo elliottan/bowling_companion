@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { deleteLaneNote, upsertLaneNote } from "../services/ballRepository";
@@ -48,18 +49,18 @@ export function LaneNoteFormDialog({ note, alleys, onClose, onSaved }: LaneNoteF
 
   async function submit() {
     if (!alley.trim() || !lane.trim()) {
-      setError("Alley and lane are required.");
+      setError(t`Alley and lane are required.`);
       return;
     }
     if (!isPositiveInt(lane)) {
-      setError("Lane must be a whole number.");
+      setError(t`Lane must be a whole number.`);
       return;
     }
     try {
       await upsertLaneNote(alley, lane, notes.trim());
       onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save.");
+      setError(err instanceof Error ? err.message : t`Failed to save.`);
     }
   }
 
@@ -70,17 +71,17 @@ export function LaneNoteFormDialog({ note, alleys, onClose, onSaved }: LaneNoteF
       onSaved();
     } catch (err) {
       setConfirmDelete(false);
-      setError(err instanceof Error ? err.message : "Failed to delete.");
+      setError(err instanceof Error ? err.message : t`Failed to delete.`);
     }
   }
 
   return (
     <>
       <FormSheet
-        title={editing ? "Edit lane note" : "Add lane note"}
+        title={editing ? t`Edit lane note` : t`Add lane note`}
         onClose={onClose}
         onConfirm={() => void submit()}
-        confirmLabel={editing ? "Save" : "Add"}
+        confirmLabel={editing ? t`Save` : t`Add`}
         banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
       >
         <div className="space-y-4">
@@ -93,7 +94,7 @@ export function LaneNoteFormDialog({ note, alleys, onClose, onSaved }: LaneNoteF
             <>
               <div>
                 <label htmlFor="lane-note-alley" className={FIELD_LABEL}>
-                  Alley
+                  {t`Alley`}
                 </label>
                 <div className="relative">
                   <input
@@ -132,7 +133,7 @@ export function LaneNoteFormDialog({ note, alleys, onClose, onSaved }: LaneNoteF
               </div>
               <div>
                 <label htmlFor="lane-note-lane" className={FIELD_LABEL}>
-                  Lane
+                  {t`Lane`}
                 </label>
                 {/* Width lives on a wrapper: `FIELD` carries `w-full`, and a
                     `w-28` beside it loses to whichever Tailwind emits last. */}
@@ -152,14 +153,14 @@ export function LaneNoteFormDialog({ note, alleys, onClose, onSaved }: LaneNoteF
 
           <div>
             <label htmlFor="lane-note-notes" className={FIELD_LABEL}>
-              Notes
+              {t`Notes`}
             </label>
             <textarea
               id="lane-note-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={5}
-              placeholder="How this lane plays: transition, where it hooks, ball reaction…"
+              placeholder={t`How this lane plays: transition, where it hooks, ball reaction…`}
               className={FIELD_TEXTAREA}
             />
           </div>
@@ -167,7 +168,7 @@ export function LaneNoteFormDialog({ note, alleys, onClose, onSaved }: LaneNoteF
           {editing && (
             <Button variant="danger-ghost" onClick={() => setConfirmDelete(true)} className="w-full">
               <Trash2 size={16} aria-hidden="true" />
-              Delete note
+              {t`Delete note`}
             </Button>
           )}
         </div>
@@ -175,8 +176,8 @@ export function LaneNoteFormDialog({ note, alleys, onClose, onSaved }: LaneNoteF
 
       <ConfirmDialog
         open={confirmDelete}
-        title={`Delete the note for lane ${note?.lane ?? ""}?`}
-        message="This deletes your note on this lane. Your games aren't affected."
+        title={t`Delete the note for lane ${{ lane: note?.lane ?? "" }}?`}
+        message={t`This deletes your note on this lane. Your games aren't affected.`}
         onConfirm={() => void remove()}
         onCancel={() => setConfirmDelete(false)}
       />
@@ -190,7 +191,7 @@ export function LaneBadge({ lane }: { lane: string }) {
   return (
     <span className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg bg-accent-soft">
       <span className="text-caption-2 font-semibold uppercase leading-none tracking-wide text-accent">
-        Lane
+        {t`Lane`}
       </span>
       <span className="mt-0.5 text-base font-bold leading-none tabular-nums text-accent">
         {lane}

@@ -1,6 +1,6 @@
 import { i18n } from "@lingui/core";
 import type { MessageDescriptor } from "@lingui/core";
-import { msg } from "@lingui/core/macro";
+import { msg, t } from "@lingui/core/macro";
 import {
   BarChart3,
   History,
@@ -490,7 +490,7 @@ function App() {
       dispatch({ type: "openSession", sessionId });
     } catch (error) {
       setStartError(
-        error instanceof Error ? error.message : "Unable to start session."
+        error instanceof Error ? error.message : t`Unable to start session.`
       );
     } finally {
       setIsStartingSession(false);
@@ -883,7 +883,7 @@ function App() {
               <LaneVisualizerLazy
                 key={`line-${i}`}
                 presentation="push"
-                title="Line sandbox"
+                title={t`Line sandbox`}
                 line={sandboxLine}
                 // Read-only without Pro: the line, shared or not, is drawn in
                 // full and can be shared on, but not moved (ADR-154).

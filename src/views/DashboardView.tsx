@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import { ChevronRight, PlayCircle, Plus, ShieldCheck } from "lucide-react";
 import { PinIcon } from "../components/icons";
 import { ToolsList } from "../components/ToolsList";
@@ -129,7 +130,7 @@ export function DashboardView({
       ? nudge.totalSessions
       : nudge.totalSessions - nudge.sessionsAtLastBackup
     : 0;
-  const backupAge = nudge ? describeAge(nudge.lastBackupAt, nudge.now) : "never";
+  const lastBackup = nudge ? describeAge(nudge.lastBackupAt, nudge.now) : t`never`;
 
   // One card, never two (ADR-115). Home no longer asks a web bowler to add the
   // page to the home screen: the way to keep games is the app now, and the
@@ -188,7 +189,7 @@ export function DashboardView({
               onClick={() => setEditingName(true)}
               className={`relative mt-1 text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
             >
-              Add your name
+              {t`Add your name`}
             </button>
           )}
         </div>
@@ -210,10 +211,10 @@ export function DashboardView({
       {coldStart ? (
         <EmptyState
           icon={PinIcon}
-          title="Score your first session"
+          title={t`Score your first session`}
         >
           <Button variant="primary" disabled={isSubmitting} onClick={() => setShowForm(true)}>
-            Start scoring
+            {t`Start scoring`}
           </Button>
         </EmptyState>
       ) : resumable ? (
@@ -224,9 +225,9 @@ export function DashboardView({
         >
           <PlayCircle size={28} aria-hidden="true" className="shrink-0" />
           <span className="min-w-0 flex-1">
-            <span className="block text-base font-bold">Resume game</span>
+            <span className="block text-base font-bold">{t`Resume game`}</span>
             <span className="block truncate text-sm">
-              {alleyLabel(resumable.alleyName)} · Game {resumable.gameNumber}
+              {alleyLabel(resumable.alleyName)} · {t`Game ${{ gameNumber: resumable.gameNumber }}`}
             </span>
           </span>
           <ChevronRight size={20} aria-hidden="true" className="shrink-0" />
@@ -270,8 +271,10 @@ export function DashboardView({
             <ShieldCheck size={20} aria-hidden="true" className="mt-0.5 shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold">
-                {nudgeSessionsSince} {nudgeSessionsSince === 1 ? "session" : "sessions"} not backed
-                up. Last backup: {backupAge}.
+                {plural(nudgeSessionsSince, {
+                  one: `# session not backed up. Last backup: ${lastBackup}.`,
+                  other: `# sessions not backed up. Last backup: ${lastBackup}.`
+                })}
               </p>
               <div className="mt-2 flex items-center gap-4">
                 <button
@@ -279,7 +282,7 @@ export function DashboardView({
                   onClick={onOpenBackup}
                   className={`relative text-xs font-bold underline active:no-underline ${TAP_TARGET_44}`}
                 >
-                  Save a copy
+                  {t`Save a copy`}
                 </button>
                 {/* An installed app that is overdue has no Later. A reminder that
                     can be put off for ever never reaches the person who most
@@ -290,7 +293,7 @@ export function DashboardView({
                     onClick={handleBackupLater}
                     className={`relative inline-flex min-w-11 items-center justify-center text-xs font-semibold opacity-80 ${TAP_TARGET_44}`}
                   >
-                    Later
+                    {t`Later`}
                   </button>
                 )}
               </div>
@@ -317,7 +320,7 @@ export function DashboardView({
 
       <div className="mt-6">
         <ToolsList
-          heading="Tools and reference"
+          heading={t`Tools and reference`}
           onOpenLayoutLab={onOpenLayoutLab}
           onOpenLineVisualizer={onOpenLineVisualizer}
           onOpenOilPatterns={onOpenOilPatterns}
@@ -330,7 +333,7 @@ export function DashboardView({
           and not before the sessions are read, or it would flash in first. */}
       {!coldStart && !loadingRecent && (
         <FabRow>
-          <Fab icon={Plus} label="Start session" extended onClick={() => setShowForm(true)} />
+          <Fab icon={Plus} label={t`Start session`} extended onClick={() => setShowForm(true)} />
         </FabRow>
       )}
 

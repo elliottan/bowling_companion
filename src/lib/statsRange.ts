@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import type { Handedness, SessionSummary } from "../types/bowling";
 import { lanesOf } from "./filterFacets";
 import { calculateStats } from "./stats";
@@ -11,10 +12,11 @@ import { calculateStats } from "./stats";
  */
 export type StatsRange = "last10" | "months3" | "all";
 
-export const STATS_RANGES: ReadonlyArray<{ value: StatsRange; label: string }> = [
-  { value: "last10", label: "Last 10" },
-  { value: "months3", label: "3 months" },
-  { value: "all", label: "All" }
+// Labels are getters, read in the active language when used, not at import.
+export const STATS_RANGES: ReadonlyArray<{ value: StatsRange; readonly label: string }> = [
+  { value: "last10", get label() { return t({ message: "Last 10", comment: "Stats tab window: the last ten sessions, a short segment label" }); } },
+  { value: "months3", get label() { return t({ message: "3 months", comment: "Stats tab window: the last three months, a short segment label" }); } },
+  { value: "all", get label() { return t({ message: "All", comment: "Stats tab window: every session, a short segment label" }); } }
 ];
 
 /** Sessions in the "Last 10" window. */

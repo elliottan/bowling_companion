@@ -1,3 +1,5 @@
+import { t } from "@lingui/core/macro";
+import { formatNumber } from "./format";
 import { LANE_BOARDS } from "./laneGeometry";
 import type { Handedness, OilPass } from "../types/bowling";
 
@@ -335,10 +337,16 @@ export function patternClass(ratio: number | null | undefined): PatternClass | n
 
 /** What to call it on screen. Kegel's own three tiers, and the words a bowler
  *  reads on a pattern sheet. */
-export const PATTERN_CLASS_LABEL: Record<PatternClass, string> = {
-  sport: "Sport",
-  challenge: "Challenge",
-  recreation: "Recreation",
+export const PATTERN_CLASS_LABEL: Readonly<Record<PatternClass, string>> = {
+  get sport() {
+    return t({ message: "Sport", comment: "Bowling term: the most demanding oil pattern tier, a low oil ratio (Kegel's tiers are Sport, Challenge and Recreation)" });
+  },
+  get challenge() {
+    return t({ message: "Challenge", comment: "Bowling term: the middle oil pattern tier (Kegel's tiers are Sport, Challenge and Recreation)" });
+  },
+  get recreation() {
+    return t({ message: "Recreation", comment: "Bowling term: the easiest oil pattern tier, a high oil ratio (Kegel's tiers are Sport, Challenge and Recreation)" });
+  }
 };
 
 /**
@@ -358,5 +366,8 @@ export function patternLength(pattern: {
  *  how a list of them reads at a glance. A pattern with no length is its name. */
 export function patternLabel(pattern: { name: string; passes?: OilPass[]; distance?: number }): string {
   const feet = patternLength(pattern);
-  return feet != null ? `(${Math.round(feet)} ft) ${pattern.name}` : pattern.name;
+  if (feet == null) return pattern.name;
+  const length = formatNumber(Math.round(feet));
+  const name = pattern.name;
+  return t`(${length} ft) ${name}`;
 }

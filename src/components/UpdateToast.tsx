@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { applyUpdate, dismissUpdate, subscribeNeedsRefresh } from "../lib/swUpdate";
@@ -25,11 +26,11 @@ export function UpdateToast() {
       style={{ bottom: "calc(4rem + env(safe-area-inset-bottom) + 0.75rem)" }}
     >
       <div className="flex w-full max-w-sm items-center gap-3 rounded-xl bg-ink px-4 py-3 text-surface shadow-xl">
-        <p className="flex-1 text-sm font-medium">Update available</p>
+        <p className="flex-1 text-sm font-medium">{t`Update available`}</p>
         <Button variant="primary" onClick={() => applyUpdate()}>
-          Update
+          {t`Update`}
         </Button>
-        <IconButton variant="inverse" onClick={() => dismissUpdate()} label="Dismiss">
+        <IconButton variant="inverse" onClick={() => dismissUpdate()} label={t`Dismiss`}>
           <X size={16} aria-hidden="true" />
         </IconButton>
       </div>

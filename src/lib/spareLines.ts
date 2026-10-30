@@ -1,3 +1,5 @@
+import { t } from "@lingui/core/macro";
+import { formatNumber } from "./format";
 import type { Handedness, PinNumber, SpareLine } from "../types/bowling";
 import { isBabySplit, isPocketLeave, isSleeper, spareGroup, uniquePins } from "./pins";
 
@@ -39,10 +41,12 @@ export function hasAnswer(sl: Pick<SpareLine, "line" | "strike_offset"> | undefi
  * "-2" asks the bowler to do that sum at the lane; a direction does not.
  */
 export function describeMove(boards: number, handedness: Handedness): string {
-  if (boards === 0) return "None";
+  if (boards === 0) return t`None`;
   const upIsLeft = handedness === "right";
-  const side = boards > 0 === upIsLeft ? "left" : "right";
-  return `${Math.abs(boards)} ${side}`;
+  const distance = formatNumber(Math.abs(boards), 2);
+  return boards > 0 === upIsLeft
+    ? t({ message: `${distance} left`, comment: "A strike-ball move in boards toward the left side of the lane, e.g. 2 left" })
+    : t({ message: `${distance} right`, comment: "A strike-ball move in boards toward the right side of the lane, e.g. 2 right" });
 }
 
 /** What two spare ball lines are compared by: the two boards a bowler acts on.
@@ -258,12 +262,13 @@ export function suggestLineCopies(
  *  must, so "Sleepers" and "No line yet" is the sleepers still to write. */
 export type SpareFilter = "single" | "sleeper" | "baby" | "withLine" | "noLine";
 
-export const SPARE_FILTERS: ReadonlyArray<{ id: SpareFilter; label: string }> = [
-  { id: "single", label: "Single pins" },
-  { id: "sleeper", label: "Sleepers" },
-  { id: "baby", label: "Baby splits" },
-  { id: "withLine", label: "Has a line" },
-  { id: "noLine", label: "No line yet" }
+// Labels are getters, read in the active language when used, not at import.
+export const SPARE_FILTERS: ReadonlyArray<{ id: SpareFilter; readonly label: string }> = [
+  { id: "single", get label() { return t({ message: "Single pins", comment: "A filter on the spare lines screen: leaves of one standing pin" }); } },
+  { id: "sleeper", get label() { return t({ message: "Sleepers", comment: "Bowling term: a filter on the spare lines screen for leaves where one pin hides directly behind another, like the 2-8" }); } },
+  { id: "baby", get label() { return t({ message: "Baby splits", comment: "Bowling term: a filter on the spare lines screen for splits whose standing pins are next to each other and makeable" }); } },
+  { id: "withLine", get label() { return t({ message: "Has a line", comment: "A filter on the spare lines screen: leaves the bowler has written a line (stance and target) for" }); } },
+  { id: "noLine", get label() { return t({ message: "No line yet", comment: "A filter on the spare lines screen: leaves the bowler has not written a line (stance and target) for" }); } }
 ];
 
 const SHAPE: Record<"single" | "sleeper" | "baby", (pins: PinNumber[]) => boolean> = {

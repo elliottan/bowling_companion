@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { Check, ExternalLink, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { GuideFigure } from "../components/GuideFigure";
@@ -9,6 +10,7 @@ import { GROUP_HEADING } from "../components/ui/typography";
 import { findGuide, guideShareUrl, guidesByTopic, type Guide, type GuideBlock } from "../lib/guides";
 import { shareLinkFromApp } from "../lib/nativeShare";
 import { isNativeApp, shareOrigin } from "../lib/platform";
+import { formatNumber } from "../lib/format";
 
 interface GuidesViewProps {
   onBack: () => void;
@@ -19,7 +21,7 @@ interface GuidesViewProps {
 
 /** How long the guide takes to read, on the row and under the title. */
 function readingTime(guide: Guide): string {
-  return `${guide.minutes} min read`;
+  return t`${{ minutes: formatNumber(guide.minutes) }} min read`;
 }
 
 /**
@@ -35,7 +37,7 @@ export function GuidesView({ onBack, openGuideId, onOpenGuide }: GuidesViewProps
 
   return (
     <>
-      <PushScreen title="Guides" onBack={onBack} active={!open}>
+      <PushScreen title={t`Guides`} onBack={onBack} active={!open}>
         <div className="mx-auto w-full max-w-xl space-y-5 px-3 py-4 sm:px-6">
           {guidesByTopic().map(({ topic, guides }) => (
             <ListGroup key={topic} heading={topic}>
@@ -93,7 +95,7 @@ function GuideArticle({ guide, onBack }: { guide: Guide; onBack: () => void }) {
       title={guide.title}
       onBack={onBack}
       trailing={
-        <IconButton variant="round" label="Share guide" onClick={() => void share()}>
+        <IconButton variant="round" label={t`Share guide`} onClick={() => void share()}>
           {copied ? (
             <Check size={18} aria-hidden="true" />
           ) : (
@@ -103,7 +105,7 @@ function GuideArticle({ guide, onBack }: { guide: Guide; onBack: () => void }) {
       }
     >
       <span role="status" className="sr-only">
-        {copied ? "Link copied" : ""}
+        {copied ? t`Link copied` : ""}
       </span>
       <article className="mx-auto w-full max-w-xl px-4 py-5 sm:px-6">
         <h2 className="text-xl font-bold text-ink">{guide.title}</h2>
@@ -119,13 +121,13 @@ function GuideArticle({ guide, onBack }: { guide: Guide; onBack: () => void }) {
 
         {guide.sources && guide.sources.length > 0 && (
           <div className="mt-8">
-            <ListGroup heading="Sources">
+            <ListGroup heading={t`Sources`}>
               {guide.sources.map((source) => (
                 <ListRow
                   key={source.url}
                   label={source.label}
                   href={source.url}
-                  ariaLabel={`${source.label}, opens in a new tab`}
+                  ariaLabel={t`${{ label: source.label }}, opens in a new tab`}
                   trailing={
                     <ExternalLink
                       size={16}

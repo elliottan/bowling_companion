@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 /**
  * Everything recorded about a single shot beyond its pins: the ball, the
  * Intended and Actual lines (each a LineInput, each openable on the lane), and
@@ -167,8 +168,8 @@ export function ShotDetailBar({
   const viewButton = (which: "intended" | "actual") => (
     <IconButton
       compact
-      label={`View ${which} line`}
-      title={`View ${which} line on the lane`}
+      label={which === "intended" ? t`View intended line` : t`View actual line`}
+      title={which === "intended" ? t`View intended line on the lane` : t`View actual line on the lane`}
       onClick={() => setShowViz(which)}
     >
       <Eye size={14} aria-hidden="true" />
@@ -187,8 +188,8 @@ export function ShotDetailBar({
       <div className="flex items-center gap-1">
         <IconButton
           compact
-          label="Use another leave's line"
-          title="Borrow a saved spare line for this shot"
+          label={t`Use another leave's line`}
+          title={t`Borrow a saved spare line for this shot`}
           onClick={() => setShowLinePicker(true)}
         >
           <Crosshair size={14} aria-hidden="true" />
@@ -221,7 +222,11 @@ export function ShotDetailBar({
               if (onEditAttempt && !onEditAttempt()) return;
               setShowBallPicker(true);
             }}
-            aria-label={`Ball: ${selectedBall?.name ?? "none"}. Tap to change`}
+            aria-label={
+              selectedBall
+                ? t`Ball: ${{ name: selectedBall.name }}. Tap to change`
+                : t`Ball: none. Tap to change`
+            }
             className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg py-0.5 text-left hover:bg-surface-muted"
           >
             <span className="h-7 w-7 shrink-0">
@@ -241,10 +246,10 @@ export function ShotDetailBar({
                 selectedBall ? "text-ink" : "text-ink-secondary"
               }`}
             >
-              {selectedBall?.name ?? "No ball"}
+              {selectedBall?.name ?? t`No ball`}
               {selectedBall?.is_spare_ball && (
                 <span className="ml-1.5 rounded-full border border-edge-strong px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
-                  Spare
+                  {t({ message: "Spare", context: "spare ball badge", comment: "Bowling term: marks a ball as a spare ball, the plastic ball used to shoot at spares. A small badge beside the ball name." })}
                 </span>
               )}
             </span>
@@ -252,7 +257,7 @@ export function ShotDetailBar({
         ) : (
           <Button variant="ghost" onClick={onOpenArsenal} className="text-xs">
             <Plus size={14} aria-hidden="true" />
-            Add a ball
+            {t`Add a ball`}
           </Button>
         )}
       </div>
@@ -269,7 +274,7 @@ export function ShotDetailBar({
 
       <div className="py-2.5">
         <LineInput
-          label="Intended"
+          label={t`Intended`}
           value={intended}
           onChange={handleIntendedChange}
           showPresets
@@ -290,7 +295,7 @@ export function ShotDetailBar({
           stance-based, so its foul-line board converts to a slide on the way in. */}
       <div className="py-2.5">
         <LineInput
-          label="Actual"
+          label={t`Actual`}
           value={actualView}
           onChange={handleActualChange}
           foulField="slide"
@@ -307,7 +312,7 @@ export function ShotDetailBar({
                   onClick={copyIntended}
                   className={`relative whitespace-nowrap text-caption-2 font-bold text-accent active:opacity-60 ${UPWARD_TAP_TARGET}`}
                 >
-                  As intended
+                  {t`As intended`}
                 </button>
                 {viewButton("actual")}
               </div>
@@ -332,7 +337,7 @@ export function ShotDetailBar({
 
       {showViz && (
         <LaneVisualizerLazy
-          title={showViz === "actual" ? "Actual line" : "Intended line"}
+          title={showViz === "actual" ? t`Actual line` : t`Intended line`}
           line={showViz === "actual" ? actualView : intended}
           // Drawn in full and not movable without Pro, here as in the sandbox:
           // the boards are still typed into the fields above, which is
@@ -361,7 +366,7 @@ export function ShotDetailBar({
           that the desktop size would suggest. */}
       <div className="py-2.5">
         <label className="block">
-          <span className={`${floatLabel} pb-1`}>Notes</span>
+          <span className={`${floatLabel} pb-1`}>{t`Notes`}</span>
           <textarea
             value={notes}
             onPointerDown={blockLockedTap}
@@ -380,7 +385,7 @@ export function ShotDetailBar({
               if (trimmed !== notes) onNotesChange(trimmed);
             }}
             rows={2}
-            placeholder="This shot…"
+            placeholder={t`This shot…`}
             className={`${FIELD_DENSE_TEXTAREA} h-28 overflow-y-auto text-caption-2`}
           />
         </label>

@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import { ChevronRight, Plus } from "lucide-react";
 import { LanePairIcon } from "../components/icons";
 import { useMemo, useState } from "react";
@@ -75,16 +76,16 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
   const body = (
     <section className="mx-auto w-full max-w-3xl px-3 py-4 sm:px-6">
       {isLoading ? (
-        <p className="text-sm text-ink-secondary">Loading…</p>
+        <p className="text-sm text-ink-secondary">{t`Loading…`}</p>
       ) : groups.length === 0 ? (
         <EmptyState
           icon={LanePairIcon}
-          title="No lane notes yet"
-          description="Write down how a lane plays, and it'll be here next time you're on it."
+          title={t`No lane notes yet`}
+          description={t`Write down how a lane plays, and it'll be here next time you're on it.`}
         >
           <Button variant="primary" size="lg" onClick={() => setForm({ note: null })}>
             <Plus size={18} aria-hidden="true" />
-            Add a lane note
+            {t`Add a lane note`}
           </Button>
         </EmptyState>
       ) : (
@@ -92,7 +93,7 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
           {showFilter && (
             <div className="scrollbar-none -mx-3 mb-4 flex gap-2 overflow-x-auto overscroll-x-none px-3 pb-1 sm:mx-0 sm:px-0">
               <Chip selected={filterAlley === ""} onClick={() => setFilterAlley("")}>
-                All
+                {t`All`}
               </Chip>
               {groups.map((g) => (
                 <Chip
@@ -114,7 +115,7 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
                 heading={<h2 className="truncate text-sm font-semibold text-ink">{group.alley}</h2>}
                 headingTrailing={
                   <span className={`${GROUP_HEADING} shrink-0`}>
-                    {group.notes.length} {group.notes.length === 1 ? "lane" : "lanes"}
+                    {plural(group.notes.length, { one: "# lane", other: "# lanes" })}
                   </span>
                 }
               >
@@ -124,7 +125,7 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
                     <button
                       type="button"
                       onClick={() => setForm({ note: n })}
-                      aria-label={`Edit note for ${group.alley} lane ${n.lane}`}
+                      aria-label={t`Edit note for ${{ alley: group.alley }} lane ${{ lane: n.lane }}`}
                       className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-surface-muted"
                     >
                       <LaneBadge lane={n.lane} />
@@ -134,7 +135,7 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
                         </p>
                       ) : (
                         <p className="min-w-0 flex-1 text-sm italic text-ink-tertiary">
-                          Nothing written yet
+                          {t`Nothing written yet`}
                         </p>
                       )}
                       <ChevronRight
@@ -175,11 +176,11 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
     <>
       <PushScreen
         mode={mode}
-        title="Lane notes"
+        title={t`Lane notes`}
         onBack={onBack}
         active={form === null}
         trailing={
-          <IconButton onClick={() => setForm({ note: null })} label="Add lane note" variant="round">
+          <IconButton onClick={() => setForm({ note: null })} label={t`Add lane note`} variant="round">
             <Plus size={24} aria-hidden="true" />
           </IconButton>
         }

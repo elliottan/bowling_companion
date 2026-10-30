@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useLayoutEffect } from "react";
 import { overlayHandoff } from "../lib/overlayHandoff";
 import { PushScreen } from "./PushScreen";
@@ -24,7 +25,7 @@ export function OverlayLoading({ onBack }: { onBack: () => void }) {
   }, []);
 
   return (
-    <PushScreen title="Loading…" onBack={onBack}>
+    <PushScreen title={t`Loading…`} onBack={onBack}>
       <div className="flex h-full min-h-[60vh] items-center justify-center">
         <Spinner />
       </div>

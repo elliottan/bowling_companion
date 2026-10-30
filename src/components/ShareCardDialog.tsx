@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useEffect, useState } from "react";
 import { useOverlay } from "../lib/useOverlay";
 import { useSheetDismiss } from "../lib/useSheetDismiss";
@@ -102,7 +103,7 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
       })
       .catch((err: unknown) => {
         if (!live) return;
-        setError(err instanceof Error ? err.message : "The image could not be created.");
+        setError(err instanceof Error ? err.message : t`The image could not be created.`);
       });
 
     return () => {
@@ -131,7 +132,7 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
           await navigator.share({ title: link.title, url: link.url });
         } else {
           await navigator.clipboard.writeText(link.url);
-          setNote("Link copied");
+          setNote(t`Link copied`);
         }
       } else if (blob) {
         await shareCardImage(blob, shareCardFilename(card.title));
@@ -139,7 +140,7 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
     } catch (err) {
       // A dismissed share sheet rejects, and cancelling is not a failure.
       if (!(err instanceof Error) || err.name !== "AbortError") {
-        setError(err instanceof Error ? err.message : "Sharing failed.");
+        setError(err instanceof Error ? err.message : t`Sharing failed.`);
       }
     } finally {
       setBusy(false);
@@ -153,9 +154,9 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
       await downloadCardImage(blob, shareCardFilename(card.title));
       // In the store apps the save goes through the share sheet, which says
       // for itself where the picture went.
-      if (!isNativeApp()) setNote("Image saved");
+      if (!isNativeApp()) setNote(t`Image saved`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Saving failed.");
+      setError(err instanceof Error ? err.message : t`Saving failed.`);
     }
   }
 
@@ -164,7 +165,7 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
       className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Share image"
+      aria-label={t`Share image`}
       style={{ ...backdropStyle, ...rootStyle }}
       onClick={() => dismiss()}
     >
@@ -186,7 +187,7 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
           <div className="mb-2 flex justify-end">
             <IconButton
               variant="round"
-              label="Save image"
+              label={t`Save image`}
               disabled={!blob}
               onClick={handleDownload}
             >
@@ -199,7 +200,11 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
           {preview ? (
             <img
               src={preview}
-              alt={`${card.title}, ${card.hero ? `${card.hero.value} ${card.hero.label}` : "stats"}`}
+              alt={
+                card.hero
+                  ? t`${{ title: card.title }}, ${{ value: card.hero.value }} ${{ label: card.hero.label }}`
+                  : t`${{ title: card.title }}, stats`
+              }
               className="w-full rounded-lg"
             />
           ) : (
@@ -219,14 +224,14 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
 
         <div className="mt-4 flex justify-end gap-2">
           <Button variant="secondary" onClick={() => dismiss()}>
-            Close
+            {t`Close`}
           </Button>
           {/* A link share does not wait on the picture: the preview is a
               courtesy, and a browser that will not rasterize the ball must not
               take the share down with it. */}
           <Button onClick={handleShare} disabled={(!link && !blob) || busy}>
             <ShareIosIcon size={16} aria-hidden="true" />
-            {busy ? "Sharing…" : link ? "Share link" : "Share"}
+            {busy ? t`Sharing…` : link ? t`Share link` : t`Share`}
           </Button>
         </div>
       </div>

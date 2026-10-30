@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 import { FIELD_DENSE_SELECT_NARROW } from "./ui/field";
@@ -46,15 +47,19 @@ export function PapEditor({
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       <InchField
-        label="Over"
+        label={t({ message: "Over", comment: "Bowling term: PAP (positive axis point), how far over from the ball's center line the axis point sits, in inches." })}
         id={`${idPrefix}-over`}
         value={pap.over}
         maxWhole={6}
         onChange={(over) => onChange({ ...pap, over: clamp(over, 0, 6.5) })}
-        trailing={<span className="text-sm text-ink-secondary">Over</span>}
+        trailing={
+          <span className="text-sm text-ink-secondary">
+            {t({ message: "Over", comment: "Bowling term: PAP (positive axis point), how far over from the ball's center line the axis point sits, in inches." })}
+          </span>
+        }
       />
       <InchField
-        label="Up or down"
+        label={t({ message: "Up or down", comment: "Bowling term: PAP (positive axis point), whether the axis point sits above or below the ball's midline." })}
         id={`${idPrefix}-up`}
         value={pap.up}
         maxWhole={3}
@@ -67,7 +72,7 @@ export function PapEditor({
           // it as a negative zero.
           <Dropdown className="w-[calc(4.5rem*var(--type-scale))]">
             <select
-              aria-label="Up or down direction"
+              aria-label={t({ message: "Up or down direction", comment: "Bowling term: PAP (positive axis point), whether the axis point sits above or below the ball's midline." })}
               className={FIELD_DENSE_SELECT_NARROW}
               value={parts.negative ? "down" : "up"}
               onChange={(e) =>
@@ -77,8 +82,8 @@ export function PapEditor({
                 })
               }
             >
-              <option value="up">Up</option>
-              <option value="down">Down</option>
+              <option value="up">{t({ message: "Up", comment: "Bowling term: PAP, the axis point is above the ball's midline.", context: "pap direction" })}</option>
+              <option value="down">{t({ message: "Down", comment: "Bowling term: PAP, the axis point is below the ball's midline.", context: "pap direction" })}</option>
             </select>
           </Dropdown>
         }
@@ -175,7 +180,7 @@ export function InchField({
       </Dropdown>
       <Dropdown className="w-[calc(3.5rem*var(--type-scale))]">
         <select
-          aria-label={`${label} fraction`}
+          aria-label={t`${{ label }} fraction`}
           className={`${FIELD_DENSE_SELECT_NARROW} tabular-nums`}
           value={parts.eighths}
           onChange={(e) => emit({ eighths: Number(e.target.value) })}

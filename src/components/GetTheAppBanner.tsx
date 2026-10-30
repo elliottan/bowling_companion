@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { X } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Button } from "./ui/Button";
@@ -48,26 +49,26 @@ function Banner({ access }: { access: LockedProAccess }) {
 
   return (
     <aside
-      aria-label="Headpin for iPhone"
+      aria-label={t`Headpin for iPhone`}
       className="mb-3 flex items-center gap-2 rounded-[22px] bg-surface py-1.5 pl-1.5 pr-2.5"
     >
       <IconButton
         compact
-        label="Not now"
+        label={t`Not now`}
         onClick={() => void setSetting(GET_APP_DISMISSED_KEY, new Date().toISOString())}
       >
         <X size={16} aria-hidden="true" />
       </IconButton>
       <img src="/icons/icon-192.png" alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-[10px] shadow-sm" />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-ink">Headpin for iPhone</p>
+        <p className="truncate text-sm font-semibold text-ink">{t`Headpin for iPhone`}</p>
         <p className="truncate text-xs text-ink-secondary">
-          {action.unavailable ? "Coming soon to the App Store" : "Free on the App Store"}
+          {action.unavailable ? t`Coming soon to the App Store` : t`Free on the App Store`}
         </p>
       </div>
       {!action.unavailable && (
         <Button variant="primary" onClick={action.start} className="shrink-0 px-5">
-          Get
+          {t({ message: "Get", comment: "Button that opens the app in the App Store." })}
         </Button>
       )}
       {action.dialog}

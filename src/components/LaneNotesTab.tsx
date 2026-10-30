@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -98,10 +99,10 @@ export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
     setEditingLane(null);
   }
 
-  if (loading) return <p className="px-1 py-4 text-sm text-ink-secondary">Loading…</p>;
+  if (loading) return <p className="px-1 py-4 text-sm text-ink-secondary">{t`Loading…`}</p>;
   if (rows.length === 0)
     return (
-      <EmptyState icon={LanePairIcon} title="No lane notes yet" />
+      <EmptyState icon={LanePairIcon} title={t`No lane notes yet`} />
     );
 
   function openEdit(lane: string, note?: LaneNote) {
@@ -145,8 +146,8 @@ export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
       ))}
       <ConfirmDialog
         open={pendingDelete !== null}
-        title={`Delete the note for lane ${pendingDelete?.lane ?? ""}?`}
-        message="This deletes your note on this lane. Your games aren't affected."
+        title={t`Delete the note for lane ${{ lane: pendingDelete?.lane ?? "" }}?`}
+        message={t`This deletes your note on this lane. Your games aren't affected.`}
         onConfirm={() => {
           const note = pendingDelete;
           setPendingDelete(null);
@@ -191,10 +192,10 @@ function LaneCell({
     >
       <div className="flex items-center justify-between gap-1">
         <span className="text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
-          Lane {lane}
+          {t`Lane ${{ lane }}`}
         </span>
         {!editing && (
-          <IconButton compact onClick={onEdit} label={`Edit lane ${lane} notes`}>
+          <IconButton compact onClick={onEdit} label={t`Edit lane ${{ lane }} notes`}>
             <Pencil size={15} aria-hidden="true" />
           </IconButton>
         )}
@@ -206,18 +207,18 @@ function LaneCell({
             onChange={(e) => onDraft(e.target.value)}
             rows={3}
             autoFocus
-            placeholder="How this lane plays…"
+            placeholder={t`How this lane plays…`}
             className={FIELD_DENSE_TEXTAREA}
           />
           <div className="flex flex-wrap items-center gap-1.5">
             <Button variant="primary" onClick={onSave} className="text-xs">
-              Save
+              {t`Save`}
             </Button>
             <Button variant="secondary" onClick={onCancel} className="text-xs">
-              Cancel
+              {t`Cancel`}
             </Button>
             {onDelete && (
-              <IconButton onClick={onDelete} label={`Delete lane ${lane} notes`} variant="danger" className="ml-auto">
+              <IconButton onClick={onDelete} label={t`Delete lane ${{ lane }} notes`} variant="danger" className="ml-auto">
                 <Trash2 size={13} aria-hidden="true" />
               </IconButton>
             )}
@@ -228,7 +229,7 @@ function LaneCell({
           {note.notes}
         </p>
       ) : (
-        <p className="mt-1 text-xs italic text-ink-tertiary">No notes</p>
+        <p className="mt-1 text-xs italic text-ink-tertiary">{t`No notes`}</p>
       )}
     </div>
   );

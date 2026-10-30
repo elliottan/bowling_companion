@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { Check, SlidersHorizontal } from "lucide-react";
 import type { Ball } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
@@ -37,7 +38,7 @@ export function BallPickerSheet({
   return (
     // The sheet's bar carries the close alone: picking a ball is the commit, so
     // there is no tick to put in the trailing slot (DESIGN-LANGUAGE §1).
-    <FormSheet title="Ball" onClose={onClose} size="tall">
+    <FormSheet title={t`Ball`} onClose={onClose} size="tall">
       <ul className="space-y-1.5">
           {offered.map((b) => {
             const snap = b.catalog_snapshot;
@@ -69,7 +70,7 @@ export function BallPickerSheet({
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">
                     {b.name}
                     {b.is_spare_ball && (
-                      <span className="ml-1.5 text-xs font-normal text-ink-secondary">spare</span>
+                      <span className="ml-1.5 text-xs font-normal text-ink-secondary">{t`spare`}</span>
                     )}
                   </span>
                   {selected && <Check size={16} className="shrink-0 text-accent" aria-hidden="true" />}
@@ -90,7 +91,7 @@ export function BallPickerSheet({
               }`}
             >
               <div className="h-10 w-10 shrink-0" aria-hidden="true" />
-              No ball
+              {t`No ball`}
             </button>
           </li>
 
@@ -109,7 +110,7 @@ export function BallPickerSheet({
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center">
                   <SlidersHorizontal size={18} aria-hidden="true" />
                 </span>
-                Manage arsenal
+                {t`Manage arsenal`}
               </button>
             </li>
           )}

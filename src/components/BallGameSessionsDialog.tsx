@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import { formatPercent } from "../lib/format";
 import type { BallGameSession } from "../lib/stats";
 import { GameRowsSheet } from "./GameRowsSheet";
@@ -25,17 +26,35 @@ export function BallGameSessionsDialog({
   return (
     <GameRowsSheet
       title={ballName}
-      subtitle={`Game ${gameNumber}, ${sessions.length} ${sessions.length === 1 ? "session" : "sessions"}`}
+      subtitle={plural(sessions.length, {
+        one: `Game ${gameNumber}, # session`,
+        other: `Game ${gameNumber}, # sessions`
+      })}
       rows={sessions}
       onSelect={onSelect}
       onClose={onClose}
       detail={(s) => (
         <>
-          <Rate label="Pocket" made={s.pocket} of={s.firstBalls} />
-          <Rate label="Carry" made={s.pocketStrikes} of={s.pocket} />
-          <Rate label="Strike" made={s.strikes} of={s.firstBalls} />
+          <Rate
+            label={t({ message: "Pocket", comment: "Bowling term: the strike pocket, where the ball should hit the pins. A rate label." })}
+            spoken={t({ message: "pocket", comment: "Bowling term: the strike pocket. Lower case, read aloud before a count." })}
+            made={s.pocket}
+            of={s.firstBalls}
+          />
+          <Rate
+            label={t({ message: "Carry", comment: "Bowling term: how often a ball that hit the pocket carried for a strike. A rate label." })}
+            spoken={t({ message: "carry", comment: "Bowling term: pocket carry. Lower case, read aloud before a count." })}
+            made={s.pocketStrikes}
+            of={s.pocket}
+          />
+          <Rate
+            label={t({ message: "Strike", comment: "Bowling term: all ten pins down with the first ball. A rate label." })}
+            spoken={t({ message: "strike", comment: "Bowling term: a strike. Lower case, read aloud before a count." })}
+            made={s.strikes}
+            of={s.firstBalls}
+          />
           <span className="text-ink-tertiary">
-            {s.firstBalls} {s.firstBalls === 1 ? "ball" : "balls"}
+            {plural(s.firstBalls, { one: "# ball", other: "# balls" })}
           </span>
         </>
       )}
@@ -49,11 +68,15 @@ export function BallGameSessionsDialog({
  * is not the same claim as one off thirty, and a good rate takes the accent, so
  * a glance down the list finds the nights that went well.
  */
-function Rate({ label, made, of }: { label: string; made: number; of: number }) {
+function Rate({ label, spoken, made, of }: { label: string; spoken: string; made: number; of: number }) {
   const pct = of === 0 ? null : Math.round((made / of) * 100);
   const strong = pct !== null && pct >= 70;
   return (
-    <span aria-label={`${label.toLowerCase()} ${made} of ${of}${pct === null ? "" : `, ${formatPercent(pct)}`}`}>
+    <span aria-label={
+        pct === null
+          ? t`${{ spoken }} ${{ made }} of ${{ of }}`
+          : t`${{ spoken }} ${{ made }} of ${{ of }}, ${{ percent: formatPercent(pct) }}`
+      }>
       <span className="text-ink-secondary" aria-hidden="true">
         {label}
       </span>{" "}

@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import { BookOpen, ExternalLink, Loader2, Palette, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
@@ -21,7 +22,7 @@ import { addBall, getBalls } from "../services/ballRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD, FIELD_DENSE_SELECT, FIELD_LABEL } from "../components/ui/field";
 import { formatReleaseDate } from "../lib/dates";
-import { formatDate, formatFixed } from "../lib/format";
+import { formatDate, formatFixed, formatNumber } from "../lib/format";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
 
 // ---------------------------------------------------------------------------
@@ -46,6 +47,32 @@ const RG_MAX = 2.95;
 const DIFF_MIN = 0;
 const DIFF_MAX = 0.065;
 const ALL_COVERSTOCK: CoverstockCategory[] = ["Solid", "Pearl", "Hybrid", "Urethane", "Polyester"];
+
+/** What a coverstock category is called on screen. The stored value stays
+ *  English; this is only the label. */
+function coverstockLabel(category: CoverstockCategory): string {
+  switch (category) {
+    case "Solid":
+      return t({ message: "Solid", comment: "Bowling term: a coverstock type, a matte cover that grips early" });
+    case "Pearl":
+      return t({ message: "Pearl", comment: "Bowling term: a coverstock type, a shiny cover with mica that skids and then hooks" });
+    case "Hybrid":
+      return t({ message: "Hybrid", comment: "Bowling term: a coverstock type that blends solid and pearl" });
+    case "Urethane":
+      return t({ message: "Urethane", comment: "Bowling term: a coverstock material, a smooth low-friction cover" });
+    case "Polyester":
+      return t({ message: "Polyester", comment: "Bowling term: a coverstock material, plastic, used for straight shots and spares" });
+    default:
+      return category;
+  }
+}
+
+/** What a core type is called on screen. The stored value stays English. */
+function coreTypeLabel(coreType: "Symmetric" | "Asymmetric"): string {
+  return coreType === "Symmetric"
+    ? t({ message: "Symmetric", comment: "Bowling term: a ball with a symmetric core, as opposed to asymmetric" })
+    : t({ message: "Asymmetric", comment: "Bowling term: a ball with an asymmetric core, as opposed to symmetric" });
+}
 
 const EMPTY_FILTERS: Filters = {
   search: "",
@@ -150,7 +177,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
       >
         <CatalogBallImage
           src={current.imageFull ?? ball.imageFull}
-          alt={`${ball.name}${current.color ? `, ${current.color}` : ""}`}
+          alt={current.color ? t`${{ name: ball.name }}, ${{ color: current.color }}` : ball.name}
           brand={ball.brand}
           size="full"
         />
@@ -168,7 +195,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
             key={cw.sku}
             type="button"
             onClick={() => setIdx(i)}
-            aria-label={`View colorway ${i + 1}${cw.color ? `: ${cw.color}` : ""}`}
+            aria-label={cw.color ? t`View colorway ${{ number: i + 1 }}: ${{ color: cw.color }}` : t`View colorway ${{ number: i + 1 }}`}
             aria-current={i === idx}
             className={`relative h-2 rounded-full transition-all ${TAP_TARGET_44} ${
               i === idx ? "w-5 bg-accent-fill" : "w-2 bg-edge-strong hover:bg-ink-tertiary"
@@ -181,6 +208,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
 }
 
 function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: DetailPanelProps) {
+  const releaseDate = formatReleaseDate(ball.releaseDate);
   return (
     // A ball detail is one level deeper than the list, so it pushes like one
     //, same nav bar, same back gesture, opened at the top regardless of where
@@ -192,19 +220,19 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
           <div className="mt-2" />
           <ColorwayCarousel ball={ball} />
 
-          {formatReleaseDate(ball.releaseDate) && (
-            <p className="mt-3 text-sm text-ink-secondary">Released {formatReleaseDate(ball.releaseDate)}</p>
+          {releaseDate && (
+            <p className="mt-3 text-sm text-ink-secondary">{t`Released ${{ date: releaseDate }}`}</p>
           )}
 
           <dl className="mt-4 space-y-2">
-            <SpecItem label="Coverstock" value={ball.coverstockRaw} />
-            <SpecItem label="Category" value={ball.coverstockCategory ?? "Unclassified"} />
-            {ball.factoryFinish && <SpecItem label="Factory finish" value={ball.factoryFinish} />}
-            {ball.coreName && <SpecItem label="Core" value={ball.coreName} />}
-            <SpecItem label="Core type" value={ball.coreType ?? "-"} />
-            <SpecItem label="RG" value={ball.rg !== null ? formatFixed(ball.rg, 2) : "-"} />
-            <SpecItem label="Diff" value={ball.diff !== null ? formatFixed(ball.diff, 3) : "-"} />
-            {ball.mbDiff !== null && <SpecItem label="MB diff" value={formatFixed(ball.mbDiff, 3)} />}
+            <SpecItem label={t({ message: "Coverstock", comment: "Bowling term: the outer shell material of a ball" })} value={ball.coverstockRaw} />
+            <SpecItem label={t`Category`} value={ball.coverstockCategory ? coverstockLabel(ball.coverstockCategory) : t`Unclassified`} />
+            {ball.factoryFinish && <SpecItem label={t({ message: "Factory finish", comment: "Bowling term: the surface finish a ball ships with, such as polished or sanded" })} value={ball.factoryFinish} />}
+            {ball.coreName && <SpecItem label={t({ message: "Core", comment: "Bowling term: the weight block inside a ball" })} value={ball.coreName} />}
+            <SpecItem label={t({ message: "Core type", comment: "Bowling term: whether a ball has a symmetric or asymmetric core" })} value={ball.coreType ? coreTypeLabel(ball.coreType) : "-"} />
+            <SpecItem label={t({ message: "RG", comment: "Bowling term: radius of gyration, a ball spec" })} value={ball.rg !== null ? formatFixed(ball.rg, 2) : "-"} />
+            <SpecItem label={t({ message: "Diff", comment: "Bowling term: the differential, a ball spec (short for differential RG)" })} value={ball.diff !== null ? formatFixed(ball.diff, 3) : "-"} />
+            {ball.mbDiff !== null && <SpecItem label={t({ message: "MB diff", comment: "Bowling term: the mass bias differential, a ball spec" })} value={formatFixed(ball.mbDiff, 3)} />}
           </dl>
 
           {/* The manufacturer's own page for the ball, so the specs above can
@@ -217,17 +245,17 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
               className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent underline underline-offset-2"
             >
               <ExternalLink size={14} aria-hidden="true" />
-              View on {ball.brand}
+              {t`View on ${{ brand: ball.brand }}`}
             </a>
           )}
 
           {owned ? (
             <div className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-accent-fill/30 bg-accent-soft px-4 py-3.5 text-sm font-semibold text-accent">
-              Already in your arsenal
+              {t`Already in your arsenal`}
             </div>
           ) : (
             <Button variant="primary" size="lg" onClick={() => onAddToArsenal(ball)} className="mt-5 w-full">
-              Add to arsenal
+              {t`Add to arsenal`}
             </Button>
           )}
 
@@ -265,18 +293,18 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
 
   return (
     <FormSheet
-      title="Add to arsenal"
+      title={t`Add to arsenal`}
       onClose={onCancel}
       onConfirm={() => onConfirm(name.trim(), colorwaySku)}
-      confirmLabel="Add to arsenal"
+      confirmLabel={t`Add to arsenal`}
       confirmDisabled={isSaving || !name.trim()}
       banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
     >
       <p className="mb-3 text-sm text-ink-secondary">
-        The specs come across with it. Change the name now if you call it something else.
+        {t`The specs come across with it. Change the name now if you call it something else.`}
       </p>
       <label className={FIELD_LABEL} htmlFor="catalog-ball-name">
-        Name
+        {t`Name`}
       </label>
       <input
         id="catalog-ball-name"
@@ -287,7 +315,7 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
       />
       {colorways.length > 1 && (
         <div className="mt-3">
-          <p className={FIELD_LABEL}>Colorway</p>
+          <p className={FIELD_LABEL}>{t`Colorway`}</p>
           <div className="flex flex-wrap gap-2">
             {colorways.map((cw) => (
               <Chip
@@ -314,7 +342,7 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
     <button
       type="button"
       onClick={onRemove}
-      aria-label={`Remove filter: ${label}`}
+      aria-label={t`Remove filter: ${{ label }}`}
       className={`relative inline-flex h-9 items-center gap-1 rounded-md bg-accent-soft px-3 text-xs font-semibold text-accent ${TAP_TARGET_44}`}
     >
       {label}
@@ -470,6 +498,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
   }, [displayed.length]);
 
   const shown = displayed.slice(0, visibleCount);
+  const totalBalls = formatNumber(allBalls.length);
 
   function toggleSetValue<T>(set: Set<T>, value: T): Set<T> {
     const next = new Set(set);
@@ -510,7 +539,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
       // Refresh owned set after adding
       await loadOwned();
     } catch (err) {
-      setAddError(err instanceof Error ? err.message : "Failed to save ball.");
+      setAddError(err instanceof Error ? err.message : t`Failed to save ball.`);
     } finally {
       setAddSaving(false);
     }
@@ -524,6 +553,8 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
     ? (allBalls.find((b) => b.id === selectedBallId) ?? null)
     : null;
 
+  const syncMessage = syncState.status === "error" ? syncState.message : "";
+
   const activeFilterCount = (() => {
     let count = 0;
     if (filters.brands.size) count++;
@@ -536,7 +567,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
 
   return (
     <PushScreen
-      title="Catalog"
+      title={t`Catalog`}
       onBack={onBack}
       active={selectedBallId === null && addingBall === null}
     >
@@ -548,12 +579,12 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         {syncState.status === "syncing" && (
           <div className="mb-3 flex items-center gap-2 rounded-lg border border-edge bg-surface-muted px-3 py-2 text-sm text-ink-secondary">
             <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-            Syncing catalog…
+            {t`Syncing catalog…`}
           </div>
         )}
         {syncState.status === "error" && (
           <div className="mb-3 rounded-lg border border-warning-200 bg-warning-50 px-3 py-2 text-sm text-warning-700">
-            <span className="font-semibold">Could not update the catalog:</span> {syncState.message}. Showing last saved data.
+            {t`Could not update the catalog: ${{ reason: syncMessage }}. Showing last saved data.`}
           </div>
         )}
 
@@ -561,8 +592,8 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         <div className="relative mb-3">
           <input
             type="search"
-            aria-label="Search the catalog"
-            placeholder="Search name, brand, coverstock…"
+            aria-label={t`Search the catalog`}
+            placeholder={t`Search name, brand, coverstock…`}
             value={filters.search}
             onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
             className={`${FIELD} pr-10`}
@@ -570,7 +601,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
           {filters.search && (
             <IconButton
               onClick={() => setFilters((f) => ({ ...f, search: "" }))}
-              label="Clear search"
+              label={t`Clear search`}
               className="absolute right-3 top-1/2 -translate-y-1/2"
             >
               <X size={14} aria-hidden="true" />
@@ -581,7 +612,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         {/* Filter toggle + sort row */}
         <div className="relative z-[2] mb-3 flex items-center gap-2">
           <Chip selected={showFilters} onClick={() => setShowFilters((v) => !v)}>
-            Filters
+            {t`Filters`}
             {activeFilterCount > 0 ? (
               <span className="ml-1 rounded-full bg-accent-on-fill/25 px-1.5 py-0.5 text-xs font-bold leading-none">{activeFilterCount}</span>
             ) : null}
@@ -590,16 +621,16 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
           <div className="flex-1" />
 
           <label className="flex items-center gap-1.5 text-sm text-ink-strong">
-            <span className="font-medium">Sort:</span>
+            <span className="font-medium">{t`Sort:`}</span>
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
               className={FIELD_DENSE_SELECT}
             >
-              <option value="releaseDate">Newest first</option>
-              <option value="rg">RG, low to high</option>
-              <option value="diff">Diff, high to low</option>
-              <option value="name">Name, A to Z</option>
+              <option value="releaseDate">{t`Newest first`}</option>
+              <option value="rg">{t({ message: "RG, low to high", comment: "Bowling term: RG is the radius of gyration, a ball spec. A sort order." })}</option>
+              <option value="diff">{t({ message: "Diff, high to low", comment: "Bowling term: Diff is the differential, a ball spec. A sort order." })}</option>
+              <option value="name">{t`Name, A to Z`}</option>
             </select>
           </label>
         </div>
@@ -616,12 +647,12 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
             />
             <div
                 role="dialog"
-                aria-label="Filter the catalog"
+                aria-label={t`Filter the catalog`}
                 className="scrollbar-none absolute inset-x-0 top-0 z-[2] max-h-[min(70vh,34rem)] space-y-4 overflow-y-auto overscroll-contain rounded-xl border border-edge bg-surface p-4 shadow-lg"
               >
               {/* Brand */}
               <div>
-                <p className={`mb-2 ${GROUP_HEADING}`}>Brand</p>
+                <p className={`mb-2 ${GROUP_HEADING}`}>{t`Brand`}</p>
                 <div className="flex flex-wrap gap-2">
                   {brandsPresent.map((brand) => (
                     <Chip
@@ -637,7 +668,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
 
               {/* Coverstock */}
               <div>
-                <p className={`mb-2 ${GROUP_HEADING}`}>Coverstock</p>
+                <p className={`mb-2 ${GROUP_HEADING}`}>{t({ message: "Coverstock", comment: "Bowling term: the outer shell material of a ball" })}</p>
                 <div className="flex flex-wrap gap-2">
                   {ALL_COVERSTOCK.map((cat) => (
                     <Chip
@@ -645,7 +676,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                       selected={filters.coverstockCategories.has(cat)}
                       onClick={() => setFilters((f) => ({ ...f, coverstockCategories: toggleSetValue(f.coverstockCategories, cat) }))}
                     >
-                      {cat}
+                      {coverstockLabel(cat)}
                     </Chip>
                   ))}
                 </div>
@@ -653,7 +684,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
 
               {/* Core type */}
               <div>
-                <p className={`mb-2 ${GROUP_HEADING}`}>Core type</p>
+                <p className={`mb-2 ${GROUP_HEADING}`}>{t({ message: "Core type", comment: "Bowling term: whether a ball has a symmetric or asymmetric core" })}</p>
                 <div className="flex gap-2">
                   {(["Symmetric", "Asymmetric"] as const).map((ct) => (
                     <Chip
@@ -661,7 +692,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                       selected={filters.coreType === ct}
                       onClick={() => setFilters((f) => ({ ...f, coreType: f.coreType === ct ? null : ct }))}
                     >
-                      {ct}
+                      {coreTypeLabel(ct)}
                     </Chip>
                   ))}
                 </div>
@@ -669,7 +700,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
 
               {/* RG range */}
               <RangeSlider
-                label="RG"
+                label={t({ message: "RG", comment: "Bowling term: radius of gyration, a ball spec" })}
                 min={RG_MIN}
                 max={RG_MAX}
                 step={0.01}
@@ -681,7 +712,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
 
               {/* Diff range */}
               <RangeSlider
-                label="Diff"
+                label={t({ message: "Diff", comment: "Bowling term: the differential, a ball spec (short for differential RG)" })}
                 min={DIFF_MIN}
                 max={DIFF_MAX}
                 step={0.001}
@@ -697,7 +728,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                 onClick={() => setFilters(EMPTY_FILTERS)}
                 className={`relative text-xs font-semibold text-accent hover:underline ${TAP_TARGET_44}`}
               >
-                Reset all filters
+                {t`Reset all filters`}
               </button>
             </div>
           </div>
@@ -717,7 +748,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
             {[...filters.coverstockCategories].map((cs) => (
               <FilterChip
                 key={`c-${cs}`}
-                label={cs}
+                label={coverstockLabel(cs)}
                 onRemove={() =>
                   setFilters((f) => ({
                     ...f,
@@ -728,19 +759,19 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
             ))}
             {filters.coreType && (
               <FilterChip
-                label={filters.coreType}
+                label={coreTypeLabel(filters.coreType)}
                 onRemove={() => setFilters((f) => ({ ...f, coreType: null }))}
               />
             )}
             {(filters.rgMin > RG_MIN || filters.rgMax < RG_MAX) && (
               <FilterChip
-                label={`RG ${formatFixed(filters.rgMin, 2)} to ${formatFixed(filters.rgMax, 2)}`}
+                label={t({ message: `RG ${{ min: formatFixed(filters.rgMin, 2) }} to ${{ max: formatFixed(filters.rgMax, 2) }}`, comment: "Bowling term: RG is the radius of gyration, a ball spec. A range of values." })}
                 onRemove={() => setFilters((f) => ({ ...f, rgMin: RG_MIN, rgMax: RG_MAX }))}
               />
             )}
             {(filters.diffMin > DIFF_MIN || filters.diffMax < DIFF_MAX) && (
               <FilterChip
-                label={`Diff ${formatFixed(filters.diffMin, 3)} to ${formatFixed(filters.diffMax, 3)}`}
+                label={t({ message: `Diff ${{ min: formatFixed(filters.diffMin, 3) }} to ${{ max: formatFixed(filters.diffMax, 3) }}`, comment: "Bowling term: Diff is the differential, a ball spec. A range of values." })}
                 onRemove={() => setFilters((f) => ({ ...f, diffMin: DIFF_MIN, diffMax: DIFF_MAX }))}
               />
             )}
@@ -749,8 +780,12 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
 
         {/* Results count */}
         <p className="mb-3 text-xs text-ink-secondary">
-          {displayed.length} {displayed.length === 1 ? "ball" : "balls"}
-          {allBalls.length !== displayed.length ? ` of ${allBalls.length}` : ""}
+          {allBalls.length !== displayed.length
+            ? plural(displayed.length, {
+                one: `# ball of ${totalBalls}`,
+                other: `# balls of ${totalBalls}`
+              })
+            : plural(displayed.length, { one: "# ball", other: "# balls" })}
         </p>
       </div>
 
@@ -759,11 +794,11 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         {allBalls.length === 0 && syncState.status !== "syncing" ? (
           <EmptyState
             icon={BookOpen}
-            title={online ? "The catalog has not loaded" : "Connect once to load the catalog"}
-            description="It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in."
+            title={online ? t`The catalog has not loaded` : t`Connect once to load the catalog`}
+            description={t`It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in.`}
           >
             <Button variant="primary" onClick={handleRefresh} disabled={!online}>
-              {online ? "Load the catalog" : "Waiting for a connection"}
+              {online ? t`Load the catalog` : t`Waiting for a connection`}
             </Button>
           </EmptyState>
         ) : displayed.length === 0 ? (
@@ -773,18 +808,18 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
             <CatalogRequestEmpty kind="ball" query={filters.search}>
               {activeFilterCount > 0 && (
                 <Button variant="ghost" onClick={() => setFilters({ ...EMPTY_FILTERS, search: filters.search })}>
-                  Clear filters
+                  {t`Clear filters`}
                 </Button>
               )}
             </CatalogRequestEmpty>
           ) : (
             <EmptyState
               icon={BookOpen}
-              title="No balls match these filters"
-              description="Loosen a filter to see more of the catalog."
+              title={t`No balls match these filters`}
+              description={t`Loosen a filter to see more of the catalog.`}
             >
               <Button variant="primary" onClick={() => setFilters(EMPTY_FILTERS)}>
-                Clear filters
+                {t`Clear filters`}
               </Button>
             </EmptyState>
           )
@@ -806,14 +841,14 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                       {/* B8: Owned badge */}
                       {isOwned(ball) && (
                         <span className="rounded-full bg-accent-soft px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-accent">
-                          Owned
+                          {t({ message: "Owned", comment: "A badge on a ball you already have in your arsenal" })}
                         </span>
                       )}
                       {/* Multi-colorway badge */}
                       {(ball.colorways?.length ?? 0) > 1 && (
                         <span className="inline-flex items-center gap-0.5 rounded-full bg-surface-muted px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
                           <Palette size={9} aria-hidden="true" />
-                          {ball.colorways!.length} colors
+                          {t`${{ count: ball.colorways!.length }} colors`}
                         </span>
                       )}
                     </div>
@@ -822,10 +857,10 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                     <p className="mt-0.5 text-xs text-ink-secondary">
                       {[
                         formatReleaseDate(ball.releaseDate),
-                        ball.coverstockCategory ?? null,
-                        ball.coreType ?? null,
-                        ball.rg !== null ? `RG ${formatFixed(ball.rg, 2)}` : null,
-                        ball.diff !== null ? `Diff ${formatFixed(ball.diff, 3)}` : null,
+                        ball.coverstockCategory ? coverstockLabel(ball.coverstockCategory) : null,
+                        ball.coreType ? coreTypeLabel(ball.coreType) : null,
+                        ball.rg !== null ? t({ message: `RG ${{ rg: formatFixed(ball.rg, 2) }}`, comment: "Bowling term: RG is the radius of gyration, a ball spec, followed by its value" }) : null,
+                        ball.diff !== null ? t({ message: `Diff ${{ diff: formatFixed(ball.diff, 3) }}`, comment: "Bowling term: the differential, a ball spec (short for differential RG), followed by its value" }) : null,
                       ].filter(Boolean).join(" · ") || "-"}
                     </p>
                   </div>
@@ -843,7 +878,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         {/* Footer */}
         {doneState && (
           <p className="mt-6 text-center text-xs text-ink-secondary">
-            Catalog v{doneState.version} · Updated {formatDate(new Date(doneState.generatedAt), { dateStyle: "medium" })}
+            {t`Catalog v${{ version: doneState.version }} · Updated ${{ date: formatDate(new Date(doneState.generatedAt), { dateStyle: "medium" }) }}`}
           </p>
         )}
       </div>

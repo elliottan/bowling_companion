@@ -32,6 +32,8 @@
  * Pure, React-free and Dexie-free, per the `lib/` layering rule.
  */
 
+import { select, t } from "@lingui/core/macro";
+import { formatNumber } from "./format";
 import type { BallLayoutSpec, GripStyle, Handedness, LayoutSystem } from "../types/bowling";
 
 /** A USBC-legal ball is 8.5" across, so every arc on its surface rides this radius. */
@@ -479,7 +481,7 @@ export function formatVls(vls: VlsLayout): string {
  *  The two angles carry their degree sign, so the row cannot be read as three
  *  distances; the inches go unmarked, as a drill sheet leaves them. */
 export function formatDualAngle(layout: DualAngleLayout): string {
-  return `${Math.round(layout.drillingAngle)}° x ${formatInches(layout.pinToPap)} x ${Math.round(layout.valAngle)}°`;
+  return `${formatNumber(Math.round(layout.drillingAngle))}° x ${formatInches(layout.pinToPap)} x ${formatNumber(Math.round(layout.valAngle))}°`;
 }
 
 /**
@@ -496,9 +498,9 @@ export function formatInches(value: number): string {
   const eighths = Math.round(clamp(value, 0, MAX_ARC) * 8);
   const whole = Math.floor(eighths / 8);
   const rest = eighths % 8;
-  if (rest === 0) return `${whole}`;
+  if (rest === 0) return formatNumber(whole);
   if (whole === 0) return EIGHTHS[rest];
-  return `${whole} ${EIGHTHS[rest]}`;
+  return `${formatNumber(whole)} ${EIGHTHS[rest]}`;
 }
 
 /**
@@ -716,23 +718,96 @@ const band = motionBand;
 
 /** The four readings by short name, as the lab's rail and its share card both
  *  show them: a label and a word for each third of its scale (ADR-209). */
-export const MOTION_METERS = [
-  { key: "flare", label: "Flare", words: ["Low", "Medium", "High"] },
-  { key: "length", label: "Length", words: ["Early", "Mid", "Late"] },
-  { key: "angularity", label: "Backend", words: ["Smooth", "Defined", "Sharp"] },
-  { key: "strength", label: "Strength", words: ["Weak", "Medium", "Strong"] }
-] as const;
+export interface MotionMeter {
+  key: "flare" | "length" | "angularity" | "strength";
+  readonly label: string;
+  /** The word for the low, middle and high third of the scale. */
+  readonly words: readonly [string, string, string];
+}
+
+// The label and words are getters so they are read in the active language each
+// time, not once at import, before the language is chosen.
+export const MOTION_METERS: readonly MotionMeter[] = [
+  {
+    key: "flare",
+    get label() { return t({ message: "Flare", comment: "Bowling term: how far the ball's track spreads as it rolls, a reading on the layout lab's rail" }); },
+    get words() {
+      return [
+        t({ message: "Low", comment: "Flare reading: the low third of the scale" }),
+        t({ message: "Medium", comment: "Flare reading: the middle third of the scale" }),
+        t({ message: "High", comment: "Flare reading: the high third of the scale" })
+      ] as const;
+    }
+  },
+  {
+    key: "length",
+    get label() { return t({ message: "Length", comment: "Bowling term: how far down the lane the ball travels before it turns, a reading on the layout lab's rail" }); },
+    get words() {
+      return [
+        t({ message: "Early", comment: "Length reading: the ball turns early" }),
+        t({ message: "Mid", comment: "Length reading: the ball turns in the middle of the lane" }),
+        t({ message: "Late", comment: "Length reading: the ball turns late" })
+      ] as const;
+    }
+  },
+  {
+    key: "angularity",
+    get label() { return t({ message: "Backend", comment: "Bowling term: how hard the ball turns at the end of the lane, a reading on the layout lab's rail" }); },
+    get words() {
+      return [
+        t({ message: "Smooth", comment: "Backend reading: a smooth arc" }),
+        t({ message: "Defined", comment: "Backend reading: a defined turn" }),
+        t({ message: "Sharp", comment: "Backend reading: a sharp, angular turn" })
+      ] as const;
+    }
+  },
+  {
+    key: "strength",
+    get label() { return t({ message: "Strength", comment: "Bowling term: the overall hooking power of the ball, a reading on the layout lab's rail" }); },
+    get words() {
+      return [
+        t({ message: "Weak", comment: "Strength reading: the low third of the scale" }),
+        t({ message: "Medium", comment: "Strength reading: the middle third of the scale" }),
+        t({ message: "Strong", comment: "Strength reading: the high third of the scale" })
+      ] as const;
+    }
+  }
+];
 
 /** One sentence, three clauses, in the order a bowler watches the shot happen. */
 export function describeMotion(m: Pick<MotionReading, "flare" | "length" | "angularity" | "strength">): string {
-  const lengthWord = band(m.length, "reads the lane early", "picks up in the mid lane", "saves its energy for the back");
-  const shapeWord = band(m.angularity, "arcs smoothly through the breakpoint", "turns the corner with a defined shape", "snaps hard at the breakpoint");
-  const flareWord = band(m.flare, "low flare", "medium flare", "high flare");
-  const strengthWord = band(m.strength, "a weaker", "a controllable", "a strong");
-  return `${capitalize(lengthWord)} and ${shapeWord}. ${capitalize(flareWord)}, ${strengthWord} look overall.`;
+  // Two whole sentences, each one message with a choice per clause, so a
+  // translator orders the clauses as the language wants.
+  const lengthBand = band(m.length, "early", "mid", "late");
+  const shapeBand = band(m.angularity, "smooth", "defined", "sharp");
+  const flareBand = band(m.flare, "low", "medium", "high");
+  const strengthBand = band(m.strength, "weak", "controllable", "strong");
+  const path = t({
+    message: `${select(lengthBand, {
+      early: "Reads the lane early",
+      mid: "Picks up in the mid lane",
+      other: "Saves its energy for the back"
+    })} and ${select(shapeBand, {
+      smooth: "arcs smoothly through the breakpoint",
+      defined: "turns the corner with a defined shape",
+      other: "snaps hard at the breakpoint"
+    })}.`,
+    comment: "Describes how a ball layout will move down the lane. Breakpoint is the bowling term for where the ball turns from skid to hook"
+  });
+  const power = t({
+    message: `${select(flareBand, {
+      low: "Low flare",
+      medium: "Medium flare",
+      other: "High flare"
+    })}, ${select(strengthBand, {
+      weak: "a weaker",
+      controllable: "a controllable",
+      other: "a strong"
+    })} look overall.`,
+    comment: "Describes how much a ball layout flares (spreads its track) and how strong it reads overall"
+  });
+  return `${path} ${power}`;
 }
-
-const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // ---------------------------------------------------------------------------
 // Presets, straight off the dual angle chart
@@ -740,51 +815,53 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export interface LayoutPreset {
   id: string;
-  name: string;
+  readonly name: string;
   /** Layout for a symmetric ball. */
   symmetric: DualAngleLayout;
   /** Layout for an asymmetric ball, which is not always the same numbers. */
   asymmetric: DualAngleLayout;
-  blurb: string;
+  readonly blurb: string;
 }
 
+// The name and blurb are getters so they are read in the active language each
+// time, not once at import, before the language is chosen.
 export const LAYOUT_PRESETS: readonly LayoutPreset[] = [
   {
     id: "benchmark",
-    name: "Benchmark",
+    get name() { return t({ message: "Benchmark", comment: "A drilling layout preset name on the layout lab: the middle of every range" }); },
     symmetric: { drillingAngle: 45, pinToPap: 4.5, valAngle: 45 },
     asymmetric: { drillingAngle: 45, pinToPap: 4.5, valAngle: 45 },
-    blurb: "The middle of every range. Drill this first on a new ball and move from what it shows you."
+    get blurb() { return t({ message: "The middle of every range. Drill this first on a new ball and move from what it shows you.", comment: "Describes the Benchmark drilling layout preset" }); }
   },
   {
     id: "early-roll",
-    name: "Early roll",
+    get name() { return t({ message: "Early roll", comment: "A drilling layout preset name on the layout lab: a layout that gets the ball rolling early" }); },
     symmetric: { drillingAngle: 35, pinToPap: 4, valAngle: 35 },
     asymmetric: { drillingAngle: 35, pinToPap: 4, valAngle: 35 },
-    blurb: "Everything a touch smaller. Reads the front sooner for heavier oil or a later-rolling hand."
+    get blurb() { return t({ message: "Everything a touch smaller. Reads the front sooner for heavier oil or a later-rolling hand.", comment: "Describes the Early roll drilling layout preset. Oil is the conditioner on the lane" }); }
   },
   {
     id: "late-angular",
-    name: "Late and angular",
+    get name() { return t({ message: "Late and angular", comment: "A drilling layout preset name on the layout lab: a layout that saves energy for the back and turns hard" }); },
     symmetric: { drillingAngle: 70, pinToPap: 5.25, valAngle: 30 },
     asymmetric: { drillingAngle: 70, pinToPap: 5, valAngle: 30 },
-    blurb: "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
+    get blurb() { return t({ message: "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall.", comment: "Describes the Late and angular drilling layout preset. VAL angle is a drilling measurement; down-and-in is a ball motion bowling term" }); }
   },
   {
     id: "pin-down",
-    name: "Pin down",
+    get name() { return t({ message: "Pin down", comment: "A drilling layout preset name on the layout lab: the pin sits low, giving a smooth shape" }); },
     symmetric: { drillingAngle: 70, pinToPap: 4.5, valAngle: 70 },
     asymmetric: { drillingAngle: 70, pinToPap: 4.5, valAngle: 70 },
-    blurb: "The smoothest shape the chart describes. Controls the breakpoint when the back ends are too clean."
+    get blurb() { return t({ message: "The smoothest shape the chart describes. Controls the breakpoint when the back ends are too clean.", comment: "Describes the Pin down drilling layout preset. Back ends means the end of the lane" }); }
   },
   {
     id: "short-pin",
-    name: "Short pin",
+    get name() { return t({ message: "Short pin", comment: "A drilling layout preset name on the layout lab: the pin sits close to the axis, giving low flare" }); },
     symmetric: { drillingAngle: 45, pinToPap: 2, valAngle: 70 },
     asymmetric: { drillingAngle: 30, pinToPap: 2, valAngle: 70 },
-    blurb: "Low flare on purpose. Burns less board on the way down for fresh oil or a spare-adjacent ball."
+    get blurb() { return t({ message: "Low flare on purpose. Burns less board on the way down for fresh oil or a spare-adjacent ball.", comment: "Describes the Short pin drilling layout preset. Board is a bowling term for one of the 39 strips of the lane" }); }
   }
-] as const;
+];
 
 /** Pull the right half of a preset for the ball in hand. */
 export const presetLayout = (preset: LayoutPreset, ball: BallSpec): DualAngleLayout =>

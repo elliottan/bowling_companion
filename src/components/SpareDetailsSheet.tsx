@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -47,7 +48,7 @@ export function SpareDetailsSheet({ pins, leaves, edit = false, prefill, onClose
       await deleteSpareLine(id);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete spare line.");
+      setError(err instanceof Error ? err.message : t`Failed to delete spare line.`);
     }
   }
 
@@ -73,8 +74,8 @@ export function SpareDetailsSheet({ pins, leaves, edit = false, prefill, onClose
       />
       <ConfirmDialog
         open={confirmDelete}
-        title="Delete this spare line?"
-        message="The stance and target you saved for this leave are gone. Your shots keep their scores."
+        title={t`Delete this spare line?`}
+        message={t`The stance and target you saved for this leave are gone. Your shots keep their scores.`}
         onConfirm={() => void handleDelete()}
         onCancel={() => setConfirmDelete(false)}
       />

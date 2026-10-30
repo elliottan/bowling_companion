@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import type { AppSetting, Ball, BowlingBackup, Frame, Game, LaneNote, OilPass, OilPattern, PinNumber, Session, SpareLine } from "../types/bowling";
 
 const PIN_NUMBERS = new Set<PinNumber>([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
@@ -12,14 +13,14 @@ export function validateBackup(value: unknown): BackupValidationResult {
   const errors: string[] = [];
 
   if (!isRecord(value)) {
-    return { isValid: false, errors: ["Backup must be a JSON object."] };
+    return { isValid: false, errors: [t`Backup must be a JSON object.`] };
   }
 
   // The stored value is the original codename and stays that way for ever: it
   // is what every backup already exported carries (see BowlingBackup.app). The
   // message says Headpin because the reader has never heard the other name.
   if (value.app !== "bowling-companion") {
-    errors.push("That file is not a Headpin backup.");
+    errors.push(t`That file is not a Headpin backup.`);
   }
 
   if (value.version !== 1 && value.version !== 2 && value.version !== 3) {
@@ -27,17 +28,17 @@ export function validateBackup(value: unknown): BackupValidationResult {
     // not caught up with, so the way out is an update, not a different file.
     errors.push(
       typeof value.version === "number" && value.version > 3
-        ? "This backup was made by a newer Headpin. Update the app, then try again."
-        : "Backup version must be 1, 2, or 3."
+        ? t`This backup was made by a newer Headpin. Update the app, then try again.`
+        : t`Backup version must be 1, 2, or 3.`
     );
   }
 
   if (typeof value.exported_at !== "string" || value.exported_at.length === 0) {
-    errors.push("Backup exported_at must be a string.");
+    errors.push(t`Backup exported_at must be a string.`);
   }
 
   if (!isRecord(value.tables)) {
-    errors.push("Backup tables must be an object.");
+    errors.push(t`Backup tables must be an object.`);
   } else {
     validateArray(value.tables.sessions, "sessions", errors, validateSession);
     validateArray(value.tables.games, "games", errors, validateGame);
@@ -67,13 +68,13 @@ function validateArray<T>(
   validator: (value: unknown, index: number) => value is T
 ) {
   if (!Array.isArray(value)) {
-    errors.push(`Backup table ${name} must be an array.`);
+    errors.push(t`Backup table ${name} must be an array.`);
     return;
   }
 
   value.forEach((item, index) => {
     if (!validator(item, index)) {
-      errors.push(`Backup table ${name} has an invalid record at index ${index}.`);
+      errors.push(t`Backup table ${name} has an invalid record at index ${index}.`);
     }
   });
 }

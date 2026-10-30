@@ -1,3 +1,5 @@
+import { i18n, type MessageDescriptor } from "@lingui/core";
+import { msg, t } from "@lingui/core/macro";
 import { useState, type ReactNode } from "react";
 import { Check } from "lucide-react";
 import { ProMark } from "../components/ui/ProMark";
@@ -28,20 +30,20 @@ interface ProOfferViewProps {
   onBack: () => void;
 }
 
-const FEATURES: Array<{ title: string; why: string; sample: ReactNode }> = [
+const FEATURES: Array<{ title: MessageDescriptor; why: MessageDescriptor; sample: ReactNode }> = [
   {
-    title: "Move your line",
-    why: "Drag the laydown, target and breakpoint on the lane, shape the hook, and watch the path follow. It works in the line visualizer, on your spare lines and on any shot you have scored.",
+    title: msg`Move your line`,
+    why: msg`Drag the laydown, target and breakpoint on the lane, shape the hook, and watch the path follow. It works in the line visualizer, on your spare lines and on any shot you have scored.`,
     sample: <LineSample />
   },
   {
-    title: "Try your layouts",
-    why: "Change the angles and the pin buffer, see what the ball will do before you drill it, and see each ball in your arsenal drawn with its own layout.",
+    title: msg`Try your layouts`,
+    why: msg`Change the angles and the pin buffer, see what the ball will do before you drill it, and see each ball in your arsenal drawn with its own layout.`,
     sample: <LayoutSample />
   },
   {
-    title: "Deeper stats",
-    why: "Pocket, carry and strike rates, overall and for each ball, game by game.",
+    title: msg`Deeper stats`,
+    why: msg`Pocket, carry and strike rates, overall and for each ball, game by game.`,
     sample: (
       <div className="space-y-2">
         <FirstBallSample />
@@ -50,13 +52,13 @@ const FEATURES: Array<{ title: string; why: string; sample: ReactNode }> = [
     )
   },
   {
-    title: "Estimated average",
-    why: "Your estimated average with each ball, by alley, lane pair and pattern.",
+    title: msg`Estimated average`,
+    why: msg`Your estimated average with each ball, by alley, lane pair and pattern.`,
     sample: <AlleySample />
   },
   {
-    title: "More colors",
-    why: "Ocean, Sunset, Grape and Rose, next to the Felt green.",
+    title: msg`More colors`,
+    why: msg`Ocean, Sunset, Grape and Rose, next to the Felt green.`,
     sample: <ThemesSample />
   }
 ];
@@ -67,7 +69,7 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
     // Above every sheet: a lock inside one opens this page, and closing it goes
     // back to that sheet as it was (ADR-175).
     <PushScreen
-      title="Headpin Pro"
+      title={t`Headpin Pro`}
       onBack={onBack}
       layer="top"
       footer={
@@ -80,16 +82,16 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
       <div className="mx-auto w-full max-w-xl px-3 pb-4 pt-4 sm:px-6">
         <header className="text-center">
           <ProMark size={72} className="mx-auto rounded-2xl shadow-md" />
-          <h2 className="mt-3 text-2xl font-bold text-ink">Headpin Pro</h2>
-          <p className="mt-1 text-sm text-ink-secondary">Pay once and it is yours, with every Pro feature added later included. No subscription, no account.</p>
+          <h2 className="mt-3 text-2xl font-bold text-ink">{t`Headpin Pro`}</h2>
+          <p className="mt-1 text-sm text-ink-secondary">{t`Pay once and it is yours, with every Pro feature added later included. No subscription, no account.`}</p>
         </header>
 
         <ul className="mt-5 space-y-3">
           {FEATURES.map((f) => (
-            <li key={f.title} className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
+            <li key={f.title.id} className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
               {f.sample}
-              <h3 className="mt-3 text-base font-bold text-ink">{f.title}</h3>
-              <p className="mt-0.5 text-sm text-ink-secondary">{f.why}</p>
+              <h3 className="mt-3 text-base font-bold text-ink">{i18n._(f.title)}</h3>
+              <p className="mt-0.5 text-sm text-ink-secondary">{i18n._(f.why)}</p>
             </li>
           ))}
         </ul>
@@ -109,9 +111,13 @@ function Purchase({ access }: { access: Extract<ReturnType<typeof useProAccess>,
     setRestoring(true);
     setRestored(null);
     try {
-      setRestored((await store.restore()) ? "Headpin Pro is restored." : "This Apple ID has not bought Headpin Pro.");
+      setRestored((await store.restore()) ? t`Headpin Pro is restored.` : t`This Apple ID has not bought Headpin Pro.`);
     } catch (err) {
-      setRestored(`The App Store did not answer${err instanceof Error && err.message ? `: ${err.message}` : ". Try again in a moment."}`);
+      setRestored(
+        err instanceof Error && err.message
+          ? t`The App Store did not answer: ${{ reason: err.message }}`
+          : t`The App Store did not answer. Try again in a moment.`
+      );
     } finally {
       setRestoring(false);
     }
@@ -126,7 +132,7 @@ function Purchase({ access }: { access: Extract<ReturnType<typeof useProAccess>,
         disabled={action.busy || action.unavailable}
         onClick={action.start}
       >
-        {action.busy ? "Asking the App Store…" : action.label}
+        {action.busy ? t`Asking the App Store…` : action.label}
       </Button>
       {action.note && (
         <p role="status" className="text-center text-xs text-ink-secondary">
@@ -141,7 +147,7 @@ function Purchase({ access }: { access: Extract<ReturnType<typeof useProAccess>,
             disabled={restoring}
             className="min-h-11 px-3 text-sm font-semibold text-accent active:opacity-60 disabled:opacity-50"
           >
-            {restoring ? "Asking the App Store…" : "Restore purchase"}
+            {restoring ? t`Asking the App Store…` : t`Restore purchase`}
           </button>
           {restored && (
             <p role="status" className="text-center text-xs text-ink-secondary">
@@ -152,7 +158,7 @@ function Purchase({ access }: { access: Extract<ReturnType<typeof useProAccess>,
       )}
       {"appStoreUrl" in access && (
         <p className="text-center text-xs text-ink-secondary">
-          {access.appStoreUrl ? "Pro is bought in the iPhone app." : "Pro is bought in the iPhone app, which is not in the App Store yet."}
+          {access.appStoreUrl ? t`Pro is bought in the iPhone app.` : t`Pro is bought in the iPhone app, which is not in the App Store yet.`}
         </p>
       )}
       {action.dialog}
@@ -167,7 +173,7 @@ function Owned() {
   return (
     <p className="flex items-center justify-center gap-2 py-2 text-sm font-semibold text-ink">
       <Check size={18} aria-hidden="true" className="text-accent" />
-      {bought ? "You have Headpin Pro. Thanks for the support." : "Everything in Pro is open here."}
+      {bought ? t`You have Headpin Pro. Thanks for the support.` : t`Everything in Pro is open here.`}
     </p>
   );
 }

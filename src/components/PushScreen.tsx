@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { ChevronLeft } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -193,7 +194,7 @@ export function PushScreen({
         >
           <div aria-hidden="true" className="floating-header-ground absolute inset-x-0 -bottom-3 top-0" />
           <div className="relative mx-auto flex h-12 w-full max-w-3xl items-center gap-1 px-2 sm:px-4">
-            <IconButton label="Back" onClick={dismiss} variant="round">
+            <IconButton label={t({ message: "Back", context: "navigation" })} onClick={dismiss} variant="round">
               {/* Optically centred: the chevron's mass sits right of its box. */}
               <ChevronLeft size={22} strokeWidth={2.5} aria-hidden="true" className="-ml-0.5" />
             </IconButton>

@@ -1,5 +1,7 @@
+import { t } from "@lingui/core/macro";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { formatNumber } from "../lib/format";
 import { freshRackShotIndices, laneForFrame } from "../lib/lanes";
 import { knockedDownCount } from "../lib/pins";
 import { calculateGameScore } from "../lib/scoring";
@@ -147,8 +149,8 @@ export function SessionLanePanel({
   useEffect(() => {
     // animationend is the signal; this is the net under it, should the event
     // never come (an interrupted animation, a backgrounded tab).
-    const t = window.setTimeout(() => setSettled(true), 400);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(() => setSettled(true), 400);
+    return () => window.clearTimeout(timer);
   }, []);
   const scrollable = settled && !exiting && !leaving;
   const requestClose = useCallback(() => dismiss(), [dismiss]);
@@ -178,7 +180,7 @@ export function SessionLanePanel({
       // place. A clipping box cannot be scrolled at all.
       className="fixed inset-x-0 bottom-0 z-50 flex justify-center overflow-clip"
       role="dialog"
-      aria-label="Session sheet"
+      aria-label={t`Session sheet`}
       style={{ ...rootStyle, top, ...(leaving && { pointerEvents: "none" as const }) }}
     >
       <div
@@ -210,13 +212,13 @@ export function SessionLanePanel({
             read as filters that could all be on at once (DESIGN-LANGUAGE §4). */}
         <div className="touch-none border-b border-edge px-4 pb-2" {...dragHandlers}>
           <SegmentedControl
-            label="Session sheet section"
+            label={t`Session sheet section`}
             value={tab}
             onChange={setTab}
             options={[
-              { value: "sheet", label: "Sheet" },
-              { value: "stats", label: "Stats" },
-              { value: "lanes", label: "Lanes" }
+              { value: "sheet", label: t`Sheet` },
+              { value: "stats", label: t({ message: "Stats", comment: "Tab name: averages and rates, short for statistics" }) },
+              { value: "lanes", label: t`Lanes` }
             ]}
           />
         </div>
@@ -401,7 +403,7 @@ function SessionSheetTab({
     <>
       {games.map((game) => {
         const score = calculateGameScore(game.frames);
-        const total = game.final_score ?? (score.isComplete ? score.total : `${score.total}+`);
+        const total = game.final_score ?? (score.isComplete ? score.total : `${formatNumber(score.total)}+`);
         return (
           <section
             key={game.id}
@@ -409,18 +411,18 @@ function SessionSheetTab({
             className="mb-4 scroll-mt-2 last:mb-0"
           >
             <div className="mb-1.5 flex items-center gap-2">
-              <h3 className="text-sm font-bold text-ink">Game {game.game_number}</h3>
+              <h3 className="text-sm font-bold text-ink">{t`Game ${{ gameNumber: game.game_number }}`}</h3>
               {/* A finished game is never "current", even if score entry is
                   parked on it. */}
               {game.id === currentGameId && game.final_score === undefined && !score.isComplete && (
                 <span className="rounded-full bg-accent-fill px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-accent-on-fill">
-                  Current
+                  {t({ message: "Current", comment: "Badge on the game being scored right now." })}
                 </span>
               )}
-              <span className="ml-auto text-base font-extrabold text-accent">{total}</span>
+              <span className="ml-auto text-base font-extrabold text-accent">{typeof total === "number" ? formatNumber(total) : total}</span>
             </div>
             {game.frames.length === 0 ? (
-              <p className="text-xs text-ink-secondary">No shots yet.</p>
+              <p className="text-xs text-ink-secondary">{t`No shots yet.`}</p>
             ) : (
               <GameGrid
                 game={game}
@@ -454,7 +456,7 @@ function scrollParent(el: HTMLElement): HTMLElement | null {
 }
 
 const emptyCell = (n: number) => (
-  <span className="text-caption-2 font-bold uppercase leading-none text-ink-secondary">F{n}</span>
+  <span className="text-caption-2 font-bold uppercase leading-none text-ink-secondary">{t({ message: `F${{ frame: n }}`, comment: "Short for Frame, with its number: F1 to F10." })}</span>
 );
 
 // Cross-lane: columns are FIXED by lane number (lower = left, higher = right),
@@ -506,7 +508,7 @@ function GameGrid({
     return (
       <div className="overflow-hidden rounded-lg border border-edge">
         <div className="border-b border-edge bg-surface-muted py-1 text-center text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
-          {laneLabel ? `Lane ${laneLabel}` : "Lane"}
+          {laneLabel ? t`Lane ${{ lane: laneLabel }}` : t`Lane`}
         </div>
         {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
           const frame = byNumber.get(n);
@@ -532,8 +534,8 @@ function GameGrid({
   return (
     <div className="overflow-hidden rounded-lg border border-edge">
       <div className="grid grid-cols-2 bg-surface-muted text-center text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
-        <div className="border-b border-r border-edge py-1">Lane {leftLane}</div>
-        <div className="border-b border-edge py-1">Lane {rightLane}</div>
+        <div className="border-b border-r border-edge py-1">{t`Lane ${{ lane: leftLane }}`}</div>
+        <div className="border-b border-edge py-1">{t`Lane ${{ lane: rightLane }}`}</div>
       </div>
       <div className="grid grid-cols-2">
         {pairs.map((pair, rowIdx) => {
@@ -622,7 +624,7 @@ function Row({
     <button
       type="button"
       onClick={onSelect}
-      aria-label={`Go to frame ${frameNumber}`}
+      aria-label={t`Go to frame ${{ frameNumber }}`}
       className={`${className} active:bg-surface-muted`}
     >
       {children}
@@ -675,7 +677,7 @@ function FrameCell({
               <MiniPins standing={shot.pins_standing} />
               {i === 0 && (
                 <span className="absolute bottom-0 left-0 text-caption-2 font-bold uppercase leading-none text-ink-secondary">
-                  F{frame.frame_number}
+                  {t({ message: `F${{ frame: frame.frame_number }}`, comment: "Short for Frame, with its number: F1 to F10." })}
                 </span>
               )}
               <span className="absolute bottom-0 right-0 text-xs font-bold leading-none text-accent">

@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import type { MouseEvent } from "react";
 import { PushScreen } from "../components/PushScreen";
 import { legalBody } from "../lib/legalPage";
@@ -36,7 +37,7 @@ export function LegalView({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <PushScreen mode="inline" title="Privacy and terms" onBack={onBack}>
+    <PushScreen mode="inline" title={t`Privacy and terms`} onBack={onBack}>
       <div
         onClick={onClick}
         className={[

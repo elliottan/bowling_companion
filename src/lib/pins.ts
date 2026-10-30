@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import type { Handedness, PinNumber } from "../types/bowling";
 import { PIN_POSITIONS } from "./pinGeometry";
 
@@ -87,10 +88,18 @@ export type SpareGroup = "makeable" | "washout" | "split";
 
 export const SPARE_GROUPS: readonly SpareGroup[] = ["makeable", "washout", "split"];
 
-export const SPARE_GROUP_LABEL: Record<SpareGroup, string> = {
-  makeable: "Makeables",
-  washout: "Washouts",
-  split: "Splits"
+// Getters, so each label is read in the active language when it is used and
+// not once at import, before the language is chosen.
+export const SPARE_GROUP_LABEL: Readonly<Record<SpareGroup, string>> = {
+  get makeable() {
+    return t({ message: "Makeables", comment: "Bowling term: ordinary spare leaves a bowler can reasonably convert, a group on the Stats tab" });
+  },
+  get washout() {
+    return t({ message: "Washouts", comment: "Bowling term: leaves where the head pin is standing with a gap behind it, a group on the Stats tab" });
+  },
+  get split() {
+    return t({ message: "Splits", comment: "Bowling term: leaves with a gap between standing pins and the head pin down, a group on the Stats tab" });
+  }
 };
 
 export function spareGroup(standing: PinNumber[]): SpareGroup {
@@ -127,17 +136,25 @@ export function isPocketLeave(standing: PinNumber[]): boolean {
  *  combination, where the numbers alone already say it is pins. */
 export function formatLeave(standing: PinNumber[]): string {
   const sorted = uniquePins(standing);
-  return sorted.length === 1 ? `Pin ${sorted[0]}` : sorted.join("-");
+  if (sorted.length === 1) {
+    const pin = sorted[0];
+    return t({ message: `Pin ${pin}`, comment: "Bowling term: the name of a leave of a single standing pin, e.g. Pin 7" });
+  }
+  return sorted.join("-");
 }
 
 /** Screen-reader description of a pin diagram. The numerals rendered inside
  *  each pin are decorative, position and fill already carry the meaning, so
  *  the diagram is exposed as a single labeled image using this text. */
 export function describePinsStanding(standing: PinNumber[]): string {
-  if (standing.length === 0) return "No pins standing";
-  if (standing.length === 10) return "All ten pins standing";
-  if (standing.length === 1) return `${standing[0]} pin standing`;
-  return `Pins standing: ${standing.join(", ")}`;
+  if (standing.length === 0) return t`No pins standing`;
+  if (standing.length === 10) return t`All ten pins standing`;
+  if (standing.length === 1) {
+    const pin = standing[0];
+    return t`${pin} pin standing`;
+  }
+  const pins = standing.join(", ");
+  return t`Pins standing: ${pins}`;
 }
 
 export function uniquePins(pins: PinNumber[]): PinNumber[] {

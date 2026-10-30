@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { ArrowUpRight, Library, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Button } from "./ui/Button";
@@ -6,7 +7,7 @@ import { FIELD, FIELD_LABEL } from "./ui/field";
 import type { OilPass, OilPattern } from "../types/bowling";
 import { oilStats, patternClass, PATTERN_CLASS_LABEL, headlineRatio } from "../lib/oilPattern";
 import { ErrorBanner } from "./ErrorBanner";
-import { formatFixed } from "../lib/format";
+import { formatFixed, formatRatio } from "../lib/format";
 
 const FORM_ID = "oil-pattern-form";
 
@@ -74,7 +75,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
         distance: distance.trim() !== "" && Number.isFinite(feet) && feet > 0 ? feet : undefined,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to save pattern.");
+      setError(err instanceof Error ? err.message : t`Unable to save pattern.`);
     } finally {
       setIsSaving(false);
     }
@@ -82,19 +83,19 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
 
   return (
     <FormSheet
-      title={initial ? "Edit oil pattern" : "Add oil pattern"}
+      title={initial ? t`Edit oil pattern` : t`Add oil pattern`}
       onClose={onCancel}
       onConfirm={() => {
         const form = document.getElementById(FORM_ID);
         if (form instanceof HTMLFormElement) form.requestSubmit();
       }}
-      confirmLabel="Save"
+      confirmLabel={t`Save`}
       confirmDisabled={isSaving || name.trim().length === 0}
     >
       <form id={FORM_ID} onSubmit={handleSubmit}>
         <div className="space-y-3">
           <label className="block">
-            <span className={FIELD_LABEL}>Name</span>
+            <span className={FIELD_LABEL}>{t`Name`}</span>
             <input
               required
               autoFocus
@@ -109,7 +110,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
               table's and offering a box for it would invite a contradiction. */}
           {table.length === 0 && (
             <label className="block">
-              <span className={FIELD_LABEL}>Length (ft)</span>
+              <span className={FIELD_LABEL}>{t`Length (ft)`}</span>
               <input
                 type="number"
                 inputMode="decimal"
@@ -129,8 +130,8 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
                 {catalogName ?? initial?.name}
               </p>
               <p className="mt-1 text-xs tabular-nums text-ink-secondary">
-                {Math.round(table.length)} ft · {formatFixed(table.volumeMl, 2)} mL
-                {ratio != null ? ` · ${formatFixed(ratio, 1)}:1` : ""}
+                {t`${{ feet: Math.round(table.length) }} ft · ${{ volume: formatFixed(table.volumeMl, 2) }} mL`}
+                {ratio != null ? ` · ${formatRatio(ratio)}` : ""}
                 {shape ? ` · ${PATTERN_CLASS_LABEL[shape]}` : ""}
               </p>
             </div>
@@ -145,14 +146,14 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
               rel="noopener noreferrer"
               className="flex items-center justify-between gap-2 rounded-xl border border-edge bg-surface px-3 py-2.5 text-sm font-semibold text-ink active:bg-surface-muted"
             >
-              Original pattern sheet
+              {t`Original pattern sheet`}
               <ArrowUpRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
             </a>
           )}
 
           {!linked && (
           <label className="block">
-            <span className={FIELD_LABEL}>Pattern sheet link</span>
+            <span className={FIELD_LABEL}>{t`Pattern sheet link`}</span>
             <input
               type="url"
               inputMode="url"
@@ -174,7 +175,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
           {onLinkCatalog && !linked && (
             <Button variant="secondary" onClick={onLinkCatalog} className="w-full">
               <Library size={16} aria-hidden="true" />
-              Use a load table from the catalog
+              {t`Use a load table from the catalog`}
             </Button>
           )}
 
@@ -183,7 +184,7 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
           {onRemove && (
             <Button variant="danger-ghost" onClick={onRemove} className="w-full">
               <Trash2 size={16} aria-hidden="true" />
-              Remove pattern
+              {t`Remove pattern`}
             </Button>
           )}
         </div>

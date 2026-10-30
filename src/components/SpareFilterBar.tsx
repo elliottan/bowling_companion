@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { Switch } from "./ui/Switch";
 import { ListFilter } from "lucide-react";
 import { createPortal } from "react-dom";
@@ -34,11 +35,11 @@ export function SpareFilterBar({
     <>
       <div className="flex flex-wrap gap-2" role="group" aria-label={label}>
         <Chip selected={!state.active} onClick={state.clear}>
-          All
+          {t`All`}
         </Chip>
         <Chip selected={pinsActive} onClick={() => onPinsOpenChange(true)}>
           <ListFilter size={13} aria-hidden="true" className="mr-1" />
-          {pinsActive ? `Pins ${[...state.pins].sort((a, b) => a - b).join("-")}` : "Pins"}
+          {pinsActive ? t`Pins ${{ pins: [...state.pins].sort((a, b) => a - b).join("-") }}` : t`Pins`}
         </Chip>
         {SPARE_FILTERS.map((f) => (
           <Chip key={f.id} selected={state.filters.has(f.id)} onClick={() => state.toggle(f.id)}>
@@ -51,7 +52,7 @@ export function SpareFilterBar({
           against itself, and this one can open over another sheet. */}
       {pinsOpen &&
         createPortal(
-          <FormSheet title="Pins" onClose={() => onPinsOpenChange(false)} dismissAs="done">
+          <FormSheet title={t`Pins`} onClose={() => onPinsOpenChange(false)} dismissAs="done">
             <div className="space-y-4">
               <div className="mx-auto w-[11.5rem]">
                 <PinGrid
@@ -62,7 +63,7 @@ export function SpareFilterBar({
                 />
               </div>
               <label className="flex items-center gap-3 rounded-xl border border-edge bg-surface p-3">
-                <span className="flex-1 text-sm font-medium text-ink-strong">Only these pins</span>
+                <span className="flex-1 text-sm font-medium text-ink-strong">{t`Only these pins`}</span>
                 <Switch
                   checked={state.exact}
                   onChange={state.setExact}
@@ -75,7 +76,7 @@ export function SpareFilterBar({
                   onClick={() => state.setPins([])}
                   className={`relative text-sm font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
                 >
-                  Clear pins
+                  {t`Clear pins`}
                 </button>
               )}
             </div>

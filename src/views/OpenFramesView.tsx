@@ -1,4 +1,5 @@
-import { formatPercent } from "../lib/format";
+import { plural, t } from "@lingui/core/macro";
+import { formatNumber, formatPercent } from "../lib/format";
 import { useMemo, useState } from "react";
 import { RackIcon } from "../components/icons";
 import { LoadingCard } from "../components/ui/LoadingCard";
@@ -9,6 +10,11 @@ import { GROUP_HEADING } from "../components/ui/typography";
 import { calculateOpenFrames, type OpenFrameTrendPoint } from "../lib/stats";
 import { useSessionFilters } from "./useSessionFilters";
 import { ErrorBanner } from "../components/ErrorBanner";
+
+/** A per-game rate to one decimal, or a dash where there is none. */
+function oneDecimal(value: number | null): string {
+  return value === null ? "-" : formatNumber(value, 1);
+}
 
 /**
  * How often frames go open, and on what, for whatever the Stats tab is
@@ -30,17 +36,17 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
   const [note, setNote] = useState(false);
 
   return (
-    <PushScreen title="Open frames" onBack={onBack}>
+    <PushScreen title={t({ message: "Open frames", comment: "Bowling term: a frame that ended with pins still standing, neither a strike nor a spare" })} onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
         {error ? (
-          <ErrorBanner>Your sessions could not be read. Reload the app, then try again.</ErrorBanner>
+          <ErrorBanner>{t`Your sessions could not be read. Reload the app, then try again.`}</ErrorBanner>
         ) : isLoading ? (
           <LoadingCard />
         ) : report.games === 0 ? (
           <EmptyState
             icon={RackIcon}
-            title="Nothing open yet"
-            description="The leaves you keep missing rank here, most often first. Finish a game to start the count."
+            title={t`Nothing open yet`}
+            description={t({ message: "The leaves you keep missing rank here, most often first. Finish a game to start the count.", comment: "A leave is the set of pins left standing after the first ball (bowling term)" })}
           />
         ) : (
           <>
@@ -51,25 +57,25 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
             >
               <span className="flex items-baseline gap-2">
                 <span className="text-4xl font-bold tabular-nums leading-none text-ink">
-                  {report.openFramesPerGame}
+                  {oneDecimal(report.openFramesPerGame)}
                 </span>
                 <span className="text-sm font-semibold text-ink-secondary">
-                  open frames a game
+                  {t({ message: "open frames a game", comment: "Bowling term: an open frame is one with pins left standing after both balls. Lowercase label next to a number." })}
                 </span>
                 <span className="ml-auto text-xs tabular-nums text-ink-tertiary">
-                  {report.games} {report.games === 1 ? "game" : "games"}
+                  {plural(report.games, { one: "# game", other: "# games" })}
                 </span>
               </span>
               <span className="mt-1 block text-sm font-semibold text-danger-600">
-                about {report.pinsLostPerGame} pins a game
+                {t`about ${{ pins: oneDecimal(report.pinsLostPerGame) }} pins a game`}
               </span>
               {/* The three kinds under the number they add up to, rather than
                   filtered out of it: a night of splits is a first-ball night,
                   and hiding them would just shrink the headline. */}
               <span className="mt-3 grid grid-cols-3 gap-1.5">
-                <Kind label="Makeable" value={report.makeable.perGame} strong />
-                <Kind label="Washouts" value={report.washout.perGame} />
-                <Kind label="Splits" value={report.split.perGame} />
+                <Kind label={t({ message: "Makeable", comment: "Bowling term: a leave that can be converted into a spare" })} value={report.makeable.perGame} strong />
+                <Kind label={t({ message: "Washouts", comment: "Bowling term: a leave with the head pin gone and pins scattered on both sides" })} value={report.washout.perGame} />
+                <Kind label={t({ message: "Splits", comment: "Bowling term: a leave with a gap between the standing pins" })} value={report.split.perGame} />
               </span>
             </button>
 
@@ -79,20 +85,20 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
                 onClick={() => setNote(false)}
                 className="mt-2 w-full rounded-xl border border-edge bg-surface-muted p-3 text-left text-xs text-ink-secondary"
               >
-                An open frame gives up about 11 pins on average.
+                {t({ message: "An open frame gives up about 11 pins on average.", comment: "An open frame is a bowling term: a frame with pins left standing after both balls" })}
               </button>
             )}
 
             {report.trend.length > 1 && <OpenFrameTrend points={report.trend} />}
 
-            <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>Most opens (makeables)</h2>
+            <h2 className={`${GROUP_HEADING} mb-2 mt-4`}>{t({ message: "Most opens (makeables)", comment: "Bowling terms: opens are open frames; makeables are leaves that can be converted to a spare" })}</h2>
             <ul className="divide-y divide-edge rounded-xl border border-edge bg-surface shadow-sm">
               {report.leaves.slice(0, 12).map((leave) => (
                 <li key={leave.pins.join("-")} className="flex items-center gap-3 px-3 py-2.5">
                   <MiniPins standing={leave.pins} size="sm" />
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold tabular-nums text-ink">
-                      {leave.conversions} of {leave.chances} made
+                      {t`${{ conversions: formatNumber(leave.conversions) }} of ${{ chances: formatNumber(leave.chances) }} made`}
                     </span>
                     <span className="block text-xs tabular-nums text-ink-secondary">
                       {leave.conversionPct !== null ? formatPercent(leave.conversionPct) : "-"}
@@ -103,9 +109,9 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
                       the first ball as about the spare. */}
                   <span className="w-16 shrink-0 text-right">
                     <span className="block text-sm font-bold tabular-nums text-ink">
-                      {leave.perGame}
+                      {oneDecimal(leave.perGame)}
                     </span>
-                    <span className="block text-caption-2 leading-tight text-ink-tertiary">open frames<br />a game</span>
+                    <span className="block text-caption-2 leading-tight text-ink-tertiary">{t({ message: "open frames", comment: "Bowling term: frames left open. Two-line label, followed by a line reading a game" })}<br />{t`a game`}</span>
                   </span>
                 </li>
               ))}
@@ -168,9 +174,7 @@ function OpenFrameTrend({ points }: { points: OpenFrameTrendPoint[] }) {
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
         role="img"
-        aria-label={`Open frames a game by session, oldest first. ${shown
-          .map((p) => `${p.date}: ${p.perGame}`)
-          .join(", ")}.`}
+        aria-label={t`Open frames a game by session, oldest first. ${{ points: shown.map((p) => `${p.date}: ${formatNumber(p.perGame, 1)}`).join(", ") }}.`}
       >
         {shown.map((p, i) => {
           const x = INSET_X + slot * i + (slot - barW) / 2;

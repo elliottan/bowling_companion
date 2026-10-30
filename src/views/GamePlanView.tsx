@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Compass } from "lucide-react";
@@ -133,15 +134,15 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
       ),
     [history, alley, pattern, lane, gameNumber]
   );
-  const where = [alley, pattern, lane && `lane ${lane}`, gameNumber && `game ${gameNumber}`]
+  const where = [alley, pattern, lane && t`lane ${{ lane }}`, gameNumber && t`game ${{ gameNumber }}`]
     .filter(Boolean)
     .join(" \u00b7 ");
 
   return (
-    <PushScreen title="Alley report" onBack={onBack}>
+    <PushScreen title={t`Alley report`} onBack={onBack}>
         <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
           {error ? (
-            <ErrorBanner>Your sessions could not be read. Reload the app, then try again.</ErrorBanner>
+            <ErrorBanner>{t`Your sessions could not be read. Reload the app, then try again.`}</ErrorBanner>
           ) : isLoading ? (
             <LoadingCard />
           ) : history.length === 0 ? (
@@ -149,12 +150,12 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
             // left a new bowler guessing what those sessions needed.
             <EmptyState
               icon={Compass}
-              title="Bowl a session to see your report"
-              description="It shows what you'd average with each ball at an alley, from the games you bowled there."
+              title={t`Bowl a session to see your report`}
+              description={t`It shows what you'd average with each ball at an alley, from the games you bowled there.`}
             >
               {onStartScoring && (
                 <Button variant="primary" onClick={onStartScoring}>
-                  Start scoring
+                  {t`Start scoring`}
                 </Button>
               )}
             </EmptyState>
@@ -167,7 +168,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
               {allAlleys.length > 0 && (
                 <div className="mb-2">
                     <label className={FIELD_LABEL} htmlFor="plan-alley">
-                      Alley
+                      {t`Alley`}
                     </label>
                     <select
                       id="plan-alley"
@@ -188,15 +189,15 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
               <div className="flex flex-wrap gap-2">
                 <div className="min-w-[10rem] flex-1">
                   <label className={FIELD_LABEL} htmlFor="plan-pattern">
-                    Pattern
+                    {t`Pattern`}
                   </label>
                   <ChoiceInput
                     id="plan-pattern"
                     value={pattern}
                     onChange={setPattern}
                     options={allPatterns}
-                    placeholder="Any"
-                    clearLabel="Clear pattern"
+                    placeholder={t`Any`}
+                    clearLabel={t`Clear pattern`}
                   />
                 </div>
                 {/* Only inside a house that has lanes on record: a lane number
@@ -204,7 +205,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                 {allLanes.length > 0 && (
                   <div className="w-[calc(6rem*var(--type-scale))] shrink-0">
                     <label className={FIELD_LABEL} htmlFor="plan-lane">
-                      Lane
+                      {t`Lane`}
                     </label>
                     <select
                       id="plan-lane"
@@ -212,7 +213,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                       onChange={(e) => setLane(e.target.value)}
                       className={FIELD_SELECT}
                     >
-                      <option value="">Any</option>
+                      <option value="">{t`Any`}</option>
                       {allLanes.map((l) => (
                         <option key={l} value={l}>
                           {l}
@@ -224,7 +225,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                 {allGames.length > 1 && (
                   <div className="w-[calc(6rem*var(--type-scale))] shrink-0">
                     <label className={FIELD_LABEL} htmlFor="plan-game">
-                      Game
+                      {t`Game`}
                     </label>
                     <select
                       id="plan-game"
@@ -232,7 +233,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                       onChange={(e) => setGame(e.target.value)}
                       className={FIELD_SELECT}
                     >
-                      <option value="">Any</option>
+                      <option value="">{t`Any`}</option>
                       {allGames.map((g) => (
                         <option key={g} value={g}>
                           {g}
@@ -245,10 +246,10 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
 
               <p className="mt-3 text-xs text-ink-secondary">
                 {report.shots === 0
-                  ? `Nothing recorded for ${where || "this"} yet.`
-                  : `${report.shots} ${report.shots === 1 ? "ball" : "balls"}, ${report.sessions} ${
-                      report.sessions === 1 ? "session" : "sessions"
-                    }`}
+                  ? where
+                    ? t`Nothing recorded for ${{ where }} yet.`
+                    : t`Nothing recorded for this yet.`
+                  : t`${{ shots: plural(report.shots, { one: "# ball", other: "# balls" }) }}, ${{ sessions: plural(report.sessions, { one: "# session", other: "# sessions" }) }}`}
               </p>
 
               {/* Pro: the reads across sessions (ADR-154). With no ball to read
@@ -257,7 +258,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
               {estimates.balls.length === 0 ? (
                 report.shots > 0 && (
                   <p className="mt-4 rounded-xl border border-edge bg-surface p-3 text-sm text-ink-secondary shadow-sm">
-                    No balls to compare yet. Name the ball on your shots and each one's average shows up here.
+                    {t`No balls to compare yet. Name the ball on your shots and each one's average shows up here.`}
                   </p>
                 )
               ) : (

@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { Suspense, lazy } from "react";
 import { X } from "lucide-react";
 import type { ComponentProps } from "react";
@@ -31,7 +32,7 @@ function LaneLoading({ onClose, pushed }: { onClose: () => void; pushed: boolean
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Loading the lane view"
+      aria-label={t`Loading the lane view`}
       // Where the lane itself will land: in the shell as a push, or over
       // everything as a cover.
       className={`fixed inset-0 flex flex-col items-center justify-center bg-slate-900 text-white/70 ${
@@ -40,7 +41,7 @@ function LaneLoading({ onClose, pushed }: { onClose: () => void; pushed: boolean
     >
       <button
         type="button"
-        aria-label="Close"
+        aria-label={t`Close`}
         onClick={onClose}
         className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/25 bg-slate-900/70 text-white/80 active:bg-white/10"
       >
@@ -51,7 +52,7 @@ function LaneLoading({ onClose, pushed }: { onClose: () => void; pushed: boolean
         className="h-8 w-8 rounded-full border-[3px] border-white/20 border-t-amber-400 motion-safe:animate-spin"
       />
       <p role="status" className="mt-3 text-sm">
-        Loading
+        {t`Loading`}
       </p>
     </div>
   );

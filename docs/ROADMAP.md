@@ -39,11 +39,12 @@ choice the bowler makes per pair. Deriving it is wrong for anyone who plays a
 
 ### A first language
 
-The groundwork is in (ADR-220, [I18N.md](./I18N.md)): a catalog, detection and
-`Intl` formatting, with about 400 strings still to mark and the guides, the
-legal pages and the landing page still English only. Japanese and Korean were
-the languages in mind. What is open is the conversion, the translation, and
-the decision on right-to-left, which the layout does not support.
+The groundwork is in (ADR-220, [I18N.md](./I18N.md)) and the screens are
+marked (0.74.2, about 990 messages). Open: inline markup in a message (no
+`Trans` yet, see I18N.md), the guides, the legal pages and the landing page
+(English only), the translations themselves, and the decision on right-to-left,
+which the layout does not support. Suggested order: Japanese, Korean, Spanish,
+Traditional Chinese.
 
 ### Android follows the system font size
 

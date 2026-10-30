@@ -1,6 +1,7 @@
 import { Archive, BookOpen, Check, ChevronRight, Compass, MoreHorizontal, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
+import { t } from "@lingui/core/macro";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
 import { addBall, updateBall } from "../services/ballRepository";
 import { getLayoutSystem } from "../services/bowlingRepository";
@@ -131,7 +132,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
     if (!unlocked) return;
     const trimmed = name.trim();
     if (!trimmed) {
-      setError("Ball name is required.");
+      setError(t`Ball name is required.`);
       return;
     }
     setIsSaving(true);
@@ -173,7 +174,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
       }
       onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save ball.");
+      setError(err instanceof Error ? err.message : t`Failed to save ball.`);
     } finally {
       setIsSaving(false);
     }
@@ -189,7 +190,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
       variant="confirm"
       onClick={() => void handleSubmit()}
       disabled={isSaving}
-      label={editing ? "Save" : "Add"}
+      label={editing ? t`Save` : t`Add`}
     >
       <Check size={20} aria-hidden="true" />
     </IconButton>
@@ -198,13 +199,13 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
       {hasMore && (
         <IconButton
           variant="round"
-          label="More"
+          label={t`More`}
           onClick={(e) => setMoreAt(anchorUnder(e.currentTarget, ANCHORED_MENU_WIDTH))}
         >
           <MoreHorizontal size={20} aria-hidden="true" />
         </IconButton>
       )}
-      <IconButton variant="round" onClick={() => setUnlocked(true)} label="Edit ball">
+      <IconButton variant="round" onClick={() => setUnlocked(true)} label={t`Edit ball`}>
         <Pencil size={18} aria-hidden="true" />
       </IconButton>
     </div>
@@ -218,7 +219,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
     <>
       <FormSheet
         // Reading, the sheet is about the ball, so it carries its name.
-        title={unlocked ? (editing ? "Edit ball" : "Add ball") : ball?.name ?? "Ball"}
+        title={unlocked ? (editing ? t`Edit ball` : t`Add ball`) : ball?.name ?? t`Ball`}
         onClose={onClose}
         trailing={trailing}
         banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
@@ -240,7 +241,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
                     <CatalogBallImage src={catalogRef.imageThumb} alt={catalogRef.name} brand={catalogRef.brand} size="thumb" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-caption-2 font-semibold uppercase tracking-wide text-accent">Linked to catalog</p>
+                    <p className="text-caption-2 font-semibold uppercase tracking-wide text-accent">{t`Linked to catalog`}</p>
                     <p className="truncate text-sm font-semibold text-ink">
                       {catalogRef.brand} {catalogRef.name}
                     </p>
@@ -248,8 +249,8 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
                       {[
                         catalogRef.coverstockCategory,
                         catalogRef.coreName,
-                        weightSpecs?.rg != null ? `RG ${formatFixed(weightSpecs.rg, 2)}` : null,
-                        weightSpecs?.diff != null ? `Diff ${formatFixed(weightSpecs.diff, 3)}` : null,
+                        weightSpecs?.rg != null ? t({ message: `RG ${formatFixed(weightSpecs.rg, 2)}`, comment: "Bowling term: RG is radius of gyration, a measure of how quickly a ball revs up" }) : null,
+                        weightSpecs?.diff != null ? t({ message: `Diff ${formatFixed(weightSpecs.diff, 3)}`, comment: "Bowling term: diff is the differential of radii of gyration, a measure of how much a ball flares" }) : null,
                       ]
                         .filter(Boolean)
                         .join(" · ")}
@@ -263,9 +264,11 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
                     <BookOpen size={20} aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink">{unlocked ? "Link to catalog" : "Not linked to the catalog"}</p>
+                    <p className="text-sm font-semibold text-ink">{unlocked ? t`Link to catalog` : t`Not linked to the catalog`}</p>
                     <p className="text-xs text-ink-secondary">
-                      {unlocked ? "Fills in the core, coverstock, RG and diff." : "Edit links it, for its core, coverstock, RG and diff."}
+                      {unlocked
+                        ? t({ message: "Fills in the core, coverstock, RG and diff.", comment: "Bowling terms: RG is radius of gyration, diff is the differential of radii of gyration, the core is the weight block inside the ball and the coverstock is its outer shell" })
+                        : t({ message: "Edit links it, for its core, coverstock, RG and diff.", comment: "Bowling terms: RG is radius of gyration, diff is the differential of radii of gyration, the core is the weight block inside the ball and the coverstock is its outer shell" })}
                     </p>
                   </div>
                   {unlocked && <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />}
@@ -288,20 +291,20 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
             <div className="flex items-end gap-3">
               <div className="min-w-0 flex-1">
                 <label htmlFor="ball-name" className="mb-1 block text-sm font-medium text-ink-strong">
-                  Display name
+                  {t`Display name`}
                 </label>
                 <input
                   id="ball-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Storm Phaze II"
+                  placeholder={t`e.g. Storm Phaze II`}
                   className={FIELD}
                 />
               </div>
               <div className="w-[5.5rem] shrink-0">
                 <label htmlFor="ball-weight" className="mb-1 block text-sm font-medium text-ink-strong">
-                  Weight <span className="font-normal text-ink-secondary">(lb)</span>
+                  {t`Weight`} <span className="font-normal text-ink-secondary">{t({ message: "(lb)", comment: "Abbreviation for pounds, the unit a bowling ball is weighed in" })}</span>
                 </label>
                 <select id="ball-weight" value={weight} onChange={(e) => setWeight(Number(e.target.value))} className={FIELD}>
                   {WEIGHT_OPTIONS.map((w) => (
@@ -350,7 +353,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
                   onRetire(false);
                 }}
               >
-                Bring back to arsenal
+                {t`Bring back to arsenal`}
               </AnchoredMenuItem>
             ) : (
               <AnchoredMenuItem
@@ -360,7 +363,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
                   setConfirmRetire(true);
                 }}
               >
-                Retire ball
+                {t`Retire ball`}
               </AnchoredMenuItem>
             ))}
           {onDelete && (
@@ -372,7 +375,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
                 onDelete();
               }}
             >
-              Delete ball
+              {t`Delete ball`}
             </AnchoredMenuItem>
           )}
         </AnchoredMenu>
@@ -382,9 +385,9 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
           bag and out of every ball list, which a stray tap should not do. */}
       <ConfirmDialog
         open={confirmRetire}
-        title={`Retire ${ball?.name ?? "this ball"}?`}
-        message="It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
-        confirmLabel="Retire"
+        title={ball ? t`Retire ${{ name: ball.name }}?` : t`Retire this ball?`}
+        message={t`It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired.`}
+        confirmLabel={t`Retire`}
         confirmVariant="primary"
         onConfirm={() => {
           setConfirmRetire(false);
@@ -431,29 +434,31 @@ function BallReadout({
     <dl className="space-y-4">
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <dt className={GROUP_HEADING}>Display name</dt>
+          <dt className={GROUP_HEADING}>{t`Display name`}</dt>
           <dd className="mt-1 break-words text-base font-semibold text-accent">{name}</dd>
         </div>
         <div className="w-[5.5rem] shrink-0">
-          <dt className={GROUP_HEADING}>Weight</dt>
-          <dd className="mt-1 text-base font-semibold tabular-nums text-accent">{weight} lb</dd>
+          <dt className={GROUP_HEADING}>{t`Weight`}</dt>
+          <dd className="mt-1 text-base font-semibold tabular-nums text-accent">{t`${{ weight }} lb`}</dd>
         </div>
       </div>
       <div>
-        <dt className={GROUP_HEADING}>Layout</dt>
+        <dt className={GROUP_HEADING}>{t({ message: "Layout", comment: "Bowling term: how a ball is drilled relative to its core" })}</dt>
         {spec ? (
           <dd className="mt-1 flex items-center gap-3">
             <span className="min-w-0 flex-1 text-base font-semibold tabular-nums text-accent">
               <Measure>{formatLayoutSpec(spec, layoutSystemFor(spec, preference))}</Measure>
               <span className="block text-xs font-normal text-ink-secondary">
-                {spec.symmetric ? "Symmetric" : "Asymmetric"} core
+                {spec.symmetric
+                  ? t({ message: "Symmetric core", comment: "Bowling term: a ball whose core has the same shape from every side" })
+                  : t({ message: "Asymmetric core", comment: "Bowling term: a ball whose core is shaped differently on different sides" })}
               </span>
             </span>
             {/* The arsenal row's compass, beside the numbers it draws: the way
                 from reading a layout to seeing it, without leaving the ball. The
                 lab opens over this sheet, and back returns to it. */}
             {onViewLayout && (
-              <IconButton label={`View the layout on ${ballName}`} title="View layout" onClick={onViewLayout}>
+              <IconButton label={t`View the layout on ${{ ballName }}`} title={t`View layout`} onClick={onViewLayout}>
                 <Compass size={18} aria-hidden="true" />
               </IconButton>
             )}
@@ -463,7 +468,7 @@ function BallReadout({
             <Measure>{legacyText}</Measure>
           </dd>
         ) : (
-          <dd className="mt-1 text-sm text-ink-secondary">None yet</dd>
+          <dd className="mt-1 text-sm text-ink-secondary">{t`None yet`}</dd>
         )}
       </div>
     </dl>
@@ -525,7 +530,7 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
 
   return (
     <FormSheet
-      title="Catalog"
+      title={t`Catalog`}
       onClose={onClose}
       // Fixed height: the list arrives asynchronously and then filters as you
       // type, and a sheet that hugs its content would jump on both.
@@ -542,7 +547,7 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
           <input
             type="search"
             autoFocus
-            placeholder="Search name, brand, coverstock…"
+            placeholder={t({ message: "Search name, brand, coverstock…", comment: "Bowling term: the coverstock is the outer shell of a ball" })}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className={`${FIELD} rounded-xl pl-9`}
@@ -551,10 +556,10 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
       }
     >
       {loading ? (
-        <p className="text-sm text-ink-secondary">Loading catalog…</p>
+        <p className="text-sm text-ink-secondary">{t`Loading catalog…`}</p>
       ) : balls.length === 0 ? (
         <p className="text-sm text-ink-secondary">
-          The catalog has not loaded yet. It needs one connection, then it works offline.
+          {t`The catalog has not loaded yet. It needs one connection, then it works offline.`}
         </p>
       ) : shown.length === 0 ? (
         query.trim() ? (
@@ -581,7 +586,7 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
                   <p className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{b.brand}</p>
                   <p className="truncate text-sm font-semibold text-ink">{b.name}</p>
                   <p className="text-xs text-ink-secondary">
-                    {[b.coverstockCategory, b.coreType, b.rg !== null ? `RG ${formatFixed(b.rg, 2)}` : null]
+                    {[b.coverstockCategory, b.coreType, b.rg !== null ? t({ message: `RG ${formatFixed(b.rg, 2)}`, comment: "Bowling term: RG is radius of gyration, a measure of how quickly a ball revs up" }) : null]
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
@@ -660,25 +665,26 @@ function LayoutField({
   return (
     <section className="space-y-2">
       <div className="flex items-center justify-between gap-3">
-        <h2 className={GROUP_HEADING}>Layout</h2>
+        <h2 className={GROUP_HEADING}>{t({ message: "Layout", comment: "Bowling term: how a ball is drilled relative to its core" })}</h2>
         {spec && (
           <button
             type="button"
             onClick={() => onChange(null)}
             className="text-xs font-semibold text-ink-secondary underline"
           >
-            Remove layout
+            {t`Remove layout`}
           </button>
         )}
       </div>
 
       {legacyText && (
         <p className="rounded-lg bg-surface-muted p-2.5 text-xs text-ink-secondary">
-          This ball carries the layout you typed before:{" "}
+          {t`This ball carries the layout you typed before:`}{" "}
           <span className="font-semibold text-ink">
             <Measure>{legacyText}</Measure>
           </span>
-          . Entering it below replaces the text with numbers.
+          {". "}
+          {t`Entering it below replaces the text with numbers.`}
         </p>
       )}
 
@@ -696,9 +702,9 @@ function LayoutField({
             <Plus size={18} aria-hidden="true" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink">Add layout</p>
+            <p className="text-sm font-semibold text-ink">{t`Add layout`}</p>
             <p className="text-xs text-ink-secondary">
-              Dual angle or Storm VLS, on sliders. Opens on the benchmark.
+              {t({ message: "Dual angle or Storm VLS, on sliders. Opens on the benchmark.", comment: "Bowling terms: dual angle and Storm VLS are two ways of writing how a ball is drilled" })}
             </p>
           </div>
         </button>
@@ -708,12 +714,12 @@ function LayoutField({
               means and therefore what every slider under it does. Same order,
               and the same reason, as the layout lab. */}
           <SegmentedControl
-            label="Core type"
+            label={t({ message: "Core type", comment: "Bowling term: the core is the weight block inside a ball; it is symmetric or asymmetric" })}
             value={spec.symmetric ? "sym" : "asym"}
             onChange={(v) => setCore(v === "sym")}
             options={[
-              { value: "asym", label: "Asym", srLabel: "Asymmetric" },
-              { value: "sym", label: "Sym", srLabel: "Symmetric" }
+              { value: "asym", label: t({ message: "Asym", comment: "Short for asymmetric, a ball core shaped differently on different sides" }), srLabel: t`Asymmetric` },
+              { value: "sym", label: t({ message: "Sym", comment: "Short for symmetric, a ball core with the same shape from every side" }), srLabel: t`Symmetric` }
             ]}
           />
 

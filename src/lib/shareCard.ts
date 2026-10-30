@@ -1,4 +1,6 @@
+import { plural, t } from "@lingui/core/macro";
 import { formatSessionDate } from "./dates";
+import { formatNumber, formatPercent } from "./format";
 import { POCKET_BOARD, buildLinePath, xToBoard, yToFeet } from "./laneGeometry";
 import { oilBands, oilExitPoint, oilStats, oilZones, peakUnits, toHandBoard, type OilBand } from "./oilPattern";
 import { shareFileFromApp } from "./nativeShare";
@@ -114,7 +116,7 @@ export function formatCardDate(date: string): string {
 }
 
 function pct(value: number | null): string | null {
-  return value === null ? null : `${Math.round(value)}%`;
+  return value === null ? null : formatPercent(Math.round(value));
 }
 
 export function buildSessionCard(session: SessionLike): ShareCardData {
@@ -129,18 +131,23 @@ export function buildSessionCard(session: SessionLike): ShareCardData {
   // mostly says how many games were bowled. One game is its own score, and a
   // night with no finished game has no average yet, so both lead with the total.
   const single = count === 1;
-  const hero: ShareStat =
-    !single && avg !== null
-      ? { value: String(avg), label: "Average" }
-      : { value: String(total), label: single ? "Game" : "Series" };
+  const leadsWithAverage = !single && avg !== null;
+  const hero: ShareStat = leadsWithAverage
+    ? { value: String(avg), label: t`Average` }
+    : { value: String(total), label: single ? t`Game` : t`Series` };
 
   const stats: ShareStat[] = [];
-  if (hero.label === "Average") stats.push({ value: String(total), label: `${count} game series` });
-  if (!single && high !== null) stats.push({ value: String(high), label: "High game" });
+  if (leadsWithAverage) {
+    stats.push({
+      value: String(total),
+      label: plural(count, { one: "# game series", other: "# game series" })
+    });
+  }
+  if (!single && high !== null) stats.push({ value: String(high), label: t`High game` });
   const strikes = pct(session.strikePct);
-  if (strikes) stats.push({ value: strikes, label: "Strikes" });
+  if (strikes) stats.push({ value: strikes, label: t({ message: "Strikes", comment: "Bowling term: a card stat, the share of first balls that knocked all ten pins down" }) });
   const spares = pct(session.sparePct);
-  if (spares) stats.push({ value: spares, label: "Spares" });
+  if (spares) stats.push({ value: spares, label: t({ message: "Spares", comment: "Bowling term: a card stat, the share of spare chances that were converted" }) });
 
   const eyebrow = [session.event?.trim(), formatCardDate(session.date)]
     .filter(Boolean)
@@ -148,7 +155,7 @@ export function buildSessionCard(session: SessionLike): ShareCardData {
 
   return {
     eyebrow,
-    title: session.alleyName || "Bowling",
+    title: session.alleyName || t`Bowling`,
     hero,
     games: session.scores.map(String),
     stats
@@ -168,26 +175,26 @@ interface StatsLike {
 
 export function buildStatsCard(stats: StatsLike, filterLabel: string): ShareCardData {
   const supporting: ShareStat[] = [];
-  if (stats.highGame !== null) supporting.push({ value: String(stats.highGame), label: "High game" });
+  if (stats.highGame !== null) supporting.push({ value: String(stats.highGame), label: t`High game` });
   const strikes = pct(stats.strikePct);
-  if (strikes) supporting.push({ value: strikes, label: "Strikes" });
+  if (strikes) supporting.push({ value: strikes, label: t({ message: "Strikes", comment: "Bowling term: a card stat, the share of first balls that knocked all ten pins down" }) });
   const spares = pct(stats.sparePct);
-  if (spares) supporting.push({ value: spares, label: "Spares" });
+  if (spares) supporting.push({ value: spares, label: t({ message: "Spares", comment: "Bowling term: a card stat, the share of spare chances that were converted" }) });
   const pocket = pct(stats.pocketPct);
-  if (pocket) supporting.push({ value: pocket, label: "Pocket" });
+  if (pocket) supporting.push({ value: pocket, label: t({ message: "Pocket", comment: "Bowling term: a card stat, the share of first balls that hit the pocket (the gap between the 1 and 3 pins for a right-hander)" }) });
   const carry = pct(stats.carryPct);
-  if (carry) supporting.push({ value: carry, label: "Carry" });
+  if (carry) supporting.push({ value: carry, label: t({ message: "Carry", comment: "Bowling term: a card stat, the share of pocket hits that struck" }) });
 
-  const sessionWord = stats.totalSessions === 1 ? "session" : "sessions";
-  const gameWord = stats.completedGames === 1 ? "game" : "games";
+  const sessionCount = plural(stats.totalSessions, { one: "# session", other: "# sessions" });
+  const gameCount = plural(stats.completedGames, { one: "# game", other: "# games" });
 
   return {
-    eyebrow: `${stats.totalSessions} ${sessionWord}  ·  ${stats.completedGames} ${gameWord}`,
+    eyebrow: `${sessionCount}  ·  ${gameCount}`,
     title: filterLabel,
     hero:
       stats.averageScore === null
         ? null
-        : { value: String(Math.round(stats.averageScore)), label: "Average" },
+        : { value: String(Math.round(stats.averageScore)), label: t`Average` },
     games: null,
     // Three rows fit where the game boxes would have been.
     stats: supporting.slice(0, 6)
@@ -210,11 +217,12 @@ interface FilterParts {
  */
 export function describeFilter(parts: FilterParts): string {
   const named = [parts.range ?? "", parts.alley, parts.pattern, parts.event].filter((p) => p.trim() !== "");
-  if (parts.gameNumber !== null) named.push(`Game ${parts.gameNumber}`);
+  if (parts.gameNumber !== null) named.push(t`Game ${{ gameNumber: parts.gameNumber }}`);
   if (parts.lanes.length > 0) {
-    named.push(`${parts.lanes.length === 1 ? "Lane" : "Lanes"} ${parts.lanes.join(", ")}`);
+    const lanes = parts.lanes.join(", ");
+    named.push(plural(parts.lanes.length, { one: `Lane ${lanes}`, other: `Lanes ${lanes}` }));
   }
-  return named.length === 0 ? "Every session" : named.join("  ·  ");
+  return named.length === 0 ? t`Every session` : named.join("  ·  ");
 }
 
 interface LayoutLike {
@@ -232,6 +240,19 @@ interface LayoutLike {
   meters: ShareMeter[];
 }
 
+/** "Left hand", "Right hand, 2H": one message per case, since the order of the
+ *  parts is the language's. */
+function handAndGrip(hand: "left" | "right", grip: "1h" | "2h"): string {
+  if (hand === "left") {
+    return grip === "2h"
+      ? t({ message: "Left hand, 2H", comment: "A ball layout card: the bowler throws left-handed with two hands (2H, two-handed style)" })
+      : t({ message: "Left hand", comment: "A ball layout card: the bowler throws left-handed" });
+  }
+  return grip === "2h"
+    ? t({ message: "Right hand, 2H", comment: "A ball layout card: the bowler throws right-handed with two hands (2H, two-handed style)" })
+    : t({ message: "Right hand", comment: "A ball layout card: the bowler throws right-handed" });
+}
+
 /**
  * A layout, as a picture worth posting.
  *
@@ -243,14 +264,20 @@ interface LayoutLike {
  * core in a word, the four readings as small bars rather than a sentence.
  */
 export function buildLayoutCard(layout: LayoutLike): ShareCardData {
+  const pap = layout.pap;
   return {
     // The axis rides the eyebrow rather than the stats: it is a condition the
     // three numbers are read under, like the core and the hand beside it, and
     // the card's lower half belongs to the ball.
     eyebrow: [
-      layout.symmetric ? "Sym" : "Asym",
-      `${layout.hand === "left" ? "Left" : "Right"} hand${layout.grip === "2h" ? ", 2H" : ""}`,
-      `PAP ${layout.pap}`
+      layout.symmetric
+        ? t({ message: "Sym", comment: "Bowling term, short for symmetric: a core with the same mass on both sides" })
+        : t({ message: "Asym", comment: "Bowling term, short for asymmetric: a core with uneven mass distribution" }),
+      handAndGrip(layout.hand, layout.grip),
+      t({
+        message: `PAP ${pap}`,
+        comment: "Bowling term: PAP is the positive axis point, where the ball's axis of rotation sits on its surface; the value follows"
+      })
     ].join("  ·  "),
     title: layout.dualAngle,
     readingTitle: true,
@@ -300,8 +327,9 @@ export interface ShareLane {
 
 const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-const boardText = (v: number) => String(Math.round(v * 2) / 2);
-const atFeet = (p: LanePoint) => `${boardText(p.board)} at ${Math.round(p.feet)} ft`;
+const boardText = (v: number) => formatNumber(Math.round(v * 2) / 2, 1);
+const atFeet = (p: LanePoint) =>
+  t`${{ board: boardText(p.board) }} at ${{ feet: formatNumber(Math.round(p.feet)) }} ft`;
 
 /**
  * A line, as a picture of the lane it is thrown down.
@@ -341,29 +369,31 @@ export function buildLineCard(input: LineLike): ShareCardData {
 
   const stats: ShareStat[] = [];
   const laydown = line.laydown ?? line.stance;
-  if (laydown != null) stats.push({ value: boardText(laydown), label: "Laydown board" });
-  if (line.target != null) stats.push({ value: boardText(line.target), label: "Target at the arrows" });
-  if (lane?.breakpoint) stats.push({ value: atFeet(lane.breakpoint), label: "Breakpoint", swatch: PATH_INK });
+  if (laydown != null) stats.push({ value: boardText(laydown), label: t({ message: "Laydown board", comment: "Bowling term: the board the ball is released over at the foul line" }) });
+  if (line.target != null) stats.push({ value: boardText(line.target), label: t({ message: "Target at the arrows", comment: "Bowling term: the board the ball crosses at the arrows, about 15 feet down the lane" }) });
+  if (lane?.breakpoint) stats.push({ value: atFeet(lane.breakpoint), label: t({ message: "Breakpoint", comment: "Bowling term: the point where the ball turns from skid to hook" }), swatch: PATH_INK });
   if (lane) {
     const pocket = !spare && Math.abs(lane.final.board - POCKET_BOARD) < 0.25;
-    stats.push({ value: boardText(lane.final.board), label: pocket ? "Into the pocket" : "Finishes on" });
+    stats.push({ value: boardText(lane.final.board), label: pocket ? t({ message: "Into the pocket", comment: "Bowling term: the pocket is the gap between the 1 and 3 pins for a right-hander" }) : t`Finishes on` });
   }
   if (lane?.oil) {
-    stats.push({ value: `${Math.round(lane.oil.length)} ft`, label: "Pattern length" });
-    if (lane.oil.exit) stats.push({ value: atFeet(lane.oil.exit), label: "Leaves the oil", swatch: OIL_DOT });
+    stats.push({ value: t`${{ feet: formatNumber(Math.round(lane.oil.length)) }} ft`, label: t`Pattern length` });
+    if (lane.oil.exit) stats.push({ value: atFeet(lane.oil.exit), label: t({ message: "Leaves the oil", comment: "Bowling term: the point on the lane where the oil pattern ends" }), swatch: OIL_DOT });
   }
 
+  const leavePin = input.leave?.[0];
+  const leaveName = input.leave?.length ? formatLeave(input.leave) : "";
   const kind = !spare
-    ? "Strike line"
+    ? t({ message: "Strike line", comment: "Bowling term: the line (stance and target) thrown for a strike" })
     : input.leave?.length === 1
-      ? `${input.leave[0]} pin spare`
+      ? t({ message: `${leavePin} pin spare`, comment: "Bowling term: a spare line for a single pin left standing, the pin number first, e.g. 7 pin spare" })
       : input.leave?.length
-        ? `${formatLeave(input.leave)} spare`
-        : "Spare line";
+        ? t({ message: `${leaveName} spare`, comment: "Bowling term: a spare line for a leave of several pins, named by their numbers, e.g. 2-4-5-8 spare" })
+        : t({ message: "Spare line", comment: "Bowling term: the line (stance and target) thrown to pick up a spare" });
   const patternName = input.pattern?.name?.trim();
 
   return {
-    eyebrow: [`${hand === "left" ? "Left" : "Right"} hand`, ...(patternName ? [kind] : [])].join("  ·  "),
+    eyebrow: [handAndGrip(hand, "1h"), ...(patternName ? [kind] : [])].join("  ·  "),
     title: patternName || kind,
     hero: null,
     games: null,
@@ -661,7 +691,7 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("This browser cannot draw the share image.");
+  if (!ctx) throw new Error(t`This browser cannot draw the share image.`);
 
   ctx.fillStyle = FELT;
   ctx.fillRect(0, 0, W, H);
@@ -852,7 +882,7 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
-      else reject(new Error("The share image could not be created."));
+      else reject(new Error(t`The share image could not be created.`));
     }, "image/png");
   });
 }

@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { BookOpen, Compass, GraduationCap } from "lucide-react";
 import { LaneViewIcon, OilPatternIcon } from "./icons";
 import { ListGroup, ListRow } from "./ui/ListGroup";
@@ -22,32 +23,32 @@ export function ToolsList({ heading, ...open }: ToolsActions & { heading?: strin
     <ListGroup heading={heading}>
       <ListRow
         icon={Compass}
-        label="Layouts"
-        description="A drilling layout, drawn on the ball"
+        label={t`Layouts`}
+        description={t`A drilling layout, drawn on the ball`}
         onClick={open.onOpenLayoutLab}
       />
       <ListRow
         icon={LaneViewIcon}
-        label="Line visualizer"
-        description="Draw a line on the lane, over the oil"
+        label={t`Line visualizer`}
+        description={t`Draw a line on the lane, over the oil`}
         onClick={open.onOpenLineVisualizer}
       />
       <ListRow
         icon={OilPatternIcon}
-        label="Oil patterns"
-        description="Look up a pattern's length and oil"
+        label={t`Oil patterns`}
+        description={t`Look up a pattern's length and oil`}
         onClick={open.onOpenOilPatterns}
       />
       <ListRow
         icon={BookOpen}
-        label="Ball catalog"
-        description="Specs and pictures of current balls"
+        label={t`Ball catalog`}
+        description={t`Specs and pictures of current balls`}
         onClick={open.onOpenCatalog}
       />
       <ListRow
         icon={GraduationCap}
-        label="Guides"
-        description="Using Headpin, layouts and equipment"
+        label={t`Guides`}
+        description={t`Using Headpin, layouts and equipment`}
         onClick={open.onOpenGuides}
       />
     </ListGroup>

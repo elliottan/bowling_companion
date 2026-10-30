@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import { History } from "lucide-react";
 import { calculateGameScore } from "../lib/scoring";
 import { laneSummary } from "./SessionHeaderText";
@@ -7,6 +8,7 @@ import { GROUP_HEADING } from "./ui/typography";
 import { LoadingCard } from "./ui/LoadingCard";
 import { EmptyState } from "./ui/EmptyState";
 import { formatSessionDate } from "../lib/dates";
+import { formatNumber } from "../lib/format";
 
 interface SessionHistoryProps {
   sessions: SessionSummary[];
@@ -26,7 +28,7 @@ export function SessionHistory({
 
   if (sessions.length === 0) {
     return (
-      <EmptyState icon={History} title="No sessions yet" />
+      <EmptyState icon={History} title={t`No sessions yet`} />
     );
   }
 
@@ -78,7 +80,7 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
   return (
     <button
       type="button"
-      aria-label={`Open session: ${alleyLabel(session.alley_name)}, ${formatSessionDate(session.date)}`}
+      aria-label={t`Open session: ${{ alley: alleyLabel(session.alley_name) }}, ${{ date: formatSessionDate(session.date) }}`}
       onClick={() => {
         if (session.id) onOpen(session.id, !hasUnfinishedGame);
       }}
@@ -106,23 +108,26 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
         <div className="flex max-w-[50%] flex-col items-end gap-0.5 text-right">
           {hasUnfinishedGame && (
             <span className="inline-flex items-center rounded-full bg-accent-fill px-2 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-accent-on-fill">
-              Active
+              {t({ message: "Active", comment: "Badge on a session that still has a game in progress." })}
             </span>
           )}
           {/* The average leads (ADR-152). Until a game is finished there is
               none, and the running series stands in for it. */}
           {(seriesAvg !== null || seriesTotal > 0) && (
             <p className="whitespace-nowrap text-lg font-extrabold leading-none text-accent">
-              {seriesAvg ?? seriesTotal}
-              {seriesAvg !== null && <span className="ml-1 text-xs font-semibold text-ink-secondary">avg</span>}
+              {formatNumber(seriesAvg ?? seriesTotal)}
+              {seriesAvg !== null && <span className="ml-1 text-xs font-semibold text-ink-secondary">{t({ message: "avg", comment: "Short for average, beside a session's average score." })}</span>}
             </p>
           )}
           <p className={`${GROUP_HEADING} flex flex-wrap justify-end gap-x-1`}>
             <span className="whitespace-nowrap">
-              {games.length} {games.length === 1 ? "game" : "games"}
+              {plural(games.length, { one: "# game", other: "# games" })}
             </span>
             {seriesAvg !== null && games.length > 1 && (
-              <span className="whitespace-nowrap">{` · ${seriesTotal} series`}</span>
+              <span className="whitespace-nowrap">
+                {" · "}
+                {t({ message: `${{ total: seriesTotal }} series`, comment: "Bowling term: the total of every game in one session." })}
+              </span>
             )}
           </p>
         </div>
@@ -133,14 +138,14 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
           {games.map((game) => {
             const score = calculateGameScore(game.frames);
             const display =
-              game.final_score ?? (score.isComplete ? score.total : `${score.total}+`);
+              game.final_score ?? (score.isComplete ? score.total : `${formatNumber(score.total)}+`);
             return (
               <span
                 key={game.id}
                 className="inline-flex items-center gap-1 rounded-md bg-surface-sunken px-2 py-1 text-xs font-semibold text-ink-strong"
               >
-                <span className="text-ink-secondary">G{game.game_number}</span>
-                <span className="text-accent">{display}</span>
+                <span className="text-ink-secondary">{t({ message: `G${{ game: game.game_number }}`, comment: "Short for Game, with its number: G1, G2." })}</span>
+                <span className="text-accent">{typeof display === "number" ? formatNumber(display) : display}</span>
               </span>
             );
           })}
@@ -153,7 +158,7 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
             .filter((game) => game.notes)
             .map((game) => (
               <div key={game.id} className="flex gap-1.5 text-xs text-ink-secondary">
-                <dt className="shrink-0 font-semibold">G{game.game_number}</dt>
+                <dt className="shrink-0 font-semibold">{t({ message: `G${{ game: game.game_number }}`, comment: "Short for Game, with its number: G1, G2." })}</dt>
                 <dd className="min-w-0 truncate">{game.notes}</dd>
               </div>
             ))}

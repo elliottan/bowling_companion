@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -78,7 +79,7 @@ export function HistoryView({
         header={
           <>
             <div className={`${TAB_TITLE_ROW} mb-3 justify-between gap-3`}>
-              <h1 className={TAB_TITLE}>History</h1>
+              <h1 className={TAB_TITLE}>{t`History`}</h1>
               {/* Nothing to narrow before the first session, and a control
                   that can only ever filter an empty list is noise on the
                   screen a new bowler is deciding about. */}
@@ -89,7 +90,7 @@ export function HistoryView({
               )}
             </div>
 
-            {error && <ErrorBanner className="mb-3">Your sessions could not be read. Reload the app, then try again.</ErrorBanner>}
+            {error && <ErrorBanner className="mb-3">{t`Your sessions could not be read. Reload the app, then try again.`}</ErrorBanner>}
 
             <SessionFilterChips filters={filters} />
           </>

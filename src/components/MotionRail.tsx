@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { MOTION_METERS, clamp, motionBand, type MotionReading } from "../lib/ballLayout";
 
 /**
@@ -8,7 +9,7 @@ import { MOTION_METERS, clamp, motionBand, type MotionReading } from "../lib/bal
  */
 export function MotionRail({ motion, className = "" }: { motion: MotionReading; className?: string }) {
   return (
-    <section aria-label="What it will do" className={`space-y-3 ${className}`.trim()}>
+    <section aria-label={t`What it will do`} className={`space-y-3 ${className}`.trim()}>
       {MOTION_METERS.map((m) => (
         <Meter key={m.key} label={m.label} value={motion[m.key]} words={m.words} />
       ))}
@@ -29,7 +30,7 @@ function Meter({
 }) {
   const word = motionBand(value, ...words);
   return (
-    <div aria-label={`${label}, ${word}`} role="group">
+    <div aria-label={t`${{ label }}, ${{ word }}`} role="group">
       <div className="text-caption-2 font-semibold leading-tight text-ink-strong">{label}</div>
       {/* The slider's own track colour: the rail sits on the sunken page
           colour, where the muted fill the old bars used all but vanished. */}

@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import { formatPercent } from "../lib/format";
 import { ChevronRight, Plus, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -54,9 +55,9 @@ function DerivedChain({ line, model, inline = false }: { line: LineSpec; model: 
   if (slide == null && laydown == null) return null;
   return (
     <span className={`${inline ? "" : "mt-0.5 "}block text-caption-2 font-semibold uppercase tracking-tight text-ink-secondary tabular-nums`}>
-      {slide != null && `Slide ${slide}`}
+      {slide != null && t({ message: `Slide ${{ slide }}`, comment: "Bowling term: the board where the bowler releases the ball, followed by the board number" })}
       {slide != null && laydown != null && <span aria-hidden="true" className="text-ink-tertiary"> → </span>}
-      {laydown != null && `Laydown ${laydown}`}
+      {laydown != null && t({ message: `Laydown ${{ laydown }}`, comment: "Bowling term: the board where the ball first touches the lane, followed by the board number" })}
     </span>
   );
 }
@@ -112,7 +113,7 @@ function Hint({
         onClick={onAdd}
         className={`relative shrink-0 text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
       >
-        Add
+        {t`Add`}
       </button>
       <IconButton compact label={dismissLabel} onClick={onDismiss}>
         <X size={14} aria-hidden="true" />
@@ -136,7 +137,7 @@ function LeaveTile({
       <button
         type="button"
         onClick={() => onOpen(sl)}
-        aria-label={`Open spare line for pins ${sl.pins.join(", ")}`}
+        aria-label={t`Open spare line for pins ${{ pins: sl.pins.join(", ") }}`}
         className="flex w-24 select-none flex-col items-center gap-1.5 rounded-lg border border-edge bg-surface p-2.5 text-center shadow-sm active:opacity-70"
       >
         <MiniPins standing={sl.pins} size="md" />
@@ -199,6 +200,10 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
       : undefined;
 
   const spareBall = balls.find((b) => b.is_spare_ball);
+  const suggestedLeave = suggestion ? formatLeave(suggestion.pins) : "";
+  const fromLeave = suggestion ? formatLeave(suggestion.from.pins) : "";
+  const askedLeave = ask ? formatLeave(ask.pins) : "";
+  const askedTimes = ask ? plural(ask.attempts, { one: "# time", other: "# times" }) : "";
 
   /** Turn a hint down for a while, so it is not asked again straight away. */
   async function snoozeHint(key: string) {
@@ -210,7 +215,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
     try {
       await setSpareBall(id ?? null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to set the spare ball.");
+      setError(err instanceof Error ? err.message : t`Failed to set the spare ball.`);
     }
   }
 
@@ -226,12 +231,12 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
     // add action moves with it: a push has a nav bar, and that bar carries the
     // one trailing action instead of a Fab (DESIGN-LANGUAGE §7b).
     <PushScreen
-      title="Spare lines"
+      title={t({ message: "Spare lines", comment: "Bowling term: your saved line (where you stand and aim) for each spare leave" })}
       onBack={onBack}
       active={opened === null && bulk === null && !pickingBall && !pinFilterOpen}
       trailing={
         <IconButton
-          label="Add spare line"
+          label={t`Add spare line`}
           variant="round"
           onClick={() => setOpened({ pins: [], edit: true })}
         >
@@ -265,11 +270,9 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
             <SpareLineIcon size={18} aria-hidden="true" />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="text-sm font-semibold text-ink">Write down how you shoot each spare</h2>
+            <h2 className="text-sm font-semibold text-ink">{t`Write down how you shoot each spare`}</h2>
             <p className="mt-0.5 text-xs text-ink-secondary">
-              Tap a leave and enter the board you stand on and the board you aim at. The next time
-              you leave it in a game, that line is filled in for you, with the spare ball you pick
-              below.
+              {t`Tap a leave and enter the board you stand on and the board you aim at. The next time you leave it in a game, that line is filled in for you, with the spare ball you pick below.`}
             </p>
           </div>
         </div>
@@ -295,9 +298,9 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           )}
         </div>
         <span className="min-w-0 flex-1">
-          <span className="block text-caption-2 font-semibold uppercase tracking-wide text-accent">Spare ball</span>
+          <span className="block text-caption-2 font-semibold uppercase tracking-wide text-accent">{t({ message: "Spare ball", comment: "Bowling term: the ball used for spare shots" })}</span>
           <span className="line-clamp-2 block break-words text-sm font-semibold text-ink">
-            {spareBall ? spareBall.name : "Choose one"}
+            {spareBall ? spareBall.name : t`Choose one`}
           </span>
         </span>
         <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
@@ -325,11 +328,9 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
             })
           }
           onDismiss={() => void snoozeHint(suggestionKey(suggestion))}
-          dismissLabel="Not the same shot"
+          dismissLabel={t`Not the same shot`}
         >
-          <span className="font-semibold text-ink">{formatLeave(suggestion.pins)}</span> is likely the
-          same shot as <span className="font-semibold text-ink">{formatLeave(suggestion.from.pins)}</span>.
-          Use its line?
+          {t`${{ leave: suggestedLeave }} is likely the same shot as ${{ from: fromLeave }}. Use its line?`}
         </Hint>
       )}
 
@@ -341,32 +342,30 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
           pins={ask.pins}
           onAdd={() => setOpened({ pins: ask.pins, edit: true })}
           onDismiss={() => void snoozeHint(askKey(ask.pins))}
-          dismissLabel="Not now"
+          dismissLabel={t`Not now`}
         >
-          You leave <span className="font-semibold text-ink">{formatLeave(ask.pins)}</span> most often
-          {` (${ask.attempts} ${ask.attempts === 1 ? "time" : "times"}) `}
-          and have no line for it.
+          {t`You leave ${{ leave: askedLeave }} most often (${{ times: askedTimes }}) and have no line for it.`}
         </Hint>
       )}
 
       {isLoading ? (
-        <p className="text-sm text-ink-secondary">Loading…</p>
+        <p className="text-sm text-ink-secondary">{t`Loading…`}</p>
       ) : shown.length === 0 ? (
         <EmptyState
           icon={SpareLineIcon}
-          title="No spare lines yet"
-          description="Save where you stand and where you aim for a leave, and it is there the next time you face it."
+          title={t`No spare lines yet`}
+          description={t`Save where you stand and where you aim for a leave, and it is there the next time you face it.`}
         >
           <Button variant="primary" onClick={() => setOpened({ pins: [], edit: true })}>
             <Plus size={18} aria-hidden="true" />
-            Add spare line
+            {t`Add spare line`}
           </Button>
         </EmptyState>
       ) : (
         <>
         <SpareFilterBar
           state={spareFilters}
-          label="Filter spare lines"
+          label={t`Filter spare lines`}
           pinsOpen={pinFilterOpen}
           onPinsOpenChange={setPinFilterOpen}
         />
@@ -374,14 +373,14 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
         {rows.length === 0 ? (
           <EmptyState
             icon={SpareLineIcon}
-            title="Nothing matches"
-            description="None of your saved leaves fit these filters."
+            title={t`Nothing matches`}
+            description={t`None of your saved leaves fit these filters.`}
           >
             <Button
               variant="ghost"
               onClick={spareFilters.clear}
             >
-              Clear filters
+              {t`Clear filters`}
             </Button>
           </EmptyState>
         ) : (
@@ -397,16 +396,17 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
                   <button
                     type="button"
                     onClick={() => setBulk(row)}
-                    aria-label={`Edit ${rowLabel(row)} for all ${row.tiles.length} ${
-                      row.tiles.length === 1 ? "leave" : "leaves"
-                    }`}
+                    aria-label={plural(row.tiles.length, {
+                      one: `Edit ${rowLabel(row)} for all # leave`,
+                      other: `Edit ${rowLabel(row)} for all # leaves`
+                    })}
                     className="relative -mx-1 block w-[calc(100%+0.5rem)] rounded-md px-1 py-1 text-left active:bg-surface-muted"
                   >
                     <RowHeading line={row.line} kind={row.kind} />
                   </button>
                   </h2>
                 ) : (
-                  <h2 className={GROUP_HEADING}>No line yet</h2>
+                  <h2 className={GROUP_HEADING}>{t`No line yet`}</h2>
                 )}
               </div>
               <ul className="scrollbar-none -mx-3 flex snap-x scroll-pl-3 gap-2 overflow-x-auto overscroll-x-none px-3 pb-1 sm:mx-0 sm:scroll-pl-0 sm:px-0">
@@ -433,12 +433,12 @@ const LABEL = "text-caption-2 font-semibold uppercase tracking-tight text-ink-se
 
 /** A row's spoken name: the boards it stands on and aims at, or its move. */
 function rowLabel(row: LineRow): string {
-  if (!row.line) return "No line yet";
+  if (!row.line) return t`No line yet`;
   const boards = row.line.line;
   if (row.kind === "line" && boards) {
-    return `Stance ${boards.stance ?? "none"}, target ${boards.target ?? "none"}`;
+    return t`Stance ${{ stance: boards.stance ?? t`none` }}, target ${{ target: boards.target ?? t`none` }}`;
   }
-  return "Strike ball";
+  return t({ message: "Strike ball", comment: "Bowling term: the ball thrown for strikes, as opposed to the spare ball" });
 }
 
 /** What a row is about: the spare ball line, the boards to stand and aim on with
@@ -453,8 +453,8 @@ function RowHeading({ line, kind }: { line: SpareLine; kind: LineRow["kind"] }) 
     const offset = line.strike_offset;
     return (
       <span className="block text-sm font-bold tabular-nums text-ink">
-        <span className={LABEL}>Strike ball</span>
-        {([["Stance", offset?.stance], ["Target", offset?.target]] as const).map(([k, v]) =>
+        <span className={LABEL}>{t({ message: "Strike ball", comment: "Bowling term: the ball thrown for strikes, as opposed to the spare ball" })}</span>
+        {([[t({ message: "Stance", comment: "Bowling term: the board you stand on" }), offset?.stance], [t({ message: "Target", comment: "Bowling term: the board you aim at" }), offset?.target]] as const).map(([k, v]) =>
           v ? (
             <span key={k}>
               <span className={`${LABEL} ml-2`}>{k} </span>
@@ -468,9 +468,9 @@ function RowHeading({ line, kind }: { line: SpareLine; kind: LineRow["kind"] }) 
   return (
     <span className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
       <span className="text-sm font-bold tabular-nums text-ink">
-        <span className={LABEL}>Stance </span>
+        <span className={LABEL}>{t({ message: "Stance", comment: "Bowling term: the board you stand on" })} </span>
         {boards?.stance ?? "-"}
-        <span className={`${LABEL} ml-2`}>Target </span>
+        <span className={`${LABEL} ml-2`}>{t({ message: "Target", comment: "Bowling term: the board you aim at" })} </span>
         {boards?.target ?? "-"}
       </span>
       {boards && <DerivedChain line={boards} model={driftModel} inline />}
