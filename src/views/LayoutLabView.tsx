@@ -427,16 +427,20 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             <div className="flex w-24 shrink-0 flex-col justify-between gap-2 self-stretch py-1">
               <MotionRail motion={motion} />
               <div className="space-y-2">
-                <SegmentedControl
-                  dense
-                  label="Core type"
-                  value={symmetric ? "sym" : "asym"}
-                  onChange={(v) => setSymmetric(v === "sym")}
-                  options={[
-                    { value: "asym", label: "Asym", srLabel: "Asymmetric" },
-                    { value: "sym", label: "Sym", srLabel: "Symmetric" }
-                  ]}
-                />
+                {/* The rail is a fixed 6rem beside the ball, so its control
+                    keeps its base size: larger, "Asym" and "Sym" overran it. */}
+                <div className="type-cap-fixed">
+                  <SegmentedControl
+                    dense
+                    label="Core type"
+                    value={symmetric ? "sym" : "asym"}
+                    onChange={(v) => setSymmetric(v === "sym")}
+                    options={[
+                      { value: "asym", label: "Asym", srLabel: "Asymmetric" },
+                      { value: "sym", label: "Sym", srLabel: "Symmetric" }
+                    ]}
+                  />
+                </div>
                 {/* The presets, as a named menu. Every reset this screen had was
                     "go back to the benchmark", and the benchmark is a preset,
                     so one control, saying which preset is on screen in its

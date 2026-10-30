@@ -349,7 +349,7 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
                     className="flex min-h-[52px] min-w-0 flex-1 items-center gap-3 px-4 py-2.5 text-left active:bg-surface-muted"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-body leading-snug text-ink">{pattern.name}</span>
+                      <span className="line-clamp-2 block break-words text-body leading-snug text-ink">{pattern.name}</span>
                       <span className="block truncate text-xs tabular-nums text-ink-secondary">
                         <PatternFeet pattern={pattern} />
                         {formatFixed(pattern.volumeMl, 2)} mL
@@ -495,7 +495,7 @@ function PatternRow({
         className="flex min-h-[52px] min-w-0 flex-1 items-center gap-3 px-4 py-2.5 text-left active:bg-surface-muted"
       >
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-body leading-snug text-ink">{pattern.name}</span>
+          <span className="line-clamp-2 block break-words text-body leading-snug text-ink">{pattern.name}</span>
           <span className="block truncate text-xs tabular-nums text-ink-secondary">
             <PatternFeet pattern={pattern} />
             {summarize(pattern)}

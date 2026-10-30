@@ -882,27 +882,32 @@ function StatNote({ text, onDismiss }: { text: string; onDismiss: () => void }) 
  *  mark on a scoresheet, so a bowler reads it at a glance. */
 const STRIKE_ON_STRIKE_SHORT = "X-on-X";
 
+/** Every ball column's width: 44px, the width of "POCKET", the widest
+ *  one-word heading, which at 36px ran into "CARRY" beside it. Scaled with
+ *  the row's text, so a number grows into room of its own; the row scrolls
+ *  sideways under the pinned name where the five no longer fit. */
+const BALL_COLUMN_WIDTH = "w-[calc(2.75rem*var(--type-scale))]";
+
 /** A ball's columns, in order, shared by the heading row and every ball so
  *  each number sits under the word that names it. Strike leads the three
- *  rates it ends; the first ball average and strike on strike follow. Sized so
- *  all five fit beside the name on a 360px phone (ADR-144). */
+ *  rates it ends; the first ball average and strike on strike follow. All five
+ *  fit beside the name on a 390px phone at the standard size (ADR-144). */
 const BALL_COLUMNS: ReadonlyArray<{
   key: string;
   label: string;
   width: string;
   value: (b: BallPerformance) => string;
 }> = [
-  { key: "pocket", label: "Pocket", width: "w-9", value: (b) => pct(b.pocketPct) },
-  { key: "carry", label: "Carry", width: "w-9", value: (b) => pct(b.carryPct) },
-  { key: "strike", label: "Strike", width: "w-9", value: (b) => pct(b.strikePct) },
-  { key: "first ball", label: "1st ball", width: "w-9", value: (b) => oneDp(b.firstBallAverage) },
+  { key: "pocket", label: "Pocket", width: BALL_COLUMN_WIDTH, value: (b) => pct(b.pocketPct) },
+  { key: "carry", label: "Carry", width: BALL_COLUMN_WIDTH, value: (b) => pct(b.carryPct) },
+  { key: "strike", label: "Strike", width: BALL_COLUMN_WIDTH, value: (b) => pct(b.strikePct) },
+  { key: "first ball", label: "1st ball", width: BALL_COLUMN_WIDTH, value: (b) => oneDp(b.firstBallAverage) },
   // The key is what a screen reader hears with each number; the heading is
   // the short form, which fits one line where the words took three.
   {
     key: "strike on strike",
     label: STRIKE_ON_STRIKE_SHORT,
-    // 40px, as ADR-144 set it: "X-ON-X" on one line is wider than 36.
-    width: "w-10",
+    width: BALL_COLUMN_WIDTH,
     value: (b) => pct(b.strikeOnStrikePct)
   }
 ];
@@ -932,13 +937,15 @@ const NO_BREAK = (label: string) => (label.includes(" ") ? "" : "whitespace-nowr
 function BallRateHeadings() {
   return (
     <div
-      className={`${BALL_ROW} sticky top-0 z-[2] items-end bg-surface pb-1 text-caption-2 font-semibold uppercase leading-tight text-ink-tertiary`}
+      className={`${BALL_ROW} sticky top-0 z-[2] items-end bg-surface pb-1 font-semibold uppercase leading-tight text-ink-tertiary`}
       aria-hidden="true"
     >
       <span className={`${BALL_NAME_CELL} self-stretch`} />
       {BALL_COLUMNS.map((c) => (
+        // The heading holds its base size, while the columns widen with the
+        // bowler's text size: a grown heading overran into its neighbours.
         <span key={c.key} className={`${c.width} shrink-0 text-center ${NO_BREAK(c.label)}`}>
-          {c.label}
+          <span className="type-cap-fixed text-caption-2">{c.label}</span>
         </span>
       ))}
     </div>
@@ -986,7 +993,7 @@ function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labell
         >
           {labelled && (
             <span
-              className={`block text-caption-2 font-semibold uppercase leading-tight text-ink-tertiary ${NO_BREAK(c.label)}`}
+              className={`type-cap-fixed block text-caption-2 font-semibold uppercase leading-tight text-ink-tertiary ${NO_BREAK(c.label)}`}
               aria-hidden="true"
             >
               {c.label}
@@ -1295,8 +1302,9 @@ const ROW_NAME_CELL = "sticky left-0 z-[1] bg-surface-muted pr-2";
 /** One game's column in a ball's by-game table: a fixed width that holds
  *  "100%" with room either side, its figures centred. A table hands its spare
  *  width to the columns with no width of their own, so the row names take it
- *  and every game column stays this wide. */
-const GAME_CELL = "w-10 min-w-10 text-center";
+ *  and every game column stays this wide. Scaled with the text, or "100%"
+ *  ran into the next game's figure at a large size. */
+const GAME_CELL = "w-[calc(2.5rem*var(--type-scale))] min-w-[calc(2.5rem*var(--type-scale))] text-center";
 
 function MetricRow({
   label,
@@ -1405,13 +1413,14 @@ function LeaveCell({ leave, onOpen }: { leave: LeaveStats; onOpen: () => void })
       <MiniPins standing={leave.pins} size="sm" />
       {/* The pin diagram already names the leave: made over chances hard left,
           rate hard right. Both are tabular so the columns line up cell to cell
-          however many digits each one happens to have. */}
-      <div className="flex w-full items-baseline gap-1">
-        <span className="min-w-0 flex-1 text-left text-caption-2 tabular-nums text-ink-secondary">
+          however many digits each one happens to have. At a large text size
+          the two no longer fit side by side, and the rate wraps under. */}
+      <div className="flex w-full flex-wrap items-baseline justify-between gap-x-1">
+        <span className="whitespace-nowrap text-left text-caption-2 tabular-nums text-ink-secondary">
           {leave.conversions}/{leave.chances}
         </span>
         <span
-          className={`shrink-0 text-right text-sm font-bold tabular-nums ${
+          className={`ml-auto whitespace-nowrap text-right text-sm font-bold tabular-nums ${
             leave.conversionPct !== null && leave.conversionPct >= 70
               ? "text-accent"
               : "text-ink"

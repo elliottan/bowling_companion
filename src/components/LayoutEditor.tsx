@@ -303,7 +303,7 @@ export function Slider({
         onClick={() => setHintOpen((v) => !v)}
         aria-expanded={hintOpen}
         aria-controls={`${id}-hint`}
-        className={`${FIELD_MICRO_LABEL} mb-0 inline-flex w-[6.75rem] shrink-0 items-center gap-1 whitespace-nowrap text-left`}
+        className={`${FIELD_MICRO_LABEL} mb-0 inline-flex w-[calc(6.75rem*var(--type-scale))] shrink-0 items-center gap-1 whitespace-nowrap text-left`}
       >
         {label}
         <Info size={11} aria-hidden="true" className="shrink-0 opacity-60" />
@@ -335,7 +335,7 @@ export function Slider({
           </span>
         )}
       </div>
-      <span className="w-12 shrink-0 text-right text-sm font-bold tabular-nums text-ink">
+      <span className="type-cap-dense min-w-12 shrink-0 whitespace-nowrap text-right text-sm font-bold tabular-nums text-ink">
         <Measure>{shown}</Measure>
       </span>
       {/* A popup over the row rather than a line added under it. Three of these
@@ -394,8 +394,10 @@ export function SystemCard({
       <span className={FIELD_MICRO_LABEL}>{label}</span>
       <span
         // Large enough to read at arm's length: the three numbers are what
-        // the card is for (ADR-211).
-        className="block whitespace-nowrap text-lg font-bold leading-tight tabular-nums text-accent"
+        // the card is for (ADR-211). Held at that size: a VLS reading is
+        // three measurements in half the screen, and any larger it ran past
+        // the card's edge.
+        className="type-cap-fixed block whitespace-nowrap text-lg font-bold leading-tight tabular-nums text-accent"
       >
         <LayoutNumbers value={value} />
       </span>

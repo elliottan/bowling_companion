@@ -183,8 +183,10 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                   </select>
                 </div>
               )}
-              <div className="flex gap-2">
-                <div className="min-w-0 flex-1">
+              {/* Wraps: at a large text size the lane and game take a row
+                  under the pattern rather than cutting "Any" to "An". */}
+              <div className="flex flex-wrap gap-2">
+                <div className="min-w-[10rem] flex-1">
                   <label className={FIELD_LABEL} htmlFor="plan-pattern">
                     Pattern
                   </label>
@@ -200,7 +202,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                 {/* Only inside a house that has lanes on record: a lane number
                     means nothing across houses, and an empty picker is furniture. */}
                 {allLanes.length > 0 && (
-                  <div className="w-24 shrink-0">
+                  <div className="w-[calc(6rem*var(--type-scale))] shrink-0">
                     <label className={FIELD_LABEL} htmlFor="plan-lane">
                       Lane
                     </label>
@@ -220,7 +222,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                   </div>
                 )}
                 {allGames.length > 1 && (
-                  <div className="w-24 shrink-0">
+                  <div className="w-[calc(6rem*var(--type-scale))] shrink-0">
                     <label className={FIELD_LABEL} htmlFor="plan-game">
                       Game
                     </label>

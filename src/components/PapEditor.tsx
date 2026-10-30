@@ -65,7 +65,7 @@ export function PapEditor({
           // sign for the whole measurement, not for its integer part: half an
           // inch below the midline is a real PAP and there is no way to write
           // it as a negative zero.
-          <Dropdown className="w-[4.5rem]">
+          <Dropdown className="w-[calc(4.5rem*var(--type-scale))]">
             <select
               aria-label="Up or down direction"
               className={FIELD_DENSE_SELECT_NARROW}
@@ -95,6 +95,9 @@ export function PapEditor({
  * away with because its selects hold a word. Here two of the three hold a
  * single digit, and a bare box with "5" in it reads as a text field: the
  * chevron is the only thing saying there is a list behind it.
+ *
+ * Callers size it in rem times `--type-scale`, so the box grows with the
+ * bowler's text size: a fixed width cut "1/8" to "1/" at the largest size.
  */
 function Dropdown({ className, children }: { className: string; children: ReactNode }) {
   return (
@@ -155,7 +158,7 @@ export function InchField({
     // `w-14` appended to it loses and the row overflows the card. Same trap as
     // the colour rule in docs/DESIGN-LANGUAGE.md §2.
     <div className="flex items-center gap-1.5">
-      <Dropdown className="w-[2.5rem]">
+      <Dropdown className="w-[calc(2.5rem*var(--type-scale))]">
         <select
           id={id}
           aria-label={label}
@@ -170,7 +173,7 @@ export function InchField({
           ))}
         </select>
       </Dropdown>
-      <Dropdown className="w-[3.5rem]">
+      <Dropdown className="w-[calc(3.5rem*var(--type-scale))]">
         <select
           aria-label={`${label} fraction`}
           className={`${FIELD_DENSE_SELECT_NARROW} tabular-nums`}

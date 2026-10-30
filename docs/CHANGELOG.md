@@ -9,6 +9,26 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.74.1: Large text sizes fit every screen (2026-10-29)
+
+- At the larger text sizes (Settings, Appearance, Text size, or the iPhone's own
+  Dynamic Type), text no longer runs into other text or gets cut off:
+  - Segmented controls (the Stats range, Asym and Sym, the theme) widen to fit
+    their labels instead of printing one over the next. On Stats the range
+    moves to its own row when the header is full.
+  - The Balls table on Stats and on the Alley report keeps each heading over
+    its own column, and the columns widen with their numbers.
+  - The PAP dropdowns in Bowling profile, and the Lane and Game pickers on the
+    Alley report, widen so the value shows in full.
+  - The Home tiles and recent sessions, the History rows, the spare leave
+    cards, the Settings name chip, the session header, the Layouts readouts,
+    the Line visualizer's fields, the scorer's More menu, and the by-game
+    table in a ball's stats all make room or wrap instead of cutting the text.
+  - Pattern names, guide titles and the spare ball's name wrap onto a second
+    line instead of ending in "...".
+- On the Lock Screen and in the Dynamic Island, the pin carries the app icon's
+  red neck stripes, so it reads as a bowling pin at a glance.
+
 ## 0.74.0: Your game on the Lock Screen and in the Dynamic Island (2026-10-29)
 
 - In the iPhone app, a game you are scoring now shows on the Lock Screen and in

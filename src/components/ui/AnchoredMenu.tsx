@@ -79,11 +79,13 @@ export function AnchoredMenuItem({
       onClick={onClick}
       // The pressed row is an inset capsule, as iOS 26 lights a menu row,
       // rather than a band edge to edge.
-      className={`mx-1.5 flex h-11 w-[calc(100%-0.75rem)] items-center gap-3 rounded-full px-3.5 text-left text-body active:bg-ink/10 ${
+      className={`mx-1.5 flex min-h-11 w-[calc(100%-0.75rem)] items-center gap-3 rounded-[22px] px-3.5 py-2 text-left text-body active:bg-ink/10 ${
         danger ? "text-danger-600" : "text-ink"
       }`}
     >
-      <span className="min-w-0 flex-1 truncate">{children}</span>
+      {/* Wraps rather than truncates: at a large text size a fixed-width
+          menu cut "Undo last shot" to "Undo last s...". */}
+      <span className="min-w-0 flex-1 break-words">{children}</span>
       <Icon size={18} aria-hidden="true" className="shrink-0" />
     </button>
   );
