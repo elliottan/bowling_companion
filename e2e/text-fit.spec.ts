@@ -49,9 +49,15 @@ function pinFonts() {
     :root:lang(ko), :root:lang(ko) * { font-family: "Inter", "Noto Sans CJK KR", "Noto Sans KR", sans-serif !important; }
     :root:lang(zh-Hans), :root:lang(zh-Hans) * { font-family: "Inter", "Noto Sans CJK SC", "Noto Sans SC", sans-serif !important; }
     :root:lang(zh-Hant), :root:lang(zh-Hant) * { font-family: "Inter", "Noto Sans CJK TC", "Noto Sans TC", sans-serif !important; }`;
-  const style = document.createElement("style");
-  style.textContent = css;
-  document.documentElement.appendChild(style);
+  // An init script runs before the document has an element to hang a style
+  // on, so the style goes in once the page is parsed, before the app renders.
+  const add = () => {
+    const style = document.createElement("style");
+    style.textContent = css;
+    document.head.appendChild(style);
+  };
+  if (document.head) add();
+  else document.addEventListener("DOMContentLoaded", add, { once: true });
 }
 
 // `src/lib/i18n.ts` imports the message macro and `import.meta.glob`, neither
