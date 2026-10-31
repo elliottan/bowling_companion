@@ -28,6 +28,11 @@ spare lines, and stats. You fill in the `msgstr` of a gettext `.po` chunk.
    still gets a msgstr: usually a copy, punctuation adjusted if natural.
 
 ## Known traps
+- "# ball/# balls" is two messages: plain, a count of bowling balls (in the catalog, in a
+  backup), and with context `balls thrown`, a count of shots thrown with a ball. Count
+  each the way the language counts it.
+- Two different stats never share words: "Strike on strike" (the rate of a strike right
+  after a strike) is not "Strikes in a row" (the longest run in a game).
 - "High" and "Low" are ONE message used both for a ball's flare reading and for the
   highest/lowest game score: choose a word that works for both (a plain high/low).
 - "Score" is a tab name meaning "score a game" (where you enter shots).
@@ -66,7 +71,7 @@ board (on the lane, counted) 板 (board 10 = 第 10 板; "2 boards" = 2 板) · 
 laydown 出手點 · slide 滑步 · drift 偏移 · move 移動 · lane 球道 · pair (of lanes) 雙球道 ·
 bowling centre / alley 保齡球館 · house 球館 · oil pattern 油型 · pattern length 油長 ·
 volume 油量 · ratio 比例 · layout 打孔配置 · dual angle 雙角度 · drilling angle 打孔角度 ·
-pin buffer 定位銷距離 (pin buffer) · pin (on a ball) 定位銷 · pin (bowling pin) 球瓶 · core 球心 ·
+pin buffer 定位銷緩衝 (never 定位銷距離, which reads as the pin to PAP distance) · pin (on a ball) 定位銷 · pin (bowling pin) 球瓶 · core 球心 ·
 symmetric 對稱 · asymmetric 非對稱 · coverstock 球皮 · surface 表面 · hook 曲球 · backend 後段 ·
 carry 帶倒 · rev rate 轉速 · speed 球速 · axis tilt 軸傾角 · axis rotation 軸旋轉 ·
 handedness 慣用手 · right-handed 右手 · left-handed 左手 · one-handed 單手 · two-handed 雙手 ·

@@ -28,6 +28,11 @@ spare lines, and stats. You fill in the `msgstr` of a gettext `.po` chunk.
    still gets a msgstr: usually a copy, punctuation adjusted if natural.
 
 ## Known traps
+- "# ball/# balls" is two messages: plain, a count of bowling balls (in the catalog, in a
+  backup), and with context `balls thrown`, a count of shots thrown with a ball. Count
+  each the way the language counts it.
+- Two different stats never share words: "Strike on strike" (the rate of a strike right
+  after a strike) is not "Strikes in a row" (the longest run in a game).
 - "High" and "Low" are ONE message used both for a ball's flare reading and for the
   highest/lowest game score: choose a word that works for both (a plain high/low).
 - "Score" is a tab name meaning "score a game" (where you enter shots).
@@ -71,4 +76,4 @@ hook 훅 · backend 백엔드 · carry 캐리 · rev rate 회전수 · speed 속
 axis rotation 액시스 로테이션 · handedness 사용하는 손 · right-handed 오른손 · left-handed 왼손 ·
 one-handed 원핸드 · two-handed 투핸드 · catalog 카탈로그 · guide 가이드 · stats 통계 ·
 history 기록 · home 홈 · settings 설정 · backup 백업 · restore 복원 · import 가져오기 ·
-export 내보내기 · archive 보관 · delete 삭제 · undo 실행 취소 · Lock Screen 잠금 화면 · Pro Pro
+export 내보내기 · archive 보관 · delete 삭제 · undo 실행 취소 · Lock Screen 잠금 화면 · strike on strike 스트라이크 후 스트라이크 (연속 스트라이크 is strikes in a row) · Appearance 모양 · Pro Pro

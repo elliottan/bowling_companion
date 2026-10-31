@@ -9,6 +9,22 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.75.1: Translation fixes (2026-10-31)
+
+- A review of every translated message against the English fixed the ones
+  that said the wrong thing. On a ball's stats, a count of shots thrown read
+  as a count of bowling balls in Japanese, Korean and Chinese ("5 balls" now
+  reads "5 shots"). In Korean, "Finishes on" on a share card read as an end
+  date, and "Strike on strike" had the same words as "Strikes in a row"; the
+  same clash is fixed in Chinese. Spanish steps to move games sent you to a
+  "Respaldo y restauración" screen the app calls "Respaldos", said a game was
+  "in the books" word for word, and put "Izquierda" (left, the
+  direction) where a leave's count of times left belongs. Chinese read "over
+  the oil" as "oil painting", and named the pin buffer the same as the pin to
+  PAP distance. Simplified Chinese now uses one word for drift throughout.
+- The catalogs are checked on every build for broken placeholders, numbered
+  tags and plural forms in every language.
+
 ## 0.75.0: Headpin in Spanish, Japanese, Korean and Chinese (2026-10-30)
 
 - The app speaks Spanish, Japanese, Korean, and Chinese in both Traditional

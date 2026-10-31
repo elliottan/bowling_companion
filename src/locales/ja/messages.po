@@ -35,23 +35,36 @@ msgstr "{0, plural, other {#ボウリング場}}"
 msgid "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}}"
 msgstr "{0, plural, other {{totalBalls}個中#個のボール}}"
 
+#. A count of shots thrown (first balls) with a ball, too few to trust the estimate
 #. placeholder {0}: estimate.firstBalls
 #: src/components/BallEstimates.tsx
 msgid "{0, plural, one {# ball, too few} other {# balls, too few}}"
-msgstr "{0, plural, other {#個のボール、データ不足}}"
+msgstr "{0, plural, other {#投、データ不足}}"
 
-#. placeholder {0}: ball.balls
-#. placeholder {0}: ball.firstBalls
 #. placeholder {0}: displayed.length
-#: src/components/BallEstimates.tsx
-#: src/components/BallGameSessionsDialog.tsx
+#. placeholder {0}: pending.incoming.balls
 #: src/components/FirstRun.tsx
-#: src/components/ProOfferSamples.tsx
-#: src/components/Stats.tsx
 #: src/views/CatalogView.tsx
-#: src/views/GamePlanView.tsx
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, other {#個のボール}}"
+
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. placeholder {0}: ball.balls
+#. placeholder {0}: ball.firstBalls
+#. placeholder {0}: estimate.firstBalls
+#: src/components/BallEstimates.tsx
+#: src/components/BallGameSessionsDialog.tsx
+#: src/components/ProOfferSamples.tsx
+#: src/components/Stats.tsx
+#: src/views/GamePlanView.tsx
+msgctxt "balls thrown"
+msgid "{0, plural, one {# ball} other {# balls}}"
+msgstr "{0, plural, other {#投}}"
 
 #. placeholder {0}: driftModel.release_offset
 #: src/views/BowlingProfileView.tsx
@@ -3132,7 +3145,7 @@ msgstr "アウトサイドゾーンの終了ボード"
 #. Bowling term: PAP (positive axis point), how far over from the ball's center line the axis point sits, in inches.
 #: src/components/PapEditor.tsx
 msgid "Over"
-msgstr "オーバー"
+msgstr "横"
 
 #: src/components/Stats.tsx
 msgid "over your last {sessions} sessions, {against}"
@@ -4653,8 +4666,8 @@ msgstr "接続を待っています"
 msgid "Waiting for approval. Pro opens as soon as it comes through."
 msgstr "承認待ちです。承認されるとすぐにProが使えるようになります。"
 
-#. Bowling term: a leave with the head pin gone and pins scattered on both sides
 #. Bowling term: leaves where the head pin is standing with a gap behind it, a group on the Stats tab
+#. Bowling term: leaves where the head pin is standing with a gap behind it, like the 1-2-10
 #: src/lib/pins.ts
 #: src/views/OpenFramesView.tsx
 msgid "Washouts"

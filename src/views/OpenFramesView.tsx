@@ -74,7 +74,7 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
                   and hiding them would just shrink the headline. */}
               <span className="mt-3 flex flex-wrap gap-1.5">
                 <Kind label={t({ message: "Makeable", comment: "Bowling term: a leave that can be converted into a spare" })} value={report.makeable.perGame} strong />
-                <Kind label={t({ message: "Washouts", comment: "Bowling term: a leave with the head pin gone and pins scattered on both sides" })} value={report.washout.perGame} />
+                <Kind label={t({ message: "Washouts", comment: "Bowling term: leaves where the head pin is standing with a gap behind it, like the 1-2-10" })} value={report.washout.perGame} />
                 <Kind label={t({ message: "Splits", comment: "Bowling term: a leave with a gap between the standing pins" })} value={report.split.perGame} />
               </span>
             </button>

@@ -35,21 +35,34 @@ msgstr "{0, plural, one {# alley} other {# alleys}}"
 msgid "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}}"
 msgstr "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}}"
 
+#. A count of shots thrown (first balls) with a ball, too few to trust the estimate
 #. placeholder {0}: estimate.firstBalls
 #: src/components/BallEstimates.tsx
 msgid "{0, plural, one {# ball, too few} other {# balls, too few}}"
 msgstr "{0, plural, one {# ball, too few} other {# balls, too few}}"
 
+#. placeholder {0}: displayed.length
+#. placeholder {0}: pending.incoming.balls
+#: src/components/FirstRun.tsx
+#: src/views/CatalogView.tsx
+msgid "{0, plural, one {# ball} other {# balls}}"
+msgstr "{0, plural, one {# ball} other {# balls}}"
+
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
 #. placeholder {0}: ball.balls
 #. placeholder {0}: ball.firstBalls
-#. placeholder {0}: displayed.length
+#. placeholder {0}: estimate.firstBalls
 #: src/components/BallEstimates.tsx
 #: src/components/BallGameSessionsDialog.tsx
-#: src/components/FirstRun.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
-#: src/views/CatalogView.tsx
 #: src/views/GamePlanView.tsx
+msgctxt "balls thrown"
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, one {# ball} other {# balls}}"
 
@@ -4653,8 +4666,8 @@ msgstr "Waiting for a connection"
 msgid "Waiting for approval. Pro opens as soon as it comes through."
 msgstr "Waiting for approval. Pro opens as soon as it comes through."
 
-#. Bowling term: a leave with the head pin gone and pins scattered on both sides
 #. Bowling term: leaves where the head pin is standing with a gap behind it, a group on the Stats tab
+#. Bowling term: leaves where the head pin is standing with a gap behind it, like the 1-2-10
 #: src/lib/pins.ts
 #: src/views/OpenFramesView.tsx
 msgid "Washouts"

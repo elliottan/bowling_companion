@@ -1098,7 +1098,7 @@ function BallSummary({ ball, labelled = false }: { ball: BallPerformance; labell
             {ball.name}
           </span>
           <span className="block text-caption-2 tabular-nums text-ink-tertiary">
-            {plural(ball.firstBalls, { one: "# ball", other: "# balls" })}
+            {t({ message: plural(ball.firstBalls, { one: "# ball", other: "# balls" }), context: "balls thrown", comment: "A count of shots thrown (first balls), not of bowling balls owned" })}
           </span>
         </span>
       </span>

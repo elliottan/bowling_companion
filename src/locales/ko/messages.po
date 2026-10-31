@@ -35,23 +35,36 @@ msgstr "{0, plural, other {볼링장 #곳}}"
 msgid "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}}"
 msgstr "{0, plural, other {전체 {totalBalls}개 중 #개}}"
 
+#. A count of shots thrown (first balls) with a ball, too few to trust the estimate
 #. placeholder {0}: estimate.firstBalls
 #: src/components/BallEstimates.tsx
 msgid "{0, plural, one {# ball, too few} other {# balls, too few}}"
 msgstr "{0, plural, other {투구 #회, 표본 부족}}"
 
-#. placeholder {0}: ball.balls
-#. placeholder {0}: ball.firstBalls
 #. placeholder {0}: displayed.length
-#: src/components/BallEstimates.tsx
-#: src/components/BallGameSessionsDialog.tsx
+#. placeholder {0}: pending.incoming.balls
 #: src/components/FirstRun.tsx
-#: src/components/ProOfferSamples.tsx
-#: src/components/Stats.tsx
 #: src/views/CatalogView.tsx
-#: src/views/GamePlanView.tsx
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, other {볼 #개}}"
+
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. placeholder {0}: ball.balls
+#. placeholder {0}: ball.firstBalls
+#. placeholder {0}: estimate.firstBalls
+#: src/components/BallEstimates.tsx
+#: src/components/BallGameSessionsDialog.tsx
+#: src/components/ProOfferSamples.tsx
+#: src/components/Stats.tsx
+#: src/views/GamePlanView.tsx
+msgctxt "balls thrown"
+msgid "{0, plural, one {# ball} other {# balls}}"
+msgstr "{0, plural, other {투구 #회}}"
 
 #. placeholder {0}: driftModel.release_offset
 #: src/views/BowlingProfileView.tsx
@@ -842,7 +855,7 @@ msgstr "앱"
 #: src/views/AppearanceView.tsx
 #: src/views/SettingsView.tsx
 msgid "Appearance"
-msgstr "외관"
+msgstr "모양"
 
 #: src/components/DriftZoneLane.tsx
 msgid "Approach board diagram for a left-handed bowler, split into outside, middle and inside drift zones"
@@ -1832,7 +1845,7 @@ msgstr "포켓을 찾아요"
 
 #: src/lib/shareCard.ts
 msgid "Finishes on"
-msgstr "종료일"
+msgstr "도착 보드"
 
 #. Bowling term: the first ball of a frame, thrown at a full rack of ten pins. Lower case: read aloud before a number
 #: src/components/Stats.tsx
@@ -1995,7 +2008,7 @@ msgstr "게임"
 
 #: src/components/Stats.tsx
 msgid "Games behind {name}, game {gameNumber}"
-msgstr "{name}의 게임 {gameNumber} 뒤에 있는 게임"
+msgstr "{name}의 게임 {gameNumber} 내역"
 
 #. Button that opens the app in the App Store.
 #: src/components/GetTheAppBanner.tsx
@@ -2076,7 +2089,7 @@ msgstr "Headpin {version}"
 
 #: src/components/ReplaceConfirmDialog.tsx
 msgid "Headpin downloads a copy of your current data first, so you can undo this."
-msgstr "먼저 현재 데이터의 사본을 Headpin이 내려받아요. 그래서 되돌릴 수 있어요."
+msgstr "Headpin이 먼저 현재 데이터의 사본을 내려받으니 되돌릴 수 있어요."
 
 #: src/components/GetTheAppBanner.tsx
 msgid "Headpin for iPhone"
@@ -4066,7 +4079,7 @@ msgstr "스트라이크 라인"
 #. Bowling term: a strike on the ball right after a strike. Lower case: read aloud before a number
 #: src/components/Stats.tsx
 msgid "strike on strike"
-msgstr "연속 스트라이크"
+msgstr "스트라이크 후 스트라이크"
 
 #. Bowling term: a strike on the ball right after a strike
 #. Bowling term: a strike on the ball right after a strike
@@ -4076,11 +4089,11 @@ msgstr "연속 스트라이크"
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "Strike on strike"
-msgstr "연속 스트라이크"
+msgstr "스트라이크 후 스트라이크"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Strike, Spare and Foul come back and change the shot you pick on the card. The game rescores from that frame on."
-msgstr "스트라이크, 스페어, 파울을 누르면 카드에서 고른 투구가 바뀌어요. 게임은 그 프레임부터 다시 계산돼요."
+msgstr "스트라이크, 스페어, 파울 버튼이 다시 나타나 카드에서 고른 투구를 바꿀 수 있어요. 게임은 그 프레임부터 다시 계산돼요."
 
 #. Bowling term: a card stat, the share of first balls that knocked all ten pins down
 #. Bowling term: a card stat, the share of first balls that knocked all ten pins down
@@ -4653,8 +4666,8 @@ msgstr "연결 대기 중"
 msgid "Waiting for approval. Pro opens as soon as it comes through."
 msgstr "승인을 기다리고 있어요. 승인되는 즉시 Pro가 열려요."
 
-#. Bowling term: a leave with the head pin gone and pins scattered on both sides
 #. Bowling term: leaves where the head pin is standing with a gap behind it, a group on the Stats tab
+#. Bowling term: leaves where the head pin is standing with a gap behind it, like the 1-2-10
 #: src/lib/pins.ts
 #: src/views/OpenFramesView.tsx
 msgid "Washouts"
@@ -4715,7 +4728,7 @@ msgstr "스페어마다 치는 방법을 적어 두세요"
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "X-on-X"
-msgstr "연속 X"
+msgstr "X 후 X"
 
 #: src/lib/backupNudge.ts
 msgid "yesterday"

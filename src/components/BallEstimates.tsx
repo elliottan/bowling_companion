@@ -133,7 +133,7 @@ export function BallEstimates({ report, balls, free }: { report: Estimates; ball
         <span className={`${NAME_CELL} pr-1`}>
           <span className="block font-semibold">{t`All balls`}</span>
           <span className="block text-caption-2 text-ink-tertiary">
-            {plural(report.counted.firstBalls, { one: "# ball", other: "# balls" })}
+            {t({ message: plural(report.counted.firstBalls, { one: "# ball", other: "# balls" }), context: "balls thrown", comment: "A count of shots thrown (first balls), not of bowling balls owned" })}
           </span>
         </span>
         <span className={`${RATES_GROUP} items-center`}>
@@ -214,8 +214,8 @@ function BallEstimateRow({ estimate, ball }: { estimate: BallEstimate; ball: Bal
             </span>
             <span className="block text-caption-2 text-ink-tertiary">
               {thin
-                ? plural(estimate.firstBalls, { one: "# ball, too few", other: "# balls, too few" })
-                : plural(estimate.firstBalls, { one: "# ball", other: "# balls" })}
+                ? t({ message: plural(estimate.firstBalls, { one: "# ball, too few", other: "# balls, too few" }), comment: "A count of shots thrown (first balls) with a ball, too few to trust the estimate" })
+                : t({ message: plural(estimate.firstBalls, { one: "# ball", other: "# balls" }), context: "balls thrown", comment: "A count of shots thrown (first balls), not of bowling balls owned" })}
             </span>
           </span>
         </span>
