@@ -767,14 +767,14 @@ msgstr "Ajustar línea"
 #. Bowling term. Spoken name of the strike-after-a-strike rate column, then its percentage.
 #: src/components/BallEstimates.tsx
 msgid "after a strike {value}"
-msgstr "después de chuza {value}"
+msgstr "después de strike {value}"
 
 #. Bowling term. A short column heading over the share of strikes thrown right after a strike.
 #. Bowling term. A short column heading over the share of strikes thrown right after a strike.
 #: src/components/BallEstimates.tsx
 #: src/components/ProOfferSamples.tsx
 msgid "After strike"
-msgstr "Tras chuza"
+msgstr "Tras strike"
 
 #. Stats tab window: every session, a short segment label
 #: src/components/SessionFilterBar.tsx
@@ -1863,7 +1863,7 @@ msgstr "Primera bola"
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #: src/components/Stats.tsx
 msgid "First balls at a full rack that struck."
-msgstr "Primeras bolas con los diez pinos en pie que fueron chuza."
+msgstr "Primeras bolas con los diez pinos en pie que fueron strike."
 
 #. Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance
 #: src/components/Stats.tsx
@@ -1914,7 +1914,7 @@ msgstr "cuadro {frame}, bola {ball} (spare)"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "frame {frame}, ball {ball} (strike)"
-msgstr "cuadro {frame}, bola {ball} (chuza)"
+msgstr "cuadro {frame}, bola {ball} (strike)"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Frame {frameNumber}, ball {ball} is already recorded. Changing it rescores the game from that frame on."
@@ -2182,7 +2182,7 @@ msgstr "Cómo juega cada pista en cada boliche"
 
 #: src/components/Stats.tsx
 msgid "How each of your balls strikes, carries and spares"
-msgstr "Cómo hace chuza, carry y spare cada una de tus bolas"
+msgstr "Cómo hace strike, carry y spare cada una de tus bolas"
 
 #: src/views/BowlingProfileView.tsx
 msgid "How many boards from your slide foot, toward your bowling hand, the ball lands."
@@ -2679,7 +2679,7 @@ msgstr "Administrar patrones de aceite"
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #: src/components/Stats.tsx
 msgid "Max consecutive strikes"
-msgstr "Máx. de chuzas seguidas"
+msgstr "Máx. de strikes seguidas"
 
 #. Bowling term: the mass bias differential, a ball spec, followed by its value
 #: src/views/LayoutLabView.tsx
@@ -2727,7 +2727,7 @@ msgstr "Más abiertos (convertibles)"
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #: src/components/Stats.tsx
 msgid "Most strikes in a row in one game."
-msgstr "Más chuzas seguidas en un juego."
+msgstr "Más strikes seguidas en un juego."
 
 #: src/components/LaneVisualizer.tsx
 #: src/components/LineInput.tsx
@@ -3315,11 +3315,11 @@ msgstr "golpes al bolsillo"
 #. Bowling term: how often a ball that hit the pocket knocked all the pins down
 #: src/components/Stats.tsx
 msgid "Pocket hits that struck."
-msgstr "Golpes al bolsillo que fueron chuza."
+msgstr "Golpes al bolsillo que fueron strike."
 
 #: src/views/ProOfferView.tsx
 msgid "Pocket, carry and strike rates, overall and for each ball, game by game."
-msgstr "Tasas de bolsillo, carry y chuza, en total y por bola, juego por juego."
+msgstr "Tasas de bolsillo, carry y strike, en total y por bola, juego por juego."
 
 #. Bowling term: a coverstock material, plastic, used for straight shots and spares
 #: src/views/CatalogView.tsx
@@ -4028,7 +4028,7 @@ msgstr "Fuerza"
 #: src/components/BallGameSessionsDialog.tsx
 #: src/components/Stats.tsx
 msgid "strike"
-msgstr "chuza"
+msgstr "strike"
 
 #. A bowling term: all ten pins down with the first ball. A button label.
 #. Bowling term. A short column heading over the share of first balls that were strikes.
@@ -4050,12 +4050,12 @@ msgstr "chuza"
 #: src/components/Stats.tsx
 #: src/views/GameTrendView.tsx
 msgid "Strike"
-msgstr "Chuza"
+msgstr "Strike"
 
 #. Bowling term. Spoken name of the strike rate column, then its percentage.
 #: src/components/BallEstimates.tsx
 msgid "strike {value}"
-msgstr "chuza {value}"
+msgstr "strike {value}"
 
 #. Bowling term: the ball thrown at a strike, the first ball of a frame, as opposed to the shot at a spare.
 #. Bowling term: the ball thrown for strikes, as opposed to the spare ball
@@ -4079,7 +4079,7 @@ msgstr "Línea de strike"
 #. Bowling term: a strike on the ball right after a strike. Lower case: read aloud before a number
 #: src/components/Stats.tsx
 msgid "strike on strike"
-msgstr "chuza tras chuza"
+msgstr "strike tras strike"
 
 #. Bowling term: a strike on the ball right after a strike
 #. Bowling term: a strike on the ball right after a strike
@@ -4089,17 +4089,17 @@ msgstr "chuza tras chuza"
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "Strike on strike"
-msgstr "Chuza tras chuza"
+msgstr "Strike tras strike"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Strike, Spare and Foul come back and change the shot you pick on the card. The game rescores from that frame on."
-msgstr "Chuza, Spare y Falta vuelven a aparecer y cambian el tiro que elijas en la tarjeta. El juego se recalcula desde ese cuadro."
+msgstr "Strike, Spare y Falta vuelven a aparecer y cambian el tiro que elijas en la tarjeta. El juego se recalcula desde ese cuadro."
 
 #. Bowling term: a card stat, the share of first balls that knocked all ten pins down
 #. Bowling term: a card stat, the share of first balls that knocked all ten pins down
 #: src/lib/shareCard.ts
 msgid "Strikes"
-msgstr "Chuzas"
+msgstr "Strikes"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #. Bowling term: all ten pins knocked down with the first ball of a frame
@@ -4107,12 +4107,12 @@ msgstr "Chuzas"
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "Strikes in a row"
-msgstr "Chuzas seguidas"
+msgstr "Strikes seguidas"
 
 #. Bowling term: a strike on the ball right after a strike
 #: src/components/Stats.tsx
 msgid "Strikes the next ball struck too."
-msgstr "Chuzas en las que la siguiente bola también fue chuza."
+msgstr "Strikes en las que la siguiente bola también fue strike."
 
 #. Strength reading: the high third of the scale
 #: src/lib/ballLayout.ts

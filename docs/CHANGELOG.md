@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.75.2: Strike in Spanish, open frames in Chinese (2026-10-31)
+
+- Spanish says "strike" where it said "chuza", a word bowlers use in Mexico
+  and Central America but not in Spain or Colombia. It now matches "spare"
+  and "carry", which were already English.
+- Chinese calls an open frame 失誤 (Traditional) and 失误 (Simplified), the
+  word bowling rules use. Traditional said 失格, which also means
+  "disqualified".
+
 ## 0.75.1: Translation fixes (2026-10-31)
 
 - A review of every translated message against the English fixed the ones

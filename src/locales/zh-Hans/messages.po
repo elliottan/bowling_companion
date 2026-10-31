@@ -832,7 +832,7 @@ msgstr "已在你的球库中"
 #. An open frame is a bowling term: a frame with pins left standing after both balls
 #: src/views/OpenFramesView.tsx
 msgid "An open frame gives up about 11 pins on average."
-msgstr "一个失误格平均会损失约 11 支球瓶。"
+msgstr "一个失误平均会损失约 11 支球瓶。"
 
 #. Bowling terms: PAP is the positive axis point; the axis line is the line the ball rotates around
 #: src/components/LayoutEditor.tsx
@@ -2722,7 +2722,7 @@ msgstr "更多颜色"
 #. Bowling terms: opens are open frames; makeables are leaves that can be converted to a spare
 #: src/views/OpenFramesView.tsx
 msgid "Most opens (makeables)"
-msgstr "失误格最多（可补）"
+msgstr "失误最多（可补）"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #: src/components/Stats.tsx
@@ -2987,7 +2987,7 @@ msgstr "没有符合的项目"
 
 #: src/views/OpenFramesView.tsx
 msgid "Nothing open yet"
-msgstr "暂无失误格"
+msgstr "暂无失误"
 
 #: src/views/GamePlanView.tsx
 msgid "Nothing recorded for {where} yet."
@@ -3074,21 +3074,21 @@ msgstr "打开 {name}"
 #. Bowling term: frames left open. Two-line label, followed by a line reading a game
 #: src/views/OpenFramesView.tsx
 msgid "open frames"
-msgstr "失误格"
+msgstr "失误"
 
 #. Bowling term: a frame that ended with pins still standing, neither a strike nor a spare
 #: src/views/OpenFramesView.tsx
 msgid "Open frames"
-msgstr "失误格"
+msgstr "失误"
 
 #. Bowling term: an open frame is one with pins left standing after both balls. Lowercase label next to a number.
 #: src/views/OpenFramesView.tsx
 msgid "open frames a game"
-msgstr "每局失误格"
+msgstr "每局失误"
 
 #: src/views/OpenFramesView.tsx
 msgid "Open frames a game by session, oldest first. {points}."
-msgstr "各场次每局失误格数，由旧到新。{points}。"
+msgstr "各场次每局失误数，由旧到新。{points}。"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Open session sheet and lane notes"

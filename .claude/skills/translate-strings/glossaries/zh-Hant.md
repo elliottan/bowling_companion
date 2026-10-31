@@ -62,7 +62,7 @@ the source text. Translate from the English msgid.
 
 ## Glossary (use consistently)
 strike 全倒 · spare 補中 · split 分瓶 (技術球) · foul 犯規 · gutter 洗溝 · pocket 甜蜜點 (口袋) · 
-leave (pins left standing) 殘瓶 · open frame 失格 (未補中的格) · clean game 全補局 · frame 格 ·
+leave (pins left standing) 殘瓶 · open frame 失誤 (never 失格, which reads as "disqualified"; 失誤 is the zh.wikipedia rules glossary term) · clean game 全補局 · frame 格 ·
 game 局 · series 系列賽 · session 場次 · average 平均分 (abbrev: 平均) · high game 單局最高 ·
 score 分數 · first ball 第一球 · second ball 第二球 · fill ball 追加球 ·
 strike ball 全倒球 · spare ball 補中球 · ball 球 · arsenal 球庫 · bag 球袋 · retired (ball) 退役 ·
@@ -73,7 +73,7 @@ bowling centre / alley 保齡球館 · house 球館 · oil pattern 油型 · pat
 volume 油量 · ratio 比例 · layout 打孔配置 · dual angle 雙角度 · drilling angle 打孔角度 ·
 pin buffer 定位銷緩衝 (never 定位銷距離, which reads as the pin to PAP distance) · pin (on a ball) 定位銷 · pin (bowling pin) 球瓶 · core 球心 ·
 symmetric 對稱 · asymmetric 非對稱 · coverstock 球皮 · surface 表面 · hook 曲球 · backend 後段 ·
-carry 帶倒 · rev rate 轉速 · speed 球速 · axis tilt 軸傾角 · axis rotation 軸旋轉 ·
+carry 帶倒 (unconfirmed: no Taiwanese source found; a native bowler may prefer the English "carry") · rev rate 轉速 · speed 球速 · axis tilt 軸傾角 · axis rotation 軸旋轉 ·
 handedness 慣用手 · right-handed 右手 · left-handed 左手 · one-handed 單手 · two-handed 雙手 ·
 catalog 型錄 · guide 指南 · stats 統計 · history 紀錄 · home 首頁 · settings 設定 ·
 backup 備份 · restore 還原 · import 匯入 · export 匯出 · archive 封存 · delete 刪除 ·

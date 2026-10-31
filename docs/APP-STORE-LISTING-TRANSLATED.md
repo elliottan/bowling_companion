@@ -962,7 +962,7 @@ Tus juegos viven en tu teléfono y funcionan sin conexión en cualquier boliche,
 
 Headpin Pro
 
-Ve más a fondo con una sola compra y sin suscripción. Descubre qué hay detrás de tus chuzas con los porcentajes de carry y de chuza, compara todas las bolas de tu maleta, encuentra con qué bola tienes mejor promedio en cada boliche y ajusta líneas y layouts para ver qué cambia. Todo lo que registras es gratis, para siempre.
+Ve más a fondo con una sola compra y sin suscripción. Descubre qué hay detrás de tus strikes con los porcentajes de carry y de strike, compara todas las bolas de tu maleta, encuentra con qué bola tienes mejor promedio en cada boliche y ajusta líneas y layouts para ver qué cambia. Todo lo que registras es gratis, para siempre.
 
 Headpin es independiente y no está afiliada a ningún fabricante de bolas ni a ninguna organización de boliche. Los nombres e imágenes de las bolas pertenecen a sus dueños.
 ```
@@ -1044,7 +1044,7 @@ Dual angle y Storm VLS, dibujados desde tu PAP.
 
 ```
 Ve más a fondo con Pro.
-Carry, chuza, bola por bola. Una compra, sin suscripción.
+Carry, strike, bola por bola. Una compra, sin suscripción.
 ```
 
 9.
