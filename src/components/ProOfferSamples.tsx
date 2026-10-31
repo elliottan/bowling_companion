@@ -113,7 +113,7 @@ export function BallsSample() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium leading-tight text-ink-strong">{ball.name}</span>
-                  <span className="block text-caption-2 tabular-nums text-ink-tertiary">{plural(ball.balls, { one: "# ball", other: "# balls" })}</span>
+                  <span className="block text-caption-2 tabular-nums text-ink-tertiary">{t({ message: plural(ball.balls, { one: "# ball", other: "# balls" }), context: "balls thrown", comment: "A count of shots thrown (first balls), not of bowling balls owned" })}</span>
                 </span>
               </span>
               {ball.rates.map((rate, i) => (

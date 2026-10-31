@@ -22,7 +22,7 @@ gutter 洗沟 · pocket 甜区 · leave (pins left standing) 残瓶 (never 残�
 frame 格 · game 局 · series 系列赛 · session 场次 · average 平均分 (abbrev 平均) ·
 strike ball 全中球 · spare ball 补中球 · arsenal 球库 · line 路线 · stance 站位 ·
 target 目标 · arrows 箭头 · board 板 · oil pattern 油型 · lane 球道 · flare 油圈 ·
-layout 打孔布局 · core 球芯 · coverstock 球皮 · hook 飞碟/弧线 (use 弧线) · rev rate 转速 ·
+drift 偏移 (one word everywhere, never 漂移) · pin buffer 定位销缓冲 · over the oil 叠在油型上 (never 沿着油画, which reads as 油画, oil painting) · layout 打孔布局 · core 球芯 · coverstock 球皮 · hook 飞碟/弧线 (use 弧线) · rev rate 转速 ·
 handedness 惯用手 · bowling centre 保龄球馆 · undo 撤销 · backup 备份.
 Address the user as 你. Full-width punctuation ，。？！：“”（）; Simplified apps use “” for
 quotes, not 「」.
@@ -51,6 +51,11 @@ quotes, not 「」.
    still gets a msgstr: usually a copy, punctuation adjusted if natural.
 
 ## Known traps
+- "# ball/# balls" is two messages: plain, a count of bowling balls (in the catalog, in a
+  backup), and with context `balls thrown`, a count of shots thrown with a ball. Count
+  each the way the language counts it.
+- Two different stats never share words: "Strike on strike" (the rate of a strike right
+  after a strike) is not "Strikes in a row" (the longest run in a game).
 - "High" and "Low" are ONE message used both for a ball's flare reading and for the
   highest/lowest game score: choose a word that works for both (a plain high/low).
 - "Score" is a tab name meaning "score a game" (where you enter shots).

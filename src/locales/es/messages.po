@@ -35,23 +35,36 @@ msgstr "{0, plural, one {# boliche} other {# boliches}}"
 msgid "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}}"
 msgstr "{0, plural, one {# bola de {totalBalls}} other {# bolas de {totalBalls}}}"
 
+#. A count of shots thrown (first balls) with a ball, too few to trust the estimate
 #. placeholder {0}: estimate.firstBalls
 #: src/components/BallEstimates.tsx
 msgid "{0, plural, one {# ball, too few} other {# balls, too few}}"
-msgstr "{0, plural, one {# bola, muy pocas} other {# bolas, muy pocas}}"
+msgstr "{0, plural, one {# tiro, muy pocos} other {# tiros, muy pocos}}"
 
-#. placeholder {0}: ball.balls
-#. placeholder {0}: ball.firstBalls
 #. placeholder {0}: displayed.length
-#: src/components/BallEstimates.tsx
-#: src/components/BallGameSessionsDialog.tsx
+#. placeholder {0}: pending.incoming.balls
 #: src/components/FirstRun.tsx
-#: src/components/ProOfferSamples.tsx
-#: src/components/Stats.tsx
 #: src/views/CatalogView.tsx
-#: src/views/GamePlanView.tsx
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, one {# bola} other {# bolas}}"
+
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. placeholder {0}: ball.balls
+#. placeholder {0}: ball.firstBalls
+#. placeholder {0}: estimate.firstBalls
+#: src/components/BallEstimates.tsx
+#: src/components/BallGameSessionsDialog.tsx
+#: src/components/ProOfferSamples.tsx
+#: src/components/Stats.tsx
+#: src/views/GamePlanView.tsx
+msgctxt "balls thrown"
+msgid "{0, plural, one {# ball} other {# balls}}"
+msgstr "{0, plural, one {# tiro} other {# tiros}}"
 
 #. placeholder {0}: driftModel.release_offset
 #: src/views/BowlingProfileView.tsx
@@ -1969,7 +1982,7 @@ msgstr "Juego {gameNumber} aquí: normalmente te mueves {targetMove} en el objet
 
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} is in the books. Share the session?"
-msgstr "El juego {gameNumber} ya está en los libros. ¿Compartir la sesión?"
+msgstr "El juego {gameNumber} terminó. ¿Compartir la sesión?"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} lanes"
@@ -2234,7 +2247,7 @@ msgstr "En Safari, toca Compartir <0/> y luego \"Agregar a pantalla de inicio\".
 #. Step 2 of moving games from the web to the app
 #: src/lib/moveGames.ts
 msgid "In the app, open Settings, then Backup & restore, and import."
-msgstr "En la app, abre Ajustes, luego Respaldo y restauración, e importa."
+msgstr "En la app, abre Ajustes, luego Respaldos, e importa."
 
 #: src/views/BowlingProfileView.tsx
 msgid "Increase release offset"
@@ -2489,7 +2502,7 @@ msgstr "Veces"
 
 #: src/components/BallEstimates.tsx
 msgid "Left {count}"
-msgstr "Izquierda {count}"
+msgstr "{count} veces"
 
 #. A ball layout card: the bowler throws left-handed
 #: src/lib/shareCard.ts
@@ -2499,7 +2512,7 @@ msgstr "Mano izquierda"
 #. A ball layout card: the bowler throws left-handed with two hands (2H, two-handed style)
 #: src/lib/shareCard.ts
 msgid "Left hand, 2H"
-msgstr "Mano izquierda, 2H"
+msgstr "Mano izquierda, a dos manos"
 
 #: src/components/HandednessPicker.tsx
 #: src/views/BowlingProfileView.tsx
@@ -3030,7 +3043,7 @@ msgstr "Patrones de aceite"
 #. Step 1 of moving games from the web to the app. headpin.app is a web address and stays as it is
 #: src/lib/moveGames.ts
 msgid "On headpin.app, open Settings, then Backup & restore, and export your games."
-msgstr "En headpin.app, abre Ajustes, luego Respaldo y restauración, y exporta tus juegos."
+msgstr "En headpin.app, abre Ajustes, luego Respaldos, y exporta tus juegos."
 
 #: src/components/FirstRun.tsx
 msgid "One hand or two?"
@@ -3132,7 +3145,7 @@ msgstr "La zona exterior termina en la tabla"
 #. Bowling term: PAP (positive axis point), how far over from the ball's center line the axis point sits, in inches.
 #: src/components/PapEditor.tsx
 msgid "Over"
-msgstr "Sobre"
+msgstr "Lateral"
 
 #: src/components/Stats.tsx
 msgid "over your last {sessions} sessions, {against}"
@@ -3557,7 +3570,7 @@ msgstr "Mano derecha"
 #. A ball layout card: the bowler throws right-handed with two hands (2H, two-handed style)
 #: src/lib/shareCard.ts
 msgid "Right hand, 2H"
-msgstr "Mano derecha, 2H"
+msgstr "Mano derecha, a dos manos"
 
 #: src/components/HandednessPicker.tsx
 #: src/views/BowlingProfileView.tsx
@@ -3910,7 +3923,7 @@ msgstr "Líneas de spare"
 #. Bowling terms: a makeable leave is a set of standing pins that can be converted to a spare; a split leaves gaps between pins; a washout is a leave with the head pin standing and a gap behind it
 #: src/components/Stats.tsx
 msgid "Spare: makeable leaves converted, excludes splits and washouts."
-msgstr "Spare: dejadas realizables convertidas, sin contar splits ni washouts."
+msgstr "Spare: dejadas convertibles hechas, sin contar splits ni washouts."
 
 #. Bowling term: a card stat, the share of spare chances that were converted
 #. Bowling term: a card stat, the share of spare chances that were converted
@@ -4080,7 +4093,7 @@ msgstr "Chuza tras chuza"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Strike, Spare and Foul come back and change the shot you pick on the card. The game rescores from that frame on."
-msgstr "Chuza, Spare y Falta vuelven a tocarse para cambiar el tiro que elegiste en la tarjeta. El juego se recalcula desde ese cuadro."
+msgstr "Chuza, Spare y Falta vuelven a aparecer y cambian el tiro que elijas en la tarjeta. El juego se recalcula desde ese cuadro."
 
 #. Bowling term: a card stat, the share of first balls that knocked all ten pins down
 #. Bowling term: a card stat, the share of first balls that knocked all ten pins down
@@ -4653,8 +4666,8 @@ msgstr "Esperando una conexión"
 msgid "Waiting for approval. Pro opens as soon as it comes through."
 msgstr "Esperando aprobación. Pro se activa en cuanto llegue."
 
-#. Bowling term: a leave with the head pin gone and pins scattered on both sides
 #. Bowling term: leaves where the head pin is standing with a gap behind it, a group on the Stats tab
+#. Bowling term: leaves where the head pin is standing with a gap behind it, like the 1-2-10
 #: src/lib/pins.ts
 #: src/views/OpenFramesView.tsx
 msgid "Washouts"
@@ -4672,7 +4685,7 @@ msgstr "Peso"
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
 msgid "Welcome back"
-msgstr "Te damos la bienvenida"
+msgstr "Hola de nuevo"
 
 #: src/components/FirstRun.tsx
 msgid "What do we call you?"
