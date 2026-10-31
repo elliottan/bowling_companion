@@ -31,6 +31,11 @@ no Spain-only words (use "celular/teléfono" never "móvil"; "computadora" never
    still gets a msgstr: usually a copy, punctuation adjusted if natural.
 
 ## Known traps
+- "# ball/# balls" is two messages: plain, a count of bowling balls (in the catalog, in a
+  backup), and with context `balls thrown`, a count of shots thrown with a ball. Count
+  each the way the language counts it.
+- Two different stats never share words: "Strike on strike" (the rate of a strike right
+  after a strike) is not "Strikes in a row" (the longest run in a game).
 - "High" and "Low" are ONE message used both for a ball's flare reading and for the
   highest/lowest game score: choose a word that works for both (a plain high/low).
 - "Score" is a tab name meaning "score a game" (where you enter shots).
@@ -85,4 +90,4 @@ handedness mano · right-handed diestro · left-handed zurdo · one-handed a una
 two-handed a dos manos · catalog catálogo · guide guía · stats estadísticas ·
 history historial · home inicio · settings ajustes · backup respaldo · restore restaurar ·
 import importar · export exportar · archive archivar · delete eliminar · undo deshacer ·
-Lock Screen pantalla bloqueada · Live Activity Actividad en vivo · Pro Pro
+Lock Screen pantalla bloqueada · Live Activity Actividad en vivo · Backup & restore Respaldos (short to fit the title bar; the steps to move games quote it, so they say Respaldos too) · Pro Pro

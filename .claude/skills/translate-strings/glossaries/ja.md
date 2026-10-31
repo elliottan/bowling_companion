@@ -26,6 +26,13 @@ spare lines, and stats. You are filling in the `msgstr` of a gettext `.po` chunk
 8. If a msgid is pure symbols/numbers/a placeholder only (e.g. `{label}. {action}`,
    `{weight} lb`), still fill msgstr (usually copy it, adjusting punctuation if natural).
 
+## Known traps
+- "# ball/# balls" is two messages: plain, a count of bowling balls (in the catalog, in a
+  backup), and with context `balls thrown`, a count of shots thrown with a ball. Count
+  each the way the language counts it.
+- Two different stats never share words: "Strike on strike" (the rate of a strike right
+  after a strike) is not "Strikes in a row" (the longest run in a game).
+
 ## Style
 - Natural Japanese as a polished Japanese app would ship it (think Apple's own
   Japanese UI). Not literal.

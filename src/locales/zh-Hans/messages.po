@@ -35,23 +35,36 @@ msgstr "{0, plural, other {# 家球馆}}"
 msgid "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}}"
 msgstr "{0, plural, other {# / {totalBalls} 颗球}}"
 
+#. A count of shots thrown (first balls) with a ball, too few to trust the estimate
 #. placeholder {0}: estimate.firstBalls
 #: src/components/BallEstimates.tsx
 msgid "{0, plural, one {# ball, too few} other {# balls, too few}}"
-msgstr "{0, plural, other {# 颗球，样本太少}}"
+msgstr "{0, plural, other {# 次投球，样本太少}}"
 
-#. placeholder {0}: ball.balls
-#. placeholder {0}: ball.firstBalls
 #. placeholder {0}: displayed.length
-#: src/components/BallEstimates.tsx
-#: src/components/BallGameSessionsDialog.tsx
+#. placeholder {0}: pending.incoming.balls
 #: src/components/FirstRun.tsx
-#: src/components/ProOfferSamples.tsx
-#: src/components/Stats.tsx
 #: src/views/CatalogView.tsx
-#: src/views/GamePlanView.tsx
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, other {# 颗球}}"
+
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. placeholder {0}: ball.balls
+#. placeholder {0}: ball.firstBalls
+#. placeholder {0}: estimate.firstBalls
+#: src/components/BallEstimates.tsx
+#: src/components/BallGameSessionsDialog.tsx
+#: src/components/ProOfferSamples.tsx
+#: src/components/Stats.tsx
+#: src/views/GamePlanView.tsx
+msgctxt "balls thrown"
+msgid "{0, plural, one {# ball} other {# balls}}"
+msgstr "{0, plural, other {# 次投球}}"
 
 #. placeholder {0}: driftModel.release_offset
 #: src/views/BowlingProfileView.tsx
@@ -846,11 +859,11 @@ msgstr "外观"
 
 #: src/components/DriftZoneLane.tsx
 msgid "Approach board diagram for a left-handed bowler, split into outside, middle and inside drift zones"
-msgstr "左手球友的助跑道球板示意图，分为外侧、中间、内侧漂移区域"
+msgstr "左手球友的助跑道球板示意图，分为外侧、中间、内侧偏移区域"
 
 #: src/components/DriftZoneLane.tsx
 msgid "Approach board diagram for a right-handed bowler, split into outside, middle and inside drift zones"
-msgstr "右手球友的助跑道球板示意图，分为外侧、中间、内侧漂移区域"
+msgstr "右手球友的助跑道球板示意图，分为外侧、中间、内侧偏移区域"
 
 #: src/components/HomeProfile.tsx
 #: src/views/ArsenalView.tsx
@@ -1184,7 +1197,7 @@ msgstr "挑战"
 
 #: src/views/ProOfferView.tsx
 msgid "Change the angles and the pin buffer, see what the ball will do before you drill it, and see each ball in your arsenal drawn with its own layout."
-msgstr "调整角度和定位销距离，在打孔前就预览球的走势，并查看球库中每颗球各自的打孔布局。"
+msgstr "调整角度和定位销缓冲，在打孔前就预览球的走势，并查看球库中每颗球各自的打孔布局。"
 
 #: src/components/SpareLineBulkSheet.tsx
 msgid "Changes every one of these"
@@ -1538,7 +1551,7 @@ msgstr "拖动以重新排序 {name}"
 
 #: src/components/ToolsList.tsx
 msgid "Draw a line on the lane, over the oil"
-msgstr "在球道上沿着油画出路线"
+msgstr "在球道上画出路线，叠在油型上"
 
 #. Bowling term: how far the bowler's feet move sideways during the approach
 #. Bowling term: how far the bowler's feet move sideways during the approach
@@ -2169,7 +2182,7 @@ msgstr "各球馆中每条球道的状况"
 
 #: src/components/Stats.tsx
 msgid "How each of your balls strikes, carries and spares"
-msgstr "你每颗球的全中、带瓶与补中表现"
+msgstr "你每颗球的全中、带倒与补中表现"
 
 #: src/views/BowlingProfileView.tsx
 msgid "How many boards from your slide foot, toward your bowling hand, the ball lands."
@@ -2733,27 +2746,27 @@ msgstr "移动脚位 · 瞄准点"
 
 #: src/views/BowlingProfileView.tsx
 msgid "Move inside drift left"
-msgstr "内侧漂移向左移"
+msgstr "内侧偏移向左移"
 
 #: src/views/BowlingProfileView.tsx
 msgid "Move inside drift right"
-msgstr "内侧漂移向右移"
+msgstr "内侧偏移向右移"
 
 #: src/views/BowlingProfileView.tsx
 msgid "Move middle drift left"
-msgstr "中间漂移向左移"
+msgstr "中间偏移向左移"
 
 #: src/views/BowlingProfileView.tsx
 msgid "Move middle drift right"
-msgstr "中间漂移向右移"
+msgstr "中间偏移向右移"
 
 #: src/views/BowlingProfileView.tsx
 msgid "Move outside drift left"
-msgstr "外侧漂移向左移"
+msgstr "外侧偏移向左移"
 
 #: src/views/BowlingProfileView.tsx
 msgid "Move outside drift right"
-msgstr "外侧漂移向右移"
+msgstr "外侧偏移向右移"
 
 #: src/components/LaneVisualizer.tsx
 msgid "Move presets"
@@ -2839,7 +2852,7 @@ msgstr "暂无球"
 #. Under a zone of the approach diagram: this zone does not move the slide foot
 #: src/components/DriftZoneLane.tsx
 msgid "no drift"
-msgstr "无漂移"
+msgstr "无偏移"
 
 #: src/views/GameTrendView.tsx
 msgid "No games to compare yet"
@@ -2995,7 +3008,7 @@ msgstr "海洋"
 
 #: src/views/ProOfferView.tsx
 msgid "Ocean, Sunset, Grape and Rose, next to the Felt green."
-msgstr "海洋、日落、葡萄与玫瑰，与毛毡绿并列。"
+msgstr "除了毡绿，还有海洋、日落橘、葡萄紫与玫瑰可选。"
 
 #. Bowling term: a makeable leave is a set of standing pins that can be converted to a spare
 #: src/components/Stats.tsx
@@ -3220,7 +3233,7 @@ msgstr "{pin} 号瓶，站立"
 #: src/components/GuideFigure.tsx
 #: src/components/LayoutEditor.tsx
 msgid "Pin buffer"
-msgstr "定位销距离"
+msgstr "定位销缓冲"
 
 #: src/components/PinGrid.tsx
 msgid "Pin deck"
@@ -3910,7 +3923,7 @@ msgstr "补中路线"
 #. Bowling terms: a makeable leave is a set of standing pins that can be converted to a spare; a split leaves gaps between pins; a washout is a leave with the head pin standing and a gap behind it
 #: src/components/Stats.tsx
 msgid "Spare: makeable leaves converted, excludes splits and washouts."
-msgstr "补中：补中可补的残瓶，不含分瓶与洗出。"
+msgstr "补中：可补残瓶的补中率，不含分瓶与洗出。"
 
 #. Bowling term: a card stat, the share of spare chances that were converted
 #. Bowling term: a card stat, the share of spare chances that were converted
@@ -4066,7 +4079,7 @@ msgstr "全中路线"
 #. Bowling term: a strike on the ball right after a strike. Lower case: read aloud before a number
 #: src/components/Stats.tsx
 msgid "strike on strike"
-msgstr "连续全中"
+msgstr "全中后再全中"
 
 #. Bowling term: a strike on the ball right after a strike
 #. Bowling term: a strike on the ball right after a strike
@@ -4076,11 +4089,11 @@ msgstr "连续全中"
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "Strike on strike"
-msgstr "连续全中"
+msgstr "全中后再全中"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Strike, Spare and Foul come back and change the shot you pick on the card. The game rescores from that frame on."
-msgstr "全中、补中和犯规会回到计分卡，并更改你所选的那一球。该局会从那一格起重新计分。"
+msgstr "全中、补中和犯规按钮会再次出现，可更改你在计分卡上选的那一球。该局会从那一格起重新计分。"
 
 #. Bowling term: a card stat, the share of first balls that knocked all ten pins down
 #. Bowling term: a card stat, the share of first balls that knocked all ten pins down
@@ -4287,11 +4300,11 @@ msgstr "每个范围的中间值。新球请先打这个孔位，再依结果调
 
 #: src/components/BallLayoutDiagram.tsx
 msgid "The pin sits {pinToPap} inches from the PAP with a {buffer} inch pin buffer, and the CG is {core} inches from the PAP."
-msgstr "定位销距离 PAP {pinToPap} 英寸，定位销缓冲距离为 {buffer} 英寸，CG 距离 PAP {core} 英寸。"
+msgstr "定位销距离 PAP {pinToPap} 英寸，定位销缓冲为 {buffer} 英寸，CG 距离 PAP {core} 英寸。"
 
 #: src/components/BallLayoutDiagram.tsx
 msgid "The pin sits {pinToPap} inches from the PAP with a {buffer} inch pin buffer, and the PSA is {core} inches from the PAP."
-msgstr "定位销距离 PAP {pinToPap} 英寸，定位销缓冲距离为 {buffer} 英寸，PSA 距离 PAP {core} 英寸。"
+msgstr "定位销距离 PAP {pinToPap} 英寸，定位销缓冲为 {buffer} 英寸，PSA 距离 PAP {core} 英寸。"
 
 #: src/components/FirstRun.tsx
 msgid "The restore failed."
@@ -4653,8 +4666,8 @@ msgstr "等待联网"
 msgid "Waiting for approval. Pro opens as soon as it comes through."
 msgstr "等待批准中。批准后 Pro 会立即开启。"
 
-#. Bowling term: a leave with the head pin gone and pins scattered on both sides
 #. Bowling term: leaves where the head pin is standing with a gap behind it, a group on the Stats tab
+#. Bowling term: leaves where the head pin is standing with a gap behind it, like the 1-2-10
 #: src/lib/pins.ts
 #: src/views/OpenFramesView.tsx
 msgid "Washouts"

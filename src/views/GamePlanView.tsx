@@ -249,7 +249,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                   ? where
                     ? t`Nothing recorded for ${{ where }} yet.`
                     : t`Nothing recorded for this yet.`
-                  : t`${{ shots: plural(report.shots, { one: "# ball", other: "# balls" }) }}, ${{ sessions: plural(report.sessions, { one: "# session", other: "# sessions" }) }}`}
+                  : t`${{ shots: t({ message: plural(report.shots, { one: "# ball", other: "# balls" }), context: "balls thrown", comment: "A count of shots thrown (first balls), not of bowling balls owned" }) }}, ${{ sessions: plural(report.sessions, { one: "# session", other: "# sessions" }) }}`}
               </p>
 
               {/* Pro: the reads across sessions (ADR-154). With no ball to read

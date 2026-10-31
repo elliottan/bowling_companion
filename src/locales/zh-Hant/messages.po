@@ -35,23 +35,36 @@ msgstr "{0, plural, other {# 間球館}}"
 msgid "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}}"
 msgstr "{0, plural, other {# / {totalBalls} 顆球}}"
 
+#. A count of shots thrown (first balls) with a ball, too few to trust the estimate
 #. placeholder {0}: estimate.firstBalls
 #: src/components/BallEstimates.tsx
 msgid "{0, plural, one {# ball, too few} other {# balls, too few}}"
-msgstr "{0, plural, other {# 顆球，樣本太少}}"
+msgstr "{0, plural, other {# 次投球，樣本太少}}"
 
-#. placeholder {0}: ball.balls
-#. placeholder {0}: ball.firstBalls
 #. placeholder {0}: displayed.length
-#: src/components/BallEstimates.tsx
-#: src/components/BallGameSessionsDialog.tsx
+#. placeholder {0}: pending.incoming.balls
 #: src/components/FirstRun.tsx
-#: src/components/ProOfferSamples.tsx
-#: src/components/Stats.tsx
 #: src/views/CatalogView.tsx
-#: src/views/GamePlanView.tsx
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, other {# 顆球}}"
+
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. A count of shots thrown (first balls), not of bowling balls owned
+#. placeholder {0}: ball.balls
+#. placeholder {0}: ball.firstBalls
+#. placeholder {0}: estimate.firstBalls
+#: src/components/BallEstimates.tsx
+#: src/components/BallGameSessionsDialog.tsx
+#: src/components/ProOfferSamples.tsx
+#: src/components/Stats.tsx
+#: src/views/GamePlanView.tsx
+msgctxt "balls thrown"
+msgid "{0, plural, one {# ball} other {# balls}}"
+msgstr "{0, plural, other {# 次投球}}"
 
 #. placeholder {0}: driftModel.release_offset
 #: src/views/BowlingProfileView.tsx
@@ -819,7 +832,7 @@ msgstr "已在你的球庫中"
 #. An open frame is a bowling term: a frame with pins left standing after both balls
 #: src/views/OpenFramesView.tsx
 msgid "An open frame gives up about 11 pins on average."
-msgstr "一個失格格平均會損失約 11 支球瓶。"
+msgstr "一個失格平均會損失約 11 支球瓶。"
 
 #. Bowling terms: PAP is the positive axis point; the axis line is the line the ball rotates around
 #: src/components/LayoutEditor.tsx
@@ -1184,7 +1197,7 @@ msgstr "挑戰"
 
 #: src/views/ProOfferView.tsx
 msgid "Change the angles and the pin buffer, see what the ball will do before you drill it, and see each ball in your arsenal drawn with its own layout."
-msgstr "調整角度和定位銷距離，在打孔前就預覽球的走勢，並查看球庫中每顆球各自的打孔配置。"
+msgstr "調整角度和定位銷緩衝，在打孔前就預覽球的走勢，並查看球庫中每顆球各自的打孔配置。"
 
 #: src/components/SpareLineBulkSheet.tsx
 msgid "Changes every one of these"
@@ -1538,7 +1551,7 @@ msgstr "拖曳以重新排序 {name}"
 
 #: src/components/ToolsList.tsx
 msgid "Draw a line on the lane, over the oil"
-msgstr "在球道上沿著油畫出路線"
+msgstr "在球道上畫出路線，疊在油型上"
 
 #. Bowling term: how far the bowler's feet move sideways during the approach
 #. Bowling term: how far the bowler's feet move sideways during the approach
@@ -1946,11 +1959,11 @@ msgstr "第 {gameNumber} 局"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} (score {deleteGameScore}) and its frames will be permanently deleted."
-msgstr "第 {gameNumber} 局（分數 {deleteGameScore}）及其所有格數將被永久刪除。"
+msgstr "第 {gameNumber} 局（分數 {deleteGameScore}）及其所有格將被永久刪除。"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} and its frames will be permanently deleted."
-msgstr "第 {gameNumber} 局及其所有格數將被永久刪除。"
+msgstr "第 {gameNumber} 局及其所有格將被永久刪除。"
 
 #. Bowling terms: the stance is the board the bowler stands on, the target the board aimed at. Each move reads like 2 boards left
 #: src/components/alleyHistoryCopy.ts
@@ -2995,7 +3008,7 @@ msgstr "海洋"
 
 #: src/views/ProOfferView.tsx
 msgid "Ocean, Sunset, Grape and Rose, next to the Felt green."
-msgstr "海洋、日落、葡萄與玫瑰，與毛氈綠並列。"
+msgstr "除了氈綠，還有海洋、日落橘、葡萄紫與玫瑰可選。"
 
 #. Bowling term: a makeable leave is a set of standing pins that can be converted to a spare
 #: src/components/Stats.tsx
@@ -3220,7 +3233,7 @@ msgstr "{pin} 號瓶，站立"
 #: src/components/GuideFigure.tsx
 #: src/components/LayoutEditor.tsx
 msgid "Pin buffer"
-msgstr "定位銷距離"
+msgstr "定位銷緩衝"
 
 #: src/components/PinGrid.tsx
 msgid "Pin deck"
@@ -3910,7 +3923,7 @@ msgstr "補中路線"
 #. Bowling terms: a makeable leave is a set of standing pins that can be converted to a spare; a split leaves gaps between pins; a washout is a leave with the head pin standing and a gap behind it
 #: src/components/Stats.tsx
 msgid "Spare: makeable leaves converted, excludes splits and washouts."
-msgstr "補中：補中可補的殘瓶，不含分瓶與洗出。"
+msgstr "補中：可補殘瓶的補中率，不含分瓶與洗出。"
 
 #. Bowling term: a card stat, the share of spare chances that were converted
 #. Bowling term: a card stat, the share of spare chances that were converted
@@ -4066,7 +4079,7 @@ msgstr "全倒路線"
 #. Bowling term: a strike on the ball right after a strike. Lower case: read aloud before a number
 #: src/components/Stats.tsx
 msgid "strike on strike"
-msgstr "連續全倒"
+msgstr "全倒後再全倒"
 
 #. Bowling term: a strike on the ball right after a strike
 #. Bowling term: a strike on the ball right after a strike
@@ -4076,11 +4089,11 @@ msgstr "連續全倒"
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "Strike on strike"
-msgstr "連續全倒"
+msgstr "全倒後再全倒"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Strike, Spare and Foul come back and change the shot you pick on the card. The game rescores from that frame on."
-msgstr "全倒、補中和犯規會回到計分卡，並更改你所選的那一球。該局會從那一格起重新計分。"
+msgstr "全倒、補中和犯規按鈕會再次出現，可更改你在計分卡上選的那一球。該局會從那一格起重新計分。"
 
 #. Bowling term: a card stat, the share of first balls that knocked all ten pins down
 #. Bowling term: a card stat, the share of first balls that knocked all ten pins down
@@ -4287,11 +4300,11 @@ msgstr "每個範圍的中間值。新球請先打這個孔位，再依結果調
 
 #: src/components/BallLayoutDiagram.tsx
 msgid "The pin sits {pinToPap} inches from the PAP with a {buffer} inch pin buffer, and the CG is {core} inches from the PAP."
-msgstr "定位銷距離 PAP {pinToPap} 英吋，定位銷距離為 {buffer} 英吋，CG 距離 PAP {core} 英吋。"
+msgstr "定位銷距離 PAP {pinToPap} 英吋，定位銷緩衝為 {buffer} 英吋，CG 距離 PAP {core} 英吋。"
 
 #: src/components/BallLayoutDiagram.tsx
 msgid "The pin sits {pinToPap} inches from the PAP with a {buffer} inch pin buffer, and the PSA is {core} inches from the PAP."
-msgstr "定位銷距離 PAP {pinToPap} 英吋，定位銷距離為 {buffer} 英吋，PSA 距離 PAP {core} 英吋。"
+msgstr "定位銷距離 PAP {pinToPap} 英吋，定位銷緩衝為 {buffer} 英吋，PSA 距離 PAP {core} 英吋。"
 
 #: src/components/FirstRun.tsx
 msgid "The restore failed."
@@ -4653,8 +4666,8 @@ msgstr "等待連線"
 msgid "Waiting for approval. Pro opens as soon as it comes through."
 msgstr "等待核准中。核准後 Pro 會立即開啟。"
 
-#. Bowling term: a leave with the head pin gone and pins scattered on both sides
 #. Bowling term: leaves where the head pin is standing with a gap behind it, a group on the Stats tab
+#. Bowling term: leaves where the head pin is standing with a gap behind it, like the 1-2-10
 #: src/lib/pins.ts
 #: src/views/OpenFramesView.tsx
 msgid "Washouts"

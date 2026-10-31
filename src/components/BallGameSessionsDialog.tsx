@@ -54,7 +54,7 @@ export function BallGameSessionsDialog({
             of={s.firstBalls}
           />
           <span className="text-ink-tertiary">
-            {plural(s.firstBalls, { one: "# ball", other: "# balls" })}
+            {t({ message: plural(s.firstBalls, { one: "# ball", other: "# balls" }), context: "balls thrown", comment: "A count of shots thrown (first balls), not of bowling balls owned" })}
           </span>
         </>
       )}
