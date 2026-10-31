@@ -10,7 +10,11 @@ import { formatter } from "@lingui/format-po";
  */
 export default defineConfig({
   sourceLocale: "en",
-  locales: ["en"],
+  locales: ["en", "es", "ja", "ko", "zh-Hans", "zh-Hant"],
+  // A `<Trans>` macro compiles to the component in `src/lib/i18nTrans.tsx`,
+  // aliased in vite.config.ts, which reads the global `i18n` instead of a
+  // provider the app does not have (ADR-223).
+  runtimeConfigModule: { Trans: ["@headpin/trans", "Trans"] },
   catalogs: [
     {
       path: "<rootDir>/src/locales/{locale}/messages",

@@ -662,7 +662,7 @@ export function ActiveSessionView({
           {seriesTotal}
         </span>
         {seriesAvg !== null && (
-          <span className="block text-xs font-semibold text-ink-secondary">{seriesAvg} avg</span>
+          <span className="block text-xs font-semibold text-ink-secondary">{t({ message: `${{ avg: seriesAvg }} avg`, comment: "Short for average: a session's average score, the number first" })}</span>
         )}
       </button>
     </>

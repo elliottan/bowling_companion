@@ -9569,3 +9569,99 @@ session's second game.
 **Consequences.** One more method for the Xcode build to confirm. A game whose
 final score is lingering when a delete renumbers it keeps its old number for
 the few minutes it lingers; it is ended, and not worth a second path.
+
+## ADR-223: `<Trans>` reads the global `i18n`, so a sentence keeps its markup
+
+**Status.** Accepted, 2026-10-30. Follows ADR-220, which left markup inside a
+message open.
+
+**Context.** ADR-220 has no `I18nProvider`: one language per launch, read
+through the global `i18n`. Lingui's runtime `Trans` reads its `i18n` from the
+provider's context and throws without one, so the conversion wrote every
+sentence as plain `t`. Five sentences had markup in them and lost it: the bold
+"replaces" in Backup, the bold leave names in the two spare-line hints, the bold
+lead of the catalog sync error, and the bold legacy layout in the ball form
+(split around it), and the Safari install hint (split around the Share icon).
+A sentence split in two cannot be reordered by a translator.
+
+**Decision.** `runtimeConfigModule` in `lingui.config.ts` sends the compiled
+`<Trans>` macro to `src/lib/i18nTrans.tsx`, a three-line wrapper that renders
+Lingui's `TransNoContext` with the global `i18n`. The module is named by an
+alias, `@headpin/trans`, in `vite.config.ts`, because the macro writes the same
+import into every file and a relative path would not resolve from all of them.
+The five sentences are each one `<Trans>` again, with the markup as numbered
+tags in the catalog.
+
+**Consequences.** Still no provider and no re-render on a language change,
+which stays a reload. A tool that compiles the macro outside Vite (none today)
+would need the alias too.
+
+## ADR-224: Six languages, Chinese by script, and no message left untranslated
+
+**Status.** Accepted, 2026-10-30. Follows ADR-220 and ADR-223.
+
+**Context.** ADR-220 made the app ready to translate with English alone.
+Japanese, Korean, Traditional and Simplified Chinese, and Spanish were then
+added together. Two things the groundwork did not settle came with them. A
+Chinese phone does not name a catalog: it says `zh-TW` or `zh-Hant-TW` for
+Traditional and `zh-CN` or `zh-SG` for Simplified, and matching on the language
+alone would hand one script the other's text. And Lingui fills a message a
+catalog has no translation for with the English, silently, so each new string
+would put English on a translated screen and nothing would say so.
+
+**Decision.**
+
+- **Languages.** `es`, `ja`, `ko`, `zh-Hans` and `zh-Hant`, beside `en`, in
+  `lingui.config.ts`, `SUPPORTED_LOCALES` and `CFBundleLocalizations`. Spanish is
+  one neutral Latin American catalog (no `es-MX` beside an `es-ES`).
+- **Chinese is matched by script** (`resolveLocale`): an explicit `Hant` or
+  `Hans` decides; otherwise Taiwan, Hong Kong and Macau read Traditional and
+  every other Chinese tag Simplified. Neither script falls back to the other.
+- **Every language translates every message.** `npm run i18n:check` (in
+  `verify` and CI) fails, listing the gaps, when a catalog has an empty
+  `msgstr`. A change that adds text translates it in the same PR, with the
+  `translate-strings` skill: `scripts/i18n-missing.mjs` writes the gaps out and
+  puts the answers back, and the glossary per language in the skill keeps the
+  house style (rules, tone, bowling vocabulary) for whoever translates.
+- **Fonts.** Each CJK language gets its own fallback faces under
+  `:root:lang(...)`, so Han characters take that language's glyphs on a system
+  whose default face would pick another's; Korean wraps between words
+  (`word-break: keep-all`).
+
+**Consequences.** Adding a string costs a translation pass in five languages,
+which the skill makes a few minutes of subagent work. The translations were
+made by a model from the glossaries and have had no native speaker's read; the
+App Store listing drafts in `docs/APP-STORE-LISTING-TRANSLATED.md` are in the
+same state.
+
+## ADR-225: The bowler picks the language in Settings, and text must fit in every one
+
+**Status.** Accepted, 2026-10-30. Follows ADR-220 and ADR-224.
+
+**Context.** The language followed the phone alone. On iPhone a bowler can set
+it for one app in the system's Settings, but Android before 13 and the web have
+no such setting, and a bowler whose phone is in one language may bowl in
+another. Six languages also mean six lengths of every label, at four text
+sizes, and checking each by eye does not scale past the first.
+
+**Decision.**
+
+- **A Language section in Settings, Appearance**: Automatic (the phone's
+  language, named) and each language by its own name, never translated. The
+  pick is kept in localStorage (`readLanguagePreference` in `src/lib/i18n.ts`),
+  read before the first screen as the text size is, and not carried in a
+  backup: a restored file should not change the language of the phone it lands
+  on. A change reloads the app, keeping ADR-220's one language per launch.
+- **Android 13 and later** list the languages in `locales_config.xml`, so the
+  system's per-app language setting offers them as iOS does.
+- **Every list of the languages is tested to agree**: `SUPPORTED_LOCALES`, the
+  picker, `lingui.config.ts`, the catalogs on disk, `CFBundleLocalizations` and
+  `locales_config.xml` (`src/lib/i18nLocales.test.ts`).
+- **Text fit is a test, not a review**: `e2e/text-fit.spec.ts` opens the main
+  screens in every language at the largest text size and fails on text that
+  is clipped or pushes past the screen. A new language is covered by adding it
+  to `SUPPORTED_LOCALES`.
+
+**Consequences.** A bowler can bowl in a language other than the phone's, on
+every platform. The fit test catches overflow, not text that fits but reads
+badly or overlaps another element, which a screenshot review still finds.

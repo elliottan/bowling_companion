@@ -7,7 +7,10 @@ import {
   SUPPORTED_LOCALES,
   activateLocale,
   activeLocale,
+  chooseLocale,
   detectLocale,
+  readLanguagePreference,
+  rememberLanguagePreference,
   resolveLocale
 } from "./i18n";
 
@@ -26,6 +29,32 @@ describe("resolveLocale", () => {
   it("prefers a catalog for the region itself when there is one", () => {
     expect(resolveLocale(["pt-BR"], supported)).toBe("pt-BR");
     expect(resolveLocale(["pt_br"], supported)).toBe("pt-BR");
+  });
+
+  it("matches Chinese by script: Taiwan, Hong Kong and Macau read Traditional", () => {
+    const chinese = ["en", "zh-Hant"];
+    expect(resolveLocale(["zh-TW"], chinese)).toBe("zh-Hant");
+    expect(resolveLocale(["zh-Hant-TW"], chinese)).toBe("zh-Hant");
+    expect(resolveLocale(["zh-HK"], chinese)).toBe("zh-Hant");
+    expect(resolveLocale(["zh_MO"], chinese)).toBe("zh-Hant");
+    expect(resolveLocale(["zh-Hant"], chinese)).toBe("zh-Hant");
+  });
+
+  it("gives Simplified Chinese, from any region that writes it, the Simplified catalog", () => {
+    const chinese = ["en", "zh-Hans", "zh-Hant"];
+    expect(resolveLocale(["zh-CN"], chinese)).toBe("zh-Hans");
+    expect(resolveLocale(["zh-SG"], chinese)).toBe("zh-Hans");
+    expect(resolveLocale(["zh-MY"], chinese)).toBe("zh-Hans");
+    expect(resolveLocale(["zh-Hans-HK"], chinese)).toBe("zh-Hans");
+    expect(resolveLocale(["zh"], chinese)).toBe("zh-Hans");
+    expect(resolveLocale(["zh-HK"], chinese)).toBe("zh-Hant");
+  });
+
+  it("never gives Simplified Chinese the Traditional catalog", () => {
+    const chinese = ["en", "ja", "zh-Hant"];
+    expect(resolveLocale(["zh-CN", "ja"], chinese)).toBe("ja");
+    expect(resolveLocale(["zh-Hans-CN"], chinese)).toBe(SOURCE_LOCALE);
+    expect(resolveLocale(["zh"], chinese)).toBe(SOURCE_LOCALE);
   });
 
   it("falls back to the source language when nothing matches or nothing is asked", () => {
@@ -49,6 +78,26 @@ describe("activateLocale", () => {
     expect(await activateLocale("en")).toBe("en");
     expect(activeLocale()).toBe("en");
     expect(document.documentElement.lang).toBe("en");
+  });
+
+  it("ships Japanese: its catalog loads, compiles and answers every message", async () => {
+    expect(await activateLocale("ja")).toBe("ja");
+    expect(document.documentElement.lang).toBe("ja");
+    expect(describeAge(null, new Date())).not.toBe("never");
+    // A catalog missing an entry would show the id; one with a broken plural
+    // throws here instead of on a bowler's screen.
+    expect(describeLastBackup("2026-06-01T00:00:00.000Z", new Date("2026-06-30T12:00:00Z"))).toMatch(/[\u3040-\u30ff\u4e00-\u9fff]/);
+  });
+
+  it.each([
+    ["es", /respaldo/i],
+    ["ko", /[\uac00-\ud7af]/],
+    ["zh-Hans", /[\u4e00-\u9fff]/],
+    ["zh-Hant", /[\u4e00-\u9fff]/]
+  ])("ships %s: its catalog loads, compiles and answers", async (locale, script) => {
+    expect(await activateLocale(locale)).toBe(locale);
+    expect(document.documentElement.lang).toBe(locale);
+    expect(describeLastBackup("2026-06-01T00:00:00.000Z", new Date("2026-06-30T12:00:00Z"))).toMatch(script);
   });
 
   it("falls back to English for a language that has no catalog", async () => {
@@ -78,5 +127,23 @@ describe("plurals through the library", () => {
     expect(describeLastBackup("2026-06-09T00:00:00.000Z", now)).toBe("Last backup 3 weeks ago");
     expect(describeLastBackup("2026-03-30T00:00:00.000Z", now)).toBe("Last backup 3 months ago");
     expect(describeAge("2026-06-16T00:00:00.000Z", now)).toBe("2 weeks ago");
+  });
+});
+
+describe("the language picked in Settings (ADR-225)", () => {
+  afterEach(() => localStorage.clear());
+
+  it("wins over the phone's language, and clearing it follows the phone again", () => {
+    rememberLanguagePreference("ja");
+    expect(readLanguagePreference()).toBe("ja");
+    expect(chooseLocale()).toBe("ja");
+    rememberLanguagePreference(null);
+    expect(readLanguagePreference()).toBeNull();
+    expect(chooseLocale()).toBe(detectLocale());
+  });
+
+  it("ignores a stored value that is not a language the app has", () => {
+    localStorage.setItem("language", "tlh");
+    expect(readLanguagePreference()).toBeNull();
   });
 });

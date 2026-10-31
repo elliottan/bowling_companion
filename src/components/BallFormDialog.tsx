@@ -2,6 +2,7 @@ import { Archive, BookOpen, Check, ChevronRight, Compass, MoreHorizontal, Pencil
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
 import { addBall, updateBall } from "../services/ballRepository";
 import { getLayoutSystem } from "../services/bowlingRepository";
@@ -679,12 +680,13 @@ function LayoutField({
 
       {legacyText && (
         <p className="rounded-lg bg-surface-muted p-2.5 text-xs text-ink-secondary">
-          {t`This ball carries the layout you typed before:`}{" "}
-          <span className="font-semibold text-ink">
-            <Measure>{legacyText}</Measure>
-          </span>
-          {". "}
-          {t`Entering it below replaces the text with numbers.`}
+          <Trans>
+            This ball carries the layout you typed before:{" "}
+            <span className="font-semibold text-ink">
+              <Measure>{legacyText}</Measure>
+            </span>
+            . Entering it below replaces the text with numbers.
+          </Trans>
         </p>
       )}
 

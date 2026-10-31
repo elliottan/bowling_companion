@@ -1,4 +1,5 @@
 import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import { canPromptInstall, isIOSSafari, isStandalone, promptInstall } from "../lib/installPrompt";
 import { useOverlay } from "../lib/useOverlay";
 import { useSheetDismiss } from "../lib/useSheetDismiss";
@@ -67,9 +68,12 @@ export function InstallPrompt({ open, onClose }: InstallPromptProps) {
         ) : (
           <>
             <p className="mt-1.5 text-sm text-ink-secondary">
-              {t`In Safari, tap Share`}{" "}
-              <ShareIosIcon size={15} aria-hidden="true" className="inline-block align-text-bottom" />{" "}
-              {t`then "Add to Home Screen". Chrome and Firefox on iOS cannot do this, so open the page in Safari first.`}
+              <Trans>
+                In Safari, tap Share{" "}
+                <ShareIosIcon size={15} aria-hidden="true" className="inline-block align-text-bottom" />{" "}
+                then "Add to Home Screen". Chrome and Firefox on iOS cannot do this, so open the
+                page in Safari first.
+              </Trans>
             </p>
             <div className="mt-5 flex justify-end">
               <Button variant="secondary" onClick={onClose}>

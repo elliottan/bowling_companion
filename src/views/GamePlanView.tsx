@@ -203,7 +203,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                 {/* Only inside a house that has lanes on record: a lane number
                     means nothing across houses, and an empty picker is furniture. */}
                 {allLanes.length > 0 && (
-                  <div className="w-[calc(6rem*var(--type-scale))] shrink-0">
+                  <div className="min-w-[calc(6rem*var(--type-scale))] shrink-0">
                     <label className={FIELD_LABEL} htmlFor="plan-lane">
                       {t`Lane`}
                     </label>
@@ -223,7 +223,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                   </div>
                 )}
                 {allGames.length > 1 && (
-                  <div className="w-[calc(6rem*var(--type-scale))] shrink-0">
+                  <div className="min-w-[calc(6rem*var(--type-scale))] shrink-0">
                     <label className={FIELD_LABEL} htmlFor="plan-game">
                       {t`Game`}
                     </label>

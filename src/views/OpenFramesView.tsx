@@ -59,10 +59,10 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
                 <span className="text-4xl font-bold tabular-nums leading-none text-ink">
                   {oneDecimal(report.openFramesPerGame)}
                 </span>
-                <span className="text-sm font-semibold text-ink-secondary">
+                <span className="min-w-0 break-words text-sm font-semibold text-ink-secondary">
                   {t({ message: "open frames a game", comment: "Bowling term: an open frame is one with pins left standing after both balls. Lowercase label next to a number." })}
                 </span>
-                <span className="ml-auto text-xs tabular-nums text-ink-tertiary">
+                <span className="ml-auto shrink-0 text-xs tabular-nums text-ink-tertiary">
                   {plural(report.games, { one: "# game", other: "# games" })}
                 </span>
               </span>
@@ -72,7 +72,7 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
               {/* The three kinds under the number they add up to, rather than
                   filtered out of it: a night of splits is a first-ball night,
                   and hiding them would just shrink the headline. */}
-              <span className="mt-3 grid grid-cols-3 gap-1.5">
+              <span className="mt-3 flex flex-wrap gap-1.5">
                 <Kind label={t({ message: "Makeable", comment: "Bowling term: a leave that can be converted into a spare" })} value={report.makeable.perGame} strong />
                 <Kind label={t({ message: "Washouts", comment: "Bowling term: a leave with the head pin gone and pins scattered on both sides" })} value={report.washout.perGame} />
                 <Kind label={t({ message: "Splits", comment: "Bowling term: a leave with a gap between the standing pins" })} value={report.split.perGame} />
@@ -134,13 +134,13 @@ function Kind({
   strong?: boolean;
 }) {
   return (
-    <span className="block rounded-lg bg-surface-muted px-1 py-1.5 text-center">
+    <span className="block flex-1 rounded-lg bg-surface-muted px-2 py-1.5 text-center">
       <span
         className={`block text-sm font-bold tabular-nums ${strong ? "text-ink" : "text-ink-secondary"}`}
       >
         {value ?? "-"}
       </span>
-      <span className="block text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">
+      <span className="block break-keep text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary [overflow-wrap:normal]">
         {label}
       </span>
     </span>

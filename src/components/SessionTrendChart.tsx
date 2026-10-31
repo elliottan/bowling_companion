@@ -1,4 +1,8 @@
+import { plural, t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import { averageLabelY, trendInset } from "../lib/chartLabels";
+import { formatDate, formatNumber } from "../lib/format";
+import { formatSessionDate } from "../lib/dates";
 import { useState, type ReactNode } from "react";
 import type { SessionTrendPoint } from "../lib/stats";
 
@@ -28,7 +32,12 @@ const H = 140;
 const INSET_TOP = 18;
 const INSET_BOTTOM = 16;
 
-const shortDate = (iso: string) => iso.slice(5).replace("-", "/");
+/** A night's date on the axis, month and day only, in the app's language. */
+function shortDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const parsed = new Date(y, m - 1, d);
+  return Number.isNaN(parsed.getTime()) ? iso : formatDate(parsed, { month: "2-digit", day: "2-digit" });
+}
 
 /**
  * Form across sessions: a line through each session's average, with a faint dot
@@ -76,6 +85,9 @@ export function SessionTrendChart({ sessions, header, onOpenSession, overall }: 
   const columnWidth =
     points.length === 1 ? W : Math.max(18, (W - inset * 2) / Math.max(1, points.length - 1));
 
+  const nightList = points
+    .map((p) => t`${{ date: formatSessionDate(p.date) }}: ${{ average: formatNumber(p.average) }}`)
+    .join(", ");
   const keyOf = (p: SessionTrendPoint) => `${p.sessionId ?? ""}:${p.date}`;
   const selectedIndex = points.findIndex((p) => keyOf(p) === selectedKey);
   const selected = selectedIndex === -1 ? null : selectedIndex;
@@ -97,9 +109,7 @@ export function SessionTrendChart({ sessions, header, onOpenSession, overall }: 
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
         role="img"
-        aria-label={`Average by session, oldest first. ${points
-          .map((p) => `${p.date}: ${p.average}`)
-          .join(", ")}. Overall average ${Math.round(avg)}.`}
+        aria-label={t`Average by session, oldest first. ${{ sessions: nightList }}. Overall average ${{ average: formatNumber(Math.round(avg)) }}.`}
       >
         <line
           x1={0}
@@ -122,7 +132,7 @@ export function SessionTrendChart({ sessions, header, onOpenSession, overall }: 
           textAnchor="end"
           className="fill-ink-tertiary text-caption-2 tabular-nums"
         >
-          avg {Math.round(avg)}
+          {t({ message: `avg ${{ avg: formatNumber(Math.round(avg)) }}`, comment: "Short for average, labelling the dashed average line on a chart, the number after it" })}
         </text>
 
         {selected !== null && (
@@ -209,7 +219,7 @@ export function SessionTrendChart({ sessions, header, onOpenSession, overall }: 
             fill="transparent"
             role="button"
             tabIndex={0}
-            aria-label={`${p.date}, ${p.alley}, average ${p.average}`}
+            aria-label={t`${{ date: formatSessionDate(p.date) }}, ${{ alley: p.alley }}, average ${{ average: formatNumber(p.average) }}`}
             onClick={() => toggle(p)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -246,28 +256,29 @@ function SelectedSession({
   // What the night was, how long it ran, and the oil it was bowled on.
   const detail = [
     point.event,
-    `${point.scores.length} ${point.scores.length === 1 ? "game" : "games"}`,
+    plural(point.scores.length, { one: "# game", other: "# games" }),
     point.oilPattern
   ]
     .filter(Boolean)
     .join(" · ");
+  const average = formatNumber(point.average);
   const canOpen = onOpen && point.sessionId != null;
   const body = (
     <>
       <span className="flex items-baseline justify-between gap-2">
         <span className="min-w-0 truncate text-sm font-semibold text-ink-strong">{point.alley}</span>
-        <span className="shrink-0 text-xs tabular-nums text-ink-secondary">{point.date}</span>
+        <span className="shrink-0 text-xs tabular-nums text-ink-secondary">{formatSessionDate(point.date)}</span>
       </span>
       {detail && <span className="truncate text-xs text-ink-secondary">{detail}</span>}
       {/* Every game of the night, in the order they were bowled. High and low
           alone hid the shape: 150/240 and 195/195 both read as one number. */}
       <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs tabular-nums text-ink-secondary">
         <span>
-          <span className="font-bold text-accent">{point.average}</span> avg
+          <Trans><span className="font-bold text-accent">{average}</span> avg</Trans>
         </span>
         {point.scores.map((score, i) => (
           <span key={i}>
-            <span className="text-ink-tertiary">G{i + 1}</span>{" "}
+            <span className="text-ink-tertiary">{t({ message: `G${{ gameNumber: i + 1 }}`, comment: "Short axis label for a game number on a chart, like G1" })}</span>{" "}
             <span className="font-semibold text-ink">{score}</span>
           </span>
         ))}

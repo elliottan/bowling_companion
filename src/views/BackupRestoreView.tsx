@@ -1,4 +1,5 @@
 import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
 import { Download, ShieldAlert, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -101,7 +102,11 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
   const body = (
     <section className="mx-auto w-full max-w-2xl px-3 py-4 sm:px-6">
       <p className="text-sm text-ink-secondary">
-        {t`A backup is one file, kept on this device or wherever you put it. Restoring replaces everything on this device with what is in the file. Your current data is saved off first.`}
+        <Trans>
+          A backup is one file, kept on this device or wherever you put it. Restoring{" "}
+          <strong className="font-semibold text-ink">replaces</strong> everything on this device
+          with what is in the file. Your current data is saved off first.
+        </Trans>
       </p>
 
       {/* A browser that may bin the scores is a warning, and was set in the

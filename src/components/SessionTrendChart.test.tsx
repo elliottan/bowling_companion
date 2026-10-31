@@ -1,3 +1,4 @@
+import { formatSessionDate } from "../lib/dates";
 import { describe, expect, it } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { SessionTrendChart } from "./SessionTrendChart";
@@ -30,7 +31,7 @@ describe("SessionTrendChart", () => {
     );
     // One game dot and one average dot: the empty night is not on the chart.
     expect(dots(container)).toHaveLength(2);
-    expect(screen.getByRole("img").getAttribute("aria-label")).not.toContain("2026-08-08");
+    expect(screen.getByRole("img").getAttribute("aria-label")).not.toContain(formatSessionDate("2026-08-08"));
   });
 
   it("names the night behind a tapped point, and opens it", () => {
@@ -52,7 +53,7 @@ describe("SessionTrendChart", () => {
     );
     expect(screen.queryByText("Chinese Swimming Club")).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: /2026-08-05, Chinese Swimming Club/ }));
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(`${formatSessionDate("2026-08-05")}, Chinese Swimming Club`) }));
     expect(screen.getByText("Chinese Swimming Club")).toBeInTheDocument();
     expect(screen.getByText("SIA Bilateral · 3 games")).toBeInTheDocument();
 
@@ -88,7 +89,7 @@ describe("SessionTrendChart", () => {
         ]}
       />
     );
-    const hit = screen.getByRole("button", { name: /2026-08-05/ });
+    const hit = screen.getByRole("button", { name: new RegExp(formatSessionDate("2026-08-05")) });
     fireEvent.click(hit);
     expect(screen.getByText("Orchid Bowl")).toBeInTheDocument();
     fireEvent.click(hit);
@@ -108,7 +109,7 @@ describe("SessionTrendChart", () => {
       { sessionId: 2, date: "2026-08-08", alley: "Serangoon Bowl", average: 210, scores: [210] }
     ];
     const { rerender } = render(<SessionTrendChart sessions={sessions} />);
-    fireEvent.click(screen.getByRole("button", { name: /2026-08-08/ }));
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(formatSessionDate("2026-08-08")) }));
     expect(screen.getByText("Serangoon Bowl")).toBeInTheDocument();
 
     // The location filter narrows the list under the chart.

@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, type ReactNode } from "react";
+import { plural, t } from "@lingui/core/macro";
 import { ArrowRight } from "lucide-react";
 import { PALETTES } from "../lib/palette";
 import { DEFAULT_ASYMMETRIC, DEFAULT_PAP, readMotion } from "../lib/ballLayout";
@@ -76,26 +77,28 @@ const BALLS: Array<{ name: string; brand: Manufacturer; thumb: string; balls: nu
   }
 ];
 
-const BALL_HEADINGS = ["Pocket", "Carry", "Strike", "1st ball"];
-
-/** A ball's game-by-game rates, as its details open under its line. */
-const BY_GAME: Array<[string, string[]]> = [
-  ["Pocket", ["78%", "75%", "69%"]],
-  ["Carry", ["74%", "71%", "64%"]],
-  ["Strike", ["58%", "53%", "44%"]],
-  ["1st ball", ["9.3", "9.1", "8.8"]],
-  ["X-on-X", ["55%", "49%", "41%"]]
-];
+/** A ball's game-by-game rates, as its details open under its line. Built in
+ *  render, since the labels are read in the language of the day. */
+function byGameRows(): Array<[string, string[]]> {
+  return [
+    [t({ message: "Pocket", comment: "Bowling term: the strike pocket, where the ball should hit the pins. A rate label." }), ["78%", "75%", "69%"]],
+    [t({ message: "Carry", comment: "Bowling term: how often a ball that hit the pocket carried for a strike. A rate label." }), ["74%", "71%", "64%"]],
+    [t({ message: "Strike", comment: "Bowling term: all ten pins down with the first ball. A rate label." }), ["58%", "53%", "44%"]],
+    [t({ message: "1st ball", comment: "Bowling term: the first ball of a frame, thrown at a full rack of ten pins" }), ["9.3", "9.1", "8.8"]],
+    [t({ message: "X-on-X", comment: "Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet" }), ["55%", "49%", "41%"]]
+  ];
+}
 
 /** Each ball's rates side by side, the first one open on its by-game
  *  details, as the All balls sheet draws them. */
 export function BallsSample() {
+  const headings = [t({ message: "Pocket", comment: "Bowling term: the strike pocket, where the ball should hit the pins. A rate label." }), t({ message: "Carry", comment: "Bowling term: how often a ball that hit the pocket carried for a strike. A rate label." }), t({ message: "Strike", comment: "Bowling term: all ten pins down with the first ball. A rate label." }), t({ message: "1st ball", comment: "Bowling term: the first ball of a frame, thrown at a full rack of ten pins" })];
   return (
     <Sample>
       <div className="rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
         <div className="flex gap-1 pb-1 text-caption-2 font-semibold uppercase leading-tight text-ink-tertiary">
           <span className="min-w-0 flex-1" />
-          {BALL_HEADINGS.map((h) => (
+          {headings.map((h) => (
             <span key={h} className="w-10 shrink-0 text-right">
               {h}
             </span>
@@ -110,7 +113,7 @@ export function BallsSample() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium leading-tight text-ink-strong">{ball.name}</span>
-                  <span className="block text-caption-2 tabular-nums text-ink-tertiary">{ball.balls} balls</span>
+                  <span className="block text-caption-2 tabular-nums text-ink-tertiary">{plural(ball.balls, { one: "# ball", other: "# balls" })}</span>
                 </span>
               </span>
               {ball.rates.map((rate, i) => (
@@ -123,7 +126,7 @@ export function BallsSample() {
               <table className="mt-2 w-full rounded-lg bg-surface-muted text-caption-2 tabular-nums">
                 <thead>
                   <tr className="text-ink-tertiary">
-                    <th className="px-2 pt-1.5 text-left font-semibold">By game</th>
+                    <th className="px-2 pt-1.5 text-left font-semibold">{t`By game`}</th>
                     {[1, 2, 3].map((g) => (
                       <th key={g} className="w-10 pt-1.5 text-center font-semibold">
                         {g}
@@ -132,7 +135,7 @@ export function BallsSample() {
                   </tr>
                 </thead>
                 <tbody className="text-ink-secondary">
-                  {BY_GAME.map(([label, cells]) => (
+                  {byGameRows().map(([label, cells]) => (
                     <tr key={label}>
                       <td className="px-2 text-left">{label}</td>
                       {cells.map((c, i) => (
@@ -156,9 +159,9 @@ export function BallsSample() {
  *  card draws them with Pro. */
 export function FirstBallSample() {
   const chain: Array<[string, string, boolean]> = [
-    ["Pocket", "74%", false],
-    ["Carry", "70%", false],
-    ["Strike", "52%", true]
+    [t({ message: "Pocket", comment: "Bowling term: the strike pocket, where the ball should hit the pins. A rate label." }), "74%", false],
+    [t({ message: "Carry", comment: "Bowling term: how often a ball that hit the pocket carried for a strike. A rate label." }), "70%", false],
+    [t({ message: "Strike", comment: "Bowling term: all ten pins down with the first ball. A rate label." }), "52%", true]
   ];
   return (
     <Sample>
@@ -176,9 +179,9 @@ export function FirstBallSample() {
         </div>
         <div className="mt-3 grid grid-cols-3 border-t border-edge pt-2.5 text-center">
           {[
-            ["9.1", "1st ball avg"],
-            ["49%", "Strike on strike"],
-            ["9", "Strikes in a row"]
+            ["9.1", t({ message: "1st ball avg", comment: "Bowling term: the first ball of a frame, thrown at a full rack of ten pins; avg is short for average" })],
+            ["49%", t({ message: "Strike on strike", comment: "Bowling term: a strike on the ball right after a strike" })],
+            ["9", t({ message: "Strikes in a row", comment: "Bowling term: all ten pins knocked down with the first ball of a frame" })]
           ].map(([value, label]) => (
             <div key={label}>
               <p className="text-base font-bold leading-tight tabular-nums text-ink">{value}</p>
@@ -225,26 +228,31 @@ const ALLEY_BALLS: Array<{
   }
 ];
 
-const ALLEY_HEADINGS = ["Strike", "After strike", "Splits", "Made"];
-
 /** What you would average with each ball at one alley, on one pair of lanes,
  *  with the rates behind it, as the Alley report lists it. */
 export function AlleySample() {
+  const headings = [
+    t({ message: "Strike", comment: "Bowling term: all ten pins down with the first ball. A rate label." }),
+    t({ message: "After strike", comment: "Bowling term. A short column heading over the share of strikes thrown right after a strike." }),
+    t({ message: "Splits", comment: "Bowling term. A short column heading over the share of leaves that were splits." }),
+    t({ message: "Made", comment: "Bowling term. A short column heading over the share of leaves picked up for a spare." })
+  ];
+  const lanes = "11-12";
   return (
     <Sample>
       <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs font-semibold">
         <span className="rounded-full bg-accent-fill px-3 py-1 text-accent-on-fill">Sea Bowl</span>
-        <span className="rounded-full border border-edge-strong bg-surface px-3 py-1 text-ink-strong">Lanes 11-12</span>
+        <span className="rounded-full border border-edge-strong bg-surface px-3 py-1 text-ink-strong">{plural(2, { one: `Lane ${lanes}`, other: `Lanes ${lanes}` })}</span>
       </div>
       <div className="overflow-hidden rounded-[22px] bg-surface">
         <div className="flex items-end gap-1 px-3 pb-1 pt-2 text-caption-2 font-semibold uppercase leading-tight text-ink-tertiary">
           <span className="min-w-0 flex-1" />
-          {ALLEY_HEADINGS.map((h) => (
+          {headings.map((h) => (
             <span key={h} className="w-8 shrink-0 text-center">
               {h}
             </span>
           ))}
-          <span className="w-9 shrink-0 text-right">Est.</span>
+          <span className="w-9 shrink-0 text-right">{t({ message: "Est.", comment: "Short column heading: estimated average." })}</span>
         </div>
         {ALLEY_BALLS.map((ball) => (
           <div key={ball.name} className="flex items-center gap-1 border-t border-edge px-3 py-2 text-caption">
@@ -291,21 +299,20 @@ const OIL: OilOverlay = {
 
 const LINE = { stance: 23, laydown: 18, target: 12, breakpoint: 7, breakpoint_distance: 42 };
 
-const PEGS: Array<[string, number]> = [
-  ["Laydown", LINE.laydown],
-  ["Target", LINE.target],
-  ["Breakpoint", LINE.breakpoint]
-];
-
 /** A line on the lane over the oil, with the three points that move it. */
 export function LineSample() {
+  const pegs: Array<[string, number]> = [
+    [t({ message: "Laydown", comment: "Bowling term: the board the ball first touches the lane" }), LINE.laydown],
+    [t({ message: "Target", comment: "Bowling term: the board the ball crosses at the arrows." }), LINE.target],
+    [t({ message: "Breakpoint", comment: "Bowling term: the point where the ball turns from skid to hook" }), LINE.breakpoint]
+  ];
   return (
     <Sample lane className="flex items-center justify-center gap-4 py-3">
       <div className="h-64 w-[5.5rem] shrink-0">
         <LaneSurface line={LINE} hand="right" oil={OIL} />
       </div>
       <dl className="space-y-2">
-        {PEGS.map(([label, board]) => (
+        {pegs.map(([label, board]) => (
           <div key={label} className="rounded-lg border border-white/15 bg-white/10 px-3 py-1.5 text-white">
             <dt className="text-caption-2 font-semibold uppercase tracking-wide text-white/70">{label}</dt>
             <dd className="text-base font-bold tabular-nums">{board}</dd>

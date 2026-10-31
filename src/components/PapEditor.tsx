@@ -70,7 +70,7 @@ export function PapEditor({
           // sign for the whole measurement, not for its integer part: half an
           // inch below the midline is a real PAP and there is no way to write
           // it as a negative zero.
-          <Dropdown className="w-[calc(4.5rem*var(--type-scale))]">
+          <Dropdown className="min-w-[calc(4.5rem*var(--type-scale))]">
             <select
               aria-label={t({ message: "Up or down direction", comment: "Bowling term: PAP (positive axis point), whether the axis point sits above or below the ball's midline." })}
               className={FIELD_DENSE_SELECT_NARROW}

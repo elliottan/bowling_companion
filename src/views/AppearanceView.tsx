@@ -5,6 +5,15 @@ import { PushScreen } from "../components/PushScreen";
 import { SegmentedControl } from "../components/ui/SegmentedControl";
 import { SETTING_HEADING } from "../components/ui/typography";
 import { Check, Lock } from "lucide-react";
+import { ListGroup, ListRow } from "../components/ui/ListGroup";
+import {
+  LANGUAGE_NAMES,
+  SUPPORTED_LOCALES,
+  detectLocale,
+  readLanguagePreference,
+  rememberLanguagePreference,
+  type Locale
+} from "../lib/i18n";
 import { useTextSize } from "../components/ui/useTextSize";
 import { TEXT_SIZES } from "../lib/textScale";
 import { useTheme, type ThemePreference } from "../lib/theme";
@@ -21,6 +30,8 @@ const THEME_OPTIONS: { value: ThemePreference; label: MessageDescriptor }[] = [
 interface AppearanceViewProps {
   /** Present when pushed from Settings, which draws the shared nav bar. */
   onBack?: () => void;
+  /** Starts the app again in the language just picked. A test passes its own. */
+  reload?: () => void;
 }
 
 /**
@@ -28,7 +39,7 @@ interface AppearanceViewProps {
  * The layout notation (dual angle or VLS) used to have a global switch here;
  * it went, because the Layouts page and each ball's form both carry their own.
  */
-export function AppearanceView({ onBack }: AppearanceViewProps = {}) {
+export function AppearanceView({ onBack, reload = () => window.location.reload() }: AppearanceViewProps = {}) {
   const [theme, setTheme] = useTheme();
   const [palette, setPalette] = usePalette();
   const [textSize, setTextSize] = useTextSize();
@@ -63,6 +74,8 @@ export function AppearanceView({ onBack }: AppearanceViewProps = {}) {
           onChange={setTextSize}
         />
       </div>
+
+      <LanguagePicker reload={reload} />
 
       <div>
         <h2 className={`mb-3 ${SETTING_HEADING}`}>{t`Color`}</h2>
@@ -103,5 +116,53 @@ export function AppearanceView({ onBack }: AppearanceViewProps = {}) {
     <PushScreen mode="inline" title={t`Appearance`} onBack={onBack}>
       {body}
     </PushScreen>
+  );
+}
+
+/**
+ * Which language the app speaks: the phone's, or one picked here (ADR-225). The
+ * language is chosen once, before the first screen is drawn (ADR-220), so a
+ * change starts the app again rather than redrawing every screen in place.
+ */
+function LanguagePicker({ reload }: { reload: () => void }) {
+  const picked = readLanguagePreference();
+  const phone = detectLocale() as Locale;
+
+  function choose(next: Locale | null) {
+    if (next === picked) return;
+    rememberLanguagePreference(next);
+    reload();
+  }
+
+  const mark = (on: boolean) =>
+    on ? (
+      <Check size={18} strokeWidth={2.5} aria-hidden="true" className="shrink-0 text-accent" />
+    ) : (
+      <span aria-hidden="true" className="w-[18px] shrink-0" />
+    );
+
+  return (
+    <div>
+      <h2 className={`mb-3 ${SETTING_HEADING}`}>{t`Language`}</h2>
+      <ListGroup>
+        <ListRow
+          label={t({ message: "Automatic", comment: "Language setting: speak the phone's language" })}
+          description={t`Follows your phone: ${{ language: LANGUAGE_NAMES[phone] }}`}
+          pressed={picked === null}
+          trailing={mark(picked === null)}
+          onClick={() => choose(null)}
+        />
+        {SUPPORTED_LOCALES.map((locale) => (
+          <ListRow
+            key={locale}
+            label={LANGUAGE_NAMES[locale]}
+            labelLang={locale}
+            pressed={picked === locale}
+            trailing={mark(picked === locale)}
+            onClick={() => choose(locale)}
+          />
+        ))}
+      </ListGroup>
+    </div>
   );
 }

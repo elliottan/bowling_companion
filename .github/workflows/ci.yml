@@ -47,6 +47,12 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium webkit
 
+      # The faces e2e/text-fit.spec.ts measures with: Inter for Latin text,
+      # close to the phones' own, and Noto Sans CJK. Without them the runner
+      # falls back to DejaVu Sans, far wider than any phone (ADR-225).
+      - name: Install fonts for the text-fit check
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends fonts-inter fonts-noto-cjk
+
       - name: End-to-end smoke tests
         run: npm run test:e2e
 

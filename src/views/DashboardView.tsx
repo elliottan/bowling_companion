@@ -166,7 +166,10 @@ export function DashboardView({
           left, their arsenal on the right. The arsenal takes the wider share
           because it carries pictures; the left column has room to grow. */}
       <div className="mb-4 flex items-start gap-4">
-        <div className="flex w-[38%] min-w-0 shrink-0 flex-col items-start">
+        {/* 38%, and wider for the longest word of the greeting (up to 60%),
+            so a Korean or long word is never cut: `anywhere` shrank the floor
+            to one letter and the column let it. */}
+        <div className="flex w-[38%] min-w-min max-w-[60%] shrink-0 flex-col items-start">
           {/* The app's mark, and once this copy has Pro, the Pro mark in its
               place (ADR-167). */}
           {owned ? (
@@ -180,7 +183,7 @@ export function DashboardView({
               className="mb-2 h-11 w-11 rounded-xl shadow-sm"
             />
           )}
-          <h1 className="text-xl font-bold leading-tight text-ink [overflow-wrap:anywhere]">
+          <h1 className="text-xl font-bold leading-tight text-ink break-words">
             {named ? greeting(name, greetingIndex) : "\u00a0"}
           </h1>
           {named && !name && (

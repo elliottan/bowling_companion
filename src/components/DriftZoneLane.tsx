@@ -1,6 +1,8 @@
 import { useRef, type KeyboardEvent, type PointerEvent } from "react";
+import { t } from "@lingui/core/macro";
 import type { Handedness } from "../types/bowling";
 import { driftDirection, type DriftModel } from "../lib/driftModel";
+import { formatNumber } from "../lib/format";
 
 /** Zone accent colours, shared with the settings rows so the band a bowler sees
  *  on the lane and the row they edit read as the same thing. */
@@ -117,7 +119,11 @@ export function DriftZoneLane({ model, hand, onOutsideMaxChange, onInsideMinChan
       // A group, not an image, once the edges are sliders: an image's children
       // are presentational, which would hide the sliders from a screen reader.
       role={editable ? "group" : "img"}
-      aria-label={`Approach board diagram for a ${hand}-handed bowler, split into outside, middle and inside drift zones`}
+      aria-label={
+        hand === "right"
+          ? t`Approach board diagram for a right-handed bowler, split into outside, middle and inside drift zones`
+          : t`Approach board diagram for a left-handed bowler, split into outside, middle and inside drift zones`
+      }
       // Vertical swipes still scroll the page; sideways ones drag an edge.
       style={editable ? { touchAction: "pan-y", cursor: "ew-resize" } : undefined}
       onPointerDown={editable ? onPointerDown : undefined}
@@ -164,7 +170,7 @@ export function DriftZoneLane({ model, hand, onOutsideMaxChange, onInsideMinChan
               fill="#334155"
               className="capitalize"
             >
-              {zone}
+              {zoneName(zone)}
             </text>
             <DriftArrow x={mid} y={FOUL_H + 52} drift={drift} dir={dir} accent={accent} span={width} />
           </g>
@@ -200,11 +206,11 @@ export function DriftZoneLane({ model, hand, onOutsideMaxChange, onInsideMinChan
               key={edge}
               role="slider"
               tabIndex={0}
-              aria-label={edge === "outside" ? "Outside zone ends at board" : "Inside zone starts at board"}
+              aria-label={edge === "outside" ? t`Outside zone ends at board` : t`Inside zone starts at board`}
               aria-valuenow={board}
               aria-valuemin={edge === "outside" ? 1 : model.outside_max + 2}
               aria-valuemax={edge === "outside" ? model.inside_min - 2 : BOARDS}
-              aria-valuetext={`Board ${board}`}
+              aria-valuetext={t`Board ${{ board }}`}
               aria-orientation="horizontal"
               onKeyDown={onKeyDown(edge)}
               className="outline-none [&:focus-visible>rect]:stroke-[#2563eb]"
@@ -218,6 +224,13 @@ export function DriftZoneLane({ model, hand, onOutsideMaxChange, onInsideMinChan
         })}
     </svg>
   );
+}
+
+/** The zone's name on the diagram. */
+function zoneName(zone: "outside" | "middle" | "inside"): string {
+  if (zone === "outside") return t({ message: "Outside", comment: "Bowling term: the outside zone of the lane, near the gutter. A zone name in the drift settings." });
+  if (zone === "middle") return t({ message: "Middle", comment: "Bowling term: the middle zone of the lane. A zone name in the drift settings." });
+  return t({ message: "Inside", comment: "Bowling term: the inside zone of the lane, toward the center. A zone name in the drift settings." });
 }
 
 /** Arrow showing which way a zone's drift moves the slide foot. Length scales
@@ -238,7 +251,13 @@ function DriftArrow({
   accent: string;
   span: number;
 }) {
-  const label = dir === "none" ? "no drift" : `${Math.abs(drift)} ${dir}`;
+  const boards = formatNumber(Math.abs(drift), 1);
+  const label =
+    dir === "none"
+      ? t({ message: "no drift", comment: "Under a zone of the approach diagram: this zone does not move the slide foot" })
+      : dir === "left"
+        ? t`${{ boards }} left`
+        : t`${{ boards }} right`;
   if (dir === "none") {
     return (
       <g>
