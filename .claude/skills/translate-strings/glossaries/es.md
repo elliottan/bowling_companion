@@ -66,8 +66,9 @@ the source text. Translate from the English msgid.
 - Decimal formatting is done by the app; never rewrite numbers.
 
 ## Glossary (use consistently; bowling Spanish keeps many English terms)
-strike chuza (Latin American bowling word; in short labels "Strike" is also understood,
-pick chuza consistently) · spare spare (masc., "el spare"; plural "spares") ·
+strike strike (masc., "el strike"; plural "strikes". Never "chuza": the
+Diccionario de americanismos marks it for Mexico, Costa Rica and the Dominican Republic only,
+Colombia says "moñona" and Spain "pleno", and "strike" is the word every country shares) · spare spare (masc., "el spare"; plural "spares") ·
 split split · foul falta · gutter canal · pocket bolsillo · leave (pins left standing) dejada
 (plural dejadas; "the 10 pin leave" = la dejada del pino 10) · open frame cuadro abierto ·
 clean game juego limpio · frame cuadro · game juego · series serie · session sesión ·

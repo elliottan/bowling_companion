@@ -18,7 +18,7 @@ Vocabulary changes (Taiwan -> Simplified usage), among others:
 即時動態 -> 实时活动 · 型錄 -> 目录 · 紀錄 -> 记录 · 首頁 -> 首页 · 影片 -> 视频 · 訊息 -> 信息 ·
 支援 -> 支持 · 使用者 -> 用户 · 帳號 -> 账号 · 品質 -> 质量.
 Bowling terms in Simplified usage: strike 全中 · spare 补中 · split 分瓶 · foul 犯规 ·
-gutter 洗沟 · pocket 甜区 · leave (pins left standing) 残瓶 (never 残局, which means an endgame) · open frame 失误格 ·
+gutter 洗沟 · pocket 甜区 · leave (pins left standing) 残瓶 (never 残局, which means an endgame) · open frame 失误 (the word the Beijing Bowling Association rules use; not 失误格) ·
 frame 格 · game 局 · series 系列赛 · session 场次 · average 平均分 (abbrev 平均) ·
 strike ball 全中球 · spare ball 补中球 · arsenal 球库 · line 路线 · stance 站位 ·
 target 目标 · arrows 箭头 · board 板 · oil pattern 油型 · lane 球道 · flare 油圈 ·
