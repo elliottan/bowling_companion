@@ -53,8 +53,12 @@ describe("PatternSheet", () => {
     const { container } = render(<PatternSheet pattern={chromium} onClose={() => {}} />);
     const cells = [...container.querySelectorAll("ul.grid-cols-7 > li")].map((li) => li.textContent);
     expect(cells).toHaveLength(7);
-    expect(cells[0]).toBe("3L-7L6.71");
-    expect(cells[3]).toBe("18L-18R1.00");
+    // The sheet's name for a screen reader, the bare boards on screen, as the
+    // lane drawing above numbers them.
+    expect(cells[0]).toBe("3L-7L3-76.71");
+    expect(cells[3]).toBe("18L-18R18-181.00");
+    const shown = [...container.querySelectorAll("[data-zone-label]")].map((el) => el.textContent);
+    expect(shown).toEqual(["3-7", "8-12", "13-17", "18-18", "17-13", "12-8", "7-3"]);
     expect(cells.every((cell) => !cell?.includes(":1"))).toBe(true);
   });
 

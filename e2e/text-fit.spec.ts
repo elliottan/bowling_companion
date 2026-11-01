@@ -315,7 +315,7 @@ function detectOverflow(): Array<{ text: string; path: string; kind: string; wid
       // boxes that widen a small control's tap target.
       if (cs0.display === "inline" || isClipping(cs0.overflowX) || isScroller(cs0.overflowX)) continue;
       if (el.closest(".sr-only")) continue;
-      if (typeof el.checkVisibility === "function" && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+      if (typeof el.checkVisibility === "function" && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true, contentVisibilityAuto: true })) continue;
       let inScroller = false;
       for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
         if (isSidewaysScroller(a, getComputedStyle(a).overflowX)) { inScroller = true; break; }
@@ -337,6 +337,7 @@ function detectOverflow(): Array<{ text: string; path: string; kind: string; wid
           if (a !== d && (isScroller(acs.overflowX) || isClipping(acs.overflowX))) { floating = true; break; }
         }
         if (floating) continue;
+        if (typeof d.checkVisibility === "function" && !d.checkVisibility({ opacityProperty: true, visibilityProperty: true, contentVisibilityAuto: true })) continue;
         const dr = d.getBoundingClientRect();
         if (dr.width === 0 || dr.height === 0) continue;
         if (dr.left < inner - 1 || dr.right > innerRight + 1) {
@@ -346,8 +347,11 @@ function detectOverflow(): Array<{ text: string; path: string; kind: string; wid
       }
       continue;
     }
-    // checkVisibility covers display none, visibility hidden, content-visibility.
-    if (typeof el.checkVisibility === "function" && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+    // checkVisibility covers display none, visibility hidden, and a row that
+    // `content-visibility: auto` is skipping: its box is left as it was last
+    // laid out, so a list under a pushed screen still reads at the width it
+    // had before the viewport narrowed. It is laid out again when it shows.
+    if (typeof el.checkVisibility === "function" && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true, contentVisibilityAuto: true })) continue;
     // The sr-only recipe: a 1px clipped box.
     if (el.closest(".sr-only")) continue;
     const cs = getComputedStyle(el);

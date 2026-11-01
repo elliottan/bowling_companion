@@ -180,14 +180,20 @@ const SHEET_ROW =
  */
 const ZONE_ROW = ["3L-7L", "8L-12L", "13L-17L", "18L-18R", "17R-13R", "12R-8R", "7R-3R"] as const;
 
+/** A zone named as the lane drawing above names its boards: bare numbers, read
+ *  left to right, the row's order saying which side ("13-17", not "13L-17L"). */
+const shortZone = (label: string) => label.replace(/[LR]/g, "");
+
 function TrackZoneRow({ zones }: { zones: { label: string; ratio: number }[] }) {
   const byLabel = new Map(zones.map((z) => [z.label, z.ratio]));
   return (
-    // Held at the base size (`type-cap-fixed`): seven cells share the phone's
-    // width at every text size, so "13L-17L" and "1.94" ran out of their cells
-    // at a large one, and a row of ratios gains nothing from being bigger
-    // than the sheet it reproduces.
-    <ul className="type-cap-fixed mt-1.5 grid grid-cols-7 gap-0.5 text-center tabular-nums">
+    // Seven cells share the phone's width, so the row is capped as a table is
+    // (`type-cap-dense`): it grows with the bowler's text size to 1.2x, and no
+    // further. The labels drop the sheet's L and R to make that room: at
+    // "13L-17L" the row only fit held at the base size, small beside
+    // everything around it at a large one, and the lane drawing directly above
+    // already numbers its boards 5, 10, 15, 20, 15, 10, 5 with no letters.
+    <ul className="type-cap-dense mt-1.5 grid grid-cols-7 gap-0.5 text-center tabular-nums">
       {ZONE_ROW.map((label) => {
         const middle = label === "18L-18R";
         const ratio = middle ? 1 : byLabel.get(label);
@@ -195,14 +201,14 @@ function TrackZoneRow({ zones }: { zones: { label: string; ratio: number }[] }) 
           <li
             key={label}
             // An inset ring rather than a border: a border's two px come out
-            // of the cell's width, and on a 360px phone that was the room
-            // "17R-13R" needed.
+            // of the cell's width, which is room the label needs.
             className={`min-w-0 rounded-lg py-1.5 ring-1 ring-inset ${middle ? "bg-accent-soft ring-accent" : "bg-surface ring-edge"}`}
           >
-            {/* 9px and tight: seven of these share a phone's width, and a
-                label is only worth printing whole. */}
-            <span className="block whitespace-nowrap text-caption-2 leading-tight tracking-tighter text-ink-tertiary">
-              {label}
+            {/* The sheet's own name for a screen reader, which has no row
+                order to read the side from. */}
+            <span className="sr-only">{label}</span>
+            <span aria-hidden="true" data-zone-label="" className="block whitespace-nowrap text-caption-2 leading-tight tracking-tight text-ink-tertiary">
+              {shortZone(label)}
             </span>
             <span className="block text-sm font-semibold text-ink">
               {ratio != null ? formatFixed(ratio, 2) : "-"}

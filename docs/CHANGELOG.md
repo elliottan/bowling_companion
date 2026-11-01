@@ -27,11 +27,13 @@ had all shipped.
 - A button whose label takes two lines grows to hold it, instead of drawing
   the second line across its own edge ("Restablecer a tus ajustes
   guardados").
+- An oil pattern's track zones are named by their boards alone ("13-17",
+  not "13L-17L"), read left to right as the lane drawing above them is, so
+  the row grows with a large text size instead of running out of its cells.
 - At large text sizes: the tab bar labels keep their size, as the iPhone's
   own do, so "Estadísticas" fits its tab. The Stats average, the first ball
-  row, the catalog's sort, the profile's offset row, the oil pattern's zone
-  ratios, the line fields' names and the spare line's move readout stay
-  inside their boxes.
+  row, the catalog's sort, the profile's offset row, the line fields' names
+  and the spare line's move readout stay inside their boxes.
 - The text fit check that runs on every build now also catches text spilling
   visibly out of its box, not only text that is cut off, and opens the PAP
   sheet.
