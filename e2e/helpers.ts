@@ -17,15 +17,31 @@ export async function dismissHandednessModal(page: Page) {
   await firstRun.getByRole("button", { name: "Next", exact: true }).click();
 }
 
-/** Wipe IndexedDB so each test starts from an empty database. */
+/**
+ * Wipe IndexedDB so each test starts from an empty database.
+ *
+ * The delete is retried if the page navigates under it. A cold Vite dev server
+ * that discovers a dependency late re-optimizes and reloads the page on its
+ * own, shortly after `goto` resolves, which destroys the evaluate's context.
+ * vite.config.ts pre-bundles the one dependency that did this; the retry keeps
+ * the next one from turning into a flaky first test.
+ */
 export async function clearDatabase(page: Page) {
   await page.goto("/app?pro");
-  await page.evaluate(async () => {
-    await new Promise<void>((resolve) => {
-      const req = indexedDB.deleteDatabase("BowlingCompanionDB");
-      req.onsuccess = req.onerror = req.onblocked = () => resolve();
-    });
-  });
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await page.evaluate(async () => {
+        await new Promise<void>((resolve) => {
+          const req = indexedDB.deleteDatabase("BowlingCompanionDB");
+          req.onsuccess = req.onerror = req.onblocked = () => resolve();
+        });
+      });
+      break;
+    } catch (error) {
+      if (attempt >= 3 || !String(error).includes("Execution context was destroyed")) throw error;
+      await page.waitForLoadState("load");
+    }
+  }
   await page.reload();
   await dismissHandednessModal(page);
 }

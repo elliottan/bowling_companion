@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.75.3: A steady first e2e test (2026-11-01)
+
+- No change a bowler can see. The dev server now pre-bundles
+  `@lingui/react/server`, which only the `<Trans>` macro imports and which
+  Vite's dependency scan therefore missed. Found late on a cold server, it
+  made Vite reload the first page it served, and the first e2e test of every
+  CI run failed on its first attempt and passed on the retry. The e2e
+  database wipe also retries if the page navigates under it.
+
 ## 0.75.2: Strike in Spanish, open frames in Chinese (2026-10-31)
 
 - Spanish says "strike" where it said "chuza", a word bowlers use in Mexico
