@@ -30,6 +30,10 @@ had all shipped.
 - An oil pattern's track zones are named by their boards alone ("13-17",
   not "13L-17L"), read left to right as the lane drawing above them is, so
   the row grows with a large text size instead of running out of its cells.
+- The Alley report's estimated average table spaces its columns evenly:
+  each number sits centred under its heading with a gap between columns, so
+  a long heading ("ストライク後") no longer leaves a wide gap before its number
+  while a short one ("成功") presses two numbers together.
 - At large text sizes: the tab bar labels keep their size, as the iPhone's
   own do, so "Estadísticas" fits its tab. The Stats average, the first ball
   row, the catalog's sort, the profile's offset row, the line fields' names
