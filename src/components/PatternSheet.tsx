@@ -319,6 +319,9 @@ function SheetViewer({ title, sheet, onClose }: { title: string; sheet: KeptShee
       title={title}
       onBack={onClose}
       backCloses
+      // The original sheet is the page, and it zooms: it starts at the top,
+      // with its name in the bar (ADR-226).
+      largeTitle={false}
       trailing={
         <IconButton
           label={t`Open the PDF`}

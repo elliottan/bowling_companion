@@ -107,9 +107,9 @@ function GuideArticle({ guide, onBack }: { guide: Guide; onBack: () => void }) {
       <span role="status" className="sr-only">
         {copied ? t`Link copied` : ""}
       </span>
-      <article className="mx-auto w-full max-w-xl px-4 py-5 sm:px-6">
-        <h2 className="text-xl font-bold text-ink">{guide.title}</h2>
-        <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
+      {/* The guide's title is the screen's large title, above this. */}
+      <article className="mx-auto w-full max-w-xl px-4 pb-5 pt-1 sm:px-6">
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">
           {guide.topic} · {readingTime(guide)}
         </p>
 

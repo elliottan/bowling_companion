@@ -365,6 +365,10 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
 
   return (
     <PushScreen
+      // The ball leads the page, not its name: the screen is one picture and
+      // the numbers under it, and a large title pushed the ball half a screen
+      // down (ADR-226).
+      largeTitle={false}
       title={t({ message: "Layouts", comment: "Bowling term: the drilling layout of a ball" })}
       onBack={onBack}
       /* Escape belongs to whatever is layered on top. Without this the menu's

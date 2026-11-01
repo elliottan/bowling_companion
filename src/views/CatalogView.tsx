@@ -214,11 +214,9 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
     // A ball detail is one level deeper than the list, so it pushes like one
     //, same nav bar, same back gesture, opened at the top regardless of where
     // the list was scrolled to.
-    <PushScreen title={ball.name} onBack={onBack} active={!addDialogOpen}>
+    <PushScreen title={ball.name} eyebrow={ball.brand} onBack={onBack} active={!addDialogOpen}>
       <div>
-        <div className="mx-auto w-full max-w-xl px-3 py-5 sm:px-6">
-          <p className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</p>
-          <div className="mt-2" />
+        <div className="mx-auto w-full max-w-xl px-3 py-4 sm:px-6">
           <ColorwayCarousel ball={ball} />
 
           {releaseDate && (
@@ -572,10 +570,14 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
       onBack={onBack}
       active={selectedBallId === null && addingBall === null}
     >
-      {/* Search + filters stay pinned above the list they narrow. The block
-          reaches up behind the nav bar, so the list passes under the two as
-          one opaque band rather than showing between them (ADR-168). */}
-      <div className="sticky -top-[var(--push-bar-h)] z-10 -mt-[var(--push-bar-h)] border-b border-edge bg-surface-sunken mx-auto w-full max-w-3xl px-3 pt-[calc(var(--push-bar-h)+0.75rem)] sm:px-6">
+      {/* Search + filters stay pinned above the list they narrow, stopping
+          under the nav bar. They used to reach up behind the bar so the list
+          passed under the two as one opaque band, but that block now sits
+          below the large title and reaching up covered it (ADR-226). The
+          bar's own ground is the page's colour nearly solid, so the list
+          passing under it between the two is a soft shape, as on every other
+          pushed screen. */}
+      <div className="sticky top-0 z-10 mx-auto w-full max-w-3xl border-b border-edge bg-surface-sunken px-3 pt-3 sm:px-6">
         {/* Sync state banner */}
         {syncState.status === "syncing" && (
           <div className="mb-3 flex items-center gap-2 rounded-lg border border-edge bg-surface-muted px-3 py-2 text-sm text-ink-secondary">

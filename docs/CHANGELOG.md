@@ -9,8 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.75.3: Text that fits, in every language and size (2026-11-01)
+## 0.76.0: Large titles, and text that fits in every language (2026-11-01)
 
+- Pushed screens lead with iOS's large title: the name at the top of the
+  page, large and on as many lines as it needs, so a long one ("2019 PBA
+  Johnny Petraglia Open") is read in full. Scroll down and it goes under the
+  bar, where the name comes in small and truncated, as on an iPhone. The
+  layout lab and a pattern's original sheet keep their name in the bar, so
+  the ball and the sheet still start at the top. A catalog ball's brand sits
+  over its name, and a guide no longer repeats its title.
 - Layouts: a slider's name ("Ángulo de perforación") takes two lines rather
   than running under the slider beside it. In Your PAP and hand, the up or
   down box ("Arriba") no longer runs out of its card over the hand card; the
