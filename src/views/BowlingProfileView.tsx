@@ -345,10 +345,13 @@ function Group({
   );
 }
 
-/** Label on the left, control flush right: one grid for every input on the page. */
+/** Label on the left, control flush right: one grid for every input on the page.
+ *  Where the two do not fit on one line (a narrow phone at a large text size),
+ *  the control wraps under the label, still flush right, rather than running
+ *  out of the card. */
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div className="flex min-h-[3rem] items-center gap-3">
+    <div className="flex min-h-[3rem] flex-wrap items-center gap-x-3 gap-y-1 py-1">
       <span className="text-sm text-ink-strong">
         {label}
         {hint && <span className="ml-1 text-xs text-ink-secondary">({hint})</span>}

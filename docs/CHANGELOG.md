@@ -9,6 +9,26 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.75.3: Text that fits, in every language and size (2026-11-01)
+
+- Layouts: a slider's name ("Ángulo de perforación") takes two lines rather
+  than running under the slider beside it. In Your PAP and hand, the up or
+  down box ("Arriba") no longer runs out of its card over the hand card; the
+  hand card moves under the PAP when the two do not fit side by side. The
+  Presets link stays inside its column, and the Storm VLS numbers stay
+  inside their card on a narrow phone.
+- A button whose label takes two lines grows to hold it, instead of drawing
+  the second line across its own edge ("Restablecer a tus ajustes
+  guardados").
+- At large text sizes: the tab bar labels keep their size, as the iPhone's
+  own do, so "Estadísticas" fits its tab. The Stats average, the first ball
+  row, the catalog's sort, the profile's offset row, the oil pattern's zone
+  ratios, the line fields' names and the spare line's move readout stay
+  inside their boxes.
+- The text fit check that runs on every build now also catches text spilling
+  visibly out of its box, not only text that is cut off, and opens the PAP
+  sheet.
+
 ## 0.75.2: Strike in Spanish, open frames in Chinese (2026-10-31)
 
 - Spanish says "strike" where it said "chuza", a word bowlers use in Mexico

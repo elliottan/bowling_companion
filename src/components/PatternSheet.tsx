@@ -183,14 +183,21 @@ const ZONE_ROW = ["3L-7L", "8L-12L", "13L-17L", "18L-18R", "17R-13R", "12R-8R", 
 function TrackZoneRow({ zones }: { zones: { label: string; ratio: number }[] }) {
   const byLabel = new Map(zones.map((z) => [z.label, z.ratio]));
   return (
-    <ul className="mt-1.5 grid grid-cols-7 gap-0.5 text-center tabular-nums">
+    // Held at the base size (`type-cap-fixed`): seven cells share the phone's
+    // width at every text size, so "13L-17L" and "1.94" ran out of their cells
+    // at a large one, and a row of ratios gains nothing from being bigger
+    // than the sheet it reproduces.
+    <ul className="type-cap-fixed mt-1.5 grid grid-cols-7 gap-0.5 text-center tabular-nums">
       {ZONE_ROW.map((label) => {
         const middle = label === "18L-18R";
         const ratio = middle ? 1 : byLabel.get(label);
         return (
           <li
             key={label}
-            className={`min-w-0 rounded-lg border py-1.5 ${middle ? "border-accent bg-accent-soft" : "border-edge bg-surface"}`}
+            // An inset ring rather than a border: a border's two px come out
+            // of the cell's width, and on a 360px phone that was the room
+            // "17R-13R" needed.
+            className={`min-w-0 rounded-lg py-1.5 ring-1 ring-inset ${middle ? "bg-accent-soft ring-accent" : "bg-surface ring-edge"}`}
           >
             {/* 9px and tight: seven of these share a phone's width, and a
                 label is only worth printing whole. */}

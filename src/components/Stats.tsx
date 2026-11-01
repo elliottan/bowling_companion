@@ -651,8 +651,12 @@ function Headline({ stats, form }: { stats: BowlingStats; form?: RecentForm | nu
   // leads the screen does not take a third of it.
   return (
     <section className="rounded-xl border border-edge bg-surface px-3 py-2.5 shadow-sm">
-      <div className="flex items-end gap-3">
-        <div className="min-w-0 flex-1">
+      {/* Wraps rather than squeezing: the average is the one number that
+          must never be cut, and at a large text size on a narrow phone the
+          companions take the next line, still flush right, instead of
+          shrinking the average's column out from under it. */}
+      <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
+        <div className="flex-1">
           <h2 className={GROUP_HEADING}>{t({ message: "Average", comment: "A bowling average: the score per game" })}</h2>
           {/* In the accent: it is the answer the screen leads with. */}
           <p className="mt-0.5 text-4xl font-bold leading-none tabular-nums text-accent">
@@ -660,7 +664,7 @@ function Headline({ stats, form }: { stats: BowlingStats; form?: RecentForm | nu
           </p>
         </div>
         <Companions
-          className="shrink-0 gap-4"
+          className="ml-auto shrink-0 gap-4"
           items={[
             [t({ message: "High", comment: "The highest game score" }), fmt(stats.highGame)],
             [t({ message: "Low", comment: "The lowest game score" }), fmt(stats.lowGame)],
@@ -765,7 +769,10 @@ function FirstBallCard({
   return (
     <section className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
       <h2 className={GROUP_HEADING}>{t({ message: "First ball", comment: "Bowling term: the first ball of a frame, thrown at a full rack of ten pins" })}</h2>
-      <dl className="mt-2 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-center">
+      {/* Capped as a table is (`type-cap-dense`): three percentages and two
+          arrows share one row, and at the full largest size "100 %" (with the
+          space Spanish puts before the sign) pushed the third past the card. */}
+      <dl className="type-cap-dense mt-2 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center text-center">
         {links.map(([label, value, lead], i) => (
           <Fragment key={label}>
             {i > 0 && <ArrowRight size={14} aria-hidden="true" className="text-ink-tertiary" />}

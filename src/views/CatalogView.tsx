@@ -624,9 +624,16 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
 
           {/* Not shrinkable: the select is as wide as its longest option in
               this language, and where that does not fit beside Filters the
-              sort takes the next line rather than clipping its value. */}
-          <label className="ml-auto flex shrink-0 items-center gap-1.5 text-sm text-ink-strong">
+              sort takes the next line rather than clipping its value. Where
+              even a line of its own is too narrow for the word and the select
+              together (Spanish at the largest size), the select drops under
+              the word. */}
+          <label className="ml-auto flex max-w-full shrink-0 flex-wrap items-center gap-1.5 text-sm text-ink-strong">
             <span className="font-medium">{t`Sort:`}</span>
+            {/* Sized by its wrapper, which is as wide as the longest option:
+                the select chrome carries `w-full`, and on a wrapping row a
+                full-width item always takes a line of its own. */}
+            <div className="max-w-full">
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
@@ -637,6 +644,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
               <option value="diff">{t({ message: "Diff, high to low", comment: "Bowling term: Diff is the differential, a ball spec. A sort order." })}</option>
               <option value="name">{t`Name, A to Z`}</option>
             </select>
+            </div>
           </label>
         </div>
 

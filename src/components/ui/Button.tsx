@@ -19,9 +19,13 @@ const VARIANT: Record<Variant, string> = {
   glass: "glass text-accent transition-transform active:scale-[0.98] active:opacity-80"
 };
 
+// A floor, not a height. A label that is one line in English can be two in
+// another language or at a larger text size, and a fixed height drew that
+// second line across the button's own border. One line still lands on exactly
+// 44 or 48px; two grow the button around them.
 const SIZE: Record<Size, string> = {
-  md: "h-11 px-4",
-  lg: "h-12 px-5"
+  md: "min-h-11 px-4 py-2",
+  lg: "min-h-12 px-5 py-2"
 };
 
 /** Shared button primitive. Both sizes clear Apple HIG's 44pt minimum tap
@@ -38,7 +42,7 @@ export function Button({
   return (
     <button
       type="button"
-      className={`inline-flex items-center justify-center gap-1.5 rounded-full text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${VARIANT[variant]} ${SIZE[size]} ${className}`.trim()}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-full text-center text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${VARIANT[variant]} ${SIZE[size]} ${className}`.trim()}
       {...rest}
     >
       {children}
