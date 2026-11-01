@@ -211,6 +211,14 @@ export default defineConfig({
       "@headpin/trans": fileURLToPath(new URL("./src/lib/i18nTrans.tsx", import.meta.url))
     }
   },
+  // Pre-bundled at dev-server start, not found on first load. The only import
+  // of it is the one the `<Trans>` macro writes at transform time, through the
+  // alias above, so Vite's dependency scan never sees it. Found late, it made
+  // Vite re-optimize and force a full reload of the first page a cold server
+  // served, which killed the first e2e test's `page.evaluate` mid-flight.
+  optimizeDeps: {
+    include: ["@lingui/react/server"]
+  },
   build: {
     rollupOptions: {
       input: {
