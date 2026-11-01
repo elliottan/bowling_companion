@@ -9665,3 +9665,51 @@ sizes, and checking each by eye does not scale past the first.
 **Consequences.** A bowler can bowl in a language other than the phone's, on
 every platform. The fit test catches overflow, not text that fits but reads
 badly or overlaps another element, which a screenshot review still finds.
+
+---
+
+## ADR-226: A pushed screen leads with a large title
+
+**Status.** Accepted, 2026-11-01, at the owner's request. Amends ADR-198 on
+where a pushed screen's name is drawn; that it is always on screen stands.
+
+**Context.** A pushed screen's name lived only in its bar, on one line between
+the back control and the trailing action, so a long one was cut off for good:
+"2019 PBA Johnny Petragli..." could never be read in full, and a longer
+translation made it worse. Settings already had iOS's large title (ADR-191),
+and the other pushed screens did not, which read as less native than the tab
+beside them.
+
+**Decision.**
+
+- **`PushScreen` draws iOS's large title by default** (`largeTitle`): the name
+  leads the page in the large-title size, wrapped onto as many lines as it
+  needs, and scrolls away with it. It is the screen's one heading.
+- **The bar takes the name once the large title has gone under it**, small,
+  centred and truncated as before, and fades out again when it comes back.
+  The switch reads where the title actually ends rather than a fixed distance,
+  because a wrapped name, a language and a text size all move it. The bar's
+  copy is out of the accessibility tree while the large title is the heading.
+- **Off where the page is one picture that should start at the top** (the
+  layout lab, a pattern's original sheet), and on the loading stand-in.
+- **A session draws its own large title** (`heading`): the alley large and
+  wrapped whole, then the event, date and pattern whole under it, tappable to
+  edit as before. Its bar keeps the stats, the share and the series, and
+  takes the alley alone, cut to one line, once the alley has gone under it
+  (`bar` as a function of that). The alley, the event and the lanes used to
+  share the 48px bar, and a long alley wrapped out of it over the lines under
+  it. Opening the session sheet scrolls the title up under the bar first, so
+  the sheet, which hangs from the game chips, has the room it had.
+- **The switch is at the name's midpoint**, the name alone rather than the
+  block under it: halfway behind the bar's ground it cannot be read, and a
+  page too short to scroll it all the way under left it half hidden under an
+  empty bar.
+- **What the title belongs to sits over it** (`eyebrow`): a catalog ball's
+  brand. A guide no longer repeats its title as a heading of its own.
+- **A sticky row under it no longer reaches up behind the bar.** It stops
+  beneath the bar, and the list passes under the bar's ground between the two
+  as it does on any pushed screen. Reaching up covered the large title.
+
+**Consequences.** Every pushed screen names itself at every scroll position,
+in full at the top. The page starts a title's height lower than it did.
+

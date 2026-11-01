@@ -70,7 +70,10 @@ export function PapEditor({
           // sign for the whole measurement, not for its integer part: half an
           // inch below the midline is a real PAP and there is no way to write
           // it as a negative zero.
-          <Dropdown className="min-w-[calc(4.5rem*var(--type-scale))]">
+          // Sized by its longest option rather than a fixed width: "上" needs
+          // a third of what "Arriba" does, and a floor wide enough for the
+          // longest language pushed the short ones out of the card too.
+          <Dropdown>
             <select
               aria-label={t({ message: "Up or down direction", comment: "Bowling term: PAP (positive axis point), whether the axis point sits above or below the ball's midline." })}
               className={FIELD_DENSE_SELECT_NARROW}
@@ -102,9 +105,10 @@ export function PapEditor({
  * chevron is the only thing saying there is a list behind it.
  *
  * Callers size it in rem times `--type-scale`, so the box grows with the
- * bowler's text size: a fixed width cut "1/8" to "1/" at the largest size.
+ * bowler's text size: a fixed width cut "1/8" to "1/" at the largest size. A
+ * select holding a word is left unsized, and takes its longest option's width.
  */
-function Dropdown({ className, children }: { className: string; children: ReactNode }) {
+function Dropdown({ className = "", children }: { className?: string; children: ReactNode }) {
   return (
     <div className={`relative shrink-0 ${className}`}>
       {children}

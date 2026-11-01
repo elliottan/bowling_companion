@@ -358,8 +358,13 @@ export function LineInput({
       <div ref={rowRef} className="relative flex gap-1.5">
         {focused && adjusterPanel()}
         {fields.map((field) => (
-          <label key={field} className="min-w-0 flex-1">
-            <span className={`${floatLabel} pb-0.5`}>{fieldLabel(field)}</span>
+          // A column whose input sits at the bottom, so the four boxes stay
+          // level when one name takes two lines: "Deslizamiento" is wider
+          // than a quarter of a phone at a large text size, and breaks
+          // (hyphenated where the language allows) rather than running into
+          // the name beside it.
+          <label key={field} className="flex min-w-0 flex-1 flex-col justify-end">
+            <span className={`${floatLabel} hyphens-auto break-words pb-0.5 leading-tight`}>{fieldLabel(field)}</span>
             <input
               type="text"
               inputMode="decimal"

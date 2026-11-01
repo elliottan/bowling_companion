@@ -23,6 +23,17 @@ import { clearDatabase } from "./helpers";
  *   clipped-select   a native select whose chosen option is wider than the
  *                    room inside the box (the option text is not in the DOM
  *                    walk, so it is measured on a canvas)
+ *   spills-x         text drawn past the sides of its own box, with nothing
+ *                    clipping it: a fixed-width label held to one line runs
+ *                    on over the control beside it
+ *   spills-y         text drawn past the top or bottom of its own box: a
+ *                    button of fixed height whose label took two lines
+ *   spills-card      a control or text inside a bordered box (a card) drawn
+ *                    past that box's edge, over whatever sits beside it
+ *
+ * The three spills are measured from where the text and controls are drawn,
+ * never from scrollWidth or scrollHeight, which also count the invisible
+ * absolute boxes that widen a small control's tap target.
  *
  * What it ignores: anything inside a deliberate scroller (overflow-x
  * auto/scroll, e.g. a chip row), hidden or zero-size elements, sr-only
@@ -174,7 +185,13 @@ async function seed(page: Page): Promise<Seeded> {
       await writeGame(sessionId, 2, two, true);
 
       const earlier = dayKey(new Date(Date.now() - 7 * 86_400_000));
-      const liveSessionId = await repo.createSession({ date: earlier, alley_name: "Bowl 300", description: "Practice" });
+      // A long alley name, as bowlers type them: the scorer's title has to
+      // hold one whole, at every size, without running into what is under it.
+      const liveSessionId = await repo.createSession({
+        date: earlier,
+        alley_name: "Chinese Swimming Club Bowling Centre",
+        description: "Practice, the Thursday doubles"
+      });
       await writeGame(liveSessionId, 1, one, true);
       await writeGame(liveSessionId, 2, live, false);
       return { sessionId, liveSessionId, patternId };
@@ -287,12 +304,60 @@ function detectOverflow(): Array<{ text: string; path: string; kind: string; wid
     if (el.closest('[data-fit="exempt"]')) continue;
     if (el.closest("[inert]")) continue;
     const text = ownText(el);
-    if (!text) continue;
+    const cs0 = getComputedStyle(el);
+    const bordered = ["Top", "Right", "Bottom", "Left"].some(
+      (side) => (parseFloat(cs0.getPropertyValue(`border-${side.toLowerCase()}-width`)) || 0) > 0
+    );
+    if (!text && !bordered) continue;
 
     const rect = el.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) continue;
-    // checkVisibility covers display none, visibility hidden, content-visibility.
-    if (typeof el.checkVisibility === "function" && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+    if (!text) {
+      // A card (anything with a border) whose contents run past its edge. A
+      // control too wide for the card it sits in is drawn half outside it, over
+      // the card beside it, and nothing clips it, so no check below sees it.
+      // Measured from the boxes of what is drawn inside (text and controls in
+      // the flow), not from scrollWidth, which counts the invisible absolute
+      // boxes that widen a small control's tap target.
+      if (cs0.display === "inline" || isClipping(cs0.overflowX) || isScroller(cs0.overflowX)) continue;
+      if (el.closest(".sr-only")) continue;
+      if (typeof el.checkVisibility === "function" && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true, contentVisibilityAuto: true })) continue;
+      let inScroller = false;
+      for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
+        if (isSidewaysScroller(a, getComputedStyle(a).overflowX)) { inScroller = true; break; }
+      }
+      if (inScroller) continue;
+      const inner = rect.left + (parseFloat(cs0.borderLeftWidth) || 0);
+      const innerRight = rect.right - (parseFloat(cs0.borderRightWidth) || 0);
+      if (rect.right <= 0 || rect.left >= vw) continue;
+      for (const d of Array.from(el.querySelectorAll("select, input, button, textarea, span, p, div"))) {
+        if (d.closest("svg, .sr-only")) continue;
+        // Not a box drawn out of the flow (a tap target, a popup), and not a
+        // row inside the card that scrolls or clips on purpose: a chip row
+        // runs past the card's edge by design, and a clipped one is the
+        // clipped-by-box check's to judge.
+        let floating = false;
+        for (let a: Element | null = d; a && a !== el; a = a.parentElement) {
+          const acs = getComputedStyle(a);
+          if (acs.position === "absolute" || acs.position === "fixed") { floating = true; break; }
+          if (a !== d && (isScroller(acs.overflowX) || isClipping(acs.overflowX))) { floating = true; break; }
+        }
+        if (floating) continue;
+        if (typeof d.checkVisibility === "function" && !d.checkVisibility({ opacityProperty: true, visibilityProperty: true, contentVisibilityAuto: true })) continue;
+        const dr = d.getBoundingClientRect();
+        if (dr.width === 0 || dr.height === 0) continue;
+        if (dr.left < inner - 1 || dr.right > innerRight + 1) {
+          record(el, "spills-card", `${describe(d).split(" > ").pop()} ${Math.round(dr.left)}..${Math.round(dr.right)} outside ${Math.round(inner)}..${Math.round(innerRight)}`);
+          break;
+        }
+      }
+      continue;
+    }
+    // checkVisibility covers display none, visibility hidden, and a row that
+    // `content-visibility: auto` is skipping: its box is left as it was last
+    // laid out, so a list under a pushed screen still reads at the width it
+    // had before the viewport narrowed. It is laid out again when it shows.
+    if (typeof el.checkVisibility === "function" && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true, contentVisibilityAuto: true })) continue;
     // The sr-only recipe: a 1px clipped box.
     if (el.closest(".sr-only")) continue;
     const cs = getComputedStyle(el);
@@ -349,6 +414,36 @@ function detectOverflow(): Array<{ text: string; path: string; kind: string; wid
       // Viewport edge, for text that is on screen at all.
       if (right > left && right > 0 && left < vw && (left < -1 || right > vw + 1)) {
         record(el, "past-viewport", `text ${Math.round(left)}..${Math.round(right)} vs viewport 0..${vw}`);
+      }
+    }
+
+    // Text that spills out of its own box without being clipped: a label held
+    // to a fixed width with nowrap runs on over the control beside it, and a
+    // button held to a fixed height draws its second line across its own
+    // border. Nothing clips either, so the checks above never see them.
+    if (!inScroller && cs.display !== "inline" && cs.display !== "contents" && right > left) {
+      // The text's own boxes against the element's: the tap-target boxes that
+      // scrollWidth and scrollHeight would count are not text. Slack up and
+      // down of a third of the font size, since a tight line height draws the
+      // glyphs past the line box on purpose (a big score at leading-none); a
+      // second line spilling is a whole line.
+      let top = Infinity;
+      let bottom = -Infinity;
+      for (const n of Array.from(el.childNodes)) {
+        if (n.nodeType !== Node.TEXT_NODE || !(n.textContent ?? "").trim()) continue;
+        range.selectNodeContents(n);
+        for (const r of Array.from(range.getClientRects())) {
+          if (r.width === 0) continue;
+          top = Math.min(top, r.top);
+          bottom = Math.max(bottom, r.bottom);
+        }
+      }
+      const slackY = Math.max(4, (parseFloat(cs.fontSize) || 16) / 3);
+      if (!isClipping(cs.overflowX) && cs.textOverflow !== "ellipsis" && (left < rect.left - 1 || right > rect.right + 1)) {
+        record(el, "spills-x", `text ${Math.round(left)}..${Math.round(right)} outside its box ${Math.round(rect.left)}..${Math.round(rect.right)}`);
+      }
+      if (!isClipping(cs.overflowY) && (top < rect.top - slackY || bottom > rect.bottom + slackY)) {
+        record(el, "spills-y", `text ${Math.round(top)}..${Math.round(bottom)} outside its box ${Math.round(rect.top)}..${Math.round(rect.bottom)}`);
       }
     }
 
@@ -427,6 +522,8 @@ function screensFor(ids: Seeded, locale: string): Screen[] {
     { name: "history", hash: "#/history" },
     { name: "session-detail", hash: `#/history/session/${ids.sessionId}` },
     { name: "scorer-live", hash: `#/session/${ids.liveSessionId}` },
+    // The same session pushed from History, where its name is the large title.
+    { name: "scorer-pushed", hash: `#/history/session/${ids.liveSessionId}` },
     { name: "stats", hash: "#/stats" },
     { name: "stats-3-months", hash: "#/stats", prepare: (page) => tap(page, page.locator(".segmented-track").first().locator("button").first()) },
     { name: "stats-by-game", hash: "#/stats", prepare: (page) => tap(page, page.locator(".segmented-track").nth(1).locator("button").nth(1)) },
@@ -467,6 +564,7 @@ function screensFor(ids: Seeded, locale: string): Screen[] {
     { name: "guides", hash: "#/home/guides" },
     { name: "guide-article", hash: "#/home/guides/guide/layout-vocabulary" },
     { name: "layout-lab", hash: "#/home/layout-lab" },
+    { name: "layout-lab-pap", hash: "#/home/layout-lab", prepare: (page) => tap(page, byName(page, "More")) },
     { name: "line-visualizer", hash: "#/home/line" },
     { name: "game-plan", hash: "#/home/game-plan" },
     { name: "open-frames", hash: "#/home/open-frames" },

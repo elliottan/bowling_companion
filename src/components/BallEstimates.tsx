@@ -63,9 +63,14 @@ const COLUMNS: ReadonlyArray<{
 
 /** Widths in rem times `--type-scale`, so a column grows with the numbers in
  *  it: fixed, "100%" at a large text size ran into the next column. Every row
- *  is `type-cap-dense`, so they all grow alike and stay aligned. */
-const COLUMN = "shrink-0 text-right";
-const ESTIMATE_COLUMN = "shrink-0 text-right";
+ *  is `type-cap-dense`, so they all grow alike and stay aligned.
+ *
+ *  Centred, heading and numbers alike, so each number stands under the middle
+ *  of its heading. Right-aligned, a column made wide by its heading
+ *  ("ストライク後") left a gap before its number and a narrow one ("成功")
+ *  pressed its number against the next, and the row read as unevenly spaced. */
+const COLUMN = "shrink-0 text-center";
+const ESTIMATE_COLUMN = "shrink-0 text-center";
 /** A column is as wide as its numbers or its heading, whichever is wider, so a
  *  heading in a longer language gets its room (a gap, and never a break inside
  *  a word) and every row, given the same width, stays aligned under it. */
@@ -77,8 +82,12 @@ const estimateStyle = () => ({ width: columnWidth(2.25, [estimateHeading()]) });
  *  less than that, the name takes the line above and the rates sit under it,
  *  still right-aligned under their headings, rather than the name being cut to
  *  a letter a line. */
-const RATES_GROUP = "ml-auto flex shrink-0";
-const NAME_CELL = "min-w-[5.5rem] flex-1";
+// An even gap between columns, whatever their widths: without one, a column
+// held to its numbers' width ("成功") left "26%" and "60%" touching.
+const RATES_GROUP = "ml-auto flex shrink-0 gap-0.5";
+// 5rem: half a rem less than it was, to pay for the gap between the columns,
+// so a name that sat beside its numbers still does.
+const NAME_CELL = "min-w-[5rem] flex-1";
 /** Leaves room for the chevron in the heading row, so the columns line up. */
 const CHEVRON_COLUMN = "w-3 shrink-0";
 

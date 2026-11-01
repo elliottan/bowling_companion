@@ -34,8 +34,16 @@ Every push gets, without exception:
   "Back" for screen readers. It used to name the screen underneath ("‹ Settings"),
   which read as a lie once the same screen could be pushed from several places:
   opened from the dashboard it named a tab the user had never navigated from;
-- a centered title, one line, in the `body` size semibold (17pt), always shown, however far the
-  screen has scrolled, so the bowler always knows where they are (ADR-198);
+- iOS's large title (ADR-226): the name leads the page in the `large-title`
+  size, wrapped whole, and scrolls away with it; as it goes under the bar, the
+  bar takes the name, centred, one line, truncated, in the `body` size
+  semibold (17pt). So the name is on screen at every scroll position
+  (ADR-198), and in full at the top. Off only where the page is one picture
+  that starts at the top (the layout lab, a pattern's original sheet). A
+  session draws its own: the alley large, the event, date and pattern under
+  it, its bar keeping the stats, share and series. What the name belongs to (a ball's
+  brand) is the `eyebrow` over it, and the page never repeats the name as a
+  heading of its own;
 - at most **one** trailing action, an `IconButton` (§1b). The layout
   lab is the single exception: a share, which is what the screen is for once
   the numbers are right, beside a More that holds the bowler's PAP, hand and
@@ -121,9 +129,10 @@ out. Words stay where a glyph would be a guess: a dialog's answers ("Edit",
 "Replace", "Delete"), a toggle between two named views ("Top-down"), and a
 quiet action inside a screen ("Edit shots", "Re-aim", "Presets").
 
-A session is the one place an edit has no glyph: its bar is the alley, the
-event, the date and the pattern, and a tap on them opens the session's
-details, as a contact's name does. With the session sheet up the same tap
+A session is the one place an edit has no glyph: its large title is the
+alley, the event, the date and the pattern, and a tap on them (or on the
+alley in the bar, once it has scrolled there) opens the session's details,
+as a contact's name does. With the session sheet up the same tap
 puts the sheet away instead (ADR-183).
 
 **Bars float, and the page scrolls under them** (ADR-168). A sheet's bar and
@@ -138,8 +147,10 @@ words over words. A light haze across the whole bar was tried before and
 removed, because it read as a dirty surface; the ground is the page's own
 color, so over the page's empty top it is not there at all. A
 sticky row inside a push or a sheet stops beneath the bar by the bar's
-published height (`--push-bar-h`, `--sheet-bar-h`), and an opaque one reaches up
-behind the bar so the list passes under both as one band.
+published height (`--push-bar-h`, `--sheet-bar-h`). In a sheet an opaque one
+reaches up behind the bar so the list passes under both as one band; in a
+push it does not, because the large title sits above it and reaching up
+covered it (ADR-226).
 
 **The tab bar is the one capsule on the web and Android.** (The iPhone app
 draws the system's own, ADR-161; what follows is the page's bar.) It floats over

@@ -36,31 +36,49 @@ export function sessionMetaLine(session: SessionSummary["session"]): string {
 }
 
 /**
- * The session's identity as its bar draws it: the alley, then the event, the
- * date and the oil pattern. The pattern is a link where it has a sheet; a
- * caller that makes the block tappable gets the link's `stopPropagation`, so
- * tapping the pattern opens the pattern and not the block.
+ * The session's identity: the alley, then the event, the date and the oil
+ * pattern. The pattern is a link where it has a sheet; a caller that makes the
+ * block tappable gets the link's `stopPropagation`, so tapping the pattern
+ * opens the pattern and not the block.
+ *
+ * Three sizes (ADR-226):
+ * - `page`, a pushed session's large title: the alley large, and every line
+ *   wrapped whole, however long the bowler's alley or event is.
+ * - `bar`, the same screen's bar once that has scrolled away: the alley alone,
+ *   on one line, cut, as iOS draws a title in a bar. The line under it stays
+ *   on the page, where a short page that scrolls only part way still shows it.
+ * - `row`, the Score tab, where the identity heads the page beside its
+ *   actions: the alley wraps as far as it needs, the line under it is cut.
  */
 export function SessionHeaderText({
   session,
-  heading: Heading = "h1"
+  heading: Heading = "h1",
+  variant = "row"
 }: {
   session: SessionSummary["session"];
-  /** `h1` as a pushed screen's title; `h2` heading the Score tab's page. */
-  heading?: "h1" | "h2";
+  /** `h1` as a pushed screen's title, `h2` heading the Score tab's page, `p`
+   *  for the bar's copy of a heading that is on the page. */
+  heading?: "h1" | "h2" | "p";
+  variant?: "page" | "bar" | "row";
 }) {
   const meta = sessionMetaLine(session);
+  const name =
+    variant === "page"
+      ? "text-title-2 font-bold leading-tight text-ink hyphens-auto break-words"
+      : variant === "bar"
+        ? "truncate text-body font-semibold leading-tight text-ink"
+        : "break-words text-body font-semibold leading-tight text-ink";
+  const line = variant === "page" ? "mt-0.5 text-sm text-ink-secondary" : "truncate text-xs leading-tight text-ink-secondary";
   return (
     <div className="min-w-0">
-      {/* Two lines before it is cut: the series beside it is wider in some
-          languages, and an alley's name is the one thing here it must show. */}
-      <Heading className="line-clamp-2 break-words text-body font-semibold leading-tight text-ink">
+      <Heading data-title-name={variant === "page" ? "" : undefined} className={name}>
         {alleyLabel(session.alley_name)}
       </Heading>
-      {(meta || session.oil_pattern) && (
-        // One line in a bar, as iOS cuts a subtitle: the event, date and
-        // pattern are the bowler's own and can be any length (ADR-225).
-        <p data-fit="exempt" className="truncate text-xs leading-tight text-ink-secondary">
+      {variant !== "bar" && (meta || session.oil_pattern) && (
+        // Cut to one line in a bar and beside the Score tab's actions, as iOS
+        // cuts a subtitle: the event, date and pattern are the bowler's own
+        // and can be any length (ADR-225). Whole at the top of the page.
+        <p data-fit={variant === "page" ? undefined : "exempt"} className={line}>
           {meta}
           {session.oil_pattern && (
             <>

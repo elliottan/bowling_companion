@@ -242,7 +242,10 @@ export function BowlingProfileView({
           <div className="mt-3 space-y-2">
             {ZONES.map((zone) => (
               <div key={zone} className="rounded-xl border border-edge bg-surface p-3">
-                <div className="flex items-center gap-2">
+                {/* Wraps as a Row does: the stepper drops under the zone's
+                    name, still flush right, where the two do not fit on one
+                    line ("アウトサイドなし" at a large size on a narrow phone). */}
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span className={`h-2.5 w-2.5 rounded-full ${ZONE_ACCENT[zone].swatch}`} aria-hidden="true" />
                   <span className="text-sm font-semibold capitalize text-ink">{zoneLabel(zone)}</span>
                   <div className="ml-auto shrink-0">
@@ -345,10 +348,13 @@ function Group({
   );
 }
 
-/** Label on the left, control flush right: one grid for every input on the page. */
+/** Label on the left, control flush right: one grid for every input on the page.
+ *  Where the two do not fit on one line (a narrow phone at a large text size),
+ *  the control wraps under the label, still flush right, rather than running
+ *  out of the card. */
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div className="flex min-h-[3rem] items-center gap-3">
+    <div className="flex min-h-[3rem] flex-wrap items-center gap-x-3 gap-y-1 py-1">
       <span className="text-sm text-ink-strong">
         {label}
         {hint && <span className="ml-1 text-xs text-ink-secondary">({hint})</span>}

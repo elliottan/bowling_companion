@@ -970,7 +970,11 @@ function TabBarButton({ item, active, disabled, onClick }: NavItemProps) {
       aria-current={active ? "page" : undefined}
       onClick={onClick}
       disabled={disabled}
-      className={`relative flex h-14 flex-col items-center justify-center gap-0.5 rounded-full text-caption-2 disabled:cursor-not-allowed disabled:opacity-40 ${
+      // The label holds its base size (`type-cap-fixed`), as the iPhone's own
+      // tab bar does at every Dynamic Type size: five labels share the width
+      // of the phone, and even the dense cap of 1.2x ran "Estadísticas" past
+      // its fifth.
+      className={`type-cap-fixed relative flex h-14 flex-col items-center justify-center gap-0.5 rounded-full text-caption-2 disabled:cursor-not-allowed disabled:opacity-40 ${
         active ? "font-bold text-accent" : "font-medium text-ink-secondary"
       }`}
     >

@@ -90,11 +90,15 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 break-words font-semibold text-ink">
+          {/* Whole, on as many lines as it takes: the alley and the event are
+              how a bowler finds a night, and they used to be cut at two lines,
+              which a long name ("Chinese Swimming Club Bowling Centre") at a
+              large text size outran. */}
+          <p className="break-words font-semibold text-ink">
             {alleyLabel(session.alley_name)}
           </p>
           {session.description && (
-            <p className="line-clamp-2 break-words text-xs font-medium text-ink-secondary">{session.description}</p>
+            <p className="break-words text-xs font-medium text-ink-secondary">{session.description}</p>
           )}
           <p className="text-xs text-ink-secondary">
             {[formatSessionDate(session.date), laneSummary(games)].filter(Boolean).join(" · ")}

@@ -488,7 +488,10 @@ export function MoveStepper({
   return (
     <div className="min-w-0 flex-1">
       <span className={floatLabel}>{label}</span>
-      <div className="flex h-9 items-stretch overflow-hidden rounded-lg border border-edge-strong bg-surface-muted">
+      {/* Capped as a dense control is (`type-cap-dense`): the words sit
+          between two fixed arrows in half a row, and "Ninguna" at the full
+          largest size was wider than the room between them. */}
+      <div className="type-cap-dense flex h-9 items-stretch overflow-hidden rounded-lg border border-edge-strong bg-surface-muted">
         {!readOnly && arrow("left")}
         <output
           aria-label={t`${{ label }} move`}

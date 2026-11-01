@@ -298,13 +298,16 @@ export function Slider({
       {/* The label is the affordance. Tapping the name of a thing to find out
           what it means is the gesture people already try, and a separate icon
           would be a second tap target in a row that is already dense, so the
-          whole label is the button and the glyph only says that it is one. */}
+          whole label is the button and the glyph only says that it is one.
+          It wraps rather than running on: the column is fixed so the tracks
+          line up, and "Ángulo de perforación" is twice the width of "Drilling
+          angle", so on one line it ran under the track beside it. */}
       <button
         type="button"
         onClick={() => setHintOpen((v) => !v)}
         aria-expanded={hintOpen}
         aria-controls={`${id}-hint`}
-        className={`${FIELD_MICRO_LABEL} mb-0 inline-flex w-[calc(6.75rem*var(--type-scale))] shrink-0 items-center gap-1 whitespace-nowrap text-left`}
+        className={`${FIELD_MICRO_LABEL} mb-0 inline-flex w-[calc(6.75rem*var(--type-scale))] shrink-0 items-center gap-1 hyphens-auto break-words text-left leading-tight`}
       >
         {label}
         <Info size={11} aria-hidden="true" className="shrink-0 opacity-60" />
@@ -397,8 +400,9 @@ export function SystemCard({
         // Large enough to read at arm's length: the three numbers are what
         // the card is for (ADR-211). Held at that size: a VLS reading is
         // three measurements in half the screen, and any larger it ran past
-        // the card's edge.
-        className="type-cap-fixed block whitespace-nowrap text-lg font-bold leading-tight tabular-nums text-accent"
+        // the card's edge. A step smaller on a phone narrower than 380px,
+        // where the VLS reading at that size is wider than half the screen.
+        className="type-cap-fixed block whitespace-nowrap text-base font-bold leading-tight tabular-nums text-accent min-[380px]:text-lg"
       >
         <LayoutNumbers value={value} />
       </span>

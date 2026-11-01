@@ -25,7 +25,7 @@ export function OverlayLoading({ onBack }: { onBack: () => void }) {
   }, []);
 
   return (
-    <PushScreen title={t`Loading…`} onBack={onBack}>
+    <PushScreen title={t`Loading…`} onBack={onBack} largeTitle={false}>
       <div className="flex h-full min-h-[60vh] items-center justify-center">
         <Spinner />
       </div>

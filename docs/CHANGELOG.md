@@ -9,6 +9,44 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.76.0: Large titles, and text that fits in every language (2026-11-01)
+
+- Pushed screens lead with iOS's large title: the name at the top of the
+  page, large and on as many lines as it needs, so a long one ("2019 PBA
+  Johnny Petraglia Open") is read in full. Scroll down and it goes under the
+  bar, where the name comes in small and truncated, as on an iPhone. The
+  layout lab and a pattern's original sheet keep their name in the bar, so
+  the ball and the sheet still start at the top. A catalog ball's brand sits
+  over its name, and a guide no longer repeats its title.
+- A session's alley leads its page the same way, whole on as many lines as
+  it takes with the event, date and pattern under it, instead of wrapping out
+  of the bar over the lanes. The bar keeps the stats, the share and the
+  series, and takes the alley once it scrolls away. History shows a long
+  alley and event whole too.
+- Layouts: a slider's name ("Ángulo de perforación") takes two lines rather
+  than running under the slider beside it. In Your PAP and hand, the up or
+  down box ("Arriba") no longer runs out of its card over the hand card; the
+  hand card moves under the PAP when the two do not fit side by side. The
+  Presets link stays inside its column, and the Storm VLS numbers stay
+  inside their card on a narrow phone.
+- A button whose label takes two lines grows to hold it, instead of drawing
+  the second line across its own edge ("Restablecer a tus ajustes
+  guardados").
+- An oil pattern's track zones are named by their boards alone ("13-17",
+  not "13L-17L"), read left to right as the lane drawing above them is, so
+  the row grows with a large text size instead of running out of its cells.
+- The Alley report's estimated average table spaces its columns evenly:
+  each number sits centred under its heading with a gap between columns, so
+  a long heading ("ストライク後") no longer leaves a wide gap before its number
+  while a short one ("成功") presses two numbers together.
+- At large text sizes: the tab bar labels keep their size, as the iPhone's
+  own do, so "Estadísticas" fits its tab. The Stats average, the first ball
+  row, the catalog's sort, the profile's offset row, the line fields' names
+  and the spare line's move readout stay inside their boxes.
+- The text fit check that runs on every build now also catches text spilling
+  visibly out of its box, not only text that is cut off, and opens the PAP
+  sheet.
+
 ## 0.75.2: Strike in Spanish, open frames in Chinese (2026-10-31)
 
 - Spanish says "strike" where it said "chuza", a word bowlers use in Mexico

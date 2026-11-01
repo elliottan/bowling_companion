@@ -365,6 +365,10 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
 
   return (
     <PushScreen
+      // The ball leads the page, not its name: the screen is one picture and
+      // the numbers under it, and a large title pushed the ball half a screen
+      // down (ADR-226).
+      largeTitle={false}
       title={t({ message: "Layouts", comment: "Bowling term: the drilling layout of a ball" })}
       onBack={onBack}
       /* Escape belongs to whatever is layered on top. Without this the menu's
@@ -456,10 +460,15 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
                     aria-expanded={presetAt != null}
                     aria-label={t`Presets, ${{ preset: activePreset?.name ?? t`Custom` }}`}
                     onClick={(e) => setPresetAt(anchorUnder(e.currentTarget, ANCHORED_MENU_WIDTH))}
-                    className="inline-flex w-full items-center justify-center gap-1 py-1 text-xs font-semibold text-accent active:opacity-80"
+                    // Held at its base size, as the core toggle above it is:
+                    // the rail is 6rem at every text size, and "Predefinidos"
+                    // beside its glyph ran out of it at a large one. Should a
+                    // language still not fit, the word drops under the glyph
+                    // rather than running out of the card.
+                    className="type-cap-fixed flex w-full flex-wrap items-center justify-center gap-1 py-1 text-center text-xs font-semibold leading-tight text-accent active:opacity-80"
                   >
-                    <LayoutGrid size={13} aria-hidden="true" />
-                    {t`Presets`}
+                    <LayoutGrid size={13} aria-hidden="true" className="shrink-0" />
+                    <span className="min-w-0 max-w-full hyphens-auto break-words">{t`Presets`}</span>
                   </button>
                 )}
               </div>
@@ -514,19 +523,30 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
             {/* Stretched rather than top-aligned, so the two cards end level
                 whichever is taller. The hand card is the taller of the two (two
                 toggles against two rows of fields), so the PAP card takes a few
-                px of extra padding at the bottom, which reads as padding. */}
-            <div className="flex items-stretch gap-2">
-              <div className="min-w-0 flex-1 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+                px of extra padding at the bottom, which reads as padding.
+
+                Side by side only while both fit. Neither card can be narrower
+                than what it holds (`min-w-min`), so where a long direction word
+                ("Arriba") or a large text size makes the PAP rows wider than
+                the room beside the hand card, the hand card wraps under it at
+                full width instead of the PAP fields running out of their card
+                and over it. The PAP card's large grow keeps the hand card at
+                its own width while they share a row. */}
+            <div className="flex flex-wrap items-stretch gap-2">
+              <div className="min-w-min flex-[999_1_0%] space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
                 <span className={FIELD_MICRO_LABEL}>{t({ message: "Your PAP", comment: "Bowling term: PAP is the positive axis point, a measurement of the bowler's axis of rotation" })}</span>
                 <PapEditor pap={pap} onChange={updatePap} idPrefix="lab-pap" />
               </div>
-              <div className="w-[7.5rem] shrink-0 space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
+              <div className="min-w-min flex-[1_1_7.5rem] space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
                 <span className={FIELD_MICRO_LABEL}>{t({ message: "Hand", context: "bowling hand", comment: "Left or right handed bowler" })}</span>
                 {/* `space-y-2` is required, not chosen: a dense segmented control
                     is 36px drawn and 44pt to the finger, so two stacked any
                     closer than 8px would have overlapping hit regions and the
-                    grip row would start swallowing taps meant for the hand. */}
-                <div className="space-y-2">
+                    grip row would start swallowing taps meant for the hand.
+                    A wrapping row with an 8px gap both ways rather than a
+                    stack, so the two sit side by side once the card has wrapped
+                    to the full width of the sheet. */}
+                <div className="flex flex-wrap gap-2 [&>*]:min-w-min [&>*]:flex-[1_1_5.5rem]">
                   {/* Left on the left, which is the one ordering that needs no
                       reading: the letters sit where the hands do. */}
                   <SegmentedControl
