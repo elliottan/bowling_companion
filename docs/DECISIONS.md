@@ -9691,8 +9691,19 @@ beside them.
   because a wrapped name, a language and a text size all move it. The bar's
   copy is out of the accessibility tree while the large title is the heading.
 - **Off where the page is one picture that should start at the top** (the
-  layout lab, a pattern's original sheet), on the loading stand-in, and
-  wherever a screen draws its own bar (a session).
+  layout lab, a pattern's original sheet), and on the loading stand-in.
+- **A session draws its own large title** (`heading`): the alley large and
+  wrapped whole, then the event, date and pattern whole under it, tappable to
+  edit as before. Its bar keeps the stats, the share and the series, and
+  takes the alley alone, cut to one line, once the alley has gone under it
+  (`bar` as a function of that). The alley, the event and the lanes used to
+  share the 48px bar, and a long alley wrapped out of it over the lines under
+  it. Opening the session sheet scrolls the title up under the bar first, so
+  the sheet, which hangs from the game chips, has the room it had.
+- **The switch is at the name's midpoint**, the name alone rather than the
+  block under it: halfway behind the bar's ground it cannot be read, and a
+  page too short to scroll it all the way under left it half hidden under an
+  empty bar.
 - **What the title belongs to sits over it** (`eyebrow`): a catalog ball's
   brand. A guide no longer repeats its title as a heading of its own.
 - **A sticky row under it no longer reaches up behind the bar.** It stops

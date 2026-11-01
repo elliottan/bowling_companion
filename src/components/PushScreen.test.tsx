@@ -52,10 +52,10 @@ describe("PushScreen large title (ADR-226)", () => {
 
   it("brings the name into the bar once the large title has gone under it, and back out above it", () => {
     render(<PushScreen title="Oil patterns" onBack={() => {}}>body</PushScreen>);
-    const heading = screen.getByRole("heading", { level: 1 });
+    const block = document.querySelector("[data-title-name]") as HTMLElement;
     const header = document.querySelector("header") as HTMLElement;
     vi.spyOn(header, "getBoundingClientRect").mockReturnValue(rect(48) as DOMRect);
-    const title = vi.spyOn(heading, "getBoundingClientRect");
+    const title = vi.spyOn(block, "getBoundingClientRect");
 
     title.mockReturnValue(rect(90) as DOMRect);
     fireEvent.scroll(scroller());
@@ -81,5 +81,29 @@ describe("PushScreen large title (ADR-226)", () => {
   it("has no large title when the screen draws its own bar", () => {
     render(<PushScreen title="Session" bar={<span>Bowl 300</span>} onBack={() => {}}>body</PushScreen>);
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
+  });
+
+  it("draws a screen's own heading as the large title, and tells its bar when that has gone under", () => {
+    render(
+      <PushScreen
+        title="Ace Lanes"
+        heading={<div><h1 data-title-name="">Ace Lanes and a long name</h1><p>League night</p></div>}
+        bar={(compact) => <span data-testid="bar">{compact ? "compact" : "open"}</span>}
+        onBack={() => {}}
+      >
+        body
+      </PushScreen>
+    );
+    expect(screen.getByRole("heading", { level: 1, name: "Ace Lanes and a long name" })).toBeInTheDocument();
+    expect(screen.getByTestId("bar")).toHaveTextContent("open");
+    // The name has gone under the bar, the line under it has not: the bar
+    // takes the name.
+    const block = document.querySelector("[data-large-title]") as HTMLElement;
+    const name = screen.getByRole("heading", { level: 1 });
+    vi.spyOn(document.querySelector("header") as HTMLElement, "getBoundingClientRect").mockReturnValue(rect(48) as DOMRect);
+    vi.spyOn(block, "getBoundingClientRect").mockReturnValue(rect(70) as DOMRect);
+    vi.spyOn(name, "getBoundingClientRect").mockReturnValue(rect(40) as DOMRect);
+    fireEvent.scroll(block.closest(".overflow-y-auto") as HTMLElement);
+    expect(screen.getByTestId("bar")).toHaveTextContent("compact");
   });
 });

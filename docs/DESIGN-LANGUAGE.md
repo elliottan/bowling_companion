@@ -39,8 +39,9 @@ Every push gets, without exception:
   bar takes the name, centred, one line, truncated, in the `body` size
   semibold (17pt). So the name is on screen at every scroll position
   (ADR-198), and in full at the top. Off only where the page is one picture
-  that starts at the top (the layout lab, a pattern's original sheet) or the
-  screen draws its own bar (a session). What the name belongs to (a ball's
+  that starts at the top (the layout lab, a pattern's original sheet). A
+  session draws its own: the alley large, the event, date and pattern under
+  it, its bar keeping the stats, share and series. What the name belongs to (a ball's
   brand) is the `eyebrow` over it, and the page never repeats the name as a
   heading of its own;
 - at most **one** trailing action, an `IconButton` (§1b). The layout
@@ -128,9 +129,10 @@ out. Words stay where a glyph would be a guess: a dialog's answers ("Edit",
 "Replace", "Delete"), a toggle between two named views ("Top-down"), and a
 quiet action inside a screen ("Edit shots", "Re-aim", "Presets").
 
-A session is the one place an edit has no glyph: its bar is the alley, the
-event, the date and the pattern, and a tap on them opens the session's
-details, as a contact's name does. With the session sheet up the same tap
+A session is the one place an edit has no glyph: its large title is the
+alley, the event, the date and the pattern, and a tap on them (or on the
+alley in the bar, once it has scrolled there) opens the session's details,
+as a contact's name does. With the session sheet up the same tap
 puts the sheet away instead (ADR-183).
 
 **Bars float, and the page scrolls under them** (ADR-168). A sheet's bar and

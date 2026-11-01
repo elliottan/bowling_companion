@@ -185,7 +185,13 @@ async function seed(page: Page): Promise<Seeded> {
       await writeGame(sessionId, 2, two, true);
 
       const earlier = dayKey(new Date(Date.now() - 7 * 86_400_000));
-      const liveSessionId = await repo.createSession({ date: earlier, alley_name: "Bowl 300", description: "Practice" });
+      // A long alley name, as bowlers type them: the scorer's title has to
+      // hold one whole, at every size, without running into what is under it.
+      const liveSessionId = await repo.createSession({
+        date: earlier,
+        alley_name: "Chinese Swimming Club Bowling Centre",
+        description: "Practice, the Thursday doubles"
+      });
       await writeGame(liveSessionId, 1, one, true);
       await writeGame(liveSessionId, 2, live, false);
       return { sessionId, liveSessionId, patternId };
@@ -516,6 +522,8 @@ function screensFor(ids: Seeded, locale: string): Screen[] {
     { name: "history", hash: "#/history" },
     { name: "session-detail", hash: `#/history/session/${ids.sessionId}` },
     { name: "scorer-live", hash: `#/session/${ids.liveSessionId}` },
+    // The same session pushed from History, where its name is the large title.
+    { name: "scorer-pushed", hash: `#/history/session/${ids.liveSessionId}` },
     { name: "stats", hash: "#/stats" },
     { name: "stats-3-months", hash: "#/stats", prepare: (page) => tap(page, page.locator(".segmented-track").first().locator("button").first()) },
     { name: "stats-by-game", hash: "#/stats", prepare: (page) => tap(page, page.locator(".segmented-track").nth(1).locator("button").nth(1)) },

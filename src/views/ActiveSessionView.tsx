@@ -284,7 +284,10 @@ export function ActiveSessionView({
   /** Open the panel on a tab, with the header scrolled back into view first:
    *  the panel stops under the chips, so they have to be on screen. */
   function openSheet(tab: SessionPanelTab) {
-    revealHeader(headerRef.current);
+    // Pushed, the large title goes up under the bar first, so the sheet that
+    // hangs from the chips gets the room it had before there was one, and the
+    // bar shows the name.
+    revealHeader(headerRef.current, mode !== "tab");
     setSheetTab(tab);
     setShowSheet(true);
   }
@@ -607,27 +610,47 @@ export function ActiveSessionView({
   // Tapping what it is edits it, with no glyph to say so, as a contact's name
   // does; with the sheet up the same tap puts the sheet away instead, since the
   // sheet is what the bowler is looking at and the bar is the way back out.
-  const sessionBar = (
+  //
+  // Pushed, the identity is the screen's large title (ADR-226): the alley and
+  // the line under it whole at the top of the page, however long the bowler
+  // typed them, and in the bar on one line once they have scrolled away. They
+  // used to live only in the bar, a 48px band the alley wrapped out of, onto
+  // the event line and the lanes under it. On the Score tab there is no bar,
+  // so the identity heads the page beside its actions.
+  const identity = (variant: "page" | "bar" | "row", className: string, shown = true) => (
+    // The oil-pattern link inside stops propagation so it still opens the
+    // pattern's sheet.
+    <div
+      role="button"
+      tabIndex={shown ? 0 : -1}
+      aria-hidden={shown ? undefined : true}
+      onClick={tapIdentity}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          tapIdentity();
+        }
+      }}
+      className={`rounded-md active:bg-surface-muted ${className}`}
+      aria-label={showSheet ? t`Close session sheet` : t`Edit session`}
+    >
+      <SessionHeaderText
+        session={sessionDetails.session}
+        variant={variant}
+        heading={variant === "bar" ? "p" : mode === "tab" ? "h2" : "h1"}
+      />
+    </div>
+  );
+  const sessionHeading = identity("page", "mx-auto block w-full max-w-5xl px-3 pt-1 sm:px-6");
+  const sessionBar = (compact: boolean) => (
     <>
-      {/* The oil-pattern link inside stops propagation so it still opens the
-          pattern's sheet. */}
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={tapIdentity}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            tapIdentity();
-          }
-        }}
-        // Its words stay however far the page scrolls, as a pushed title's
-        // do (ADR-198).
-        className="min-w-0 flex-1 rounded-md px-1 active:bg-surface-muted"
-        aria-label={showSheet ? t`Close session sheet` : t`Edit session`}
-      >
-        <SessionHeaderText session={sessionDetails.session} heading={mode === "tab" ? "h2" : "h1"} />
-      </div>
+      {mode === "tab"
+        ? identity("row", "min-w-0 flex-1 px-1")
+        : identity(
+            "bar",
+            `min-w-0 flex-1 px-1 transition-opacity duration-200 ${compact ? "opacity-100" : "pointer-events-none opacity-0"}`,
+            compact
+          )}
       {/* Both of the bar's ways into the stats close the sheet again when
           it is up, as the identity does: the control that opened it is where
           the thumb goes to put it away. */}
@@ -685,7 +708,7 @@ export function ActiveSessionView({
       <section ref={headerRef} className="mx-auto w-full max-w-5xl px-3 pt-2 sm:px-6">
         {/* Pushed, the bar is the nav bar's; on the Score tab there is no bar,
             so it heads the page. */}
-        {mode === "tab" && <div className="flex items-center gap-1">{sessionBar}</div>}
+        {mode === "tab" && <div className="flex items-center gap-1">{sessionBar(false)}</div>}
         {lanes && (
           <button
             type="button"
@@ -1013,6 +1036,7 @@ export function ActiveSessionView({
   return (
     <PushScreen
       title={sessionDetails ? alleyLabel(sessionDetails.session.alley_name) : t`Session`}
+      heading={sessionHeading}
       bar={sessionBar}
       onBack={onBack}
       // The sheet is portalled out of the screen, so it is told to go with it.
@@ -1032,11 +1056,15 @@ export function ActiveSessionView({
  * which also scrolls the document and is how the viewport bug starts
  * (docs/VIEWPORT-BUG.md).
  */
-function revealHeader(header: HTMLElement | null) {
+function revealHeader(header: HTMLElement | null, flush = false) {
   const scroller = scrollerOf(header);
   if (!header || !scroller) return;
-  const above = header.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
-  if (above < 0) scroller.scrollTop += above;
+  // Measured from under the bar, which is the scroller's top padding, since
+  // the bar floats over the scroller's top. `flush` brings the header up to
+  // there even when it is lower down, to scroll a large title above it away.
+  const top = scroller.getBoundingClientRect().top + (parseFloat(getComputedStyle(scroller).paddingTop) || 0);
+  const above = header.getBoundingClientRect().top - top;
+  if (above < 0 || (flush && above > 0)) scroller.scrollTop += above;
 }
 
 /** The nearest box that scrolls the session header: the push's scroller, or

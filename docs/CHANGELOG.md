@@ -18,6 +18,11 @@ had all shipped.
   layout lab and a pattern's original sheet keep their name in the bar, so
   the ball and the sheet still start at the top. A catalog ball's brand sits
   over its name, and a guide no longer repeats its title.
+- A session's alley leads its page the same way, whole on as many lines as
+  it takes with the event, date and pattern under it, instead of wrapping out
+  of the bar over the lanes. The bar keeps the stats, the share and the
+  series, and takes the alley once it scrolls away. History shows a long
+  alley and event whole too.
 - Layouts: a slider's name ("Ángulo de perforación") takes two lines rather
   than running under the slider beside it. In Your PAP and hand, the up or
   down box ("Arriba") no longer runs out of its card over the hand card; the

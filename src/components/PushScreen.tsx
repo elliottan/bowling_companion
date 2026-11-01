@@ -20,16 +20,26 @@ interface PushScreenProps {
    * The screen's own bar, from the back control to the trailing edge, in place
    * of the centred title and `trailing`. For a screen whose bar carries more
    * than its name: a session's identity, its score and the actions on it.
-   * `title` still names the screen to a screen reader.
+   * `title` still names the screen to a screen reader. With a `heading`, a
+   * function of whether that heading has gone under the bar, so the bar can
+   * take the name only then.
    */
-  bar?: ReactNode;
+  bar?: ReactNode | ((compact: boolean) => ReactNode);
+  /**
+   * The large title's place, drawn by the screen: for a name that comes with
+   * more than a line of text (a session's alley, event, date and pattern).
+   * Turns the large title on, and the bar is told when it has scrolled away:
+   * when the element marked `data-title-name` inside it has, or the whole
+   * heading where none is marked.
+   */
+  heading?: ReactNode;
   /**
    * iOS's large title (ADR-226): the name leads the page, large and wrapped
    * onto as many lines as it needs, scrolls away with it, and comes in small
    * and truncated in the bar as it goes under. On by default; off for a screen
-   * whose own bar replaces the title (`bar`) and for one whose page is a single
-   * picture that should start at the top (the layout lab, a pattern sheet's
-   * original).
+   * whose own bar replaces the title (`bar`) unless it draws a `heading`, and
+   * for one whose page is a single picture that should start at the top (the
+   * layout lab, a pattern sheet's original).
    */
   largeTitle?: boolean;
   /** A short line over the large title, for what the name belongs to: a
@@ -104,7 +114,8 @@ export function PushScreen({
   onLeave,
   layer = "shell",
   footer,
-  largeTitle = !bar,
+  heading,
+  largeTitle = !bar || heading !== undefined,
   eyebrow,
   children,
 }: PushScreenProps) {
@@ -112,16 +123,24 @@ export function PushScreen({
   // Whether the large title has gone under the bar, so the bar shows the name.
   const [compact, setCompact] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
-  const largeTitleRef = useRef<HTMLHeadingElement>(null);
+  const largeTitleRef = useRef<HTMLDivElement>(null);
   // Read on every scroll rather than against a fixed distance: the title wraps
   // to as many lines as it needs, so where it ends depends on the name, the
   // language and the text size. Only reads layout, never writes it, and React
   // drops the update when the answer has not changed.
   const onScroll = useCallback(() => {
     const header = headerRef.current;
-    const title = largeTitleRef.current;
+    // The name itself, not the block it heads: once the name is under the bar
+    // the bar takes it, though the line under it may still show. A short page
+    // that can only scroll part way otherwise hid the name under an empty bar.
+    const block = largeTitleRef.current;
+    const title = block?.querySelector("[data-title-name]") ?? block;
     if (!header || !title) return;
-    setCompact(title.getBoundingClientRect().bottom <= header.getBoundingClientRect().bottom);
+    // Halfway under is gone: behind the bar's ground the rest of it cannot be
+    // read, and a page too short to scroll it all the way under would leave
+    // it there, half hidden, with the bar still empty.
+    const r = title.getBoundingClientRect();
+    setCompact((r.top + r.bottom) / 2 <= header.getBoundingClientRect().bottom);
   }, []);
   const exitTimer = useRef<number | null>(null);
   // Taking the place of a loading screen part-way through its slide: carry
@@ -229,7 +248,9 @@ export function PushScreen({
               <ChevronLeft size={22} strokeWidth={2.5} aria-hidden="true" className="-ml-0.5" />
             </IconButton>
             {bar ? (
-              <div className="ml-1 flex min-w-0 flex-1 items-center gap-1">{bar}</div>
+              <div className="ml-1 flex min-w-0 flex-1 items-center gap-1">
+                {typeof bar === "function" ? bar(compact) : bar}
+              </div>
             ) : (
               <>
                 {/* With a large title this is a picture of it, out of the
@@ -268,20 +289,23 @@ export function PushScreen({
           style={{ "--push-bar-h": overlay ? "calc(env(safe-area-inset-top) + 3rem)" : "3rem" } as CSSProperties}
           onScroll={largeTitle ? onScroll : undefined}
         >
-          {largeTitle && (
-            // The screen's heading, wrapped whole: the bar's copy is cut to
-            // one line, so this is where a long name ("2019 PBA Johnny
-            // Petraglia Open") is read in full.
-            <div className="mx-auto w-full max-w-3xl px-3 pt-1 sm:px-6">
-              {eyebrow && (
-                <p className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{eyebrow}</p>
-              )}
-              <h1 ref={largeTitleRef} className={`${LARGE_TITLE} hyphens-auto break-words`}>
-                {title}
-              </h1>
-              {subtitle && <p className="mt-0.5 text-sm text-ink-secondary">{subtitle}</p>}
-            </div>
-          )}
+          {largeTitle &&
+            (heading !== undefined ? (
+              <div ref={largeTitleRef} data-large-title="">
+                {heading}
+              </div>
+            ) : (
+              // The screen's heading, wrapped whole: the bar's copy is cut to
+              // one line, so this is where a long name ("2019 PBA Johnny
+              // Petraglia Open") is read in full.
+              <div ref={largeTitleRef} data-large-title="" className="mx-auto w-full max-w-3xl px-3 pt-1 sm:px-6">
+                {eyebrow && (
+                  <p className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{eyebrow}</p>
+                )}
+                <h1 data-title-name="" className={`${LARGE_TITLE} hyphens-auto break-words`}>{title}</h1>
+                {subtitle && <p className="mt-0.5 text-sm text-ink-secondary">{subtitle}</p>}
+              </div>
+            ))}
           {children}
         </div>
         {footer && <div className="shrink-0">{footer}</div>}
