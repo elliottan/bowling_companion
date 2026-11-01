@@ -242,7 +242,10 @@ export function BowlingProfileView({
           <div className="mt-3 space-y-2">
             {ZONES.map((zone) => (
               <div key={zone} className="rounded-xl border border-edge bg-surface p-3">
-                <div className="flex items-center gap-2">
+                {/* Wraps as a Row does: the stepper drops under the zone's
+                    name, still flush right, where the two do not fit on one
+                    line ("アウトサイドなし" at a large size on a narrow phone). */}
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span className={`h-2.5 w-2.5 rounded-full ${ZONE_ACCENT[zone].swatch}`} aria-hidden="true" />
                   <span className="text-sm font-semibold capitalize text-ink">{zoneLabel(zone)}</span>
                   <div className="ml-auto shrink-0">
