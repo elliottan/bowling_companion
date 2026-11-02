@@ -9,6 +9,29 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.78.0: Every language reads more naturally, and the store speaks them too (2026-11-02)
+
+- A read of every message in every language, against the English, fixed what
+  sounded translated rather than written: the Home greeting "Lanes are open"
+  now welcomes the bowler in each language instead of announcing that lanes
+  opened, Spanish counts strikes as masculine ("strikes seguidos") and says
+  *desfase de soltada* everywhere for release offset, Chinese uses one word
+  for lane notes (備註/备注) and for the intended line, Korean calls the line
+  visualizer the same thing on every screen, Japanese and Chinese "Tell me"
+  answers the feedback prompt as the bowler speaking to us, and a few dozen
+  more.
+- The Next steps card on Home ("Write down your spare lines" and the rest) was
+  still in English in every language. It is translated now, and so are the
+  web app's "Get the app" and "Coming to the App Store".
+- On iPhone, the Home Screen quick actions (Stats, History, Arsenal, Ball
+  catalog) and the prompt before a share card is saved to Photos follow the
+  phone's language.
+- The App Store listing is drafted in every language the app speaks, plus
+  Spanish for Spain and a second English keyword set
+  (`docs/APP-STORE-LISTING-TRANSLATED.md`), and the store screenshots are
+  taken in each language, from the app itself in that language
+  (`scripts/app-store/screenshots.mjs` with `STORE_LOCALE`).
+
 ## 0.77.0: Bahasa Indonesia and Bahasa Melayu (2026-11-02)
 
 - Headpin speaks Indonesian and Malay. A phone set to either opens the app

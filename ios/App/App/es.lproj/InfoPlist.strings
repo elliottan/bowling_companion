@@ -1,0 +1,10 @@
+/* The Home Screen quick actions (UIApplicationShortcutItems in Info.plist) are
+   keyed by their English title. Each title is the app's own word for that tab
+   or screen in src/locales/es/messages.po, so the menu and the app agree. */
+"Stats" = "Estadísticas";
+"History" = "Historial";
+"Arsenal" = "Arsenal";
+"Ball catalog" = "Catálogo de bolas";
+
+/* The prompt iOS shows before Headpin first saves a share card to Photos. */
+"NSPhotoLibraryAddUsageDescription" = "Headpin guarda en tus fotos las tarjetas para compartir que creas, cuando se lo pides.";

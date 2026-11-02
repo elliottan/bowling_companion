@@ -483,7 +483,7 @@ for (let i = 0; i < GAMES.length; i++) {
     // Measured, not fixed: the box moves whenever the screen above it does.
     const intended = await page
       .locator('input[title="Stance board"]')
-      .locator('xpath=ancestor::div[contains(concat(" ", @class, " "), " py-1 ")][1]')
+      .locator('xpath=ancestor::div[contains(concat(" ", @class, " "), " py-2.5 ")][1]')
       .boundingBox();
     if (!intended) throw new Error("no Intended line on screen to clip");
     await clipBothThemes(page, "line-panel", {

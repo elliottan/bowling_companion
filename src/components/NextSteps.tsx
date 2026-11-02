@@ -1,3 +1,5 @@
+import { i18n, type MessageDescriptor } from "@lingui/core";
+import { msg, t } from "@lingui/core/macro";
 import { X, type LucideIcon } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { IconButton } from "./ui/IconButton";
@@ -22,37 +24,38 @@ interface NextStepsProps {
 interface StepCopy {
   icon: LucideIcon;
   /** What the step gets you, then why it is worth the minute. */
-  title: string;
-  description: string;
-  action: string;
+  title: MessageDescriptor;
+  description: MessageDescriptor;
+  action: MessageDescriptor;
 }
 
 const COPY: Record<NextStepKey, StepCopy> = {
   arsenal: {
     icon: BowlingBallIcon,
-    title: "Add balls to your bag",
-    description: "Once a ball is in your arsenal you can name it on every shot, and the stats split by ball.",
-    action: "Add a ball"
+    title: msg`Add balls to your bag`,
+    description: msg`Once a ball is in your arsenal you can name it on every shot, and the stats split by ball.`,
+    action: msg`Add a ball`
   },
   "spare-lines": {
     icon: SpareLineIcon,
-    title: "Write down your spare lines",
-    description:
-      "Save a line for a leave, and it prefills the intended line when you leave that spare during score entry.",
-    action: "Set spare lines"
+    title: msg`Write down your spare lines`,
+    description: msg({
+      message: "Save a line for a leave, and it prefills the intended line when you leave that spare during score entry.",
+      comment: "Bowling terms: a leave is the pins left standing after the first ball; the intended line is where the bowler plans to stand and aim"
+    }),
+    action: msg`Set spare lines`
   },
   "oil-pattern": {
     icon: OilPatternIcon,
-    title: "Add the pattern you bowl on",
-    description: "Filter stats by pattern to compare sessions on the same oil.",
-    action: "Add a pattern"
+    title: msg({ message: "Add the pattern you bowl on", comment: "Pattern is an oil pattern, the oil laid on the lane" }),
+    description: msg`Filter stats by pattern to compare sessions on the same oil.`,
+    action: msg`Add a pattern`
   },
   "lane-notes": {
     icon: LanePairIcon,
-    title: "Note what a lane does",
-    description:
-      "You bowl at this alley a lot. Write down how its lanes play, and it'll be here next time.",
-    action: "Add a lane note"
+    title: msg`Note what a lane does`,
+    description: msg`You bowl at this alley a lot. Write down how its lanes play, and it'll be here next time.`,
+    action: msg`Add a lane note`
   }
 };
 
@@ -92,10 +95,11 @@ export function NextSteps({
 
   return (
     <div className="mt-6">
-      <h2 className={`${GROUP_HEADING} mb-2 px-4`}>Next steps</h2>
+      <h2 className={`${GROUP_HEADING} mb-2 px-4`}>{t({ message: "Next steps", comment: "Heading on Home over setup suggestions" })}</h2>
       <ul className="flex flex-col gap-2">
         {steps.map((step) => {
           const copy = COPY[step];
+          const title = i18n._(copy.title);
           return (
             <li
               key={step}
@@ -105,18 +109,18 @@ export function NextSteps({
                 <copy.icon size={18} aria-hidden="true" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-ink">{copy.title}</p>
-                <p className="mt-0.5 text-xs text-ink-secondary">{copy.description}</p>
+                <p className="text-sm font-semibold text-ink">{title}</p>
+                <p className="mt-0.5 text-xs text-ink-secondary">{i18n._(copy.description)}</p>
                 <button
                   type="button"
                   onClick={open[step]}
                   className={`relative mt-2 text-xs font-bold text-accent underline hover:no-underline ${TAP_TARGET_44}`}
                 >
-                  {copy.action}
+                  {i18n._(copy.action)}
                 </button>
               </div>
               <IconButton
-                label={`Dismiss: ${copy.title}`}
+                label={t`Dismiss: ${title}`}
                 onClick={() => void dismissNextStep(step)}
                 className="-mr-2 -mt-1.5 text-ink-secondary"
               >

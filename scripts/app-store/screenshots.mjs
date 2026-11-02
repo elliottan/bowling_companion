@@ -2,8 +2,16 @@
 //
 //   1. npm run dev
 //   2. SHOTS_STATE=/tmp/headpin-state.json SHOTS_DIR=/tmp/shots npm run shots
-//   3. STORE_STATE=/tmp/headpin-state.json STORE_OUT=marketing/app-store/2026-10-27 \
-//        node scripts/app-store/screenshots.mjs
+//   3. STORE_STATE=/tmp/headpin-state.json STORE_LOCALE=ja \
+//        STORE_OUT=marketing/app-store/2026-11-02/ja node scripts/app-store/screenshots.mjs
+//
+// STORE_LOCALE is one of the app's languages (src/lib/i18n.ts), English when
+// unset. The setup (the bowler's weeks of nights and the bigger bag) is done
+// in English, then the app is switched to that language through its own
+// setting, as a bowler would in Settings, and every screen is taken in it.
+// The buttons the script presses are found by their names in that language,
+// read from its catalog, so a run in Korean presses what a Korean bowler
+// would. The captions are scripts/app-store/captions.mjs.
 //
 // Two passes. The first drives the app at the 6.9 inch iPhone's size (440 x 956
 // points at 3x, so 1320 x 2868 pixels, the size App Store Connect requires),
@@ -15,23 +23,62 @@
 // (`plain-6.3/`, `captioned-6.3/`), which App Store Connect asks for as well.
 // The two screens' shapes differ by under a pixel, so it is a resize.
 //
-// The captions are the plan in docs/APP-STORE-LISTING.md. A screen that shows
+// The captions are the plan in docs/APP-STORE-LISTING.md, per language in
+// captions.mjs. A screen that shows
 // Headpin Pro carries the Pro badge, since Apple asks that a screenshot say
 // when what it features needs a purchase (App Review Guideline 2.3.2).
 //
 // The app is driven, never mocked: every screenshot is a screen the app has.
+import { readFileSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { chromium } from "@playwright/test";
 import sharp from "sharp";
 import { seedHistory } from "../ad-content/history.mjs";
+import { CAPTIONS } from "./captions.mjs";
 import { SCREEN, STORE_DPR, actAsIphoneApp, drawStatusBar, emulateSafeAreas, removeStatusBar } from "./iphone.mjs";
 
 const BASE = process.env.STORE_BASE ?? "http://localhost:5173";
 const STATE = process.env.STORE_STATE;
 const OUT = resolve(process.env.STORE_OUT ?? "store-out");
 const ONLY = process.env.STORE_ONLY?.split(",");
+const LOCALE = process.env.STORE_LOCALE ?? "en";
 if (!STATE) throw new Error("STORE_STATE must name a saved bowler (see the header).");
+if (!CAPTIONS[LOCALE]) throw new Error(`STORE_LOCALE ${LOCALE} has no captions in captions.mjs.`);
+
+/**
+ * The app's own words in a language, read from its catalog, so the script can
+ * press a button by the name a bowler in that language sees. `say` is the
+ * locale the app is in right now: English for the setup, then LOCALE.
+ */
+function readCatalog(locale) {
+  const text = readFileSync(new URL(`../../src/locales/${locale}/messages.po`, import.meta.url), "utf8");
+  const words = new Map();
+  for (const entry of text.split(/\n\n+/)) {
+    const field = (name) => {
+      const m = entry.match(new RegExp(`^${name} "((?:[^"\\\\]|\\\\.)*)"$`, "m"));
+      return m ? m[1].replace(/\\"/g, '"') : null;
+    };
+    const id = field("msgid");
+    if (id) words.set(`${field("msgctxt") ?? ""}\u0004${id}`, field("msgstr") || id);
+  }
+  return words;
+}
+const catalogs = { en: readCatalog("en"), [LOCALE]: readCatalog(LOCALE) };
+let say = "en";
+/** A message in the app's current language, with its placeholders filled. */
+function tr(id, vars = {}, context = "") {
+  let text = catalogs[say].get(`${context}\u0004${id}`) ?? id;
+  for (const [k, v] of Object.entries(vars)) text = text.replaceAll(`{${k}}`, String(v));
+  return text;
+}
+const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/** A message as a pattern: a placeholder left unfilled matches anything. With
+ *  `start`, the name only has to begin with it. */
+function trPattern(id, vars = {}, { start = false, context = "" } = {}) {
+  const parts = tr(id, vars, context).split(/\{[^}]+\}/).map(escape);
+  return new RegExp(`^${parts.join(".+?")}${start ? "" : "$"}`);
+}
 
 // The 6.9 inch iPhone, shared with the landing page's pictures (iphone.mjs).
 const W = SCREEN.width;
@@ -45,19 +92,30 @@ const DPR = STORE_DPR;
  */
 const SMALL = { width: 1206, height: 2622 };
 const small = (png) => sharp(png).resize(SMALL.width, SMALL.height, { fit: "cover" }).png().toBuffer();
+// STORE_FORMAT=jpeg writes the sets as JPEG (quality 92, no chroma subsampling),
+// a seventh of the PNG's size and indistinguishable at the store's sizes: the
+// form a set is committed in, eight languages of it. App Store Connect takes
+// either, and neither carries an alpha channel, which it refuses.
+const JPEG = process.env.STORE_FORMAT === "jpeg";
+async function save(dir, name, png) {
+  const file = join(OUT, dir, `${name}.${JPEG ? "jpg" : "png"}`);
+  const body = JPEG ? await sharp(png).jpeg({ quality: 92, chromaSubsampling: "4:4:4", mozjpeg: true }).toBuffer() : png;
+  await writeFile(file, body);
+  return file;
+}
 
 const SHOTS = [
-  { name: "01-score", theme: "dark", h: "Score <em>every shot</em>.", sub: "Tap the pins you left. Unlimited games, free." },
-  { name: "02-line", theme: "dark", h: "Remember every|<em>line</em> you threw.", sub: "Your line drawn over the oil, shot by shot." },
-  { name: "03-arsenal", theme: "dark", h: "Your whole|<em>arsenal</em>, free.", sub: "Every ball you own, with no cap on the bag." },
-  { name: "04-stats", theme: "dark", h: "Know what's|<em>working</em>.", sub: "Your average, pocket and spares, over time." },
-  { name: "05-catalog", theme: "dark", h: "Over 800 balls,|<em>one tap</em>.", sub: "Specs and photos. Build your bag from them." },
-  { name: "06-pattern", theme: "dark", h: "See the oil|<em>before you throw</em>.", sub: "Load tables and the oil drawn on the lane." },
-  { name: "07-layout", theme: "dark", h: "See a layout|<em>before you drill it</em>.", sub: "Dual angle and Storm VLS, drawn from your PAP." },
-  { name: "08-pro", theme: "dark", pro: true, h: "Go deeper|with <em>Pro</em>.", sub: "Carry, strike, ball by ball, alley by alley. One purchase, no subscription." },
-  { name: "09-home", theme: "dark", h: "Works without|<em>a signal</em>.", sub: "No account to make. Built for the alley." },
-  { name: "10-history", theme: "dark", h: "Every night,|<em>on your phone</em>.", sub: "Unlimited sessions. Back up any time, free." }
-];
+  { name: "01-score", theme: "dark" },
+  { name: "02-line", theme: "dark" },
+  { name: "03-arsenal", theme: "dark" },
+  { name: "04-stats", theme: "dark" },
+  { name: "05-catalog", theme: "dark" },
+  { name: "06-pattern", theme: "dark" },
+  { name: "07-layout", theme: "dark" },
+  { name: "08-pro", theme: "dark", pro: true },
+  { name: "09-home", theme: "dark" },
+  { name: "10-history", theme: "dark" }
+].map((shot) => ({ ...shot, ...CAPTIONS[LOCALE][shot.name] }));
 const wanted = (name) => !ONLY || ONLY.some((o) => name.includes(o));
 
 const browser = await chromium.launch(
@@ -67,6 +125,7 @@ const context = await browser.newContext({
   viewport: { width: W, height: H },
   deviceScaleFactor: DPR,
   storageState: STATE,
+  locale: LOCALE,
   colorScheme: "dark",
   reducedMotion: "reduce",
   hasTouch: false
@@ -78,6 +137,15 @@ await actAsIphoneApp(context);
 await context.route("https://headpin.app/**", async (route) => {
   const url = new URL(route.request().url());
   route.fulfill({ response: await route.fetch({ url: `${BASE}${url.pathname}${url.search}` }) });
+});
+// The setup runs in English whatever the browser's language, until the switch
+// below writes the language setting itself.
+await context.addInitScript(() => {
+  try {
+    if (!localStorage.getItem("language")) localStorage.setItem("language", "en");
+  } catch {
+    /* the app falls back to the browser's language */
+  }
 });
 const page = await context.newPage();
 await emulateSafeAreas(page);
@@ -106,14 +174,15 @@ async function home(pro = false) {
   await page.goto(`${BASE}/app`);
   await page.getByRole("navigation").first().waitFor();
   await quiet();
-  await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
+  await page.getByRole("navigation").getByRole("button", { name: tr("Home") }).click();
   await wait(600);
 }
 
 const back = (n = 1) =>
   (async () => {
     for (let i = 0; i < n; i++) {
-      await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).last().click();
+      const name = new RegExp(`^(${escape(tr("Back"))}|${escape(tr("Back", {}, "navigation"))})$`);
+      await page.getByRole("banner").getByRole("button", { name }).last().click();
       await wait(450);
     }
   })();
@@ -124,8 +193,8 @@ async function shoot(shot, { bar = shot.theme === "dark" ? "#fff" : "#0b1220" } 
   await drawStatusBar(page, bar);
   await wait(150);
   plain[shot.name] = await page.screenshot({ type: "png" });
-  await writeFile(join(OUT, "plain", `${shot.name}.png`), plain[shot.name]);
-  await writeFile(join(OUT, "plain-6.3", `${shot.name}.png`), await small(plain[shot.name]));
+  await save("plain", shot.name, plain[shot.name]);
+  await save("plain-6.3", shot.name, await small(plain[shot.name]));
   console.log("took", shot.name);
   await removeStatusBar(page);
 }
@@ -134,24 +203,29 @@ const shot = (name) => SHOTS.find((s) => s.name.endsWith(name));
 /** Hides whatever the app offers between games: the backup nudge, the share
  *  offer, the spare-line toast. None of it is what a screenshot is about. */
 async function dismissPrompts() {
-  for (const name of ["Dismiss backup reminder", "Dismiss share offer", "Got it", "Dismiss tip", "Not now"]) {
-    const btn = page.getByRole("button", { name });
+  for (const id of ["Dismiss backup reminder", "Dismiss share offer", "Got it", "Dismiss tip", "Not now"]) {
+    const btn = page.getByRole("button", { name: tr(id), exact: true });
     if (await btn.count()) await btn.first().click().catch(() => {});
   }
-  const offer = page.getByText(/Save this as your line/).first();
+  const offer = page.getByText(trPattern("Save this as your line for {leave}")).first();
   if (await offer.count()) {
     await offer.locator("xpath=ancestor::*[.//button][1]").getByRole("button").last().click().catch(() => {});
   }
 }
 
+/** The catalog, its search filled in, once it has synced. */
+async function openCatalog(query) {
+  await page.getByRole("button", { name: trPattern("Ball catalog", {}, { start: true }) }).click();
+  await page.getByText(tr("Syncing catalog…")).waitFor({ state: "hidden", timeout: 60000 }).catch(() => {});
+  await page.getByPlaceholder(tr("Search name, brand, coverstock…")).fill(query);
+}
+
 async function addFromCatalog(query, name) {
-  await page.getByRole("button", { name: /^Ball catalog/ }).click();
-  await page.getByText(/Syncing catalog/).waitFor({ state: "hidden", timeout: 60000 }).catch(() => {});
-  await page.getByPlaceholder("Search name, brand, coverstock…").fill(query);
+  await openCatalog(query);
   await wait(700);
-  await page.getByRole("dialog", { name: "Catalog" }).getByRole("button", { name }).first().click();
-  await page.getByRole("button", { name: "Add to arsenal" }).first().click();
-  await page.getByRole("dialog", { name: "Add to arsenal" }).getByRole("button", { name: "Add to arsenal" }).click();
+  await page.getByRole("dialog", { name: tr("Catalog") }).getByRole("button", { name }).first().click();
+  await page.getByRole("button", { name: tr("Add to arsenal") }).first().click();
+  await page.getByRole("dialog", { name: tr("Add to arsenal") }).getByRole("button", { name: tr("Add to arsenal") }).click();
   await wait(400);
   await back(2);
 }
@@ -175,6 +249,14 @@ for (const [query, name] of [["Dynasty", /Black Widow 3\.0 Dynasty/], ["Hy-Road 
   await addFromCatalog(query, name);
 }
 
+// The bowler's language, picked as Settings picks it: the setting, then a
+// reload. Everything from here is on screens in that language.
+if (LOCALE !== "en") {
+  await page.evaluate((locale) => localStorage.setItem("language", locale), LOCALE);
+  say = LOCALE;
+  await home();
+}
+
 // --- The screens -------------------------------------------------------------
 
 // Tonight's game, into the tenth: the card full of marks, the 10 pin left
@@ -182,26 +264,27 @@ for (const [query, name] of [["Dynasty", /Black Widow 3\.0 Dynasty/], ["Hy-Road 
 if (wanted("score") || wanted("home")) {
   await setTheme("dark");
   const nav = page.getByRole("navigation");
-  await nav.getByRole("button", { name: "Score", exact: true }).click();
-  await page.getByRole("button", { name: "Start session" }).first().click();
-  const sheet = page.getByRole("dialog", { name: "Start session" });
+  await nav.getByRole("button", { name: tr("Score"), exact: true }).click();
+  await page.getByRole("button", { name: tr("Start session") }).first().click();
+  const sheet = page.getByRole("dialog", { name: tr("Start session") });
   await sheet.getByPlaceholder("Pinecrest Lanes").fill("Sunset Lanes");
-  await sheet.getByRole("button", { name: "Start session" }).click();
-  const lanes = page.getByRole("dialog", { name: /lanes/i });
+  await sheet.getByRole("button", { name: tr("Start session") }).click();
+  const lanes = page.getByRole("dialog", { name: trPattern("Game {gameNumber} lanes") });
   await lanes.waitFor({ state: "visible", timeout: 2500 }).catch(() => {});
   if (await lanes.count()) {
-    await lanes.getByRole("textbox", { name: "First lane" }).fill("11").catch(() => {});
-    await lanes.getByRole("textbox", { name: "Second lane" }).fill("12").catch(() => {});
-    await lanes.getByRole("button", { name: "Close" }).click();
+    await lanes.getByRole("textbox", { name: tr("First lane") }).fill("11").catch(() => {});
+    await lanes.getByRole("textbox", { name: tr("Second lane") }).fill("12").catch(() => {});
+    await lanes.getByRole("button", { name: tr("Close") }).click();
   }
-  const RECORD = /^Next( \(|$)/;
+  // "Next", or "Next (Strike)" with what it would record under it.
+  const RECORD = new RegExp(`^(${escape(tr("Next"))}$|${trPattern("Next ({nextOutcome})").source.slice(1)})`);
   await page.getByRole("button", { name: RECORD }).waitFor();
-  const pinDown = (n) => page.locator(`button[aria-label="Pin ${n}, down"]:not([disabled])`);
-  const strike = () => page.getByRole("button", { name: "Strike", exact: true }).click();
+  const pinDown = (n) => page.locator(`button[aria-label="${tr("Pin {pin}, down", { pin: n })}"]:not([disabled])`);
+  const strike = () => page.getByRole("button", { name: tr("Strike"), exact: true }).click();
   const spare = async (pin) => {
     await pinDown(pin).click();
     await page.getByRole("button", { name: RECORD }).click();
-    await page.getByRole("button", { name: "Spare", exact: true }).click();
+    await page.getByRole("button", { name: tr("Spare"), exact: true }).click();
   };
   for (const f of ["X", "X", 7, "X", 4, "X", "X", 10, "X"]) {
     if (f === "X") await strike();
@@ -211,23 +294,25 @@ if (wanted("score") || wanted("home")) {
   }
   await dismissPrompts();
   // The tenth's first ball: the Phaze Crimson, the line, the 10 left.
-  await page.getByRole("button", { name: /^Ball: / }).click();
-  await page.getByRole("dialog", { name: "Ball" }).getByRole("button", { name: /Phaze Crimson/i }).first().click();
+  await page.getByRole("button", { name: trPattern("Ball: {name}. Tap to change", {}, { start: true }) }).click();
+  await page.getByRole("dialog", { name: tr("Ball") }).getByRole("button", { name: /Phaze Crimson/i }).first().click();
   await wait(400);
-  await page.locator('input[title="Stance board"]').first().fill("20");
-  await page.locator('input[title="Target board (arrows)"]').first().fill("10");
-  await page.locator('input[title="Target board (arrows)"]').first().blur();
+  const stanceBoard = page.locator(`input[title="${tr("{field} board", { field: tr("Stance") })}"]`).first();
+  const targetBoard = page.locator(`input[title="${tr("Target board (arrows)")}"]`).first();
+  await stanceBoard.fill("20");
+  await targetBoard.fill("10");
+  await targetBoard.blur();
   await pinDown(10).click();
   await dismissPrompts();
   await page.mouse.click(10, 10);
   if (wanted("score")) await shoot(shot("score"));
   if (wanted("home")) {
-    await nav.getByRole("button", { name: "Home" }).click();
+    await nav.getByRole("button", { name: tr("Home") }).click();
     await wait(600);
     await page.evaluate(() => document.querySelectorAll("*").forEach((el) => el.scrollTop && (el.scrollTop = 0)));
     // The backup reminder, put off as a bowler would: it is the app asking,
     // not the app.
-    const later = page.getByRole("button", { name: "Later", exact: true });
+    const later = page.getByRole("button", { name: tr("Later"), exact: true });
     if (await later.count()) await later.first().click();
     await wait(300);
     await shoot(shot("home"));
@@ -242,14 +327,16 @@ if (wanted("score") || wanted("home")) {
 if (wanted("line") || wanted("pattern")) {
   await home(true);
   await setTheme("dark");
-  await page.getByRole("button", { name: /Oil patterns/ }).first().click();
-  await page.getByRole("searchbox").or(page.getByPlaceholder(/search/i)).first().fill("Shark");
+  // The Tools row, by its title and the line under it: in Chinese the title
+  // alone (油型) is in half the buttons on Home.
+  await page.getByRole("button", { name: new RegExp(`${escape(tr("Oil patterns"))}.*${escape(tr("Look up a pattern's length and oil"))}`) }).first().click();
+  await page.getByRole("searchbox").or(page.getByPlaceholder(tr("Search patterns"))).first().fill("Shark");
   // Home's session tiles name their pattern too, under the pushed screen.
-  await page.getByRole("dialog", { name: "Oil patterns" }).getByText("2019 PBA Shark 48").first().click();
+  await page.getByRole("dialog", { name: tr("Oil patterns") }).getByText("2019 PBA Shark 48").first().click();
   await wait(900);
   if (wanted("pattern")) await shoot(shot("pattern"));
   if (wanted("line")) {
-    await page.getByRole("button", { name: "Try in the line visualizer" }).click();
+    await page.getByRole("button", { name: tr("Try in the line visualizer") }).click();
     await wait(1500);
     await shoot(shot("line"), { bar: "#fff" });
   }
@@ -258,7 +345,7 @@ if (wanted("line") || wanted("pattern")) {
 
 if (wanted("arsenal")) {
   await setTheme("dark");
-  await page.getByRole("list", { name: "Your arsenal" }).getByRole("button").first().click();
+  await page.getByRole("list", { name: tr("Your arsenal") }).getByRole("button").first().click();
   await wait(700);
   await shoot(shot("arsenal"));
   await home();
@@ -267,11 +354,9 @@ if (wanted("arsenal")) {
 // A ball's page in the catalog.
 if (wanted("catalog")) {
   await setTheme("dark");
-  await page.getByRole("button", { name: /^Ball catalog/ }).click();
-  await page.getByText(/Syncing catalog/).waitFor({ state: "hidden", timeout: 60000 }).catch(() => {});
-  await page.getByPlaceholder("Search name, brand, coverstock…").fill("Phaze Crimson");
+  await openCatalog("Phaze Crimson");
   await wait(800);
-  await page.getByRole("dialog", { name: "Catalog" }).getByRole("button", { name: /Phaze Crimson/i }).first().click();
+  await page.getByRole("dialog", { name: tr("Catalog") }).getByRole("button", { name: /Phaze Crimson/i }).first().click();
   await wait(1500);
   await shoot(shot("catalog"));
   await home();
@@ -281,7 +366,7 @@ if (wanted("catalog")) {
 if (wanted("layout")) {
   await home(true);
   await setTheme("dark");
-  await page.getByRole("button", { name: /^Layouts/ }).click();
+  await page.getByRole("button", { name: trPattern("Layouts", {}, { start: true }) }).click();
   await wait(900);
   await shoot(shot("layout"));
   await home();
@@ -295,16 +380,16 @@ if (wanted("stats") || wanted("pro")) {
     // free ones, and the Pro shot (08) is the one that sells the rest.
     await home(true);
     await setTheme("dark");
-    await nav.getByRole("button", { name: "Stats" }).click();
+    await nav.getByRole("button", { name: tr("Stats") }).click();
     await wait(900);
     await shoot(shot("stats"));
   }
   if (wanted("pro")) {
     await home(true);
     await setTheme("dark");
-    await nav.getByRole("button", { name: "Stats" }).click();
+    await nav.getByRole("button", { name: tr("Stats") }).click();
     await wait(900);
-    await page.getByText("First ball", { exact: true }).first().evaluate((el) => (el.closest("section") ?? el).scrollIntoView({ block: "start" }));
+    await page.getByText(tr("First ball"), { exact: true }).first().evaluate((el) => (el.closest("section") ?? el).scrollIntoView({ block: "start" }));
     await page.evaluate(() => {
       // A little room above the card, under the status bar.
       const el = [...document.querySelectorAll("*")].find((n) => n.scrollTop > 0 && n.scrollHeight > n.clientHeight);
@@ -319,7 +404,7 @@ if (wanted("stats") || wanted("pro")) {
 // Every night, weeks of them, each with its pattern and its games.
 if (wanted("history")) {
   await setTheme("dark");
-  await page.getByRole("navigation").getByRole("button", { name: "History" }).click();
+  await page.getByRole("navigation").getByRole("button", { name: tr("History") }).click();
   await wait(800);
   await shoot(shot("history"));
   await home();
@@ -335,13 +420,13 @@ await framer.route("**/store-shot/*", (route) =>
 );
 for (const [i, s] of SHOTS.entries()) {
   if (!plain[s.name]) continue;
-  const q = new URLSearchParams({ h: s.h, sub: s.sub, img: `/store-shot/${encodeURIComponent(s.name)}`, n: String(i) });
+  const q = new URLSearchParams({ h: s.h, sub: s.sub, img: `/store-shot/${encodeURIComponent(s.name)}`, n: String(i), lang: LOCALE });
   if (s.pro) q.set("pro", "1");
   await framer.goto(`${BASE}/scripts/app-store/frame.html?${q}`);
   await framer.evaluate(() => window.ready);
-  const file = join(OUT, "captioned", `${s.name}.png`);
-  const png = await framer.screenshot({ path: file });
-  await writeFile(join(OUT, "captioned-6.3", `${s.name}.png`), await small(png));
+  const png = await framer.screenshot();
+  const file = await save("captioned", s.name, png);
+  await save("captioned-6.3", s.name, await small(png));
   console.log("wrote", file);
 }
 await browser.close();

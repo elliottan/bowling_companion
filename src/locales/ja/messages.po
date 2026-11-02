@@ -690,6 +690,7 @@ msgstr "実際の全体アベレージ: {average}"
 msgid "Add"
 msgstr "追加"
 
+#: src/components/NextSteps.tsx
 #: src/components/ShotDetailBar.tsx
 #: src/views/ArsenalView.tsx
 msgid "Add a ball"
@@ -699,10 +700,12 @@ msgstr "ボールを追加"
 msgid "Add a ball, then pick it for each shot as you score."
 msgstr "ボールを追加すると、スコアを付けるときにショットごとに選べます。"
 
+#: src/components/NextSteps.tsx
 #: src/views/LaneNotesView.tsx
 msgid "Add a lane note"
 msgstr "レーンメモを追加"
 
+#: src/components/NextSteps.tsx
 #: src/components/OilPatternManager.tsx
 msgid "Add a pattern"
 msgstr "パターンを追加"
@@ -713,6 +716,7 @@ msgid "Add ball"
 msgstr "ボールを追加"
 
 #: src/components/HomeProfile.tsx
+#: src/components/NextSteps.tsx
 msgid "Add balls to your bag"
 msgstr "バッグにボールを追加"
 
@@ -746,6 +750,11 @@ msgstr "オイルパターンを追加"
 #: src/views/SpareLinesView.tsx
 msgid "Add spare line"
 msgstr "スペアラインを追加"
+
+#. Pattern is an oil pattern, the oil laid on the lane
+#: src/components/NextSteps.tsx
+msgid "Add the pattern you bowl on"
+msgstr "投げるパターンを追加"
 
 #: src/views/CatalogView.tsx
 msgid "Add to arsenal"
@@ -1069,7 +1078,7 @@ msgstr "セッションを投げるとレポートが表示されます"
 
 #: src/lib/moveGames.ts
 msgid "Bowled with Headpin on the web?"
-msgstr "WebでHeadpinを使って投げましたか？"
+msgstr "Web版のHeadpinを使っていましたか？"
 
 #: src/components/LaneVisualizer.tsx
 msgid "Bowler view"
@@ -1297,6 +1306,10 @@ msgstr "列"
 msgid "Coming soon to the App Store"
 msgstr "App Storeで近日公開"
 
+#: src/components/ui/useProAction.tsx
+msgid "Coming to the App Store"
+msgstr "まもなくApp Storeに登場"
+
 #: src/views/CatalogView.tsx
 msgid "Connect once to load the catalog"
 msgstr "カタログを読み込むには一度接続してください"
@@ -1492,6 +1505,10 @@ msgstr "共有の提案を閉じる"
 #: src/components/ActiveGameScorer.tsx
 msgid "Dismiss tip"
 msgstr "ヒントを閉じる"
+
+#: src/components/NextSteps.tsx
+msgid "Dismiss: {title}"
+msgstr "閉じる: {title}"
 
 #: src/components/BallFormDialog.tsx
 msgid "Display name"
@@ -1808,6 +1825,10 @@ msgstr "残りピンを絞り込む"
 msgid "Filter spare lines"
 msgstr "スペアラインを絞り込む"
 
+#: src/components/NextSteps.tsx
+msgid "Filter stats by pattern to compare sessions on the same oil."
+msgstr "パターンで統計を絞り込むと、同じオイルでのセッションを比べられます。"
+
 #: src/views/CatalogView.tsx
 msgid "Filter the catalog"
 msgstr "カタログを絞り込む"
@@ -2037,6 +2058,10 @@ msgstr "Headpin Proを入手"
 #: src/views/ArsenalView.tsx
 msgid "Get Pro to visualize your ball layout"
 msgstr "Proでボールのレイアウトを可視化"
+
+#: src/components/ui/useProAction.tsx
+msgid "Get the app"
+msgstr "アプリを入手"
 
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
@@ -2631,7 +2656,7 @@ msgstr "ロード"
 #. Describes the Late and angular drilling layout preset. VAL angle is a drilling measurement; down-and-in is a ball motion bowling term
 #: src/lib/ballLayout.ts
 msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
-msgstr "長いドリリングアングルで走りを出し、短いVALアングルで強く曲げます。壁際ではダウンアンドイン。"
+msgstr "長いドリリングアングルで走りを出し、短いVALアングルで強く曲げます。壁のあるハウスパターンなら、ダウンアンドインで攻められます。"
 
 #: src/components/ToolsList.tsx
 msgid "Look up a pattern's length and oil"
@@ -2841,6 +2866,11 @@ msgstr "次へ"
 msgid "Next ({nextOutcome})"
 msgstr "次へ ({nextOutcome})"
 
+#. Heading on Home over setup suggestions
+#: src/components/NextSteps.tsx
+msgid "Next steps"
+msgstr "次のステップ"
+
 #: src/views/ActiveSessionView.tsx
 msgid "No active game selected."
 msgstr "選択中のゲームがありません。"
@@ -2950,7 +2980,7 @@ msgstr "統計がまだありません"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "No thanks"
-msgstr "今はしない"
+msgstr "結構です"
 
 #: src/views/SpareLinesView.tsx
 msgid "none"
@@ -2989,6 +3019,10 @@ msgstr "今はしない"
 #: src/views/SpareLinesView.tsx
 msgid "Not the same shot"
 msgstr "同じ投球ではない"
+
+#: src/components/NextSteps.tsx
+msgid "Note what a lane does"
+msgstr "レーンの特徴をメモ"
 
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/ShotDetailBar.tsx
@@ -3062,6 +3096,10 @@ msgstr "オイルパターン"
 #: src/lib/moveGames.ts
 msgid "On headpin.app, open Settings, then Backup & restore, and export your games."
 msgstr "headpin.appで「設定」、「バックアップと復元」の順に開き、ゲームを書き出します。"
+
+#: src/components/NextSteps.tsx
+msgid "Once a ball is in your arsenal you can name it on every shot, and the stats split by ball."
+msgstr "アーセナルにボールを登録すると、1投ごとにボールを選べて、統計もボール別に分かれます。"
 
 #: src/components/FirstRun.tsx
 msgid "One hand or two?"
@@ -3619,6 +3657,11 @@ msgstr "バックアップを保存"
 msgid "Save a copy"
 msgstr "コピーを保存"
 
+#. Bowling terms: a leave is the pins left standing after the first ball; the intended line is where the bowler plans to stand and aim
+#: src/components/NextSteps.tsx
+msgid "Save a line for a leave, and it prefills the intended line when you leave that spare during score entry."
+msgstr "残りピンごとにラインを保存すると、スコア入力中にその残りピンになったとき、狙いのラインが自動で入力されます。"
+
 #: src/components/SpareLinePickerSheet.tsx
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "ある残りピンのラインを保存すると、別の残りピンにも流用できます。"
@@ -3758,6 +3801,10 @@ msgstr "集計対象セッション"
 #: src/components/ActiveGameScorer.tsx
 msgid "Set lanes"
 msgstr "レーンを設定"
+
+#: src/components/NextSteps.tsx
+msgid "Set spare lines"
+msgstr "スペアラインを設定"
 
 #: src/components/FirstRun.tsx
 msgid "Set up Headpin"
@@ -4245,7 +4292,7 @@ msgstr "目標ボード (スパット)"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "Tell me"
-msgstr "伝える"
+msgstr "意見を送る"
 
 #: src/views/AppearanceView.tsx
 msgid "Text size"
@@ -4385,7 +4432,7 @@ msgstr "容量が不足すると、このブラウザがスコアを消去する
 #. placeholder {4}: incoming.games
 #: src/components/ReplaceConfirmDialog.tsx
 msgid "This deletes everything on this device: {0, plural, one {# session} other {# sessions}}, {1, plural, one {# game} other {# games}}, {2, plural, one {# ball} other {# balls}}. It installs the file's {3, plural, one {# session} other {# sessions}}, {4, plural, one {# game} other {# games}} instead, saved {age}."
-msgstr "このデバイス上のすべて（{0, plural, other {#セッション}}、{1, plural, other {#ゲーム}}、{2, plural, other {#ボール}}）を削除します。代わりに、ファイルの{3, plural, other {#セッション}}、{4, plural, other {#ゲーム}}を読み込みます。保存日時: {age}。"
+msgstr "この端末上のすべて（{0, plural, other {#セッション}}、{1, plural, other {#ゲーム}}、{2, plural, other {#ボール}}）を削除します。代わりに、ファイルの{3, plural, other {#セッション}}、{4, plural, other {#ゲーム}}を読み込みます。保存日時: {age}。"
 
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/LaneNotesTab.tsx
@@ -4414,7 +4461,7 @@ msgstr "この投球…"
 
 #: src/components/StaleShellScreen.tsx
 msgid "This tab is running an older version of the app than your scores were saved with. Everything is still on this device."
-msgstr "このタブは、スコアの保存時より古いバージョンのアプリで動いています。データはすべてこのデバイスに残っています。"
+msgstr "このタブは、スコアの保存時より古いバージョンのアプリで動いています。データはすべてこの端末に残っています。"
 
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
@@ -4741,6 +4788,10 @@ msgstr "レーンの特徴を書き留めておけば、次にそのレーンで
 msgid "Write down how you shoot each spare"
 msgstr "各スペアの投げ方を記録"
 
+#: src/components/NextSteps.tsx
+msgid "Write down your spare lines"
+msgstr "スペアラインを記録"
+
 #. Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet
 #. Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet
 #: src/components/ProOfferSamples.tsx
@@ -4751,6 +4802,10 @@ msgstr "X-on-X"
 #: src/lib/backupNudge.ts
 msgid "yesterday"
 msgstr "昨日"
+
+#: src/components/NextSteps.tsx
+msgid "You bowl at this alley a lot. Write down how its lanes play, and it'll be here next time."
+msgstr "このボウリング場でよく投げていますね。レーンの特徴を書き留めておけば、次回ここに表示されます。"
 
 #: src/views/BowlingProfileView.tsx
 msgid "You enter your stance and target. The app works out your slide and laydown."
@@ -4838,7 +4893,7 @@ msgstr "終了したゲームごとのスコア。"
 
 #: src/components/AppErrorBoundary.tsx
 msgid "Your scores are still on this device."
-msgstr "スコアはこのデバイスに残っています。"
+msgstr "スコアはこの端末に残っています。"
 
 #: src/views/GamePlanView.tsx
 #: src/views/GameTrendView.tsx

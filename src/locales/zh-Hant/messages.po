@@ -418,7 +418,7 @@ msgstr "{n, plural, other {# 種殘瓶}}"
 
 #: src/components/HomeProfile.tsx
 msgid "{n, plural, one {# note} other {# notes}}"
-msgstr "{n, plural, other {# 則筆記}}"
+msgstr "{n, plural, other {# 則備註}}"
 
 #: src/components/Stats.tsx
 #: src/views/GameTrendView.tsx
@@ -690,6 +690,7 @@ msgstr "實際整體平均分：{average}"
 msgid "Add"
 msgstr "新增"
 
+#: src/components/NextSteps.tsx
 #: src/components/ShotDetailBar.tsx
 #: src/views/ArsenalView.tsx
 msgid "Add a ball"
@@ -699,10 +700,12 @@ msgstr "新增球"
 msgid "Add a ball, then pick it for each shot as you score."
 msgstr "新增一顆球，計分時就能為每一球選擇它。"
 
+#: src/components/NextSteps.tsx
 #: src/views/LaneNotesView.tsx
 msgid "Add a lane note"
-msgstr "新增球道筆記"
+msgstr "新增球道備註"
 
+#: src/components/NextSteps.tsx
 #: src/components/OilPatternManager.tsx
 msgid "Add a pattern"
 msgstr "新增油型"
@@ -713,6 +716,7 @@ msgid "Add ball"
 msgstr "新增球"
 
 #: src/components/HomeProfile.tsx
+#: src/components/NextSteps.tsx
 msgid "Add balls to your bag"
 msgstr "將球加入你的球袋"
 
@@ -727,7 +731,7 @@ msgstr "自行新增"
 #: src/components/LaneNoteFormDialog.tsx
 #: src/views/LaneNotesView.tsx
 msgid "Add lane note"
-msgstr "新增球道筆記"
+msgstr "新增球道備註"
 
 #: src/components/BallFormDialog.tsx
 msgid "Add layout"
@@ -746,6 +750,11 @@ msgstr "新增油型"
 #: src/views/SpareLinesView.tsx
 msgid "Add spare line"
 msgstr "新增補中路線"
+
+#. Pattern is an oil pattern, the oil laid on the lane
+#: src/components/NextSteps.tsx
+msgid "Add the pattern you bowl on"
+msgstr "新增你常打的油型"
 
 #: src/views/CatalogView.tsx
 msgid "Add to arsenal"
@@ -1069,7 +1078,7 @@ msgstr "打完一個場次就能看到報告"
 
 #: src/lib/moveGames.ts
 msgid "Bowled with Headpin on the web?"
-msgstr "曾在網頁版 Headpin 打球嗎？"
+msgstr "用過網頁版 Headpin 嗎？"
 
 #: src/components/LaneVisualizer.tsx
 msgid "Bowler view"
@@ -1297,6 +1306,10 @@ msgstr "欄位"
 msgid "Coming soon to the App Store"
 msgstr "即將登陸 App Store"
 
+#: src/components/ui/useProAction.tsx
+msgid "Coming to the App Store"
+msgstr "即將登陸 App Store"
+
 #: src/views/CatalogView.tsx
 msgid "Connect once to load the catalog"
 msgstr "連線一次即可載入型錄"
@@ -1493,6 +1506,10 @@ msgstr "關閉分享提議"
 msgid "Dismiss tip"
 msgstr "關閉提示"
 
+#: src/components/NextSteps.tsx
+msgid "Dismiss: {title}"
+msgstr "關閉：{title}"
+
 #: src/components/BallFormDialog.tsx
 msgid "Display name"
 msgstr "顯示名稱"
@@ -1610,7 +1627,7 @@ msgstr "編輯球"
 
 #: src/views/BowlingProfileView.tsx
 msgid "Edit bowling profile"
-msgstr "編輯保齡球資料"
+msgstr "編輯投球檔案"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Edit game lanes"
@@ -1687,7 +1704,7 @@ msgstr "賽事"
 
 #: src/views/ArsenalView.tsx
 msgid "Every ball you have is retired. Add one, or bring one back."
-msgstr "你的球都已退役。新增一顆，或讓一顆回來。"
+msgstr "你的球都已退役。新增一顆，或讓退役的球回到球庫。"
 
 #: src/lib/shareCard.ts
 msgid "Every session"
@@ -1808,6 +1825,10 @@ msgstr "篩選殘瓶"
 msgid "Filter spare lines"
 msgstr "篩選補中路線"
 
+#: src/components/NextSteps.tsx
+msgid "Filter stats by pattern to compare sessions on the same oil."
+msgstr "依油型篩選統計，比較在同樣油面上的場次。"
+
 #: src/views/CatalogView.tsx
 msgid "Filter the catalog"
 msgstr "篩選型錄"
@@ -1889,7 +1910,7 @@ msgstr "正向 / 反向"
 
 #: src/components/PatternSheet.tsx
 msgid "Forward passes"
-msgstr "正向遍數"
+msgstr "正向趟數"
 
 #. A bowling term: a foul, crossing the line. A menu item that records one.
 #: src/components/ActiveGameScorer.tsx
@@ -2037,6 +2058,10 @@ msgstr "取得 Headpin Pro"
 #: src/views/ArsenalView.tsx
 msgid "Get Pro to visualize your ball layout"
 msgstr "升級 Pro 即可視覺化你的球打孔配置"
+
+#: src/components/ui/useProAction.tsx
+msgid "Get the app"
+msgstr "下載 App"
 
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
@@ -2307,7 +2332,7 @@ msgstr "它會從你的球庫和選球清單中移除。它投過的每一球仍
 
 #: src/views/GamePlanView.tsx
 msgid "It shows what you'd average with each ball at an alley, from the games you bowled there."
-msgstr "依你在某個球館打過的局數，顯示你使用每顆球時的平均分。"
+msgstr "根據你在該球館打過的各局，顯示你用每顆球預估能打出的平均分。"
 
 #: src/components/FirstRun.tsx
 msgid "Keep score, plus the ball and line for every shot. It all stays on this phone."
@@ -2369,7 +2394,7 @@ msgstr "球道"
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
 msgid "Lanes are open"
-msgstr "球道開放了"
+msgstr "球道在等你"
 
 #: src/views/AppearanceView.tsx
 msgid "Language"
@@ -2841,6 +2866,11 @@ msgstr "下一步"
 msgid "Next ({nextOutcome})"
 msgstr "下一步（{nextOutcome}）"
 
+#. Heading on Home over setup suggestions
+#: src/components/NextSteps.tsx
+msgid "Next steps"
+msgstr "下一步"
+
 #: src/views/ActiveSessionView.tsx
 msgid "No active game selected."
 msgstr "未選取進行中的局。"
@@ -2879,7 +2909,7 @@ msgstr "尚無可比較的局"
 #: src/components/LaneNotesTab.tsx
 #: src/views/LaneNotesView.tsx
 msgid "No lane notes yet"
-msgstr "尚無球道筆記"
+msgstr "尚無球道備註"
 
 #: src/components/BallEstimates.tsx
 msgid "No leave it gives you is one you often miss."
@@ -2906,7 +2936,7 @@ msgstr "無連結"
 
 #: src/components/LaneNotesTab.tsx
 msgid "No notes"
-msgstr "無筆記"
+msgstr "無備註"
 
 #: src/components/OilPatternManager.tsx
 msgid "No oil patterns yet"
@@ -2990,10 +3020,14 @@ msgstr "暫時不要"
 msgid "Not the same shot"
 msgstr "不是同一球"
 
+#: src/components/NextSteps.tsx
+msgid "Note what a lane does"
+msgstr "記下球道的狀況"
+
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/ShotDetailBar.tsx
 msgid "Notes"
-msgstr "筆記"
+msgstr "備註"
 
 #: src/views/StatsView.tsx
 msgid "Nothing in the last 3 months"
@@ -3063,6 +3097,10 @@ msgstr "油型"
 msgid "On headpin.app, open Settings, then Backup & restore, and export your games."
 msgstr "在 headpin.app 開啟「設定」，再進入「備份與還原」，匯出你的比賽紀錄。"
 
+#: src/components/NextSteps.tsx
+msgid "Once a ball is in your arsenal you can name it on every shot, and the stats split by ball."
+msgstr "球加入球庫後，每一球都能標記使用的球，統計也會依球分開。"
+
 #: src/components/FirstRun.tsx
 msgid "One hand or two?"
 msgstr "單手還是雙手？"
@@ -3110,7 +3148,7 @@ msgstr "各場次每局失誤數，由舊到新。{points}。"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Open session sheet and lane notes"
-msgstr "開啟場次表與球道筆記"
+msgstr "開啟場次表與球道備註"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Open session stats"
@@ -3512,7 +3550,7 @@ msgstr "從備份還原"
 #: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "Restore purchase"
-msgstr "恢復購買項目"
+msgstr "回復購買項目"
 
 #: src/components/FirstRun.tsx
 msgid "Restoring…"
@@ -3619,13 +3657,18 @@ msgstr "儲存備份"
 msgid "Save a copy"
 msgstr "儲存副本"
 
+#. Bowling terms: a leave is the pins left standing after the first ball; the intended line is where the bowler plans to stand and aim
+#: src/components/NextSteps.tsx
+msgid "Save a line for a leave, and it prefills the intended line when you leave that spare during score entry."
+msgstr "為殘瓶儲存路線後，計分時再遇到這種殘瓶，就會自動帶入預期路線。"
+
 #: src/components/SpareLinePickerSheet.tsx
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "為一種殘瓶儲存路線後，也能借用在另一種殘瓶上。"
 
 #: src/views/BowlingProfileView.tsx
 msgid "Save bowling profile"
-msgstr "儲存保齡球資料"
+msgstr "儲存投球檔案"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Save failed."
@@ -3758,6 +3801,10 @@ msgstr "計入的場次"
 #: src/components/ActiveGameScorer.tsx
 msgid "Set lanes"
 msgstr "設定球道"
+
+#: src/components/NextSteps.tsx
+msgid "Set spare lines"
+msgstr "設定補中路線"
 
 #: src/components/FirstRun.tsx
 msgid "Set up Headpin"
@@ -4245,7 +4292,7 @@ msgstr "目標板（箭頭）"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "Tell me"
-msgstr "告訴我"
+msgstr "告訴我們"
 
 #: src/views/AppearanceView.tsx
 msgid "Text size"
@@ -4390,7 +4437,7 @@ msgstr "這會刪除此裝置上的所有資料：{0, plural, other {# 個場次
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/LaneNotesTab.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
-msgstr "這會刪除你在這條球道上的筆記，不會影響你的比賽。"
+msgstr "這會刪除你在這條球道上的備註，不會影響你的比賽。"
 
 #: src/components/PatternSheet.tsx
 msgid "This pattern has no load table, so there is nothing to show."
@@ -4641,11 +4688,11 @@ msgstr "檢視配色 {number}：{color}"
 
 #: src/components/ShotDetailBar.tsx
 msgid "View intended line"
-msgstr "檢視預定路線"
+msgstr "檢視預期路線"
 
 #: src/components/ShotDetailBar.tsx
 msgid "View intended line on the lane"
-msgstr "在球道上檢視預定路線"
+msgstr "在球道上檢視預期路線"
 
 #: src/components/BallFormDialog.tsx
 #: src/views/ArsenalView.tsx
@@ -4741,6 +4788,10 @@ msgstr "記下這條球道的球路特性，下次打這條球道時就能看到
 msgid "Write down how you shoot each spare"
 msgstr "記下你每種補中的打法"
 
+#: src/components/NextSteps.tsx
+msgid "Write down your spare lines"
+msgstr "記下你的補中路線"
+
 #. Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet
 #. Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet
 #: src/components/ProOfferSamples.tsx
@@ -4751,6 +4802,10 @@ msgstr "X-on-X"
 #: src/lib/backupNudge.ts
 msgid "yesterday"
 msgstr "昨天"
+
+#: src/components/NextSteps.tsx
+msgid "You bowl at this alley a lot. Write down how its lanes play, and it'll be here next time."
+msgstr "你常來這間球館。記下這裡球道的狀況，下次就會顯示在這裡。"
 
 #: src/views/BowlingProfileView.tsx
 msgid "You enter your stance and target. The app works out your slide and laydown."

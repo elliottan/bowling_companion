@@ -690,6 +690,7 @@ msgstr "실제 전체 에버리지: {average}"
 msgid "Add"
 msgstr "추가"
 
+#: src/components/NextSteps.tsx
 #: src/components/ShotDetailBar.tsx
 #: src/views/ArsenalView.tsx
 msgid "Add a ball"
@@ -699,10 +700,12 @@ msgstr "볼 추가"
 msgid "Add a ball, then pick it for each shot as you score."
 msgstr "볼을 추가하면 점수를 기록하면서 샷마다 고를 수 있어요."
 
+#: src/components/NextSteps.tsx
 #: src/views/LaneNotesView.tsx
 msgid "Add a lane note"
 msgstr "레인 메모 추가"
 
+#: src/components/NextSteps.tsx
 #: src/components/OilPatternManager.tsx
 msgid "Add a pattern"
 msgstr "패턴 추가"
@@ -713,6 +716,7 @@ msgid "Add ball"
 msgstr "볼 추가"
 
 #: src/components/HomeProfile.tsx
+#: src/components/NextSteps.tsx
 msgid "Add balls to your bag"
 msgstr "가방에 볼 추가"
 
@@ -746,6 +750,11 @@ msgstr "오일 패턴 추가"
 #: src/views/SpareLinesView.tsx
 msgid "Add spare line"
 msgstr "스페어 라인 추가"
+
+#. Pattern is an oil pattern, the oil laid on the lane
+#: src/components/NextSteps.tsx
+msgid "Add the pattern you bowl on"
+msgstr "내가 치는 패턴 추가"
 
 #: src/views/CatalogView.tsx
 msgid "Add to arsenal"
@@ -1069,7 +1078,7 @@ msgstr "세션을 기록하면 리포트를 볼 수 있어요"
 
 #: src/lib/moveGames.ts
 msgid "Bowled with Headpin on the web?"
-msgstr "웹에서 Headpin으로 볼링했나요?"
+msgstr "웹에서 Headpin을 써 왔나요?"
 
 #: src/components/LaneVisualizer.tsx
 msgid "Bowler view"
@@ -1297,6 +1306,10 @@ msgstr "열"
 msgid "Coming soon to the App Store"
 msgstr "App Store에 곧 출시돼요"
 
+#: src/components/ui/useProAction.tsx
+msgid "Coming to the App Store"
+msgstr "App Store 출시 예정"
+
 #: src/views/CatalogView.tsx
 msgid "Connect once to load the catalog"
 msgstr "한 번 연결하면 카탈로그를 불러와요"
@@ -1492,6 +1505,10 @@ msgstr "공유 제안 닫기"
 #: src/components/ActiveGameScorer.tsx
 msgid "Dismiss tip"
 msgstr "팁 닫기"
+
+#: src/components/NextSteps.tsx
+msgid "Dismiss: {title}"
+msgstr "닫기: {title}"
 
 #: src/components/BallFormDialog.tsx
 msgid "Display name"
@@ -1696,7 +1713,7 @@ msgstr "모든 세션"
 #. Describes the Early roll drilling layout preset. Oil is the conditioner on the lane
 #: src/lib/ballLayout.ts
 msgid "Everything a touch smaller. Reads the front sooner for heavier oil or a later-rolling hand."
-msgstr "모두 조금씩 작게 잡아요. 오일이 많거나 롤이 늦은 손이라면 앞쪽을 더 일찍 읽어요."
+msgstr "모두 조금씩 작게 잡아요. 오일이 많거나 롤이 늦게 시작되는 투구라면 앞쪽을 더 일찍 읽어요."
 
 #: src/views/ProOfferView.tsx
 msgid "Everything in Pro is open here."
@@ -1808,6 +1825,10 @@ msgstr "남은 핀 필터"
 msgid "Filter spare lines"
 msgstr "스페어 라인 필터"
 
+#: src/components/NextSteps.tsx
+msgid "Filter stats by pattern to compare sessions on the same oil."
+msgstr "패턴별로 통계를 걸러 같은 오일에서 친 세션을 비교해 보세요."
+
 #: src/views/CatalogView.tsx
 msgid "Filter the catalog"
 msgstr "카탈로그 필터"
@@ -1841,7 +1862,7 @@ msgstr "도착 ft"
 #. A short greeting at the top of Home; the bowler's name may follow it. The pocket is the bowling term for the gap between the 1 and 3 pins that a good strike ball hits
 #: src/lib/greeting.ts
 msgid "Find the pocket"
-msgstr "포켓을 찾아요"
+msgstr "포켓을 노려요"
 
 #: src/lib/shareCard.ts
 msgid "Finishes on"
@@ -2037,6 +2058,10 @@ msgstr "Headpin Pro 받기"
 #: src/views/ArsenalView.tsx
 msgid "Get Pro to visualize your ball layout"
 msgstr "Pro로 볼 레이아웃을 시각화해 보세요"
+
+#: src/components/ui/useProAction.tsx
+msgid "Get the app"
+msgstr "앱 받기"
 
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
@@ -2369,7 +2394,7 @@ msgstr "레인"
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
 msgid "Lanes are open"
-msgstr "레인이 열렸어요"
+msgstr "레인이 기다리고 있어요"
 
 #: src/views/AppearanceView.tsx
 msgid "Language"
@@ -2631,7 +2656,7 @@ msgstr "로드"
 #. Describes the Late and angular drilling layout preset. VAL angle is a drilling measurement; down-and-in is a ball motion bowling term
 #: src/lib/ballLayout.ts
 msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
-msgstr "긴 드릴링 앵글로 길이를 내고, 짧은 VAL 앵글로 급하게 꺾어요. 벽에서 안쪽으로 내려 꽂혀요."
+msgstr "긴 드릴링 앵글로 길이를 내고, 짧은 VAL 앵글로 급하게 꺾어요. 벽이 있는 하우스 패턴에서는 다운 앤 인으로 공략하기 좋아요."
 
 #: src/components/ToolsList.tsx
 msgid "Look up a pattern's length and oil"
@@ -2841,6 +2866,11 @@ msgstr "다음"
 msgid "Next ({nextOutcome})"
 msgstr "다음 ({nextOutcome})"
 
+#. Heading on Home over setup suggestions
+#: src/components/NextSteps.tsx
+msgid "Next steps"
+msgstr "다음 단계"
+
 #: src/views/ActiveSessionView.tsx
 msgid "No active game selected."
 msgstr "선택된 진행 중인 게임이 없어요."
@@ -2990,6 +3020,10 @@ msgstr "나중에"
 msgid "Not the same shot"
 msgstr "같은 투구가 아님"
 
+#: src/components/NextSteps.tsx
+msgid "Note what a lane does"
+msgstr "레인 특성 메모하기"
+
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/ShotDetailBar.tsx
 msgid "Notes"
@@ -3062,6 +3096,10 @@ msgstr "오일 패턴"
 #: src/lib/moveGames.ts
 msgid "On headpin.app, open Settings, then Backup & restore, and export your games."
 msgstr "headpin.app에서 설정, 백업 및 복원 순서로 열고 게임을 내보내세요."
+
+#: src/components/NextSteps.tsx
+msgid "Once a ball is in your arsenal you can name it on every shot, and the stats split by ball."
+msgstr "아스널에 볼을 추가하면 투구마다 볼을 지정할 수 있고, 통계도 볼별로 나뉘어요."
 
 #: src/components/FirstRun.tsx
 msgid "One hand or two?"
@@ -3410,7 +3448,7 @@ msgstr "읽는 중…"
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
 msgid "Ready to roll"
-msgstr "굴릴 준비 됐나요"
+msgstr "준비 완료"
 
 #: src/components/HomeProfile.tsx
 msgid "Recent sessions"
@@ -3619,6 +3657,11 @@ msgstr "백업 저장"
 msgid "Save a copy"
 msgstr "사본 저장"
 
+#. Bowling terms: a leave is the pins left standing after the first ball; the intended line is where the bowler plans to stand and aim
+#: src/components/NextSteps.tsx
+msgid "Save a line for a leave, and it prefills the intended line when you leave that spare during score entry."
+msgstr "남은 핀마다 라인을 저장해 두면, 점수 입력 중 그 핀이 남았을 때 의도한 라인이 자동으로 채워져요."
+
 #: src/components/SpareLinePickerSheet.tsx
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "한 남은 핀에 라인을 저장해 두면 다른 남은 핀에도 가져다 쓸 수 있어요."
@@ -3758,6 +3801,10 @@ msgstr "집계된 세션"
 #: src/components/ActiveGameScorer.tsx
 msgid "Set lanes"
 msgstr "레인 설정"
+
+#: src/components/NextSteps.tsx
+msgid "Set spare lines"
+msgstr "스페어 라인 설정"
 
 #: src/components/FirstRun.tsx
 msgid "Set up Headpin"
@@ -4441,7 +4488,7 @@ msgstr "트랙 존"
 
 #: src/components/PatternSheet.tsx
 msgid "Try in the line visualizer"
-msgstr "라인 비주얼라이저에서 해 보기"
+msgstr "라인 시각화에서 해 보기"
 
 #: src/views/ProOfferView.tsx
 msgid "Try your layouts"
@@ -4703,7 +4750,7 @@ msgstr "무게"
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
 msgid "Welcome back"
-msgstr "다시 오셨네요"
+msgstr "다시 오신 걸 환영해요"
 
 #: src/components/FirstRun.tsx
 msgid "What do we call you?"
@@ -4741,6 +4788,10 @@ msgstr "레인이 어떻게 플레이되는지 적어 두면 다음에 그 레�
 msgid "Write down how you shoot each spare"
 msgstr "스페어마다 치는 방법을 적어 두세요"
 
+#: src/components/NextSteps.tsx
+msgid "Write down your spare lines"
+msgstr "스페어 라인을 적어 두세요"
+
 #. Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet
 #. Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet
 #: src/components/ProOfferSamples.tsx
@@ -4751,6 +4802,10 @@ msgstr "X 후 X"
 #: src/lib/backupNudge.ts
 msgid "yesterday"
 msgstr "어제"
+
+#: src/components/NextSteps.tsx
+msgid "You bowl at this alley a lot. Write down how its lanes play, and it'll be here next time."
+msgstr "이 볼링장에서 자주 치시네요. 레인이 어떤지 적어 두면 다음에 여기에 나와요."
 
 #: src/views/BowlingProfileView.tsx
 msgid "You enter your stance and target. The app works out your slide and laydown."

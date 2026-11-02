@@ -2,10 +2,54 @@
 
 The English listing in [APP-STORE-LISTING.md](./APP-STORE-LISTING.md), for each
 language the app speaks (ADR-224): Japanese, Korean, Chinese (Traditional),
-Chinese (Simplified) and Spanish (Mexico). Like the English, it is copy for the
-owner to review and paste into App Store Connect, and nothing reads this file.
+Chinese (Simplified), Spanish (for Mexico and for Spain), Indonesian and Malay,
+plus a second English for the U.K. localization. Like the English, it is copy
+for the owner to review and paste into App Store Connect, and nothing reads
+this file.
 
-How they were made, and what to check before pasting:
+## Where each section goes
+
+In App Store Connect, per localization:
+
+1. Open the app, then the language menu at the top right of the page (it
+   reads "English (U.S.)"), and add the language.
+2. **App Information**, in that language: the name and subtitle, and the
+   privacy policy URL (the same `https://headpin.app/legal`).
+3. **The version page** (iOS App, the version under review), in that
+   language: promotional text, description, keywords, support URL and the
+   screenshots, `captioned/` in the 6.9 inch slot and `captioned-6.3/` in the
+   6.3 inch one. What's new is asked for from the second version on.
+4. **In-App Purchases**, Headpin Pro, App Store Localization: add the
+   language with the purchase's display name and description.
+5. Submit the version as usual: the localizations go out with it. Promotional
+   text can change later without a new version; the rest waits for the next
+   one.
+
+A storefront shows the localization of its own language, then the next most
+relevant one, then the primary language (English (U.S.)), and it indexes the
+keywords of its default and its additional language (Apple's "App Store
+localizations" table). The screenshots for each are in
+`marketing/app-store/2026-11-02/<locale>/`, the column below.
+
+| App Store Connect localization | Section | Screenshots | Storefronts where it is the default or indexed |
+|---|---|---|---|
+| English (U.S.), primary | APP-STORE-LISTING.md | `en` | U.S., and every storefront with no language of its own here |
+| English (U.K.) | English (U.K.) | `en` | U.K., Singapore; extra language in Malaysia, Indonesia, Hong Kong, Taiwan, Korea, China, Mexico, Spain |
+| Spanish (Mexico) | Spanish, Mexico | `es` | Mexico and Latin America; also indexed in the U.S. |
+| Spanish (Spain) | Spanish, Spain | `es` | Spain |
+| Japanese | Japanese | `ja` | Japan |
+| Korean | Korean | `ko` | Korea; also indexed in the U.S. |
+| Chinese (Traditional) | Chinese, Traditional | `zh-Hant` | Taiwan, Hong Kong; also indexed in the U.S. |
+| Chinese (Simplified) | Chinese, Simplified | `zh-Hans` | China mainland; extra language in Singapore; also indexed in the U.S. |
+| Indonesian | Indonesian | `id` | Indonesia |
+| Malay | Malay | `ms` | Malaysia |
+
+The app is always **Headpin**. The App Store name is set per localization, so
+each one is "Headpin:" and a descriptor in that language, as the English is
+"Headpin: Bowling Score & Stats". The name under the icon on the Home Screen
+is `CFBundleDisplayName`, "Headpin", in every language.
+
+## How they were made, and what to check before pasting
 
 - **Drafts, not reviewed.** Each was written from the English listing and the
   app's own catalog for that language, so the listing and the screens use the
@@ -13,25 +57,22 @@ How they were made, and what to check before pasting:
   submission.
 - **Keywords are chosen, not translated**: the terms bowlers in that market
   search for, none repeating a word in the name or subtitle. They are guesses
-  until checked against search data in App Store Connect.
-- **The name carries a localized descriptor**, as the English one does
-  ("Headpin: Bowling Score & Stats").
+  until checked against search data in App Store Connect. Apple indexes the
+  English (U.S.) keywords and the Spanish (Mexico), Korean and both Chinese
+  ones together in the U.S. storefront, so a word in one need not be in
+  another.
 - **The Headpin Pro purchase** has a display name and description here, which
   the English listing does not draft yet: the 30 and 45 character limits are
-  App Store Connect's for an in-app purchase.
+  App Store Connect's for an in-app purchase. Each is set under the purchase's
+  own App Store localization.
 - **Recheck "over 800 balls"** against the catalog with the English, before each
   submission.
-- **Screenshot captions** are text only. Localized screenshots would be made by
-  `scripts/app-store/screenshots.mjs` with the app in that language, which has
-  not been done.
+- **Screenshots** are drawn per language by `scripts/app-store/screenshots.mjs`
+  with the app itself in that language (`STORE_LOCALE`), captioned from
+  `scripts/app-store/captions.mjs`. A localization with no screenshots of its
+  own shows the primary language's, so upload each set to its localization.
 - **Counts** were measured on the text as written, in characters, and every
   field is within its limit. Recount after any edit.
-
-Which App Store Connect locale each section goes in: Japanese; Korean;
-Chinese (Traditional), which also serves Hong Kong; Chinese (Simplified); and
-Spanish (Mexico), which the App Store also shows in the rest of Latin America
-and the US when no other Spanish is set.
-
 
 ## Japanese (ja)
 
@@ -152,80 +193,6 @@ Headpin Pro
 キャリー率、全ボール比較、ライン調整。買い切りでサブスクなし。
 ```
 
-### Screenshot captions
-
-Headline, then the line under it, in the order of the English table.
-
-#### Screenshot 1 (9 + 22)
-
-```
-スコアは1投ずつ。
-残ったピンをタップ。ゲーム数は無制限、無料。
-```
-
-#### Screenshot 2 (14 + 24)
-
-```
-投げたラインを、すべて記憶。
-オイルの上にラインを描画。1投ずつ振り返れます。
-```
-
-#### Screenshot 3 (13 + 27)
-
-```
-アーセナルも、すべて無料。
-持っているボールをすべて登録。バッグの本数に上限なし。
-```
-
-#### Screenshot 4 (15 + 23)
-
-```
-効いているものが、見えてくる。
-アベレージ、ポケット、スペアの推移をグラフで。
-```
-
-#### Screenshot 5 (17 + 25)
-
-```
-800種類超のボール、ワンタップ。
-スペックと写真つき。カタログからバッグを作れます。
-```
-
-#### Screenshot 6 (13 + 17)
-
-```
-投げる前に、オイルを見る。
-ロード表とレーン上のオイルを描画。
-```
-
-#### Screenshot 7 (17 + 32)
-
-```
-ドリルする前に、レイアウトを確認。
-デュアルアングルとStorm VLSを、あなたのPAPから描画。
-```
-
-#### Screenshot 8 (11 + 28)
-
-```
-Proで、さらに深く。
-キャリー、ストライク、ボール別。買い切りでサブスクなし。
-```
-
-#### Screenshot 9 (11 + 24)
-
-```
-電波がなくても使える。
-アカウント不要。ボウリング場のために作りました。
-```
-
-#### Screenshot 10 (15 + 25)
-
-```
-毎晩の記録を、iPhoneに。
-セッション数は無制限。バックアップはいつでも無料。
-```
-
 ## Korean (ko)
 
 ### App name (19 of 30)
@@ -240,10 +207,10 @@ Headpin: 볼링 점수 & 통계
 투구도 볼도 라인도 빠짐없이
 ```
 
-### Promotional text (102 of 170)
+### Promotional text (103 of 170)
 
 ```
-내 핀이 어디로 가는지 알아보세요. 모든 볼을 기록하고, 오일 위에 그려진 내 라인을 확인하고, 차이를 만드는 볼과 스페어를 찾아보세요. 어느 볼링장에서든 오프라인으로 쓸 수 있어요.
+내 점수가 어디서 새는지 알아보세요. 모든 볼을 기록하고, 오일 위에 그려진 내 라인을 확인하고, 차이를 만드는 볼과 스페어를 찾아보세요. 어느 볼링장에서든 오프라인으로 쓸 수 있어요.
 ```
 
 ### Keywords (100 of 100)
@@ -252,14 +219,14 @@ Headpin: 볼링 점수 & 통계
 에버리지,리그,스트라이크,스페어,오일패턴,아스널,볼링공,스코어,핀,레인,기록,어플,트래커,레이아웃,남은핀,PAP,USBC,오프라인,대회,동호회,하이게임,드릴링,커버스톡,볼링장,에버
 ```
 
-### Description (1336 of 4000)
+### Description (1340 of 4000)
 
 ```
 볼링 실력을 이해하고 더 잘 치기 위한 모든 것을 앱 하나에 담았어요.
 
 1. 점수 기록
-2. 라인 비주얼라이저
-3. 레이아웃 비주얼라이저
+2. 라인 시각화
+3. 레이아웃 시각화
 4. 볼링공 아스널
 5. 통계 및 차트
 6. 스페어 라인
@@ -274,13 +241,13 @@ Headpin: 볼링 점수 & 통계
 
 ---
 
-2. 라인 비주얼라이저
+2. 라인 시각화
 
 레인을 어떻게 공략하고 있는지 정확히 확인해 보세요. 내 라인이 발 위치에서 포켓까지 오일 위에 그려져요. 레인 상태가 바뀌어도 어디로 이동해야 할지 알 수 있고, 같은 패턴을 다시 만나면 어떻게 쳤는지 떠올릴 수 있어요.
 
 ---
 
-3. 레이아웃 비주얼라이저
+3. 레이아웃 시각화
 
 드릴링하기 전에 레이아웃을 미리 확인해 보세요. 듀얼 앵글과 Storm VLS 레이아웃을 내 PAP 기준으로 볼 위에 그려 주니, 프로샵에 맡기기 전에 어떤 볼이 나올지 알 수 있어요.
 
@@ -294,7 +261,7 @@ Headpin: 볼링 점수 & 통계
 
 5. 통계 및 차트
 
-내 핀이 어디로 가는지 알아보세요. 에버리지, 포켓 비율, 스페어 비율, 점수를 가장 많이 깎아 먹는 남은 핀을 시간에 따라 차트로 보여 줘서 실력이 느는 과정을 직접 볼 수 있어요.
+내 점수가 어디서 새는지 알아보세요. 에버리지, 포켓 비율, 스페어 비율, 점수를 가장 많이 깎아 먹는 남은 핀을 시간에 따라 차트로 보여 줘서 실력이 느는 과정을 직접 볼 수 있어요.
 
 ---
 
@@ -306,7 +273,7 @@ Headpin: 볼링 점수 & 통계
 
 7. 오일 패턴
 
-샷을 알고 레인에 들어가 보세요. PBA와 Kegel 패턴을 찾아보고, 레인 위에 펼쳐진 오일을 확인하고, 첫 투구 전에 라인을 미리 짜 볼 수 있어요.
+공략법을 미리 알고 레인에 서 보세요. PBA와 Kegel 패턴을 찾아보고, 레인 위에 펼쳐진 오일을 확인하고, 첫 투구 전에 라인을 미리 짜 볼 수 있어요.
 
 ---
 
@@ -323,12 +290,12 @@ Headpin Pro
 Headpin은 독립적으로 만든 앱이며 어떤 볼 제조사나 볼링 단체와도 제휴하지 않았어요. 볼 이름과 이미지의 권리는 각 소유자에게 있어요.
 ```
 
-### What's new in 1.0 (171 of 4000)
+### What's new in 1.0 (173 of 4000)
 
 ```
 iPhone용 Headpin의 첫 번째 버전이에요.
 
-모든 투구를 기록하고, 볼과 라인을 함께 남기고, 무엇이 잘 통하는지 확인해 보세요. 모든 데이터는 폰에 저장되고 신호가 없어도 쓸 수 있어요.
+모든 투구를 기록하고, 볼과 라인을 함께 남기고, 무엇이 잘 통하는지 확인해 보세요. 모든 데이터는 폰에 저장되고 인터넷이 안 돼도 쓸 수 있어요.
 
 웹에서 Headpin을 써 오셨다면 그곳에서 백업을 내보낸 뒤, 여기 설정의 백업 및 복원에서 가져오세요.
 ```
@@ -345,78 +312,6 @@ Headpin Pro
 한 번 구매로 캐리와 볼별 분석까지, 구독 없음
 ```
 
-### Screenshot captions (headline 1 line, subline 1 line)
-
-#### Shot 1 (headline 13, line 28)
-
-```
-모든 투구를 기록하세요.
-남은 핀만 누르세요. 게임 수 제한 없이 무료예요.
-```
-
-#### Shot 2 (headline 16, line 22)
-
-```
-던진 라인을 모두 기억하세요.
-내 라인이 오일 위에 투구마다 그려져요.
-```
-
-#### Shot 3 (headline 11, line 22)
-
-```
-내 아스널을 무료로.
-가진 볼을 가방 제한 없이 모두 담아요.
-```
-
-#### Shot 4 (headline 15, line 24)
-
-```
-무엇이 통하는지 확인하세요.
-에버리지, 포켓, 스페어를 시간순으로 봐요.
-```
-
-#### Shot 5 (headline 17, line 24)
-
-```
-800개 넘는 볼, 탭 한 번.
-사양과 사진을 보고 내 가방을 채워 보세요.
-```
-
-#### Shot 6 (headline 17, line 20)
-
-```
-던지기 전에 오일을 확인하세요.
-로드 표와 레인 위의 오일을 한눈에.
-```
-
-#### Shot 7 (headline 19, line 31)
-
-```
-드릴링 전에 레이아웃을 확인하세요.
-듀얼 앵글과 Storm VLS를 내 PAP로 그려 줘요.
-```
-
-#### Shot 8 (headline 17, line 32)
-
-```
-Pro로 더 깊이 들여다보세요.
-캐리, 스트라이크, 볼별 분석. 한 번 구매, 구독 없음.
-```
-
-#### Shot 9 (headline 13, line 27)
-
-```
-신호 없어도 문제없어요.
-계정 없이 시작해요. 볼링장에 딱 맞는 앱이에요.
-```
-
-#### Shot 10 (headline 15, line 25)
-
-```
-모든 날을 내 폰에 담아요.
-세션 수 제한 없이. 백업은 언제든 무료예요.
-```
-
 ## Chinese, Traditional (zh-Hant)
 
 ### App name (16 of 30)
@@ -431,10 +326,10 @@ Headpin：保齡球計分與統計
 每次出手、每顆球、每條路線
 ```
 
-### Promotional text (52 of 170)
+### Promotional text (54 of 170)
 
 ```
-掌握球瓶的去向。記錄每一顆球，在油型上看見你的路線，找出拉開差距的球與補中方式。在任何球館都能離線使用。
+看清分數在哪裡流失。記錄每一顆球，在油型上看見你的路線，找出拉開差距的球與補中方式。在任何球館都能離線使用。
 ```
 
 ### Keywords (100 of 100)
@@ -443,7 +338,7 @@ Headpin：保齡球計分與統計
 聯賽,聯盟賽,平均分,全倒,補中,球瓶,殘瓶,油型,球庫,球道,打孔,雙角度,PAP,USBC,筆記,記分,保齡球館,比賽,成績,分數,轉速,曲球,練球,離線,球皮,球速,洗溝,球友,保齡,手機,球路
 ```
 
-### Description (857 of 4000)
+### Description (859 of 4000)
 
 ```
 一個 App，讓你看懂自己的球路，打得更好：
@@ -485,7 +380,7 @@ Headpin：保齡球計分與統計
 
 5. 統計與圖表
 
-找出球瓶的去向。你的平均分、甜蜜點與補中率，以及讓你丟最多分的殘瓶，都會畫成隨時間變化的圖表，讓你看見自己的進步。
+找出分數在哪裡流失。你的平均分、甜蜜點與補中率，以及讓你丟最多分的殘瓶，都會畫成隨時間變化的圖表，讓你看見自己的進步。
 
 ---
 
@@ -536,149 +431,6 @@ Headpin Pro
 一次購買，不需訂閱。深入分析帶倒、全倒與每顆球。
 ```
 
-### Screenshot captions
-
-#### Screenshot 1
-
-Headline (7)
-
-```
-每一球都計分。
-```
-
-Under it (19)
-
-```
-點選你留下的球瓶。局數不限，永久免費。
-```
-
-#### Screenshot 2
-
-Headline (11)
-
-```
-記住你打過的每條路線。
-```
-
-Under it (19)
-
-```
-你的路線畫在油型上，一球一球清楚可見。
-```
-
-#### Screenshot 3
-
-Headline (10)
-
-```
-完整球庫，免費使用。
-```
-
-Under it (21)
-
-```
-你擁有的每顆球都能加入，球袋沒有數量上限。
-```
-
-#### Screenshot 4
-
-Headline (9)
-
-```
-知道什麼打法有效。
-```
-
-Under it (21)
-
-```
-你的平均分、甜蜜點與補中，隨時間一目了然。
-```
-
-#### Screenshot 5
-
-Headline (15)
-
-```
-超過 800 顆球，一點即達。
-```
-
-Under it (19)
-
-```
-規格與照片齊全，直接用來建立你的球袋。
-```
-
-#### Screenshot 6
-
-Headline (9)
-
-```
-出手前，先看見油。
-```
-
-Under it (13)
-
-```
-油量表與畫在球道上的油型。
-```
-
-#### Screenshot 7
-
-Headline (10)
-
-```
-打孔前，先看見配置。
-```
-
-Under it (26)
-
-```
-雙角度與 Storm VLS，依你的 PAP 繪製。
-```
-
-#### Screenshot 8
-
-Headline (11)
-
-```
-用 Pro 看得更深。
-```
-
-Under it (21)
-
-```
-帶倒、全倒，逐球分析。一次購買，不需訂閱。
-```
-
-#### Screenshot 9
-
-Headline (8)
-
-```
-沒有訊號也能用。
-```
-
-Under it (13)
-
-```
-不需建立帳號，為球館而生。
-```
-
-#### Screenshot 10
-
-Headline (11)
-
-```
-每一晚，都在你的手機。
-```
-
-Under it (13)
-
-```
-場次不限。隨時備份，免費。
-```
-
-
 ## Chinese, Simplified (zh-Hans)
 
 ### App name (16 of 30)
@@ -693,10 +445,10 @@ Headpin：保龄球计分与统计
 每一次出手，每颗球，每条路线
 ```
 
-### Promotional text (60 of 170)
+### Promotional text (58 of 170)
 
 ```
-看清你的球都去了哪里。记录每一颗球，查看路线在油型上的走向，找出真正拉开差距的球和补中线路。离线也能用，在任何球馆都行。
+看清你在哪里丢分。记录每一颗球，查看路线在油型上的走向，找出真正拉开差距的球和补中线路。离线也能用，在任何球馆都行。
 ```
 
 ### Keywords (100 of 100)
@@ -705,7 +457,7 @@ Headpin：保龄球计分与统计
 联赛,全中,补中,平均分,球道,油型,球库,残瓶,成绩,记录,比分,打孔,球芯,甜区,分瓶,球馆,PAP,USBC,PBA,离线,左手,赛季,球皮,转速,弧线,球包,目标,打法,站位,箭头,Kegel
 ```
 
-### Description (875 of 4,000)
+### Description (873 of 4,000)
 
 ```
 一个应用，帮你读懂自己的比赛，打得更好：
@@ -747,7 +499,7 @@ Headpin：保龄球计分与统计
 
 5. 统计与图表
 
-找出你的球都去了哪里。你的平均分、甜区命中率和补中率，以及让你丢分最多的残瓶，都会随时间绘成图表，让你亲眼看到自己的进步。
+找出你在哪里丢分。你的平均分、甜区命中率和补中率，以及让你丢分最多的残瓶，都会随时间绘成图表，让你亲眼看到自己的进步。
 
 ---
 
@@ -771,7 +523,7 @@ Headpin：保龄球计分与统计
 
 Headpin Pro
 
-一次购买，无需订阅，即可更进一步。通过击瓶效果和全中率，看清全中背后的原因；比较球包里的每一颗球，找出你在每家球馆平均分最高的那颗球；还可以微调路线和打孔布局，看看会有什么变化。你记录的一切，永远免费。
+一次购买，无需订阅，即可更进一步。通过带倒率和全中率，看清全中背后的原因；比较球包里的每一颗球，找出你在每家球馆平均分最高的那颗球；还可以微调路线和打孔布局，看看会有什么变化。你记录的一切，永远免费。
 
 Headpin 是独立应用，与任何球品牌或保龄球组织均无关联。球的名称和图片归各自所有者所有。
 ```
@@ -798,78 +550,6 @@ Headpin Pro
 一次购买，无需订阅。深入分析，记录永远免费。
 ```
 
-### Screenshot captions (headline and line under it, 10 screens)
-
-#### Screenshot 1
-
-```
-为每一次出手计分
-点选剩下的瓶。局数不限，免费。
-```
-
-#### Screenshot 2
-
-```
-记住你打过的每条路线
-你的路线画在油型上，一球一球看。
-```
-
-#### Screenshot 3
-
-```
-你的全部球库，免费
-你拥有的每颗球都能记录，球包不设上限。
-```
-
-#### Screenshot 4
-
-```
-知道什么管用
-平均分、甜区和补中，随时间一目了然。
-```
-
-#### Screenshot 5
-
-```
-800 多颗球，一点即达
-规格和照片俱全，用它们组建你的球包。
-```
-
-#### Screenshot 6
-
-```
-出手之前，先看油
-负载表，以及画在球道上的油型。
-```
-
-#### Screenshot 7
-
-```
-打孔之前，先看布局
-根据你的 PAP 绘制双角度和 Storm VLS。
-```
-
-#### Screenshot 8
-
-```
-用 Pro 更进一步
-击瓶效果、全中率，逐球分析。一次购买，无需订阅。
-```
-
-#### Screenshot 9
-
-```
-没有信号也能用
-无需账号，专为球馆而做。
-```
-
-#### Screenshot 10
-
-```
-每个夜晚，都在手机里
-场次不限。随时备份，免费。
-```
-
 ## Spanish, Mexico (es-MX)
 
 ### App name (27 of 30)
@@ -884,10 +564,10 @@ Headpin: Puntaje de boliche
 Cada tiro, bola y línea
 ```
 
-### Promotional text (170 of 170)
+### Promotional text (168 of 170)
 
 ```
-Descubre a dónde van tus pinos. Registra cada bola, ve tu línea sobre el aceite y halla la bola y los spares que marcan la diferencia. Sin conexión, en cualquier boliche.
+Descubre dónde pierdes pinos. Registra cada bola, ve tu línea sobre el aceite y halla la bola y los spares que marcan la diferencia. Sin conexión, en cualquier boliche.
 ```
 
 ### Keywords (100 of 100)
@@ -896,7 +576,7 @@ Descubre a dónde van tus pinos. Registra cada bola, ve tu línea sobre el aceit
 bolos,chuza,spare,promedio,liga,pista,aceite,arsenal,estadísticas,anotador,pinos,usbc,pap,pba,dejada
 ```
 
-### Description (2,553 of 4,000)
+### Description (2,564 of 4,000)
 
 ```
 Todo lo que necesitas para entender tu juego y jugar mejor, en una sola app:
@@ -938,7 +618,7 @@ Conoce tu maleta. Explora más de 800 bolas de boliche con sus especificaciones 
 
 5. Estadísticas y gráficas
 
-Descubre a dónde van tus pinos. Tu promedio, tus porcentajes de bolsillo y de spares, y las dejadas que más te cuestan, en gráficas a lo largo del tiempo para que veas cómo mejoras.
+Descubre dónde pierdes pinos. Tu promedio, tus porcentajes de bolsillo y de spares, y las dejadas que más te cuestan, en gráficas a lo largo del tiempo para que veas cómo mejoras.
 
 ---
 
@@ -956,7 +636,7 @@ Llega sabiendo cuál es el tiro. Consulta los patrones PBA y Kegel, mira el acei
 
 8. Tus juegos, tu teléfono
 
-Tus juegos viven en tu teléfono y funcionan sin conexión en cualquier boliche, sin crear una cuenta. Haz un respaldo cuando quieras y lleva todo tu historial a un teléfono nuevo.
+Tus juegos se guardan en tu teléfono y la app funciona sin conexión en cualquier boliche, sin crear una cuenta. Haz un respaldo cuando quieras y lleva todo tu historial a un teléfono nuevo.
 
 ---
 
@@ -989,75 +669,387 @@ Headpin Pro
 Compra única, sin suscripción
 ```
 
-### Screenshot captions (headline, then the line under it)
+## Indonesian (id)
 
-1.
-
-```
-Anota cada tiro.
-Toca los pinos que dejaste. Juegos ilimitados, gratis.
-```
-
-2.
+### App name (29 of 30)
 
 ```
-Recuerda cada línea que tiraste.
-Tu línea dibujada sobre el aceite, tiro a tiro.
+Headpin: Pencatat Skor Boling
 ```
 
-3.
+### Subtitle (30 of 30)
 
 ```
-Todo tu arsenal, gratis.
-Cada bola que tienes, sin límite en la maleta.
+Statistik tiap lemparan & bola
 ```
 
-4.
+### Promotional text (164 of 170)
 
 ```
-Descubre qué te funciona.
-Tu promedio, bolsillo y spares, a lo largo del tiempo.
+Pahami permainan bolingmu. Catat setiap bola, lihat jalurmu di atas pola minyak, dan temukan bola dan spare yang paling berpengaruh. Bisa offline di arena mana pun.
 ```
 
-5.
+### Keywords (97 of 100)
 
 ```
-Más de 800 bolas, a un toque.
-Especificaciones y fotos. Arma tu maleta con ellas.
+bowling,liga,strike,spare,pola minyak,arsenal,rata-rata,lintasan,pin,layout,pap,usbc,pba,peboling
 ```
 
-6.
+### Description (2436 of 4000)
 
 ```
-Ve el aceite antes de tirar.
-Tablas de carga y el aceite dibujado en la pista.
+Semua yang kamu perlukan untuk memahami permainanmu dan bermain boling lebih baik, dalam satu aplikasi:
+
+1. Skor
+2. Visualisasi jalur
+3. Visualisasi layout
+4. Arsenal bola boling
+5. Statistik & grafik
+6. Jalur spare
+7. Pola minyak
+8. Game-mu, di ponselmu
+
+---
+
+1. Skor
+
+Catat skor dengan mudah, dan jadikan setiap game bahan belajar. Setiap lemparan, lengkap dengan bola yang kamu pakai dan jalur yang kamu mainkan, menjadi catatan permainanmu sepanjang musim.
+
+---
+
+2. Visualisasi jalur
+
+Lihat dengan jelas cara kamu memainkan lintasan. Jalurmu digambar di atas minyak, dari posisi kakimu sampai ke pocket. Saat lintasan berubah, kamu tahu harus bergeser ke mana, dan saat bertemu pola yang sama lagi, kamu ingat apa yang berhasil.
+
+---
+
+3. Visualisasi layout
+
+Lihat layout sebelum bola dibor. Layout dual angle dan Storm VLS digambar di bola berdasarkan PAP-mu sendiri, jadi kamu tahu hasilnya sebelum bola dibawa ke pro shop.
+
+---
+
+4. Arsenal bola boling
+
+Kenali isi tasmu. Jelajahi lebih dari 800 bola boling lengkap dengan spesifikasi dan foto, susun arsenalmu, dan lihat bola mana yang benar-benar menyumbang skor.
+
+---
+
+5. Statistik & grafik
+
+Cari tahu di mana skormu hilang. Rata-rata, persentase pocket dan spare, serta sisa pin yang paling merugikanmu, tampil dalam grafik dari waktu ke waktu, jadi kamu bisa melihat permainanmu makin baik.
+
+---
+
+6. Jalur spare
+
+Ambil lebih banyak spare. Headpin mengingat cara kamu mengambil setiap sisa pin, jadi jalur yang tepat langsung siap saat sisa pin itu muncul, dan ikut bergeser bersamamu saat lintasan berubah.
+
+---
+
+7. Pola minyak
+
+Datang dengan rencana. Cari pola PBA dan Kegel, lihat sebaran minyaknya di lintasan, dan rencanakan jalurmu sebelum lemparan pertama.
+
+---
+
+8. Game-mu, di ponselmu
+
+Game-mu tersimpan di ponselmu dan bisa dipakai offline di arena boling mana pun, tanpa perlu membuat akun. Buat cadangan kapan saja dan bawa seluruh riwayatmu ke ponsel baru.
+
+---
+
+Headpin Pro
+
+Lebih dalam dengan sekali beli, tanpa langganan. Lihat apa di balik strike-mu lewat persentase carry dan strike, bandingkan setiap bola di tasmu, temukan bola dengan rata-rata terbaikmu di setiap arena boling, dan atur jalur serta layout untuk melihat apa yang berubah. Semua yang kamu catat tetap gratis, selamanya.
+
+Headpin adalah aplikasi independen dan tidak berafiliasi dengan produsen bola atau organisasi boling mana pun. Nama dan gambar bola adalah milik pemiliknya masing-masing.
 ```
 
-7.
+### What's new in 1.0 (319 of 4000)
 
 ```
-Ve un layout antes de perforar.
-Dual angle y Storm VLS, dibujados desde tu PAP.
+Rilis pertama Headpin untuk iPhone.
+
+Catat skor setiap lemparan, simpan bola dan jalurmu bersamanya, dan lihat apa yang berhasil. Semuanya tersimpan di ponselmu dan tetap berjalan tanpa sinyal.
+
+Kalau kamu pernah memakai Headpin di web, ekspor cadangan di sana lalu impor di sini lewat Pengaturan, Cadangan & pemulihan.
 ```
 
-8.
+### Headpin Pro in-app purchase display name (11 of 30)
 
 ```
-Ve más a fondo con Pro.
-Carry, strike, bola por bola. Una compra, sin suscripción.
+Headpin Pro
 ```
 
-9.
+### Headpin Pro in-app purchase description (38 of 45)
 
 ```
-Funciona sin señal.
-Sin crear cuenta. Hecha para el boliche.
+Carry, strike, tiap bola. Sekali beli.
 ```
 
-10.
+## Malay (ms)
+
+### App name (24 of 30)
 
 ```
-Cada noche, en tu teléfono.
-Sesiones ilimitadas. Respalda cuando quieras, gratis.
+Headpin: Kad Skor Boling
 ```
 
+### Subtitle (30 of 30)
+
+```
+Statistik tiap balingan & bola
+```
+
+### Promotional text (162 of 170)
+
+```
+Fahami permainan boling anda. Rekod setiap bola, lihat laluan anda di atas corak minyak, dan cari bola dan spare yang membawa perbezaan. Berfungsi di luar talian.
+```
+
+### Keywords (97 of 100)
+
+```
+bowling,liga,strike,spare,corak minyak,arsenal,purata,lorong,pin,layout,pap,usbc,pba,tenpin,kegel
+```
+
+### Description (2602 of 4000)
+
+```
+Semua yang anda perlukan untuk memahami permainan anda dan bermain boling dengan lebih baik, dalam satu aplikasi:
+
+1. Skor
+2. Visualisasi laluan
+3. Visualisasi layout
+4. Arsenal bola boling
+5. Statistik & carta
+6. Laluan spare
+7. Corak minyak
+8. Permainan anda, telefon anda
+
+---
+
+1. Skor
+
+Catat skor dengan mudah, dan jadikan setiap permainan sesuatu yang boleh anda pelajari. Setiap balingan, bersama bola yang anda gunakan dan laluan yang anda mainkan, membina rekod permainan anda sepanjang musim.
+
+---
+
+2. Visualisasi laluan
+
+Lihat dengan jelas cara anda bermain di lorong. Laluan anda dilukis di atas minyak, dari kaki anda hingga ke pocket. Apabila lorong berubah, anda tahu ke mana perlu beranjak, dan apabila bertemu corak yang sama lagi, anda ingat apa yang berkesan.
+
+---
+
+3. Visualisasi layout
+
+Lihat layout sebelum bola digerudi. Layout dual angle dan Storm VLS dilukis pada bola berdasarkan PAP anda sendiri, jadi anda tahu hasilnya sebelum bola dibawa ke pro shop.
+
+---
+
+4. Arsenal bola boling
+
+Kenali isi beg anda. Lihat lebih 800 bola boling lengkap dengan spesifikasi dan foto, bina arsenal anda, dan lihat bola mana yang benar-benar menyumbang skor.
+
+---
+
+5. Statistik & carta
+
+Ketahui di mana anda kehilangan pin. Purata, peratusan pocket dan spare anda, serta pin yang tinggal yang paling merugikan anda, dipaparkan dalam carta dari masa ke masa supaya anda dapat melihat permainan anda semakin baik.
+
+---
+
+6. Laluan spare
+
+Dapatkan lebih banyak spare. Headpin mengingati cara anda mengambil setiap pin yang tinggal, jadi laluan yang betul sedia sebaik sahaja ia muncul, dan ia beranjak bersama anda apabila keadaan lorong berubah.
+
+---
+
+7. Corak minyak
+
+Masuk dengan rancangan. Cari corak PBA dan Kegel, lihat minyak yang dilukis pada lorong, dan rancang laluan anda sebelum balingan pertama.
+
+---
+
+8. Permainan anda, telefon anda
+
+Permainan anda disimpan dalam telefon dan boleh digunakan di luar talian di mana-mana pusat boling, tanpa perlu membuat akaun. Buat sandaran bila-bila masa dan bawa seluruh sejarah anda ke telefon baharu.
+
+---
+
+Headpin Pro
+
+Selami lebih mendalam dengan satu pembelian, tanpa langganan. Lihat apa di sebalik strike anda melalui kadar carry dan strike, bandingkan setiap bola dalam beg anda, cari bola dengan purata terbaik anda di setiap pusat boling, dan laraskan laluan serta layout untuk melihat apa yang berubah. Semua yang anda rekod kekal percuma, selama-lamanya.
+
+Headpin ialah aplikasi bebas dan tidak mempunyai sebarang kaitan dengan mana-mana pengeluar bola atau organisasi boling. Nama dan imej bola adalah milik pemiliknya masing-masing.
+```
+
+### What's new in 1.0 (331 of 4000)
+
+```
+Keluaran pertama Headpin untuk iPhone.
+
+Catat skor setiap balingan, simpan bola dan laluan anda bersamanya, dan lihat apa yang berkesan. Semuanya kekal dalam telefon anda dan berfungsi tanpa isyarat.
+
+Jika anda pernah bermain dengan Headpin di web, eksport sandaran di sana dan import di sini melalui Tetapan, Sandaran & pemulihan.
+```
+
+### Headpin Pro in-app purchase display name (11 of 30)
+
+```
+Headpin Pro
+```
+
+### Headpin Pro in-app purchase description (40 of 45)
+
+```
+Carry, strike, setiap bola. Sekali beli.
+```
+
+## Spanish, Spain (es-ES)
+
+The app has one Spanish, written for Latin America (its glossary), and the Spain
+storefront shows the Spanish (Spain) localization, so without this section a
+bowler in Spain sees the Mexican page. These are the words Spain uses: *bolos*
+and *bolera*, *pleno* for a strike in the keywords, *partida* for a game, and
+*móvil*. The screens stay the app's own Spanish, so a menu path is quoted as
+the app writes it (Ajustes, Respaldos).
+
+### App name (28 of 30)
+
+```
+Headpin: Puntuación de bolos
+```
+
+### Subtitle (25 of 30)
+
+```
+Cada tirada, bola y línea
+```
+
+### Promotional text (169 of 170)
+
+```
+Descubre dónde pierdes bolos. Registra cada bola, mira tu línea sobre el aceite y halla la bola y los spares que marcan la diferencia. Sin conexión, en cualquier bolera.
+```
+
+### Keywords (98 of 100)
+
+```
+bolera,pleno,semipleno,strike,spare,media,liga,pista,aceite,arsenal,estadísticas,marcador,usbc,pba
+```
+
+### Description (2548 of 4000)
+
+```
+Todo lo que necesitas para entender tu juego y jugar mejor a los bolos, en una sola app:
+
+1. Puntuación
+2. Visualizador de línea
+3. Visualizador de layouts
+4. Arsenal de bolas
+5. Estadísticas y gráficos
+6. Líneas de spare
+7. Patrones de aceite
+8. Tus partidas, en tu móvil
+
+---
+
+1. Puntuación
+
+Apunta la puntuación de la forma más sencilla y convierte cada partida en algo de lo que aprender. Cada bola que lanzas, con la bola que usaste y por dónde la jugaste, va formando el registro de tu juego a lo largo de toda la temporada.
+
+---
+
+2. Visualizador de línea
+
+Mira exactamente cómo estás jugando la pista. Tu línea se dibuja sobre el aceite, desde tus pies hasta el bolsillo, así que cuando las pistas cambian sabes hacia dónde moverte, y la próxima vez que te encuentres ese patrón recordarás qué funcionó.
+
+---
+
+3. Visualizador de layouts
+
+Mira un layout antes de taladrar. Los layouts dual angle y Storm VLS se dibujan sobre la bola a partir de tu propio PAP, para que sepas lo que vas a obtener antes de llevarla a la tienda.
+
+---
+
+4. Arsenal de bolas
+
+Conoce tu bolsa. Explora más de 800 bolas de bolos con sus especificaciones y fotos, monta tu arsenal y descubre qué bola te está dando puntos de verdad.
+
+---
+
+5. Estadísticas y gráficos
+
+Descubre dónde pierdes bolos. Tu media, tus porcentajes de bolsillo y de spares, y las dejadas que más te cuestan, en gráficos a lo largo del tiempo para que veas cómo mejoras.
+
+---
+
+6. Líneas de spare
+
+Haz más spares. Headpin recuerda cómo tiras cada dejada, así que la línea correcta está lista en cuanto aparece, y se mueve contigo a medida que las pistas cambian.
+
+---
+
+7. Patrones de aceite
+
+Llega sabiendo qué tiro hacer. Consulta los patrones PBA y Kegel, mira el aceite dibujado sobre la pista y planifica tu línea antes de la primera bola.
+
+---
+
+8. Tus partidas, en tu móvil
+
+Tus partidas se guardan en tu móvil y la app funciona sin conexión en cualquier bolera, sin crear una cuenta. Haz una copia de seguridad cuando quieras y llévate todo tu historial a un móvil nuevo.
+
+---
+
+Headpin Pro
+
+Profundiza más con una sola compra y sin suscripción. Descubre qué hay detrás de tus plenos con los porcentajes de carry y de strike, compara todas las bolas de tu bolsa, encuentra con qué bola tienes mejor media en cada bolera y ajusta líneas y layouts para ver qué cambia. Todo lo que registras es gratis, para siempre.
+
+Headpin es independiente y no está afiliada a ningún fabricante de bolas ni a ninguna organización de bolos. Los nombres e imágenes de las bolas pertenecen a sus propietarios.
+```
+
+### What's new in 1.0 (289 of 4000)
+
+```
+Primera versión de Headpin para iPhone.
+
+Apunta cada tirada, guarda con ella la bola y tu línea, y mira qué te funciona. Todo se queda en tu móvil y funciona sin cobertura.
+
+Si ya jugabas con Headpin en la web, exporta allí una copia de seguridad e impórtala aquí desde Ajustes, Respaldos.
+```
+
+### Headpin Pro in-app purchase display name (11 of 30)
+
+```
+Headpin Pro
+```
+
+### Headpin Pro in-app purchase description (29 of 45)
+
+```
+Compra única, sin suscripción
+```
+
+## English (U.K.)
+
+Not a translation, a second English listing. English (U.K.) is the extra
+language of the App Store in Malaysia, Indonesia, Hong Kong, Taiwan, Korea,
+China, Mexico and Spain, and the main one in the UK and Singapore, and Apple
+indexes its keywords there alongside the local language's. Without it those
+storefronts show the U.S. English page, whose keywords are not indexed there.
+So it is a second 100 characters of keywords in every one of those countries,
+for the bowlers who search in English.
+
+Paste the English (U.S.) name, subtitle, promotional text, description and
+what's new as they are, with *Visualizer* spelt *Visualiser* (four times). Only the keywords differ: none
+repeats a word of the name or subtitle, and they reach for the British and
+Asian English word *tenpin*, and leave out *bowls*, which is lawn bowls there.
+
+### Keywords (99 of 100)
+
+```
+tenpin,league,pins,strike,spare,oil pattern,arsenal,average,tracker,layout,pap,usbc,pba,lane,keeper
+```
