@@ -3754,10 +3754,6 @@ msgstr "第二条球道"
 msgid "See what Pro adds"
 msgstr "看看 Pro 有什么"
 
-#: src/components/SessionForm.tsx
-msgid "See your lines here"
-msgstr "你的路线会显示在这里"
-
 #: src/components/SpareLineFormDialog.tsx
 msgid "Select at least one pin for this leave."
 msgstr "请至少为这个残瓶选一支球瓶。"

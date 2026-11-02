@@ -3754,10 +3754,6 @@ msgstr "Second lane"
 msgid "See what Pro adds"
 msgstr "See what Pro adds"
 
-#: src/components/SessionForm.tsx
-msgid "See your lines here"
-msgstr "See your lines here"
-
 #: src/components/SpareLineFormDialog.tsx
 msgid "Select at least one pin for this leave."
 msgstr "Select at least one pin for this leave."

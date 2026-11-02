@@ -39,9 +39,6 @@ interface SessionFormProps {
    *  disable itself. The bar lives outside this component (DESIGN-LANGUAGE §6)
    *  but the field it depends on lives inside. */
   onCanSubmitChange?: (canSubmit: boolean) => void;
-  /** Offered under the alley once it names one already bowled at. Omitted where
-   *  the sheet cannot hand the screen over (editing a session). */
-  onOpenAlleyReport?: (alley: string) => void;
 }
 
 // Room on the right for the clear button, so a long pattern name does not run
@@ -60,8 +57,7 @@ export function SessionForm({
   isSubmitting = false,
   initial,
   formId,
-  onCanSubmitChange,
-  onOpenAlleyReport
+  onCanSubmitChange
 }: SessionFormProps) {
   const [alleyName, setAlleyName] = useState(initial?.alley_name ?? "");
   const [date, setDate] = useState(initial?.date ?? today());
@@ -107,12 +103,6 @@ export function SessionForm({
   useEffect(() => {
     onCanSubmitChange?.(canSubmit);
   }, [canSubmit, onCanSubmitChange]);
-
-  // The alley as it is stored, when what is typed names one bowled before.
-  const knownAlley = useMemo(() => {
-    const q = alleyName.trim().toLowerCase();
-    return q ? alleys.find((a) => a.toLowerCase() === q) : undefined;
-  }, [alleyName, alleys]);
 
   const matchedPattern = useMemo(() => findPatternByName(oilPatterns, patternText), [oilPatterns, patternText]);
 
@@ -178,15 +168,6 @@ export function SessionForm({
               suggestions={alleys}
               placeholder="Pinecrest Lanes"
             />
-            {knownAlley && onOpenAlleyReport && (
-              <button
-                type="button"
-                onClick={() => onOpenAlleyReport(knownAlley)}
-                className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-accent"
-              >
-                {t`See your lines here`}
-              </button>
-            )}
           </Field>
 
           <Field label={t`Date`}>

@@ -14,8 +14,6 @@ interface SessionFormDialogProps {
   initial?: SessionFormInitial;
   title?: string;
   submitLabel?: string;
-  /** Offered once the alley typed is one already bowled at. */
-  onOpenAlleyReport?: (alley: string) => void;
   /** Under the form, for the edit flow: the session's games and its delete,
    *  which sit with the thing they destroy (DESIGN-LANGUAGE §2). */
   children?: ReactNode;
@@ -35,7 +33,6 @@ export function SessionFormDialog({
   initial,
   title = t`Start session`,
   submitLabel = t`Start session`,
-  onOpenAlleyReport,
   children,
   active = true
 }: SessionFormDialogProps) {
@@ -66,7 +63,6 @@ export function SessionFormDialog({
         onCanSubmitChange={handleCanSubmitChange}
         isSubmitting={isSubmitting}
         initial={initial}
-        onOpenAlleyReport={onOpenAlleyReport}
       />
       {children}
     </FormSheet>

@@ -3754,10 +3754,6 @@ msgstr "Lintasan kedua"
 msgid "See what Pro adds"
 msgstr "Lihat tambahan di Pro"
 
-#: src/components/SessionForm.tsx
-msgid "See your lines here"
-msgstr "Lihat jalurmu di sini"
-
 #: src/components/SpareLineFormDialog.tsx
 msgid "Select at least one pin for this leave."
 msgstr "Pilih setidaknya satu pin untuk sisa pin ini."

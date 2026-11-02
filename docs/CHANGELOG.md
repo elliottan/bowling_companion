@@ -32,6 +32,11 @@ had all shipped.
   taken in each language, from the app itself in that language
   (`scripts/app-store/screenshots.mjs` with `STORE_LOCALE`).
 
+## 0.77.1: No dead link in the Start session sheet (2026-11-02)
+
+- The "See your lines here" link under the alley in the Start session sheet is
+  gone. The screen it opened no longer shows lines.
+
 ## 0.77.0: Bahasa Indonesia and Bahasa Melayu (2026-11-02)
 
 - Headpin speaks Indonesian and Malay. A phone set to either opens the app

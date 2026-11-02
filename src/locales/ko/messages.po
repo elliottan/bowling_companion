@@ -3754,10 +3754,6 @@ msgstr "두 번째 레인"
 msgid "See what Pro adds"
 msgstr "Pro로 추가되는 기능 보기"
 
-#: src/components/SessionForm.tsx
-msgid "See your lines here"
-msgstr "여기에서 내 라인을 확인하세요"
-
 #: src/components/SpareLineFormDialog.tsx
 msgid "Select at least one pin for this leave."
 msgstr "남은 핀을 하나 이상 선택하세요."
