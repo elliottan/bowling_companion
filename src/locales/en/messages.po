@@ -690,6 +690,7 @@ msgstr "Actual overall average: {average}"
 msgid "Add"
 msgstr "Add"
 
+#: src/components/NextSteps.tsx
 #: src/components/ShotDetailBar.tsx
 #: src/views/ArsenalView.tsx
 msgid "Add a ball"
@@ -699,10 +700,12 @@ msgstr "Add a ball"
 msgid "Add a ball, then pick it for each shot as you score."
 msgstr "Add a ball, then pick it for each shot as you score."
 
+#: src/components/NextSteps.tsx
 #: src/views/LaneNotesView.tsx
 msgid "Add a lane note"
 msgstr "Add a lane note"
 
+#: src/components/NextSteps.tsx
 #: src/components/OilPatternManager.tsx
 msgid "Add a pattern"
 msgstr "Add a pattern"
@@ -713,6 +716,7 @@ msgid "Add ball"
 msgstr "Add ball"
 
 #: src/components/HomeProfile.tsx
+#: src/components/NextSteps.tsx
 msgid "Add balls to your bag"
 msgstr "Add balls to your bag"
 
@@ -746,6 +750,11 @@ msgstr "Add oil pattern"
 #: src/views/SpareLinesView.tsx
 msgid "Add spare line"
 msgstr "Add spare line"
+
+#. Pattern is an oil pattern, the oil laid on the lane
+#: src/components/NextSteps.tsx
+msgid "Add the pattern you bowl on"
+msgstr "Add the pattern you bowl on"
 
 #: src/views/CatalogView.tsx
 msgid "Add to arsenal"
@@ -1297,6 +1306,10 @@ msgstr "Columns"
 msgid "Coming soon to the App Store"
 msgstr "Coming soon to the App Store"
 
+#: src/components/ui/useProAction.tsx
+msgid "Coming to the App Store"
+msgstr "Coming to the App Store"
+
 #: src/views/CatalogView.tsx
 msgid "Connect once to load the catalog"
 msgstr "Connect once to load the catalog"
@@ -1492,6 +1505,10 @@ msgstr "Dismiss share offer"
 #: src/components/ActiveGameScorer.tsx
 msgid "Dismiss tip"
 msgstr "Dismiss tip"
+
+#: src/components/NextSteps.tsx
+msgid "Dismiss: {title}"
+msgstr "Dismiss: {title}"
 
 #: src/components/BallFormDialog.tsx
 msgid "Display name"
@@ -1808,6 +1825,10 @@ msgstr "Filter leaves"
 msgid "Filter spare lines"
 msgstr "Filter spare lines"
 
+#: src/components/NextSteps.tsx
+msgid "Filter stats by pattern to compare sessions on the same oil."
+msgstr "Filter stats by pattern to compare sessions on the same oil."
+
 #: src/views/CatalogView.tsx
 msgid "Filter the catalog"
 msgstr "Filter the catalog"
@@ -2037,6 +2058,10 @@ msgstr "Get Headpin Pro"
 #: src/views/ArsenalView.tsx
 msgid "Get Pro to visualize your ball layout"
 msgstr "Get Pro to visualize your ball layout"
+
+#: src/components/ui/useProAction.tsx
+msgid "Get the app"
+msgstr "Get the app"
 
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
@@ -2841,6 +2866,11 @@ msgstr "Next"
 msgid "Next ({nextOutcome})"
 msgstr "Next ({nextOutcome})"
 
+#. Heading on Home over setup suggestions
+#: src/components/NextSteps.tsx
+msgid "Next steps"
+msgstr "Next steps"
+
 #: src/views/ActiveSessionView.tsx
 msgid "No active game selected."
 msgstr "No active game selected."
@@ -2990,6 +3020,10 @@ msgstr "Not now"
 msgid "Not the same shot"
 msgstr "Not the same shot"
 
+#: src/components/NextSteps.tsx
+msgid "Note what a lane does"
+msgstr "Note what a lane does"
+
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/ShotDetailBar.tsx
 msgid "Notes"
@@ -3062,6 +3096,10 @@ msgstr "Oil patterns"
 #: src/lib/moveGames.ts
 msgid "On headpin.app, open Settings, then Backup & restore, and export your games."
 msgstr "On headpin.app, open Settings, then Backup & restore, and export your games."
+
+#: src/components/NextSteps.tsx
+msgid "Once a ball is in your arsenal you can name it on every shot, and the stats split by ball."
+msgstr "Once a ball is in your arsenal you can name it on every shot, and the stats split by ball."
 
 #: src/components/FirstRun.tsx
 msgid "One hand or two?"
@@ -3619,6 +3657,11 @@ msgstr "Save a backup"
 msgid "Save a copy"
 msgstr "Save a copy"
 
+#. Bowling terms: a leave is the pins left standing after the first ball; the intended line is where the bowler plans to stand and aim
+#: src/components/NextSteps.tsx
+msgid "Save a line for a leave, and it prefills the intended line when you leave that spare during score entry."
+msgstr "Save a line for a leave, and it prefills the intended line when you leave that spare during score entry."
+
 #: src/components/SpareLinePickerSheet.tsx
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "Save a line for one leave and you can borrow it for another."
@@ -3754,6 +3797,10 @@ msgstr "Sessions counted"
 #: src/components/ActiveGameScorer.tsx
 msgid "Set lanes"
 msgstr "Set lanes"
+
+#: src/components/NextSteps.tsx
+msgid "Set spare lines"
+msgstr "Set spare lines"
 
 #: src/components/FirstRun.tsx
 msgid "Set up Headpin"
@@ -4737,6 +4784,10 @@ msgstr "Write down how a lane plays, and it'll be here next time you're on it."
 msgid "Write down how you shoot each spare"
 msgstr "Write down how you shoot each spare"
 
+#: src/components/NextSteps.tsx
+msgid "Write down your spare lines"
+msgstr "Write down your spare lines"
+
 #. Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet
 #. Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet
 #: src/components/ProOfferSamples.tsx
@@ -4747,6 +4798,10 @@ msgstr "X-on-X"
 #: src/lib/backupNudge.ts
 msgid "yesterday"
 msgstr "yesterday"
+
+#: src/components/NextSteps.tsx
+msgid "You bowl at this alley a lot. Write down how its lanes play, and it'll be here next time."
+msgstr "You bowl at this alley a lot. Write down how its lanes play, and it'll be here next time."
 
 #: src/views/BowlingProfileView.tsx
 msgid "You enter your stance and target. The app works out your slide and laydown."

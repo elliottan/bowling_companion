@@ -6,7 +6,8 @@ it describes is `docs/PRO-LAUNCH.md` and `src/lib/pro.ts` (ADR-154); the voice
 is `docs/DESIGN-LANGUAGE.md` section 8 (sentence case, contractions, one word
 per thing, no exclamation marks, no em dashes).
 
-The same listing in Japanese, Korean, both Chinese scripts and Spanish is in
+The same listing in every language the app speaks, which App Store Connect
+localization each goes in, and an English (U.K.) keyword set is in
 [APP-STORE-LISTING-TRANSLATED.md](./APP-STORE-LISTING-TRANSLATED.md).
 
 Every limit below is Apple's, and each count was measured on the text as
@@ -169,7 +170,7 @@ No login, credentials or sample files are needed. Launch the app, tap Start fres
 There is no backend, no authentication service, no AI service, no advertising, and no analytics or tracking SDK in the app. All scores and records are stored only on the device.
 
 5. Regional differences
-None. The app works the same in all regions. Content is in English, and the In-App Purchase uses App Store pricing for each storefront.
+None. The app works the same in all regions. It is in English, Spanish, Japanese, Korean, Chinese (Simplified and Traditional), Indonesian and Malay, chosen from the device's language or in Settings, and the In-App Purchase uses App Store pricing for each storefront.
 
 6. Regulated industry and third-party material
 The app is not in a regulated industry. The ball catalog lists publicly published manufacturer specifications, with product photos used to identify each ball, and the oil patterns are the publicly published PBA and Kegel pattern specifications. The App Store description and the app state that Headpin is independent and not affiliated with any manufacturer or bowling organization, and that ball names and images belong to their owners.
@@ -196,10 +197,32 @@ Apple takes up to 10 per size. App Store Connect asks for the 6.3 inch iPhone
 (1206 by 2622) as well as the 6.9 inch (1320 by 2868), so the script writes both. Headpin is portrait only, so every shot is
 portrait.
 
-The set is built: `marketing/app-store/2026-10-27/`, made by
-`scripts/app-store/screenshots.mjs` from the real app. `captioned/` (6.9 inch)
-and `captioned-6.3/` are the sets to upload; `plain/` and `plain-6.3/` are the same ten screens with no caption, for a listing or a
-press kit that wants the bare app. The script drives the app at the 6.9 inch
+The sets are built, one per language: `marketing/app-store/2026-11-02/<locale>/`
+(`en`, `es`, `ja`, `ko`, `zh-Hans`, `zh-Hant`, `id`, `ms`), made by
+`scripts/app-store/screenshots.mjs` from the real app running in that
+language. In each, `captioned/` (6.9 inch) and `captioned-6.3/` are the sets
+to upload to that language's localization (which localization takes which set
+is the table in APP-STORE-LISTING-TRANSLATED.md); a localization left without
+its own shows the English ones. `marketing/app-store/2026-10-27/` is the
+English set as of 0.69.1, kept for its `plain/` shots (the same screens with no
+caption, for a press kit).
+
+To take them again, with the dev server running and the saved bowler from
+`npm run shots` (SHOTS_STATE), once per language:
+
+```
+STORE_STATE=/tmp/headpin-state.json STORE_LOCALE=ja STORE_FORMAT=jpeg \
+  STORE_OUT=marketing/app-store/<date>/ja node scripts/app-store/screenshots.mjs
+```
+
+The setup is done in English, then the app is switched to the language
+through its own setting, and every button the script presses is found by its
+name in that language's catalog. The captions are
+`scripts/app-store/captions.mjs`, in the app's own words for each thing, so a
+caption and the screen under it agree. Japanese, Korean and Chinese are drawn
+with Noto Sans CJK, which the machine needs installed (`fonts-noto-cjk`, as CI
+has it); without it Chromium falls back to whatever CJK face it finds, with
+the wrong glyph shapes for the language. The script drives the app at the 6.9 inch
 size with the phone's safe areas, and tells the page it is inside the iPhone
 app, so every screen carries the app's copy, not the web's. The store answers
 at the US price, so a locked card shows its preview marked Pro, as a free
@@ -255,10 +278,11 @@ Rules for the set:
 
 ## Before submission
 
-- **The screenshots are current as of 0.69.1** (`marketing/app-store/2026-10-27/`).
-  Retake them when a screen in the set changes:
-  `node scripts/app-store/screenshots.mjs`, from the state `npm run shots`
-  saves, so the landing page and the store show the same bowler.
+- **The screenshots are current as of 0.78.0** (`marketing/app-store/2026-11-02/`),
+  in every language. Retake them when a screen in the set changes:
+  `node scripts/app-store/screenshots.mjs` per language, from the state
+  `npm run shots` saves, so the landing page and the store show the same
+  bowler.
 
 - "Over 800" balls was checked against `public/catalog/catalog.json` (832) on
   2026-10-27. Recheck it before each submission.

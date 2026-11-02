@@ -690,6 +690,7 @@ msgstr "Promedio general real: {average}"
 msgid "Add"
 msgstr "Agregar"
 
+#: src/components/NextSteps.tsx
 #: src/components/ShotDetailBar.tsx
 #: src/views/ArsenalView.tsx
 msgid "Add a ball"
@@ -699,10 +700,12 @@ msgstr "Agregar una bola"
 msgid "Add a ball, then pick it for each shot as you score."
 msgstr "Agrega una bola y luego elígela para cada tiro mientras anotas."
 
+#: src/components/NextSteps.tsx
 #: src/views/LaneNotesView.tsx
 msgid "Add a lane note"
 msgstr "Agregar una nota de pista"
 
+#: src/components/NextSteps.tsx
 #: src/components/OilPatternManager.tsx
 msgid "Add a pattern"
 msgstr "Agregar un patrón"
@@ -713,6 +716,7 @@ msgid "Add ball"
 msgstr "Agregar bola"
 
 #: src/components/HomeProfile.tsx
+#: src/components/NextSteps.tsx
 msgid "Add balls to your bag"
 msgstr "Agrega bolas a tu maleta"
 
@@ -746,6 +750,11 @@ msgstr "Agregar patrón de aceite"
 #: src/views/SpareLinesView.tsx
 msgid "Add spare line"
 msgstr "Agregar línea de spare"
+
+#. Pattern is an oil pattern, the oil laid on the lane
+#: src/components/NextSteps.tsx
+msgid "Add the pattern you bowl on"
+msgstr "Agrega el patrón en el que juegas"
 
 #: src/views/CatalogView.tsx
 msgid "Add to arsenal"
@@ -1061,7 +1070,7 @@ msgstr "Tablas"
 
 #: src/components/ShotDetailBar.tsx
 msgid "Borrow a saved spare line for this shot"
-msgstr "Toma prestada una línea de spare guardada para este tiro"
+msgstr "Tomar prestada una línea de spare guardada para este tiro"
 
 #: src/views/GamePlanView.tsx
 msgid "Bowl a session to see your report"
@@ -1297,6 +1306,10 @@ msgstr "Columnas"
 msgid "Coming soon to the App Store"
 msgstr "Próximamente en la App Store"
 
+#: src/components/ui/useProAction.tsx
+msgid "Coming to the App Store"
+msgstr "Próximamente en la App Store"
+
 #: src/views/CatalogView.tsx
 msgid "Connect once to load the catalog"
 msgstr "Conéctate una vez para cargar el catálogo"
@@ -1308,7 +1321,7 @@ msgstr "Convertidas"
 
 #: src/components/SpareLineFormDialog.tsx
 msgid "Copy a saved spare line onto this leave"
-msgstr "Copia una línea de spare guardada a esta dejada"
+msgstr "Copiar una línea de spare guardada a esta dejada"
 
 #. Bowling term: the weight block inside a ball
 #: src/views/CatalogView.tsx
@@ -1492,6 +1505,10 @@ msgstr "Descartar oferta de compartir"
 #: src/components/ActiveGameScorer.tsx
 msgid "Dismiss tip"
 msgstr "Descartar consejo"
+
+#: src/components/NextSteps.tsx
+msgid "Dismiss: {title}"
+msgstr "Descartar: {title}"
 
 #: src/components/BallFormDialog.tsx
 msgid "Display name"
@@ -1696,7 +1713,7 @@ msgstr "Todas las sesiones"
 #. Describes the Early roll drilling layout preset. Oil is the conditioner on the lane
 #: src/lib/ballLayout.ts
 msgid "Everything a touch smaller. Reads the front sooner for heavier oil or a later-rolling hand."
-msgstr "Todo un poco más pequeño. Lee el frente antes, para aceite más pesado o una mano que rueda más tarde."
+msgstr "Todo un poco más pequeño. Lee el frente antes, para aceite más pesado o un tiro que rueda más tarde."
 
 #: src/views/ProOfferView.tsx
 msgid "Everything in Pro is open here."
@@ -1808,6 +1825,10 @@ msgstr "Filtrar dejadas"
 msgid "Filter spare lines"
 msgstr "Filtrar líneas de spare"
 
+#: src/components/NextSteps.tsx
+msgid "Filter stats by pattern to compare sessions on the same oil."
+msgstr "Filtra las estadísticas por patrón para comparar sesiones sobre el mismo aceite."
+
 #: src/views/CatalogView.tsx
 msgid "Filter the catalog"
 msgstr "Filtrar el catálogo"
@@ -1881,7 +1902,7 @@ msgstr "Flare"
 
 #: src/views/AppearanceView.tsx
 msgid "Follows your phone: {language}"
-msgstr "Sigue a tu teléfono: {language}"
+msgstr "Según tu teléfono: {language}"
 
 #: src/components/PatternSheet.tsx
 msgid "Forward / reverse"
@@ -2037,6 +2058,10 @@ msgstr "Obtener Headpin Pro"
 #: src/views/ArsenalView.tsx
 msgid "Get Pro to visualize your ball layout"
 msgstr "Obtén Pro para visualizar el layout de tu bola"
+
+#: src/components/ui/useProAction.tsx
+msgid "Get the app"
+msgstr "Obtener la app"
 
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
@@ -2369,7 +2394,7 @@ msgstr "Pistas"
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
 msgid "Lanes are open"
-msgstr "Las pistas están abiertas"
+msgstr "Las pistas te esperan"
 
 #: src/views/AppearanceView.tsx
 msgid "Language"
@@ -2664,12 +2689,12 @@ msgstr "Flare bajo a propósito. Gasta menos tablas en el recorrido, para aceite
 #: src/components/ProOfferSamples.tsx
 #: src/components/SpareLineFormDialog.tsx
 msgid "Made"
-msgstr "Hechos"
+msgstr "Hechas"
 
 #. Bowling terms: a leave is the set of pins left standing after the first ball; the 10th is the tenth and last frame
 #: src/components/Stats.tsx
 msgid "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to follow it, so it is not on this card."
-msgstr "Hechos sobre oportunidades, luego la tasa. Una dejada de la última bola del 10 no tiene un spare después, así que no aparece en esta tarjeta."
+msgstr "Hechas sobre oportunidades, luego la tasa. Una dejada de la última bola del 10 no tiene un spare después, así que no aparece en esta tarjeta."
 
 #. Bowling term: a leave that can be converted into a spare
 #: src/views/OpenFramesView.tsx
@@ -2697,7 +2722,7 @@ msgstr "Administrar patrones de aceite"
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #: src/components/Stats.tsx
 msgid "Max consecutive strikes"
-msgstr "Máx. de strikes seguidas"
+msgstr "Máx. de strikes seguidos"
 
 #. Bowling term: the mass bias differential, a ball spec, followed by its value
 #: src/views/LayoutLabView.tsx
@@ -2745,7 +2770,7 @@ msgstr "Más abiertos (convertibles)"
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #: src/components/Stats.tsx
 msgid "Most strikes in a row in one game."
-msgstr "Más strikes seguidas en un juego."
+msgstr "Más strikes seguidos en un juego."
 
 #: src/components/LaneVisualizer.tsx
 #: src/components/LineInput.tsx
@@ -2841,6 +2866,11 @@ msgstr "Siguiente"
 msgid "Next ({nextOutcome})"
 msgstr "Siguiente ({nextOutcome})"
 
+#. Heading on Home over setup suggestions
+#: src/components/NextSteps.tsx
+msgid "Next steps"
+msgstr "Próximos pasos"
+
 #: src/views/ActiveSessionView.tsx
 msgid "No active game selected."
 msgstr "No hay un juego activo seleccionado."
@@ -2883,7 +2913,7 @@ msgstr "Aún no hay notas de pista"
 
 #: src/components/BallEstimates.tsx
 msgid "No leave it gives you is one you often miss."
-msgstr "Ninguna dejada que te deja es de las que fallas a menudo."
+msgstr "Ninguna de las dejadas que te deja es de las que sueles fallar."
 
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
@@ -2990,6 +3020,10 @@ msgstr "Ahora no"
 msgid "Not the same shot"
 msgstr "No es el mismo tiro"
 
+#: src/components/NextSteps.tsx
+msgid "Note what a lane does"
+msgstr "Anota cómo juega una pista"
+
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/ShotDetailBar.tsx
 msgid "Notes"
@@ -3031,12 +3065,12 @@ msgstr "Océano, Atardecer, Uva y Rosa, además del verde Fieltro."
 #. Bowling term: a makeable leave is a set of standing pins that can be converted to a spare
 #: src/components/Stats.tsx
 msgid "of makeables made"
-msgstr "de convertibles hechos"
+msgstr "de convertibles hechas"
 
 #. Short for release offset, a bowling term
 #: src/views/BowlingProfileView.tsx
 msgid "Offset"
-msgstr "Offset"
+msgstr "Desfase"
 
 #: src/components/PatternSheet.tsx
 msgid "Oil on the lane"
@@ -3062,6 +3096,10 @@ msgstr "Patrones de aceite"
 #: src/lib/moveGames.ts
 msgid "On headpin.app, open Settings, then Backup & restore, and export your games."
 msgstr "En headpin.app, abre Ajustes, luego Respaldos, y exporta tus juegos."
+
+#: src/components/NextSteps.tsx
+msgid "Once a ball is in your arsenal you can name it on every shot, and the stats split by ball."
+msgstr "Cuando una bola está en tu arsenal, puedes indicarla en cada tiro, y las estadísticas se separan por bola."
 
 #: src/components/FirstRun.tsx
 msgid "One hand or two?"
@@ -3410,7 +3448,7 @@ msgstr "Leyendo…"
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
 msgid "Ready to roll"
-msgstr "Listo para rodar"
+msgstr "Listo para jugar"
 
 #: src/components/HomeProfile.tsx
 msgid "Recent sessions"
@@ -3425,7 +3463,7 @@ msgstr "Recreación"
 #. Bowling term: how many boards from the slide foot the ball is released toward the bowling hand
 #: src/views/BowlingProfileView.tsx
 msgid "Release offset"
-msgstr "Offset de soltada"
+msgstr "Desfase de soltada"
 
 #: src/views/CatalogView.tsx
 msgid "Released {date}"
@@ -3619,6 +3657,11 @@ msgstr "Guardar un respaldo"
 msgid "Save a copy"
 msgstr "Guardar una copia"
 
+#. Bowling terms: a leave is the pins left standing after the first ball; the intended line is where the bowler plans to stand and aim
+#: src/components/NextSteps.tsx
+msgid "Save a line for a leave, and it prefills the intended line when you leave that spare during score entry."
+msgstr "Guarda una línea para una dejada y, al anotar, se llenará la línea prevista cuando te quede esa dejada."
+
 #: src/components/SpareLinePickerSheet.tsx
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "Guarda una línea para una dejada y podrás usarla en otra."
@@ -3754,6 +3797,10 @@ msgstr "Sesiones contadas"
 #: src/components/ActiveGameScorer.tsx
 msgid "Set lanes"
 msgstr "Definir pistas"
+
+#: src/components/NextSteps.tsx
+msgid "Set spare lines"
+msgstr "Definir líneas de spare"
 
 #: src/components/FirstRun.tsx
 msgid "Set up Headpin"
@@ -4121,12 +4168,12 @@ msgstr "Strikes"
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "Strikes in a row"
-msgstr "Strikes seguidas"
+msgstr "Strikes seguidos"
 
 #. Bowling term: a strike on the ball right after a strike
 #: src/components/Stats.tsx
 msgid "Strikes the next ball struck too."
-msgstr "Strikes en las que la siguiente bola también fue strike."
+msgstr "Strikes en los que la siguiente bola también fue strike."
 
 #. Strength reading: the high third of the scale
 #: src/lib/ballLayout.ts
@@ -4629,11 +4676,11 @@ msgstr "Ver los {count}"
 
 #: src/views/CatalogView.tsx
 msgid "View colorway {number}"
-msgstr "Ver colorway {number}"
+msgstr "Ver combinación {number}"
 
 #: src/views/CatalogView.tsx
 msgid "View colorway {number}: {color}"
-msgstr "Ver colorway {number}: {color}"
+msgstr "Ver combinación {number}: {color}"
 
 #: src/components/ShotDetailBar.tsx
 msgid "View intended line"
@@ -4737,6 +4784,10 @@ msgstr "Anota cómo juega una pista y la tendrás aquí la próxima vez que est�
 msgid "Write down how you shoot each spare"
 msgstr "Anota cómo tiras cada spare"
 
+#: src/components/NextSteps.tsx
+msgid "Write down your spare lines"
+msgstr "Anota tus líneas de spare"
+
 #. Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet
 #. Bowling term: a strike on the ball right after a strike. Short form for a column heading: X is the strike mark on a scoresheet
 #: src/components/ProOfferSamples.tsx
@@ -4748,6 +4799,10 @@ msgstr "X tras X"
 msgid "yesterday"
 msgstr "ayer"
 
+#: src/components/NextSteps.tsx
+msgid "You bowl at this alley a lot. Write down how its lanes play, and it'll be here next time."
+msgstr "Juegas mucho en este boliche. Anota cómo juegan sus pistas y lo tendrás aquí la próxima vez."
+
 #: src/views/BowlingProfileView.tsx
 msgid "You enter your stance and target. The app works out your slide and laydown."
 msgstr "Tú ingresas tu posición y objetivo. La app calcula tu deslizamiento y punto de soltada."
@@ -4758,7 +4813,7 @@ msgstr "Tienes Headpin Pro. Gracias por el apoyo."
 
 #: src/views/SpareLinesView.tsx
 msgid "You leave <0>{askedLeave}</0> most often ({askedTimes}) and have no line for it."
-msgstr "Dejas <0>{askedLeave}</0> con más frecuencia ({askedTimes}) y no tienes una línea para eso."
+msgstr "Dejas <0>{askedLeave}</0> con más frecuencia ({askedTimes}) y no tienes una línea para ella."
 
 #: src/lib/i18nTrans.test.tsx
 msgid "You leave <0>{leave}</0> most often."

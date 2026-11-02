@@ -14,6 +14,11 @@
   the set reads as one row in the store; the caption is centred in the band
   above it. The app is the point of the picture, and nothing covers any of it.
   A "|" in the headline is a line break, so no word is left alone on a line.
+  ?lang=<the app's locale> sets the page's language, which picks the CJK face
+  the system has for it (Noto Sans CJK on the machine that draws the set), and
+  how a line may break. A headline line that would not fit is made smaller,
+  never wrapped, and so is the line under it when the caption would reach the
+  phone: every language's caption sits in the same band.
 -->
 <html lang="en">
   <head>
@@ -23,6 +28,8 @@
       * { box-sizing: border-box; }
       html, body { margin: 0; width: 1320px; height: 2868px; overflow: hidden; background: #070b14; }
       body { font-family: "Inter Display", Inter, system-ui, sans-serif; color: #fff; position: relative; }
+      :root:lang(ja) #sub { word-break: auto-phrase; }
+      :root:lang(ko) #sub { word-break: keep-all; }
       #bg { position: absolute; inset: 0; background: radial-gradient(120% 70% at 50% 0%, #14233d 0%, #0a1120 55%, #060910 100%); }
       .glow { position: absolute; border-radius: 999px; filter: blur(160px); }
       #g1 { width: 1100px; height: 1100px; background: #1d6b60; opacity: 0.55; }
@@ -43,11 +50,11 @@
         color: #1d1203; background: linear-gradient(180deg, #ffd166 0%, #ff9f1c 100%); border: 2px solid #ffe3a3;
         box-shadow: 0 0 70px rgb(255 176 32 / 0.45); }
       body.pro #badge { display: block; }
-      h1 { margin: 0; font-weight: 900; font-size: 118px; line-height: 1.02; letter-spacing: -0.04em;
+      h1 { margin: 0; font-weight: 900; font-size: 118px; line-height: 1.02; letter-spacing: -0.04em; white-space: nowrap;
         text-shadow: 0 8px 40px rgb(0 0 0 / 0.5); text-wrap: balance; }
       h1 em { font-style: normal; background: linear-gradient(180deg, #ffd166 0%, #ff9f1c 100%);
         -webkit-background-clip: text; background-clip: text; color: transparent; }
-      #sub { margin: 34px auto 0; max-width: 1040px; font: 600 48px/1.25 Inter, sans-serif; letter-spacing: -0.01em; color: #b9c6d8; text-wrap: balance; }
+      #sub { margin: 34px auto 0; max-width: 1040px; font: 600 48px/1.25 Inter, system-ui, sans-serif; letter-spacing: -0.01em; color: #b9c6d8; text-wrap: balance; }
 
       /* The phone (iphone.mjs): a black border round the glass, a titanium
          edge round that, and the Dynamic Island over the screen as the hardware
@@ -80,6 +87,7 @@
       const q = new URLSearchParams(location.search);
       const $ = (id) => document.getElementById(id);
       if (q.get("pro")) document.body.classList.add("pro");
+      document.documentElement.lang = q.get("lang") || "en";
       $("h").innerHTML = (q.get("h") || "").replaceAll("|", "<br>");
       $("sub").textContent = q.get("sub") || "";
 
@@ -95,7 +103,14 @@
       // the real phone's proportions: the glass, the border round it, and the
       // body's corner, which is the glass's plus that border.
       const BAND = [130, 650];
+      function fit() {
+        const h1 = $("h");
+        for (let size = 118; h1.scrollWidth > h1.clientWidth && size > 64; size -= 2) h1.style.fontSize = `${size - 2}px`;
+        const room = BAND[1] - BAND[0];
+        for (let size = 48; $("top").offsetHeight > room && size > 34; size -= 2) $("sub").style.fontSize = `${size - 2}px`;
+      }
       function layout() {
+        fit();
         const h = $("top").offsetHeight;
         $("top").style.top = `${BAND[0] + (BAND[1] - BAND[0] - h) / 2}px`;
         const top = BAND[1] + 60;

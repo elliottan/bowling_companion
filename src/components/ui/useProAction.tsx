@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useState, type ReactNode } from "react";
 import { MoveGamesDialog } from "../MoveGamesDialog";
 import { openAppStore, type LockedProAccess } from "../../lib/pro";
@@ -34,10 +35,10 @@ export function useProAction(access: LockedProAccess): ProAction {
   if ("appStoreUrl" in access) {
     const { appStoreUrl } = access;
     if (!appStoreUrl) {
-      return { label: "Coming to the App Store", busy: false, unavailable: true, note: null, start: () => {}, dialog: null };
+      return { label: t`Coming to the App Store`, busy: false, unavailable: true, note: null, start: () => {}, dialog: null };
     }
     return {
-      label: "Get the app",
+      label: t`Get the app`,
       busy: false,
       note: null,
       // The steps come first: games bowled here stay in this browser, and the
