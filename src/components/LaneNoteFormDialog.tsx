@@ -191,7 +191,7 @@ export function LaneBadge({ lane }: { lane: string }) {
   return (
     <span className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg bg-accent-soft">
       <span className="text-caption-2 font-semibold uppercase leading-none tracking-wide text-accent">
-        {t`Lane`}
+        {t({ message: "Lane", context: "short label", comment: "A short label beside or above a lane number in a tight space: a 44px badge on a lane note, and the lane row of the scorer. Keep it about as short as the English." })}
       </span>
       <span className="mt-0.5 text-base font-bold leading-none tabular-nums text-accent">
         {lane}

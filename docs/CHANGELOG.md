@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.77.0: Bahasa Indonesia and Bahasa Melayu (2026-11-02)
+
+- Headpin speaks Indonesian and Malay. A phone set to either opens the app
+  in it, and Settings, Appearance, Language lists them as Bahasa Indonesia
+  and Bahasa Melayu (on iPhone and Android 13 and later, the system's per-app
+  language setting offers them too). Every screen is translated, keeping the
+  English bowling words Indonesian and Malaysian bowlers use: strike, spare,
+  split, pocket, frame. Indonesian speaks to the bowler as *kamu*, Malay as
+  *anda*.
+
 ## 0.76.1: A steady first e2e test (2026-11-01)
 
 - No change a bowler can see. The dev server now pre-bundles

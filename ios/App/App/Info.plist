@@ -10,8 +10,10 @@
 	<array>
 		<string>en</string>
 		<string>es</string>
+		<string>id</string>
 		<string>ja</string>
 		<string>ko</string>
+		<string>ms</string>
 		<string>zh-Hans</string>
 		<string>zh-Hant</string>
 	</array>

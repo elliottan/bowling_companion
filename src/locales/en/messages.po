@@ -1957,6 +1957,12 @@ msgstr "game {gameNumber}"
 msgid "Game {gameNumber}"
 msgstr "Game {gameNumber}"
 
+#. The label of a row in a narrow table, one row per game slot of a session
+#: src/views/GameTrendView.tsx
+msgctxt "row label"
+msgid "Game {gameNumber}"
+msgstr "Game {gameNumber}"
+
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} (score {deleteGameScore}) and its frames will be permanently deleted."
 msgstr "Game {gameNumber} (score {deleteGameScore}) and its frames will be permanently deleted."
@@ -2002,7 +2008,12 @@ msgstr "Game by game"
 
 #: src/components/Stats.tsx
 #: src/views/ActiveSessionView.tsx
+msgid "Games"
+msgstr "Games"
+
+#. Column heading over the number of games bowled at each game slot. A narrow column.
 #: src/views/GameTrendView.tsx
+msgctxt "column heading"
 msgid "Games"
 msgstr "Games"
 
@@ -2309,10 +2320,17 @@ msgstr "Keep score, plus the ball and line for every shot. It all stays on this 
 msgid "L"
 msgstr "L"
 
-#: src/components/ActiveGameScorer.tsx
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/SessionLanePanel.tsx
 #: src/views/GamePlanView.tsx
+msgid "Lane"
+msgstr "Lane"
+
+#. A short label beside or above a lane number in a tight space: a 44px badge on a lane note, and the lane row of the scorer. Keep it about as short as the English.
+#. A short label beside or above a lane number in a tight space: a 44px badge on a lane note, and the lane row of the scorer. Keep it about as short as the English.
+#: src/components/ActiveGameScorer.tsx
+#: src/components/LaneNoteFormDialog.tsx
+msgctxt "short label"
 msgid "Lane"
 msgstr "Lane"
 

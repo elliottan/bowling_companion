@@ -91,6 +91,8 @@ describe("activateLocale", () => {
 
   it.each([
     ["es", /respaldo/i],
+    ["id", /cadangan/i],
+    ["ms", /sandaran/i],
     ["ko", /[\uac00-\ud7af]/],
     ["zh-Hans", /[\u4e00-\u9fff]/],
     ["zh-Hant", /[\u4e00-\u9fff]/]
