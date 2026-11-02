@@ -7,7 +7,6 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { alleyLabel } from "../lib/sessionLabels";
-import { setRemembered } from "../lib/viewMemory";
 import { Fab, FabRow } from "../components/ui/Fab";
 import { ArsenalGrid, ProfileTiles, RecentSessionStrip } from "../components/HomeProfile";
 import { BowlerNameSheet } from "../components/BowlerNameSheet";
@@ -345,11 +344,6 @@ export function DashboardView({
         onSubmit={handleSubmit}
         onCancel={() => setShowForm(false)}
         isSubmitting={isSubmitting}
-        onOpenAlleyReport={(alley) => {
-          setRemembered("plan:alley", alley);
-          setShowForm(false);
-          onOpenAlleyReport();
-        }}
       />
 
       {editingName && <BowlerNameSheet name={name} onClose={() => setEditingName(false)} />}

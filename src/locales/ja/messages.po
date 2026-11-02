@@ -3711,10 +3711,6 @@ msgstr "2つ目のレーン"
 msgid "See what Pro adds"
 msgstr "Proでできること"
 
-#: src/components/SessionForm.tsx
-msgid "See your lines here"
-msgstr "ここにラインが表示されます"
-
 #: src/components/SpareLineFormDialog.tsx
 msgid "Select at least one pin for this leave."
 msgstr "この残りピンには、1本以上のピンを選んでください。"
