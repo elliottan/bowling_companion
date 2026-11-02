@@ -3711,10 +3711,6 @@ msgstr "Segunda pista"
 msgid "See what Pro adds"
 msgstr "Ver qué agrega Pro"
 
-#: src/components/SessionForm.tsx
-msgid "See your lines here"
-msgstr "Aquí verás tus líneas"
-
 #: src/components/SpareLineFormDialog.tsx
 msgid "Select at least one pin for this leave."
 msgstr "Selecciona al menos un pino para esta dejada."
