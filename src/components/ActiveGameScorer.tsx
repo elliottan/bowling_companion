@@ -892,7 +892,7 @@ export function ActiveGameScorer({
                   starts on 8 reads as a contradiction of the lane editor, so
                   the frame it is talking about is named here. */}
               <span className={`flex items-baseline gap-1 ${GROUP_HEADING}`}>
-                {t`Lane`}
+                {t({ message: "Lane", context: "short label", comment: "A short label beside or above a lane number in a tight space: a 44px badge on a lane note, and the lane row of the scorer. Keep it about as short as the English." })}
                 {lanesList.length > 1 && (
                   <span className="font-bold normal-case tracking-normal text-ink-tertiary">
                     F{shownFrameNumber}

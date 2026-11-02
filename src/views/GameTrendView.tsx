@@ -61,7 +61,7 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
           t({ message: "Pocket", comment: "Bowling term: the pocket is where the ball hits the pins for the best chance of a strike. Column heading, a rate." }),
           t({ message: "Carry", comment: "Bowling term: how often a ball that hit the pocket strikes. Column heading, a rate." })
         ]),
-    t`Games`
+    t({ message: "Games", context: "column heading", comment: "Column heading over the number of games bowled at each game slot. A narrow column." })
   ];
   // Each column is as wide as its heading needs (and its numbers), and the rows
   // (separate boxes) get the same widths, so they stay under their headings.
@@ -201,7 +201,7 @@ function GameRow({
         <span
           className={`min-w-0 flex-1 text-sm font-semibold ${thin ? "text-ink-secondary" : "text-ink"}`}
         >
-          {t`Game ${{ gameNumber: slot.gameNumber }}`}
+          {t({ message: `Game ${{ gameNumber: slot.gameNumber }}`, context: "row label", comment: "The label of a row in a narrow table, one row per game slot of a session" })}
         </span>
         {cells.map((cell, i) => (
           <span
