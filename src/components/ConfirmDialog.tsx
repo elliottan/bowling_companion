@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { useEffect, useReducer, useRef } from "react";
 import { askNativeConfirm, nativeAlertMissing } from "../lib/nativeAlert";
 import { isIOSApp } from "../lib/platform";
@@ -32,9 +33,9 @@ export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = "Delete",
+  confirmLabel = t`Delete`,
   confirmVariant = "danger",
-  cancelLabel = "Cancel",
+  cancelLabel = t`Cancel`,
   confirmDisabled = false,
   onConfirm,
   onCancel

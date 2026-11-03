@@ -104,6 +104,16 @@ keyboard, not the size of the job:
   a hold cannot be the iPhone's own context menu, with its lift and preview
   and haptic, so it was a gesture with no sign it existed, found mostly by a
   thumb resting mid-scroll. A row's tap opens it, and only that.
+- **A row's delete is a swipe that asks** (`SwipeRow`, ADR-233). Swiped left,
+  a History session, an arsenal ball or a pattern of the bowler's own slides
+  aside to show a red Delete (Remove, for a pattern) and rests there. Tapping
+  it raises the confirm; nothing is deleted by the swipe, and there is no full
+  swipe that deletes on its own. The swipe takes the finger only once it is
+  clearly sideways, so a scroll never catches a row, and one row is open at a
+  time: touching anything else closes it, and that touch does nothing else.
+  The row's own destination keeps its delete, which is the way a screen
+  reader reaches it. Not on the session being scored, which is deleted from
+  the Score tab.
 - **A press dragged off a control presses nothing**, as a UIKit button's does
   (`src/lib/pressCancel.ts`, ADR-185). It is one listener for the whole
   document, so every button, link and role=button keeps to it without being
@@ -581,7 +591,9 @@ as the thing leaving.
   dragged down to dismiss (`useSheetDismiss`, `align: "bottom"`) as a UIKit
   sheet is (ADR-229): from the bar, or from the body once it is scrolled to its
   top (`bodyDragRef`); past 96px or on a quick flick, however short; the dim
-  lifting as it goes; and giving a little, no more, when pulled upward.
+  lifting as it goes; and giving a little, no more, when pulled upward. The
+  session sheet's panes pull it the same way (ADR-235), from the top of
+  whichever pane is showing, and a sideways move is always the content's.
 - **Centered dialogs** settle in and scale back out (`useSheetDismiss`,
   `align: "center"`).
 - **Tab switches** do not animate. The destination is already on screen in the

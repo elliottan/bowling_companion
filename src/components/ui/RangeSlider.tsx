@@ -56,14 +56,20 @@ export function RangeSlider({ label, min, max, step, valueMin, valueMax, format,
         <span className="text-xs font-medium text-ink-strong">{label}</span>
         <span className="text-xs text-ink-secondary">{format(displayMin)} to {format(displayMax)}</span>
       </div>
-      <div className="relative h-5 flex items-center">
+      {/* Drawn as UIKit's slider (ADR-234): a thin grey track, the accent
+          between the thumbs, and white round thumbs lifted by UIKit's shadow.
+          44pt tall to the finger, the thumbs inset by their own radius so
+          each end of the track is under the middle of a thumb. */}
+      <div className="relative flex h-11 items-center">
         {/* Track background */}
-        <div className="absolute inset-x-0 h-1 rounded-full bg-edge" />
+        <div className="range-track absolute inset-x-3.5 h-1 rounded-full" />
         {/* Filled segment between handles */}
-        <div
-          className="absolute h-1 rounded-full bg-accent-fill"
-          style={{ left: `${leftPct}%`, right: `${100 - rightPct}%` }}
-        />
+        <div className="absolute inset-x-3.5 h-1">
+          <div
+            className="absolute inset-y-0 rounded-full bg-accent-fill"
+            style={{ left: `${leftPct}%`, right: `${100 - rightPct}%` }}
+          />
+        </div>
         {/* Min handle */}
         <input
           type="range"
@@ -77,7 +83,7 @@ export function RangeSlider({ label, min, max, step, valueMin, valueMax, format,
             setDraft({ min: v, max: displayMax });
           }}
           onKeyUp={() => commitDraft(displayMin, displayMax)}
-          className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent accent-[rgb(var(--color-accent-fill))] [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10"
+          className="range-input absolute inset-0 h-full w-full"
         />
         {/* Max handle */}
         <input
@@ -92,7 +98,7 @@ export function RangeSlider({ label, min, max, step, valueMin, valueMax, format,
             setDraft({ min: displayMin, max: v });
           }}
           onKeyUp={() => commitDraft(displayMin, displayMax)}
-          className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent accent-[rgb(var(--color-accent-fill))] [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-10"
+          className="range-input absolute inset-0 h-full w-full"
         />
       </div>
     </div>

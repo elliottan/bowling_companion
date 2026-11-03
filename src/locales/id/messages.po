@@ -301,6 +301,7 @@ msgid "{from} to {to}"
 msgstr "{from} sampai {to}"
 
 #: src/views/ActiveSessionView.tsx
+#: src/views/HistoryView.tsx
 msgid "{gameCount, plural, one {\"{alley}\" and its game will be permanently deleted. This can't be undone.} other {\"{alley}\" and all # games will be permanently deleted. This can't be undone.}}"
 msgstr "{gameCount, plural, other {\"{alley}\" dan # game di dalamnya akan dihapus secara permanen. Tindakan ini tidak bisa dibatalkan.}}"
 
@@ -1145,6 +1146,7 @@ msgstr "Per game"
 msgid "By session"
 msgstr "Per sesi"
 
+#: src/components/ConfirmDialog.tsx
 #: src/components/LaneNotesTab.tsx
 msgid "Cancel"
 msgstr "Batal"
@@ -1392,6 +1394,13 @@ msgstr "Biasa"
 msgid "Defined"
 msgstr "Tegas"
 
+#: src/components/ConfirmDialog.tsx
+#: src/components/SessionHistory.tsx
+#: src/views/ArsenalView.tsx
+#: src/views/HistoryView.tsx
+msgid "Delete"
+msgstr "Hapus"
+
 #: src/views/ArsenalView.tsx
 msgid "Delete {name}?"
 msgstr "Hapus {name}?"
@@ -1438,6 +1447,7 @@ msgid "Delete this game?"
 msgstr "Hapus game ini?"
 
 #: src/views/ActiveSessionView.tsx
+#: src/views/HistoryView.tsx
 msgid "Delete this session?"
 msgstr "Hapus sesi ini?"
 
@@ -4527,6 +4537,7 @@ msgid "Unable to delete game."
 msgstr "Tidak dapat menghapus game."
 
 #: src/views/ActiveSessionView.tsx
+#: src/views/HistoryView.tsx
 msgid "Unable to delete session."
 msgstr "Tidak dapat menghapus sesi."
 

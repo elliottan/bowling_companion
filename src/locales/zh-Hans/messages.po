@@ -301,6 +301,7 @@ msgid "{from} to {to}"
 msgstr "{from} 至 {to}"
 
 #: src/views/ActiveSessionView.tsx
+#: src/views/HistoryView.tsx
 msgid "{gameCount, plural, one {\"{alley}\" and its game will be permanently deleted. This can't be undone.} other {\"{alley}\" and all # games will be permanently deleted. This can't be undone.}}"
 msgstr "{gameCount, plural, other {“{alley}”及全部 # 局将被永久删除，且无法撤销。}}"
 
@@ -1145,6 +1146,7 @@ msgstr "按局"
 msgid "By session"
 msgstr "按场次"
 
+#: src/components/ConfirmDialog.tsx
 #: src/components/LaneNotesTab.tsx
 msgid "Cancel"
 msgstr "取消"
@@ -1392,6 +1394,13 @@ msgstr "默认"
 msgid "Defined"
 msgstr "明显"
 
+#: src/components/ConfirmDialog.tsx
+#: src/components/SessionHistory.tsx
+#: src/views/ArsenalView.tsx
+#: src/views/HistoryView.tsx
+msgid "Delete"
+msgstr "删除"
+
 #: src/views/ArsenalView.tsx
 msgid "Delete {name}?"
 msgstr "要删除 {name} 吗？"
@@ -1438,6 +1447,7 @@ msgid "Delete this game?"
 msgstr "要删除这一局吗？"
 
 #: src/views/ActiveSessionView.tsx
+#: src/views/HistoryView.tsx
 msgid "Delete this session?"
 msgstr "要删除这个场次吗？"
 
@@ -4527,6 +4537,7 @@ msgid "Unable to delete game."
 msgstr "无法删除该局。"
 
 #: src/views/ActiveSessionView.tsx
+#: src/views/HistoryView.tsx
 msgid "Unable to delete session."
 msgstr "无法删除场次。"
 
