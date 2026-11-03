@@ -47,20 +47,14 @@ describe("SegmentedControl", () => {
     expect(screen.queryByRole("button", { name: "L" })).not.toBeInTheDocument();
   });
 
-  it("draws shorter when dense, and still carries a 44pt hit region", () => {
-    const { rerender } = render(
-      <SegmentedControl label="Pick" value="a" options={options} onChange={vi.fn()} />
-    );
-    expect(screen.getByRole("button", { name: "A" }).className).toContain("h-10");
-
-    rerender(<SegmentedControl dense label="Pick" value="a" options={options} onChange={vi.fn()} />);
+  it("draws at UIKit's 32pt, and still carries a 44pt hit region", () => {
+    render(<SegmentedControl label="Pick" value="a" options={options} onChange={vi.fn()} />);
     const segment = screen.getByRole("button", { name: "A" });
-    // 36px drawn, so two can stack in a dense panel...
-    expect(segment.className).toContain("h-9");
-    expect(segment.className).not.toContain("h-10");
+    // One size, as UIKit has one (ADR-227)...
+    expect(segment.className).toContain("h-8");
     // ...and 44pt to the finger regardless, which is the floor the primitive
-    // exists to hold. A dense variant that dropped this would be a tap target
-    // shrunk by a styling prop.
+    // exists to hold. A smaller track that dropped this would be a tap target
+    // shrunk by a restyle.
     expect(segment.className).toContain("after:h-11");
   });
 

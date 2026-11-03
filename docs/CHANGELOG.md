@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.79.0: Pick-one toggles look like the phone's own (2026-11-03)
+
+- Every pick-one toggle (the session sheet's Sheet, Stats and Lanes, the Stats
+  range, Theme and Text size, handedness and grip, and the rest) is drawn as
+  the iPhone draws its segmented control: a slim 32pt grey track set into the
+  page with a white thumb, instead of a tall frosted bubble floating over it.
+  Each is 16px shorter, so the content under it starts higher. Still 44pt to
+  the finger, and it still follows a sliding finger with a tick at each
+  segment (ADR-227).
+
 ## 0.78.0: Every language reads more naturally, and the store speaks them too (2026-11-02)
 
 - A read of every message in every language, against the English, fixed what

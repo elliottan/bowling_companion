@@ -224,7 +224,6 @@ export function StatsView({
                     options={rangeOptions}
                     value={range}
                     onChange={setRange}
-                    dense
                   />
                 </div>
               )}

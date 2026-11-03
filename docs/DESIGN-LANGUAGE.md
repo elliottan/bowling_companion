@@ -183,13 +183,14 @@ row with content directly beneath it.
 
 `SegmentedControl` (`src/components/ui/SegmentedControl.tsx`) is one track with
 N segments and exactly one selected: a theme, a handedness, a range. It is
-drawn in the tab bar's own materials (ADR-189), as iOS 26 apps draw their
-filter bars: a frosted capsule with a hairline edge, and the answer a lighter
-pill that slides to the segment picked, its label in the same ink, only
-heavier. It ticks in the store apps as the choice moves (ADR-168). An
-accent-filled segment (ADR-182) read clearly but as a button held down, and the
-old raised surface-coloured segment (UIKit's look before iOS 26) was grey on
-grey in dark mode.
+drawn to UIKit's own metrics (ADR-227): a 32pt capsule in the system's flat
+grey fill, with no blur, edge or shadow, and the answer an opaque raised thumb
+inset 2pt that slides to the segment picked, labels at 13pt, the chosen one
+semibold. There is one size, as UIKit has one, and its hit region is still
+44pt, so two stacked need 12px between them. It ticks in the store apps as the
+choice moves (ADR-168). An accent-filled segment (ADR-182) read as a button
+held down, and the tab bar's frosted capsule (ADR-189) floated over the page
+at 48px as a web widget would, where the phone's control is set into it.
 
 The one exception is a pick-one with more options than a track can hold. The
 chart picker on Stats has eight, and eight segments in 390px are unreadable,

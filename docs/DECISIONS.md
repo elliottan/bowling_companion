@@ -9713,3 +9713,44 @@ beside them.
 **Consequences.** Every pushed screen names itself at every scroll position,
 in full at the top. The page starts a title's height lower than it did.
 
+## ADR-227: A segmented control is drawn as UIKit draws one
+
+**Status.** Accepted, 2026-11-03, at the owner's request ("the top tab toggles
+look kinda bad"). Supersedes ADR-189 on how the control is drawn; the finger
+behaviour of ADR-200 stands.
+
+**Context.** ADR-189 drew `SegmentedControl` in the tab bar's materials: a
+frosted capsule with a hairline edge, a top highlight and a drop shadow, its
+segments 40px inside 4px of padding, so a 48px track (40px dense). Beside the
+phone's own controls it read as a floating web widget. UIKit's control is set
+into the page, not lifted off it: 32pt tall, a flat translucent grey track, an
+opaque thumb inset 2pt with two soft shadows, 13pt labels. Every pick-one in
+the app is this primitive, the session sheet's Sheet, Stats and Lanes and the
+Stats range among them, so it is the most-seen piece of chrome after the tab
+bar.
+
+**Decision.**
+
+- **UIKit's metrics.** The segments fill the track edge to edge at 32px; the
+  thumb sits in its segment's slot with a 2px inset. Labels are `text-footnote`,
+  UIKit's 13pt on the type scale (ADR-219), regular, and semibold when
+  chosen.
+- **UIKit's materials** (`.segmented-track`, `.segmented-pill` in `index.css`):
+  the track is `tertiarySystemFill` (grey at 12%, 24% in dark) with no blur,
+  edge or shadow; the thumb is white with UIKit's two shadows in light, and the
+  theme's `edge-strong` slate in dark, opaque, since UIKit's neutral grey sat
+  brown on the navy.
+- **One size.** `dense` is gone: it existed to fit a 48px control into tight
+  rows, and the 32px one fits them all.
+- **Still 44pt to the finger** (`TAP_TARGET_44`), now 6px of overhang a side,
+  so the layout lab's stacked hand and grip controls are 12px apart when they
+  wrap.
+- **Drawn, not native.** A `UISegmentedControl` over the web view, as the tab
+  bar is (ADR-161), would have to track every scroll of the page it sits in;
+  the tab bar is fixed to the screen and this is not. The page's copy costs no
+  bridge and is drawn to the same numbers.
+
+**Consequences.** Every pick-one is 16px shorter, and the session sheet and
+Stats headers hand that room to the content. The control no longer matches
+the page tab bar's capsule on the web; it matches the phone's own control,
+which is the one a bowler compares it with.

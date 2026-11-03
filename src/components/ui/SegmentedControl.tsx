@@ -14,16 +14,6 @@ interface SegmentedControlProps<T extends string> {
    *  exactly one of these is the answer. */
   value: T | null;
   onChange: (value: T) => void;
-  /**
-   * The shorter track, for a control stacked with others in a dense panel.
-   *
-   * Visually 36px rather than 40, with the hit region still 44pt through the
-   * same invisible `::after` that `Chip` uses. That leaves 4px of overhang top
-   * and bottom, so a caller stacking two of these MUST leave at least 8px
-   * between them (`space-y-2`) or the two hit regions overlap and the row
-   * underneath starts stealing taps meant for the one above.
-   */
-  dense?: boolean;
 }
 
 /**
@@ -35,12 +25,13 @@ interface SegmentedControlProps<T extends string> {
  * A segmented control is exactly one answer, and the shared track is what says
  * so before you read a single label.
  *
- * Drawn in the tab bar's own materials, as iOS 26 apps draw their filter bars
- * (ADR-189): a frosted capsule, and the answer a lighter pill that slides to
- * the segment picked. It was an accent-filled segment for a while (ADR-182),
- * which read clearly but as a button pressed down, and no system control is
- * filled that way. In the store apps a change gives the selection tick UIKit's
- * control gives (ADR-168).
+ * Drawn to UIKit's own metrics (ADR-227): a 32pt capsule in the system's flat
+ * grey fill, no blur, edge or shadow, and the answer a raised thumb inset 2pt
+ * that slides to the segment picked, labels at 13pt. It was the tab bar's
+ * frosted capsule for a while (ADR-189), 48px tall and lifted off the page,
+ * which read as a floating web widget rather than the phone's control. One
+ * size everywhere, as UIKit has one. In the store apps a change gives the
+ * selection tick UIKit's control gives (ADR-168).
  *
  * And it behaves as the system's control does (ADR-200): the pill follows a
  * finger across the track, ticking at each segment, and the answer lands when
@@ -52,8 +43,7 @@ export function SegmentedControl<T extends string>({
   label,
   options,
   value,
-  onChange,
-  dense = false
+  onChange
 }: SegmentedControlProps<T>) {
   const index = options.findIndex((o) => o.value === value);
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -81,7 +71,7 @@ export function SegmentedControl<T extends string>({
       aria-label={label}
       // Sideways is the control's; down still scrolls the page, and a scroll
       // taking the finger cancels the press without choosing anything.
-      className={`segmented-track relative grid touch-pan-y select-none rounded-full ${dense ? "p-0.5" : "p-1"}`}
+      className="segmented-track relative grid touch-pan-y select-none rounded-full"
       // Plain `1fr`, whose floor is each label's own width: at a large text
       // size every segment widens to the longest label and stays equal, so the
       // pill still spans one, where `minmax(0, 1fr)` let labels overlap.
@@ -121,11 +111,12 @@ export function SegmentedControl<T extends string>({
       {shown >= 0 && (
         <span
           aria-hidden="true"
-          className={`pointer-events-none absolute left-0 transition-transform duration-[420ms] motion-reduce:transition-none ease-[cubic-bezier(0.34,1.36,0.64,1)] ${
-            dense ? "inset-y-0.5 ml-0.5" : "inset-y-1 ml-1"
-          }`}
+          // Inset 2pt inside the segment it covers, as UIKit's thumb is. The
+          // segments fill the track edge to edge, so the pill's slot is one
+          // segment exactly and the inset is drawn inside it.
+          className="pointer-events-none absolute inset-y-0 left-0 p-0.5 transition-transform duration-[420ms] motion-reduce:transition-none ease-[cubic-bezier(0.34,1.36,0.64,1)]"
           style={{
-            width: `calc((100% - ${dense ? "0.25rem" : "0.5rem"}) / ${options.length})`,
+            width: `calc(100% / ${options.length})`,
             transform: `translateX(${shown * 100}%)`
           }}
         >
@@ -155,9 +146,13 @@ export function SegmentedControl<T extends string>({
             // Ink either way, as the tab bar's labels and UIKit's are: weight
             // marks the answer, and the secondary grey on the track fell short
             // of the contrast floor.
-            className={`relative whitespace-nowrap rounded-full px-1.5 text-sm text-ink transition-[font-weight] ${
-              dense ? "h-9" : "h-10"
-            } ${TAP_TARGET_44} ${selected ? "font-semibold" : "font-medium"}`}
+            // 32pt drawn, UIKit's height, and 44pt to the finger through the
+            // same invisible `::after` Chip uses: 6px of overhang top and
+            // bottom, so two stacked need 12px between them (`gap-3`) or the
+            // lower one takes taps aimed at the foot of the upper.
+            className={`relative h-8 whitespace-nowrap rounded-full px-2 text-footnote leading-none text-ink transition-[font-weight] ${TAP_TARGET_44} ${
+              selected ? "font-semibold" : "font-normal"
+            }`}
           >
             {opt.label}
           </button>
