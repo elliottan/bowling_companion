@@ -173,7 +173,6 @@ export function Stats({
             options={chartByOptions()}
             value={chartBy}
             onChange={setChartBy}
-            dense
           />
         </div>
       )}

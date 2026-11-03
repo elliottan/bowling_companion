@@ -88,7 +88,10 @@ keyboard, not the size of the job:
   is on screen.
 - **`ConfirmDialog`** settles in the middle and scales back out. Questions with
   buttons, including a confirm that has to be earned by typing a phrase, because
-  typing `ERASE` is answering rather than entering.
+  typing `ERASE` is answering rather than entering. In the iPhone app a confirm
+  that is only words is asked by UIKit's own alert instead (ADR-232), with the
+  destructive confirm in the system red; one that carries more than words, or
+  has to be earned, stays the page's card.
 - **A filter panel is a popover, not a block.** The catalog's filters open as a
   layer under the Filters button, over the list, and a tap anywhere else puts
   them away. Opened inline they pushed every ball down the screen each time a
@@ -183,13 +186,18 @@ row with content directly beneath it.
 
 `SegmentedControl` (`src/components/ui/SegmentedControl.tsx`) is one track with
 N segments and exactly one selected: a theme, a handedness, a range. It is
-drawn in the tab bar's own materials (ADR-189), as iOS 26 apps draw their
-filter bars: a frosted capsule with a hairline edge, and the answer a lighter
-pill that slides to the segment picked, its label in the same ink, only
-heavier. It ticks in the store apps as the choice moves (ADR-168). An
-accent-filled segment (ADR-182) read clearly but as a button held down, and the
-old raised surface-coloured segment (UIKit's look before iOS 26) was grey on
-grey in dark mode.
+drawn to UIKit's own metrics (ADR-228): a 32pt capsule in the system's flat
+grey fill, with no blur, edge or shadow, and the answer an opaque raised thumb
+inset 2pt that slides to the segment picked, labels at 13pt, the chosen one
+semibold. There is one size, as UIKit has one, and its hit region is still
+44pt, so two stacked need 12px between them. It ticks in the store apps as the
+choice moves (ADR-168). An accent-filled segment (ADR-182) read as a button
+held down, and the tab bar's frosted capsule (ADR-189) floated over the page
+at 48px as a web widget would, where the phone's control is set into it.
+
+`Chip` is a filter capsule as iOS 26 draws one (ADR-230): off, the segmented
+control's flat grey fill with no border, in ink; on, filled in the accent.
+The two are one family of control, told apart by what a press means.
 
 The one exception is a pick-one with more options than a track can hold. The
 chart picker on Stats has eight, and eight segments in 390px are unreadable,
@@ -554,6 +562,13 @@ known value means anything (a filter, the visualizer's pattern), `ChoiceInput`
 puts back text that names nothing when the field is left. A native select was
 a scroll through forty names to find one, and it could not be typed into.
 
+**A short closed list is a `Select`** (`src/components/ui/Select.tsx`,
+ADR-231), never a bare `<select>`: the value with iOS's up-and-down chevrons in
+the accent, which is what says a menu opens from it. Inside the store apps the
+menu itself is the phone's. A toolbar's choice, the catalog's sort, is the
+`menu` variant: no box, the value in the accent and as wide as it, as iOS draws
+a pop-up button in a toolbar.
+
 ## 7. Motion
 
 Motion is symmetric: anything that animates in animates out. Nothing may
@@ -563,7 +578,10 @@ as the thing leaving.
 - **Push screens** slide in from the trailing edge and back out to it
   (`PushScreen`, which defers the unmount until the exit finishes).
 - **Sheets** rise from the bottom edge and fall back through it, and can be
-  dragged down to dismiss (`useSheetDismiss`, `align: "bottom"`).
+  dragged down to dismiss (`useSheetDismiss`, `align: "bottom"`) as a UIKit
+  sheet is (ADR-229): from the bar, or from the body once it is scrolled to its
+  top (`bodyDragRef`); past 96px or on a quick flick, however short; the dim
+  lifting as it goes; and giving a little, no more, when pulled upward.
 - **Centered dialogs** settle in and scale back out (`useSheetDismiss`,
   `align: "center"`).
 - **Tab switches** do not animate. The destination is already on screen in the

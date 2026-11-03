@@ -9767,3 +9767,146 @@ layout too, so a car shows the same three frames. Free, as ADR-221 is. The
 how the two failed attempts above were read. Still to see on a watch: the
 layout on a 41mm and a 49mm watch, and that the tenth frame's three boxes are
 legible at 12 pt when it is among the three.
+
+## ADR-228: A segmented control is drawn as UIKit draws one
+
+**Status.** Accepted, 2026-11-03, at the owner's request ("the top tab toggles
+look kinda bad"). Supersedes ADR-189 on how the control is drawn; the finger
+behaviour of ADR-200 stands.
+
+**Context.** ADR-189 drew `SegmentedControl` in the tab bar's materials: a
+frosted capsule with a hairline edge, a top highlight and a drop shadow, its
+segments 40px inside 4px of padding, so a 48px track (40px dense). Beside the
+phone's own controls it read as a floating web widget. UIKit's control is set
+into the page, not lifted off it: 32pt tall, a flat translucent grey track, an
+opaque thumb inset 2pt with two soft shadows, 13pt labels. Every pick-one in
+the app is this primitive, the session sheet's Sheet, Stats and Lanes and the
+Stats range among them, so it is the most-seen piece of chrome after the tab
+bar.
+
+**Decision.**
+
+- **UIKit's metrics.** The segments fill the track edge to edge at 32px; the
+  thumb sits in its segment's slot with a 2px inset. Labels are `text-footnote`,
+  UIKit's 13pt on the type scale (ADR-219), regular, and semibold when
+  chosen.
+- **UIKit's materials** (`.segmented-track`, `.segmented-pill` in `index.css`):
+  the track is `tertiarySystemFill` (grey at 12%, 24% in dark) with no blur,
+  edge or shadow; the thumb is white with UIKit's two shadows in light, and the
+  theme's `edge-strong` slate in dark, opaque, since UIKit's neutral grey sat
+  brown on the navy.
+- **One size.** `dense` is gone: it existed to fit a 48px control into tight
+  rows, and the 32px one fits them all.
+- **Still 44pt to the finger** (`TAP_TARGET_44`), now 6px of overhang a side,
+  so the layout lab's stacked hand and grip controls are 12px apart when they
+  wrap.
+- **Drawn, not native.** A `UISegmentedControl` over the web view, as the tab
+  bar is (ADR-161), would have to track every scroll of the page it sits in;
+  the tab bar is fixed to the screen and this is not. The page's copy costs no
+  bridge and is drawn to the same numbers.
+
+**Consequences.** Every pick-one is 16px shorter, and the session sheet and
+Stats headers hand that room to the content. The control no longer matches
+the page tab bar's capsule on the web; it matches the phone's own control,
+which is the one a bowler compares it with.
+
+## ADR-229: A sheet is dragged as a UIKit sheet is
+
+**Status.** Accepted, 2026-11-03, at the owner's request. Builds on ADR-186;
+amends how `useSheetDismiss` reads a drag.
+
+**Context.** The sheets already floated as iOS 26's do, but a finger found the
+web underneath. A sheet moved only from its bar: pulling down on its content,
+which is where a thumb is, scrolled a list already at its top and did nothing.
+It closed only past 96px, so the quick downward flick that closes every system
+sheet sprang back. The dim held full until the sheet let go, and a drag
+upward did nothing at all.
+
+**Decision.**
+
+- **The body pulls the sheet** (`bodyDragRef`, wired in `FormSheet`): a touch
+  that moves down while the body is scrolled to its top takes the sheet rather
+  than the list, and keeps it to the end of the touch. A body scrolled down,
+  or a touch that first moves up, is the list's. Touch events, not pointer
+  events, since the browser takes a pointer the moment it scrolls, and
+  non-passive so the pull can stop the list moving under it.
+- **A flick closes it**: a lift moving down faster than 0.5px/ms closes the
+  sheet however short the drag, as long as the finger had not stopped first.
+- **The dim lifts with the drag**, and returns with the sheet.
+- **Upward, it gives and stops**: a square-root rubber band, at most 24px.
+
+**Consequences.** Every `FormSheet` gets all four. The session sheet, which
+has its own panes, keeps its bar drag only. A sheet whose body holds a control
+that itself drags downward (none today) would have to stop the pull itself.
+
+## ADR-230: A filter chip is iOS 26's capsule
+
+**Status.** Accepted, 2026-11-03, at the owner's request. Follows ADR-228.
+
+**Context.** `Chip` was white with a slate border, or filled in the accent
+when on. Beside the segmented control's flat grey (ADR-228) it read as a
+second family of control, and its border as a web button.
+
+**Decision.** Off, a chip is the segmented control's fill
+(`tertiarySystemFill`, `.chip-off`) with no border, its label in ink at
+`text-footnote`, medium; pressed, the fill darkens as UIKit's filled controls
+do. On, the accent fill and its on-fill ink, semibold, unchanged. Size, hit
+region and `aria-pressed` are unchanged.
+
+**Consequence.** Off chips no longer draw an edge, so on a card they are told
+apart from it by fill alone, as the system's are.
+
+## ADR-231: A short closed list is a pop-up button
+
+**Status.** Accepted, 2026-11-03, at the owner's request.
+
+**Context.** Every `<select>` but one dropped the browser's arrow
+(`appearance-none`) and left room for a chevron nothing drew, so "All alleys"
+in a filled box read as a text field; the ball form's weight kept the
+browser's own arrow.
+
+**Decision.** `Select` (`src/components/ui/Select.tsx`) wraps every select and
+draws iOS's up-and-down chevrons (`chevron.up.chevron.down`) in the accent.
+It keeps the native element, so the store apps open the phone's own menu and
+the keyboard and screen readers work as before. A toolbar's choice is the
+`menu` variant, as iOS draws a pop-up button in a toolbar: no box, the value
+in the accent, sized to the chosen option by an invisible copy of its label
+rather than to the longest. The catalog's sort is the one today.
+
+**Consequence.** `PapEditor`'s local `Dropdown` is gone; its boxes are the
+`narrow` variant.
+
+## ADR-232: The iPhone app asks a confirm with UIKit's alert
+
+**Status.** Accepted, 2026-11-03, at the owner's request. Follows ADR-161;
+unit tested, and built and launched on a simulator by the iOS device check;
+not yet seen on a phone.
+
+**Context.** `ConfirmDialog` drew a card in the middle of the screen: a
+web dialog imitating an alert at the moments a bowler is most careful,
+deleting a game or a ball. App Review reads exactly that as a repackaged
+website (guideline 4.2).
+
+**Decision.**
+
+- **In the iPhone app a confirm of words is a `UIAlertController`**, asked
+  through `HeadpinAlertPlugin` (`ios/App/App/HeadpinAlertPlugin.swift`,
+  registered in `HeadpinViewController`) by `askNativeConfirm`
+  (`src/lib/nativeAlert.ts`). A `danger` confirm is the system's destructive
+  red; a `primary` one is the preferred action, bold in the accent. The alert
+  takes the app's theme, which can differ from the phone's.
+- **The page keeps what to ask and what each answer does.** `ConfirmDialog`
+  renders nothing while the alert is up and runs `onConfirm` or `onCancel`
+  with its answer.
+- **The page still draws** a confirm whose message is more than a string (the
+  restore's counts in bold, the layout lab's), one that has to be earned
+  (`confirmDisabled`), every confirm on the web and Android, and every one in an
+  app built without the plugin: the first failed ask marks it missing for the
+  rest of the run.
+- **One alert at a time**: a second ask of the same question while one is up
+  waits on its answer, so React's development double effect never stacks two.
+
+**Consequences.** The alert is modal and back cannot close it, as on any
+iPhone app; the page's back handling is not registered while it is up. The
+alert itself still wants a look on a phone, as the tab bar's did.
+

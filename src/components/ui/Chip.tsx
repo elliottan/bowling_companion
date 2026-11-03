@@ -15,7 +15,12 @@ export const TAP_TARGET_44 = 'after:absolute after:inset-x-0 after:top-1/2 after
  *  rows so the expanded hit regions meet exactly and never overlap.
  *  `min-w-11` keeps short labels (e.g. single-digit lane numbers) from
  *  presenting too narrow a target. Uses `aria-pressed`, matching this app's
- *  existing chip convention, never `role="tab"`/`aria-selected`. */
+ *  existing chip convention, never `role="tab"`/`aria-selected`.
+ *
+ *  Drawn as iOS 26 draws a filter capsule (ADR-230): off, the same flat grey
+ *  fill as the segmented control's track, with no border; on, filled in the
+ *  accent. A bordered white chip read as a web button, and beside the
+ *  segmented control's grey (ADR-228) it was a second family of control. */
 export function Chip({
   selected,
   className = "",
@@ -26,8 +31,8 @@ export function Chip({
     <button
       type="button"
       aria-pressed={selected}
-      className={`relative inline-flex h-9 min-w-11 items-center justify-center rounded-full px-3.5 text-xs font-semibold ${TAP_TARGET_44} ${
-        selected ? "border border-accent-fill bg-accent-fill text-accent-on-fill" : "border border-edge-strong bg-surface text-ink-strong"
+      className={`relative inline-flex h-9 min-w-11 items-center justify-center rounded-full px-3.5 text-footnote ${TAP_TARGET_44} ${
+        selected ? "chip-on bg-accent-fill font-semibold text-accent-on-fill" : "chip-off font-medium text-ink"
       } ${className}`.trim()}
       {...rest}
     >

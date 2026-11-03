@@ -1,3 +1,6 @@
+import { useEffect, useReducer, useRef } from "react";
+import { askNativeConfirm, nativeAlertMissing } from "../lib/nativeAlert";
+import { isIOSApp } from "../lib/platform";
 import { useOverlay } from "../lib/useOverlay";
 import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { Button } from "./ui/Button";
@@ -18,7 +21,13 @@ interface ConfirmDialogProps {
 }
 
 /** Modal confirmation, with a destructive (red) confirm button unless told
- *  otherwise. */
+ *  otherwise.
+ *
+ *  In the iPhone app a confirm that is only words is asked by UIKit's own
+ *  alert (ADR-232): the phone's material, type and destructive red, not a card
+ *  imitating them. One that carries more than words (a typed phrase, a count in
+ *  bold) or a confirm that has to be earned stays the page's, and so does every
+ *  confirm in an app built without the plugin. */
 export function ConfirmDialog({
   open,
   title,
@@ -31,9 +40,45 @@ export function ConfirmDialog({
   onCancel
 }: ConfirmDialogProps) {
   const { dismiss, backdropStyle, rootStyle, panelStyle, exiting } = useSheetDismiss(onCancel, "center");
-  const overlayRef = useOverlay<HTMLDivElement>(dismiss, open);
+  const [, rerender] = useReducer((n: number) => n + 1, 0);
+  const native =
+    open &&
+    isIOSApp() &&
+    !nativeAlertMissing() &&
+    !confirmDisabled &&
+    (message === undefined || message === null || typeof message === "string");
+  const overlayRef = useOverlay<HTMLDivElement>(dismiss, open && !native);
 
-  if (!open) return null;
+  // The answer runs whichever handlers are current when it arrives.
+  const handlers = useRef({ onConfirm, onCancel });
+  useEffect(() => {
+    handlers.current = { onConfirm, onCancel };
+  });
+  useEffect(() => {
+    if (!native) return;
+    let live = true;
+    void askNativeConfirm({
+      title,
+      message: typeof message === "string" ? message : undefined,
+      confirmLabel,
+      cancelLabel,
+      destructive: confirmVariant === "danger"
+    }).then((answer) => {
+      if (!live) return;
+      if (answer === "confirm") handlers.current.onConfirm();
+      else if (answer === "cancel") handlers.current.onCancel();
+      // Missing from this build: draw the page's own, now and from here on.
+      else rerender();
+    });
+    return () => {
+      live = false;
+    };
+    // Asked once each time it opens; a re-render while the alert is up is not
+    // a new question.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [native]);
+
+  if (!open || native) return null;
 
   // z-[80] clears the lane visualizer (z-[70]): a confirm is always the topmost
   // thing on screen, and the completed-game edit prompt is raised from inside it.

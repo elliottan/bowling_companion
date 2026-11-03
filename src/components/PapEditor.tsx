@@ -1,7 +1,6 @@
 import { t } from "@lingui/core/macro";
-import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
-import { FIELD_DENSE_SELECT_NARROW } from "./ui/field";
+import { Select } from "./ui/Select";
 import {
   EIGHTHS,
   clamp,
@@ -73,10 +72,10 @@ export function PapEditor({
           // Sized by its longest option rather than a fixed width: "上" needs
           // a third of what "Arriba" does, and a floor wide enough for the
           // longest language pushed the short ones out of the card too.
-          <Dropdown>
-            <select
+          <Select
+              variant="narrow"
+              wrapperClassName="shrink-0"
               aria-label={t({ message: "Up or down direction", comment: "Bowling term: PAP (positive axis point), whether the axis point sits above or below the ball's midline." })}
-              className={FIELD_DENSE_SELECT_NARROW}
               value={parts.negative ? "down" : "up"}
               onChange={(e) =>
                 onChange({
@@ -87,35 +86,8 @@ export function PapEditor({
             >
               <option value="up">{t({ message: "Up", comment: "Bowling term: PAP, the axis point is above the ball's midline.", context: "pap direction" })}</option>
               <option value="down">{t({ message: "Down", comment: "Bowling term: PAP, the axis point is below the ball's midline.", context: "pap direction" })}</option>
-            </select>
-          </Dropdown>
+            </Select>
         }
-      />
-    </div>
-  );
-}
-
-/**
- * A select and the chevron that says it is one.
- *
- * The dense select chrome drops the browser's own arrow (`appearance-none`) and
- * leaves room for a replacement it does not draw, which every other screen gets
- * away with because its selects hold a word. Here two of the three hold a
- * single digit, and a bare box with "5" in it reads as a text field: the
- * chevron is the only thing saying there is a list behind it.
- *
- * Callers size it in rem times `--type-scale`, so the box grows with the
- * bowler's text size: a fixed width cut "1/8" to "1/" at the largest size. A
- * select holding a word is left unsized, and takes its longest option's width.
- */
-function Dropdown({ className = "", children }: { className?: string; children: ReactNode }) {
-  return (
-    <div className={`relative shrink-0 ${className}`}>
-      {children}
-      <ChevronDown
-        size={13}
-        aria-hidden="true"
-        className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-ink-tertiary"
       />
     </div>
   );
@@ -167,11 +139,12 @@ export function InchField({
     // `w-14` appended to it loses and the row overflows the card. Same trap as
     // the colour rule in docs/DESIGN-LANGUAGE.md §2.
     <div className="flex items-center gap-1.5">
-      <Dropdown className="w-[calc(2.5rem*var(--type-scale))]">
-        <select
+      <Select
+          variant="narrow"
+          wrapperClassName="w-[calc(2.5rem*var(--type-scale))] shrink-0"
           id={id}
           aria-label={label}
-          className={`${FIELD_DENSE_SELECT_NARROW} tabular-nums`}
+          className="tabular-nums"
           value={parts.whole}
           onChange={(e) => emit({ whole: Number(e.target.value) })}
         >
@@ -180,12 +153,12 @@ export function InchField({
               {whole}
             </option>
           ))}
-        </select>
-      </Dropdown>
-      <Dropdown className="w-[calc(3.5rem*var(--type-scale))]">
-        <select
+        </Select>
+      <Select
+          variant="narrow"
+          wrapperClassName="w-[calc(3.5rem*var(--type-scale))] shrink-0"
           aria-label={t`${{ label }} fraction`}
-          className={`${FIELD_DENSE_SELECT_NARROW} tabular-nums`}
+          className="tabular-nums"
           value={parts.eighths}
           onChange={(e) => emit({ eighths: Number(e.target.value) })}
         >
@@ -194,8 +167,7 @@ export function InchField({
               {fraction}
             </option>
           ))}
-        </select>
-      </Dropdown>
+        </Select>
       {trailing}
     </div>
   );

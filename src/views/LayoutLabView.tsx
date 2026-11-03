@@ -439,7 +439,6 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
                     keeps its base size: larger, "Asym" and "Sym" overran it. */}
                 <div className="type-cap-fixed">
                   <SegmentedControl
-                    dense
                     label={t({ message: "Core type", comment: "Bowling term: whether a ball has a symmetric or asymmetric core" })}
                     value={symmetric ? "sym" : "asym"}
                     onChange={(v) => setSymmetric(v === "sym")}
@@ -539,18 +538,17 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
               </div>
               <div className="min-w-min flex-[1_1_7.5rem] space-y-1.5 rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
                 <span className={FIELD_MICRO_LABEL}>{t({ message: "Hand", context: "bowling hand", comment: "Left or right handed bowler" })}</span>
-                {/* `space-y-2` is required, not chosen: a dense segmented control
-                    is 36px drawn and 44pt to the finger, so two stacked any
-                    closer than 8px would have overlapping hit regions and the
-                    grip row would start swallowing taps meant for the hand.
-                    A wrapping row with an 8px gap both ways rather than a
-                    stack, so the two sit side by side once the card has wrapped
-                    to the full width of the sheet. */}
-                <div className="flex flex-wrap gap-2 [&>*]:min-w-min [&>*]:flex-[1_1_5.5rem]">
+                {/* The 12px between rows is required, not chosen: a segmented
+                    control is 32px drawn and 44pt to the finger, so two stacked
+                    any closer would have overlapping hit regions and the grip
+                    row would start swallowing taps meant for the hand. A
+                    wrapping row rather than a stack, so the two sit side by
+                    side once the card has wrapped to the full width of the
+                    sheet. */}
+                <div className="flex flex-wrap gap-x-2 gap-y-3 [&>*]:min-w-min [&>*]:flex-[1_1_5.5rem]">
                   {/* Left on the left, which is the one ordering that needs no
                       reading: the letters sit where the hands do. */}
                   <SegmentedControl
-                    dense
                     label={t`Bowling hand`}
                     value={hand}
                     onChange={chooseHand}
@@ -567,7 +565,6 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
                       thumb-in chart, and guessing at a two-handed release would
                       be worse than saying nothing. */}
                   <SegmentedControl
-                    dense
                     label={t`Grip style`}
                     value={grip}
                     onChange={chooseGrip}

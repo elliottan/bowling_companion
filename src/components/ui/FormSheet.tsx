@@ -82,7 +82,7 @@ export function FormSheet({
   active = true,
   children
 }: FormSheetProps) {
-  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
+  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting, dragHandlers, bodyDragRef } = useSheetDismiss(onClose);
   const overlayRef = useOverlay<HTMLDivElement>(dismiss, active);
   const barRef = useRef<HTMLDivElement | null>(null);
   // Before the first paint, so the body never shows a frame under the bar.
@@ -187,6 +187,8 @@ export function FormSheet({
         </div>
 
         <div
+          // Pulled down from its top, the body moves the sheet (ADR-229).
+          ref={bodyDragRef}
           // The sheet stops 8px above the screen's foot, so the home indicator's
           // inset is that much smaller inside it.
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-[max(1.25rem,calc(env(safe-area-inset-bottom)+0.25rem))] pt-[calc(var(--sheet-bar-h)+1rem)]"
