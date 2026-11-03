@@ -162,7 +162,6 @@ struct RecentFramesView: View {
 
 /// Picks the layout by where the activity is drawn: the watch's Smart Stack is
 /// `.small`, the Lock Screen and the banner `.medium` (ADR-227).
-@available(iOS 18.0, *)
 struct GameViewForFamily: View {
     let state: HeadpinGameAttributes.ContentState
     @Environment(\.activityFamily) private var family

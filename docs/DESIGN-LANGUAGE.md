@@ -351,7 +351,7 @@ where more profile features can grow. An on/off setting is a `ListSwitchRow`,
 not a `ListRow`: the whole row labels HTML's own `switch`, which the phone
 draws, and the row sits first in the App group (ADR-221). It appears only
 where the setting can do something: "Live Activity on the Lock Screen" is in the
-iPhone app on iOS 16.1 or later, and nowhere else. "Privacy and terms" pushes a screen in
+iPhone app on iOS 18 or later (ADR-227), and nowhere else. "Privacy and terms" pushes a screen in
 Settings with the site page's own text (ADR-181), not a trip to the site. Rows
 that leave the app, and that one, carry no sentence: a label that says "Privacy
 and terms" or "Send feedback" has nothing a second line could add.

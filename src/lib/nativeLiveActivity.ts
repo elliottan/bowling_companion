@@ -9,13 +9,13 @@ import type { LiveActivityPayload, LiveActivityState } from "./liveActivity";
  * The page decides what the Lock Screen says (`liveActivity.ts`); the phone
  * draws it. Everything here is fire and forget: a ball recorded never waits on
  * ActivityKit, and a phone that cannot or will not show an activity (iOS
- * before 16.1, Live Activities switched off, the plugin missing from an older
+ * before 18 (ADR-227), Live Activities switched off, the plugin missing from an older
  * build) is not an error to anyone. The web app and the Android app load none
  * of it.
  */
 
 export interface LiveActivityStatus {
-  /** iOS 16.1 or later, and a build that carries the widget. */
+  /** iOS 18 or later (ADR-227), and a build that carries the widget. */
   supported: boolean;
   /** The bowler has not switched Live Activities off for Headpin in the
    *  phone's Settings. */

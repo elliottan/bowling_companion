@@ -14,7 +14,10 @@ had all shipped.
 - On an Apple Watch, the game being scored in the Smart Stack now shows the
   game and frame, the total with the highest score still possible, and the
   last three frames with their marks. It used to show only a pin and the
-  total. Needs iOS 18 on the iPhone (ADR-227).
+  total (ADR-227).
+- The Live Activity now needs iOS 18 on the iPhone, up from 16.1. Any iPhone
+  that runs iOS 17 can update to 18; until it does, the Lock Screen switch in
+  Settings is not shown. The app itself still runs on iOS 15.
 - No change a bowler can see: ESLint's 26 warnings are gone and the three
   rules behind them are errors now. The helpers and tables that sat beside a
   component moved to their own modules (`statsMetrics`, `driftZoneAccent`,

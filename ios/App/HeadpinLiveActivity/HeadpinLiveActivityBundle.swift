@@ -5,42 +5,21 @@ import WidgetKit
 /// The widget extension's entry point. It holds one thing: the Live Activity for
 /// the game being scored (ADR-221), started and updated by the app's
 /// `HeadpinLiveActivityPlugin`.
-///
-/// Two widgets for the one activity, and only ever one of them in the bundle.
-/// iOS 18 lets an activity draw its own layout on an Apple Watch's Smart Stack
-/// (`supplementalActivityFamilies`); without it the watch shows the island's
-/// two compact slots, a pin and the total (ADR-227). The modifier changes the
-/// configuration's type, so it cannot sit behind an `if #available` inside one
-/// widget, and the bundle picks the widget instead: two plain `if`s, since
-/// the bundle's builder takes an `if` without an `else`.
 @main
 struct HeadpinLiveActivityBundle: WidgetBundle {
     var body: some Widget {
-        if #available(iOS 18.0, *) {
-            HeadpinGameLiveActivityWithWatch()
-        }
-        if #unavailable(iOS 18.0) {
-            HeadpinGameLiveActivity()
-        }
+        HeadpinGameLiveActivity()
     }
 }
 
-/// iOS 16.1 to 17: the Lock Screen and the Dynamic Island.
+/// The Lock Screen, the Dynamic Island, and an Apple Watch's Smart Stack.
+///
+/// `supplementalActivityFamilies` is iOS 18, and it is why the extension's
+/// floor is 18 (ADR-227): without it the watch shows only the island's two
+/// compact slots, a pin and the total. Switching it on and off by iOS version
+/// was tried, and the bundle's builder does not type-check an iOS 18 widget
+/// behind a conditional on a 16.1 floor.
 struct HeadpinGameLiveActivity: Widget {
-    var body: some WidgetConfiguration {
-        ActivityConfiguration(for: HeadpinGameAttributes.self) { context in
-            // The Lock Screen, and the banner at the top of the screen.
-            // Its own background and tint, by the bowler's palette and theme.
-            LockScreenGameView(state: context.state)
-        } dynamicIsland: { context in
-            HeadpinGameIsland.island(state: context.state)
-        }
-    }
-}
-
-/// iOS 18 and later: the same, plus the watch's own layout.
-@available(iOS 18.0, *)
-struct HeadpinGameLiveActivityWithWatch: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: HeadpinGameAttributes.self) { context in
             // The Lock Screen and the banner are `.medium`; the watch is `.small`.
@@ -52,7 +31,7 @@ struct HeadpinGameLiveActivityWithWatch: Widget {
     }
 }
 
-/// The Dynamic Island, shared by both widgets.
+/// The Dynamic Island.
 enum HeadpinGameIsland {
     static func island(state: HeadpinGameAttributes.ContentState) -> DynamicIsland {
         let island = HeadpinPalette.island(palette: state.palette)
