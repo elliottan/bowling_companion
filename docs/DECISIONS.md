@@ -9713,3 +9713,57 @@ beside them.
 **Consequences.** Every pushed screen names itself at every scroll position,
 in full at the top. The page starts a title's height lower than it did.
 
+
+## ADR-227: The game in progress on an Apple Watch has a layout of its own
+
+**Status.** Accepted, 2026-11-03, at the owner's request. Extends ADR-221,
+whose Lock Screen and Dynamic Island the owner has seen on a phone and which
+stand as they are, and amends its iOS floor for the extension: 18, not 16.1.
+Built by the `ios` CI job; the watch layout is unseen.
+
+**Context.** Since watchOS 11, a paired iPhone's Live Activity appears in the
+watch's Smart Stack. An activity that does not opt in is drawn from the
+Dynamic Island's two compact slots, so the watch showed a pin and the total
+and nothing else: not the frame, not the marks just thrown. The opt-in,
+`supplementalActivityFamilies([.small])`, is iOS 18, and the extension's floor
+was 16.1 (ADR-221).
+
+**Decision.**
+
+- **The watch draws its own layout** (`WatchGameView` in
+  `HeadpinGameViews.swift`): "Game 3" and "Frame 6" (or "Final score") on
+  the top line, the total large with "Max 214" beside it, and the last three
+  frames, ending at the one being bowled, from the island's
+  `RecentFramesView`. Ten frames do not fit a watch's width; three show the
+  marks just thrown and whether the spare before them has been filled in.
+- **Always dark, in the bowler's accent.** The Smart Stack is black, so the
+  watch takes the island's palette rather than the Lock Screen's light or
+  dark one.
+- **Nothing new is sent.** The payload already carries all ten frames, the
+  total, the frame and the max, so the page, `liveActivity.ts` and the
+  Codable struct are unchanged, and the watch costs no extra update.
+- **The extension's floor is iOS 18; the app's stays 15.** The modifier
+  changes the configuration's type, so it cannot be switched inside one
+  widget, and two widgets picked by version in the bundle did not compile:
+  with an `if #available`/`else`, and again with an `if #available` and an
+  `if #unavailable`, Swift failed on the bundle's `body` ("failed to produce
+  diagnostic"). So there is one widget with the modifier on it, and the
+  extension needs 18. On the iPhone, the activity's content view reads
+  `activityFamily` and draws the Lock Screen at `.medium` and the watch at
+  `.small`.
+- **The plugin starts nothing below iOS 18.** `status` reports
+  `supported: false`, which hides the Settings switch, and `start` and
+  `update` answer `active: false`. `end` and `showing` keep the 16.1 floor, so
+  an activity an older build left up on an iOS 17 phone is still found and
+  ended on launch (ADR-222).
+- No new file, so the Xcode project changes only in the floor.
+
+**Consequences.** A bowler on iOS 16.1 to 17 loses the Live Activity. Every
+iPhone that runs iOS 17 can run 18, so the fix is the phone's own update,
+and the app says nothing about it: the switch is simply not there, as on any
+phone that cannot show one. CarPlay on iOS 26 draws an activity's `.small`
+layout too, so a car shows the same three frames. Free, as ADR-221 is. The
+`ios` CI job now keeps xcodebuild's whole log and prints its errors, which is
+how the two failed attempts above were read. Still to see on a watch: the
+layout on a 41mm and a 49mm watch, and that the tenth frame's three boxes are
+legible at 12 pt when it is among the three.

@@ -132,7 +132,7 @@ msgstr "{0, plural, other {第 {gameNumber} 局，# 個場次}}"
 #. placeholder {0}: parts.lanes.length
 #: src/components/ProOfferSamples.tsx
 #: src/components/SessionFilterBar.tsx
-#: src/components/SessionHeaderText.tsx
+#: src/lib/sessionLabels.ts
 #: src/lib/shareCard.ts
 msgid "{0, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{0, plural, other {球道 {lanes}}}"
@@ -215,7 +215,7 @@ msgstr "{chances} 次中成功 {conversions} 次"
 msgid "{count, plural, one {# game series} other {# game series}}"
 msgstr "{count, plural, other {# 局系列賽}}"
 
-#: src/components/SessionHeaderText.tsx
+#: src/lib/sessionLabels.ts
 msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, other {球道 {lanes}}}"
 
@@ -583,6 +583,7 @@ msgstr "單手"
 #. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "1st ball"
 msgstr "第一球"
 
@@ -921,6 +922,7 @@ msgstr "自動"
 #. A bowling average: the score per game
 #. A bowling average: the score per game
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/lib/shareCard.ts
 msgid "Average"
 msgstr "平均分"
@@ -1168,6 +1170,7 @@ msgstr "帶倒"
 #: src/components/BallGameSessionsDialog.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/lib/shareCard.ts
 #: src/views/GameTrendView.tsx
 msgid "Carry"
@@ -1882,12 +1885,12 @@ msgid "First ball"
 msgstr "第一球"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "First balls at a full rack that struck."
 msgstr "對滿瓶的第一球中，打出全倒的球。"
 
 #. Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "First balls that hit the pocket."
 msgstr "擊中甜蜜點的第一球。"
 
@@ -2702,7 +2705,7 @@ msgid "Makeable"
 msgstr "可補"
 
 #. Bowling terms: a makeable leave is a set of standing pins that can be converted to a spare; a split leaves gaps between pins; a washout is a leave with the head pin standing and a gap behind it
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Makeable leaves made. Not splits or washouts."
 msgstr "補中的可補殘瓶，不含分瓶與洗出。"
 
@@ -2720,7 +2723,7 @@ msgid "Manage oil patterns"
 msgstr "管理油型"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Max consecutive strikes"
 msgstr "最多連續全倒"
 
@@ -2768,7 +2771,7 @@ msgid "Most opens (makeables)"
 msgstr "失誤最多（可補）"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Most strikes in a row in one game."
 msgstr "單局最多連續全倒。"
 
@@ -3322,7 +3325,7 @@ msgid "Pins standing: {pins}"
 msgstr "站立的球瓶：{pins}"
 
 #. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Pins the first ball knocks down, on average."
 msgstr "第一球平均擊倒的球瓶數。"
 
@@ -3354,6 +3357,7 @@ msgstr "甜蜜點"
 #: src/components/LaneVisualizer.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/lib/shareCard.ts
 #: src/views/GameTrendView.tsx
 msgid "Pocket"
@@ -3369,7 +3373,7 @@ msgid "pocket hits"
 msgstr "打中甜蜜點"
 
 #. Bowling term: how often a ball that hit the pocket knocked all the pins down
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Pocket hits that struck."
 msgstr "打中甜蜜點後全倒的比例。"
 
@@ -3945,7 +3949,7 @@ msgstr "補中"
 #. Bowling term: all remaining pins knocked down with the second ball of a frame
 #. Bowling term: all ten pins down with two balls. Column heading.
 #: src/components/ActiveGameScorer.tsx
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/views/ArsenalView.tsx
 #: src/views/GameTrendView.tsx
 msgid "Spare"
@@ -4109,6 +4113,7 @@ msgstr "全倒"
 #: src/components/BallGameSessionsDialog.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/views/GameTrendView.tsx
 msgid "Strike"
 msgstr "全倒"
@@ -4149,6 +4154,7 @@ msgstr "全倒後再全倒"
 #. Bowling term: a strike on the ball right after a strike
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Strike on strike"
 msgstr "全倒後再全倒"
 
@@ -4171,7 +4177,7 @@ msgid "Strikes in a row"
 msgstr "連續全倒"
 
 #. Bowling term: a strike on the ball right after a strike
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Strikes the next ball struck too."
 msgstr "下一球也全倒。"
 
@@ -4883,7 +4889,7 @@ msgstr "你的 PAP"
 msgid "Your PAP and hand"
 msgstr "你的 PAP 與慣用手"
 
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Your score per finished game."
 msgstr "你每一局完成後的分數。"
 

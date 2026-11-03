@@ -326,7 +326,7 @@ function SettingsMenu({
 
 /**
  * The Lock Screen's live score (ADR-221), in the iPhone app only and on an iOS
- * that has Live Activities (16.1). Nothing is drawn until the phone has said it
+ * that can draw them (iOS 18, ADR-227). Nothing is drawn until the phone has said it
  * can, so the web, the Android app and an older iPhone never see a switch that
  * does nothing. On by default: the toggle only ever turns it off.
  */

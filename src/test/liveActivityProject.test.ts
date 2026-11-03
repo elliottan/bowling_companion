@@ -86,8 +86,16 @@ describe("the widget extension in the Xcode project", () => {
     expect(builds.size).toBe(1);
   });
 
-  it("deploys to 16.1, the first iOS with Live Activities, while the app stays on 15", () => {
-    expect(project).toMatch(/IPHONEOS_DEPLOYMENT_TARGET = 16\.1;/);
+  it("deploys to 18, the first iOS that draws an activity on a watch, while the app stays on 15", () => {
+    // ADR-227: `supplementalActivityFamilies` is iOS 18, and the bundle cannot
+    // switch it by version, so the extension's floor is 18 and the plugin
+    // starts nothing below it.
+    expect(project.match(/IPHONEOS_DEPLOYMENT_TARGET = 18\.0;/g)).toHaveLength(2);
+    expect(project).not.toMatch(/IPHONEOS_DEPLOYMENT_TARGET = 16\.1;/);
+    const plugin = read("ios/App/App/HeadpinLiveActivityPlugin.swift");
+    for (const method of ["status", "start", "update"]) {
+      expect(plugin).toMatch(new RegExp(`func ${method}\\(_ call: CAPPluginCall\\) \\{\\s+(?:if|guard) #available\\(iOS 18\\.0, \\*\\)`));
+    }
     expect(project.match(/IPHONEOS_DEPLOYMENT_TARGET = 15\.0;/g)).toHaveLength(4);
   });
 

@@ -25,10 +25,8 @@ import {
   headlineRatio, oilStats, patternClass, patternLength, PATTERN_CLASS_LABEL,
   type PatternClass,
 } from "../lib/oilPattern";
-import {
-  matchesPatternFilters, NO_PATTERN_FILTERS, PatternFilterButton, PatternFilterSheet,
-  type PatternFilters,
-} from "./PatternFilterSheet";
+import { PatternFilterButton, PatternFilterSheet } from "./PatternFilterSheet";
+import { matchesPatternFilters, NO_PATTERN_FILTERS, type PatternFilters } from "../lib/patternFilters";
 import { FIELD } from "./ui/field";
 import { getCatalogPatterns, type CatalogPattern } from "../services/patternCatalog";
 import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";

@@ -1,7 +1,7 @@
 import { plural, t } from "@lingui/core/macro";
 import { History } from "lucide-react";
 import { calculateGameScore } from "../lib/scoring";
-import { laneSummary } from "./SessionHeaderText";
+import { laneSummary } from "../lib/sessionLabels";
 import { alleyLabel } from "../lib/sessionLabels";
 import type { SessionSummary } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";

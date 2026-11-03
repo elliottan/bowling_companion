@@ -12,6 +12,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useHandedness } from "../lib/handednessContext";
 import type { LineSpec } from "../types/bowling";
 import { FIELD_MICRO_LABEL } from "./ui/field";
+import { lockedTapBlocker } from "./lockedTapBlocker";
 
 interface LineInputProps {
   label: string;
@@ -55,19 +56,10 @@ function fieldLabel(field: BoardField): string {
       return t({ message: "Target", comment: "Bowling term: the board the ball crosses at the arrows." });
   }
 }
-// Re-exported under the name the shot panels already use: a filled-in "23"
-// still has to say whether it's a slide or a target.
-export const floatLabel = FIELD_MICRO_LABEL;
+// A filled-in "23" still has to say whether it's a slide or a target.
+const floatLabel = FIELD_MICRO_LABEL;
 // Section eyebrow (INTENDED / ACTUAL). Tight tracking, these are wide words.
 const eyebrow = "text-caption-2 font-semibold uppercase tracking-[0.01em] text-ink-secondary";
-
-// Tap-gate for a locked (completed) game. Raising the prompt on `change` alone
-// let the field focus first, so the keyboard and caret appeared behind the
-// dialog; vetoing on pointerdown means the tap never lands on the control.
-export const lockedTapBlocker =
-  (onEditAttempt?: () => boolean) => (e: ReactPointerEvent<HTMLElement>) => {
-    if (onEditAttempt && !onEditAttempt()) e.preventDefault();
-  };
 
 // "X-Y" board move: X boards at the stance (feet), Y at the target (arrows).
 const MOVE_PRESETS = [
@@ -133,6 +125,7 @@ export function LineInput({
   // prefill, reset), not when the prop merely echoes the user's own edit, so
   // in-progress entries like "15." aren't wiped.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- local text follows the prop only on an outside change, so a half-typed "15." survives its own echo
     setText((prev) => {
       const next = { ...prev };
       for (const f of fields) {

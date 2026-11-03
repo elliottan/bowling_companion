@@ -132,7 +132,7 @@ msgstr "{0, plural, other {Game {gameNumber}, # sesi}}"
 #. placeholder {0}: parts.lanes.length
 #: src/components/ProOfferSamples.tsx
 #: src/components/SessionFilterBar.tsx
-#: src/components/SessionHeaderText.tsx
+#: src/lib/sessionLabels.ts
 #: src/lib/shareCard.ts
 msgid "{0, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{0, plural, other {Lintasan {lanes}}}"
@@ -215,7 +215,7 @@ msgstr "{conversions} dari {chances} berhasil"
 msgid "{count, plural, one {# game series} other {# game series}}"
 msgstr "{count, plural, other {seri # game}}"
 
-#: src/components/SessionHeaderText.tsx
+#: src/lib/sessionLabels.ts
 msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, other {Lintasan {lanes}}}"
 
@@ -583,6 +583,7 @@ msgstr "1H"
 #. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "1st ball"
 msgstr "Lemparan 1"
 
@@ -921,6 +922,7 @@ msgstr "Otomatis"
 #. A bowling average: the score per game
 #. A bowling average: the score per game
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/lib/shareCard.ts
 msgid "Average"
 msgstr "Rata-rata"
@@ -1168,6 +1170,7 @@ msgstr "carry"
 #: src/components/BallGameSessionsDialog.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/lib/shareCard.ts
 #: src/views/GameTrendView.tsx
 msgid "Carry"
@@ -1882,12 +1885,12 @@ msgid "First ball"
 msgstr "Lemparan pertama"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "First balls at a full rack that struck."
 msgstr "Lemparan pertama pada rak penuh yang jadi strike."
 
 #. Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "First balls that hit the pocket."
 msgstr "Lemparan pertama yang mengenai pocket."
 
@@ -2702,7 +2705,7 @@ msgid "Makeable"
 msgstr "Bisa di-spare"
 
 #. Bowling terms: a makeable leave is a set of standing pins that can be converted to a spare; a split leaves gaps between pins; a washout is a leave with the head pin standing and a gap behind it
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Makeable leaves made. Not splits or washouts."
 msgstr "Sisa pin yang bisa di-spare dan berhasil dikonversi. Tidak termasuk split atau washout."
 
@@ -2720,7 +2723,7 @@ msgid "Manage oil patterns"
 msgstr "Kelola pola minyak"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Max consecutive strikes"
 msgstr "Strike beruntun terbanyak"
 
@@ -2768,7 +2771,7 @@ msgid "Most opens (makeables)"
 msgstr "Open terbanyak (bisa di-spare)"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Most strikes in a row in one game."
 msgstr "Strike beruntun terbanyak dalam satu game."
 
@@ -3322,7 +3325,7 @@ msgid "Pins standing: {pins}"
 msgstr "Pin berdiri: {pins}"
 
 #. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Pins the first ball knocks down, on average."
 msgstr "Rata-rata pin yang dijatuhkan lemparan pertama."
 
@@ -3354,6 +3357,7 @@ msgstr "pocket"
 #: src/components/LaneVisualizer.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/lib/shareCard.ts
 #: src/views/GameTrendView.tsx
 msgid "Pocket"
@@ -3369,7 +3373,7 @@ msgid "pocket hits"
 msgstr "kena pocket"
 
 #. Bowling term: how often a ball that hit the pocket knocked all the pins down
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Pocket hits that struck."
 msgstr "Kena pocket yang jadi strike."
 
@@ -3945,7 +3949,7 @@ msgstr "spare"
 #. Bowling term: all remaining pins knocked down with the second ball of a frame
 #. Bowling term: all ten pins down with two balls. Column heading.
 #: src/components/ActiveGameScorer.tsx
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/views/ArsenalView.tsx
 #: src/views/GameTrendView.tsx
 msgid "Spare"
@@ -4109,6 +4113,7 @@ msgstr "strike"
 #: src/components/BallGameSessionsDialog.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/views/GameTrendView.tsx
 msgid "Strike"
 msgstr "Strike"
@@ -4149,6 +4154,7 @@ msgstr "strike setelah strike"
 #. Bowling term: a strike on the ball right after a strike
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Strike on strike"
 msgstr "Strike setelah strike"
 
@@ -4171,7 +4177,7 @@ msgid "Strikes in a row"
 msgstr "Strike beruntun"
 
 #. Bowling term: a strike on the ball right after a strike
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Strikes the next ball struck too."
 msgstr "Strike yang diikuti strike lagi pada lemparan berikutnya."
 
@@ -4883,7 +4889,7 @@ msgstr "PAP-mu"
 msgid "Your PAP and hand"
 msgstr "PAP dan tanganmu"
 
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Your score per finished game."
 msgstr "Skormu per game yang selesai."
 

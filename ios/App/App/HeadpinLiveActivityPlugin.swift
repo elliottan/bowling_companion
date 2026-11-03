@@ -29,8 +29,9 @@ public class HeadpinLiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     /// Whether this phone can show one, and whether the bowler has allowed it
     /// for Headpin in the phone's own Settings. The page hides its switch when
     /// `supported` is false and says where to allow it when `enabled` is.
+    /// iOS 18 and later: the extension that draws it needs 18 (ADR-227).
     @objc func status(_ call: CAPPluginCall) {
-        if #available(iOS 16.1, *) {
+        if #available(iOS 18.0, *) {
             call.resolve([
                 "supported": HeadpinLiveActivities.extensionIsBundled,
                 "enabled": ActivityAuthorizationInfo().areActivitiesEnabled
@@ -42,8 +43,9 @@ public class HeadpinLiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
 
     /// Shows the game: updates its activity if it has one, else ends any other
     /// and starts one. `active` says whether an activity is showing it.
+    /// Nothing below iOS 18, where the extension does not load (ADR-227).
     @objc func start(_ call: CAPPluginCall) {
-        guard #available(iOS 16.1, *) else {
+        guard #available(iOS 18.0, *) else {
             call.resolve(["active": false])
             return
         }
@@ -61,7 +63,7 @@ public class HeadpinLiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
     /// the page's cue to start one: the app may have been closed and opened
     /// since, and the page does not remember what the phone was showing.
     @objc func update(_ call: CAPPluginCall) {
-        guard #available(iOS 16.1, *) else {
+        guard #available(iOS 18.0, *) else {
             call.resolve(["active": false])
             return
         }
@@ -77,7 +79,8 @@ public class HeadpinLiveActivityPlugin: CAPPlugin, CAPBridgedPlugin {
 
     /// Ends the game's activity, or every one when no game is named. With a
     /// `state` and `dismissAfter` it leaves that state up for that many
-    /// seconds (the final score), else it goes at once.
+    /// seconds (the final score), else it goes at once. Still 16.1, as is
+    /// `showing`: an activity an older build left up on iOS 17 can be ended.
     @objc func end(_ call: CAPPluginCall) {
         guard #available(iOS 16.1, *) else {
             call.resolve()
