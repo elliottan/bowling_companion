@@ -11,13 +11,15 @@ import WidgetKit
 /// (`supplementalActivityFamilies`); without it the watch shows the island's
 /// two compact slots, a pin and the total (ADR-227). The modifier changes the
 /// configuration's type, so it cannot sit behind an `if #available` inside one
-/// widget, and the bundle picks the widget instead.
+/// widget, and the bundle picks the widget instead: two plain `if`s, since
+/// the bundle's builder takes an `if` without an `else`.
 @main
 struct HeadpinLiveActivityBundle: WidgetBundle {
     var body: some Widget {
         if #available(iOS 18.0, *) {
             HeadpinGameLiveActivityWithWatch()
-        } else {
+        }
+        if #unavailable(iOS 18.0) {
             HeadpinGameLiveActivity()
         }
     }

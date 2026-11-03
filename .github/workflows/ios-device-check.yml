@@ -65,10 +65,17 @@ jobs:
       - name: Build the app for the simulator
         run: |
           # pipefail: without it the tail's exit code hides a failed build.
+          # The whole log is kept, because the last 40 lines of a failed build
+          # list the files that failed and not the compiler's errors.
           set -o pipefail
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
             -sdk iphonesimulator -destination "id=${{ steps.sim.outputs.udid }}" \
-            -derivedDataPath ios-build CODE_SIGNING_ALLOWED=NO build | tail -40
+            -derivedDataPath ios-build CODE_SIGNING_ALLOWED=NO build > xcodebuild.log 2>&1 || {
+              grep -E "error:" -A4 xcodebuild.log | head -80
+              tail -40 xcodebuild.log
+              exit 1
+            }
+          tail -40 xcodebuild.log
           test -d ios-build/Build/Products/Debug-iphonesimulator/App.app
           # The Live Activity's extension (ADR-221) is built and embedded.
           test -f ios-build/Build/Products/Debug-iphonesimulator/App.app/PlugIns/HeadpinLiveActivity.appex/HeadpinLiveActivity

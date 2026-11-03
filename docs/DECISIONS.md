@@ -9745,15 +9745,15 @@ is 16.1 (ADR-221).
 - **Two widgets, one in the bundle.** The modifier changes the configuration's
   type, so it cannot be switched inside one widget with `if #available`. The
   bundle picks `HeadpinGameLiveActivityWithWatch` on iOS 18 and
-  `HeadpinGameLiveActivity` before it. Both share one Dynamic Island
+  `HeadpinGameLiveActivity` before it, with an `if #available` and an
+  `if #unavailable` rather than an `if`/`else`, which the bundle's builder
+  refused on the first CI build. Both share one Dynamic Island
   (`HeadpinGameIsland`); on iOS 18 the activity's content view reads
   `activityFamily` and draws the Lock Screen at `.medium` and the watch at
   `.small`. No new file, so the Xcode project is untouched.
 
 **Consequences.** CarPlay on iOS 26 draws an activity's `.small` layout too,
 so a car shows the same three frames. Free, as ADR-221 is. To confirm on a
-Mac and a watch: that the bundle's `if #available` builds on the 16.1 floor
-(if `WidgetBundleBuilder` refuses it, the fallback is the iOS 18 widget alone
-behind an `if #available` with no `else`, with the extension's floor raised
-to 18); what the layout looks like on a 41mm and a 49mm watch; and that the
+Mac and a watch (the `ios` CI job builds the extension, so the Swift itself
+is checked there): what the layout looks like on a 41mm and a 49mm watch; and that the
 tenth frame's three boxes are legible at 12 pt when it is among the three.
