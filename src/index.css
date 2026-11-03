@@ -283,7 +283,10 @@ select {
 @media (max-width: 640px) {
   input,
   select,
-  textarea {
+  textarea,
+  /* The invisible label a menu Select is sized by (ADR-230): the same size as
+     the select it stands for, or the select is cut short of its own value. */
+  .select-sizer {
     /* 16px is the floor that stops the zoom; a larger text size raises it. */
     font-size: max(16px, calc(1rem * var(--type-scale, 1))) !important;
   }

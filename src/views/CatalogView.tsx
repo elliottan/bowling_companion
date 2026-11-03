@@ -636,7 +636,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
             {/* Sized by its wrapper, which is as wide as the longest option:
                 the select chrome carries `w-full`, and on a wrapping row a
                 full-width item always takes a line of its own. */}
-            <div className="max-w-full">
+            <div className="max-w-full shrink-0">
             <Select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}

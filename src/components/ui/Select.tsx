@@ -49,7 +49,7 @@ export function Select({ variant = "field", wrapperClassName = "", className = "
           its longest option: an invisible copy of the chosen label sizes the
           box the select is laid over. */}
       {variant === "menu" && (
-        <span aria-hidden="true" className="invisible block truncate whitespace-nowrap pl-2 pr-7 text-subhead font-medium leading-[2.75rem]">
+        <span aria-hidden="true" className="select-sizer invisible block whitespace-nowrap pl-2 pr-7 text-subhead font-medium leading-[2.75rem]">
           {chosenLabel(children, rest.value)}
         </span>
       )}
