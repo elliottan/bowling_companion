@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.79.0: Pick-one toggles look like the phone's own (2026-11-03)
+## 0.79.0: Controls that look and feel like the phone's own (2026-11-03)
 
 - Every pick-one toggle (the session sheet's Sheet, Stats and Lanes, the Stats
   range, Theme and Text size, handedness and grip, and the rest) is drawn as
@@ -18,6 +18,16 @@ had all shipped.
   Each is 16px shorter, so the content under it starts higher. Still 44pt to
   the finger, and it still follows a sliding finger with a tick at each
   segment (ADR-227).
+- Sheets move like the phone's: pull one down from its content once it is
+  scrolled to the top, flick it away with a short quick swipe, watch the dim
+  lift as you pull, and feel it give a little when pulled up (ADR-228).
+- Filter chips are the phone's grey capsules, with no border, and fill with
+  the accent when on (ADR-229).
+- Drop-down lists show the phone's up-and-down chevrons, so they no longer look
+  like text boxes, and the catalog's sort is a tinted pop-up button as iOS
+  draws one (ADR-230).
+- In the iPhone app, "Delete this game?" and the other confirms are the
+  phone's own alert, with the delete in the system red (ADR-231).
 
 ## 0.78.0: Every language reads more naturally, and the store speaks them too (2026-11-02)
 

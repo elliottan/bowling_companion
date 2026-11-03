@@ -3,6 +3,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 const EXIT_MS = 220;
 // A drag this far down commits to closing; anything less springs back.
 const DISMISS_PX = 96;
+// Or a flick this fast downward (px per ms), however short, as UIKit's sheet
+// closes on a flick rather than only past a distance (ADR-228).
+const FLICK_PX_PER_MS = 0.5;
+// How far a drag upward moves the sheet: past its resting place it gives a
+// little and no more, as a system sheet does at its top detent.
+function rubberBand(dy: number): number {
+  return -Math.min(24, Math.sqrt(-dy) * 2);
+}
 
 export interface SheetDismiss {
   /** Close with the exit animation, then run `after` *instead of* `onClose`
@@ -32,6 +40,10 @@ export interface SheetDismiss {
     onPointerUp: () => void;
     onPointerCancel: () => void;
   };
+  /** A callback ref for the sheet's scrolling body (bottom sheets only): a
+   *  finger that pulls down while the body is already at its top moves the
+   *  sheet rather than the list, as a UIKit sheet does (ADR-228). */
+  bodyDragRef: (el: HTMLElement | null) => void;
 }
 
 /**
@@ -50,6 +62,9 @@ export function useSheetDismiss(
   const [dragY, setDragY] = useState(0);
   const dragStartY = useRef<number | null>(null);
   const timer = useRef<number | null>(null);
+  // The last two positions of a drag, for its speed as the finger lifts.
+  const lastMove = useRef<{ y: number; t: number; v: number }>({ y: 0, t: 0, v: 0 });
+  const dragYRef = useRef(0);
 
   const dismiss = useCallback(
     (after?: () => void) => {
@@ -78,7 +93,96 @@ export function useSheetDismiss(
     []
   );
 
+  const beginDrag = useCallback((y: number) => {
+    dragStartY.current = y;
+    lastMove.current = { y, t: performance.now(), v: 0 };
+  }, []);
+  const moveDrag = useCallback((y: number) => {
+    if (dragStartY.current === null) return;
+    const now = performance.now();
+    const last = lastMove.current;
+    const dt = now - last.t;
+    if (dt > 0) lastMove.current = { y, t: now, v: (y - last.y) / dt };
+    const dy = y - dragStartY.current;
+    const next = dy >= 0 ? dy : rubberBand(dy);
+    dragYRef.current = next;
+    setDragY(next);
+  }, []);
+  const endDrag = useCallback(
+    (cancelled = false) => {
+      if (dragStartY.current === null) return;
+      // A finger that stopped before lifting has no speed left in it.
+      const stale = performance.now() - lastMove.current.t > 80;
+      const flicked = !stale && lastMove.current.v > FLICK_PX_PER_MS && dragYRef.current > 0;
+      const shouldClose = !cancelled && (dragYRef.current > DISMISS_PX || flicked);
+      dragStartY.current = null;
+      dragYRef.current = 0;
+      setDragY(0);
+      if (shouldClose) dismiss();
+    },
+    [dismiss]
+  );
+
+  // The body's pull: touch events rather than pointer events, because the
+  // body scrolls natively and a pointer is taken from the page the moment the
+  // browser scrolls. Non-passive, so the pull can stop the list from moving
+  // under it. A pull only starts at the top, and only downward.
+  const bodyCleanup = useRef<(() => void) | null>(null);
+  const bodyDragRef = useCallback(
+    (el: HTMLElement | null) => {
+      bodyCleanup.current?.();
+      bodyCleanup.current = null;
+      if (!el || align !== "bottom") return;
+      let startY: number | null = null;
+      let pulling = false;
+      const onStart = (e: TouchEvent) => {
+        if (e.touches.length !== 1) return;
+        startY = e.touches[0].clientY;
+        pulling = false;
+      };
+      const onMove = (e: TouchEvent) => {
+        if (startY === null) return;
+        const y = e.touches[0].clientY;
+        if (!pulling) {
+          if (el.scrollTop > 0 || y - startY <= 4) {
+            // Scrolling the list, or pushing up: the list's, for this touch.
+            if (el.scrollTop > 0 || y < startY) startY = null;
+            return;
+          }
+          pulling = true;
+          beginDrag(y);
+        }
+        e.preventDefault();
+        moveDrag(y);
+      };
+      const onEnd = () => {
+        if (pulling) endDrag();
+        startY = null;
+        pulling = false;
+      };
+      const onCancel = () => {
+        if (pulling) endDrag(true);
+        startY = null;
+        pulling = false;
+      };
+      el.addEventListener("touchstart", onStart, { passive: true });
+      el.addEventListener("touchmove", onMove, { passive: false });
+      el.addEventListener("touchend", onEnd);
+      el.addEventListener("touchcancel", onCancel);
+      bodyCleanup.current = () => {
+        el.removeEventListener("touchstart", onStart);
+        el.removeEventListener("touchmove", onMove);
+        el.removeEventListener("touchend", onEnd);
+        el.removeEventListener("touchcancel", onCancel);
+      };
+    },
+    [align, beginDrag, moveDrag, endDrag]
+  );
+
   const dragging = dragStartY.current !== null;
+  // The dim lifts as the sheet is pulled down, as UIKit's does, rather than
+  // holding full until the sheet lets go.
+  const pulled = typeof window === "undefined" ? 0 : Math.max(0, dragY) / Math.max(1, window.innerHeight * 0.75);
 
   const transform = exiting
     ? align === "bottom"
@@ -99,8 +203,8 @@ export function useSheetDismiss(
       pointerEvents: exiting ? ("none" as const) : undefined
     },
     backdropStyle: {
-      opacity: exiting ? 0 : 1,
-      transition: `opacity ${EXIT_MS}ms ease-out`
+      opacity: exiting ? 0 : Math.max(0, 1 - pulled),
+      transition: dragging ? "none" : `opacity ${EXIT_MS}ms ease-out`
     },
     panelStyle: {
       transform,
@@ -112,23 +216,13 @@ export function useSheetDismiss(
         // A sheet whose whole header is a drag surface still has controls in
         // that header. Capturing the pointer here would swallow their press.
         if ((e.target as HTMLElement).closest("button, a, input, select, textarea, [role='button']")) return;
-        dragStartY.current = e.clientY;
+        beginDrag(e.clientY);
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       },
-      onPointerMove: (e) => {
-        if (dragStartY.current === null) return;
-        setDragY(Math.max(0, e.clientY - dragStartY.current));
-      },
-      onPointerUp: () => {
-        const shouldClose = dragY > DISMISS_PX;
-        dragStartY.current = null;
-        setDragY(0);
-        if (shouldClose) dismiss();
-      },
-      onPointerCancel: () => {
-        dragStartY.current = null;
-        setDragY(0);
-      }
-    }
+      onPointerMove: (e) => moveDrag(e.clientY),
+      onPointerUp: () => endDrag(),
+      onPointerCancel: () => endDrag(true)
+    },
+    bodyDragRef
   };
 }

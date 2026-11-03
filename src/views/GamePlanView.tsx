@@ -1,4 +1,5 @@
 import { plural, t } from "@lingui/core/macro";
+import { Select } from "../components/ui/Select";
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Compass } from "lucide-react";
@@ -8,7 +9,7 @@ import { Button } from "../components/ui/Button";
 import { LoadingCard } from "../components/ui/LoadingCard";
 import { useProAccess } from "../lib/useProAccess";
 import { FREE_BALLS } from "../lib/proPreview";
-import { FIELD_LABEL, FIELD_SELECT } from "../components/ui/field";
+import { FIELD_LABEL } from "../components/ui/field";
 import { ChoiceInput } from "../components/ui/SuggestInput";
 import { buildLineReport } from "../lib/lineReport";
 import { useHandedness } from "../lib/handednessContext";
@@ -170,18 +171,18 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                     <label className={FIELD_LABEL} htmlFor="plan-alley">
                       {t`Alley`}
                     </label>
-                    <select
+                    <Select
                       id="plan-alley"
                       value={alley}
                       onChange={(e) => setAlley(e.target.value)}
-                      className={FIELD_SELECT}
+                      variant="field"
                     >
                       {allAlleys.map((a) => (
                         <option key={a} value={a}>
                           {a}
                         </option>
                       ))}
-                  </select>
+                  </Select>
                 </div>
               )}
               {/* Wraps: at a large text size the lane and game take a row
@@ -207,11 +208,11 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                     <label className={FIELD_LABEL} htmlFor="plan-lane">
                       {t`Lane`}
                     </label>
-                    <select
+                    <Select
                       id="plan-lane"
                       value={lane}
                       onChange={(e) => setLane(e.target.value)}
-                      className={FIELD_SELECT}
+                      variant="field"
                     >
                       <option value="">{t`Any`}</option>
                       {allLanes.map((l) => (
@@ -219,7 +220,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                           {l}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                 )}
                 {allGames.length > 1 && (
@@ -227,11 +228,11 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                     <label className={FIELD_LABEL} htmlFor="plan-game">
                       {t`Game`}
                     </label>
-                    <select
+                    <Select
                       id="plan-game"
                       value={gameNumber ? String(gameNumber) : ""}
                       onChange={(e) => setGame(e.target.value)}
-                      className={FIELD_SELECT}
+                      variant="field"
                     >
                       <option value="">{t`Any`}</option>
                       {allGames.map((g) => (
@@ -239,7 +240,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                           {g}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                 )}
               </div>

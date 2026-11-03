@@ -509,6 +509,25 @@ input[type="date"]::-webkit-date-and-time-value {
   box-shadow: 0 3px 8px rgb(0 0 0 / 0.24), 0 3px 1px rgb(0 0 0 / 0.08);
 }
 
+/* A filter chip (ADR-229): off, the segmented control's flat grey fill, so
+   the two read as one family of control; pressed, it darkens as UIKit's
+   filled controls do. On, the accent fill, set by the component. */
+.chip-off {
+  background: rgb(118 118 128 / 0.12);
+}
+:root[data-theme="dark"] .chip-off {
+  background: rgb(118 118 128 / 0.24);
+}
+.chip-off:active {
+  background: rgb(118 118 128 / 0.2);
+}
+:root[data-theme="dark"] .chip-off:active {
+  background: rgb(118 118 128 / 0.34);
+}
+.chip-on:active {
+  opacity: 0.85;
+}
+
 /* Every screen rubber-bands, as an iOS screen does whether or not its content
    fills it (ADR-188). WebKit bounces a scroller only once its content is
    taller than it, so a screen that fits, Home on a big phone, sat dead under

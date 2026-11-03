@@ -48,7 +48,7 @@ export const DEFAULT_TAB_BAR_HEIGHT = 83;
 const SETUP_TIMEOUT_MS = 4000;
 
 /** `rgb(var(--color-accent))` as `#rrggbb`, for the chosen tab. */
-function accentHex(): string {
+export function accentHex(): string {
   const triple = getComputedStyle(document.documentElement).getPropertyValue("--color-accent").trim();
   const [r, g, b] = triple.split(/\s+/).map(Number);
   if ([r, g, b].some((n) => !Number.isFinite(n))) return "#1b5148";

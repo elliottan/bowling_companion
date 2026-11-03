@@ -1,10 +1,11 @@
 import { plural, t } from "@lingui/core/macro";
+import { Select } from "./ui/Select";
 import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "./ui/Button";
 import { Chip, TAP_TARGET_44 } from "./ui/Chip";
 import { FormSheet } from "./ui/FormSheet";
 import { IconButton } from "./ui/IconButton";
-import { FIELD_SELECT, FIELD_LABEL } from "./ui/field";
+import { FIELD_LABEL } from "./ui/field";
 import { ChoiceInput } from "./ui/SuggestInput";
 import { GROUP_HEADING } from "./ui/typography";
 import type { SessionFilters } from "../views/useSessionFilters";
@@ -180,11 +181,11 @@ export function SessionFilterSheet({
           <label className={FIELD_LABEL} htmlFor="filter-alley">
             {t`Alley`}
           </label>
-          <select
+          <Select
             id="filter-alley"
             value={alley}
             onChange={(e) => setAlley(e.target.value)}
-            className={FIELD_SELECT}
+            variant="field"
           >
             <option value="">{t`All alleys`}</option>
             {allAlleys.map((a) => (
@@ -192,7 +193,7 @@ export function SessionFilterSheet({
                 {a}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div>
@@ -214,11 +215,11 @@ export function SessionFilterSheet({
             <label className={FIELD_LABEL} htmlFor="filter-event">
               {t`Event`}
             </label>
-            <select
+            <Select
               id="filter-event"
               value={event}
               onChange={(e) => setEvent(e.target.value)}
-              className={FIELD_SELECT}
+              variant="field"
             >
               <option value="">{t`All events`}</option>
               {allEvents.map((e) => (
@@ -226,7 +227,7 @@ export function SessionFilterSheet({
                   {e}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         )}
 

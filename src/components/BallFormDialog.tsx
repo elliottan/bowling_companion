@@ -1,4 +1,5 @@
 import { Archive, BookOpen, Check, ChevronRight, Compass, MoreHorizontal, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { Select } from "./ui/Select";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { t } from "@lingui/core/macro";
@@ -307,13 +308,13 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
                 <label htmlFor="ball-weight" className="mb-1 block text-sm font-medium text-ink-strong">
                   {t`Weight`} <span className="font-normal text-ink-secondary">{t({ message: "(lb)", comment: "Abbreviation for pounds, the unit a bowling ball is weighed in" })}</span>
                 </label>
-                <select id="ball-weight" value={weight} onChange={(e) => setWeight(Number(e.target.value))} className={FIELD}>
+                <Select id="ball-weight" value={weight} onChange={(e) => setWeight(Number(e.target.value))}>
                   {WEIGHT_OPTIONS.map((w) => (
                     <option key={w} value={w}>
                       {w}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
             </div>
 

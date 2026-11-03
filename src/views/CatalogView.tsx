@@ -1,4 +1,5 @@
 import { plural, t } from "@lingui/core/macro";
+import { Select } from "../components/ui/Select";
 import { Trans } from "@lingui/react/macro";
 import { BookOpen, ExternalLink, Loader2, Palette, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -21,7 +22,7 @@ import { MANUFACTURERS, type CatalogBall, type CoverstockCategory, type Manufact
 import type { Ball } from "../types/bowling";
 import { addBall, getBalls } from "../services/ballRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
-import { FIELD, FIELD_DENSE_SELECT, FIELD_LABEL } from "../components/ui/field";
+import { FIELD, FIELD_LABEL } from "../components/ui/field";
 import { formatReleaseDate } from "../lib/dates";
 import { formatDate, formatFixed, formatNumber } from "../lib/format";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
@@ -636,16 +637,16 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
                 the select chrome carries `w-full`, and on a wrapping row a
                 full-width item always takes a line of its own. */}
             <div className="max-w-full">
-            <select
+            <Select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              className={FIELD_DENSE_SELECT}
+              variant="menu"
             >
               <option value="releaseDate">{t`Newest first`}</option>
               <option value="rg">{t({ message: "RG, low to high", comment: "Bowling term: RG is the radius of gyration, a ball spec. A sort order." })}</option>
               <option value="diff">{t({ message: "Diff, high to low", comment: "Bowling term: Diff is the differential, a ball spec. A sort order." })}</option>
               <option value="name">{t`Name, A to Z`}</option>
-            </select>
+            </Select>
             </div>
           </label>
         </div>
