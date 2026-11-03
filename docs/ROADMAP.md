@@ -14,13 +14,13 @@ A free app with one Pro unlock, sold only in the store apps, with no accounts an
 no server (ADR-154). The phases, the free and Pro split, and how the catalog
 refreshes offline are in [PRO-LAUNCH.md](./PRO-LAUNCH.md).
 
-### The Live Activity, seen on a phone
+### The Live Activity, seen on a watch
 
-ADR-221 puts the game on the Lock Screen and in the Dynamic Island, in the
-bowler's palette, and ADR-222 settles an activity a closed app left behind and
-redraws a renumbered game. All of it was written without Xcode or a phone, so
-the job is to open the project, build it, and look at the three layouts on a
-device.
+ADR-221 puts the game on the Lock Screen and in the Dynamic Island, and ADR-222
+settles an activity a closed app left behind; both are seen working on a phone.
+ADR-227 gives the Apple Watch's Smart Stack a layout of its own, written
+without Xcode or a watch, so the job is to build it and look at it on a watch
+(the checks are under its Consequences).
 
 ---
 

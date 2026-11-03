@@ -9713,3 +9713,47 @@ beside them.
 **Consequences.** Every pushed screen names itself at every scroll position,
 in full at the top. The page starts a title's height lower than it did.
 
+
+## ADR-227: The game in progress on an Apple Watch has a layout of its own
+
+**Status.** Accepted, 2026-11-03, at the owner's request. Extends ADR-221,
+whose Lock Screen and Dynamic Island the owner has seen on a phone and which
+stand as they are. Written on Linux; the Swift is unbuilt and the watch layout
+unseen.
+
+**Context.** Since watchOS 11, a paired iPhone's Live Activity appears in the
+watch's Smart Stack. An activity that does not opt in is drawn from the
+Dynamic Island's two compact slots, so the watch showed a pin and the total
+and nothing else: not the frame, not the marks just thrown. The opt-in,
+`supplementalActivityFamilies([.small])`, is iOS 18, and the extension's floor
+is 16.1 (ADR-221).
+
+**Decision.**
+
+- **The watch draws its own layout** (`WatchGameView` in
+  `HeadpinGameViews.swift`): "Game 3" and "Frame 6" (or "Final score") on
+  the top line, the total large with "Max 214" beside it, and the last three
+  frames, ending at the one being bowled, from the island's
+  `RecentFramesView`. Ten frames do not fit a watch's width; three show the
+  marks just thrown and whether the spare before them has been filled in.
+- **Always dark, in the bowler's accent.** The Smart Stack is black, so the
+  watch takes the island's palette rather than the Lock Screen's light or
+  dark one.
+- **Nothing new is sent.** The payload already carries all ten frames, the
+  total, the frame and the max, so the page, `liveActivity.ts` and the
+  Codable struct are unchanged, and the watch costs no extra update.
+- **Two widgets, one in the bundle.** The modifier changes the configuration's
+  type, so it cannot be switched inside one widget with `if #available`. The
+  bundle picks `HeadpinGameLiveActivityWithWatch` on iOS 18 and
+  `HeadpinGameLiveActivity` before it. Both share one Dynamic Island
+  (`HeadpinGameIsland`); on iOS 18 the activity's content view reads
+  `activityFamily` and draws the Lock Screen at `.medium` and the watch at
+  `.small`. No new file, so the Xcode project is untouched.
+
+**Consequences.** CarPlay on iOS 26 draws an activity's `.small` layout too,
+so a car shows the same three frames. Free, as ADR-221 is. To confirm on a
+Mac and a watch: that the bundle's `if #available` builds on the 16.1 floor
+(if `WidgetBundleBuilder` refuses it, the fallback is the iOS 18 widget alone
+behind an `if #available` with no `else`, with the extension's floor raised
+to 18); what the layout looks like on a 41mm and a 49mm watch; and that the
+tenth frame's three boxes are legible at 12 pt when it is among the three.

@@ -9,9 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.78.1: A lint gate with no warnings left (2026-11-03)
+## 0.79.0: The game on your Apple Watch, and a lint gate with no warnings left (2026-11-03)
 
-- No change a bowler can see. ESLint's 26 warnings are gone and the three
+- On an Apple Watch, the game being scored in the Smart Stack now shows the
+  game and frame, the total with the highest score still possible, and the
+  last three frames with their marks. It used to show only a pin and the
+  total. Needs iOS 18 on the iPhone (ADR-227).
+- No change a bowler can see: ESLint's 26 warnings are gone and the three
   rules behind them are errors now. The helpers and tables that sat beside a
   component moved to their own modules (`statsMetrics`, `driftZoneAccent`,
   `lockedTapBlocker`, `lib/patternFilters`, and the lane labels into

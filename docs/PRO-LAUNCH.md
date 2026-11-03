@@ -229,9 +229,9 @@ switch.
 - [x] Haptics on the pin deck, no rubber band, no pinch zoom (ADR-160). Apple
       rejects a repackaged website (4.2).
 - [x] The game in progress on the Lock Screen and in the Dynamic Island, a
-      Live Activity from a widget extension of the iPhone app (ADR-221). Written
-      and unit tested on Linux; the Xcode target, the Swift and the look have
-      never been built or seen, so see "What the owner does in Xcode" in the ADR.
+      Live Activity from a widget extension of the iPhone app (ADR-221), seen
+      working on a phone. Its Apple Watch layout (ADR-227) is not yet built or
+      seen.
 - [x] The first-run import steps.
 - [x] Remove the donation link and the retailer link (ADR-119), their usage
       count, and their words on the legal page.
