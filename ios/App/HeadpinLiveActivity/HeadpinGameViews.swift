@@ -133,14 +133,17 @@ struct LockScreenGameView: View {
     }
 }
 
-/// The island's expanded bottom: the last few frames, up to the one being bowled.
+/// The last few frames, up to the one being bowled: four in the island's
+/// expanded bottom, three on the watch.
 struct RecentFramesView: View {
     let state: HeadpinGameAttributes.ContentState
     let palette: HeadpinPalette
+    var count = 4
+    var markSize: CGFloat = 13
 
     var body: some View {
         let upTo = min(state.frames.count, state.done ? 10 : max(1, state.frame))
-        let from = max(0, upTo - 4)
+        let from = max(0, upTo - count)
         HStack(spacing: 4) {
             ForEach(Array(state.frames.enumerated()).filter { $0.offset >= from && $0.offset < upTo }, id: \.offset) { item in
                 FrameCellView(
@@ -149,10 +152,71 @@ struct RecentFramesView: View {
                     isCurrent: !state.done && item.offset + 1 == state.frame,
                     palette: palette,
                     showsNumber: true,
-                    markSize: 13
+                    markSize: markSize
                 )
                 .frame(maxWidth: .infinity)
             }
         }
+    }
+}
+
+/// Picks the layout by where the activity is drawn: the watch's Smart Stack is
+/// `.small`, the Lock Screen and the banner `.medium` (ADR-227).
+struct GameViewForFamily: View {
+    let state: HeadpinGameAttributes.ContentState
+    @Environment(\.activityFamily) private var family
+
+    var body: some View {
+        if family == .small {
+            WatchGameView(state: state)
+        } else {
+            LockScreenGameView(state: state)
+        }
+    }
+}
+
+/// The Apple Watch's Smart Stack: the game and frame, the total with the
+/// highest score still possible, and the last three frames. Ten frames do not
+/// fit the width; three show the marks just thrown and whether the spare
+/// before them has been filled in. Always dark, as the watch is, so it takes
+/// the island's palette.
+struct WatchGameView: View {
+    let state: HeadpinGameAttributes.ContentState
+
+    private var palette: HeadpinPalette { HeadpinPalette.island(palette: state.palette) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text("Game \(state.game)")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(palette.accent)
+                    .lineLimit(1)
+                Spacer(minLength: 4)
+                Text(state.done ? "Final score" : "Frame \(state.frame)")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(palette.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text("\(state.total)")
+                    .font(.system(size: 30, weight: .bold, design: .rounded).monospacedDigit())
+                    .foregroundColor(palette.ink)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                Spacer(minLength: 4)
+                if let max = state.max {
+                    Text("Max \(max)")
+                        .font(.system(size: 12).monospacedDigit())
+                        .foregroundColor(palette.secondary)
+                        .lineLimit(1)
+                }
+            }
+            RecentFramesView(state: state, palette: palette, count: 3, markSize: 12)
+        }
+        .environment(\.colorScheme, .dark)
+        .activityBackgroundTint(palette.background)
+        .activitySystemActionForegroundColor(palette.accent)
     }
 }

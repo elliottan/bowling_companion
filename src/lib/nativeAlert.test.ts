@@ -8,7 +8,7 @@ function plugin(answer: Promise<{ confirmed: boolean }>) {
   return { load: async () => ({ confirm }) as unknown as AlertPlugin, confirm };
 }
 
-describe("askNativeConfirm (ADR-231)", () => {
+describe("askNativeConfirm (ADR-232)", () => {
   afterEach(() => resetNativeAlert());
 
   it("hands the phone the question, with the app's theme and accent, and reads its answer", async () => {

@@ -1,6 +1,6 @@
 import { t } from "@lingui/core/macro";
 import { ChevronLeft } from "lucide-react";
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { registerPushExit } from "../lib/backGesture";
 import { overlayHandoff, PUSH_IN_MS } from "../lib/overlayHandoff";
@@ -176,7 +176,9 @@ export function PushScreen({
   // The iPhone app's edge swipe moves the screen with the finger, then leaves
   // through the same slide as the chevron.
   const dismissRef = useRef(dismiss);
-  dismissRef.current = dismiss;
+  useLayoutEffect(() => {
+    dismissRef.current = dismiss;
+  }, [dismiss]);
   useEffect(() => registerPushExit(() => dismissRef.current(), () => overlayRef.current), [overlayRef]);
 
   const overlay = mode === "overlay";

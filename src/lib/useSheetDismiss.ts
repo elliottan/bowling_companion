@@ -4,7 +4,7 @@ const EXIT_MS = 220;
 // A drag this far down commits to closing; anything less springs back.
 const DISMISS_PX = 96;
 // Or a flick this fast downward (px per ms), however short, as UIKit's sheet
-// closes on a flick rather than only past a distance (ADR-228).
+// closes on a flick rather than only past a distance (ADR-229).
 const FLICK_PX_PER_MS = 0.5;
 // How far a drag upward moves the sheet: past its resting place it gives a
 // little and no more, as a system sheet does at its top detent.
@@ -42,7 +42,7 @@ export interface SheetDismiss {
   };
   /** A callback ref for the sheet's scrolling body (bottom sheets only): a
    *  finger that pulls down while the body is already at its top moves the
-   *  sheet rather than the list, as a UIKit sheet does (ADR-228). */
+   *  sheet rather than the list, as a UIKit sheet does (ADR-229). */
   bodyDragRef: (el: HTMLElement | null) => void;
 }
 
@@ -61,6 +61,11 @@ export function useSheetDismiss(
   const [exiting, setExiting] = useState(false);
   const [dragY, setDragY] = useState(0);
   const dragStartY = useRef<number | null>(null);
+  // Whether a finger is down on the drag surface. State, not a read of
+  // `dragStartY` during render: the panel's transition is switched off for the
+  // drag, and a ref read in render only reflects the drag by luck of the next
+  // `setDragY` re-rendering it.
+  const [dragging, setDragging] = useState(false);
   const timer = useRef<number | null>(null);
   // The last two positions of a drag, for its speed as the finger lifts.
   const lastMove = useRef<{ y: number; t: number; v: number }>({ y: 0, t: 0, v: 0 });
@@ -95,6 +100,7 @@ export function useSheetDismiss(
 
   const beginDrag = useCallback((y: number) => {
     dragStartY.current = y;
+    setDragging(true);
     lastMove.current = { y, t: performance.now(), v: 0 };
   }, []);
   const moveDrag = useCallback((y: number) => {
@@ -116,6 +122,7 @@ export function useSheetDismiss(
       const flicked = !stale && lastMove.current.v > FLICK_PX_PER_MS && dragYRef.current > 0;
       const shouldClose = !cancelled && (dragYRef.current > DISMISS_PX || flicked);
       dragStartY.current = null;
+      setDragging(false);
       dragYRef.current = 0;
       setDragY(0);
       if (shouldClose) dismiss();
@@ -179,7 +186,6 @@ export function useSheetDismiss(
     [align, beginDrag, moveDrag, endDrag]
   );
 
-  const dragging = dragStartY.current !== null;
   // The dim lifts as the sheet is pulled down, as UIKit's does, rather than
   // holding full until the sheet lets go.
   const pulled = typeof window === "undefined" ? 0 : Math.max(0, dragY) / Math.max(1, window.innerHeight * 0.75);

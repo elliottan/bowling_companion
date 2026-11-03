@@ -25,7 +25,7 @@ interface SegmentedControlProps<T extends string> {
  * A segmented control is exactly one answer, and the shared track is what says
  * so before you read a single label.
  *
- * Drawn to UIKit's own metrics (ADR-227): a 32pt capsule in the system's flat
+ * Drawn to UIKit's own metrics (ADR-228): a 32pt capsule in the system's flat
  * grey fill, no blur, edge or shadow, and the answer a raised thumb inset 2pt
  * that slides to the segment picked, labels at 13pt. It was the tab bar's
  * frosted capsule for a while (ADR-189), 48px tall and lifted off the page,

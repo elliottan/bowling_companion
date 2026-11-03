@@ -284,7 +284,7 @@ select {
   input,
   select,
   textarea,
-  /* The invisible label a menu Select is sized by (ADR-230): the same size as
+  /* The invisible label a menu Select is sized by (ADR-231): the same size as
      the select it stands for, or the select is cut short of its own value. */
   .select-sizer {
     /* 16px is the floor that stops the zoom; a larger text size raises it. */
@@ -489,7 +489,7 @@ input[type="date"]::-webkit-date-and-time-value {
   );
 }
 
-/* A segmented control as UIKit draws one (ADR-227): the track the system's
+/* A segmented control as UIKit draws one (ADR-228): the track the system's
    flat grey fill (tertiarySystemFill), with no blur, edge or shadow, and the
    answer an opaque thumb lifted by UIKit's own two shadows. It was the tab
    bar's frosted capsule (ADR-189), which read as a widget floating over the
@@ -512,7 +512,7 @@ input[type="date"]::-webkit-date-and-time-value {
   box-shadow: 0 3px 8px rgb(0 0 0 / 0.24), 0 3px 1px rgb(0 0 0 / 0.08);
 }
 
-/* A filter chip (ADR-229): off, the segmented control's flat grey fill, so
+/* A filter chip (ADR-230): off, the segmented control's flat grey fill, so
    the two read as one family of control; pressed, it darkens as UIKit's
    filled controls do. On, the accent fill, set by the component. */
 .chip-off {

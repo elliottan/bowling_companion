@@ -82,7 +82,8 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
   const [layoutSpec, setLayoutSpec] = useState<BallLayoutSpec | null>(ball?.layout_spec ?? null);
   const legacyLayout = ball?.layout_spec ? undefined : ball?.layout;
   const [catalogRef, setCatalogRef] = useState<CatalogBall | null>(null);
-  const [weightSpecs, setWeightSpecs] = useState<WeightSpecs | null>(null);
+  // The specs last read for the linked ball, and nothing once it is unlinked.
+  const [fetchedSpecs, setWeightSpecs] = useState<WeightSpecs | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   // The More menu beside the pencil, and the question retiring asks first.
@@ -102,10 +103,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
 
   // Specs are per weight; fall back to the catalog's top-level (15 lb) numbers.
   useEffect(() => {
-    if (!catalogRef) {
-      setWeightSpecs(null);
-      return;
-    }
+    if (!catalogRef) return;
     void getCatalogBall(catalogRef.id).then((cb) => {
       if (!cb) return setWeightSpecs(null);
       const entry = cb.weights?.find((ws) => ws.weight === weight);
@@ -116,6 +114,8 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
       );
     });
   }, [catalogRef, weight]);
+
+  const weightSpecs = catalogRef ? fetchedSpecs : null;
 
   function linkCatalog(picked: CatalogBall | null) {
     setCatalogRef(picked);

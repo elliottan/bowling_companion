@@ -2,7 +2,7 @@ import Foundation
 import Capacitor
 import UIKit
 
-/// A confirm, asked by UIKit rather than drawn by the page (ADR-231).
+/// A confirm, asked by UIKit rather than drawn by the page (ADR-232).
 ///
 /// `UIAlertController` is the phone's own: its material, its type, the red of a
 /// destructive action, the bold of the preferred one, and whatever the next iOS

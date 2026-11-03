@@ -9713,7 +9713,62 @@ beside them.
 **Consequences.** Every pushed screen names itself at every scroll position,
 in full at the top. The page starts a title's height lower than it did.
 
-## ADR-227: A segmented control is drawn as UIKit draws one
+
+## ADR-227: The game in progress on an Apple Watch has a layout of its own
+
+**Status.** Accepted, 2026-11-03, at the owner's request. Extends ADR-221,
+whose Lock Screen and Dynamic Island the owner has seen on a phone and which
+stand as they are, and amends its iOS floor for the extension: 18, not 16.1.
+Built by the `ios` CI job; the watch layout is unseen.
+
+**Context.** Since watchOS 11, a paired iPhone's Live Activity appears in the
+watch's Smart Stack. An activity that does not opt in is drawn from the
+Dynamic Island's two compact slots, so the watch showed a pin and the total
+and nothing else: not the frame, not the marks just thrown. The opt-in,
+`supplementalActivityFamilies([.small])`, is iOS 18, and the extension's floor
+was 16.1 (ADR-221).
+
+**Decision.**
+
+- **The watch draws its own layout** (`WatchGameView` in
+  `HeadpinGameViews.swift`): "Game 3" and "Frame 6" (or "Final score") on
+  the top line, the total large with "Max 214" beside it, and the last three
+  frames, ending at the one being bowled, from the island's
+  `RecentFramesView`. Ten frames do not fit a watch's width; three show the
+  marks just thrown and whether the spare before them has been filled in.
+- **Always dark, in the bowler's accent.** The Smart Stack is black, so the
+  watch takes the island's palette rather than the Lock Screen's light or
+  dark one.
+- **Nothing new is sent.** The payload already carries all ten frames, the
+  total, the frame and the max, so the page, `liveActivity.ts` and the
+  Codable struct are unchanged, and the watch costs no extra update.
+- **The extension's floor is iOS 18; the app's stays 15.** The modifier
+  changes the configuration's type, so it cannot be switched inside one
+  widget, and two widgets picked by version in the bundle did not compile:
+  with an `if #available`/`else`, and again with an `if #available` and an
+  `if #unavailable`, Swift failed on the bundle's `body` ("failed to produce
+  diagnostic"). So there is one widget with the modifier on it, and the
+  extension needs 18. On the iPhone, the activity's content view reads
+  `activityFamily` and draws the Lock Screen at `.medium` and the watch at
+  `.small`.
+- **The plugin starts nothing below iOS 18.** `status` reports
+  `supported: false`, which hides the Settings switch, and `start` and
+  `update` answer `active: false`. `end` and `showing` keep the 16.1 floor, so
+  an activity an older build left up on an iOS 17 phone is still found and
+  ended on launch (ADR-222).
+- No new file, so the Xcode project changes only in the floor.
+
+**Consequences.** A bowler on iOS 16.1 to 17 loses the Live Activity. Every
+iPhone that runs iOS 17 can run 18, so the fix is the phone's own update,
+and the app says nothing about it: the switch is simply not there, as on any
+phone that cannot show one. CarPlay on iOS 26 draws an activity's `.small`
+layout too, so a car shows the same three frames. Free, as ADR-221 is. The
+`ios` CI job now keeps xcodebuild's whole log and prints its errors, which is
+how the two failed attempts above were read. Still to see on a watch: the
+layout on a 41mm and a 49mm watch, and that the tenth frame's three boxes are
+legible at 12 pt when it is among the three.
+
+## ADR-228: A segmented control is drawn as UIKit draws one
 
 **Status.** Accepted, 2026-11-03, at the owner's request ("the top tab toggles
 look kinda bad"). Supersedes ADR-189 on how the control is drawn; the finger
@@ -9755,7 +9810,7 @@ Stats headers hand that room to the content. The control no longer matches
 the page tab bar's capsule on the web; it matches the phone's own control,
 which is the one a bowler compares it with.
 
-## ADR-228: A sheet is dragged as a UIKit sheet is
+## ADR-229: A sheet is dragged as a UIKit sheet is
 
 **Status.** Accepted, 2026-11-03, at the owner's request. Builds on ADR-186;
 amends how `useSheetDismiss` reads a drag.
@@ -9784,12 +9839,12 @@ upward did nothing at all.
 has its own panes, keeps its bar drag only. A sheet whose body holds a control
 that itself drags downward (none today) would have to stop the pull itself.
 
-## ADR-229: A filter chip is iOS 26's capsule
+## ADR-230: A filter chip is iOS 26's capsule
 
-**Status.** Accepted, 2026-11-03, at the owner's request. Follows ADR-227.
+**Status.** Accepted, 2026-11-03, at the owner's request. Follows ADR-228.
 
 **Context.** `Chip` was white with a slate border, or filled in the accent
-when on. Beside the segmented control's flat grey (ADR-227) it read as a
+when on. Beside the segmented control's flat grey (ADR-228) it read as a
 second family of control, and its border as a web button.
 
 **Decision.** Off, a chip is the segmented control's fill
@@ -9801,7 +9856,7 @@ region and `aria-pressed` are unchanged.
 **Consequence.** Off chips no longer draw an edge, so on a card they are told
 apart from it by fill alone, as the system's are.
 
-## ADR-230: A short closed list is a pop-up button
+## ADR-231: A short closed list is a pop-up button
 
 **Status.** Accepted, 2026-11-03, at the owner's request.
 
@@ -9821,10 +9876,11 @@ rather than to the longest. The catalog's sort is the one today.
 **Consequence.** `PapEditor`'s local `Dropdown` is gone; its boxes are the
 `narrow` variant.
 
-## ADR-231: The iPhone app asks a confirm with UIKit's alert
+## ADR-232: The iPhone app asks a confirm with UIKit's alert
 
 **Status.** Accepted, 2026-11-03, at the owner's request. Follows ADR-161;
-written and unit tested, not yet built in Xcode or seen on a phone.
+unit tested, and built and launched on a simulator by the iOS device check;
+not yet seen on a phone.
 
 **Context.** `ConfirmDialog` drew a card in the middle of the screen: a
 web dialog imitating an alert at the moments a bowler is most careful,
@@ -9852,5 +9908,5 @@ website (guideline 4.2).
 
 **Consequences.** The alert is modal and back cannot close it, as on any
 iPhone app; the page's back handling is not registered while it is up. The
-Swift needs a build and a look on a phone, like the tab bar's.
+alert itself still wants a look on a phone, as the tab bar's did.
 

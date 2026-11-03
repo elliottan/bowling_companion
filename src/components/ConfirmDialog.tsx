@@ -24,7 +24,7 @@ interface ConfirmDialogProps {
  *  otherwise.
  *
  *  In the iPhone app a confirm that is only words is asked by UIKit's own
- *  alert (ADR-231): the phone's material, type and destructive red, not a card
+ *  alert (ADR-232): the phone's material, type and destructive red, not a card
  *  imitating them. One that carries more than words (a typed phrase, a count in
  *  bold) or a confirm that has to be earned stays the page's, and so does every
  *  confirm in an app built without the plugin. */

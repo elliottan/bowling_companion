@@ -50,7 +50,7 @@ describe("SegmentedControl", () => {
   it("draws at UIKit's 32pt, and still carries a 44pt hit region", () => {
     render(<SegmentedControl label="Pick" value="a" options={options} onChange={vi.fn()} />);
     const segment = screen.getByRole("button", { name: "A" });
-    // One size, as UIKit has one (ADR-227)...
+    // One size, as UIKit has one (ADR-228)...
     expect(segment.className).toContain("h-8");
     // ...and 44pt to the finger regardless, which is the floor the primitive
     // exists to hold. A smaller track that dropped this would be a tap target

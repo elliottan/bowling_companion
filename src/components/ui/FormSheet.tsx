@@ -187,7 +187,7 @@ export function FormSheet({
         </div>
 
         <div
-          // Pulled down from its top, the body moves the sheet (ADR-228).
+          // Pulled down from its top, the body moves the sheet (ADR-229).
           ref={bodyDragRef}
           // The sheet stops 8px above the screen's foot, so the home indicator's
           // inset is that much smaller inside it.

@@ -88,6 +88,7 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
     let url: string | null = null;
     let live = true;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- opening clears the last card before the new one renders, which is async
     setError("");
     setNote("");
     setPreview(null);

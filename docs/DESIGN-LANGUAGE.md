@@ -89,7 +89,7 @@ keyboard, not the size of the job:
 - **`ConfirmDialog`** settles in the middle and scales back out. Questions with
   buttons, including a confirm that has to be earned by typing a phrase, because
   typing `ERASE` is answering rather than entering. In the iPhone app a confirm
-  that is only words is asked by UIKit's own alert instead (ADR-231), with the
+  that is only words is asked by UIKit's own alert instead (ADR-232), with the
   destructive confirm in the system red; one that carries more than words, or
   has to be earned, stays the page's card.
 - **A filter panel is a popover, not a block.** The catalog's filters open as a
@@ -186,7 +186,7 @@ row with content directly beneath it.
 
 `SegmentedControl` (`src/components/ui/SegmentedControl.tsx`) is one track with
 N segments and exactly one selected: a theme, a handedness, a range. It is
-drawn to UIKit's own metrics (ADR-227): a 32pt capsule in the system's flat
+drawn to UIKit's own metrics (ADR-228): a 32pt capsule in the system's flat
 grey fill, with no blur, edge or shadow, and the answer an opaque raised thumb
 inset 2pt that slides to the segment picked, labels at 13pt, the chosen one
 semibold. There is one size, as UIKit has one, and its hit region is still
@@ -195,7 +195,7 @@ choice moves (ADR-168). An accent-filled segment (ADR-182) read as a button
 held down, and the tab bar's frosted capsule (ADR-189) floated over the page
 at 48px as a web widget would, where the phone's control is set into it.
 
-`Chip` is a filter capsule as iOS 26 draws one (ADR-229): off, the segmented
+`Chip` is a filter capsule as iOS 26 draws one (ADR-230): off, the segmented
 control's flat grey fill with no border, in ink; on, filled in the accent.
 The two are one family of control, told apart by what a press means.
 
@@ -359,7 +359,7 @@ where more profile features can grow. An on/off setting is a `ListSwitchRow`,
 not a `ListRow`: the whole row labels HTML's own `switch`, which the phone
 draws, and the row sits first in the App group (ADR-221). It appears only
 where the setting can do something: "Live Activity on the Lock Screen" is in the
-iPhone app on iOS 16.1 or later, and nowhere else. "Privacy and terms" pushes a screen in
+iPhone app on iOS 18 or later (ADR-227), and nowhere else. "Privacy and terms" pushes a screen in
 Settings with the site page's own text (ADR-181), not a trip to the site. Rows
 that leave the app, and that one, carry no sentence: a label that says "Privacy
 and terms" or "Send feedback" has nothing a second line could add.
@@ -563,7 +563,7 @@ puts back text that names nothing when the field is left. A native select was
 a scroll through forty names to find one, and it could not be typed into.
 
 **A short closed list is a `Select`** (`src/components/ui/Select.tsx`,
-ADR-230), never a bare `<select>`: the value with iOS's up-and-down chevrons in
+ADR-231), never a bare `<select>`: the value with iOS's up-and-down chevrons in
 the accent, which is what says a menu opens from it. Inside the store apps the
 menu itself is the phone's. A toolbar's choice, the catalog's sort, is the
 `menu` variant: no box, the value in the accent and as wide as it, as iOS draws
@@ -579,7 +579,7 @@ as the thing leaving.
   (`PushScreen`, which defers the unmount until the exit finishes).
 - **Sheets** rise from the bottom edge and fall back through it, and can be
   dragged down to dismiss (`useSheetDismiss`, `align: "bottom"`) as a UIKit
-  sheet is (ADR-228): from the bar, or from the body once it is scrolled to its
+  sheet is (ADR-229): from the bar, or from the body once it is scrolled to its
   top (`bodyDragRef`); past 96px or on a quick flick, however short; the dim
   lifting as it goes; and giving a little, no more, when pulled upward.
 - **Centered dialogs** settle in and scale back out (`useSheetDismiss`,

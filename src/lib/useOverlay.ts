@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import type { RefObject } from "react";
 import { registerSheet } from "./sheetBackStack";
 
@@ -48,9 +48,13 @@ export function useOverlay<T extends HTMLElement = HTMLDivElement>(
   backCloses = true
 ): RefObject<T> {
   const ref = useRef<T>(null);
-  // Latest onClose without re-subscribing the listener every render.
+  // Latest onClose without re-subscribing the listener every render. Written
+  // after the commit, not during render, and in a layout effect so it lands
+  // before any key or back press can read it.
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useLayoutEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!active) return;

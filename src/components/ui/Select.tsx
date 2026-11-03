@@ -33,7 +33,7 @@ function chosenLabel(children: ReactNode, value: unknown): ReactNode {
 }
 
 /**
- * A pick from a list, drawn as an iOS pop-up button (ADR-230): the value, and
+ * A pick from a list, drawn as an iOS pop-up button (ADR-231): the value, and
  * the up-and-down chevrons (`chevron.up.chevron.down`) in the accent saying a
  * menu opens from it. Inside the store apps the list itself is the phone's own
  * menu, which WebKit opens for any `<select>`; this is the closed control.

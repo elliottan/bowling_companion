@@ -229,9 +229,9 @@ switch.
 - [x] Haptics on the pin deck, no rubber band, no pinch zoom (ADR-160). Apple
       rejects a repackaged website (4.2).
 - [x] The game in progress on the Lock Screen and in the Dynamic Island, a
-      Live Activity from a widget extension of the iPhone app (ADR-221). Written
-      and unit tested on Linux; the Xcode target, the Swift and the look have
-      never been built or seen, so see "What the owner does in Xcode" in the ADR.
+      Live Activity from a widget extension of the iPhone app (ADR-221), seen
+      working on a phone. Its Apple Watch layout (ADR-227) is not yet built or
+      seen.
 - [x] The first-run import steps.
 - [x] Remove the donation link and the retailer link (ADR-119), their usage
       count, and their words on the legal page.
@@ -293,10 +293,11 @@ In this order. Launch first, then being found, then other languages.
 
 Later, when the numbers ask for it:
 
-- [ ] **The app in other languages.** Every string is written in place in
-      English, with no translation layer, so this is a large job. Start where
-      App Store Analytics shows downloads; Japan and Korea are the large
-      bowling markets.
+- [x] **The app in other languages.** Shipped ahead of the numbers: eight
+      languages through Lingui (ADR-220, ADR-224), with the store listing and
+      screenshots drafted in each (0.78.0). What is left, a native speaker's
+      read and the pages still in English, is under "The next languages" in
+      `ROADMAP.md`.
 - [ ] **Promoting Headpin Pro on the product page.** The App Store can show
       the purchase as a tile of its own, but only once the app handles a
       purchase begun in the store (StoreKit 2's `PurchaseIntent`, in

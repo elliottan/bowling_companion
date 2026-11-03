@@ -2,7 +2,7 @@ import { unthenable } from "./nativePlugin";
 import { accentHex } from "./nativeTabBar";
 
 /**
- * A confirm asked by UIKit in the iPhone app (ADR-231,
+ * A confirm asked by UIKit in the iPhone app (ADR-232,
  * `ios/App/App/HeadpinAlertPlugin.swift`). `ConfirmDialog` is the only caller.
  */
 

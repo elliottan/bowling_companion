@@ -2,7 +2,7 @@ import { ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { formatShortDate } from "../lib/dates";
-import { laneLabel } from "./SessionHeaderText";
+import { laneLabel } from "../lib/sessionLabels";
 import { FormSheet } from "./ui/FormSheet";
 import { LIST_DIVIDER } from "./ui/ListGroup";
 

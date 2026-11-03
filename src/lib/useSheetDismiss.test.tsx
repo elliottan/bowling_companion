@@ -39,7 +39,7 @@ describe("useSheetDismiss", () => {
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
-  describe("dragged as a UIKit sheet is (ADR-228)", () => {
+  describe("dragged as a UIKit sheet is (ADR-229)", () => {
     function Sheet({ onClose }: { onClose: () => void }) {
       const { panelStyle, backdropStyle, dragHandlers, bodyDragRef } = useSheetDismiss(onClose);
       return (

@@ -16,7 +16,7 @@ function iPhoneApp(on: boolean) {
   });
 }
 
-describe("ConfirmDialog in the iPhone app (ADR-231)", () => {
+describe("ConfirmDialog in the iPhone app (ADR-232)", () => {
   beforeEach(() => {
     ask.mockReset();
     missing = false;

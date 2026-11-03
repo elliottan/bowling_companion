@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { Select } from "./Select";
 
-describe("Select (ADR-230)", () => {
+describe("Select (ADR-231)", () => {
   it("is a real select, with the pop-up button's chevrons drawn beside it", () => {
     const onChange = vi.fn();
     const { container } = render(

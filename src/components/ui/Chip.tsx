@@ -17,10 +17,10 @@ export const TAP_TARGET_44 = 'after:absolute after:inset-x-0 after:top-1/2 after
  *  presenting too narrow a target. Uses `aria-pressed`, matching this app's
  *  existing chip convention, never `role="tab"`/`aria-selected`.
  *
- *  Drawn as iOS 26 draws a filter capsule (ADR-229): off, the same flat grey
+ *  Drawn as iOS 26 draws a filter capsule (ADR-230): off, the same flat grey
  *  fill as the segmented control's track, with no border; on, filled in the
  *  accent. A bordered white chip read as a web button, and beside the
- *  segmented control's grey (ADR-227) it was a second family of control. */
+ *  segmented control's grey (ADR-228) it was a second family of control. */
 export function Chip({
   selected,
   className = "",

@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.79.0: Controls that look and feel like the phone's own (2026-11-03)
+## 0.80.0: Controls that look and feel like the phone's own (2026-11-03)
 
 - Every pick-one toggle (the session sheet's Sheet, Stats and Lanes, the Stats
   range, Theme and Text size, handedness and grip, and the rest) is drawn as
@@ -17,17 +17,38 @@ had all shipped.
   page with a white thumb, instead of a tall frosted bubble floating over it.
   Each is 16px shorter, so the content under it starts higher. Still 44pt to
   the finger, and it still follows a sliding finger with a tick at each
-  segment (ADR-227).
+  segment (ADR-228).
 - Sheets move like the phone's: pull one down from its content once it is
   scrolled to the top, flick it away with a short quick swipe, watch the dim
-  lift as you pull, and feel it give a little when pulled up (ADR-228).
+  lift as you pull, and feel it give a little when pulled up (ADR-229).
 - Filter chips are the phone's grey capsules, with no border, and fill with
-  the accent when on (ADR-229).
+  the accent when on (ADR-230).
 - Drop-down lists show the phone's up-and-down chevrons, so they no longer look
   like text boxes, and the catalog's sort is a tinted pop-up button as iOS
-  draws one (ADR-230).
+  draws one (ADR-231).
 - In the iPhone app, "Delete this game?" and the other confirms are the
-  phone's own alert, with the delete in the system red (ADR-231).
+  phone's own alert, with the delete in the system red (ADR-232).
+
+## 0.79.0: The game on your Apple Watch, and a lint gate with no warnings left (2026-11-03)
+
+- On an Apple Watch, the game being scored in the Smart Stack now shows the
+  game and frame, the total with the highest score still possible, and the
+  last three frames with their marks. It used to show only a pin and the
+  total (ADR-227).
+- The Live Activity now needs iOS 18 on the iPhone, up from 16.1. Any iPhone
+  that runs iOS 17 can update to 18; until it does, the Lock Screen switch in
+  Settings is not shown. The app itself still runs on iOS 15.
+- No change a bowler can see: ESLint's 26 warnings are gone and the three
+  rules behind them are errors now. The helpers and tables that sat beside a
+  component moved to their own modules (`statsMetrics`, `driftZoneAccent`,
+  `lockedTapBlocker`, `lib/patternFilters`, and the lane labels into
+  `lib/sessionLabels`), so fast refresh reloads those screens in place. The
+  sheet drag tracks whether a finger is down in state rather than reading a
+  ref in render, the overlay and pushed-screen close handlers are refreshed
+  after commit, a recorded shot's edit confirmation is the shot it was given
+  for rather than a flag an effect resets a render late, and a ball form with
+  no catalog link derives its empty specs. The seven effects that set state
+  on purpose say why in a disable comment.
 
 ## 0.78.0: Every language reads more naturally, and the store speaks them too (2026-11-02)
 
