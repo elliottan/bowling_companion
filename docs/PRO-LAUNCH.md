@@ -293,10 +293,11 @@ In this order. Launch first, then being found, then other languages.
 
 Later, when the numbers ask for it:
 
-- [ ] **The app in other languages.** Every string is written in place in
-      English, with no translation layer, so this is a large job. Start where
-      App Store Analytics shows downloads; Japan and Korea are the large
-      bowling markets.
+- [x] **The app in other languages.** Shipped ahead of the numbers: eight
+      languages through Lingui (ADR-220, ADR-224), with the store listing and
+      screenshots drafted in each (0.78.0). What is left, a native speaker's
+      read and the pages still in English, is under "The next languages" in
+      `ROADMAP.md`.
 - [ ] **Promoting Headpin Pro on the product page.** The App Store can show
       the purchase as a tile of its own, but only once the app handles a
       purchase begun in the store (StoreKit 2's `PurchaseIntent`, in

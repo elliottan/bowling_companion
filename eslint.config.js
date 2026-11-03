@@ -29,21 +29,22 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // Two rules from the compiler-era ruleset fire on patterns this app uses
-      // deliberately and everywhere: loading data in a mount effect, and the
-      // dismiss/exit timers that read a ref while rendering their transform.
-      // Warnings, so the signal stays visible without a 28-error wall that
-      // nobody can act on in one sitting. Worth revisiting as its own change.
-      "react-hooks/set-state-in-effect": "warn",
-      "react-hooks/refs": "warn",
+      // Two rules from the compiler-era ruleset. Both were warnings while the
+      // app carried 14 hits; those are fixed or carry a disable comment that
+      // says why the effect is the right place (a subscription, an async
+      // reset, a once-only prompt), so a new one is now a decision to write
+      // down rather than a warning to scroll past.
+      "react-hooks/set-state-in-effect": "error",
+      "react-hooks/refs": "error",
       // The one hook rule that has caught real bugs elsewhere in this app's
       // history: an effect reading a value it never re-subscribes to. Any
       // deliberate exception carries a disable comment saying why.
       "react-hooks/exhaustive-deps": "error",
       // Vite's fast refresh only works when a module exports components alone.
-      // A warning, not an error: a few files intentionally export a class
-      // constant beside their component.
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      // Helpers and lookup tables live in a sibling module (`statsMetrics`,
+      // `driftZoneAccent`, `lib/patternFilters`) instead; a literal constant
+      // beside a component is still allowed.
+      "react-refresh/only-export-components": ["error", { allowConstantExport: true }],
       // `_`-prefixed names are the established way to say "deliberately unused"
       // (destructuring a field out of an object, an ignored callback argument).
       "@typescript-eslint/no-unused-vars": [

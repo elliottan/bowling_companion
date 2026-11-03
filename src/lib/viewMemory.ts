@@ -85,6 +85,7 @@ export function useRememberedState<T>(
   useEffect(() => {
     // Anything written between this render and the subscription landing would
     // otherwise be missed, so the value is read back on the way in.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reads back a write that landed before the subscription did; this is the subscribe step
     setLocal(read());
     return subscribe(key, () => setLocal(read()));
   }, [key, read]);

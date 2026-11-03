@@ -27,10 +27,11 @@ import type { Manufacturer } from "../types/catalog";
 import { BallPickerSheet } from "./BallPickerSheet";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { LaneVisualizerLazy } from "./LaneVisualizerLazy";
-import { LineInput, floatLabel, lockedTapBlocker } from "./LineInput";
+import { LineInput } from "./LineInput";
+import { lockedTapBlocker } from "./lockedTapBlocker";
 import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
-import { FIELD_DENSE_TEXTAREA } from "./ui/field";
+import { FIELD_DENSE_TEXTAREA, FIELD_MICRO_LABEL as floatLabel } from "./ui/field";
 
 /** A 44pt hit region that grows upward only, the way `IconButton compact`
  *  does, for a text control in an eyebrow row with the fields right under it. */

@@ -132,7 +132,7 @@ msgstr "{0, plural, other {{gameNumber}게임, 세션 #개}}"
 #. placeholder {0}: parts.lanes.length
 #: src/components/ProOfferSamples.tsx
 #: src/components/SessionFilterBar.tsx
-#: src/components/SessionHeaderText.tsx
+#: src/lib/sessionLabels.ts
 #: src/lib/shareCard.ts
 msgid "{0, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{0, plural, other {레인 {lanes}}}"
@@ -215,7 +215,7 @@ msgstr "{chances}번 중 {conversions}번 성공"
 msgid "{count, plural, one {# game series} other {# game series}}"
 msgstr "{count, plural, other {#게임 시리즈}}"
 
-#: src/components/SessionHeaderText.tsx
+#: src/lib/sessionLabels.ts
 msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, other {레인 {lanes}}}"
 
@@ -583,6 +583,7 @@ msgstr "1H"
 #. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "1st ball"
 msgstr "첫 투구"
 
@@ -921,6 +922,7 @@ msgstr "자동"
 #. A bowling average: the score per game
 #. A bowling average: the score per game
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/lib/shareCard.ts
 msgid "Average"
 msgstr "에버리지"
@@ -1168,6 +1170,7 @@ msgstr "캐리"
 #: src/components/BallGameSessionsDialog.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/lib/shareCard.ts
 #: src/views/GameTrendView.tsx
 msgid "Carry"
@@ -1882,12 +1885,12 @@ msgid "First ball"
 msgstr "첫 투구"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "First balls at a full rack that struck."
 msgstr "풀 랙 첫 투구 중 스트라이크를 친 비율이에요."
 
 #. Bowling term: the pocket is the spot between the head pin and the pin beside it where a ball hits for the best strike chance
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "First balls that hit the pocket."
 msgstr "포켓에 맞은 첫 투구 비율이에요."
 
@@ -2702,7 +2705,7 @@ msgid "Makeable"
 msgstr "처리 가능"
 
 #. Bowling terms: a makeable leave is a set of standing pins that can be converted to a spare; a split leaves gaps between pins; a washout is a leave with the head pin standing and a gap behind it
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Makeable leaves made. Not splits or washouts."
 msgstr "처리 가능한 남은 핀의 성공률이에요. 스플릿과 워시아웃은 제외해요."
 
@@ -2720,7 +2723,7 @@ msgid "Manage oil patterns"
 msgstr "오일 패턴 관리"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Max consecutive strikes"
 msgstr "최대 연속 스트라이크"
 
@@ -2768,7 +2771,7 @@ msgid "Most opens (makeables)"
 msgstr "오픈 최다 (처리 가능)"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Most strikes in a row in one game."
 msgstr "한 게임에서 가장 많이 이어진 스트라이크예요."
 
@@ -3322,7 +3325,7 @@ msgid "Pins standing: {pins}"
 msgstr "서 있는 핀: {pins}"
 
 #. Bowling term: the first ball of a frame, thrown at a full rack of ten pins
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Pins the first ball knocks down, on average."
 msgstr "첫 투구로 쓰러뜨리는 핀의 평균 개수예요."
 
@@ -3354,6 +3357,7 @@ msgstr "포켓"
 #: src/components/LaneVisualizer.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/lib/shareCard.ts
 #: src/views/GameTrendView.tsx
 msgid "Pocket"
@@ -3369,7 +3373,7 @@ msgid "pocket hits"
 msgstr "포켓 적중"
 
 #. Bowling term: how often a ball that hit the pocket knocked all the pins down
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Pocket hits that struck."
 msgstr "스트라이크로 이어진 포켓 적중이에요."
 
@@ -3945,7 +3949,7 @@ msgstr "스페어"
 #. Bowling term: all remaining pins knocked down with the second ball of a frame
 #. Bowling term: all ten pins down with two balls. Column heading.
 #: src/components/ActiveGameScorer.tsx
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/views/ArsenalView.tsx
 #: src/views/GameTrendView.tsx
 msgid "Spare"
@@ -4109,6 +4113,7 @@ msgstr "스트라이크"
 #: src/components/BallGameSessionsDialog.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 #: src/views/GameTrendView.tsx
 msgid "Strike"
 msgstr "스트라이크"
@@ -4149,6 +4154,7 @@ msgstr "스트라이크 후 스트라이크"
 #. Bowling term: a strike on the ball right after a strike
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Strike on strike"
 msgstr "스트라이크 후 스트라이크"
 
@@ -4171,7 +4177,7 @@ msgid "Strikes in a row"
 msgstr "연속 스트라이크"
 
 #. Bowling term: a strike on the ball right after a strike
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Strikes the next ball struck too."
 msgstr "다음 투구도 스트라이크를 친 경우예요."
 
@@ -4883,7 +4889,7 @@ msgstr "내 PAP"
 msgid "Your PAP and hand"
 msgstr "내 PAP와 사용하는 손"
 
-#: src/components/Stats.tsx
+#: src/components/statsMetrics.ts
 msgid "Your score per finished game."
 msgstr "마친 게임별 점수예요."
 

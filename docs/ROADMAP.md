@@ -39,13 +39,14 @@ choice the bowler makes per pair. Deriving it is wrong for anyone who plays a
 
 ### The next languages
 
-Spanish, Japanese, Korean and both Chinese scripts ship (0.75.0, ADR-224), a
-sentence keeps its bold and icons (ADR-223), and no message can ship
-untranslated. Open: a native speaker's read of each catalog and of the App
-Store listing drafts (`APP-STORE-LISTING-TRANSLATED.md`), localized screenshots,
-the guides, the legal pages and the landing page (English only), the Home
-Screen quick actions, and the decision on right-to-left, which the layout does
-not support.
+Spanish, Japanese, Korean, both Chinese scripts (0.75.0, ADR-224), Indonesian
+and Malay (0.77.0) ship, a sentence keeps its bold and icons (ADR-223), and no
+message can ship untranslated. The Home Screen quick actions follow the phone's
+language, and the App Store listing and its screenshots are drafted in each
+language (0.78.0). Open: a native speaker's read of each catalog and of the
+listing drafts (`APP-STORE-LISTING-TRANSLATED.md`), the guides, the legal pages
+and the landing page (English only), and the decision on right-to-left, which
+the layout does not support.
 
 ### Android follows the system font size
 
@@ -56,14 +57,6 @@ one. Test the Text size setting and the system font size on a real phone; if
 the web view does not follow, set `textZoom` from `fontScale` in
 `MainActivity` (care: it would stack with the Text size setting, so write
 `--os-text-scale` from the page instead and leave `textZoom` at 100).
-
-### Effects that set state on mount
-
-ESLint reports 22 warnings and no errors: `set-state-in-effect` 10, `refs` 4,
-`react-refresh/only-export-components` 8. The first two are deliberate today and
-are warnings for that reason, but the pattern is worth revisiting as one change
-rather than one file at a time. The third is the cost of a few modules that
-export a constant beside a component; it costs a hot reload, never a build.
 
 ### Majors this pass did not take
 

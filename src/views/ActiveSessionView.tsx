@@ -13,7 +13,8 @@ import { getBalls, getOilPattern } from "../services/ballRepository";
 import { movementAt } from "../lib/briefing";
 import { describeGameMove } from "../components/alleyHistoryCopy";
 import { SessionFormDialog } from "../components/SessionFormDialog";
-import { SessionHeaderText, laneSummary } from "../components/SessionHeaderText";
+import { SessionHeaderText } from "../components/SessionHeaderText";
+import { laneSummary } from "../lib/sessionLabels";
 import { PushScreen } from "../components/PushScreen";
 import { SessionLanePanel } from "../components/SessionLanePanel";
 import {
@@ -320,6 +321,7 @@ export function ActiveSessionView({
     const hasShots = frames.some((f) => f.shots.length > 0);
     if (lanesUnset && !hasShots) {
       markLanesPrompted(activeGame.id);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- a once-per-game prompt, recorded in the module-level guard beside it
       setShowLaneEditor(true);
     }
     // Keyed on the game id alone: this fires once per game, and re-running it

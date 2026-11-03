@@ -211,7 +211,11 @@ export function ActiveGameScorer({
   // shot: the first change asks, the rest of the visit does not, and leaving
   // the shot and coming back asks again. Live entry never asks, because
   // choosing the pins left standing is entering a shot, not changing one.
-  const [editConfirmed, setEditConfirmed] = useState(false);
+  // Held as the selection that was confirmed, so every move of the cursor
+  // (a new `selectedShot`, even back to the same shot) is a fresh visit and
+  // asks again, with no effect resetting it a render late.
+  const [confirmedShot, setConfirmedShot] = useState<typeof selectedShot | null>(null);
+  const editConfirmed = confirmedShot !== null && confirmedShot === selectedShot;
   const [pendingChange, setPendingChange] = useState<{
     title: string;
     message: string;
@@ -312,7 +316,7 @@ export function ActiveGameScorer({
       message: t`Frame ${frameNumber}, ball ${ball} is already recorded. Changing it rescores the game from that frame on.`,
       confirmLabel: t`Edit`,
       run: () => {
-        setEditConfirmed(true);
+        setConfirmedShot(selectedShot);
         run();
       }
     });
@@ -355,6 +359,7 @@ export function ActiveGameScorer({
   })();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- switching games resets the per-game state in one place; keying the scorer on the game would remount all of it on every game chip
     setGameState(hydrateFrameController(initialFrames));
     setErrorMessage("");
     setSelectedShot(null);
@@ -363,17 +368,11 @@ export function ActiveGameScorer({
     // asked again on the way back reads as the app forgetting.
     setUnlocked(unlockedGames.has(gameKey));
     setShowEditPrompt(false);
-    setEditConfirmed(false);
+    setConfirmedShot(null);
     setPendingChange(null);
     lastDefaultedShot.current = null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameKey]);
-
-  // Every move of the cursor re-arms the confirm: coming back to a shot is a
-  // fresh visit, and the bowler is owed the warning again.
-  useEffect(() => {
-    setEditConfirmed(false);
-  }, [selectedShot]);
 
   // The first ball in the bag goes straight onto the live shot. It was added
   // from this screen, by a bowler who came to pick it, and asking them to pick
@@ -394,6 +393,7 @@ export function ActiveGameScorer({
     if (gameState.isComplete && selectedShot === null) {
       const tenth = gameState.frames.find((f) => f.frame_number === 10);
       if (tenth && tenth.shots.length > 0) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- once the game completes, the cursor lands on the last shot to review it
         setSelectedShot({ frameNumber: 10, shotIndex: tenth.shots.length - 1 });
       }
     }
@@ -408,6 +408,7 @@ export function ActiveGameScorer({
     if (!focusFrame) return;
     const frame = initialFrames.find((f) => f.frame_number === focusFrame.frameNumber);
     if (!frame || frame.shots.length === 0) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- a frame asked for from outside (a tap on the card) moves the cursor; it is an event delivered as a prop
     setSelectedShot({
       frameNumber: frame.frame_number,
       shotIndex: Math.min(focusFrame.shotIndex, frame.shots.length - 1)
@@ -713,7 +714,7 @@ export function ActiveGameScorer({
   function leaveEditMode() {
     unlockedGames.delete(gameKey);
     setUnlocked(false);
-    setEditConfirmed(false);
+    setConfirmedShot(null);
     setMoreAt(null);
   }
 

@@ -49,6 +49,11 @@ export function useSheetDismiss(
   const [exiting, setExiting] = useState(false);
   const [dragY, setDragY] = useState(0);
   const dragStartY = useRef<number | null>(null);
+  // Whether a finger is down on the drag surface. State, not a read of
+  // `dragStartY` during render: the panel's transition is switched off for the
+  // drag, and a ref read in render only reflects the drag by luck of the next
+  // `setDragY` re-rendering it.
+  const [dragging, setDragging] = useState(false);
   const timer = useRef<number | null>(null);
 
   const dismiss = useCallback(
@@ -77,8 +82,6 @@ export function useSheetDismiss(
     },
     []
   );
-
-  const dragging = dragStartY.current !== null;
 
   const transform = exiting
     ? align === "bottom"
@@ -113,6 +116,7 @@ export function useSheetDismiss(
         // that header. Capturing the pointer here would swallow their press.
         if ((e.target as HTMLElement).closest("button, a, input, select, textarea, [role='button']")) return;
         dragStartY.current = e.clientY;
+        setDragging(true);
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       },
       onPointerMove: (e) => {
@@ -122,11 +126,13 @@ export function useSheetDismiss(
       onPointerUp: () => {
         const shouldClose = dragY > DISMISS_PX;
         dragStartY.current = null;
+        setDragging(false);
         setDragY(0);
         if (shouldClose) dismiss();
       },
       onPointerCancel: () => {
         dragStartY.current = null;
+        setDragging(false);
         setDragY(0);
       }
     }

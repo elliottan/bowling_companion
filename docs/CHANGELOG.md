@@ -9,6 +9,20 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.78.1: A lint gate with no warnings left (2026-11-03)
+
+- No change a bowler can see. ESLint's 26 warnings are gone and the three
+  rules behind them are errors now. The helpers and tables that sat beside a
+  component moved to their own modules (`statsMetrics`, `driftZoneAccent`,
+  `lockedTapBlocker`, `lib/patternFilters`, and the lane labels into
+  `lib/sessionLabels`), so fast refresh reloads those screens in place. The
+  sheet drag tracks whether a finger is down in state rather than reading a
+  ref in render, the overlay and pushed-screen close handlers are refreshed
+  after commit, a recorded shot's edit confirmation is the shot it was given
+  for rather than a flag an effect resets a render late, and a ball form with
+  no catalog link derives its empty specs. The seven effects that set state
+  on purpose say why in a disable comment.
+
 ## 0.78.0: Every language reads more naturally, and the store speaks them too (2026-11-02)
 
 - A read of every message in every language, against the English, fixed what
