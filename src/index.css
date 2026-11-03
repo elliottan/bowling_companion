@@ -531,6 +531,68 @@ input[type="date"]::-webkit-date-and-time-value {
   opacity: 0.85;
 }
 
+/* A range slider as UIKit draws one (ADR-234). Two inputs share one track,
+   so the inputs take no touches and only their thumbs do: each thumb is
+   grabbable wherever the other input lies. */
+.range-track {
+  background: rgb(120 120 128 / 0.2);
+}
+:root[data-theme="dark"] .range-track {
+  background: rgb(120 120 128 / 0.36);
+}
+.range-input {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+  margin: 0;
+}
+.range-input::-webkit-slider-runnable-track {
+  background: transparent;
+  border: 0;
+}
+.range-input::-moz-range-track {
+  background: transparent;
+  border: 0;
+}
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 0.5px solid rgb(0 0 0 / 0.04);
+  box-shadow: 0 0.5px 4px rgb(0 0 0 / 0.12), 0 6px 13px rgb(0 0 0 / 0.12);
+  cursor: grab;
+  transition: transform 150ms ease-out;
+}
+.range-input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 0.5px solid rgb(0 0 0 / 0.04);
+  box-shadow: 0 0.5px 4px rgb(0 0 0 / 0.12), 0 6px 13px rgb(0 0 0 / 0.12);
+  cursor: grab;
+}
+.range-input:active::-webkit-slider-thumb {
+  transform: scale(1.06);
+  cursor: grabbing;
+}
+.range-input:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid rgb(var(--color-accent-fill));
+  outline-offset: 2px;
+}
+.range-input:focus-visible::-moz-range-thumb {
+  outline: 2px solid rgb(var(--color-accent-fill));
+  outline-offset: 2px;
+}
+
 /* Every screen rubber-bands, as an iOS screen does whether or not its content
    fills it (ADR-188). WebKit bounces a scroller only once its content is
    taller than it, so a screen that fits, Home on a big phone, sat dead under

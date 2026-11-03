@@ -21,6 +21,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { BallFormDialog } from "../components/BallFormDialog";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { SwipeRow } from "../components/ui/SwipeRow";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { PushScreen } from "../components/PushScreen";
 import { Button } from "../components/ui/Button";
@@ -56,11 +57,13 @@ interface SortableBallRowProps {
    *  numbers are still loading, which is the one moment there is nothing
    *  coherent to open. */
   onViewLayout?: (ball: Ball) => void;
+  /** Asks to delete the ball, from the row swiped aside (ADR-233). */
+  onDelete: (ball: Ball) => void;
 }
 
 /** One arsenal entry. The whole row opens the editor, the old row had an edit
  *  and a delete target crammed beside a drag handle, three ways to mis-tap. */
-function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRowProps) {
+function SortableBallRow({ ball, onEdit, system, onViewLayout, onDelete }: SortableBallRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: ball.id! });
   const style = {
@@ -90,6 +93,9 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
       style={style}
       className={`${LIST_DIVIDER_BASE} before:left-24 first:[&>div]:rounded-t-[26px] last:[&>div]:rounded-b-[26px]`}
     >
+      {/* Swiped left, the row shows Delete, which asks first (ADR-233). The
+          handle keeps its own drag: it reorders, and never swipes. */}
+      <SwipeRow actionLabel={t`Delete`} onAction={() => onDelete(ball)}>
       <div
         className={`flex items-center gap-1 bg-surface pr-2 ${
           isDragging ? "rounded-[26px] opacity-95 shadow-md ring-1 ring-accent-fill" : ""
@@ -97,6 +103,7 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
       >
         <button
           type="button"
+          data-swipe-ignore
           {...attributes}
           {...listeners}
           aria-label={t`Drag to reorder ${{ name: ball.name }}`}
@@ -169,6 +176,7 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout }: SortableBallRow
           </IconButton>
         )}
       </div>
+      </SwipeRow>
     </li>
   );
 }
@@ -361,6 +369,7 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
                         system={system}
                         onEdit={(b) => setForm({ ball: b })}
                         onViewLayout={onViewLayout ? viewLayout : undefined}
+                        onDelete={setPendingDelete}
                       />
                     ))}
                   </ul>

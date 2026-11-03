@@ -1,7 +1,10 @@
-import { t } from "@lingui/core/macro";
+import { plural, t } from "@lingui/core/macro";
 import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { useEffect, useRef, useState } from "react";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { alleyLabel } from "../lib/sessionLabels";
+import { deleteSession } from "../services/bowlingRepository";
 import { SessionHistory } from "../components/SessionHistory";
 import {
   SessionFilterButton,
@@ -29,6 +32,9 @@ export function HistoryView({
   const filters = useSessionFilters({ frames: "unscored" });
   const { sessionList, isLoading, error } = filters;
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // A session swiped aside and asked to be deleted, until the bowler answers.
+  const [pendingDelete, setPendingDelete] = useState<SessionSummary | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [visibleCount, setVisibleCount] = useRememberedState("history:visible", PAGE);
   // The list the window belongs to. Comparing it during render resets the
@@ -91,6 +97,7 @@ export function HistoryView({
             </div>
 
             {error && <ErrorBanner className="mb-3">{t`Your sessions could not be read. Reload the app, then try again.`}</ErrorBanner>}
+            {deleteError && <ErrorBanner className="mb-3">{deleteError}</ErrorBanner>}
 
             <SessionFilterChips filters={filters} />
           </>
@@ -103,6 +110,7 @@ export function HistoryView({
             isLoading={isLoading}
             onOpenSession={onOpenSession}
             activeSessionId={activeSessionId}
+            onDeleteSession={setPendingDelete}
           />
           <div ref={sentinelRef} className="h-6" aria-hidden="true" />
         </div>
@@ -110,6 +118,35 @@ export function HistoryView({
       {filtersOpen && (
         <SessionFilterSheet filters={filters} onClose={() => setFiltersOpen(false)} />
       )}
+      {/* The same question the session's own editor asks, word for word. The
+          list follows the database, so the row goes once it is deleted. */}
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={t`Delete this session?`}
+        message={pendingDelete ? deleteSessionMessage(pendingDelete) : undefined}
+        confirmLabel={t`Delete`}
+        onConfirm={() => {
+          const id = pendingDelete?.session.id;
+          setPendingDelete(null);
+          if (id == null) return;
+          setDeleteError(null);
+          deleteSession(id).catch((err: unknown) =>
+            setDeleteError(err instanceof Error ? err.message : t`Unable to delete session.`)
+          );
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
     </section>
   );
+}
+
+/** One whole message per count, as the session editor words it, so a language
+ *  with its own plural forms for "game" can have them. */
+function deleteSessionMessage(summary: SessionSummary): string {
+  const alley = alleyLabel(summary.session.alley_name);
+  const gameCount = summary.games.length;
+  return plural(gameCount, {
+    one: `"${alley}" and its game will be permanently deleted. This can't be undone.`,
+    other: `"${alley}" and all # games will be permanently deleted. This can't be undone.`
+  });
 }

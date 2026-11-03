@@ -9,6 +9,23 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.81.0: Swipe to delete, a sheet that pulls down from anywhere, iPhone sliders (2026-11-03)
+
+- Swipe a History session, an arsenal ball or one of your own oil patterns to
+  the left to show a red Delete. It always asks before deleting anything, in
+  the phone's own alert in the iPhone app, and there is no long swipe that
+  deletes by itself. A scroll never catches a row, and touching anywhere else
+  closes it (ADR-233).
+- The in-session sheet (Sheet, Stats, Lanes) pulls down from the top of its
+  content, flicks away and dims as you pull, like every other sheet. Scrolling
+  the frames sideways is never taken for a pull (ADR-235).
+- The catalog's RG and differential sliders, and the pattern filter's length,
+  are the iPhone's slider: a thin track and round white thumbs. Both thumbs
+  can now be grabbed, where the lower one could be blocked by the upper one
+  (ADR-234).
+- Several confirms showed their Delete and Cancel buttons in English in every
+  language. They now read in yours.
+
 ## 0.80.0: Controls that look and feel like the phone's own (2026-11-03)
 
 - Every pick-one toggle (the session sheet's Sheet, Stats and Lanes, the Stats

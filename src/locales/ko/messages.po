@@ -301,6 +301,7 @@ msgid "{from} to {to}"
 msgstr "{from} ~ {to}"
 
 #: src/views/ActiveSessionView.tsx
+#: src/views/HistoryView.tsx
 msgid "{gameCount, plural, one {\"{alley}\" and its game will be permanently deleted. This can't be undone.} other {\"{alley}\" and all # games will be permanently deleted. This can't be undone.}}"
 msgstr "{gameCount, plural, other {\"{alley}\"과(와) 게임 #개가 영구적으로 삭제돼요. 되돌릴 수 없어요.}}"
 
@@ -1145,6 +1146,7 @@ msgstr "게임별"
 msgid "By session"
 msgstr "세션별"
 
+#: src/components/ConfirmDialog.tsx
 #: src/components/LaneNotesTab.tsx
 msgid "Cancel"
 msgstr "취소"
@@ -1392,6 +1394,13 @@ msgstr "기본"
 msgid "Defined"
 msgstr "뚜렷함"
 
+#: src/components/ConfirmDialog.tsx
+#: src/components/SessionHistory.tsx
+#: src/views/ArsenalView.tsx
+#: src/views/HistoryView.tsx
+msgid "Delete"
+msgstr "삭제"
+
 #: src/views/ArsenalView.tsx
 msgid "Delete {name}?"
 msgstr "{name}을(를) 삭제할까요?"
@@ -1438,6 +1447,7 @@ msgid "Delete this game?"
 msgstr "이 게임을 삭제할까요?"
 
 #: src/views/ActiveSessionView.tsx
+#: src/views/HistoryView.tsx
 msgid "Delete this session?"
 msgstr "이 세션을 삭제할까요?"
 
@@ -4527,6 +4537,7 @@ msgid "Unable to delete game."
 msgstr "게임을 삭제할 수 없어요."
 
 #: src/views/ActiveSessionView.tsx
+#: src/views/HistoryView.tsx
 msgid "Unable to delete session."
 msgstr "세션을 삭제할 수 없어요."
 

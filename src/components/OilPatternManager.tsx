@@ -4,6 +4,7 @@ import { OilPatternIcon } from "./icons";
 import { useMemo, useState, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { SwipeRow } from "./ui/SwipeRow";
 import { ErrorBanner } from "./ErrorBanner";
 import { OilPatternFormDialog } from "./OilPatternFormDialog";
 import { PatternSheet } from "./PatternSheet";
@@ -273,6 +274,9 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
               pattern={pattern}
               onEdit={() => openEdit(pattern)}
               onOpenSheet={() => setSheetFor(pattern)}
+              // As the editor offers it: a pattern of the bowler's own, not
+              // one taken from the catalog.
+              onRemove={pattern.catalog_id ? undefined : () => setPendingRemove(pattern)}
             />
           ))}
         </ListGroup>
@@ -480,7 +484,8 @@ function PatternRow({
   pattern,
   onEdit,
   onOpenSheet,
-  onRestore
+  onRestore,
+  onRemove
 }: {
   pattern: OilPattern;
   onEdit: () => void;
@@ -489,15 +494,20 @@ function PatternRow({
    *  special row, so they keep the row opening the editor directly. */
   onOpenSheet?: () => void;
   onRestore?: () => void;
+  /** Asks to remove it, from the row swiped aside (ADR-233). */
+  onRemove?: () => void;
 }) {
   const primary = onOpenSheet ?? onEdit;
   return (
     <li className={`flex items-center ${LIST_DIVIDER}`}>
+      <SwipeRow className="min-w-0 flex-1" actionLabel={t`Remove`} onAction={() => onRemove?.()} disabled={!onRemove}>
       <button
         type="button"
         onClick={primary}
         aria-label={onOpenSheet ? t`${{ name: pattern.name }} details` : t`Edit ${{ name: pattern.name }}`}
-        className="flex min-h-[52px] min-w-0 flex-1 items-center gap-3 px-4 py-2.5 text-left active:bg-surface-muted"
+        // Opaque, so a swipe slides the row over its action rather than
+        // showing the red through it.
+        className="flex min-h-[52px] w-full min-w-0 items-center gap-3 bg-surface px-4 py-2.5 text-left active:bg-surface-muted"
       >
         <span className="min-w-0 flex-1">
           <span className="line-clamp-2 block break-words text-body leading-snug text-ink">{pattern.name}</span>
@@ -510,6 +520,7 @@ function PatternRow({
           <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
         )}
       </button>
+      </SwipeRow>
       {/* The row is one target (DESIGN-LANGUAGE §4). Editing lives on the
           pattern's sheet, which the row opens: a pencil on every row of a
           catalog this long was a second target down the whole edge. */}

@@ -9910,3 +9910,85 @@ website (guideline 4.2).
 iPhone app; the page's back handling is not registered while it is up. The
 alert itself still wants a look on a phone, as the tab bar's did.
 
+## ADR-233: A row is deleted by a swipe that asks first
+
+**Status.** Accepted, 2026-11-03, at the owner's request, on the condition
+that a delete can never happen by accident. Builds on ADR-184 (no long press)
+and ADR-232 (the confirm is the phone's alert).
+
+**Context.** Swiping a row left to show a red Delete is the most familiar list
+gesture on an iPhone, and the app had none: a session was deleted from its
+editor, a ball from its form, a pattern from its editor, each two or three taps
+deep. The owner had taken an earlier swipe out because things were too easy to
+delete, so the gesture comes back only with the guards that make that
+impossible.
+
+**Decision.**
+
+- **`SwipeRow`** (`src/components/ui/SwipeRow.tsx`) on History's sessions, the
+  arsenal's balls and the bowler's own patterns (not a catalog pattern, which
+  the editor does not remove either). A left swipe slides the row aside and
+  shows a red action 88px wide, which rests open.
+- **The swipe only reveals.** There is no full swipe: past the action's width
+  the row gives and stops, and lifting leaves it resting open. The action asks:
+  each list raises its `ConfirmDialog`, word for word what its editor asks, and
+  deletes only on its Delete.
+- **It never takes a scroll.** The row waits for 10px of sideways movement, at
+  least 1.3 times the downward, before it takes the finger; a mostly downward
+  move is the list's from then on. A closed row ignores a rightward swipe,
+  which is where the iPhone's back swipe starts.
+- **One open at a time, and it closes as UIKit's does**: a touch anywhere else,
+  a scroll, or opening another row closes it, and that touch does nothing
+  else. A tap on the open row closes it without opening it.
+- **Opens on a flick too**: a lift moving left faster than 0.45px/ms opens it
+  however short the swipe, and one moving right closes it.
+- **Not on the session being scored**, which is open in the Score tab; and the
+  arsenal's reorder handle keeps its own drag (`data-swipe-ignore`).
+- **A screen reader is not given the swipe**: the action is out of the
+  accessibility tree while closed, and every row's destination keeps its
+  delete.
+
+**Consequences.** A delete from a list is a swipe, a tap and a confirm, three
+deliberate steps. `ConfirmDialog`'s default labels, which were English
+literals, are now translated messages, and "Delete" is new in every language.
+
+## ADR-234: A range slider is drawn as UIKit draws one
+
+**Status.** Accepted, 2026-11-03, at the owner's request. Follows ADR-230.
+
+**Context.** `RangeSlider` (the catalog's RG and differential, the pattern
+filter's length) was two browser range inputs over a 4px track, each thumb
+the browser's own. And the upper input lay over the lower one across the whole
+track, so the lower thumb could only be reached where the upper one let a touch
+through.
+
+**Decision.** A UIKit slider: a 4px track in the system's grey
+(`.range-track`), the accent between the thumbs, and white 28pt thumbs with
+UIKit's two shadows (`.range-input`), white in dark mode too, as UIKit's are.
+The control is 44pt tall. The track is inset by a thumb's radius, so each end
+of it sits under the middle of a thumb. The inputs take no touches and only
+their thumbs do, so each thumb can be grabbed wherever the other input lies.
+
+**Consequence.** Each slider is 24px taller in the catalog's filters.
+
+## ADR-235: The session sheet is pulled down from its panes
+
+**Status.** Accepted, 2026-11-03, at the owner's request. Extends ADR-229 to
+the one sheet it left out.
+
+**Context.** The session sheet (Sheet, Stats, Lanes) moved only from its pill
+and tab row. Its panes scroll on their own, so `bodyDragRef`, which read the
+scroll of the element it was given, had nothing to read.
+
+**Decision.**
+
+- **`bodyDragRef` reads the scroller under the finger**, the nearest element
+  between the touch and the body that scrolls vertically, so one ref on the
+  panes' container serves whichever pane is showing. A pane scrolled down
+  takes the pull as its scroll; at its top, the pull moves the sheet.
+- **A sideways move is always the content's**, for every sheet: a pull starts
+  only when the movement is mostly downward, so the Sheet tab's row of frames
+  still scrolls across.
+
+**Consequence.** The sheet bowlers use most moves like every other sheet.
+

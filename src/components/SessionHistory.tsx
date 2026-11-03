@@ -7,6 +7,7 @@ import type { SessionSummary } from "../types/bowling";
 import { GROUP_HEADING } from "./ui/typography";
 import { LoadingCard } from "./ui/LoadingCard";
 import { EmptyState } from "./ui/EmptyState";
+import { SwipeRow } from "./ui/SwipeRow";
 import { formatSessionDate } from "../lib/dates";
 import { formatNumber } from "../lib/format";
 
@@ -16,13 +17,17 @@ interface SessionHistoryProps {
   /** `openStats` is set when every game in the session is finished. */
   onOpenSession: (sessionId: number, openStats?: boolean) => void;
   activeSessionId?: number | null;
+  /** Asks to delete a session, from a row swiped aside (ADR-233). The caller
+   *  confirms first. */
+  onDeleteSession?: (summary: SessionSummary) => void;
 }
 
 export function SessionHistory({
   sessions,
   isLoading = false,
   onOpenSession,
-  activeSessionId
+  activeSessionId,
+  onDeleteSession
 }: SessionHistoryProps) {
   if (isLoading) return <LoadingCard />;
 
@@ -36,11 +41,20 @@ export function SessionHistory({
     <ul className="space-y-2">
       {sessions.map((summary) => (
         <li key={summary.session.id}>
-          <SessionRow
-            summary={summary}
-            isActive={summary.session.id != null && summary.session.id === activeSessionId}
-            onOpen={onOpenSession}
-          />
+          {/* The session being scored is open in the Score tab, so it is
+              deleted from there, not from under it. */}
+          <SwipeRow
+            className="rounded-lg"
+            actionLabel={t`Delete`}
+            disabled={!onDeleteSession || (summary.session.id != null && summary.session.id === activeSessionId)}
+            onAction={() => onDeleteSession?.(summary)}
+          >
+            <SessionRow
+              summary={summary}
+              isActive={summary.session.id != null && summary.session.id === activeSessionId}
+              onOpen={onOpenSession}
+            />
+          </SwipeRow>
         </li>
       ))}
     </ul>
@@ -54,10 +68,11 @@ interface SessionRowProps {
 }
 
 /**
- * Tap a row to open the session, and that is all a row does. Editing and
+ * Tap a row to open the session, and that is all a tap does. Editing and
  * deleting the session are in its own editor, a tap on its header away: a
  * long press here was found by accident, mid-scroll, more than on purpose
- * (ADR-184).
+ * (ADR-184). A swipe left shows Delete, which asks before it deletes
+ * (ADR-233).
  */
 function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
   const { session, games } = summary;

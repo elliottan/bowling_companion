@@ -150,6 +150,52 @@ describe("useSheetDismiss", () => {
       act(() => void vi.advanceTimersByTime(300));
       expect(onClose).toHaveBeenCalledTimes(1);
     });
+
+    it("leaves a sideways move to the content, and pulls from a nested pane only at its top", () => {
+      function Panes({ onClose }: { onClose: () => void }) {
+        const { panelStyle, bodyDragRef } = useSheetDismiss(onClose);
+        return (
+          <div data-testid="panel" style={panelStyle}>
+            <div data-testid="body" ref={bodyDragRef}>
+              <div data-testid="pane" style={{ overflowY: "auto" }}>
+                <div data-testid="cell" />
+              </div>
+            </div>
+          </div>
+        );
+      }
+      render(<Panes onClose={vi.fn()} />);
+      const cell = screen.getByTestId("cell");
+      const pane = screen.getByTestId("pane");
+      const panel = screen.getByTestId("panel");
+      const touch = (type: string, x: number, y: number) =>
+        fireEvent[type as "touchStart"](cell, { touches: [{ clientX: x, clientY: y }] });
+
+      // A row of frames scrolled across, drifting down a little.
+      touch("touchStart", 200, 100);
+      touch("touchMove", 120, 110);
+      touch("touchMove", 40, 120);
+      expect(panel.style.transform).toBe("");
+      fireEvent.touchEnd(cell);
+
+      // The pane under the finger is scrolled down: the pull is its scroll.
+      Object.defineProperty(pane, "scrollHeight", { value: 900, configurable: true });
+      Object.defineProperty(pane, "clientHeight", { value: 300, configurable: true });
+      Object.defineProperty(pane, "scrollTop", { value: 50, configurable: true });
+      touch("touchStart", 200, 100);
+      touch("touchMove", 200, 200);
+      expect(panel.style.transform).toBe("");
+      fireEvent.touchEnd(cell);
+
+      // At its top, the same pull moves the sheet.
+      Object.defineProperty(pane, "scrollTop", { value: 0, configurable: true });
+      // The first move takes the sheet, from where the finger is then, so it
+      // does not jump; the next one moves it.
+      touch("touchStart", 200, 100);
+      touch("touchMove", 200, 110);
+      touch("touchMove", 200, 170);
+      expect(panel.style.transform).toMatch(/translateY\(/);
+    });
   });
 });
 

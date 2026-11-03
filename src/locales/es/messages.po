@@ -301,6 +301,7 @@ msgid "{from} to {to}"
 msgstr "{from} a {to}"
 
 #: src/views/ActiveSessionView.tsx
+#: src/views/HistoryView.tsx
 msgid "{gameCount, plural, one {\"{alley}\" and its game will be permanently deleted. This can't be undone.} other {\"{alley}\" and all # games will be permanently deleted. This can't be undone.}}"
 msgstr "{gameCount, plural, one {\"{alley}\" y su juego se eliminarán de forma permanente. Esto no se puede deshacer.} other {\"{alley}\" y sus # juegos se eliminarán de forma permanente. Esto no se puede deshacer.}}"
 
@@ -1145,6 +1146,7 @@ msgstr "Por juego"
 msgid "By session"
 msgstr "Por sesión"
 
+#: src/components/ConfirmDialog.tsx
 #: src/components/LaneNotesTab.tsx
 msgid "Cancel"
 msgstr "Cancelar"
@@ -1392,6 +1394,13 @@ msgstr "Normal"
 msgid "Defined"
 msgstr "Definido"
 
+#: src/components/ConfirmDialog.tsx
+#: src/components/SessionHistory.tsx
+#: src/views/ArsenalView.tsx
+#: src/views/HistoryView.tsx
+msgid "Delete"
+msgstr "Eliminar"
+
 #: src/views/ArsenalView.tsx
 msgid "Delete {name}?"
 msgstr "¿Eliminar {name}?"
@@ -1438,6 +1447,7 @@ msgid "Delete this game?"
 msgstr "¿Eliminar este juego?"
 
 #: src/views/ActiveSessionView.tsx
+#: src/views/HistoryView.tsx
 msgid "Delete this session?"
 msgstr "¿Eliminar esta sesión?"
 
@@ -4527,6 +4537,7 @@ msgid "Unable to delete game."
 msgstr "No se pudo eliminar el juego."
 
 #: src/views/ActiveSessionView.tsx
+#: src/views/HistoryView.tsx
 msgid "Unable to delete session."
 msgstr "No se pudo eliminar la sesión."
 

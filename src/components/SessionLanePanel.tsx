@@ -134,7 +134,7 @@ export function SessionLanePanel({
   // The app's one sheet motion: slide up on mount, drag down to dismiss, slide
   // back down on close. `dragHandlers` go on the drag pill AND the tab row, and
   // the hook skips a press that landed on a button so the tabs still work.
-  const { dismiss, rootStyle, panelStyle, exiting, dragHandlers } = useSheetDismiss(onClose);
+  const { dismiss, rootStyle, panelStyle, exiting, dragHandlers, bodyDragRef } = useSheetDismiss(onClose);
 
   // The panes scroll only while the panel is at rest. iOS Safari hands every
   // scrolling box to a native scroll view of its own, and those do not follow
@@ -228,7 +228,9 @@ export function SessionLanePanel({
             when it meant to scroll or tap. The panes sit on top of each other
             and the hidden ones keep their layout, so the sheet can scroll to
             a game while another tab is showing. */}
-        <div className="relative min-h-0 flex-1 overflow-hidden">
+        {/* Pulled down from the top of whichever pane is showing, the sheet
+            moves, as every other sheet's body does (ADR-229). */}
+        <div ref={bodyDragRef} className="relative min-h-0 flex-1 overflow-hidden">
           {[
             <div key="sheet" className="px-4 py-3">
               <SessionSheetTab

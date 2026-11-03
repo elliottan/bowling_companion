@@ -141,21 +141,31 @@ export function useSheetDismiss(
       bodyCleanup.current = null;
       if (!el || align !== "bottom") return;
       let startY: number | null = null;
+      let startX = 0;
+      // The scroller the touch landed in: the body itself, or a pane inside it
+      // that scrolls on its own (the session sheet's tabs).
+      let scroller: HTMLElement = el;
       let pulling = false;
       const onStart = (e: TouchEvent) => {
         if (e.touches.length !== 1) return;
         startY = e.touches[0].clientY;
+        startX = e.touches[0].clientX;
+        scroller = scrollerFor(e.target as HTMLElement | null, el);
         pulling = false;
       };
       const onMove = (e: TouchEvent) => {
         if (startY === null) return;
         const y = e.touches[0].clientY;
+        const dx = Math.abs(e.touches[0].clientX - startX);
         if (!pulling) {
-          if (el.scrollTop > 0 || y - startY <= 4) {
-            // Scrolling the list, or pushing up: the list's, for this touch.
-            if (el.scrollTop > 0 || y < startY) startY = null;
+          const dy = y - startY;
+          if (scroller.scrollTop > 0 || dy < 0 || dx > Math.max(4, dy)) {
+            // Scrolling the list, pushing up, or moving sideways (a row of
+            // frames that scrolls across): the content's, for this touch.
+            startY = null;
             return;
           }
+          if (dy <= 4) return;
           pulling = true;
           beginDrag(y);
         }
@@ -231,4 +241,16 @@ export function useSheetDismiss(
     },
     bodyDragRef
   };
+}
+
+/** The nearest element from `target` up to `root` that scrolls vertically, or
+ *  `root` itself. */
+function scrollerFor(target: HTMLElement | null, root: HTMLElement): HTMLElement {
+  for (let node = target; node && node !== root; node = node.parentElement) {
+    if (node.scrollHeight > node.clientHeight) {
+      const overflow = getComputedStyle(node).overflowY;
+      if (overflow === "auto" || overflow === "scroll") return node;
+    }
+  }
+  return root;
 }
