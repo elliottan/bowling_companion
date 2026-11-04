@@ -163,6 +163,21 @@ export function rasterizeIcon(el: Element, scale = 3): Promise<string | null> {
 // ---------------------------------------------------------------------------
 // The layer
 
+/**
+ * What a finger on the page's own control would have done to focus first.
+ * A tap on a page button takes focus off the text field being typed in, and
+ * the app reads that blur as the keyboard going away (App's `keyboardOpen`,
+ * which hides the tab bar while it is up). A tap on the phone's button never
+ * reaches the page as a touch, so the field kept focus; a sheet's Add then
+ * unmounted it still focused, which fires no blur, and the tab bar stayed
+ * hidden after the sheet had gone. So a native tap lets go of focus as a page
+ * tap would, unless focus is inside the control itself.
+ */
+function settleFocus(control: HTMLElement): void {
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && active !== document.body && !control.contains(active)) active.blur();
+}
+
 interface Entry {
   el: HTMLElement;
   spec: GlassSpec;
@@ -213,8 +228,18 @@ export class GlassLayer {
 
   /** Wires the phone's taps and changes back to the page's controls. */
   async listen(): Promise<void> {
-    await this.deps.plugin.addListener("tap", ({ id }) => this.entries.get(id)?.el.click());
-    await this.deps.plugin.addListener("change", ({ id, index }) => this.entries.get(id)?.onChange?.(index));
+    await this.deps.plugin.addListener("tap", ({ id }) => {
+      const entry = this.entries.get(id);
+      if (!entry) return;
+      settleFocus(entry.el);
+      entry.el.click();
+    });
+    await this.deps.plugin.addListener("change", ({ id, index }) => {
+      const entry = this.entries.get(id);
+      if (!entry) return;
+      settleFocus(entry.el);
+      entry.onChange?.(index);
+    });
   }
 
   register(id: string, el: HTMLElement, spec: GlassSpec, onChange?: (index: number) => void): () => void {
