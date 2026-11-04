@@ -2,6 +2,7 @@ import { t } from "@lingui/core/macro";
 import { ArrowUpRight, Library, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Button } from "./ui/Button";
+import { Stepper } from "./ui/Stepper";
 import { FormSheet } from "./ui/FormSheet";
 import { FIELD, FIELD_LABEL } from "./ui/field";
 import type { OilPass, OilPattern } from "../types/bowling";
@@ -109,19 +110,35 @@ export function OilPatternFormDialog({ open, initial, onSubmit, onCancel, onRemo
           {/* Only for a pattern with no table. With one, the length is the
               table's and offering a box for it would invite a contradiction. */}
           {table.length === 0 && (
-            <label className="block">
-              <span className={FIELD_LABEL}>{t`Length (ft)`}</span>
-              <input
-                type="number"
-                inputMode="decimal"
-                value={distance}
-                onChange={(e) => setDistance(e.target.value)}
-                className={`${FIELD} tabular-nums`}
-                placeholder="40"
-                min={1}
-                max={70}
-              />
-            </label>
+            <div>
+              <label htmlFor="pattern-length" className={FIELD_LABEL}>{t`Length (ft)`}</label>
+              {/* The box is narrow and the stepper sits beside it, as a value
+                  with a UIStepper does: a pattern is a few feet off the one
+                  before, a nudge more often than a jump (ADR-237). */}
+              <div className="flex items-center gap-3">
+                <div className="w-24">
+                  <input
+                    id="pattern-length"
+                    type="number"
+                    inputMode="decimal"
+                    value={distance}
+                    onChange={(e) => setDistance(e.target.value)}
+                    className={`${FIELD} no-spin tabular-nums`}
+                    placeholder="40"
+                    min={1}
+                    max={70}
+                  />
+                </div>
+                <Stepper
+                  label={t`Length`}
+                  value={distance.trim() !== "" && Number.isFinite(Number(distance)) ? Number(distance) : undefined}
+                  onChange={(n) => setDistance(String(n))}
+                  min={1}
+                  max={70}
+                  start={40}
+                />
+              </div>
+            </div>
           )}
 
           {table.length > 0 && (

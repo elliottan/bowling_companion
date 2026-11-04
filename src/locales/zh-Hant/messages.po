@@ -1373,6 +1373,10 @@ msgstr "深色"
 msgid "Date"
 msgstr "日期"
 
+#: src/components/ui/Stepper.tsx
+msgid "Decrease {label}"
+msgstr "減少{label}"
+
 #: src/views/BowlingProfileView.tsx
 msgid "Decrease release offset"
 msgstr "減少出手偏移"
@@ -2299,6 +2303,10 @@ msgstr "在 Safari 中，點一下「分享」<0/>，再點「加入主畫面」
 msgid "In the app, open Settings, then Backup & restore, and import."
 msgstr "在 App 中，開啟「設定」，接著前往「備份與還原」，然後匯入。"
 
+#: src/components/ui/Stepper.tsx
+msgid "Increase {label}"
+msgstr "增加{label}"
+
 #: src/views/BowlingProfileView.tsx
 msgid "Increase release offset"
 msgstr "增加出手偏移"
@@ -2578,6 +2586,7 @@ msgid "Left-handed"
 msgstr "左手"
 
 #. Bowling term: how far down the lane the ball travels before it turns, a reading on the layout lab's rail
+#: src/components/OilPatternFormDialog.tsx
 #: src/components/PatternFilterSheet.tsx
 #: src/lib/ballLayout.ts
 msgid "Length"

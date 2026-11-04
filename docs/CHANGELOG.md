@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.83.0: A date chip and steppers like the phone's (2026-11-04)
+
+- A session's date shows as the phone shows one, "4 Nov 2026" on a small grey
+  chip, and a tap opens the phone's own date picker (ADR-237).
+- An oil pattern's length, and a spare line's stance and target, have a minus
+  and plus beside them, as the iPhone's settings do: a foot or half a board a
+  tap, with no keyboard. You can still type a value in (ADR-237).
+
 ## 0.82.0: Search fields like the phone's (2026-11-04)
 
 - The catalog, the ball editor's catalog picker, the oil patterns list and its

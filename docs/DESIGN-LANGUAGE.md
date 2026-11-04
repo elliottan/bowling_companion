@@ -578,6 +578,14 @@ once there is text, and Cancel sliding in beside it while the search is live.
 Clear keeps the keyboard and Cancel lets it go, as on the phone. It has no
 focus ring, because Cancel already says it is live.
 
+**A day is a `DateButton`, and a number that is nudged has a `Stepper`**
+(ADR-237). The date reads as the device writes it, on a grey chip that opens
+the phone's own picker, never a form box of digits. A value a bowler moves a
+little at a time (a pattern's length, a spare line's boards) gets UIKit's
+minus-and-plus capsule beside its field, and the field stays typeable. A value
+that is picked from a short list is a `Select`; one that is typed fresh, a lane
+number, is just a field.
+
 **A short closed list is a `Select`** (`src/components/ui/Select.tsx`,
 ADR-231), never a bare `<select>`: the value with iOS's up-and-down chevrons in
 the accent, which is what says a menu opens from it. Inside the store apps the

@@ -10021,3 +10021,40 @@ search:
 
 **Consequence.** A search reads as a search, not as one more field to fill in,
 and all four behave alike.
+
+## ADR-237: A date is a chip, and a number nudges with a stepper
+
+**Status.** Accepted, 2026-11-04, at the owner's request. Follows ADR-236.
+
+**Context.** Two kinds of field were still the browser's. The session's date
+was a form box the width of the form showing "11/04/2026", where iOS shows a
+compact date picker: "4 Nov 2026" on a small grey chip that opens the
+calendar. And the numbers a bowler nudges rather than types fresh, an oil
+pattern's length and a spare line's stance and target, were bare number boxes,
+with the browser's tiny spin arrows on the desktop and nothing at all on the
+phone, so a half board took the keyboard.
+
+**Decision.**
+
+- **`DateButton`** (`src/components/ui/DateButton.tsx`) is the session's
+  date: the day in the device's own words (`formatSessionDate`) on a capsule in
+  the segmented control's grey fill. A real date input lies over it,
+  invisible, so the tap opens the platform's own picker. It never empties the
+  day, as iOS's picker offers a Reset and a session always has one.
+- **`Stepper`** (`src/components/ui/Stepper.tsx`) is UIKit's `UIStepper`: a
+  minus and a plus in one 94 by 32pt capsule, the same fill, a hairline
+  between, each half dimmed at its end of the range, 44pt to the finger, and a
+  selection tick in the store apps. It sits beside the field, which can still
+  be typed into: the stepper is for the nudge, the keyboard for the jump. A
+  step lands on the grid, so a typed 15.3 steps to 15.5 or 15, and an empty
+  field's first press sets a starting value (40 ft, board 20) rather than
+  stepping from nothing. The field beside it drops the browser's spin arrows.
+- It goes on the oil pattern's length (1 to 70 ft, by the foot) and on the
+  spare line's stance (1 to 50) and target (1 to 39), by the half board, in the
+  spare line sheet and the row's bulk sheet. Not on the ball layout, which is
+  already sliders and pickers (ADR-210 and the PAP's `InchField`), nor on lane
+  numbers, which are typed, not nudged.
+
+**Consequence.** The commonest change to a spare line, half a board, is two
+taps with no keyboard. Long-press row menus were proposed alongside these and
+are not built: ADR-184 stands until the owner says otherwise.
