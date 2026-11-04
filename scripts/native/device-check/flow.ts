@@ -261,7 +261,16 @@ export class Flow {
   async toTabs() {
     for (let i = 0; i < 6; i++) {
       const open = await this.js<string[]>("__dc.dialogs()");
-      if (open.length === 0) return;
+      if (open.length === 0) {
+        // The phone's tab bar steps aside while a screen covers it and fades
+        // back once it has gone, after the page has already let it go. A tab
+        // tapped in that gap lands on the page under the bar instead: run 70
+        // opened Home's Oil patterns row that way, with a back that went
+        // through the iPhone app's own glass button (ADR-238), whose tap
+        // reaches the page a beat later than a web one.
+        if (i > 0) await new Promise((r) => setTimeout(r, 800 * this.slow));
+        return;
+      }
       const top = open[open.length - 1];
       const closer = await this.js<{ x: number; y: number } | null>(
         `__dc.find("^(Back|Close|Done)$", ${JSON.stringify(top.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))})`
