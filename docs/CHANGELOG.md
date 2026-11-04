@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.85.0: Filters and share previews that rise from the bottom (2026-11-04)
+
+- The ball catalog's filters rise from the bottom of the screen like every
+  other sheet in the app, instead of dropping down over the list. Each choice
+  still applies at once; tap the tick when you are done.
+- Sharing a picture of your stats, a game, a layout or a line opens its
+  preview in a sheet from the bottom, with the Share button under the picture,
+  rather than a box in the middle of the screen.
+
 ## 0.84.0: Glass buttons that are the phone's own (2026-11-04)
 
 - In the iPhone app on iOS 26, the round buttons and the segmented control at

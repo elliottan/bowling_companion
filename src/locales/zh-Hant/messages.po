@@ -1283,7 +1283,6 @@ msgstr "清除搜尋"
 #: src/components/LaneVisualizer.tsx
 #: src/components/LaneVisualizerLazy.tsx
 #: src/components/LayoutEditor.tsx
-#: src/components/ShareCardDialog.tsx
 #: src/components/ui/FormSheet.tsx
 msgid "Close"
 msgstr "關閉"
@@ -1846,10 +1845,6 @@ msgstr "篩選補中路線"
 #: src/components/NextSteps.tsx
 msgid "Filter stats by pattern to compare sessions on the same oil."
 msgstr "依油型篩選統計，比較在同樣油面上的場次。"
-
-#: src/views/CatalogView.tsx
-msgid "Filter the catalog"
-msgstr "篩選型錄"
 
 #: src/components/PatternFilterSheet.tsx
 #: src/components/SessionFilterBar.tsx

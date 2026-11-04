@@ -164,38 +164,22 @@ describe("CatalogView", () => {
     });
   });
 
-  it("opens the filters as a layer under the Filters button, and puts them away on a tap outside", async () => {
+  it("opens the filters in a sheet that applies as you choose, and is left with Done", async () => {
     await seedCatalog(3);
     renderCatalog();
     await screen.findByText("Ball 0");
 
     fireEvent.click(screen.getByRole("button", { name: /^Filters/ }));
-    const panel = screen.getByRole("dialog", { name: "Filter the catalog" });
-    // A layer over the list, not a block in front of it: it is positioned out
-    // of the flow, so choosing a filter cannot push the balls down the screen.
-    expect(panel).toHaveClass("absolute");
-    fireEvent.click(within(panel).getByRole("button", { name: "Storm" }));
-    expect(screen.getByRole("dialog", { name: "Filter the catalog" })).toBeInTheDocument();
+    // A sheet from the bottom edge, as every other filter sheet in the app is,
+    // not a card dropped down over the list.
+    const sheet = screen.getByRole("dialog", { name: "Filters" });
+    fireEvent.click(within(sheet).getByRole("button", { name: "Storm" }));
+    // Applied at once: the chip under the search says so while the sheet is up.
+    expect(screen.getByRole("button", { name: "Remove filter: Storm" })).toBeInTheDocument();
 
-    // The scrim is the only thing behind the panel that is not the page.
-    const scrim = panel.parentElement!.querySelector('[aria-hidden="true"]')!;
-    fireEvent.pointerDown(scrim);
-    expect(screen.queryByRole("dialog", { name: "Filter the catalog" })).not.toBeInTheDocument();
+    fireEvent.click(within(sheet).getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Filters" })).not.toBeInTheDocument());
     // What was chosen stays, as a chip that can be removed.
     expect(screen.getByRole("button", { name: "Remove filter: Storm" })).toBeInTheDocument();
-  });
-
-  it("puts the filters away from the Filters button itself, which sits above the outside-tap layer", async () => {
-    await seedCatalog(3);
-    renderCatalog();
-    await screen.findByText("Ball 0");
-    const button = screen.getByRole("button", { name: /^Filters/ });
-    fireEvent.click(button);
-    expect(screen.getByRole("dialog", { name: "Filter the catalog" })).toBeInTheDocument();
-    // The row holding the button is positioned above the layer that catches
-    // taps elsewhere, so the button is not under it and toggles as it reads.
-    expect(button.closest(".z-\\[2\\]")).not.toBeNull();
-    fireEvent.click(button);
-    expect(screen.queryByRole("dialog", { name: "Filter the catalog" })).not.toBeInTheDocument();
   });
 });
