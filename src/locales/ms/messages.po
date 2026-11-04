@@ -1148,6 +1148,7 @@ msgstr "Mengikut sesi"
 
 #: src/components/ConfirmDialog.tsx
 #: src/components/LaneNotesTab.tsx
+#: src/components/ui/SearchField.tsx
 msgid "Cancel"
 msgstr "Batal"
 
@@ -1275,7 +1276,7 @@ msgstr "Kosongkan penapis corak"
 msgid "Clear pins"
 msgstr "Kosongkan pin"
 
-#: src/views/CatalogView.tsx
+#: src/components/ui/SearchField.tsx
 msgid "Clear search"
 msgstr "Kosongkan carian"
 
@@ -3745,6 +3746,10 @@ msgstr "Catat skor sesi pertama anda"
 #: src/views/GameTrendView.tsx
 msgid "Scoring"
 msgstr "Pemarkahan"
+
+#: src/components/ui/SearchField.tsx
+msgid "Search"
+msgstr "Cari"
 
 #. Bowling term: the coverstock is the outer shell of a ball
 #: src/components/BallFormDialog.tsx

@@ -572,6 +572,12 @@ known value means anything (a filter, the visualizer's pattern), `ChoiceInput`
 puts back text that names nothing when the field is left. A native select was
 a scroll through forty names to find one, and it could not be typed into.
 
+**A search is a `SearchField`** (`src/components/ui/SearchField.tsx`,
+ADR-236), never a bare input: a magnifying glass leading, a filled clear button
+once there is text, and Cancel sliding in beside it while the search is live.
+Clear keeps the keyboard and Cancel lets it go, as on the phone. It has no
+focus ring, because Cancel already says it is live.
+
 **A short closed list is a `Select`** (`src/components/ui/Select.tsx`,
 ADR-231), never a bare `<select>`: the value with iOS's up-and-down chevrons in
 the accent, which is what says a menu opens from it. Inside the store apps the

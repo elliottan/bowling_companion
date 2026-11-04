@@ -1148,6 +1148,7 @@ msgstr "세션별"
 
 #: src/components/ConfirmDialog.tsx
 #: src/components/LaneNotesTab.tsx
+#: src/components/ui/SearchField.tsx
 msgid "Cancel"
 msgstr "취소"
 
@@ -1275,7 +1276,7 @@ msgstr "패턴 필터 지우기"
 msgid "Clear pins"
 msgstr "핀 지우기"
 
-#: src/views/CatalogView.tsx
+#: src/components/ui/SearchField.tsx
 msgid "Clear search"
 msgstr "검색어 지우기"
 
@@ -3745,6 +3746,10 @@ msgstr "첫 세션 점수 기록하기"
 #: src/views/GameTrendView.tsx
 msgid "Scoring"
 msgstr "점수"
+
+#: src/components/ui/SearchField.tsx
+msgid "Search"
+msgstr "검색"
 
 #. Bowling term: the coverstock is the outer shell of a ball
 #: src/components/BallFormDialog.tsx
