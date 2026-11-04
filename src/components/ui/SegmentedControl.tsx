@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { haptic } from "../../lib/haptics";
+import { useGlassSegmented } from "../../lib/nativeGlass";
 import { TAP_TARGET_44 } from "./Chip";
 
 interface SegmentedControlProps<T extends string> {
@@ -38,6 +39,10 @@ interface SegmentedControlProps<T extends string> {
  * the finger lifts; the pill swells while held and settles on a spring. Before,
  * it only jumped to a tapped segment on a flat ease, which is what made it read
  * as a web control beside the phone's own tab bar.
+ *
+ * In a bar in the iPhone app the phone draws it, a `UISegmentedControl` with
+ * iOS 26's glass thumb laid over this one, which stays underneath for
+ * VoiceOver (ADR-238). In a page's content it is always this one.
  */
 export function SegmentedControl<T extends string>({
   label,
@@ -63,6 +68,16 @@ export function SegmentedControl<T extends string>({
   };
 
   const shown = held ?? index;
+
+  useGlassSegmented(trackRef, {
+    options: options.map((o) => o.label),
+    selected: index,
+    enabled: true,
+    onChange: (i) => {
+      const picked = options[i];
+      if (picked && picked.value !== value) onChange(picked.value);
+    }
+  });
 
   return (
     <div
@@ -122,7 +137,7 @@ export function SegmentedControl<T extends string>({
         >
           <span
             className={`segmented-pill block h-full w-full rounded-full transition-transform duration-200 ease-out motion-reduce:transition-none ${
-              held !== null ? "scale-[1.07]" : ""
+              held !== null ? "segmented-pill-held scale-[1.15]" : ""
             }`}
           />
         </span>

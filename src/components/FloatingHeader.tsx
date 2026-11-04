@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode, RefObject, UIEvent } from "react";
+import { GlassBarContext } from "../lib/nativeGlass";
 
 interface FloatingHeaderProps {
   /** The scroll area this header sits over. Bound here, used by the view for
@@ -80,7 +81,11 @@ export function FloatingHeader({ scrollerRef, header, onScroll, children }: Floa
         className="absolute inset-x-0 top-0 z-[1] px-3 pt-[env(safe-area-inset-top)] sm:px-6"
       >
         <div aria-hidden="true" className="floating-header-ground absolute inset-0" />
-        <div className="relative">{header}</div>
+        {/* A bar: its round controls and its segmented control are the
+            phone's to draw in the iPhone app (ADR-238). */}
+        <div className="relative">
+          <GlassBarContext.Provider value={true}>{header}</GlassBarContext.Provider>
+        </div>
       </div>
     </div>
   );

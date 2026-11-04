@@ -10058,3 +10058,66 @@ phone, so a half board took the keyboard.
 **Consequence.** The commonest change to a spare line, half a board, is two
 taps with no keyboard. Long-press row menus were proposed alongside these and
 are not built: ADR-184 stands until the owner says otherwise.
+
+## ADR-238: The bars' controls are drawn by the phone, over the page's
+
+**Status.** Accepted, 2026-11-04, at the owner's request. Follows ADR-161,
+ADR-168 and ADR-232. Phase one of making more of the iPhone app native: the
+bars' controls first, then menus and pickers, then the navigation bar itself.
+Unit tested; the Swift is compiled by the iOS device check and not yet seen on
+a phone.
+
+**Context.** Beside the phone's own tab bar (ADR-161) and other iOS 26 apps,
+the controls at the top of a screen read as web controls: the round buttons a
+dark dot with a faint edge, the segmented control a flat pill, and a press
+that shrank and dimmed where iOS 26's glass swells under the finger, glows
+from where it was touched and bends what is behind it. ADR-168 already said
+why: the page cannot draw Liquid Glass, only its shape.
+
+**Decision.**
+
+- **In the iPhone app on iOS 26 and later, the phone draws a bar's controls.**
+  `HeadpinGlassPlugin` (`ios/App/App/HeadpinGlassPlugin.swift`, registered in
+  `HeadpinViewController`) lays a `UIButton` in the glass configuration
+  (`prominentGlass` for a confirm, in the accent), or a `UISegmentedControl`,
+  over the web view exactly where the page's control sits. A tap there is sent
+  back and passed to the page's control as a click; a new segment goes to its
+  `onChange`. The page keeps the layout, the words, the state and every
+  handler.
+- **Which controls**: an `IconButton` in its `round` or `confirm` variant and
+  a `SegmentedControl`, inside a bar: a tab's floating header, a pushed
+  screen's bar, a sheet's bar (`GlassBarContext`). Controls in a page's content
+  scroll with it and stay the page's.
+- **Only while it sits still and uncovered** (`GlassLayer`,
+  `src/lib/nativeGlass.ts`). A native view cannot follow a scroll or a slide
+  frame for frame across the bridge, so the page checks each control: where it
+  is, whether it has held still for six frames, and whether the element under
+  its middle is still itself (a sheet or a pushed screen over it is not). Only
+  then is the phone's drawn, and the page's made transparent once the phone
+  says it is up. The moment the control moves or is covered the page's shows
+  again first and the phone's goes. It checks every frame for a moment after
+  any touch, scroll, animation or resize, and four times a second otherwise.
+- **The page's control stays underneath**, transparent, for VoiceOver and the
+  keyboard; the native views are hidden from accessibility, so nothing is read
+  twice.
+- **The glyph** is an SF Symbol, looked up from the Lucide class or the app's
+  own icon name (`data-icon`); one with no symbol is drawn by the page to a PNG
+  and tinted by the phone as a template. A count on a button (the filters
+  applied) is part of `IconButton` now, `badge`, so the phone draws it too.
+- **Everywhere else the page's glass is closer to the phone's**: lighter than
+  the page with a rim of light and a sheen (`.glass`), and a press that swells,
+  glows from the finger and springs back (`.glass-press`). A segmented
+  control's held thumb turns to a clear lens. That is the web, Android, an
+  iPhone before iOS 26, and every control while it moves.
+
+**Consequences.**
+
+- A screen sliding in carries the page's copies and settles into the phone's
+  a tenth of a second after it stops. That swap is the cost of keeping the
+  layout in the page, and wants a look on a phone.
+- A drag that starts on a native control in a sheet's bar does not move the
+  sheet; the rest of the bar still does.
+- A bar's control has to be an `IconButton` or a `SegmentedControl` for the
+  phone to draw it (DESIGN-LANGUAGE §1b).
+- An iPhone app built without the plugin, or one before iOS 26, keeps the
+  page's controls: the probe answers no or fails, and nothing is registered.

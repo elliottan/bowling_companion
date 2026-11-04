@@ -1,6 +1,7 @@
 import { t } from "@lingui/core/macro";
 import { Check, X } from "lucide-react";
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { GlassBarContext } from "../../lib/nativeGlass";
 import { useOverlay } from "../../lib/useOverlay";
 import { useSheetDismiss } from "../../lib/useSheetDismiss";
 import { IconButton } from "./IconButton";
@@ -144,6 +145,10 @@ export function FormSheet({
             className="relative flex shrink-0 touch-none items-center gap-2 px-3.5 py-2 sm:touch-auto"
             {...dragHandlers}
           >
+            {/* The bar's round controls are the phone's to draw in the iPhone
+                app (ADR-238); dragged, the sheet moves and the page's own show
+                until it settles. */}
+            <GlassBarContext.Provider value={true}>
             {dismissAs === "close" ? (
               <IconButton onClick={() => dismiss()} label={t`Close`} variant="round">
                 <X size={20} aria-hidden="true" />
@@ -181,6 +186,7 @@ export function FormSheet({
               // title has nothing to balance and wants the width.
               <span className="h-11 w-11 shrink-0" />
             )}
+            </GlassBarContext.Provider>
           </div>
 
           {banner && <div className="relative px-4 pb-1 pt-1">{banner}</div>}

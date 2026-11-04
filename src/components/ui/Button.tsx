@@ -16,7 +16,7 @@ const VARIANT: Record<Variant, string> = {
   quiet: "border border-edge bg-transparent text-ink-secondary hover:bg-surface-muted active:bg-surface-muted",
   // The bar buttons' raised glass, as a pill: a way further into what the card
   // it sits in is about (a card's View all), not a commit.
-  glass: "glass text-accent transition-transform active:scale-[0.98] active:opacity-80"
+  glass: "glass glass-press text-accent [--press-scale:1.04]"
 };
 
 // A floor, not a height. A label that is one line in English can be two in

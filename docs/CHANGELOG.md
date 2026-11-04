@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.84.0: Glass buttons that are the phone's own (2026-11-04)
+
+- In the iPhone app on iOS 26, the round buttons and the segmented control at
+  the top of a screen, in a pushed screen's bar and in a sheet's bar are drawn
+  by the iPhone itself, in its Liquid Glass: they swell and glow under your
+  finger and bend what is behind them, as other apps' do (ADR-238).
+- Everywhere else the glass buttons look closer to the iPhone's, lighter than
+  the page with a rim of light, and a press makes them swell and glow from
+  where you touched rather than shrink. A segmented control's thumb turns to
+  clear glass while you hold it (ADR-238).
+
 ## 0.83.0: A date chip and steppers like the phone's (2026-11-04)
 
 - A session's date shows as the phone shows one, "4 Nov 2026" on a small grey

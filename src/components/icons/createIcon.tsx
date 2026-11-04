@@ -25,6 +25,9 @@ export function createIcon(displayName: string, children: ReactNode) {
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
+      // Names the glyph, for the iPhone app to draw a bar button's with the
+      // matching SF Symbol (ADR-238).
+      data-icon={displayName}
       {...props}
     >
       {children}

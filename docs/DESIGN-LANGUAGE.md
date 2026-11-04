@@ -129,9 +129,24 @@ A control that sits on a nav bar or a sheet header is round and icon-only:
 the back chevron, the trailing action, a sheet's close and its confirm. The
 word is dropped, not the meaning, so `IconButton`'s required `label` carries it
 ("Back", "Save", "Add"). Use `IconButton variant="round"`, never a hand-rolled
-circle. Both are glass (`.glass`): a translucent raised circle with a highlight
-on its top edge and the glyph in ink, as iOS 26 draws a bar button; the commit
-(`confirm`) is the accent under the same highlight (ADR-168).
+circle. Both are glass (`.glass`): a translucent raised circle, a step of
+light over the page, with a rim of light brightest on its top edge, a sheen
+across its top half and the glyph in ink, as iOS 26 draws a bar button; the
+commit (`confirm`) is the accent under the same rim (ADR-168, ADR-238).
+
+**Pressed, glass swells.** Under the finger a glass control grows (a round
+one by about a seventh, a wide pill a little), glows out from where the finger
+landed and brightens, then springs back a touch past its size on release
+(`.glass-press`). It never shrinks and dims: that is the older iOS's press.
+
+**In the iPhone app the phone draws a bar's controls** (ADR-238): a round
+button, a confirm and a segmented control inside a tab's floating header, a
+pushed screen's bar or a sheet's bar are each laid over by UIKit's own glass
+once they sit still, and the page's copy shows whenever they move. So a
+control in a bar is always an `IconButton` or a `SegmentedControl`, never a
+hand-rolled one, or the phone has nothing to draw it from. Its glyph is a
+Lucide icon or one of the app's own; a new one wants an SF Symbol entry in
+`src/lib/nativeGlass.ts`, or it is sent as a picture.
 
 **Edit is a pencil**, on chrome and in content alike (ADR-179): the round glass
 pencil in a bar turns a read screen into a form and becomes the tick that
