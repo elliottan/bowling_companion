@@ -1373,6 +1373,10 @@ msgstr "Dark"
 msgid "Date"
 msgstr "Date"
 
+#: src/components/ui/Stepper.tsx
+msgid "Decrease {label}"
+msgstr "Decrease {label}"
+
 #: src/views/BowlingProfileView.tsx
 msgid "Decrease release offset"
 msgstr "Decrease release offset"
@@ -2299,6 +2303,10 @@ msgstr "In Safari, tap Share <0/> then \"Add to Home Screen\". Chrome and Firefo
 msgid "In the app, open Settings, then Backup & restore, and import."
 msgstr "In the app, open Settings, then Backup & restore, and import."
 
+#: src/components/ui/Stepper.tsx
+msgid "Increase {label}"
+msgstr "Increase {label}"
+
 #: src/views/BowlingProfileView.tsx
 msgid "Increase release offset"
 msgstr "Increase release offset"
@@ -2578,6 +2586,7 @@ msgid "Left-handed"
 msgstr "Left-handed"
 
 #. Bowling term: how far down the lane the ball travels before it turns, a reading on the layout lab's rail
+#: src/components/OilPatternFormDialog.tsx
 #: src/components/PatternFilterSheet.tsx
 #: src/lib/ballLayout.ts
 msgid "Length"

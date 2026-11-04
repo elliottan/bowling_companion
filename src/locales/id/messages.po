@@ -1373,6 +1373,10 @@ msgstr "Gelap"
 msgid "Date"
 msgstr "Tanggal"
 
+#: src/components/ui/Stepper.tsx
+msgid "Decrease {label}"
+msgstr "Kurangi {label}"
+
 #: src/views/BowlingProfileView.tsx
 msgid "Decrease release offset"
 msgstr "Kurangi offset pelepasan"
@@ -2299,6 +2303,10 @@ msgstr "Di Safari, ketuk Bagikan <0/> lalu \"Tambahkan ke Layar Utama\". Chrome 
 msgid "In the app, open Settings, then Backup & restore, and import."
 msgstr "Di aplikasi, buka Pengaturan, lalu Cadangan & pemulihan, dan impor."
 
+#: src/components/ui/Stepper.tsx
+msgid "Increase {label}"
+msgstr "Tambah {label}"
+
 #: src/views/BowlingProfileView.tsx
 msgid "Increase release offset"
 msgstr "Tambah offset pelepasan"
@@ -2578,6 +2586,7 @@ msgid "Left-handed"
 msgstr "Tangan kiri"
 
 #. Bowling term: how far down the lane the ball travels before it turns, a reading on the layout lab's rail
+#: src/components/OilPatternFormDialog.tsx
 #: src/components/PatternFilterSheet.tsx
 #: src/lib/ballLayout.ts
 msgid "Length"

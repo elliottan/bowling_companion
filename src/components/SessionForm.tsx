@@ -8,6 +8,7 @@ import { OilPatternManager } from "./OilPatternManager";
 import { PushScreen } from "./PushScreen";
 import { IconButton } from "./ui/IconButton";
 import { FIELD, FIELD_LABEL } from "./ui/field";
+import { DateButton } from "./ui/DateButton";
 import { SuggestInput } from "./ui/SuggestInput";
 import type { CreateSessionInput } from "../services/bowlingRepository";
 import type { OilPattern } from "../types/bowling";
@@ -171,13 +172,9 @@ export function SessionForm({
           </Field>
 
           <Field label={t`Date`}>
-            <input
-              required
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className={FIELD}
-            />
+            <div>
+              <DateButton required value={date} onChange={setDate} />
+            </div>
           </Field>
 
           <Field label={t`Description`}>

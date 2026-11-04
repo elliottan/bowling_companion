@@ -13,7 +13,7 @@ describe("OilPatternFormDialog", () => {
   it("asks for a name, a length and a link, and nothing else", () => {
     renderForm();
     expect(screen.getByPlaceholderText("Kegel Main Street")).toBeInTheDocument();
-    expect(screen.getByLabelText(/length/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^length/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/main-street\.pdf/i)).toBeInTheDocument();
   });
 
@@ -31,11 +31,26 @@ describe("OilPatternFormDialog", () => {
     fireEvent.change(screen.getByPlaceholderText("Kegel Main Street"), {
       target: { value: "Thursday league" },
     });
-    fireEvent.change(screen.getByLabelText(/length/i), { target: { value: "40" } });
+    fireEvent.change(screen.getByLabelText(/^length/i), { target: { value: "40" } });
     fireEvent.submit(document.getElementById("oil-pattern-form")!);
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalled());
     expect(onSubmit.mock.calls[0][0]).toMatchObject({ name: "Thursday league", distance: 40 });
+  });
+
+  it("nudges the length with the stepper, starting an empty one at 40", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    renderForm({ onSubmit });
+    fireEvent.change(screen.getByPlaceholderText("Kegel Main Street"), {
+      target: { value: "Thursday league" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Increase Length" }));
+    expect(screen.getByLabelText(/^length/i)).toHaveValue(40);
+    fireEvent.click(screen.getByRole("button", { name: "Increase Length" }));
+    fireEvent.submit(document.getElementById("oil-pattern-form")!);
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+    expect(onSubmit.mock.calls[0][0]).toMatchObject({ distance: 41 });
   });
 
   it("leaves the length out when it is not given", async () => {
@@ -64,7 +79,7 @@ describe("OilPatternFormDialog", () => {
     expect(screen.queryByText(/passes/i)).toBeNull();
     expect(screen.getByText(/42 ft · 25\.56 mL · 6\.7:1 · Challenge/)).toBeInTheDocument();
     // And no length box, because the table already says how long it is.
-    expect(screen.queryByLabelText(/length/i)).toBeNull();
+    expect(screen.queryByLabelText(/^length/i)).toBeNull();
 
     fireEvent.submit(document.getElementById("oil-pattern-form")!);
     await waitFor(() => expect(onSubmit).toHaveBeenCalled());
@@ -101,7 +116,7 @@ describe("OilPatternFormDialog catalog link", () => {
     expect(screen.getByDisplayValue("Thursday shot")).toBeInTheDocument();
     // Its sheet link and its table belong to the catalog now.
     expect(screen.queryByPlaceholderText(/main-street\.pdf/i)).toBeNull();
-    expect(screen.queryByLabelText(/length/i)).toBeNull();
+    expect(screen.queryByLabelText(/^length/i)).toBeNull();
     expect(screen.queryByRole("button", { name: /use a load table/i })).toBeNull();
   });
 

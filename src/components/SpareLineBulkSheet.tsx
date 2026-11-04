@@ -14,9 +14,10 @@ import type { LineSpec, SpareLine } from "../types/bowling";
 import { FIELD_DENSE, FIELD_MICRO_LABEL as floatLabel } from "./ui/field";
 import { FormSheet } from "./ui/FormSheet";
 import { IconButton } from "./ui/IconButton";
+import { Stepper } from "./ui/Stepper";
 
 const eyebrow = "text-caption-2 font-semibold uppercase tracking-[0.01em] text-ink-secondary";
-const boardInput = `${FIELD_DENSE} px-1 text-center font-semibold tabular-nums`;
+const boardInput = `${FIELD_DENSE} no-spin px-1 text-center font-semibold tabular-nums`;
 
 /** A board typed as text, or nothing when the field is empty or not a number. */
 function board(text: string): number | undefined {
@@ -136,17 +137,29 @@ export function SpareLineBulkSheet({ row, onClose }: { row: LineRow; onClose: ()
                   ["target", t({ message: "Target", comment: "Bowling term: the board the ball crosses at the arrows." }), target, setTarget]
                 ] as const
               ).map(([field, label, value, set]) => (
-                <label key={field} className="min-w-0 flex-1">
-                  <span className={floatLabel}>{label}</span>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    step="0.5"
-                    value={value}
-                    onChange={(e) => set(e.target.value)}
-                    className={boardInput}
-                  />
-                </label>
+                <div key={field} className="min-w-0 flex-1">
+                  <label htmlFor={`bulk-${field}`} className={floatLabel}>{label}</label>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      id={`bulk-${field}`}
+                      type="number"
+                      inputMode="decimal"
+                      step="0.5"
+                      value={value}
+                      onChange={(e) => set(e.target.value)}
+                      className={boardInput}
+                    />
+                    <Stepper
+                      label={label}
+                      value={board(value)}
+                      onChange={(n) => set(String(n))}
+                      min={1}
+                      max={field === "target" ? 39 : 50}
+                      step={0.5}
+                      start={20}
+                    />
+                  </div>
+                </div>
               ))}
             </div>
             {(slide != null || laydown != null) && (

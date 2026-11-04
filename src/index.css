@@ -743,3 +743,16 @@ input[type="date"]::-webkit-date-and-time-value {
   -webkit-appearance: none;
   appearance: none;
 }
+
+/* A number field with a Stepper beside it (ADR-237): the stepper is the nudge,
+   so the browser's own spin arrows would be a second, smaller one, and in a
+   dense board box they ate the room "20.5" needs. */
+.no-spin::-webkit-inner-spin-button,
+.no-spin::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spin {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

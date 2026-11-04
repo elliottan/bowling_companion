@@ -18,6 +18,7 @@ import type { LineSpec, PinNumber, SpareLine } from "../types/bowling";
 import { Button } from "./ui/Button";
 import { FIELD_DENSE, FIELD_MICRO_LABEL as floatLabel } from "./ui/field";
 import { IconButton } from "./ui/IconButton";
+import { Stepper } from "./ui/Stepper";
 import { FormSheet } from "./ui/FormSheet";
 import { useProAccess } from "../lib/useProAccess";
 
@@ -28,7 +29,7 @@ const ALL_PINS: PinNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 // so a spare line reads the same way a shot does.
 
 const eyebrow = "text-caption-2 font-semibold uppercase tracking-[0.01em] text-ink-secondary";
-const boardInput = `${FIELD_DENSE} px-1 text-center font-semibold tabular-nums`;
+const boardInput = `${FIELD_DENSE} no-spin px-1 text-center font-semibold tabular-nums`;
 
 interface SpareLineFormDialogProps {
   /** Leave being shot at (standing pins). Empty = user picks pins. */
@@ -262,28 +263,43 @@ export function SpareLineFormDialog({
                 ["target", t({ message: "Target", comment: "Bowling term: the board the ball crosses at the arrows. A field label." })]
               ] as const
             ).map(([field, label]) => (
-              <label key={field} className="min-w-0 flex-1">
-                <span className={floatLabel}>{label}</span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  step="0.5"
-                  readOnly={!editing}
-                  // Read, the field is a value, not a box: it takes no focus,
-                  // so no caret, no selection and no AutoFill bar.
-                  tabIndex={editing ? undefined : -1}
-                  autoComplete="off"
-                  placeholder={editing ? undefined : "-"}
-                  value={line[field] ?? ""}
-                  onChange={(e) =>
-                    applyLine({
-                      ...line,
-                      [field]: e.target.value === "" ? undefined : Number(e.target.value)
-                    })
-                  }
-                  className={`${boardInput} ${editing ? "" : "pointer-events-none select-none"}`}
-                />
-              </label>
+              <div key={field} className="min-w-0 flex-1">
+                <label htmlFor={`line-${field}`} className={floatLabel}>{label}</label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    id={`line-${field}`}
+                    type="number"
+                    inputMode="decimal"
+                    step="0.5"
+                    readOnly={!editing}
+                    // Read, the field is a value, not a box: it takes no focus,
+                    // so no caret, no selection and no AutoFill bar.
+                    tabIndex={editing ? undefined : -1}
+                    autoComplete="off"
+                    placeholder={editing ? undefined : "-"}
+                    value={line[field] ?? ""}
+                    onChange={(e) =>
+                      applyLine({
+                        ...line,
+                        [field]: e.target.value === "" ? undefined : Number(e.target.value)
+                      })
+                    }
+                    className={`${boardInput} ${editing ? "" : "pointer-events-none select-none"}`}
+                  />
+                  {/* Only while editing: read, the board is a value, not a control. */}
+                  {editing && (
+                    <Stepper
+                      label={label}
+                      value={line[field]}
+                      onChange={(n) => applyLine({ ...line, [field]: n })}
+                      min={1}
+                      max={field === "target" ? 39 : 50}
+                      step={0.5}
+                      start={20}
+                    />
+                  )}
+                </div>
+              </div>
             ))}
           </div>
           {(derivedSlide != null || derivedLaydown != null) && (
