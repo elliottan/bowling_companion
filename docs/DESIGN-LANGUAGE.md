@@ -309,6 +309,13 @@ weight, a 30px icon tile, the divider stopping 16pt short of the trailing edge,
 and the heading in line with the rows' text. A square button (Home's tiles)
 centres its icon, name and count.
 
+**A card that is a button looks like one** (`.card-button`): Home's tiles and
+its recent sessions are raised off the page, a step lighter at the top with a
+rim of light and a soft shadow, carry a chevron, and sink when pressed (they
+shrink a little and darken, then spring back). Flat, they were the same slab
+as the cards that only hold numbers, and nothing said they could be tapped. A
+card that only shows numbers stays flat.
+
 `ListRow` is the row: leading icon tile, label, one truncated line of secondary
 text, and a trailing chevron. A row that *leaves the app* swaps the chevron for
 an outward arrow, since the chevron means "deeper into this app" everywhere

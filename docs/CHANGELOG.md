@@ -9,7 +9,11 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.85.0: Filters and share previews that rise from the bottom (2026-11-04)
+## 0.85.0: Sheets that rise from the bottom, and Home's cards that look like buttons (2026-11-04)
+
+- Home's Spare lines, Lane notes and Alley report tiles, and the recent
+  sessions under them, look like buttons now: raised off the page, with a
+  chevron, and they sink a little under your finger.
 
 - The ball catalog's filters rise from the bottom of the screen like every
   other sheet in the app, instead of dropping down over the list. Each choice
