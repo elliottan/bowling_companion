@@ -9992,3 +9992,32 @@ scroll of the element it was given, had nothing to read.
 
 **Consequence.** The sheet bowlers use most moves like every other sheet.
 
+
+## ADR-236: A search field is drawn as iOS draws one
+
+**Status.** Accepted, 2026-11-04, at the owner's request. Follows ADR-186 and
+ADR-230.
+
+**Context.** The four searches (the catalog, the ball editor's catalog picker,
+and the oil patterns list and its load-table picker) were plain filled boxes,
+the same chrome as a form's name field. Only the ball picker had a magnifying
+glass, only the catalog had a clear button, and none had a Cancel. Over WebKit
+the catalog's box also drew the browser's own clear button beside its own.
+
+**Decision.** One `SearchField` (`src/components/ui/SearchField.tsx`) for every
+search:
+
+- **A magnifying glass leads the box** and the placeholder reads "Search"
+  unless the screen says what it searches.
+- **A filled clear button trails it once there is text**: a grey disc with the
+  mark knocked out, as `xmark.circle.fill`. It empties the search and keeps the
+  keyboard. WebKit's own is hidden.
+- **Cancel slides in beside it while the search is live**, which is focused or
+  holding text, and slides back out as it came (§7). It empties the search and
+  lets the keyboard go. Escape is Cancel, and the keyboard's Search key only
+  lets the keyboard go, because the list already filters as you type.
+- **No focus edge or ring** (`FIELD_SEARCH`), as an iOS search field has none:
+  Cancel is what says it is live.
+
+**Consequence.** A search reads as a search, not as one more field to fill in,
+and all four behave alike.

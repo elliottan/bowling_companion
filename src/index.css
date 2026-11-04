@@ -735,3 +735,11 @@ input[type="date"]::-webkit-date-and-time-value {
     animation: none;
   }
 }
+
+/* SearchField draws its own clear button (ADR-236), so WebKit's built-in one
+   would be a second, differently drawn X in the same box. */
+.search-field::-webkit-search-cancel-button,
+.search-field::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}

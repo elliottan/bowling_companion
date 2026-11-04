@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.82.0: Search fields like the phone's (2026-11-04)
+
+- The catalog, the ball editor's catalog picker, the oil patterns list and its
+  load-table picker search the way the iPhone does: a magnifying glass in the
+  box, a round clear button once you type, and Cancel sliding in beside it.
+  Clear empties the search and keeps the keyboard up; Cancel empties it and
+  puts the keyboard away (ADR-236).
+
 ## 0.81.0: Swipe to delete, a sheet that pulls down from anywhere, iPhone sliders (2026-11-03)
 
 - Swipe a History session, an arsenal ball or one of your own oil patterns to

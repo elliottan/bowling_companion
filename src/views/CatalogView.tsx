@@ -8,7 +8,7 @@ import { ErrorBanner } from "../components/ErrorBanner";
 import { Button } from "../components/ui/Button";
 import { RangeSlider } from "../components/ui/RangeSlider";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
-import { IconButton } from "../components/ui/IconButton";
+import { SearchField } from "../components/ui/SearchField";
 import { EmptyState } from "../components/ui/EmptyState";
 import { CatalogRequestEmpty, CatalogRequestRow } from "../components/CatalogRequest";
 import { FormSheet } from "../components/ui/FormSheet";
@@ -596,25 +596,13 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         )}
 
         {/* Search */}
-        <div className="relative mb-3">
-          <input
-            type="search"
-            aria-label={t`Search the catalog`}
-            placeholder={t`Search name, brand, coverstock…`}
-            value={filters.search}
-            onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
-            className={`${FIELD} pr-10`}
-          />
-          {filters.search && (
-            <IconButton
-              onClick={() => setFilters((f) => ({ ...f, search: "" }))}
-              label={t`Clear search`}
-              className="absolute right-3 top-1/2 -translate-y-1/2"
-            >
-              <X size={14} aria-hidden="true" />
-            </IconButton>
-          )}
-        </div>
+        <SearchField
+          className="mb-3"
+          label={t`Search the catalog`}
+          placeholder={t`Search name, brand, coverstock…`}
+          value={filters.search}
+          onChange={(search) => setFilters((f) => ({ ...f, search }))}
+        />
 
         {/* Filter toggle + sort row */}
         <div className="relative z-[2] mb-3 flex flex-wrap items-center gap-2">

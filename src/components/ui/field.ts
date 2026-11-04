@@ -8,6 +8,13 @@
 export const FIELD =
   "h-11 w-full min-w-0 box-border rounded-xl border border-transparent bg-ink/[0.06] px-3.5 text-subhead text-ink placeholder:text-ink-tertiary outline-none focus:border-accent-fill focus:bg-surface focus:ring-2 focus:ring-accent-fill/20";
 
+/** The search field's box (`SearchField`, ADR-236): the same fill, but no
+ *  edge or ring on focus, as an iOS search field has none. Its Cancel sliding
+ *  in is what says it is live. A constant rather than overrides on `FIELD`,
+ *  because competing utilities resolve by stylesheet order (§2). */
+export const FIELD_SEARCH =
+  "h-11 w-full min-w-0 box-border rounded-xl bg-ink/[0.06] text-subhead text-ink placeholder:text-ink-tertiary outline-none";
+
 /** The same chrome for a `<select>`, which needs room for its own chevron. */
 export const FIELD_SELECT = `${FIELD} appearance-none pr-10`;
 

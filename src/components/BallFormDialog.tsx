@@ -1,4 +1,4 @@
-import { Archive, BookOpen, Check, ChevronRight, Compass, MoreHorizontal, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Check, ChevronRight, Compass, MoreHorizontal, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { Select } from "./ui/Select";
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -30,9 +30,10 @@ import { ErrorBanner } from "./ErrorBanner";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ANCHORED_MENU_WIDTH, AnchoredMenu, AnchoredMenuItem } from "./ui/AnchoredMenu";
 import { anchorUnder, type MenuAnchor } from "../lib/menuAnchor";
-import { FIELD } from "./ui/field";
 import { FormSheet } from "./ui/FormSheet";
+import { FIELD } from "./ui/field";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
+import { SearchField } from "./ui/SearchField";
 import { IconButton } from "./ui/IconButton";
 import { formatFixed } from "../lib/format";
 
@@ -540,21 +541,12 @@ function CatalogPickerSheet({ linkedId, onPick, onClose }: CatalogPickerSheetPro
       // The search rides in the banner slot, outside the scroll area, so it
       // stays put while the results move under it.
       banner={
-        <div className="relative">
-          <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-tertiary"
-            aria-hidden="true"
-          />
-          <input
-            type="search"
-            autoFocus
-            placeholder={t({ message: "Search name, brand, coverstock…", comment: "Bowling term: the coverstock is the outer shell of a ball" })}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className={`${FIELD} rounded-xl pl-9`}
-          />
-        </div>
+        <SearchField
+          autoFocus
+          placeholder={t({ message: "Search name, brand, coverstock…", comment: "Bowling term: the coverstock is the outer shell of a ball" })}
+          value={query}
+          onChange={setQuery}
+        />
       }
     >
       {loading ? (

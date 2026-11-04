@@ -28,7 +28,7 @@ import {
 } from "../lib/oilPattern";
 import { PatternFilterButton, PatternFilterSheet } from "./PatternFilterSheet";
 import { matchesPatternFilters, NO_PATTERN_FILTERS, type PatternFilters } from "../lib/patternFilters";
-import { FIELD } from "./ui/field";
+import { SearchField } from "./ui/SearchField";
 import { getCatalogPatterns, type CatalogPattern } from "../services/patternCatalog";
 import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";
 import { GROUP_HEADING } from "./ui/typography";
@@ -222,13 +222,12 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
       {all.length > 3 && (
         <>
           <div className="mb-3 flex items-center gap-2">
-            <input
-              type="search"
+            <SearchField
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className={`${FIELD} min-w-0 flex-1`}
+              onChange={setQuery}
+              className="flex-1"
               placeholder={t`Name or length, like 40`}
-              aria-label={t`Search patterns`}
+              label={t`Search patterns`}
             />
             <PatternFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
           </div>
@@ -334,13 +333,12 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
           active={!filtersOpen}
         >
           <div className="mb-3 flex items-center gap-2">
-            <input
-              type="search"
+            <SearchField
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className={`${FIELD} min-w-0 flex-1`}
+              onChange={setQuery}
+              className="flex-1"
               placeholder={t`Name or length, like 40`}
-              aria-label={t`Search patterns`}
+              label={t`Search patterns`}
             />
             <PatternFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
           </div>

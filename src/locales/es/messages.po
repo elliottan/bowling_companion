@@ -1148,6 +1148,7 @@ msgstr "Por sesión"
 
 #: src/components/ConfirmDialog.tsx
 #: src/components/LaneNotesTab.tsx
+#: src/components/ui/SearchField.tsx
 msgid "Cancel"
 msgstr "Cancelar"
 
@@ -1275,7 +1276,7 @@ msgstr "Borrar filtro de patrón"
 msgid "Clear pins"
 msgstr "Borrar pinos"
 
-#: src/views/CatalogView.tsx
+#: src/components/ui/SearchField.tsx
 msgid "Clear search"
 msgstr "Borrar búsqueda"
 
@@ -3745,6 +3746,10 @@ msgstr "Anota tu primera sesión"
 #: src/views/GameTrendView.tsx
 msgid "Scoring"
 msgstr "Puntaje"
+
+#: src/components/ui/SearchField.tsx
+msgid "Search"
+msgstr "Buscar"
 
 #. Bowling term: the coverstock is the outer shell of a ball
 #: src/components/BallFormDialog.tsx
