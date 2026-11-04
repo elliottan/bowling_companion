@@ -385,7 +385,9 @@ tile of its own (ADR-126).
 
 Settings has iOS's large title: it scrolls away with the page, and the name
 comes in small and centred in a frosted bar as it goes (`CompactTitleBar`,
-ADR-191).
+ADR-191). History and Stats have it too (`FloatingHeader`, ADR-240), with
+their round controls at the bar's top right and a pinned row (Stats' range,
+centred, and the filter chips) that sticks under the bar.
 
 Ordered by what a bowler can lose or must not miss, not by how often it is
 opened. **Backup & restore leads, alone and louder than a row**, because the

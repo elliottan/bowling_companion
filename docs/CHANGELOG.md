@@ -11,6 +11,11 @@ had all shipped.
 
 ## 0.85.0: Sheets that rise from the bottom, and Home's cards that look like buttons (2026-11-04)
 
+- History and Stats have the iPhone's large title: the name starts large at
+  the top of the page and moves into the bar, small and centred, as you
+  scroll. Their filter and share buttons sit at the top right, and on Stats
+  Last 10, 3 mo and All are centred under the title and stay in view as you
+  scroll (ADR-240).
 - Home's Spare lines, Lane notes and Alley report tiles, and the recent
   sessions under them, look like buttons now: raised off the page, with a
   chevron, and they sink a little under your finger.

@@ -22,10 +22,11 @@ export const SETTING_HEADING = "text-body font-semibold leading-snug text-ink";
 export const TAB_TITLE = "text-xl font-bold text-ink";
 
 /**
- * iOS's large title, for a tab whose header carries nothing else to keep in
- * view (Settings): it scrolls away with the page, and the tab's name comes in
- * small and centred in a frosted bar as it goes (`CompactTitleBar`, ADR-191).
- * A tab whose controls stay pinned (History, Stats) keeps `TAB_TITLE`.
+ * iOS's large title: it scrolls away with the page, and the tab's name comes
+ * in small and centred in a frosted bar as it goes. Settings draws it with
+ * `CompactTitleBar` (ADR-191); History and Stats through `FloatingHeader`'s
+ * `title`, with their round controls top right and their pinned row under
+ * the bar (ADR-240).
  */
 export const LARGE_TITLE = "text-large-title font-bold leading-tight tracking-tight text-ink";
 export const TAB_TITLE_ROW = "flex min-h-11 items-center";
