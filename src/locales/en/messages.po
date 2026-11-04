@@ -1283,7 +1283,6 @@ msgstr "Clear search"
 #: src/components/LaneVisualizer.tsx
 #: src/components/LaneVisualizerLazy.tsx
 #: src/components/LayoutEditor.tsx
-#: src/components/ShareCardDialog.tsx
 #: src/components/ui/FormSheet.tsx
 msgid "Close"
 msgstr "Close"
@@ -1846,10 +1845,6 @@ msgstr "Filter spare lines"
 #: src/components/NextSteps.tsx
 msgid "Filter stats by pattern to compare sessions on the same oil."
 msgstr "Filter stats by pattern to compare sessions on the same oil."
-
-#: src/views/CatalogView.tsx
-msgid "Filter the catalog"
-msgstr "Filter the catalog"
 
 #: src/components/PatternFilterSheet.tsx
 #: src/components/SessionFilterBar.tsx

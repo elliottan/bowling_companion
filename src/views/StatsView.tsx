@@ -1,5 +1,4 @@
 import { t } from "@lingui/core/macro";
-import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ShareIosIcon } from "../components/icons";
 import { Stats } from "../components/Stats";
@@ -183,52 +182,53 @@ export function StatsView({
   }, []);
 
   // Pushed, the nav bar already carries the title, so a second "Stats" under
-  // it would name the screen twice. The two controls stay where they are: they
-  // belong to the filter chips they sit above, and only one of them could have
-  // moved into the nav bar's single trailing slot anyway.
+  // it would name the screen twice; the two controls keep a bar of their own
+  // under it, as only one of them could have moved into the nav bar's single
+  // trailing slot.
   const body = (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
       <FloatingHeader
         scrollerRef={scrollerRef}
-        header={
+        // A tab names itself with iOS's large title; pushed from a session,
+        // the push's own bar already does.
+        title={mode === "tab" ? t`Stats` : undefined}
+        // The two actions are the bar's, top right, as a navigation bar's
+        // round buttons are. Neither has anything to act on before the first
+        // finished game: there is nothing to filter, and the share would be a
+        // card of zeros.
+        actions={
           <>
-            {/* One row: the title, the two actions, then the range at the far
-                right, where it used to take a row of its own under the header. */}
-            <div className={`${TAB_TITLE_ROW} mb-3 flex-wrap gap-2`}>
-              {mode === "tab" && <h1 className={TAB_TITLE}>{t`Stats`}</h1>}
-              <div className="ml-auto flex shrink-0 items-center gap-1">
-                {/* Neither action has anything to act on before the first
-                    finished game: there is nothing to filter, and the share would be
-                    a card of zeros. */}
-                {anyFinished && (
-                  <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
-                )}
-                {/* The two drill-downs used to live behind this control, which meant
-                    a screen full of numbers hid the two screens that explain them
-                    behind a menu with no name on it. They are rows under the tiles
-                    now (ADR-063b put them there to get them off the bottom of a long
-                    scroll; under the tiles is neither the bottom nor a menu), and the
-                    header keeps its one action, which is the share. */}
-                {filtered.length > 0 && (
-                  <IconButton label={t`Share these stats`} variant="round" onClick={() => setShareOpen(true)}>
-                    <ShareIosIcon size={20} aria-hidden="true" />
-                  </IconButton>
-                )}
+            {anyFinished && (
+              <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+            )}
+            {/* The two drill-downs used to live behind this control, which
+                meant a screen full of numbers hid the two screens that explain
+                them behind a menu with no name on it. They are rows under the
+                tiles now (ADR-063b), and the bar keeps its one action, which
+                is the share. */}
+            {filtered.length > 0 && (
+              <IconButton label={t`Share these stats`} variant="round" onClick={() => setShareOpen(true)}>
+                <ShareIosIcon size={20} aria-hidden="true" />
+              </IconButton>
+            )}
+          </>
+        }
+        // The range, centred under the title and pinned under the bar once it
+        // has gone, as a segmented control under an iOS large title is. Hidden
+        // until there is something to narrow: on a device with no games the
+        // empty state is the whole screen.
+        pinned={
+          <>
+            {finished.length > 0 && (
+              <div className="mx-auto mb-3 w-full max-w-xs">
+                <SegmentedControl
+                  label={t`Sessions counted`}
+                  options={rangeOptions}
+                  value={range}
+                  onChange={setRange}
+                />
               </div>
-              {/* Hidden until there is something to narrow: on a device with
-                  no games the empty state is the whole screen. */}
-              {finished.length > 0 && (
-                <div className="ml-auto min-w-44">
-                  <SegmentedControl
-                    label={t`Sessions counted`}
-                    options={rangeOptions}
-                    value={range}
-                    onChange={setRange}
-                  />
-                </div>
-              )}
-            </div>
-
+            )}
             <SessionFilterChips filters={filters} />
           </>
         }

@@ -26,11 +26,13 @@ test("searches the catalog and narrows it by brand", async ({ page }) => {
   await expect(page.getByText(/^\d+ balls$/)).toBeVisible();
 
   await page.getByRole("button", { name: /^Filters/ }).click();
-  // The brand chips live in the filters panel; the card headers say "STORM" too.
-  await page.getByRole("button", { name: "Roto Grip", exact: true }).click();
-  // The panel is a popover over the list: the Filters button, which stays above
-  // it, puts it away, and the active-filter chips show the narrowing.
-  await page.getByRole("button", { name: /^Filters/ }).click();
+  // The brand chips live in the filters sheet; the card headers say "STORM" too.
+  const sheet = page.getByRole("dialog", { name: "Filters" });
+  await sheet.getByRole("button", { name: "Roto Grip", exact: true }).click();
+  // The sheet applies as it goes, so it is left with Done, and the
+  // active-filter chips show the narrowing.
+  await sheet.getByRole("button", { name: "Done" }).click();
+  await expect(sheet).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Remove filter: Roto Grip" })).toBeVisible();
 
   const count = page.getByText(/^\d+ balls? of \d+$/);

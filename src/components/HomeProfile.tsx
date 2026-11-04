@@ -1,5 +1,5 @@
 import { plural, t } from "@lingui/core/macro";
-import type { LucideIcon } from "lucide-react";
+import { ChevronRight, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { BowlingBallIcon, GamePlanIcon, LanePairIcon, SpareLineIcon } from "./icons";
 import { CatalogBallImage } from "./CatalogBallImage";
@@ -129,8 +129,16 @@ function Tile({
       aria-label={label}
       // A square button, drawn as iOS draws one (ADR-191): everything on one
       // centre line, the icon bare above the name, deep corners, no outline.
-      className="flex min-w-0 flex-col items-center gap-1.5 rounded-[22px] bg-surface px-2 pb-3 pt-4 text-center active:bg-surface-muted"
+      // Raised and pressable (`.card-button`), with a chevron in its corner,
+      // so it reads as a way somewhere rather than a card of numbers.
+      className="card-button flex min-w-0 flex-col items-center gap-1.5 rounded-[22px] px-2 pb-3 pt-4 text-center"
     >
+      <ChevronRight
+        size={14}
+        strokeWidth={2.5}
+        aria-hidden="true"
+        className="absolute right-2.5 top-2.5 text-ink-tertiary"
+      />
       <Icon size={24} aria-hidden="true" className="text-accent" />
       <span className="block w-full min-w-0">
         {/* One line at the standard size; at a large text size a name
@@ -260,11 +268,18 @@ function SessionTile({
       onClick={() => session.id && onOpen(session.id, !inProgress)}
       // The width grows with the text size, as the row scrolls sideways
       // anyway: a fixed 10rem cut the alley and the average to "Chinese S...".
-      className={`flex h-full w-[calc(10rem*var(--type-scale))] flex-col rounded-[22px] bg-surface px-3.5 py-3 text-left active:bg-surface-muted ${
-        isActive ? "ring-2 ring-inset ring-accent-fill" : ""
+      // Raised and pressable, as Home's tiles are (`.card-button`), with a
+      // chevron beside its name: it opens the session.
+      className={`card-button flex h-full w-[calc(10rem*var(--type-scale))] flex-col rounded-[22px] px-3.5 py-3 text-left ${
+        // An outline, not a ring: the raised card draws its own shadow, and
+        // a ring is drawn in the same shadow, which one of the two would lose.
+        isActive ? "outline outline-2 -outline-offset-2 outline-accent-fill" : ""
       }`}
     >
-      <span className="line-clamp-2 block w-full break-words text-sm font-semibold leading-snug text-ink">{event || alley}</span>
+      <span className="flex w-full items-start gap-1">
+        <span className="line-clamp-2 block min-w-0 flex-1 break-words text-sm font-semibold leading-snug text-ink">{event || alley}</span>
+        <ChevronRight size={16} strokeWidth={2.5} aria-hidden="true" className="mt-0.5 shrink-0 text-ink-tertiary" />
+      </span>
       {event && <span className="block w-full truncate text-xs text-ink-secondary">{alley}</span>}
       <span className="block w-full truncate text-xs text-ink-secondary">{date}</span>
       {pattern && <span className="block w-full truncate text-xs text-ink-secondary">{pattern}</span>}

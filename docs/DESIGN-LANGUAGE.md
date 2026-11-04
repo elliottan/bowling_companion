@@ -82,7 +82,7 @@ keyboard, not the size of the job:
   controls set in clear of the curve. The session sheet and the lane view's
   options float the same way. The one
   exception to the leading close is a sheet that has already applied everything
-  as you went, the filter sheet being the only one: there is nothing to cancel,
+  as you went, the filter sheets being the only ones: there is nothing to cancel,
   so an X would be a lie about what leaving does. Those carry no leading control
   and a tick trailing instead (`dismissAs="done"`), which reads as keeping what
   is on screen.
@@ -92,10 +92,17 @@ keyboard, not the size of the job:
   that is only words is asked by UIKit's own alert instead (ADR-232), with the
   destructive confirm in the system red; one that carries more than words, or
   has to be earned, stays the page's card.
-- **A filter panel is a popover, not a block.** The catalog's filters open as a
-  layer under the Filters button, over the list, and a tap anywhere else puts
-  them away. Opened inline they pushed every ball down the screen each time a
-  chip was chosen, and the list the filters were narrowing went out of sight.
+- **Filters are a sheet, never a popover or a block.** Every list's filters
+  (History, Stats, the catalog, Oil patterns) rise from the bottom edge in a
+  `FormSheet` with `dismissAs="done"`, and apply as each choice is made, so the
+  list's own chips show the narrowing while the sheet is up. Opened inline they
+  pushed every ball down the screen each time a chip was chosen; dropped down
+  as a card over the list, the catalog's read as a web page's menu beside the
+  sheets everywhere else.
+- **A share preview is a sheet too.** The picture about to be sent, with its
+  Share button under it and, on a link share, Save image in the bar
+  (`ShareCardDialog`). It was a card in the middle of the screen, which the
+  phone keeps for questions.
 - **`AnchoredMenu`** (`src/components/ui/AnchoredMenu.tsx`) is the menu a
   tapped button opens beside itself: the scorer's More, the Layouts presets.
   Its scrim is transparent, not dimmed: a menu is anchored to the thing it
@@ -302,6 +309,13 @@ weight, a 30px icon tile, the divider stopping 16pt short of the trailing edge,
 and the heading in line with the rows' text. A square button (Home's tiles)
 centres its icon, name and count.
 
+**A card that is a button looks like one** (`.card-button`): Home's tiles and
+its recent sessions are raised off the page, a step lighter at the top with a
+rim of light and a soft shadow, carry a chevron, and sink when pressed (they
+shrink a little and darken, then spring back). Flat, they were the same slab
+as the cards that only hold numbers, and nothing said they could be tapped. A
+card that only shows numbers stays flat.
+
 `ListRow` is the row: leading icon tile, label, one truncated line of secondary
 text, and a trailing chevron. A row that *leaves the app* swaps the chevron for
 an outward arrow, since the chevron means "deeper into this app" everywhere
@@ -371,7 +385,9 @@ tile of its own (ADR-126).
 
 Settings has iOS's large title: it scrolls away with the page, and the name
 comes in small and centred in a frosted bar as it goes (`CompactTitleBar`,
-ADR-191).
+ADR-191). History and Stats have it too (`FloatingHeader`, ADR-240), with
+their round controls at the bar's top right and a pinned row (Stats' range,
+centred, and the filter chips) that sticks under the bar.
 
 Ordered by what a bowler can lose or must not miss, not by how often it is
 opened. **Backup & restore leads, alone and louder than a row**, because the

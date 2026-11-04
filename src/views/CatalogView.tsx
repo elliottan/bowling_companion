@@ -569,7 +569,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
     <PushScreen
       title={t`Catalog`}
       onBack={onBack}
-      active={selectedBallId === null && addingBall === null}
+      active={selectedBallId === null && addingBall === null && !showFilters}
     >
       {/* Search + filters stay pinned above the list they narrow, stopping
           under the nav bar. They used to reach up behind the bar so the list
@@ -605,8 +605,8 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
         />
 
         {/* Filter toggle + sort row */}
-        <div className="relative z-[2] mb-3 flex flex-wrap items-center gap-2">
-          <Chip selected={showFilters} onClick={() => setShowFilters((v) => !v)}>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <Chip selected={showFilters} onClick={() => setShowFilters(true)}>
             {t`Filters`}
             {activeFilterCount > 0 ? (
               <span className="ml-1 rounded-full bg-accent-on-fill/25 px-1.5 py-0.5 text-xs font-bold leading-none">{activeFilterCount}</span>
@@ -639,107 +639,8 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
           </label>
         </div>
 
-        {/* The filters open over the list, not into it: the panel is a layer
-            under the Filters button, so choosing a brand does not push every
-            ball down the screen. A tap anywhere else puts it away. */}
-        {showFilters && (
-          <div className="relative">
-            <div
-              className="fixed inset-0 z-[1]"
-              aria-hidden="true"
-              onPointerDown={() => setShowFilters(false)}
-            />
-            <div
-                role="dialog"
-                aria-label={t`Filter the catalog`}
-                className="scrollbar-none absolute inset-x-0 top-0 z-[2] max-h-[min(70vh,34rem)] space-y-4 overflow-y-auto overscroll-contain rounded-xl border border-edge bg-surface p-4 shadow-lg"
-              >
-              {/* Brand */}
-              <div>
-                <p className={`mb-2 ${GROUP_HEADING}`}>{t`Brand`}</p>
-                <div className="flex flex-wrap gap-2">
-                  {brandsPresent.map((brand) => (
-                    <Chip
-                      key={brand}
-                      selected={filters.brands.has(brand)}
-                      onClick={() => setFilters((f) => ({ ...f, brands: toggleSetValue(f.brands, brand) }))}
-                    >
-                      {brand}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-
-              {/* Coverstock */}
-              <div>
-                <p className={`mb-2 ${GROUP_HEADING}`}>{t({ message: "Coverstock", comment: "Bowling term: the outer shell material of a ball" })}</p>
-                <div className="flex flex-wrap gap-2">
-                  {ALL_COVERSTOCK.map((cat) => (
-                    <Chip
-                      key={cat}
-                      selected={filters.coverstockCategories.has(cat)}
-                      onClick={() => setFilters((f) => ({ ...f, coverstockCategories: toggleSetValue(f.coverstockCategories, cat) }))}
-                    >
-                      {coverstockLabel(cat)}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-
-              {/* Core type */}
-              <div>
-                <p className={`mb-2 ${GROUP_HEADING}`}>{t({ message: "Core type", comment: "Bowling term: whether a ball has a symmetric or asymmetric core" })}</p>
-                <div className="flex gap-2">
-                  {(["Symmetric", "Asymmetric"] as const).map((ct) => (
-                    <Chip
-                      key={ct}
-                      selected={filters.coreType === ct}
-                      onClick={() => setFilters((f) => ({ ...f, coreType: f.coreType === ct ? null : ct }))}
-                    >
-                      {coreTypeLabel(ct)}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-
-              {/* RG range */}
-              <RangeSlider
-                label={t({ message: "RG", comment: "Bowling term: radius of gyration, a ball spec" })}
-                min={RG_MIN}
-                max={RG_MAX}
-                step={0.01}
-                valueMin={filters.rgMin}
-                valueMax={filters.rgMax}
-                format={(v) => formatFixed(v, 2)}
-                onChange={(min, max) => setFilters((f) => ({ ...f, rgMin: min, rgMax: max }))}
-              />
-
-              {/* Diff range */}
-              <RangeSlider
-                label={t({ message: "Diff", comment: "Bowling term: the differential, a ball spec (short for differential RG)" })}
-                min={DIFF_MIN}
-                max={DIFF_MAX}
-                step={0.001}
-                valueMin={filters.diffMin}
-                valueMax={filters.diffMax}
-                format={(v) => formatFixed(v, 3)}
-                onChange={(min, max) => setFilters((f) => ({ ...f, diffMin: min, diffMax: max }))}
-              />
-
-              {/* Reset */}
-              <button
-                type="button"
-                onClick={() => setFilters(EMPTY_FILTERS)}
-                className={`relative text-xs font-semibold text-accent hover:underline ${TAP_TARGET_44}`}
-              >
-                {t`Reset all filters`}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Active-filter chips: the narrowing state stays legible under the
-            panel's origin; tap a chip to remove that filter. */}
+        {/* Active-filter chips: the narrowing state stays legible once the
+            sheet is put away; tap a chip to remove that filter. */}
         {activeFilterCount > 0 && (
           <div className="mb-3 flex flex-wrap gap-2">
             {[...filters.brands].map((brand) => (
@@ -899,6 +800,97 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
       )}
 
       {/* Add-to-arsenal dialog, always rendered at top level so it's reachable from detail view */}
+      {/* The filters rise from the bottom edge, as every other filter sheet
+          in the app does (History, Stats, Oil patterns): it was a card that
+          dropped down over the list from under the Filters chip, which read
+          as a web page's menu rather than a sheet. Each choice applies as it
+          is made, so the sheet is left with a tick, not saved. */}
+      {showFilters && (
+        <FormSheet title={t`Filters`} onClose={() => setShowFilters(false)} dismissAs="done">
+          <div className="space-y-5">
+            {/* Brand */}
+            <div>
+              <p className={`mb-2 ${GROUP_HEADING}`}>{t`Brand`}</p>
+              <div className="flex flex-wrap gap-2">
+                {brandsPresent.map((brand) => (
+                  <Chip
+                    key={brand}
+                    selected={filters.brands.has(brand)}
+                    onClick={() => setFilters((f) => ({ ...f, brands: toggleSetValue(f.brands, brand) }))}
+                  >
+                    {brand}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+
+            {/* Coverstock */}
+            <div>
+              <p className={`mb-2 ${GROUP_HEADING}`}>{t({ message: "Coverstock", comment: "Bowling term: the outer shell material of a ball" })}</p>
+              <div className="flex flex-wrap gap-2">
+                {ALL_COVERSTOCK.map((cat) => (
+                  <Chip
+                    key={cat}
+                    selected={filters.coverstockCategories.has(cat)}
+                    onClick={() => setFilters((f) => ({ ...f, coverstockCategories: toggleSetValue(f.coverstockCategories, cat) }))}
+                  >
+                    {coverstockLabel(cat)}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+
+            {/* Core type */}
+            <div>
+              <p className={`mb-2 ${GROUP_HEADING}`}>{t({ message: "Core type", comment: "Bowling term: whether a ball has a symmetric or asymmetric core" })}</p>
+              <div className="flex gap-2">
+                {(["Symmetric", "Asymmetric"] as const).map((ct) => (
+                  <Chip
+                    key={ct}
+                    selected={filters.coreType === ct}
+                    onClick={() => setFilters((f) => ({ ...f, coreType: f.coreType === ct ? null : ct }))}
+                  >
+                    {coreTypeLabel(ct)}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+
+            {/* RG range */}
+            <RangeSlider
+              label={t({ message: "RG", comment: "Bowling term: radius of gyration, a ball spec" })}
+              min={RG_MIN}
+              max={RG_MAX}
+              step={0.01}
+              valueMin={filters.rgMin}
+              valueMax={filters.rgMax}
+              format={(v) => formatFixed(v, 2)}
+              onChange={(min, max) => setFilters((f) => ({ ...f, rgMin: min, rgMax: max }))}
+            />
+
+            {/* Diff range */}
+            <RangeSlider
+              label={t({ message: "Diff", comment: "Bowling term: the differential, a ball spec (short for differential RG)" })}
+              min={DIFF_MIN}
+              max={DIFF_MAX}
+              step={0.001}
+              valueMin={filters.diffMin}
+              valueMax={filters.diffMax}
+              format={(v) => formatFixed(v, 3)}
+              onChange={(min, max) => setFilters((f) => ({ ...f, diffMin: min, diffMax: max }))}
+            />
+
+            {/* Reset */}
+            <button
+              type="button"
+              onClick={() => setFilters(EMPTY_FILTERS)}
+              className={`relative text-xs font-semibold text-accent hover:underline ${TAP_TARGET_44}`}
+            >
+              {t`Reset all filters`}
+            </button>
+          </div>
+        </FormSheet>
+      )}
       {addingBall && (
         <AddFromCatalogDialog
           ball={addingBall}

@@ -9,6 +9,24 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.85.0: Sheets that rise from the bottom, and Home's cards that look like buttons (2026-11-04)
+
+- History and Stats have the iPhone's large title: the name starts large at
+  the top of the page and moves into the bar, small and centred, as you
+  scroll. Their filter and share buttons sit at the top right, and on Stats
+  Last 10, 3 mo and All are centred under the title and stay in view as you
+  scroll (ADR-240).
+- Home's Spare lines, Lane notes and Alley report tiles, and the recent
+  sessions under them, look like buttons now: raised off the page, with a
+  chevron, and they sink a little under your finger.
+
+- The ball catalog's filters rise from the bottom of the screen like every
+  other sheet in the app, instead of dropping down over the list. Each choice
+  still applies at once; tap the tick when you are done.
+- Sharing a picture of your stats, a game, a layout or a line opens its
+  preview in a sheet from the bottom, with the Share button under the picture,
+  rather than a box in the middle of the screen.
+
 ## 0.84.0: Glass buttons that are the phone's own (2026-11-04)
 
 - In the iPhone app on iOS 26, the round buttons and the segmented control at

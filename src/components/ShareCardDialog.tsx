@@ -1,9 +1,8 @@
 import { t } from "@lingui/core/macro";
 import { useEffect, useState } from "react";
-import { useOverlay } from "../lib/useOverlay";
-import { useSheetDismiss } from "../lib/useSheetDismiss";
 import { Download } from "lucide-react";
 import { Button } from "./ui/Button";
+import { FormSheet } from "./ui/FormSheet";
 import { IconButton } from "./ui/IconButton";
 import { ShareIosIcon } from "./icons";
 import {
@@ -74,8 +73,6 @@ interface ShareCardDialogProps {
  * the thing being saved is on screen.
  */
 export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardDialogProps) {
-  const { dismiss, backdropStyle, rootStyle, panelStyle, exiting } = useSheetDismiss(onClose, "center");
-  const overlayRef = useOverlay<HTMLDivElement>(dismiss, open);
 
   const [preview, setPreview] = useState<string | null>(null);
   const [blob, setBlob] = useState<Blob | null>(null);
@@ -161,81 +158,57 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
     }
   }
 
+  // A sheet from the bottom edge, as the rest of the app's are (DESIGN-LANGUAGE §1). It
+  // was a card popped up in the middle of the screen, which read as a web
+  // page's modal rather than the phone's share preview.
   return (
-    <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t`Share image`}
-      style={{ ...backdropStyle, ...rootStyle }}
-      onClick={() => dismiss()}
+    <FormSheet
+      title={t`Share image`}
+      onClose={onClose}
+      // The picture's own way off the device, in the bar's trailing slot,
+      // where a phone puts the save on a preview. Only on a link share, where
+      // the button below sends a URL and nothing else here saves the PNG.
+      trailing={
+        link ? (
+          <IconButton variant="round" label={t`Save image`} disabled={!blob} onClick={handleDownload}>
+            <Download size={18} aria-hidden="true" />
+          </IconButton>
+        ) : undefined
+      }
     >
-      <div
-        ref={overlayRef}
-        className={`flex max-h-full w-full max-w-sm flex-col rounded-xl bg-surface p-4 shadow-xl ${
-          exiting ? "" : "animate-pop-in"
-        }`}
-        style={panelStyle}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* The picture's own way out, on the picture, at the corner a phone
-            puts a save control on. It rides the preview rather than the screen
-            behind it because this is where the image exists: the card is built
-            when the dialog opens, and a control outside would have to build a
-            second copy of it to save. Only on a link share, where the button
-            below sends a URL and nothing else here would save the PNG. */}
-        {link && (
-          <div className="mb-2 flex justify-end">
-            <IconButton
-              variant="round"
-              label={t`Save image`}
-              disabled={!blob}
-              onClick={handleDownload}
-            >
-              <Download size={18} aria-hidden="true" />
-            </IconButton>
-          </div>
-        )}
+      {preview ? (
+        <img
+          src={preview}
+          alt={
+            card.hero
+              ? t`${{ title: card.title }}, ${{ value: card.hero.value }} ${{ label: card.hero.label }}`
+              : t`${{ title: card.title }}, stats`
+          }
+          // Held to the screen's height, so the share button under it is in
+          // reach without a scroll on a short phone.
+          className="mx-auto max-h-[55vh] w-auto max-w-full rounded-lg"
+        />
+      ) : (
+        <div
+          className="mx-auto max-h-[55vh] w-full max-w-[44vh] animate-pulse rounded-lg bg-surface-muted"
+          style={{ aspectRatio: "1080 / 1350" }}
+        />
+      )}
 
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          {preview ? (
-            <img
-              src={preview}
-              alt={
-                card.hero
-                  ? t`${{ title: card.title }}, ${{ value: card.hero.value }} ${{ label: card.hero.label }}`
-                  : t`${{ title: card.title }}, stats`
-              }
-              className="w-full rounded-lg"
-            />
-          ) : (
-            <div
-              className="w-full animate-pulse rounded-lg bg-surface-muted"
-              style={{ aspectRatio: "1080 / 1350" }}
-            />
-          )}
-        </div>
+      {error && <p className="mt-3 text-sm font-semibold text-danger-600">{error}</p>}
+      {note && (
+        <p role="status" className="mt-3 text-sm font-semibold text-ink-secondary">
+          {note}
+        </p>
+      )}
 
-        {error && <p className="mt-3 text-sm font-semibold text-danger-600">{error}</p>}
-        {note && (
-          <p role="status" className="mt-3 text-sm font-semibold text-ink-secondary">
-            {note}
-          </p>
-        )}
-
-        <div className="mt-4 flex justify-end gap-2">
-          <Button variant="secondary" onClick={() => dismiss()}>
-            {t`Close`}
-          </Button>
-          {/* A link share does not wait on the picture: the preview is a
-              courtesy, and a browser that will not rasterize the ball must not
-              take the share down with it. */}
-          <Button onClick={handleShare} disabled={(!link && !blob) || busy}>
-            <ShareIosIcon size={16} aria-hidden="true" />
-            {busy ? t`Sharing…` : link ? t`Share link` : t`Share`}
-          </Button>
-        </div>
-      </div>
-    </div>
+      {/* A link share does not wait on the picture: the preview is a
+          courtesy, and a browser that will not rasterize the ball must not
+          take the share down with it. */}
+      <Button className="mt-4 w-full" onClick={handleShare} disabled={(!link && !blob) || busy}>
+        <ShareIosIcon size={16} aria-hidden="true" />
+        {busy ? t`Sharing…` : link ? t`Share link` : t`Share`}
+      </Button>
+    </FormSheet>
   );
 }

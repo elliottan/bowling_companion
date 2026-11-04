@@ -10121,3 +10121,34 @@ why: the page cannot draw Liquid Glass, only its shape.
   phone to draw it (DESIGN-LANGUAGE §1b).
 - An iPhone app built without the plugin, or one before iOS 26, keeps the
   page's controls: the probe answers no or fails, and nothing is registered.
+
+## ADR-240: History and Stats have iOS's large title, and their controls are the bar's
+
+**Status.** Accepted, 2026-11-04, at the owner's request. Follows ADR-185 and
+ADR-191, and amends ADR-185's pinned title.
+
+**Context.** History and Stats pinned one block at the top: a small title, the
+round filter and share buttons beside it, and on Stats the range control at
+the far right of the same row. The buttons sat in the middle of the row,
+belonging to neither the title nor the edge, and the title was the small one
+Settings had already given up for iOS's large title (ADR-191).
+
+**Decision.**
+
+- **`FloatingHeader` draws a navigation bar** that stays put: the round
+  controls at its trailing end (`actions`), top right, where iOS puts a bar's
+  buttons, and in its middle the tab's name, small and centred, shown only once
+  the large title has gone under the bar.
+- **The large title is part of the page** (`title`): leading, large, the tab's
+  `h1`, and it scrolls away with the list. Halfway under the bar is gone, read
+  from where it is rather than a fixed distance, as `PushScreen`'s is.
+- **A pinned row** (`pinned`) sits under the title and sticks under the bar as
+  the page scrolls: Stats' range, centred, as a segmented control under an iOS
+  large title is, and the applied filter chips on both tabs. It has the bar's
+  frosted ground, reaching up behind the bar's fade once it sticks, so the list
+  passes under the two as one band.
+- Stats pushed from a session keeps the push's bar for its name: no large title
+  there, and its two controls keep a bar of their own under the push's.
+
+**Consequence.** The header's bar, not the title, is what stays still while the
+list scrolls (`e2e/floating-header.spec.ts`).
