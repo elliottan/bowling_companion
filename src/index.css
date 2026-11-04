@@ -402,36 +402,111 @@ input[type="date"]::-webkit-date-and-time-value {
   box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.08), 0 16px 48px rgb(0 0 0 / 0.5);
 }
 
-/* Glass: the material of a control on chrome (DESIGN-LANGUAGE §1b, ADR-168).
-   A translucent round over whatever is behind it, blurred and lifted by a
-   hairline highlight on its top edge, the way iOS 26 draws a bar button. The
-   page cannot bend light the way the real one does, so it stops at the blur:
-   what it buys is a button that reads as a raised thing rather than a flat
-   grey dot. `glass-tinted` is the prominent twin, the accent under the same
-   highlight, for a commit. */
+/* Glass: the material of a control on chrome (DESIGN-LANGUAGE §1b, ADR-168,
+   ADR-238). A translucent round over whatever is behind it, blurred, lighter
+   than the page it sits on, with a rim of light all the way round that is
+   brightest on the top edge and a sheen across its top half, the way iOS 26
+   draws a bar button. The page cannot bend light the way the real one does,
+   so it stops at the blur; in a bar in the iPhone app the phone draws the real
+   one over this (`nativeGlass.ts`). `glass-tinted` is the prominent twin, the
+   accent under the same rim and sheen, for a commit. */
 .glass {
-  background-color: rgb(var(--color-surface) / 0.72);
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.12) 55%, rgb(255 255 255 / 0)),
+    rgb(var(--color-surface) / 0.66);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   backdrop-filter: blur(16px) saturate(180%);
   box-shadow:
-    inset 0 0.5px 0 rgb(255 255 255 / 0.55),
-    0 0 0 0.5px rgb(var(--color-ink) / 0.08),
-    0 2px 10px rgb(0 0 0 / 0.08);
+    inset 0 1px 0 rgb(255 255 255 / 0.85),
+    inset 0 0 0 1px rgb(255 255 255 / 0.45),
+    inset 0 -1px 0 rgb(0 0 0 / 0.04),
+    0 0 0 0.5px rgb(var(--color-ink) / 0.1),
+    0 4px 14px rgb(0 0 0 / 0.1);
 }
 
 .glass-tinted {
-  background-color: rgb(var(--color-accent-fill));
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.28), rgb(255 255 255 / 0) 60%),
+    rgb(var(--color-accent-fill));
   box-shadow:
-    inset 0 0.5px 0 rgb(255 255 255 / 0.35),
-    0 2px 10px rgb(var(--color-accent-fill) / 0.3);
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset 0 0 0 1px rgb(255 255 255 / 0.16),
+    0 4px 14px rgb(var(--color-accent-fill) / 0.35);
 }
 
+/* Dark: a step of light over the page rather than a shade of it. The old
+   fill was the page's own slate at 60%, which read as a dark dot beside the
+   phone's glass, and its edge was a hairline at a fifth of white. */
 :root[data-theme="dark"] .glass {
-  background-color: rgb(var(--color-surface-muted) / 0.6);
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.05) 55%, rgb(255 255 255 / 0.03)),
+    rgb(var(--color-surface-muted) / 0.55);
   box-shadow:
-    inset 0 0.5px 0 rgb(255 255 255 / 0.18),
-    0 0 0 0.5px rgb(255 255 255 / 0.06),
-    0 2px 10px rgb(0 0 0 / 0.3);
+    inset 0 1px 0 rgb(255 255 255 / 0.32),
+    inset 0 0 0 1px rgb(255 255 255 / 0.12),
+    inset 0 -1px 0 rgb(0 0 0 / 0.25),
+    0 0 0 0.5px rgb(0 0 0 / 0.4),
+    0 4px 16px rgb(0 0 0 / 0.35);
+}
+
+/* The press of iOS 26's glass: under the finger the control swells, spreads a
+   glow out from where the finger landed (`--press-x`, `--press-y`, set by
+   `IconButton`) and brightens, and on release it springs back a little past
+   its size and settles. The older press, which shrank and dimmed, is iOS 18's.
+   `--press-scale` is how far it swells: a round button a lot, a wide pill
+   only a little, as the phone's do. */
+.glass-press {
+  position: relative;
+  transition:
+    transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter 200ms ease-out;
+}
+.glass-press::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 260ms ease-out;
+  background: radial-gradient(
+    circle at var(--press-x, 50%) var(--press-y, 50%),
+    rgb(255 255 255 / 0.55),
+    rgb(255 255 255 / 0.12) 45%,
+    rgb(255 255 255 / 0) 75%
+  );
+}
+.glass-press:active:not(:disabled) {
+  transform: scale(var(--press-scale, 1.14));
+  filter: brightness(1.12) saturate(1.15);
+  transition:
+    transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter 120ms ease-out;
+}
+.glass-press:active:not(:disabled)::before {
+  opacity: 1;
+  transition-duration: 80ms;
+}
+:root[data-theme="dark"] .glass-press::before {
+  background: radial-gradient(
+    circle at var(--press-x, 50%) var(--press-y, 50%),
+    rgb(255 255 255 / 0.3),
+    rgb(255 255 255 / 0.08) 45%,
+    rgb(255 255 255 / 0) 75%
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  .glass-press:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* A page control the iPhone app's own glass is drawn over (ADR-238): still
+   there for VoiceOver and the keyboard, and for the moment the phone's is
+   taken away, but not seen. */
+[data-native-glass="on"] {
+  opacity: 0 !important;
+  transition: none !important;
 }
 
 /* The lane view's glass. The lane's frame is dark in every theme (DESIGN-
@@ -510,6 +585,25 @@ input[type="date"]::-webkit-date-and-time-value {
 :root[data-theme="dark"] .segmented-pill {
   background: rgb(var(--color-edge-strong));
   box-shadow: 0 3px 8px rgb(0 0 0 / 0.24), 0 3px 1px rgb(0 0 0 / 0.08);
+}
+/* Held, the thumb turns to glass as iOS 26's does: it lifts off the track,
+   swells, and goes clear with a rim of light, a lens over the labels, until
+   the finger lets go and it lands back on the answer. */
+.segmented-pill-held {
+  background: rgb(255 255 255 / 0.35);
+  -webkit-backdrop-filter: blur(2px) saturate(160%);
+  backdrop-filter: blur(2px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    inset 0 0 0 1px rgb(255 255 255 / 0.6),
+    0 6px 16px rgb(0 0 0 / 0.16);
+}
+:root[data-theme="dark"] .segmented-pill-held {
+  background: rgb(255 255 255 / 0.12);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.4),
+    inset 0 0 0 1px rgb(255 255 255 / 0.2),
+    0 6px 16px rgb(0 0 0 / 0.4);
 }
 
 /* A filter chip (ADR-230): off, the segmented control's flat grey fill, so

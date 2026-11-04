@@ -37,7 +37,11 @@ const PAGE_HELPERS = String.raw`
     const r = el.getBoundingClientRect();
     if (r.width === 0 || r.height === 0) return false;
     const s = getComputedStyle(el);
-    return s.visibility !== "hidden" && s.display !== "none" && Number(s.opacity) > 0.01;
+    // A bar control the iPhone app's own glass is drawn over (ADR-238) is
+    // transparent in the page and seen on the phone: a finger at its centre
+    // lands on the native button, which hands the tap back to it.
+    const drawnByPhone = !!el.closest('[data-native-glass="on"]');
+    return s.visibility !== "hidden" && s.display !== "none" && (Number(s.opacity) > 0.01 || drawnByPhone);
   };
   const scopeFor = (dialog) => {
     if (!dialog) return document;
