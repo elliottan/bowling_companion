@@ -300,6 +300,35 @@ describe("GlassLayer", () => {
     expect(onChange).toHaveBeenCalledWith(1);
   });
 
+  it("lets go of a focused field before a native tap, as a finger on the page would", async () => {
+    const field = document.createElement("input");
+    document.body.append(field);
+    field.focus();
+    const blurred = vi.fn();
+    field.addEventListener("blur", blurred);
+    const el = control();
+    const onChange = vi.fn();
+    const { layer, listeners } = makeLayer();
+    await layer.listen();
+    layer.register("a", el, BUTTON);
+    listeners.get("tap")!({ id: "a" } as never);
+    expect(blurred).toHaveBeenCalledTimes(1);
+    expect(document.activeElement).not.toBe(field);
+
+    field.focus();
+    layer.register("s", control(), { kind: "segmented", options: ["A", "B"], selected: 0, enabled: true }, onChange);
+    listeners.get("change")!({ id: "s", index: 1 } as never);
+    expect(blurred).toHaveBeenCalledTimes(2);
+    listeners.get("change")!({ id: "gone", index: 1 } as never);
+
+    // Focus inside the control itself is left where it is.
+    const inner = document.createElement("input");
+    el.append(inner);
+    inner.focus();
+    listeners.get("tap")!({ id: "a" } as never);
+    expect(document.activeElement).toBe(inner);
+  });
+
   it("checks every frame while things move, and four times a second once still", async () => {
     const el = control();
     const { layer, deps, frames, laters, advance } = makeLayer({ topAt: () => el });
