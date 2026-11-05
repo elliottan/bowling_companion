@@ -4263,5 +4263,15 @@
     "imageThumb": "/catalog/img/motiv-orion-nebula-2026-thumb.webp",
     "imageFull": "/catalog/img/motiv-orion-nebula-2026-full.webp",
     "normaliser": 2
+  },
+  "brunswick-purple-rhino-pro-2026": {
+    "imageThumb": "/catalog/img/brunswick-purple-rhino-pro-2026-thumb.webp",
+    "imageFull": "/catalog/img/brunswick-purple-rhino-pro-2026-full.webp",
+    "normaliser": 2
+  },
+  "brunswick-vaporize-s-e-2025": {
+    "imageThumb": "/catalog/img/brunswick-vaporize-s-e-2025-thumb.webp",
+    "imageFull": "/catalog/img/brunswick-vaporize-s-e-2025-full.webp",
+    "normaliser": 2
   }
 }

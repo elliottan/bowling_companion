@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.86.0: Sixteen new balls from the autumn 2026 releases (2026-11-05)
+
+- The ball catalog has the latest releases: Brunswick Strategy Logic, Purple
+  Rhino Pro and Vaporize S.E.; DV8 Outsider and Smooth Criminal; Ebonite Go
+  Time; Hammer Blacklist and Reckoning; MOTIV Orion Nebula and Royal Venom;
+  Radical Intel Recon Hybrid and Vexed Variant; Storm Ion Max Veil, Ion Pro
+  Pearl, PhysiX Ignition and !Q Focus. Each has its specs, its weights and a
+  photo. Now 848 balls.
+
 ## 0.85.0: Sheets that rise from the bottom, and Home's cards that look like buttons (2026-11-04)
 
 - History and Stats have the iPhone's large title: the name starts large at

@@ -38397,5 +38397,97 @@
         "mbDiff": null
       }
     ]
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Purple Rhino Pro",
+    "releaseDate": "2026-10-22",
+    "coverstockRaw": "Savvy Hook 4.0 Solid Reactive",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Vintage Light Bulb",
+    "rg": 2.568,
+    "diff": 0.032,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/brunswick/purple-rhino-pro"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.517,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.568,
+        "diff": 0.032,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.585,
+        "diff": 0.032,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.574,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.597,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Vaporize S.E.",
+    "releaseDate": "2025-05-06",
+    "coverstockRaw": "HK22C - EVO Pearl Plus+ Reactive",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Zone Asymmetric",
+    "rg": 2.478,
+    "diff": 0.048,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/brunswick/vaporize-se"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.492,
+        "diff": 0.046,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 15,
+        "rg": 2.478,
+        "diff": 0.048,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 14,
+        "rg": 2.495,
+        "diff": 0.046,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 13,
+        "rg": 2.589,
+        "diff": 0.043,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.612,
+        "diff": 0.043,
+        "mbDiff": 0.011
+      }
+    ]
   }
 ]

@@ -41402,5 +41402,105 @@
         "mbDiff": null
       }
     ]
+  },
+  {
+    "id": "brunswick-purple-rhino-pro-2026",
+    "brand": "Brunswick",
+    "name": "Purple Rhino Pro",
+    "releaseDate": "2026-10-22",
+    "releaseYear": 2026,
+    "coverstockRaw": "Savvy Hook 4.0 Solid Reactive",
+    "coverstockCategory": "Solid",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Vintage Light Bulb",
+    "coreType": "Symmetric",
+    "rg": 2.568,
+    "diff": 0.032,
+    "mbDiff": null,
+    "imageThumb": "/catalog/img/brunswick-purple-rhino-pro-2026-thumb.webp",
+    "imageFull": "/catalog/img/brunswick-purple-rhino-pro-2026-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/purple-rhino-pro",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.517,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.568,
+        "diff": 0.032,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.585,
+        "diff": 0.032,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.574,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.597,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "id": "brunswick-vaporize-s-e-2025",
+    "brand": "Brunswick",
+    "name": "Vaporize S.E.",
+    "releaseDate": "2025-05-06",
+    "releaseYear": 2025,
+    "coverstockRaw": "HK22C - EVO Pearl Plus+ Reactive",
+    "coverstockCategory": "Pearl",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Zone Asymmetric",
+    "coreType": "Asymmetric",
+    "rg": 2.478,
+    "diff": 0.048,
+    "mbDiff": 0.017,
+    "imageThumb": "/catalog/img/brunswick-vaporize-s-e-2025-thumb.webp",
+    "imageFull": "/catalog/img/brunswick-vaporize-s-e-2025-full.webp",
+    "sourceUrl": "https://www.bowwwl.com/bowling-ball-database/brunswick/vaporize-se",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.492,
+        "diff": 0.046,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 15,
+        "rg": 2.478,
+        "diff": 0.048,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 14,
+        "rg": 2.495,
+        "diff": 0.046,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 13,
+        "rg": 2.589,
+        "diff": 0.043,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.612,
+        "diff": 0.043,
+        "mbDiff": 0.011
+      }
+    ]
   }
 ]
