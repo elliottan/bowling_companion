@@ -1,19 +1,19 @@
 import { t } from "@lingui/core/macro";
 import { LARGE_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { CompactTitleBar, LARGE_TITLE_SCROLL_PX } from "../components/CompactTitleBar";
-import { Archive, ArrowUpRight, Check, ChevronRight, Compass, Download, MessageSquare, Palette, RotateCcw, ScrollText, Smartphone, UserRound, UserRoundCog } from "lucide-react";
+import { Archive, ArrowUpRight, Check, ChevronRight, Compass, Download, Lock, MessageSquare, Palette, RotateCcw, ScrollText, Smartphone, UserRound, UserRoundCog } from "lucide-react";
 import { ToolsList } from "../components/ToolsList";
 import { PushScreen } from "../components/PushScreen";
 import { AppearanceView } from "./AppearanceView";
 import { BowlingProfileView } from "./BowlingProfileView";
-import { getBowlerName, getGripStyle, getLiveActivityEnabled, getSetting, setLiveActivityEnabled } from "../services/bowlingRepository";
+import { getBowlerName, getGripStyle, getLiveActivityEnabled, getSetting } from "../services/bowlingRepository";
 import { readLiveActivityStatus, type LiveActivityStatus } from "../lib/nativeLiveActivity";
 import { BowlerNameSheet } from "../components/BowlerNameSheet";
 import type { GripStyle } from "../types/bowling";
 import type { Handedness } from "../types/bowling";
 import type { DriftModel } from "../lib/driftModel";
 import { openFeedbackEmail } from "../lib/diagnostics";
-import { ListGroup, ListRow, ListSwitchRow } from "../components/ui/ListGroup";
+import { ListGroup, ListRow } from "../components/ui/ListGroup";
 import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAccess";
 import { ProBadge } from "../components/ui/ProBadge";
 import { ProMark } from "../components/ui/ProMark";
@@ -55,6 +55,9 @@ interface SettingsViewProps {
   onOpenOilPatternsScreen: () => void;
   onOpenCatalog: () => void;
   onOpenGuides: () => void;
+  /** What the phone says of Live Activities, for a test; asked of the phone
+   *  when left out. */
+  liveActivityStatus?: LiveActivityStatus | null;
 }
 
 /**
@@ -70,14 +73,18 @@ const OilPatternsView = lazy(() =>
   import("./OilPatternsView").then((m) => ({ default: m.OilPatternsView }))
 );
 // Lazy so the page's text is fetched only by a bowler who opens it.
+const LiveActivityView = lazy(() =>
+  import("./LiveActivityView").then((m) => ({ default: m.LiveActivityView }))
+);
 const LegalView = lazy(() =>
   import("./LegalView").then((m) => ({ default: m.LegalView }))
 );
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, lineVisualizerOpen = false, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes, onOpenLayoutLab, onOpenOilPatternsScreen, onOpenCatalog, onOpenGuides }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, lineVisualizerOpen = false, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes, onOpenLayoutLab, onOpenOilPatternsScreen, onOpenCatalog, onOpenGuides, liveActivityStatus: liveActivityStatusOverride }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
   // Past the large title, its name moves into the bar (ADR-191).
   const [compact, setCompact] = useState(false);
+  const liveActivityStatus = useLiveActivityStatus(liveActivityStatusOverride);
 
   // The menu stays mounted underneath the pushed section, so popping back
   // reveals it mid-animation instead of sliding onto an empty page.
@@ -98,6 +105,7 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
           onOpenArsenal={onOpenArsenal}
           onOpenSpareLines={onOpenSpareLines}
           onOpenLaneNotes={onOpenLaneNotes}
+          liveActivityStatus={liveActivityStatus}
         />
       </div>
       {section !== "menu" && (
@@ -123,6 +131,10 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
           </PushScreen>
         ) : section === "legal" ? (
           <LegalView onBack={back} />
+        ) : section === "live-activity" ? (
+          // Reached only from its row, which is drawn only once the phone has
+          // answered; a stale address on another device falls back to the menu.
+          liveActivityStatus?.supported ? <LiveActivityView status={liveActivityStatus} onBack={back} /> : null
         ) : section === "profile" ? (
           <BowlingProfileView
             handedness={handedness}
@@ -155,7 +167,8 @@ function SettingsMenu({
   onSectionChange,
   onOpenArsenal,
   onOpenSpareLines,
-  onOpenLaneNotes
+  onOpenLaneNotes,
+  liveActivityStatus
 }: Pick<
   SettingsViewProps,
   | "handedness"
@@ -164,7 +177,7 @@ function SettingsMenu({
   | "onOpenArsenal"
   | "onOpenSpareLines"
   | "onOpenLaneNotes"
->) {
+> & { liveActivityStatus: LiveActivityStatus | null }) {
   const [installOpen, setInstallOpen] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const owned = useProOwned();
@@ -295,7 +308,7 @@ function SettingsMenu({
       </ListGroup>
 
       <ListGroup heading={t`App`}>
-        <LiveActivityRow />
+        <LiveActivityRow status={liveActivityStatus} onOpen={() => onSectionChange("live-activity")} />
         {/* The way back to an install the Home card was waved away from.
             Hidden once the app is installed, when it would offer nothing. */}
         {installable && (
@@ -325,12 +338,11 @@ function SettingsMenu({
 }
 
 /**
- * The Lock Screen's live score (ADR-221), in the iPhone app only and on an iOS
- * that can draw them (iOS 18, ADR-227). Nothing is drawn until the phone has said it
- * can, so the web, the Android app and an older iPhone never see a switch that
- * does nothing. On by default: the toggle only ever turns it off.
+ * What the phone says of Live Activities (ADR-221): asked once, as Settings
+ * opens, and shared by the row and its page. Null until it answers, and
+ * everywhere but the iPhone app.
  */
-export function LiveActivityRow({ status: given }: { status?: LiveActivityStatus | null }) {
+function useLiveActivityStatus(given?: LiveActivityStatus | null): LiveActivityStatus | null {
   const [asked, setAsked] = useState<LiveActivityStatus | null>(null);
   useEffect(() => {
     if (given !== undefined) return;
@@ -342,20 +354,39 @@ export function LiveActivityRow({ status: given }: { status?: LiveActivityStatus
       alive = false;
     };
   }, [given]);
-  const status = given === undefined ? asked : given;
+  return given === undefined ? asked : given;
+}
+
+/**
+ * The Lock Screen's live score (ADR-221), in the iPhone app only and on an iOS
+ * that can draw them (iOS 18, ADR-227). Nothing is drawn until the phone has said it
+ * can, so the web, the Android app and an older iPhone never see a row that
+ * does nothing. It opens the Live Activity's page, which shows what it looks like
+ * and holds the switch (ADR-243); the row says whether it is on, or carries the
+ * lock while Pro is not open.
+ */
+export function LiveActivityRow({ status, onOpen }: { status: LiveActivityStatus | null; onOpen: () => void }) {
+  const access = useProAccess();
   const on = useLiveQuery(getLiveActivityEnabled, [], undefined);
   if (!status?.supported || on === undefined) return null;
+  const value = on && status.enabled
+    ? t({ message: "On", comment: "A setting's value in a Settings row: switched on" })
+    : t({ message: "Off", comment: "A setting's value in a Settings row: switched off" });
   return (
-    <ListSwitchRow
+    <ListRow
       icon={Smartphone}
-      label={t`Live Activity on the Lock Screen`}
-      description={
-        status.enabled
-          ? t`Your game's score, frame by frame, while you bowl`
-          : t`Switched off for Headpin in the iPhone's Settings`
+      label={t`Live Activity`}
+      onClick={onOpen}
+      trailing={
+        <span className="flex shrink-0 items-center gap-1.5 text-ink-tertiary">
+          {access.locked ? (
+            <Lock size={15} aria-label={t`Pro`} />
+          ) : (
+            <span className="text-body">{value}</span>
+          )}
+          <ChevronRight size={17} strokeWidth={2.25} aria-hidden="true" />
+        </span>
       }
-      checked={on}
-      onChange={(next) => void setLiveActivityEnabled(next)}
     />
   );
 }

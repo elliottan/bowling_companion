@@ -52,6 +52,28 @@ export async function setLiveActivityEnabled(enabled: boolean): Promise<void> {
   if (!enabled) liveActivity.stop();
 }
 
+/**
+ * Whether Pro is open, as the shell last said (ADR-243). The Live Activity is
+ * Pro, and the paths that start one run outside React, so the shell hands the
+ * answer down here before any effect runs (`App`), as it hands the palette to
+ * `<html>`. Open until told: where nothing sells Pro nothing tells it, and the
+ * iPhone app tells it before the first launch tidy.
+ */
+let liveActivityProOpen = true;
+
+/** Pro closing (a refund, a family share withdrawn) takes down what is
+ *  showing; Pro opening waits for the next ball, as turning the switch on does. */
+export function setLiveActivityProOpen(open: boolean): void {
+  const closing = liveActivityProOpen && !open;
+  liveActivityProOpen = open;
+  if (closing && isIOSApp()) liveActivity.stop();
+}
+
+/** The bowler's switch, and Pro: both have to be on for the Lock Screen. */
+async function liveActivityAllowed(): Promise<boolean> {
+  return liveActivityProOpen && (await getLiveActivityEnabled());
+}
+
 /** What the Lock Screen should say of a game, or null when the game, its
  *  session or its first ball is gone. */
 async function readLiveActivityState(gameId: number): Promise<LiveActivityState | null> {
@@ -72,7 +94,7 @@ async function readLiveActivityState(gameId: number): Promise<LiveActivityState 
 export async function tidyLiveActivity(): Promise<void> {
   if (!isIOSApp()) return;
   try {
-    const enabled = await getLiveActivityEnabled();
+    const enabled = await liveActivityAllowed();
     liveActivity.tidy(async (gameId) => {
       if (!enabled) return null;
       const state = await readLiveActivityState(gameId);
@@ -103,7 +125,7 @@ async function refreshLiveActivity(gameId: number): Promise<void> {
 async function syncLiveActivity(gameId: number): Promise<void> {
   if (!isIOSApp()) return;
   try {
-    if (!(await getLiveActivityEnabled())) return;
+    if (!(await liveActivityAllowed())) return;
     const state = await readLiveActivityState(gameId);
     if (!state) {
       // An undo took the first ball back: there is no game to show.

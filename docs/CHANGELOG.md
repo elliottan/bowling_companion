@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.87.0: The Live Activity has a page of its own, and is Headpin Pro (2026-11-05)
+
+- Settings, App: the Live Activity row now opens a page that shows what it
+  does, with pictures of your game on the Lock Screen, in the Dynamic Island
+  and on an Apple Watch, and the switch to turn it on or off. The row itself
+  says whether it is on.
+- The Live Activity is now part of Headpin Pro, and the Pro page lists it.
+  Without Pro the page still shows the pictures, and the switch opens the Pro
+  page (ADR-243).
+
 ## 0.86.1: Buttons that stay one button, and History and Stats back to one row (2026-11-05)
 
 - The round buttons at the top of a screen and a sheet no longer flip between

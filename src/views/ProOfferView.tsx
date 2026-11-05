@@ -14,6 +14,7 @@ import {
   LineSample,
   ThemesSample
 } from "../components/ProOfferSamples";
+import { LockScreenPreview, sampleLiveActivityState } from "../components/LiveActivityPreviews";
 import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAccess";
 
 /**
@@ -55,6 +56,11 @@ const FEATURES: Array<{ title: MessageDescriptor; why: MessageDescriptor; sample
     title: msg`Estimated average`,
     why: msg`Your estimated average with each ball, by alley, lane pair and pattern.`,
     sample: <AlleySample />
+  },
+  {
+    title: msg`Your game on the Lock Screen`,
+    why: msg`In the iPhone app, the score follows you as you bowl: on the Lock Screen, in the Dynamic Island and on your Apple Watch.`,
+    sample: <LiveActivitySample />
   },
   {
     title: msg`More colors`,
@@ -176,4 +182,10 @@ function Owned() {
       {bought ? t`You have Headpin Pro. Thanks for the support.` : t`Everything in Pro is open here.`}
     </p>
   );
+}
+
+/** The Lock Screen with a sample game, built in render so it is in the
+ *  bowler's language and colors. */
+function LiveActivitySample() {
+  return <LockScreenPreview state={sampleLiveActivityState()} />;
 }

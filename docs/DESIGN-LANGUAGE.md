@@ -396,9 +396,13 @@ found from either door, then Support, with **Appearance last**: it is set once. 
 the title (the first letter in a circle, then the name), not a row, and it is
 where more profile features can grow. An on/off setting is a `ListSwitchRow`,
 not a `ListRow`: the whole row labels HTML's own `switch`, which the phone
-draws, and the row sits first in the App group (ADR-221). It appears only
-where the setting can do something: "Live Activity on the Lock Screen" is in the
-iPhone app on iOS 18 or later (ADR-227), and nowhere else. "Privacy and terms" pushes a screen in
+draws. A setting a bowler has to see to understand is a `ListRow` instead,
+carrying its value ("On") before the chevron, and its page holds the switch
+with pictures of what it turns on: "Live Activity", first in the App group,
+opens the Lock Screen, the Dynamic Island and the Apple Watch drawn with a
+sample game (ADR-243). A row appears only where the setting can do something:
+Live Activity is in the iPhone app on iOS 18 or later (ADR-227), and nowhere
+else. "Privacy and terms" pushes a screen in
 Settings with the site page's own text (ADR-181), not a trip to the site. Rows
 that leave the app, and that one, carry no sentence: a label that says "Privacy
 and terms" or "Send feedback" has nothing a second line could add.

@@ -39,6 +39,7 @@ import {
   getResumableToday,
   setDriftModel as persistDriftModel,
   setHandedness as persistHandedness,
+  setLiveActivityProOpen,
   type ResumableGame
 } from "./services/bowlingRepository";
 import { reportSessionStarted } from "./services/usageReporter";
@@ -217,6 +218,9 @@ function App() {
   const proStore = useProStore();
   const pro = useMemo(() => appProAccess(proStore), [proStore]);
   useAppliedPalette(!pro.locked);
+  // The Live Activity is Pro (ADR-243), and what starts one runs outside
+  // React: told before any effect, so the launch's tidy already knows.
+  useLayoutEffect(() => setLiveActivityProOpen(!pro.locked), [pro.locked]);
   const [sharedLine] = useState(() => decodeLineParams(currentSearch()));
   // A realistic strike line; auto-hooks to the pocket (ADR-024), no seeded breakpoint.
   const [sandboxLine, setSandboxLine] = useState<LineSpec | undefined>(

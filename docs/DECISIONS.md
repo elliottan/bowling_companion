@@ -10208,3 +10208,75 @@ session, and the owner found the extra room at the top was the whole effect.
 - History and Stats show more of the list on first look, and the tab's name
   stays the small one.
 
+
+## ADR-243: The Live Activity is Pro, and has a page that shows it
+
+**Status.** Accepted, 2026-11-05, at the owner's request. Supersedes the
+"Free" point of ADR-221 (and ADR-227's "Free, as ADR-221 is"), and the Settings
+switch row it describes; the rest of both stands.
+
+**Context.** ADR-221 made the Live Activity free under "Recording is free": it
+only shows what the bowler entered. The owner sees it instead as a quality of
+life feature, not part of keeping score: every ball is still entered, saved
+and read in the app without it, so locking it takes nothing a bowler has. It is
+also a feature of the iPhone app only, which is the one place Pro is sold
+(ADR-154), and one a bowler understands at a glance, which makes it a clear
+thing for Pro to offer. The argument for leaving it free, that friends see it
+and ask about the app, is the share card's job (rule 5 of PRO-LAUNCH, "whatever
+travels is free"): a Lock Screen is seen by its owner far more than by anyone
+else. The Settings row also carried a line ("Your game's score, frame by
+frame, while you bowl") that said less than a picture would, and a switch
+leaves a bowler guessing what it turns on.
+
+**Decision.**
+
+- **Pro.** `syncLiveActivity`, `resumeLiveActivity` and the launch's
+  `tidyLiveActivity` all go through `liveActivityAllowed()`: Pro open and the
+  bowler's switch on. Those paths run outside React, so `App` hands Pro's
+  answer down with `setLiveActivityProOpen(!pro.locked)` in a layout effect,
+  before any effect runs, as it hands the palette to `<html>`; Pro's owned
+  state is read synchronously from its cached last answer (`useProStore`), so
+  an owner's activity is not taken down at launch while StoreKit is asked. Pro
+  closing (a refund) ends what is showing; Pro opening waits for the next ball,
+  as the switch does. The flag starts open, so a copy where nothing sells Pro is
+  unchanged. The stored `live_activity` setting is untouched by Pro: a bowler
+  who buys Pro finds it as they left it, on by default.
+- **A row and a page, not a switch row.** Settings, App group: "Live
+  Activity", a `ListRow` with the value ("On" or "Off", Off too while the
+  iPhone's own setting is off) and the chevron, or the lock alone while Pro is
+  not open. It opens a Settings section, `live-activity`
+  (`src/views/LiveActivityView.tsx`): one sentence on what it does, the switch
+  ("Show your game", veiled by `ProVeil` with "Turn on with Pro" when locked,
+  the veil opening the Pro page), the note when the iPhone's setting is off,
+  and a card each for the Lock Screen, the Dynamic Island (compact and held
+  open) and the Apple Watch's Smart Stack, each a picture and a sentence. The
+  row and the page appear only where the phone says it can draw one, as before.
+- **The pictures follow the SwiftUI views point for point**
+  (`src/components/LiveActivityPreviews.tsx`): the same rows, sizes and
+  colors, drawn from a payload built by `buildLiveActivityState` from a sample
+  game, so the marks and running totals are the scorecard's own. The Lock
+  Screen banner uses the page's tokens, which is what the phone draws
+  (`HeadpinPalette.lockScreen`); the island and the watch take each palette's
+  dark accent from `ISLAND_ACCENTS`, which `liveActivityProject.test.ts` holds
+  to the Swift table, as it holds the Swift table to `src/index.css`. The black
+  of the island, the watch and the phone's glass are the hardware's
+  (DESIGN-LANGUAGE §3's exception for a physical object). DESIGN-LANGUAGE §4d
+  says a Pro sample is the screen's own component, never a drawing; here no
+  web component can be the phone's own, so these are the nearest thing, and
+  they change when the Swift does.
+- **On the Pro page** as "Your game on the Lock Screen", with the Lock Screen
+  picture as its sample.
+
+**Consequences.**
+
+- A bowler without Pro on the iPhone app loses the Live Activity they had.
+  There are no bowlers on a released build yet (PRO-LAUNCH), so nobody has
+  it taken away in practice.
+- The pictures can drift from the phone: a change to `HeadpinGameViews.swift`
+  or the island's layout has to be made in `LiveActivityPreviews.tsx` too.
+  Only the colors are tested. They were checked in a browser, not against a
+  screenshot of a phone, which no one has taken yet (ADR-221's open list).
+- The pictures' labels ("Game 2", "Frame 7", "Max 225") are translated, while
+  the phone still draws its own in English (I18N.md, "What is still not
+  converted"), so a Spanish bowler sees "Partida 2" on the page and "Game 2"
+  on the Lock Screen until the extension is translated.
