@@ -308,8 +308,9 @@ centres its icon, name and count.
 
 **A card that is a button looks like one** (`.card-button`): Home's tiles and
 its recent sessions are raised off the page, a step lighter at the top with a
-rim of light and a soft shadow, carry a chevron, and sink when pressed (they
-shrink a little and darken, then spring back). Flat, they were the same slab
+rim of light and a soft shadow, and sink when pressed (they shrink a little
+and darken, then spring back). They carry no chevron: the raise already says
+they can be tapped, and a chevron in every tile's corner was clutter. Flat, they were the same slab
 as the cards that only hold numbers, and nothing said they could be tapped. A
 card that only shows numbers stays flat.
 
@@ -382,9 +383,9 @@ tile of its own (ADR-126).
 
 Settings has iOS's large title: it scrolls away with the page, and the name
 comes in small and centred in a frosted bar as it goes (`CompactTitleBar`,
-ADR-191). History and Stats have it too (`FloatingHeader`, ADR-240), with
-their round controls at the bar's top right and a pinned row (Stats' range,
-centred, and the filter chips) that sticks under the bar.
+ADR-191). History and Stats do not (ADR-242): their small title and round
+controls share one pinned row, because a large title there was empty room
+above the list.
 
 Ordered by what a bowler can lose or must not miss, not by how often it is
 opened. **Backup & restore leads, alone and louder than a row**, because the

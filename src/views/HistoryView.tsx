@@ -1,4 +1,5 @@
 import { plural, t } from "@lingui/core/macro";
+import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -81,19 +82,23 @@ export function HistoryView({
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
       <FloatingHeader
         scrollerRef={scrollerRef}
-        title={t`History`}
-        // Nothing to narrow before the first session, and a control that can
-        // only ever filter an empty list is noise on the screen a new bowler
-        // is deciding about.
-        actions={
-          filters.history.length > 0 && (
-            <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
-          )
-        }
-        pinned={
+        header={
           <>
+            <div className={`${TAB_TITLE_ROW} mb-3 justify-between gap-3`}>
+              <h1 className={TAB_TITLE}>{t`History`}</h1>
+              {/* Nothing to narrow before the first session, and a control
+                  that can only ever filter an empty list is noise on the
+                  screen a new bowler is deciding about. */}
+              {filters.history.length > 0 && (
+                <div className="flex shrink-0 items-center gap-1">
+                  <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+                </div>
+              )}
+            </div>
+
             {error && <ErrorBanner className="mb-3">{t`Your sessions could not be read. Reload the app, then try again.`}</ErrorBanner>}
             {deleteError && <ErrorBanner className="mb-3">{deleteError}</ErrorBanner>}
+
             <SessionFilterChips filters={filters} />
           </>
         }

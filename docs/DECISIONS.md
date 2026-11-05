@@ -10184,3 +10184,27 @@ because the page and the phone cannot draw the same thing.
 - Making a bar native again means the whole bar, with nothing of the page's
   drawn in its place, never a native copy over a page copy.
 
+## ADR-242: History and Stats go back to one pinned row
+
+**Status.** Accepted, 2026-11-05, at the owner's request. Supersedes ADR-240
+and restores what ADR-185 pinned.
+
+**Context.** ADR-240 gave History and Stats iOS's large title: a bar of its
+own for the round controls at the top right, the large name under it, and a
+pinned row under that. On a phone that stacked three bands above the first
+session, and the owner found the extra room at the top was the whole effect.
+
+**Decision.**
+
+- **One pinned row again** (`FloatingHeader`, as before ADR-240): the small
+  title, the round controls and on Stats the range control, together at the
+  top, with the list starting right under it.
+- The large-title variant of `FloatingHeader` and its e2e test are removed.
+  Settings keeps its large title (ADR-191), which has no controls to share a
+  row with.
+
+**Consequences.**
+
+- History and Stats show more of the list on first look, and the tab's name
+  stays the small one.
+
