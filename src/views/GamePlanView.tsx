@@ -1,4 +1,4 @@
-import { plural, t } from "@lingui/core/macro";
+import { t } from "@lingui/core/macro";
 import { Select } from "../components/ui/Select";
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -19,7 +19,7 @@ import { getSessionHistory } from "../services/bowlingRepository";
 import { getBalls } from "../services/ballRepository";
 import type { Ball, SessionSummary } from "../types/bowling";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { BallEstimates } from "../components/BallEstimates";
+import { AlleySummary, BallEstimates } from "../components/BallEstimates";
 import { estimateBalls } from "../lib/scoreModel";
 import { filterSessionsBy } from "../lib/stats";
 
@@ -36,8 +36,10 @@ const NO_BALLS: Ball[] = [];
  * keeps its tests, and the navigation state that opened one is still in
  * `appNavigation`, so they can come back as they were.
  *
- * Every number is a count ("7 of 10"), never a percentage: most groups are a
- * handful of balls, and a rate hides how few.
+ * It leads with the bowler here (`AlleySummary`), then ranks the balls, each
+ * opening in a sheet with its rates and its leaves (ADR-243). A leave's make
+ * rate is a percentage, read from every game bowled, with the times the ball
+ * left it beside it.
  */
 interface GamePlanViewProps {
   onBack: () => void;
@@ -245,13 +247,18 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                 )}
               </div>
 
-              <p className="mt-3 text-xs text-ink-secondary">
-                {report.shots === 0
-                  ? where
-                    ? t`Nothing recorded for ${{ where }} yet.`
-                    : t`Nothing recorded for this yet.`
-                  : t`${{ shots: t({ message: plural(report.shots, { one: "# ball", other: "# balls" }), context: "balls thrown", comment: "A count of shots thrown (first balls), not of bowling balls owned" }) }}, ${{ sessions: plural(report.sessions, { one: "# session", other: "# sessions" }) }}`}
-              </p>
+              {/* The bowler here first, as one card: the average, what it is
+                  read from, and the rates every ball is read against
+                  (ADR-243). */}
+              {report.shots === 0 ? (
+                <p className="mt-3 text-footnote text-ink-secondary">
+                  {where ? t`Nothing recorded for ${{ where }} yet.` : t`Nothing recorded for this yet.`}
+                </p>
+              ) : (
+                <div className="mt-4">
+                  <AlleySummary report={estimates} shots={report.shots} sessions={report.sessions} />
+                </div>
+              )}
 
               {/* Pro: the reads across sessions (ADR-154). With no ball to read
                   there is nothing to preview, and a lone lock over a blank would
@@ -263,8 +270,13 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                   </p>
                 )
               ) : (
-                <div className="mt-4">
-                  <BallEstimates report={estimates} balls={balls} free={proLocked ? FREE_BALLS : undefined} />
+                <div className="mt-5">
+                  <BallEstimates
+                    report={estimates}
+                    balls={balls}
+                    free={proLocked ? FREE_BALLS : undefined}
+                    scope={where}
+                  />
                 </div>
               )}
             </>

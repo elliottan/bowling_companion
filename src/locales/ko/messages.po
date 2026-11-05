@@ -52,8 +52,6 @@ msgstr "{0, plural, other {볼 #개}}"
 #. A count of shots thrown (first balls), not of bowling balls owned
 #. A count of shots thrown (first balls), not of bowling balls owned
 #. A count of shots thrown (first balls), not of bowling balls owned
-#. A count of shots thrown (first balls), not of bowling balls owned
-#. A count of shots thrown (first balls), not of bowling balls owned
 #. placeholder {0}: ball.balls
 #. placeholder {0}: ball.firstBalls
 #. placeholder {0}: estimate.firstBalls
@@ -61,7 +59,6 @@ msgstr "{0, plural, other {볼 #개}}"
 #: src/components/BallGameSessionsDialog.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
-#: src/views/GamePlanView.tsx
 msgctxt "balls thrown"
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, other {투구 #회}}"
@@ -100,11 +97,9 @@ msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, other {패턴 #개}}"
 
 #. placeholder {0}: pending.incoming.sessions
-#. placeholder {0}: report.sessions
 #. placeholder {0}: stats.totalSessions
 #: src/components/FirstRun.tsx
 #: src/lib/shareCard.ts
-#: src/views/GamePlanView.tsx
 msgid "{0, plural, one {# session} other {# sessions}}"
 msgstr "{0, plural, other {세션 #개}}"
 
@@ -142,6 +137,18 @@ msgstr "{0, plural, other {레인 {lanes}}}"
 msgid "{0, plural, one {Lane {list}} other {Lanes {list}}}"
 msgstr "{0, plural, other {레인 {list}}}"
 
+#. How many times this ball left these pins standing
+#. placeholder {0}: leave.left
+#: src/components/BallEstimates.tsx
+msgid "{0, plural, one {Left # time} other {Left # times}}"
+msgstr "{0, plural, other {#회 남김}}"
+
+#. Shots thrown (first balls) with this ball in scope, too few to trust its estimate
+#. placeholder {0}: estimate.firstBalls
+#: src/components/BallEstimates.tsx
+msgid "{0, plural, one {Only # ball here, too few to rank.} other {Only # balls here, too few to rank.}}"
+msgstr "{0, plural, other {여기서 투구 #회뿐, 순위를 매기기엔 부족}}"
+
 #. placeholder {0}: leaves.length
 #: src/components/SpareLineBulkSheet.tsx
 msgid "{0, plural, one {Save for all # leave} other {Save for all # leaves}}"
@@ -166,6 +173,24 @@ msgstr "{0, plural, other {이 기기에는 이미 세션이 #개 있어요. 복
 #: src/components/Stats.tsx
 msgid "{0, plural, one {time} other {times}}"
 msgstr "{0, plural, other {회}}"
+
+#. Pins a game this ball is worth against the bowler's own average at this alley, e.g. +5 a game against your 196 here
+#. placeholder {0}: signedPins(estimate.difference)
+#: src/components/BallEstimates.tsx
+msgid "{0} a game against your {average} here"
+msgstr "여기서의 에버리지 {average} 대비 게임당 {0}"
+
+#. Spoken: a ball's rate is this many percentage points above every ball's together.
+#. placeholder {0}: formatNumber(gap)
+#: src/components/BallEstimates.tsx
+msgid "{0} points above all balls"
+msgstr "전체 볼보다 {0}포인트 높음"
+
+#. Spoken: a ball's rate is this many percentage points below every ball's together.
+#. placeholder {0}: formatNumber(-gap)
+#: src/components/BallEstimates.tsx
+msgid "{0} points below all balls"
+msgstr "전체 볼보다 {0}포인트 낮음"
 
 #: src/components/FirstRun.tsx
 msgid "{age}. Holds {sessions}, {games}, {balls}."
@@ -226,6 +251,11 @@ msgstr "{count, plural, other {볼 #개 모두 보기}}"
 #: src/components/Stats.tsx
 msgid "{count, plural, one {View all # leave} other {View all # leaves}}"
 msgstr "{count, plural, other {남은 핀 #가지 모두 보기}}"
+
+#. Under a ball's name: the shots thrown with it (already counted, e.g. 349 balls), then its strike rate as a percentage
+#: src/components/BallEstimates.tsx
+msgid "{count} · strike {strike}"
+msgstr "{count} · 스트라이크 {strike}"
 
 #: src/views/CatalogView.tsx
 msgid "{count} colors"
@@ -389,14 +419,6 @@ msgstr "{line}, {who}"
 msgid "{losingSessions, plural, one {This file is older than what is on this device. You would lose # session.} other {This file is older than what is on this device. You would lose # sessions.}}"
 msgstr "{losingSessions, plural, other {이 파일은 이 기기의 데이터보다 오래됐어요. 세션 #개를 잃게 돼요.}}"
 
-#: src/components/BallEstimates.tsx
-msgid "{made}/{chances} made"
-msgstr "{made}/{chances} 성공"
-
-#: src/components/BallEstimates.tsx
-msgid "{made}/{chances} made, few"
-msgstr "{made}/{chances} 성공, 표본 적음"
-
 #: src/views/GuidesView.tsx
 msgid "{minutes} min read"
 msgstr "{minutes}분 읽기"
@@ -482,9 +504,19 @@ msgstr "{pin}번 핀 남음"
 msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
 msgstr "{pins, plural, other {{frame}프레임, {ball}번째 투구 (핀 #개)}}"
 
-#: src/views/GamePlanView.tsx
-msgid "{shots}, {sessions}"
-msgstr "{shots}, {sessions}"
+#: src/components/BallEstimates.tsx
+msgid "{sessions, plural, one {# session} other {# sessions}}"
+msgstr "{sessions, plural, other {세션 #개}}"
+
+#: src/components/BallEstimates.tsx
+msgid "{sessions} · {shots}"
+msgstr "{sessions} · {shots}"
+
+#. A count of shots thrown (first balls), not of bowling balls owned
+#: src/components/BallEstimates.tsx
+msgctxt "balls thrown"
+msgid "{shots, plural, one {# ball} other {# balls}}"
+msgstr "{shots, plural, other {투구 #회}}"
 
 #: src/components/BallGameSessionsDialog.tsx
 msgid "{spoken} {made} of {of}"
@@ -682,10 +714,6 @@ msgstr "실제"
 msgid "Actual line"
 msgstr "실제 라인"
 
-#: src/components/BallEstimates.tsx
-msgid "Actual overall average: {average}"
-msgstr "실제 전체 에버리지: {average}"
-
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
 #: src/views/SpareLinesView.tsx
@@ -781,11 +809,14 @@ msgid "after a strike {value}"
 msgstr "스트라이크 다음 {value}"
 
 #. Bowling term. A short column heading over the share of strikes thrown right after a strike.
-#. Bowling term. A short column heading over the share of strikes thrown right after a strike.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 msgid "After strike"
 msgstr "스트라이크 후"
+
+#. Heading over a ball's rates, each compared with every ball's together
+#: src/components/BallEstimates.tsx
+msgid "Against all balls"
+msgstr "전체 볼과 비교"
 
 #. Stats tab window: every session, a short segment label
 #: src/components/SessionFilterBar.tsx
@@ -799,10 +830,6 @@ msgstr "전체"
 #: src/components/SessionFilterBar.tsx
 msgid "All alleys"
 msgstr "모든 볼링장"
-
-#: src/components/BallEstimates.tsx
-msgid "All balls"
-msgstr "모든 볼"
 
 #: src/components/SessionFilterBar.tsx
 msgid "All events"
@@ -1137,6 +1164,11 @@ msgstr "아스널로 복귀"
 msgid "Bulk edit"
 msgstr "일괄 편집"
 
+#. Heading over a list of the bowler's balls, ranked.
+#: src/components/BallEstimates.tsx
+msgid "By ball"
+msgstr "볼별"
+
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "By game"
@@ -1342,11 +1374,6 @@ msgstr "코어"
 #: src/views/LayoutLabView.tsx
 msgid "Core type"
 msgstr "코어 유형"
-
-#. Bowling term. The pin leaves (what is left standing after the first ball) that cost this bowler the most.
-#: src/components/BallEstimates.tsx
-msgid "Costliest leaves"
-msgstr "손해가 큰 남은 핀"
 
 #. Bowling term: the outer shell material of a ball
 #. Bowling term: the outer shell material of a ball
@@ -1702,13 +1729,6 @@ msgstr "기록된 이 투구를 편집할까요?"
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "두 레인 모두 정수로 입력하세요."
-
-#. Short column heading: estimated average.
-#. Short column heading: estimated average.
-#: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
-msgid "Est."
-msgstr "예상"
 
 #: src/components/BallEstimates.tsx
 #: src/views/ProOfferView.tsx
@@ -2549,6 +2569,11 @@ msgstr "스플릿이 된 남은 핀 {value}"
 msgid "Leaves the oil"
 msgstr "오일 끝"
 
+#. Bowling term. The pin leaves (what is left standing after the first ball) this ball gave, the ones that cost the most spares first.
+#: src/components/BallEstimates.tsx
+msgid "Leaves, costliest first"
+msgstr "남은 핀, 손실 큰 순"
+
 #: src/components/LaneVisualizer.tsx
 #: src/views/LayoutLabView.tsx
 msgid "Left"
@@ -2559,10 +2584,6 @@ msgstr "왼쪽"
 msgctxt "times a leave was left"
 msgid "Left"
 msgstr "남음"
-
-#: src/components/BallEstimates.tsx
-msgid "Left {count}"
-msgstr "{count}회 남음"
 
 #. A ball layout card: the bowler throws left-handed
 #: src/lib/shareCard.ts
@@ -2700,11 +2721,14 @@ msgstr "낮음"
 msgid "Low flare on purpose. Burns less board on the way down for fresh oil or a spare-adjacent ball."
 msgstr "일부러 낮춘 플레어예요. 레인을 내려가며 보드를 덜 쓰기 때문에 새 오일이나 스페어에 가까운 볼에 알맞아요."
 
-#. Bowling term. A short column heading over the share of leaves picked up for a spare.
+#. Under a percentage: the share of this leave picked up for a spare
+#: src/components/BallEstimates.tsx
+msgid "made"
+msgstr "성공"
+
 #. Bowling term. A short column heading over the share of leaves picked up for a spare.
 #. Bowling term: spares made out of the chances. Shown as made/chances.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 #: src/components/SpareLineFormDialog.tsx
 msgid "Made"
 msgstr "성공"
@@ -2713,6 +2737,11 @@ msgstr "성공"
 #: src/components/Stats.tsx
 msgid "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to follow it, so it is not on this card."
 msgstr "성공 횟수 / 기회, 그다음 비율이에요. 10프레임 마지막 투구에서 남은 핀은 이어질 스페어가 없어서 이 카드에 포함되지 않아요."
+
+#. Under a percentage: the share of this leave picked up, from too few tries to trust
+#: src/components/BallEstimates.tsx
+msgid "made, few tries"
+msgstr "성공, 시도 적음"
 
 #. Bowling term: a leave that can be converted into a spare
 #: src/views/OpenFramesView.tsx
@@ -2929,14 +2958,15 @@ msgstr "아직 비교할 게임이 없어요"
 msgid "No lane notes yet"
 msgstr "아직 레인 메모가 없어요"
 
-#: src/components/BallEstimates.tsx
-msgid "No leave it gives you is one you often miss."
-msgstr "자주 놓치는 남은 핀이 없어요."
-
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
 msgid "No leaves fit these filters."
 msgstr "조건에 맞는 남은 핀이 없어요."
+
+#. A ball with no pins left standing after any of its first balls in scope
+#: src/components/BallEstimates.tsx
+msgid "No leaves here yet. Every first ball was a strike."
+msgstr "아직 남은 핀이 없어요. 첫 투구가 모두 스트라이크였어요."
 
 #. A filter on the spare lines screen: leaves the bowler has not written a line (stance and target) for
 #: src/lib/spareLines.ts
@@ -3658,6 +3688,11 @@ msgstr "오른손"
 msgid "Rose"
 msgstr "로즈"
 
+#. A ball's rate equals every ball's together. Spoken after the rate.
+#: src/components/BallEstimates.tsx
+msgid "same as all balls"
+msgstr "전체 볼과 같음"
+
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/LaneNotesTab.tsx
@@ -4022,11 +4057,9 @@ msgid "Specs and pictures of current balls"
 msgstr "현재 볼의 사양과 사진"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
-#. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins
 #. Bowling term: leaves with a gap between standing pins and the head pin down, a group on the Stats tab
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 #: src/lib/pins.ts
 #: src/views/OpenFramesView.tsx
 msgid "Splits"
@@ -4120,7 +4153,6 @@ msgstr "스트라이크"
 #. Bowling term: all ten pins down with the first ball. A rate label.
 #. Bowling term: all ten pins down with the first ball. A rate label.
 #. Bowling term: all ten pins down with the first ball. A rate label.
-#. Bowling term: all ten pins down with the first ball. A rate label.
 #. Bowling term: all ten pins down with the first ball. Column heading.
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #. Bowling term: all ten pins knocked down with the first ball of a frame
@@ -4138,7 +4170,9 @@ msgid "Strike"
 msgstr "스트라이크"
 
 #. Bowling term. Spoken name of the strike rate column, then its percentage.
+#. Bowling term. Spoken name of the strike rate column, then its percentage.
 #: src/components/BallEstimates.tsx
+#: src/components/ProOfferSamples.tsx
 msgid "strike {value}"
 msgstr "스트라이크 {value}"
 
@@ -4852,6 +4886,10 @@ msgstr "벌써 몇 번 세션을 쳤네요. 부족한 점이나 불편한 점이
 #: src/components/HomeProfile.tsx
 msgid "Your arsenal"
 msgstr "내 아스널"
+
+#: src/components/BallEstimates.tsx
+msgid "Your average here"
+msgstr "여기서의 에버리지"
 
 #: src/views/SettingsView.tsx
 msgid "Your balls and their layouts"

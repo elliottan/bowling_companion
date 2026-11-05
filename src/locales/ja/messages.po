@@ -52,8 +52,6 @@ msgstr "{0, plural, other {#個のボール}}"
 #. A count of shots thrown (first balls), not of bowling balls owned
 #. A count of shots thrown (first balls), not of bowling balls owned
 #. A count of shots thrown (first balls), not of bowling balls owned
-#. A count of shots thrown (first balls), not of bowling balls owned
-#. A count of shots thrown (first balls), not of bowling balls owned
 #. placeholder {0}: ball.balls
 #. placeholder {0}: ball.firstBalls
 #. placeholder {0}: estimate.firstBalls
@@ -61,7 +59,6 @@ msgstr "{0, plural, other {#個のボール}}"
 #: src/components/BallGameSessionsDialog.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
-#: src/views/GamePlanView.tsx
 msgctxt "balls thrown"
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, other {#投}}"
@@ -100,11 +97,9 @@ msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, other {#パターン}}"
 
 #. placeholder {0}: pending.incoming.sessions
-#. placeholder {0}: report.sessions
 #. placeholder {0}: stats.totalSessions
 #: src/components/FirstRun.tsx
 #: src/lib/shareCard.ts
-#: src/views/GamePlanView.tsx
 msgid "{0, plural, one {# session} other {# sessions}}"
 msgstr "{0, plural, other {#セッション}}"
 
@@ -142,6 +137,18 @@ msgstr "{0, plural, other {レーン{lanes}}}"
 msgid "{0, plural, one {Lane {list}} other {Lanes {list}}}"
 msgstr "{0, plural, other {レーン{list}}}"
 
+#. How many times this ball left these pins standing
+#. placeholder {0}: leave.left
+#: src/components/BallEstimates.tsx
+msgid "{0, plural, one {Left # time} other {Left # times}}"
+msgstr "{0, plural, other {#回残した}}"
+
+#. Shots thrown (first balls) with this ball in scope, too few to trust its estimate
+#. placeholder {0}: estimate.firstBalls
+#: src/components/BallEstimates.tsx
+msgid "{0, plural, one {Only # ball here, too few to rank.} other {Only # balls here, too few to rank.}}"
+msgstr "{0, plural, other {ここでは#投のみ、順位付けにはデータ不足}}"
+
 #. placeholder {0}: leaves.length
 #: src/components/SpareLineBulkSheet.tsx
 msgid "{0, plural, one {Save for all # leave} other {Save for all # leaves}}"
@@ -166,6 +173,24 @@ msgstr "{0, plural, other {この端末にはすでに#セッションありま�
 #: src/components/Stats.tsx
 msgid "{0, plural, one {time} other {times}}"
 msgstr "{0, plural, other {回}}"
+
+#. Pins a game this ball is worth against the bowler's own average at this alley, e.g. +5 a game against your 196 here
+#. placeholder {0}: signedPins(estimate.difference)
+#: src/components/BallEstimates.tsx
+msgid "{0} a game against your {average} here"
+msgstr "ここでのアベレージ{average}に対して1ゲームあたり{0}"
+
+#. Spoken: a ball's rate is this many percentage points above every ball's together.
+#. placeholder {0}: formatNumber(gap)
+#: src/components/BallEstimates.tsx
+msgid "{0} points above all balls"
+msgstr "全ボールより{0}ポイント上"
+
+#. Spoken: a ball's rate is this many percentage points below every ball's together.
+#. placeholder {0}: formatNumber(-gap)
+#: src/components/BallEstimates.tsx
+msgid "{0} points below all balls"
+msgstr "全ボールより{0}ポイント下"
 
 #: src/components/FirstRun.tsx
 msgid "{age}. Holds {sessions}, {games}, {balls}."
@@ -226,6 +251,11 @@ msgstr "{count, plural, other {#個のボールをすべて表示}}"
 #: src/components/Stats.tsx
 msgid "{count, plural, one {View all # leave} other {View all # leaves}}"
 msgstr "{count, plural, other {#種類の残りピンをすべて表示}}"
+
+#. Under a ball's name: the shots thrown with it (already counted, e.g. 349 balls), then its strike rate as a percentage
+#: src/components/BallEstimates.tsx
+msgid "{count} · strike {strike}"
+msgstr "{count}・ストライク {strike}"
 
 #: src/views/CatalogView.tsx
 msgid "{count} colors"
@@ -389,14 +419,6 @@ msgstr "{line}、{who}さん"
 msgid "{losingSessions, plural, one {This file is older than what is on this device. You would lose # session.} other {This file is older than what is on this device. You would lose # sessions.}}"
 msgstr "{losingSessions, plural, other {このファイルはこの端末のデータより古いものです。#セッションが失われます。}}"
 
-#: src/components/BallEstimates.tsx
-msgid "{made}/{chances} made"
-msgstr "{made}/{chances}成功"
-
-#: src/components/BallEstimates.tsx
-msgid "{made}/{chances} made, few"
-msgstr "{made}/{chances}成功、データ少"
-
 #: src/views/GuidesView.tsx
 msgid "{minutes} min read"
 msgstr "読了目安{minutes}分"
@@ -482,9 +504,19 @@ msgstr "{pin}番ピンが残り"
 msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
 msgstr "{pins, plural, other {フレーム{frame}、{ball}投目(#ピン)}}"
 
-#: src/views/GamePlanView.tsx
-msgid "{shots}, {sessions}"
-msgstr "{shots}、{sessions}"
+#: src/components/BallEstimates.tsx
+msgid "{sessions, plural, one {# session} other {# sessions}}"
+msgstr "{sessions, plural, other {#セッション}}"
+
+#: src/components/BallEstimates.tsx
+msgid "{sessions} · {shots}"
+msgstr "{sessions}・{shots}"
+
+#. A count of shots thrown (first balls), not of bowling balls owned
+#: src/components/BallEstimates.tsx
+msgctxt "balls thrown"
+msgid "{shots, plural, one {# ball} other {# balls}}"
+msgstr "{shots, plural, other {#投}}"
 
 #: src/components/BallGameSessionsDialog.tsx
 msgid "{spoken} {made} of {of}"
@@ -682,10 +714,6 @@ msgstr "実際"
 msgid "Actual line"
 msgstr "実際のライン"
 
-#: src/components/BallEstimates.tsx
-msgid "Actual overall average: {average}"
-msgstr "実際の全体アベレージ: {average}"
-
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
 #: src/views/SpareLinesView.tsx
@@ -781,11 +809,14 @@ msgid "after a strike {value}"
 msgstr "ストライク後 {value}"
 
 #. Bowling term. A short column heading over the share of strikes thrown right after a strike.
-#. Bowling term. A short column heading over the share of strikes thrown right after a strike.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 msgid "After strike"
 msgstr "ストライク後"
+
+#. Heading over a ball's rates, each compared with every ball's together
+#: src/components/BallEstimates.tsx
+msgid "Against all balls"
+msgstr "全ボールとの比較"
 
 #. Stats tab window: every session, a short segment label
 #: src/components/SessionFilterBar.tsx
@@ -799,10 +830,6 @@ msgstr "すべて"
 #: src/components/SessionFilterBar.tsx
 msgid "All alleys"
 msgstr "すべてのボウリング場"
-
-#: src/components/BallEstimates.tsx
-msgid "All balls"
-msgstr "すべてのボール"
 
 #: src/components/SessionFilterBar.tsx
 msgid "All events"
@@ -1137,6 +1164,11 @@ msgstr "アーセナルに戻す"
 msgid "Bulk edit"
 msgstr "一括編集"
 
+#. Heading over a list of the bowler's balls, ranked.
+#: src/components/BallEstimates.tsx
+msgid "By ball"
+msgstr "ボール別"
+
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "By game"
@@ -1342,11 +1374,6 @@ msgstr "コア"
 #: src/views/LayoutLabView.tsx
 msgid "Core type"
 msgstr "コアタイプ"
-
-#. Bowling term. The pin leaves (what is left standing after the first ball) that cost this bowler the most.
-#: src/components/BallEstimates.tsx
-msgid "Costliest leaves"
-msgstr "失点の大きい残りピン"
 
 #. Bowling term: the outer shell material of a ball
 #. Bowling term: the outer shell material of a ball
@@ -1702,13 +1729,6 @@ msgstr "記録済みのこのショットを編集しますか？"
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "両方のレーンに整数を入力してください。"
-
-#. Short column heading: estimated average.
-#. Short column heading: estimated average.
-#: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
-msgid "Est."
-msgstr "推定"
 
 #: src/components/BallEstimates.tsx
 #: src/views/ProOfferView.tsx
@@ -2549,6 +2569,11 @@ msgstr "スプリット率 {value}"
 msgid "Leaves the oil"
 msgstr "オイルを抜ける位置"
 
+#. Bowling term. The pin leaves (what is left standing after the first ball) this ball gave, the ones that cost the most spares first.
+#: src/components/BallEstimates.tsx
+msgid "Leaves, costliest first"
+msgstr "残りピン（損失の大きい順）"
+
 #: src/components/LaneVisualizer.tsx
 #: src/views/LayoutLabView.tsx
 msgid "Left"
@@ -2559,10 +2584,6 @@ msgstr "左"
 msgctxt "times a leave was left"
 msgid "Left"
 msgstr "残り"
-
-#: src/components/BallEstimates.tsx
-msgid "Left {count}"
-msgstr "残り {count}"
 
 #. A ball layout card: the bowler throws left-handed
 #: src/lib/shareCard.ts
@@ -2700,11 +2721,14 @@ msgstr "低"
 msgid "Low flare on purpose. Burns less board on the way down for fresh oil or a spare-adjacent ball."
 msgstr "あえてフレアを抑えています。下へ向かう間に消費するボードが少なく、フレッシュなオイルやスペア寄りのボールに向いています。"
 
-#. Bowling term. A short column heading over the share of leaves picked up for a spare.
+#. Under a percentage: the share of this leave picked up for a spare
+#: src/components/BallEstimates.tsx
+msgid "made"
+msgstr "成功"
+
 #. Bowling term. A short column heading over the share of leaves picked up for a spare.
 #. Bowling term: spares made out of the chances. Shown as made/chances.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 #: src/components/SpareLineFormDialog.tsx
 msgid "Made"
 msgstr "成功"
@@ -2713,6 +2737,11 @@ msgstr "成功"
 #: src/components/Stats.tsx
 msgid "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to follow it, so it is not on this card."
 msgstr "成功数 / チャンス数、続けて率を表示します。10フレーム目の最後の投球で残ったピンにはスペアが続かないため、このカードには含まれません。"
+
+#. Under a percentage: the share of this leave picked up, from too few tries to trust
+#: src/components/BallEstimates.tsx
+msgid "made, few tries"
+msgstr "成功、試行少"
 
 #. Bowling term: a leave that can be converted into a spare
 #: src/views/OpenFramesView.tsx
@@ -2929,14 +2958,15 @@ msgstr "比較するゲームがまだありません"
 msgid "No lane notes yet"
 msgstr "レーンメモがまだありません"
 
-#: src/components/BallEstimates.tsx
-msgid "No leave it gives you is one you often miss."
-msgstr "このボールで残るピンに、よく取り損ねるものはありません。"
-
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
 msgid "No leaves fit these filters."
 msgstr "条件に合う残りピンがありません。"
+
+#. A ball with no pins left standing after any of its first balls in scope
+#: src/components/BallEstimates.tsx
+msgid "No leaves here yet. Every first ball was a strike."
+msgstr "まだ残りピンはありません。1投目はすべてストライクでした。"
 
 #. A filter on the spare lines screen: leaves the bowler has not written a line (stance and target) for
 #: src/lib/spareLines.ts
@@ -3658,6 +3688,11 @@ msgstr "右投げ"
 msgid "Rose"
 msgstr "ローズ"
 
+#. A ball's rate equals every ball's together. Spoken after the rate.
+#: src/components/BallEstimates.tsx
+msgid "same as all balls"
+msgstr "全ボールと同じ"
+
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/LaneNotesTab.tsx
@@ -4022,11 +4057,9 @@ msgid "Specs and pictures of current balls"
 msgstr "現行ボールのスペックと写真"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
-#. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins
 #. Bowling term: leaves with a gap between standing pins and the head pin down, a group on the Stats tab
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 #: src/lib/pins.ts
 #: src/views/OpenFramesView.tsx
 msgid "Splits"
@@ -4120,7 +4153,6 @@ msgstr "ストライク"
 #. Bowling term: all ten pins down with the first ball. A rate label.
 #. Bowling term: all ten pins down with the first ball. A rate label.
 #. Bowling term: all ten pins down with the first ball. A rate label.
-#. Bowling term: all ten pins down with the first ball. A rate label.
 #. Bowling term: all ten pins down with the first ball. Column heading.
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #. Bowling term: all ten pins knocked down with the first ball of a frame
@@ -4138,7 +4170,9 @@ msgid "Strike"
 msgstr "ストライク"
 
 #. Bowling term. Spoken name of the strike rate column, then its percentage.
+#. Bowling term. Spoken name of the strike rate column, then its percentage.
 #: src/components/BallEstimates.tsx
+#: src/components/ProOfferSamples.tsx
 msgid "strike {value}"
 msgstr "ストライク {value}"
 
@@ -4852,6 +4886,10 @@ msgstr "何度かセッションを投げましたね。足りない点や、使
 #: src/components/HomeProfile.tsx
 msgid "Your arsenal"
 msgstr "あなたのアーセナル"
+
+#: src/components/BallEstimates.tsx
+msgid "Your average here"
+msgstr "ここでのアベレージ"
 
 #: src/views/SettingsView.tsx
 msgid "Your balls and their layouts"

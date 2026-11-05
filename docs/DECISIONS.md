@@ -10208,3 +10208,43 @@ session, and the owner found the extra room at the top was the whole effect.
 - History and Stats show more of the list on first look, and the tab's name
   stays the small one.
 
+
+## ADR-243: The Alley report leads with you, ranks the balls, and opens one in a sheet
+
+**Status.** Accepted, 2026-11-05, at the owner's request. Supersedes the row
+layout of ADR-149 and the leave list of ADR-147's costliest leaves.
+
+**Context.** The Alley report had become a table: four rate columns and the
+estimate on every ball's row, an All balls band above them, and a count line
+and an "Actual overall average" label floating between the filters and the
+card. The owner found it read as placed by chance. An opened ball's leaves
+read "Left 9, 0/21 made", two counts with different denominators, and a ball
+none of whose leaves cost a spare showed a sentence instead of its leaves.
+
+**Decision.**
+
+- **One summary card leads** (`AlleySummary`): your real average here, large,
+  with the sessions and balls it is read from beside it and the four rates
+  (strike, after a strike, splits, made) every ball together under it. It
+  replaces the count line, the floating average label and the All balls row.
+- **The balls are a ranked list,** one `ListGroup` row each: the ball, its
+  balls and strike rate under the name, then the estimate and a pill for
+  pins a game against your average. The row says what it ranks by and no
+  more.
+- **A tap opens the ball in a sheet** (`FormSheet`, the scope as its subtitle
+  per ADR-130): the estimate and its gap in words, its four rates against
+  every ball's with the gap in points (green on the better side, so fewer
+  splits is green), and its leaves as tiles.
+- **A leave shows the share made as a percentage,** read from every game
+  bowled as before, with the times this ball left it under it. A rate from
+  too few tries is greyed and says so.
+- **Every ball shows its top three leaves,** costliest first and then the
+  most left, so a ball whose leaves are always made still shows what it
+  leaves.
+
+**Consequences.**
+
+- Comparing one rate across balls takes a tap per ball, which the owner
+  chose for a cleaner list. The Stats tab's Balls card still has every rate
+  side by side.
+- The Pro page's Alley sample is drawn as the new list.
