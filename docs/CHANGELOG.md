@@ -18,6 +18,11 @@ had all shipped.
   Pearl, PhysiX Ignition and !Q Focus. Each has its specs, its weights and a
   photo. Now 848 balls.
 
+## 0.85.1: The old Vercel address sends you to headpin.app (2026-11-05)
+
+- Opening `bowling-companion.vercel.app`, or any page under it, now takes you
+  to the same page on `headpin.app`.
+
 ## 0.85.0: Sheets that rise from the bottom, and Home's cards that look like buttons (2026-11-04)
 
 - History and Stats have the iPhone's large title: the name starts large at
