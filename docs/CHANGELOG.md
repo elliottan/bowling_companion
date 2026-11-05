@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.87.0: A cleaner Alley report (2026-11-05)
+
+- The Alley report opens on your average at that alley, with the sessions
+  and balls behind it and your strike, after-strike, split and spare rates,
+  all in one card.
+- Your balls are a ranked list: each shows what you would average with it
+  and how many pins a game above or below your average that is.
+- Tap a ball to see its rates against all your balls and its leaves. Each
+  leave now shows the share you make as a percentage, with how often the
+  ball left it, and every ball shows its top three leaves (ADR-243).
+
 ## 0.86.1: Buttons that stay one button, and History and Stats back to one row (2026-11-05)
 
 - The round buttons at the top of a screen and a sheet no longer flip between

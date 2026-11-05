@@ -229,14 +229,8 @@ const ALLEY_BALLS: Array<{
 ];
 
 /** What you would average with each ball at one alley, on one pair of lanes,
- *  with the rates behind it, as the Alley report lists it. */
+ *  ranked as the Alley report lists it (ADR-243). */
 export function AlleySample() {
-  const headings = [
-    t({ message: "Strike", comment: "Bowling term: all ten pins down with the first ball. A rate label." }),
-    t({ message: "After strike", comment: "Bowling term. A short column heading over the share of strikes thrown right after a strike." }),
-    t({ message: "Splits", comment: "Bowling term. A short column heading over the share of leaves that were splits." }),
-    t({ message: "Made", comment: "Bowling term. A short column heading over the share of leaves picked up for a spare." })
-  ];
   const lanes = "11-12";
   return (
     <Sample>
@@ -245,38 +239,26 @@ export function AlleySample() {
         <span className="rounded-full border border-edge-strong bg-surface px-3 py-1 text-ink-strong">{plural(2, { one: `Lane ${lanes}`, other: `Lanes ${lanes}` })}</span>
       </div>
       <div className="overflow-hidden rounded-[22px] bg-surface">
-        <div className="flex items-end gap-1 px-3 pb-1 pt-2 text-caption-2 font-semibold uppercase leading-tight text-ink-tertiary">
-          <span className="min-w-0 flex-1" />
-          {headings.map((h) => (
-            <span key={h} className="w-8 shrink-0 text-center">
-              {h}
-            </span>
-          ))}
-          <span className="w-9 shrink-0 text-right">{t({ message: "Est.", comment: "Short column heading: estimated average." })}</span>
-        </div>
-        {ALLEY_BALLS.map((ball) => (
-          <div key={ball.name} className="flex items-center gap-1 border-t border-edge px-3 py-2 text-caption">
-            <span className="flex min-w-0 flex-1 items-center gap-1.5">
+        {ALLEY_BALLS.map((ball) => {
+          const value = ball.rates[0];
+          return (
+            <div key={ball.name} className="flex items-center gap-2.5 border-t border-edge px-3 py-2 first:border-t-0">
               <span className="h-6 w-6 shrink-0">
                 <CatalogBallImage src={ball.thumb} alt="" brand={ball.brand} size="thumb" />
               </span>
-              <span className="min-w-0 flex-1 truncate font-medium text-ink-strong">{ball.name}</span>
-            </span>
-            {ball.rates.map((rate, i) => (
-              <span key={i} className="w-8 shrink-0 text-center tabular-nums text-ink">
-                {rate}
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-footnote font-semibold text-ink">{ball.name}</span>
+                <span className="block text-caption-2 text-ink-secondary">{t({ message: `strike ${value}`, comment: "Bowling term. Spoken name of the strike rate column, then its percentage." })}</span>
               </span>
-            ))}
-            <span className="w-9 shrink-0 text-right leading-tight">
-              <span className="block font-bold tabular-nums text-ink">~{ball.est}</span>
+              <span className="shrink-0 font-bold tabular-nums text-ink">~{ball.est}</span>
               <span
-                className={`block text-caption-2 tabular-nums ${ball.diff > 0 ? "text-success-700" : ball.diff < 0 ? "text-danger-700" : "text-ink-tertiary"}`}
+                className={`shrink-0 rounded-full px-1.5 py-px text-caption-2 font-bold tabular-nums ${ball.diff > 0 ? "bg-success-50 text-success-700" : ball.diff < 0 ? "bg-danger-50 text-danger-700" : "bg-surface-muted text-ink-tertiary"}`}
               >
                 {ball.diff > 0 ? `+${ball.diff}` : ball.diff < 0 ? `−${Math.abs(ball.diff)}` : "0"}
               </span>
-            </span>
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
     </Sample>
   );

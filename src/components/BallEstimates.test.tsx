@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { BallEstimates } from "./BallEstimates";
+import { AlleySummary, BallEstimates } from "./BallEstimates";
 import { ProAccessContext } from "../lib/useProAccess";
 import { estimateBalls } from "../lib/scoreModel";
 import { calculateGameScore } from "../lib/scoring";
@@ -48,14 +48,13 @@ function report() {
 }
 
 describe("BallEstimates", () => {
-  it("ranks the balls by what you'd average with them, beside your average here", () => {
+  it("ranks the balls by what you'd average with them", () => {
     render(<BallEstimates report={report()} balls={BALLS} />);
-    expect(screen.getByText("Estimated average")).toBeInTheDocument();
-    expect(screen.getByText(/^Actual overall average: \d+$/)).toBeInTheDocument();
+    expect(screen.getByText("By ball")).toBeInTheDocument();
     const names = screen.getAllByRole("button").map((b) => b.textContent);
-    // Every estimate is marked as one.
+    // Every estimate is marked as one, with the ball's strike rate under it.
     expect(names[0]).toMatch(/~\d+/);
-    expect(names[0]).toMatch(/^Tenpin/);
+    expect(names[0]).toMatch(/^Tenpin\d+ balls · strike \d+%/);
     expect(names[1]).toMatch(/^Splitter/);
   });
 
@@ -65,34 +64,47 @@ describe("BallEstimates", () => {
     expect(rows[rows.length - 1]).toHaveTextContent(/Rarely3 balls, too few/);
   });
 
-  it("opens a ball on its strikes, its leaves and the leaves it costs most", () => {
+  it("opens a ball in a sheet with its rates against all balls and its leaves as a percentage made", () => {
+    render(<BallEstimates report={report()} balls={BALLS} scope="Sea Bowl" />);
+    fireEvent.click(screen.getByRole("button", { name: /^Splitter/ }));
+    const sheet = screen.getByRole("dialog", { name: "Splitter" });
+    expect(within(sheet).getByText("Sea Bowl")).toBeInTheDocument();
+    expect(within(sheet).getByText(/^\u2212\d+ a game against your \d+ here$/)).toBeInTheDocument();
+    // Every split, against every ball's share: more splits reads as worse.
+    expect(within(sheet).getByLabelText(/^leaves that split 100%, \d+ points above all balls$/)).toBeInTheDocument();
+    expect(within(sheet).getByLabelText(/^leaves made 0%, \d+ points below all balls$/)).toBeInTheDocument();
+    const leaves = within(sheet).getByRole("list", { name: "Leaves, costliest first" });
+    const [first] = within(leaves).getAllByRole("listitem");
+    expect(first).toHaveTextContent("7-10");
+    expect(first).toHaveTextContent(/0%made/);
+    expect(first).toHaveTextContent(/Left \d+ times/);
+  });
+
+  it("shows the leaves of a ball whose spares were all made", () => {
     render(<BallEstimates report={report()} balls={BALLS} />);
-    const splitter = screen.getByRole("button", { name: /^Splitter/ });
-    expect(splitter).toHaveAttribute("aria-expanded", "false");
-    fireEvent.click(splitter);
-    expect(splitter).toHaveAttribute("aria-expanded", "true");
-    const row = splitter.closest("li") as HTMLElement;
-    // Every ball together sits above, as the row each ball is read against.
-    const all = screen.getByRole("listitem", { name: "All balls" });
-    expect(within(all).getByLabelText(/^leaves that split \d+%$/)).toBeInTheDocument();
-    expect(all).toHaveTextContent(/All balls\d+ balls/);
-    expect(within(row).queryByText(/pins? a game/)).toBeNull();
-    expect(splitter).toHaveTextContent(/\u2212\d+/);
-    // Every rate on the row itself, with the balls behind it.
-    expect(splitter).toHaveTextContent(/Splitter\d+ balls/);
-    expect(within(splitter).getByLabelText("leaves that split 100%")).toBeInTheDocument();
-    expect(within(splitter).getByLabelText("leaves made 0%")).toBeInTheDocument();
-    expect(within(splitter).getByLabelText(/^strike \d+%$/)).toBeInTheDocument();
-    expect(within(splitter).getByLabelText(/^after a strike (\d+%|-)$/)).toBeInTheDocument();
-    const costly = within(row).getByRole("list", { name: "Costliest leaves" });
-    expect(within(costly).getByText("7-10")).toBeInTheDocument();
-    expect(within(costly).getByText(/^0\/\d+ made$/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^Tenpin/ }));
+    const sheet = screen.getByRole("dialog", { name: "Tenpin" });
+    const leaves = within(sheet).getByRole("list", { name: "Leaves, costliest first" });
+    expect(within(leaves).getByText("10")).toBeInTheDocument();
+    expect(within(leaves).getByText("100%")).toBeInTheDocument();
   });
 
   it("draws nothing when no ball is on record", () => {
     const empty = estimateBalls([]);
     const { container } = render(<BallEstimates report={empty} balls={BALLS} />);
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe("AlleySummary", () => {
+  it("leads with the real average, what it is read from, and every ball's rates", () => {
+    const r = report();
+    render(<AlleySummary report={r} shots={120} sessions={1} />);
+    const card = screen.getByRole("region", { name: "Your average here" });
+    expect(card).toHaveTextContent(String(Math.round(r.actual!)));
+    expect(card).toHaveTextContent("1 session · 120 balls");
+    expect(within(card).getByLabelText(/^strike \d+%$/)).toBeInTheDocument();
+    expect(within(card).getByLabelText(/^leaves that split \d+%$/)).toBeInTheDocument();
   });
 });
 
@@ -103,8 +115,6 @@ describe("BallEstimates without Pro (ADR-167)", () => {
         <BallEstimates report={report()} balls={BALLS} free={1} />
       </ProAccessContext.Provider>
     );
-    // Every ball together stays: it is the row each ball is read against.
-    expect(screen.getByLabelText("All balls")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^Tenpin/ })).toHaveTextContent(/~\d+/);
     // The next is blurred under one tap, and the last is not drawn.
     expect(screen.queryByRole("button", { name: /^Splitter/ })).not.toBeInTheDocument();
