@@ -18,6 +18,8 @@ had all shipped.
 - The Live Activity is now part of Headpin Pro, and the Pro page lists it.
   Without Pro the page still shows the pictures, and the switch opens the Pro
   page (ADR-243).
+- Settings: the App group (Live Activity and Appearance) now sits under
+  Headpin Pro, above Send feedback and Privacy and terms.
 
 ## 0.86.1: Buttons that stay one button, and History and Stats back to one row (2026-11-05)
 

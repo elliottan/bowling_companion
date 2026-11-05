@@ -10257,7 +10257,7 @@ leaves a bowler guessing what it turns on.
   game, so the marks and running totals are the scorecard's own. The Lock
   Screen banner uses the page's tokens, which is what the phone draws
   (`HeadpinPalette.lockScreen`); the island and the watch take each palette's
-  dark accent from `ISLAND_ACCENTS`, which `liveActivityProject.test.ts` holds
+  dark accent from `ISLAND_ACCENTS` (`src/lib/liveActivitySample.ts`), which `liveActivityProject.test.ts` holds
   to the Swift table, as it holds the Swift table to `src/index.css`. The black
   of the island, the watch and the phone's glass are the hardware's
   (DESIGN-LANGUAGE §3's exception for a physical object). DESIGN-LANGUAGE §4d

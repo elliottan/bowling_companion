@@ -4274,7 +4274,7 @@ msgid "Sunset"
 msgstr "Atardecer"
 
 #. A sample bowling alley's name, on a picture of the Lock Screen
-#: src/components/LiveActivityPreviews.tsx
+#: src/lib/liveActivitySample.ts
 msgid "Sunset Lanes"
 msgstr "Sunset Lanes"
 
@@ -4584,7 +4584,7 @@ msgid "Try your layouts"
 msgstr "Prueba tus layouts"
 
 #. A sample session's name, on a picture of the Lock Screen
-#: src/components/LiveActivityPreviews.tsx
+#: src/lib/liveActivitySample.ts
 msgid "Tuesday league"
 msgstr "Liga de los martes"
 

@@ -392,7 +392,9 @@ opened. **Backup & restore leads, alone and louder than a row**, because the
 games live on the phone and nowhere else (ADR-067). Then **Your bowling** (the
 bowling profile, arsenal, spare lines, lane notes), then one **Tools and
 reference** row that opens Home's list of tools (`ToolsList`), so a tool is
-found from either door, then Support, with **Appearance last**: it is set once. The bowler's name is a profile chip beside
+found from either door, then Headpin Pro, then **App** (the Live Activity and
+Appearance), with **Support last** (feedback, privacy and terms), at the owner's
+request: the app's settings are looked for before the way out of it. The bowler's name is a profile chip beside
 the title (the first letter in a circle, then the name), not a row, and it is
 where more profile features can grow. An on/off setting is a `ListSwitchRow`,
 not a `ListRow`: the whole row labels HTML's own `switch`, which the phone

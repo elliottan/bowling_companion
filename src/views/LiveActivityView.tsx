@@ -8,9 +8,9 @@ import { ProVeil } from "../components/ui/ProLock";
 import {
   IslandPreview,
   LockScreenPreview,
-  WatchPreview,
-  sampleLiveActivityState
+  WatchPreview
 } from "../components/LiveActivityPreviews";
+import { sampleLiveActivityState } from "../lib/liveActivitySample";
 import { getLiveActivityEnabled, setLiveActivityEnabled } from "../services/bowlingRepository";
 import type { LiveActivityStatus } from "../lib/nativeLiveActivity";
 

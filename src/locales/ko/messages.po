@@ -4274,7 +4274,7 @@ msgid "Sunset"
 msgstr "선셋"
 
 #. A sample bowling alley's name, on a picture of the Lock Screen
-#: src/components/LiveActivityPreviews.tsx
+#: src/lib/liveActivitySample.ts
 msgid "Sunset Lanes"
 msgstr "Sunset Lanes"
 
@@ -4584,7 +4584,7 @@ msgid "Try your layouts"
 msgstr "내 레이아웃 시험하기"
 
 #. A sample session's name, on a picture of the Lock Screen
-#: src/components/LiveActivityPreviews.tsx
+#: src/lib/liveActivitySample.ts
 msgid "Tuesday league"
 msgstr "화요일 리그"
 

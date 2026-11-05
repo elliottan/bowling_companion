@@ -100,15 +100,15 @@ describe("SettingsView", () => {
     expect(screen.queryByRole("button", { name: /^Name/ })).not.toBeInTheDocument();
   });
 
-  it("leads with the backup, alone, and ends on Appearance after Support", () => {
+  it("leads with the backup, alone, and ends on Support after the App group", () => {
     renderMenu();
     const headings = screen.getAllByRole("heading").map((h) => h.textContent);
-    expect(headings).toEqual(["Settings", "Your bowling", "Support", "App"]);
+    expect(headings).toEqual(["Settings", "Your bowling", "App", "Support"]);
     const backup = screen.getByRole("button", { name: /Backup & restore/ });
     const profile = screen.getByRole("button", { name: /Bowling profile/ });
     expect(backup.compareDocumentPosition(profile) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     const rows = screen.getAllByRole("button").map((b) => b.textContent ?? "");
-    expect(rows[rows.length - 1]).toMatch(/Appearance/);
+    expect(rows[rows.length - 1]).toMatch(/Privacy and terms/);
   });
 
   it("opens privacy and terms as a screen in Settings", () => {

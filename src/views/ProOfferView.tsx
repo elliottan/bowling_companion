@@ -14,7 +14,8 @@ import {
   LineSample,
   ThemesSample
 } from "../components/ProOfferSamples";
-import { LockScreenPreview, sampleLiveActivityState } from "../components/LiveActivityPreviews";
+import { LockScreenPreview } from "../components/LiveActivityPreviews";
+import { sampleLiveActivityState } from "../lib/liveActivitySample";
 import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAccess";
 
 /**

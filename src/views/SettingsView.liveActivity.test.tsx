@@ -9,7 +9,7 @@ import { liveActivity } from "../lib/nativeLiveActivity";
 import { ProAccessContext } from "../lib/useProAccess";
 import { ProOfferContext } from "../lib/proOffer";
 import { PRO_OWNED, type ProAccess } from "../lib/pro";
-import { sampleLiveActivityState } from "../components/LiveActivityPreviews";
+import { sampleLiveActivityState } from "../lib/liveActivitySample";
 
 vi.mock("../lib/nativeLiveActivity", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../lib/nativeLiveActivity")>()),

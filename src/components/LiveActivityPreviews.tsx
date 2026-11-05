@@ -1,8 +1,8 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { t } from "@lingui/core/macro";
-import { buildLiveActivityState, currentAppearance, type LiveActivityFrame, type LiveActivityState } from "../lib/liveActivity";
+import type { LiveActivityFrame, LiveActivityState } from "../lib/liveActivity";
+import { ISLAND_ACCENTS } from "../lib/liveActivitySample";
 import type { PaletteId } from "../lib/palette";
-import type { Frame, PinNumber } from "../types/bowling";
 import { CREAM, PIN_PATH } from "./ui/ProMark";
 
 /**
@@ -12,7 +12,7 @@ import { CREAM, PIN_PATH } from "./ui/ProMark";
  * The phone draws the real thing in SwiftUI (`ios/App/HeadpinLiveActivity`),
  * which a web view cannot show, so these follow those views point for point:
  * the same rows, sizes and colors, read from the same payload. The payload is
- * built by `buildLiveActivityState` from a sample game, so the marks and
+ * built by `buildLiveActivityState` from a sample game (`liveActivitySample`), so the marks and
  * running totals are the scorecard's own, as on the phone. Change a layout in
  * `HeadpinGameViews.swift` or `HeadpinLiveActivityBundle.swift` and change it
  * here too.
@@ -42,20 +42,6 @@ const LOCK_SCREEN: Tone = {
   accentSoft: "rgb(var(--color-accent-soft))",
   accentFill: "rgb(var(--color-accent-fill))",
   background: "rgb(var(--color-surface))"
-};
-
-/**
- * Each palette's dark accent and fill, which the island and the watch draw on
- * black whatever the app's theme (`HeadpinPalette.island`). The page only has
- * the tokens of the theme it is in, so these are written out;
- * `src/test/liveActivityProject.test.ts` holds them to `src/index.css`.
- */
-export const ISLAND_ACCENTS: Record<PaletteId, { accent: string; fill: string }> = {
-  felt: { accent: "94 214 193", fill: "45 138 120" },
-  ocean: { accent: "147 197 253", fill: "59 130 246" },
-  sunset: { accent: "253 186 116", fill: "249 115 22" },
-  grape: { accent: "196 181 253", fill: "139 92 246" },
-  rose: { accent: "253 164 175", fill: "244 63 94" }
 };
 
 function islandTone(palette: PaletteId): Tone {
@@ -95,47 +81,6 @@ function Picture({ className = "", style, children }: { className?: string; styl
       {children}
     </div>
   );
-}
-
-// ---------------------------------------------------------------------------
-// The sample game
-// ---------------------------------------------------------------------------
-
-function frame(n: number, ...balls: number[][]): Frame {
-  return {
-    game_id: 0,
-    frame_number: n,
-    shots: balls.map((standing) => ({ pins_standing: standing as PinNumber[] })),
-    is_strike: balls[0].length === 0,
-    is_spare: balls.length > 1 && balls[1].length === 0
-  };
-}
-
-/** Game 2, the seventh frame's first ball just thrown: a strike, a spare, a
- *  double, an open frame and a spare behind it. */
-const SAMPLE_FRAMES: Frame[] = [
-  frame(1, []),
-  frame(2, [10], []),
-  frame(3, []),
-  frame(4, []),
-  frame(5, [7, 10], [7]),
-  frame(6, [2, 4, 8], []),
-  frame(7, [10])
-];
-
-/** The sample as the phone would be sent it, in the colors the app is showing. */
-export function sampleLiveActivityState(): LiveActivityState {
-  const state = buildLiveActivityState(
-    {
-      description: t({ message: "Tuesday league", comment: "A sample session's name, on a picture of the Lock Screen" }),
-      alley_name: t({ message: "Sunset Lanes", comment: "A sample bowling alley's name, on a picture of the Lock Screen" })
-    },
-    { game_number: 2 },
-    SAMPLE_FRAMES,
-    currentAppearance()
-  );
-  // A sample with balls in it always has a state.
-  return state as LiveActivityState;
 }
 
 // ---------------------------------------------------------------------------

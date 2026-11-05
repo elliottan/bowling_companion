@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { buildLiveActivityState } from "../lib/liveActivity";
 import { PALETTES } from "../lib/palette";
 import type { Frame } from "../types/bowling";
-import { ISLAND_ACCENTS } from "../components/LiveActivityPreviews";
+import { ISLAND_ACCENTS } from "../lib/liveActivitySample";
 
 /**
  * The Live Activity (ADR-221) is Swift that this repository cannot compile, and

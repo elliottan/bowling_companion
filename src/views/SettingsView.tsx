@@ -155,8 +155,8 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
  * lane notes) and the tools live on Home; the tools also have one row here,
  * opening the same list, for a bowler who looks for them in Settings. Order is by what a bowler can lose or must not miss: the backup
  * leads, on its own and louder than a row, because the games live on this phone
- * and nowhere else; then the bowler's own things; support; and appearance last,
- * the setting touched once. The bowler's name is the profile chip beside the
+ * and nowhere else; then the bowler's own things; Pro; the app's own settings (the Live
+ * Activity, appearance); and support last. The bowler's name is the profile chip beside the
  * title, not a row. Hand, grip, PAP and drift share one push behind the
  * "Bowling profile" row, since flipping the hand mirrors every board in the
  * app and is too much to leave one stray tap away on the list.
@@ -293,20 +293,6 @@ function SettingsMenu({
 
       <ProSection />
 
-      <ListGroup heading={t`Support`}>
-        <ListRow
-          icon={MessageSquare}
-          label={t`Send feedback`}
-          onClick={() => void openFeedbackEmail()}
-          trailing={leavesTheApp}
-        />
-        <ListRow
-          icon={ScrollText}
-          label={t`Privacy and terms`}
-          onClick={() => onSectionChange("legal")}
-        />
-      </ListGroup>
-
       <ListGroup heading={t`App`}>
         <LiveActivityRow status={liveActivityStatus} onOpen={() => onSectionChange("live-activity")} />
         {/* The way back to an install the Home card was waved away from.
@@ -323,6 +309,20 @@ function SettingsMenu({
           icon={Palette}
           label={t`Appearance`}
           onClick={() => onSectionChange("appearance")}
+        />
+      </ListGroup>
+
+      <ListGroup heading={t`Support`}>
+        <ListRow
+          icon={MessageSquare}
+          label={t`Send feedback`}
+          onClick={() => void openFeedbackEmail()}
+          trailing={leavesTheApp}
+        />
+        <ListRow
+          icon={ScrollText}
+          label={t`Privacy and terms`}
+          onClick={() => onSectionChange("legal")}
         />
       </ListGroup>
 
