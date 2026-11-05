@@ -6,6 +6,17 @@
       "has": [
         {
           "type": "host",
+          "value": "bowling-companion.vercel.app"
+        }
+      ],
+      "destination": "https://headpin.app/$1",
+      "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
           "value": "www.headpin.app"
         }
       ],
