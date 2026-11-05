@@ -3,7 +3,6 @@ import { ChevronLeft } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { registerPushExit } from "../lib/backGesture";
-import { GlassBarContext } from "../lib/nativeGlass";
 import { overlayHandoff, PUSH_IN_MS } from "../lib/overlayHandoff";
 import { useOverlay } from "../lib/useOverlay";
 import { IconButton } from "./ui/IconButton";
@@ -245,9 +244,6 @@ export function PushScreen({
           className={`absolute inset-x-0 top-0 z-20 ${overlay ? "pt-[env(safe-area-inset-top)]" : ""}`}
         >
           <div aria-hidden="true" className="floating-header-ground absolute inset-x-0 -bottom-3 top-0" />
-          {/* The bar's round controls are the phone's to draw in the iPhone
-              app (ADR-238). */}
-          <GlassBarContext.Provider value={true}>
           <div className="relative mx-auto flex h-12 w-full max-w-3xl items-center gap-1 px-2 sm:px-4">
             <IconButton label={t({ message: "Back", context: "navigation" })} onClick={dismiss} variant="round">
               {/* Optically centred: the chevron's mass sits right of its box. */}
@@ -280,7 +276,6 @@ export function PushScreen({
               </>
             )}
           </div>
-          </GlassBarContext.Provider>
         </header>
 
         {/* Starts a bar's height down, so the top of the screen is clear of

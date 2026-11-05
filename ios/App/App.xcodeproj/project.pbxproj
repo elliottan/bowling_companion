@@ -22,7 +22,6 @@
 		C0FFEE0000000000000000A4 /* HeadpinStorePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000A3 /* HeadpinStorePlugin.swift */; };
 		C0FFEE0000000000000000A8 /* HeadpinTabBarPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000A7 /* HeadpinTabBarPlugin.swift */; };
 		C0FFEE0000000000000000E1 /* HeadpinAlertPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000E0 /* HeadpinAlertPlugin.swift */; };
-		C0FFEE0000000000000000F1 /* HeadpinGlassPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE0000000000000000F0 /* HeadpinGlassPlugin.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
@@ -74,7 +73,6 @@
 		C0FFEE0000000000000000A3 /* HeadpinStorePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadpinStorePlugin.swift; sourceTree = "<group>"; };
 		C0FFEE0000000000000000A7 /* HeadpinTabBarPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadpinTabBarPlugin.swift; sourceTree = "<group>"; };
 		C0FFEE0000000000000000E0 /* HeadpinAlertPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadpinAlertPlugin.swift; sourceTree = "<group>"; };
-		C0FFEE0000000000000000F0 /* HeadpinGlassPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadpinGlassPlugin.swift; sourceTree = "<group>"; };
 		C0FFEE0000000000000000A5 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		C0FFEE0000000000000000A6 /* Headpin.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Headpin.storekit; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
@@ -148,7 +146,6 @@
 				C0FFEE0000000000000000A3 /* HeadpinStorePlugin.swift */,
 				C0FFEE0000000000000000A7 /* HeadpinTabBarPlugin.swift */,
 				C0FFEE0000000000000000E0 /* HeadpinAlertPlugin.swift */,
-				C0FFEE0000000000000000F0 /* HeadpinGlassPlugin.swift */,
 				C0FFEE0000000000000000A9 /* HeadpinLiveActivityPlugin.swift */,
 				C0FFEE0000000000000000A1 /* PrivacyInfo.xcprivacy */,
 				C0FFEE0000000000000000D1 /* InfoPlist.strings */,
@@ -321,7 +318,6 @@
 				C0FFEE0000000000000000A4 /* HeadpinStorePlugin.swift in Sources */,
 				C0FFEE0000000000000000A8 /* HeadpinTabBarPlugin.swift in Sources */,
 				C0FFEE0000000000000000E1 /* HeadpinAlertPlugin.swift in Sources */,
-				C0FFEE0000000000000000F1 /* HeadpinGlassPlugin.swift in Sources */,
 				C0FFEE0000000000000000B6 /* HeadpinLiveActivityPlugin.swift in Sources */,
 				C0FFEE0000000000000000B7 /* HeadpinGameAttributes.swift in Sources */,
 			);

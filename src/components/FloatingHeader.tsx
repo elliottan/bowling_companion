@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode, RefObject, UIEvent } from "react";
-import { GlassBarContext } from "../lib/nativeGlass";
 import { LARGE_TITLE } from "./ui/typography";
 
 interface FloatingHeaderProps {
@@ -125,7 +124,7 @@ export function FloatingHeader({ scrollerRef, title, actions, pinned, onScroll, 
               className={`floating-header-ground absolute inset-x-0 bottom-0 ${stuck ? "-top-3" : "top-0"}`}
             />
             <div className="relative">
-              <GlassBarContext.Provider value={true}>{pinned}</GlassBarContext.Provider>
+              {pinned}
             </div>
           </div>
         )}
@@ -155,9 +154,7 @@ export function FloatingHeader({ scrollerRef, title, actions, pinned, onScroll, 
               {title}
             </p>
           )}
-          {/* The bar's round controls are the phone's to draw in the iPhone
-              app (ADR-238). */}
-          <GlassBarContext.Provider value={true}>{actions}</GlassBarContext.Provider>
+          {actions}
         </div>
       </div>
     </div>

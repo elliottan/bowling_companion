@@ -10152,3 +10152,35 @@ Settings had already given up for iOS's large title (ADR-191).
 
 **Consequence.** The header's bar, not the title, is what stays still while the
 list scrolls (`e2e/floating-header.spec.ts`).
+
+## ADR-241: Every control is the page's; the phone no longer draws over the bars
+
+**Status.** Accepted, 2026-11-05, at the owner's request. Supersedes ADR-238.
+
+**Context.** ADR-238 had the iPhone app lay UIKit's Liquid Glass over a bar's
+round buttons, confirms and segmented controls once they had held still for
+six frames, and hand back to the page's own copy whenever they moved or were
+covered. Its consequences named the swap as the cost and wanted a look on a
+phone. On a phone the swap was constant and the two copies never matched: the
+History filter button changed size, colour and glyph as its sheet rose over
+it, and the sheet's tick flipped from the page's dark green to the phone's
+mint once the sheet's spring settled. A control that changes its look under
+the bowler's eye reads as broken, and no tuning of the settle time removes it,
+because the page and the phone cannot draw the same thing.
+
+**Decision.**
+
+- **The page draws every control, everywhere**, the iPhone app included, with
+  its own `.glass`, `.glass-tinted` and `.glass-press` (ADR-168).
+- `HeadpinGlassPlugin`, `src/lib/nativeGlass.ts`, `GlassBarContext`, the
+  `data-native-glass` style and the glyphs' `data-icon` names are removed.
+
+**Consequences.**
+
+- A bar's controls do not bend what is behind them on iOS 26; they blur, as
+  ADR-168 accepted. They look the same moving and still, covered and not.
+- The tab bar (ADR-161) and the confirms (ADR-232) are still the phone's: each
+  is the only copy on screen, so neither has anything to flip with.
+- Making a bar native again means the whole bar, with nothing of the page's
+  drawn in its place, never a native copy over a page copy.
+

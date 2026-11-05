@@ -407,8 +407,7 @@ input[type="date"]::-webkit-date-and-time-value {
    than the page it sits on, with a rim of light all the way round that is
    brightest on the top edge and a sheen across its top half, the way iOS 26
    draws a bar button. The page cannot bend light the way the real one does,
-   so it stops at the blur; in a bar in the iPhone app the phone draws the real
-   one over this (`nativeGlass.ts`). `glass-tinted` is the prominent twin, the
+   so it stops at the blur, in the iPhone app too (ADR-241). `glass-tinted` is the prominent twin, the
    accent under the same rim and sheen, for a commit. */
 .glass {
   background:
@@ -499,14 +498,6 @@ input[type="date"]::-webkit-date-and-time-value {
   .glass-press:active:not(:disabled) {
     transform: none;
   }
-}
-
-/* A page control the iPhone app's own glass is drawn over (ADR-238): still
-   there for VoiceOver and the keyboard, and for the moment the phone's is
-   taken away, but not seen. */
-[data-native-glass="on"] {
-  opacity: 0 !important;
-  transition: none !important;
 }
 
 /* The lane view's glass. The lane's frame is dark in every theme (DESIGN-
