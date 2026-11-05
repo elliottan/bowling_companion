@@ -1892,6 +1892,11 @@ msgstr "도착 {board}"
 msgid "Final ft"
 msgstr "도착 ft"
 
+#. On the Live Activity: the game is over and this is its score
+#: src/components/LiveActivityPreviews.tsx
+msgid "Final score"
+msgstr "최종 점수"
+
 #. A short greeting at the top of Home; the bowler's name may follow it. The pocket is the bowling term for the gap between the 1 and 3 pins that a good strike ball hits
 #: src/lib/greeting.ts
 msgid "Find the pocket"
@@ -1970,6 +1975,11 @@ msgstr "프레임 {frame}, 투구 {ball} (스페어)"
 msgid "frame {frame}, ball {ball} (strike)"
 msgstr "프레임 {frame}, 투구 {ball} (스트라이크)"
 
+#. On the Live Activity: the frame being bowled, 1 to 10
+#: src/components/LiveActivityPreviews.tsx
+msgid "Frame {frameNumber}"
+msgstr "{frameNumber}프레임"
+
 #: src/components/ActiveGameScorer.tsx
 msgid "Frame {frameNumber}, ball {ball} is already recorded. Changing it rescores the game from that frame on."
 msgstr "프레임 {frameNumber}, 투구 {ball}은(는) 이미 기록돼 있어요. 바꾸면 그 프레임부터 게임 점수를 다시 계산해요."
@@ -2001,6 +2011,7 @@ msgstr "게임"
 msgid "game {gameNumber}"
 msgstr "게임 {gameNumber}"
 
+#: src/components/LiveActivityPreviews.tsx
 #: src/components/SessionFilterBar.tsx
 #: src/components/SessionLanePanel.tsx
 #: src/components/Stats.tsx
@@ -2318,6 +2329,14 @@ msgstr "Safari에서 공유 <0/>를 탭한 다음 \"홈 화면에 추가\"를 �
 msgid "In the app, open Settings, then Backup & restore, and import."
 msgstr "앱에서 설정, 백업 및 복원을 차례로 열고 가져오기를 실행하세요."
 
+#: src/views/LiveActivityView.tsx
+msgid "In the Dynamic Island"
+msgstr "Dynamic Island에서"
+
+#: src/views/ProOfferView.tsx
+msgid "In the iPhone app, the score follows you as you bowl: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
+msgstr "iPhone 앱에서는 볼링하는 동안 점수가 따라와요. 잠금 화면, Dynamic Island, Apple Watch에서 볼 수 있어요."
+
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
 msgstr "{label} 늘리기"
@@ -2362,6 +2381,10 @@ msgstr "포켓 적중"
 #: src/views/CatalogView.tsx
 msgid "It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in."
 msgstr "한 번만 내려받으면 오프라인에서도 쓸 수 있어요. 볼마다 코어, 커버스톡, RG, Diff가 채워져 있어요."
+
+#: src/views/LiveActivityView.tsx
+msgid "It goes away a few minutes after the last ball of a game, and comes back with the first ball of the next."
+msgstr "게임의 마지막 투구 후 몇 분 뒤에 사라지고, 다음 게임의 첫 투구와 함께 다시 나타나요."
 
 #: src/components/BallFormDialog.tsx
 msgid "It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
@@ -2540,6 +2563,10 @@ msgstr "레이아웃, 패턴, 카탈로그, 가이드"
 msgid "League, practice, tournament…"
 msgstr "리그, 연습, 토너먼트…"
 
+#: src/views/LiveActivityView.tsx
+msgid "Leave the phone on the ball return. Your watch's Smart Stack shows the game, your total and the last three frames."
+msgstr "휴대폰은 볼 리턴에 두세요. Apple Watch의 스마트 스택에 게임, 합계, 마지막 세 프레임이 표시돼요."
+
 #. Bowling term: the pins left standing after the first ball of a frame
 #: src/components/Stats.tsx
 msgid "Leaves"
@@ -2650,9 +2677,10 @@ msgstr "카탈로그에 연결"
 msgid "Linked to catalog"
 msgstr "카탈로그에 연결됨"
 
+#: src/views/LiveActivityView.tsx
 #: src/views/SettingsView.tsx
-msgid "Live Activity on the Lock Screen"
-msgstr "잠금 화면의 실시간 현황"
+msgid "Live Activity"
+msgstr "실시간 현황"
 
 #: src/components/OilPatternManager.tsx
 msgid "Load table for {name}"
@@ -2765,6 +2793,11 @@ msgstr "아스널 관리"
 #: src/components/SessionForm.tsx
 msgid "Manage oil patterns"
 msgstr "오일 패턴 관리"
+
+#. On the Live Activity: the highest score the game can still finish on
+#: src/components/LiveActivityPreviews.tsx
+msgid "Max {max}"
+msgstr "최대 {max}"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #: src/components/statsMetrics.ts
@@ -3115,6 +3148,11 @@ msgstr "펠트 그린과 함께 오션, 선셋, 그레이프, 로즈를 쓸 수 
 msgid "of makeables made"
 msgstr "처리 가능한 핀 성공"
 
+#. A setting's value in a Settings row: switched off
+#: src/views/SettingsView.tsx
+msgid "Off"
+msgstr "끔"
+
 #. Short for release offset, a bowling term
 #: src/views/BowlingProfileView.tsx
 msgid "Offset"
@@ -3140,10 +3178,23 @@ msgstr "오일 패턴"
 msgid "Oil patterns"
 msgstr "오일 패턴"
 
+#. A setting's value in a Settings row: switched on
+#: src/views/SettingsView.tsx
+msgid "On"
+msgstr "켬"
+
 #. Step 1 of moving games from the web to the app. headpin.app is a web address and stays as it is
 #: src/lib/moveGames.ts
 msgid "On headpin.app, open Settings, then Backup & restore, and export your games."
 msgstr "headpin.app에서 설정, 백업 및 복원 순서로 열고 게임을 내보내세요."
+
+#: src/views/LiveActivityView.tsx
+msgid "On the Lock Screen"
+msgstr "잠금 화면에서"
+
+#: src/views/LiveActivityView.tsx
+msgid "On your Apple Watch"
+msgstr "Apple Watch에서"
 
 #: src/components/NextSteps.tsx
 msgid "Once a ball is in your arsenal you can name it on every shot, and the stats split by ball."
@@ -3447,6 +3498,10 @@ msgstr "프리셋, {preset}"
 #: src/views/SettingsView.tsx
 msgid "Privacy and terms"
 msgstr "개인정보 및 약관"
+
+#: src/views/SettingsView.tsx
+msgid "Pro"
+msgstr "Pro"
 
 #: src/views/ProOfferView.tsx
 msgid "Pro is bought in the iPhone app, which is not in the App Store yet."
@@ -3941,6 +3996,14 @@ msgstr "보관됨 보기 ({count})"
 msgid "Show retired ({count})"
 msgstr "은퇴한 볼 보기 ({count})"
 
+#: src/views/LiveActivityView.tsx
+msgid "Show your game"
+msgstr "게임 표시"
+
+#: src/views/LiveActivityView.tsx
+msgid "Show your game as a Live Activity"
+msgstr "게임을 실시간 현황으로 표시"
+
 #. A filter on the spare lines screen: leaves of one standing pin
 #: src/lib/spareLines.ts
 msgid "Single pins"
@@ -4244,11 +4307,16 @@ msgstr "강함"
 msgid "Sunset"
 msgstr "선셋"
 
+#. A sample bowling alley's name, on a picture of the Lock Screen
+#: src/lib/liveActivitySample.ts
+msgid "Sunset Lanes"
+msgstr "Sunset Lanes"
+
 #: src/views/SettingsView.tsx
 msgid "Support"
 msgstr "지원"
 
-#: src/views/SettingsView.tsx
+#: src/views/LiveActivityView.tsx
 msgid "Switched off for Headpin in the iPhone's Settings"
 msgstr "iPhone 설정에서 Headpin이 꺼져 있어요"
 
@@ -4549,6 +4617,15 @@ msgstr "라인 시각화에서 해 보기"
 msgid "Try your layouts"
 msgstr "내 레이아웃 시험하기"
 
+#. A sample session's name, on a picture of the Lock Screen
+#: src/lib/liveActivitySample.ts
+msgid "Tuesday league"
+msgstr "화요일 리그"
+
+#: src/views/LiveActivityView.tsx
+msgid "Turn on with Pro"
+msgstr "Pro로 켜기"
+
 #: src/views/LayoutLabView.tsx
 msgid "Two handed"
 msgstr "투핸드"
@@ -4836,6 +4913,10 @@ msgstr "스페어마다 던지는 위치"
 msgid "Which hand do you bowl with?"
 msgstr "어느 손으로 볼링을 치나요?"
 
+#: src/views/LiveActivityView.tsx
+msgid "While you're in another app, your total sits at the top of the screen. Touch and hold it to see the frame you're on and the last four frames."
+msgstr "다른 앱을 쓰는 동안에도 합계가 화면 위쪽에 표시돼요. 길게 누르면 지금 프레임과 마지막 네 프레임을 볼 수 있어요."
+
 #: src/views/LaneNotesView.tsx
 msgid "Write down how a lane plays, and it'll be here next time you're on it."
 msgstr "레인이 어떻게 플레이되는지 적어 두면 다음에 그 레인에서 칠 때 여기에 나와요."
@@ -4907,9 +4988,13 @@ msgstr "이전 게임은 전체에 있어요."
 msgid "Your estimated average with each ball, by alley, lane pair and pattern."
 msgstr "볼링장, 레인 페어, 패턴별로 본 볼마다의 예상 에버리지예요."
 
-#: src/views/SettingsView.tsx
-msgid "Your game's score, frame by frame, while you bowl"
-msgstr "볼링을 치는 동안 프레임별로 보는 게임 점수"
+#: src/views/LiveActivityView.tsx
+msgid "Your game follows you off the screen. From the first ball, the score is on your Lock Screen, in the Dynamic Island and on your Apple Watch, and it changes with every ball you enter."
+msgstr "앱 밖에서도 게임을 확인할 수 있어요. 첫 투구부터 점수가 잠금 화면, Dynamic Island, Apple Watch에 표시되고, 투구를 입력할 때마다 바뀌어요."
+
+#: src/views/ProOfferView.tsx
+msgid "Your game on the Lock Screen"
+msgstr "잠금 화면에 게임 표시"
 
 #: src/components/MoveGamesDialog.tsx
 msgid "Your games stay in this browser. Bring them along:"
@@ -4962,6 +5047,10 @@ msgstr "점수는 여전히 이 기기에 있어요."
 #: src/views/StatsView.tsx
 msgid "Your sessions could not be read. Reload the app, then try again."
 msgstr "세션을 읽을 수 없어요. 앱을 새로고침한 후 다시 시도하세요."
+
+#: src/views/LiveActivityView.tsx
+msgid "Your total, the frame you're on and the best score still possible, over all ten frames as your scorecard shows them. Pick up the phone between balls and it's there."
+msgstr "합계, 지금 프레임, 아직 가능한 최고 점수를 점수표와 똑같이 열 프레임으로 보여 줘요. 투구 사이에 휴대폰을 들면 바로 보여요."
 
 #: src/components/PatternSheet.tsx
 msgid "Zoom in"

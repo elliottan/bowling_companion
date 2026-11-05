@@ -10,6 +10,7 @@ import {
   resumeLiveActivity,
   saveFrame,
   setLiveActivityEnabled,
+  setLiveActivityProOpen,
   tidyLiveActivity
 } from "./bowlingRepository";
 import { liveActivity } from "../lib/nativeLiveActivity";
@@ -50,6 +51,8 @@ describe("Live Activity wiring", () => {
     vi.mocked(liveActivity.refresh).mockClear();
     vi.mocked(liveActivity.tidy).mockClear();
     vi.mocked(isIOSApp).mockReturnValue(true);
+    setLiveActivityProOpen(true);
+    vi.mocked(liveActivity.stop).mockClear();
   });
 
   it("shows the game after a ball is saved, without making the save wait for it", async () => {
@@ -199,5 +202,42 @@ describe("Live Activity wiring", () => {
     vi.mocked(isIOSApp).mockReturnValue(false);
     await tidyLiveActivity();
     expect(liveActivity.tidy).not.toHaveBeenCalled();
+  });
+
+  describe("is Pro (ADR-244)", () => {
+    it("shows nothing while Pro is locked, and starts at the next ball once it opens", async () => {
+      setLiveActivityProOpen(false);
+      const { gameId } = await newGame();
+      await saveFrame(gameId, strike(1));
+      await settle();
+      expect(liveActivity.show).not.toHaveBeenCalled();
+      await resumeLiveActivity(gameId);
+      expect(liveActivity.show).not.toHaveBeenCalled();
+
+      setLiveActivityProOpen(true);
+      await saveFrame(gameId, strike(2));
+      await settle();
+      expect(liveActivity.show).toHaveBeenCalledTimes(1);
+    });
+
+    it("takes down what is showing when Pro closes, and only then", () => {
+      setLiveActivityProOpen(false);
+      expect(liveActivity.stop).toHaveBeenCalledTimes(1);
+      // Told again that it is locked: nothing new to take down.
+      setLiveActivityProOpen(false);
+      expect(liveActivity.stop).toHaveBeenCalledTimes(1);
+      setLiveActivityProOpen(true);
+      expect(liveActivity.stop).toHaveBeenCalledTimes(1);
+    });
+
+    it("lets everything go on launch while Pro is locked, the bowler's switch on or not", async () => {
+      const half = await newGame();
+      await saveFrame(half.gameId, strike(1));
+      setLiveActivityProOpen(false);
+      await tidyLiveActivity();
+      const decide = vi.mocked(liveActivity.tidy).mock.calls[0][0];
+      expect(await decide(half.gameId)).toBeNull();
+      expect(await getLiveActivityEnabled()).toBe(true);
+    });
   });
 });

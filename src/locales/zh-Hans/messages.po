@@ -1892,6 +1892,11 @@ msgstr "终点 {board}"
 msgid "Final ft"
 msgstr "终点 ft"
 
+#. On the Live Activity: the game is over and this is its score
+#: src/components/LiveActivityPreviews.tsx
+msgid "Final score"
+msgstr "最终分数"
+
 #. A short greeting at the top of Home; the bowler's name may follow it. The pocket is the bowling term for the gap between the 1 and 3 pins that a good strike ball hits
 #: src/lib/greeting.ts
 msgid "Find the pocket"
@@ -1970,6 +1975,11 @@ msgstr "第 {frame} 格，第 {ball} 球（补中）"
 msgid "frame {frame}, ball {ball} (strike)"
 msgstr "第 {frame} 格，第 {ball} 球（全中）"
 
+#. On the Live Activity: the frame being bowled, 1 to 10
+#: src/components/LiveActivityPreviews.tsx
+msgid "Frame {frameNumber}"
+msgstr "第 {frameNumber} 格"
+
 #: src/components/ActiveGameScorer.tsx
 msgid "Frame {frameNumber}, ball {ball} is already recorded. Changing it rescores the game from that frame on."
 msgstr "第 {frameNumber} 格第 {ball} 球已有记录。更改后会从该格起重新计算本局分数。"
@@ -2001,6 +2011,7 @@ msgstr "局"
 msgid "game {gameNumber}"
 msgstr "第 {gameNumber} 局"
 
+#: src/components/LiveActivityPreviews.tsx
 #: src/components/SessionFilterBar.tsx
 #: src/components/SessionLanePanel.tsx
 #: src/components/Stats.tsx
@@ -2318,6 +2329,14 @@ msgstr "在 Safari 中，点按“分享”<0/>，再点“添加到主屏幕”
 msgid "In the app, open Settings, then Backup & restore, and import."
 msgstr "在 App 中，打开“设置”，接着前往“备份与恢复”，然后导入。"
 
+#: src/views/LiveActivityView.tsx
+msgid "In the Dynamic Island"
+msgstr "在灵动岛"
+
+#: src/views/ProOfferView.tsx
+msgid "In the iPhone app, the score follows you as you bowl: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
+msgstr "在 iPhone app 中，打球时分数会跟着你：在锁定屏幕、灵动岛和 Apple Watch 上。"
+
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
 msgstr "增加{label}"
@@ -2362,6 +2381,10 @@ msgstr "进入甜区"
 #: src/views/CatalogView.tsx
 msgid "It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in."
 msgstr "只需下载一次，之后即可离线使用。每颗球都已填好球芯、球皮、RG 与 Diff。"
+
+#: src/views/LiveActivityView.tsx
+msgid "It goes away a few minutes after the last ball of a game, and comes back with the first ball of the next."
+msgstr "一局最后一球的几分钟后会消失，下一局的第一球又会出现。"
 
 #: src/components/BallFormDialog.tsx
 msgid "It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
@@ -2540,6 +2563,10 @@ msgstr "打孔布局、油型、目录与指南"
 msgid "League, practice, tournament…"
 msgstr "联赛、练习、锦标赛…"
 
+#: src/views/LiveActivityView.tsx
+msgid "Leave the phone on the ball return. Your watch's Smart Stack shows the game, your total and the last three frames."
+msgstr "手机放在回球机旁就好。Apple Watch 的智能叠放会显示这一局、你的总分和最后三格。"
+
 #. Bowling term: the pins left standing after the first ball of a frame
 #: src/components/Stats.tsx
 msgid "Leaves"
@@ -2650,9 +2677,10 @@ msgstr "链接到目录"
 msgid "Linked to catalog"
 msgstr "已链接到目录"
 
+#: src/views/LiveActivityView.tsx
 #: src/views/SettingsView.tsx
-msgid "Live Activity on the Lock Screen"
-msgstr "锁定屏幕上的实时活动"
+msgid "Live Activity"
+msgstr "实时活动"
 
 #: src/components/OilPatternManager.tsx
 msgid "Load table for {name}"
@@ -2765,6 +2793,11 @@ msgstr "管理球库"
 #: src/components/SessionForm.tsx
 msgid "Manage oil patterns"
 msgstr "管理油型"
+
+#. On the Live Activity: the highest score the game can still finish on
+#: src/components/LiveActivityPreviews.tsx
+msgid "Max {max}"
+msgstr "最高 {max}"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #: src/components/statsMetrics.ts
@@ -3115,6 +3148,11 @@ msgstr "除了毡绿，还有海洋、日落橘、葡萄紫与玫瑰可选。"
 msgid "of makeables made"
 msgstr "的可补残瓶已补中"
 
+#. A setting's value in a Settings row: switched off
+#: src/views/SettingsView.tsx
+msgid "Off"
+msgstr "关闭"
+
 #. Short for release offset, a bowling term
 #: src/views/BowlingProfileView.tsx
 msgid "Offset"
@@ -3140,10 +3178,23 @@ msgstr "油型"
 msgid "Oil patterns"
 msgstr "油型"
 
+#. A setting's value in a Settings row: switched on
+#: src/views/SettingsView.tsx
+msgid "On"
+msgstr "开启"
+
 #. Step 1 of moving games from the web to the app. headpin.app is a web address and stays as it is
 #: src/lib/moveGames.ts
 msgid "On headpin.app, open Settings, then Backup & restore, and export your games."
 msgstr "在 headpin.app 打开“设置”，再进入“备份与恢复”，导出你的比赛记录。"
+
+#: src/views/LiveActivityView.tsx
+msgid "On the Lock Screen"
+msgstr "在锁定屏幕"
+
+#: src/views/LiveActivityView.tsx
+msgid "On your Apple Watch"
+msgstr "在 Apple Watch 上"
 
 #: src/components/NextSteps.tsx
 msgid "Once a ball is in your arsenal you can name it on every shot, and the stats split by ball."
@@ -3447,6 +3498,10 @@ msgstr "预设，{preset}"
 #: src/views/SettingsView.tsx
 msgid "Privacy and terms"
 msgstr "隐私与条款"
+
+#: src/views/SettingsView.tsx
+msgid "Pro"
+msgstr "Pro"
 
 #: src/views/ProOfferView.tsx
 msgid "Pro is bought in the iPhone app, which is not in the App Store yet."
@@ -3941,6 +3996,14 @@ msgstr "显示已归档（{count}）"
 msgid "Show retired ({count})"
 msgstr "显示已退役（{count}）"
 
+#: src/views/LiveActivityView.tsx
+msgid "Show your game"
+msgstr "显示你的比赛"
+
+#: src/views/LiveActivityView.tsx
+msgid "Show your game as a Live Activity"
+msgstr "以实时活动显示你的比赛"
+
 #. A filter on the spare lines screen: leaves of one standing pin
 #: src/lib/spareLines.ts
 msgid "Single pins"
@@ -4244,11 +4307,16 @@ msgstr "强"
 msgid "Sunset"
 msgstr "日落橘"
 
+#. A sample bowling alley's name, on a picture of the Lock Screen
+#: src/lib/liveActivitySample.ts
+msgid "Sunset Lanes"
+msgstr "Sunset Lanes"
+
 #: src/views/SettingsView.tsx
 msgid "Support"
 msgstr "支持"
 
-#: src/views/SettingsView.tsx
+#: src/views/LiveActivityView.tsx
 msgid "Switched off for Headpin in the iPhone's Settings"
 msgstr "已在 iPhone 的“设置”中为 Headpin 关闭"
 
@@ -4549,6 +4617,15 @@ msgstr "在路线可视化中试试"
 msgid "Try your layouts"
 msgstr "试试你的打孔布局"
 
+#. A sample session's name, on a picture of the Lock Screen
+#: src/lib/liveActivitySample.ts
+msgid "Tuesday league"
+msgstr "周二联赛"
+
+#: src/views/LiveActivityView.tsx
+msgid "Turn on with Pro"
+msgstr "用 Pro 开启"
+
 #: src/views/LayoutLabView.tsx
 msgid "Two handed"
 msgstr "双手"
@@ -4836,6 +4913,10 @@ msgstr "你每种补中的打法"
 msgid "Which hand do you bowl with?"
 msgstr "你惯用哪只手打球？"
 
+#: src/views/LiveActivityView.tsx
+msgid "While you're in another app, your total sits at the top of the screen. Touch and hold it to see the frame you're on and the last four frames."
+msgstr "使用其他 app 时，你的总分会留在屏幕顶端。按住它即可看到当前这一格和最后四格。"
+
 #: src/views/LaneNotesView.tsx
 msgid "Write down how a lane plays, and it'll be here next time you're on it."
 msgstr "记下这条球道的球路特性，下次打这条球道时就能看到。"
@@ -4907,9 +4988,13 @@ msgstr "你较早的局在“全部”下面。"
 msgid "Your estimated average with each ball, by alley, lane pair and pattern."
 msgstr "按球馆、双球道与油型，预估你使用每颗球的平均分。"
 
-#: src/views/SettingsView.tsx
-msgid "Your game's score, frame by frame, while you bowl"
-msgstr "打球时逐格显示你这局的分数"
+#: src/views/LiveActivityView.tsx
+msgid "Your game follows you off the screen. From the first ball, the score is on your Lock Screen, in the Dynamic Island and on your Apple Watch, and it changes with every ball you enter."
+msgstr "不打开 app 也能看比赛。从第一球起，分数会出现在锁定屏幕、灵动岛和 Apple Watch 上，每输入一球就会更新。"
+
+#: src/views/ProOfferView.tsx
+msgid "Your game on the Lock Screen"
+msgstr "在锁定屏幕看你的比赛"
 
 #: src/components/MoveGamesDialog.tsx
 msgid "Your games stay in this browser. Bring them along:"
@@ -4962,6 +5047,10 @@ msgstr "你的分数仍保留在此设备上。"
 #: src/views/StatsView.tsx
 msgid "Your sessions could not be read. Reload the app, then try again."
 msgstr "无法读取你的场次。请重新加载 App 后再试。"
+
+#: src/views/LiveActivityView.tsx
+msgid "Your total, the frame you're on and the best score still possible, over all ten frames as your scorecard shows them. Pick up the phone between balls and it's there."
+msgstr "你的总分、当前这一格，以及仍可能打出的最高分，按计分表的方式显示全部十格。在两球之间拿起手机就能看到。"
 
 #: src/components/PatternSheet.tsx
 msgid "Zoom in"

@@ -1892,6 +1892,11 @@ msgstr "最終 {board}"
 msgid "Final ft"
 msgstr "最終 ft"
 
+#. On the Live Activity: the game is over and this is its score
+#: src/components/LiveActivityPreviews.tsx
+msgid "Final score"
+msgstr "最終スコア"
+
 #. A short greeting at the top of Home; the bowler's name may follow it. The pocket is the bowling term for the gap between the 1 and 3 pins that a good strike ball hits
 #: src/lib/greeting.ts
 msgid "Find the pocket"
@@ -1970,6 +1975,11 @@ msgstr "{frame}フレーム {ball}投目（スペア）"
 msgid "frame {frame}, ball {ball} (strike)"
 msgstr "{frame}フレーム {ball}投目（ストライク）"
 
+#. On the Live Activity: the frame being bowled, 1 to 10
+#: src/components/LiveActivityPreviews.tsx
+msgid "Frame {frameNumber}"
+msgstr "フレーム{frameNumber}"
+
 #: src/components/ActiveGameScorer.tsx
 msgid "Frame {frameNumber}, ball {ball} is already recorded. Changing it rescores the game from that frame on."
 msgstr "{frameNumber}フレームの{ball}投目はすでに記録されています。変更すると、そのフレーム以降のスコアが再計算されます。"
@@ -2001,6 +2011,7 @@ msgstr "ゲーム"
 msgid "game {gameNumber}"
 msgstr "ゲーム{gameNumber}"
 
+#: src/components/LiveActivityPreviews.tsx
 #: src/components/SessionFilterBar.tsx
 #: src/components/SessionLanePanel.tsx
 #: src/components/Stats.tsx
@@ -2318,6 +2329,14 @@ msgstr "Safariで共有 <0/> をタップし、「ホーム画面に追加」を
 msgid "In the app, open Settings, then Backup & restore, and import."
 msgstr "アプリで設定、バックアップと復元の順に開き、読み込みを行ってください。"
 
+#: src/views/LiveActivityView.tsx
+msgid "In the Dynamic Island"
+msgstr "ダイナミックアイランドで"
+
+#: src/views/ProOfferView.tsx
+msgid "In the iPhone app, the score follows you as you bowl: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
+msgstr "iPhoneアプリでは、投げている間もスコアがついてきます。ロック画面、ダイナミックアイランド、Apple Watchに表示されます。"
+
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
 msgstr "{label}を増やす"
@@ -2362,6 +2381,10 @@ msgstr "ポケットイン"
 #: src/views/CatalogView.tsx
 msgid "It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in."
 msgstr "一度ダウンロードすればオフラインで使えます。各ボールにはコア、カバーストック、RG、Diffが入力済みです。"
+
+#: src/views/LiveActivityView.tsx
+msgid "It goes away a few minutes after the last ball of a game, and comes back with the first ball of the next."
+msgstr "ゲームの最後の投球から数分で消え、次のゲームの最初の投球でまた表示されます。"
 
 #: src/components/BallFormDialog.tsx
 msgid "It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
@@ -2540,6 +2563,10 @@ msgstr "レイアウト、パターン、カタログ、ガイド"
 msgid "League, practice, tournament…"
 msgstr "リーグ、練習、トーナメント…"
 
+#: src/views/LiveActivityView.tsx
+msgid "Leave the phone on the ball return. Your watch's Smart Stack shows the game, your total and the last three frames."
+msgstr "スマホはボールリターンに置いたままで大丈夫です。Apple Watchのスマートスタックに、ゲーム、合計、直近3フレームが表示されます。"
+
 #. Bowling term: the pins left standing after the first ball of a frame
 #: src/components/Stats.tsx
 msgid "Leaves"
@@ -2650,9 +2677,10 @@ msgstr "カタログにリンク"
 msgid "Linked to catalog"
 msgstr "カタログにリンク済み"
 
+#: src/views/LiveActivityView.tsx
 #: src/views/SettingsView.tsx
-msgid "Live Activity on the Lock Screen"
-msgstr "ロック画面のライブアクティビティ"
+msgid "Live Activity"
+msgstr "ライブアクティビティ"
 
 #: src/components/OilPatternManager.tsx
 msgid "Load table for {name}"
@@ -2765,6 +2793,11 @@ msgstr "アーセナルを管理"
 #: src/components/SessionForm.tsx
 msgid "Manage oil patterns"
 msgstr "オイルパターンを管理"
+
+#. On the Live Activity: the highest score the game can still finish on
+#: src/components/LiveActivityPreviews.tsx
+msgid "Max {max}"
+msgstr "最大{max}"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #: src/components/statsMetrics.ts
@@ -3115,6 +3148,11 @@ msgstr "オーシャン、サンセット、グレープ、ローズを、フェ
 msgid "of makeables made"
 msgstr "スペア可能のうち成功"
 
+#. A setting's value in a Settings row: switched off
+#: src/views/SettingsView.tsx
+msgid "Off"
+msgstr "オフ"
+
 #. Short for release offset, a bowling term
 #: src/views/BowlingProfileView.tsx
 msgid "Offset"
@@ -3140,10 +3178,23 @@ msgstr "オイルパターン"
 msgid "Oil patterns"
 msgstr "オイルパターン"
 
+#. A setting's value in a Settings row: switched on
+#: src/views/SettingsView.tsx
+msgid "On"
+msgstr "オン"
+
 #. Step 1 of moving games from the web to the app. headpin.app is a web address and stays as it is
 #: src/lib/moveGames.ts
 msgid "On headpin.app, open Settings, then Backup & restore, and export your games."
 msgstr "headpin.appで「設定」、「バックアップと復元」の順に開き、ゲームを書き出します。"
+
+#: src/views/LiveActivityView.tsx
+msgid "On the Lock Screen"
+msgstr "ロック画面で"
+
+#: src/views/LiveActivityView.tsx
+msgid "On your Apple Watch"
+msgstr "Apple Watchで"
 
 #: src/components/NextSteps.tsx
 msgid "Once a ball is in your arsenal you can name it on every shot, and the stats split by ball."
@@ -3447,6 +3498,10 @@ msgstr "プリセット、{preset}"
 #: src/views/SettingsView.tsx
 msgid "Privacy and terms"
 msgstr "プライバシーと規約"
+
+#: src/views/SettingsView.tsx
+msgid "Pro"
+msgstr "Pro"
 
 #: src/views/ProOfferView.tsx
 msgid "Pro is bought in the iPhone app, which is not in the App Store yet."
@@ -3941,6 +3996,14 @@ msgstr "アーカイブ済みを表示 ({count})"
 msgid "Show retired ({count})"
 msgstr "引退済みを表示 ({count})"
 
+#: src/views/LiveActivityView.tsx
+msgid "Show your game"
+msgstr "ゲームを表示"
+
+#: src/views/LiveActivityView.tsx
+msgid "Show your game as a Live Activity"
+msgstr "ゲームをライブアクティビティで表示"
+
 #. A filter on the spare lines screen: leaves of one standing pin
 #: src/lib/spareLines.ts
 msgid "Single pins"
@@ -4244,11 +4307,16 @@ msgstr "強い"
 msgid "Sunset"
 msgstr "サンセット"
 
+#. A sample bowling alley's name, on a picture of the Lock Screen
+#: src/lib/liveActivitySample.ts
+msgid "Sunset Lanes"
+msgstr "Sunset Lanes"
+
 #: src/views/SettingsView.tsx
 msgid "Support"
 msgstr "サポート"
 
-#: src/views/SettingsView.tsx
+#: src/views/LiveActivityView.tsx
 msgid "Switched off for Headpin in the iPhone's Settings"
 msgstr "iPhoneの設定でHeadpinはオフになっています"
 
@@ -4549,6 +4617,15 @@ msgstr "ラインビジュアライザーで試す"
 msgid "Try your layouts"
 msgstr "レイアウトを試す"
 
+#. A sample session's name, on a picture of the Lock Screen
+#: src/lib/liveActivitySample.ts
+msgid "Tuesday league"
+msgstr "火曜リーグ"
+
+#: src/views/LiveActivityView.tsx
+msgid "Turn on with Pro"
+msgstr "Proでオンにする"
+
 #: src/views/LayoutLabView.tsx
 msgid "Two handed"
 msgstr "両手投げ"
@@ -4836,6 +4913,10 @@ msgstr "各スペアの投げ方"
 msgid "Which hand do you bowl with?"
 msgstr "利き手はどちらですか？"
 
+#: src/views/LiveActivityView.tsx
+msgid "While you're in another app, your total sits at the top of the screen. Touch and hold it to see the frame you're on and the last four frames."
+msgstr "ほかのアプリを使っている間も、合計が画面の上に表示されます。長押しすると、今のフレームと直近4フレームが見られます。"
+
 #: src/views/LaneNotesView.tsx
 msgid "Write down how a lane plays, and it'll be here next time you're on it."
 msgstr "レーンの特徴を書き留めておけば、次にそのレーンで投げるときに表示されます。"
@@ -4907,9 +4988,13 @@ msgstr "以前のゲームは「すべて」にあります。"
 msgid "Your estimated average with each ball, by alley, lane pair and pattern."
 msgstr "ボールごとの予想アベレージを、ボウリング場、レーンペア、パターン別に表示します。"
 
-#: src/views/SettingsView.tsx
-msgid "Your game's score, frame by frame, while you bowl"
-msgstr "投げながら、ゲームのスコアをフレームごとに表示"
+#: src/views/LiveActivityView.tsx
+msgid "Your game follows you off the screen. From the first ball, the score is on your Lock Screen, in the Dynamic Island and on your Apple Watch, and it changes with every ball you enter."
+msgstr "アプリを閉じてもゲームを追えます。最初の投球から、スコアがロック画面、ダイナミックアイランド、Apple Watchに表示され、投球を入力するたびに更新されます。"
+
+#: src/views/ProOfferView.tsx
+msgid "Your game on the Lock Screen"
+msgstr "ロック画面にゲームを表示"
 
 #: src/components/MoveGamesDialog.tsx
 msgid "Your games stay in this browser. Bring them along:"
@@ -4962,6 +5047,10 @@ msgstr "スコアはこの端末に残っています。"
 #: src/views/StatsView.tsx
 msgid "Your sessions could not be read. Reload the app, then try again."
 msgstr "セッションを読み込めませんでした。アプリを再読み込みして、もう一度お試しください。"
+
+#: src/views/LiveActivityView.tsx
+msgid "Your total, the frame you're on and the best score still possible, over all ten frames as your scorecard shows them. Pick up the phone between balls and it's there."
+msgstr "合計、今のフレーム、まだ狙える最高スコアを、スコアカードと同じ10フレームで表示します。投球の合間にスマホを手に取れば、すぐに確認できます。"
 
 #: src/components/PatternSheet.tsx
 msgid "Zoom in"

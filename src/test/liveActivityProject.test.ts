@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { buildLiveActivityState } from "../lib/liveActivity";
 import { PALETTES } from "../lib/palette";
 import type { Frame } from "../types/bowling";
+import { ISLAND_ACCENTS } from "../lib/liveActivitySample";
 
 /**
  * The Live Activity (ADR-221) is Swift that this repository cannot compile, and
@@ -162,6 +163,10 @@ describe("the Live Activity's palettes match the page's", () => {
   }
 
   for (const { id } of PALETTES) {
+    it(`has ${id}'s island colors in the Settings pictures as the phone draws them`, () => {
+      expect(ISLAND_ACCENTS[id].accent).toBe(swift("dark", id, "accent"));
+      expect(ISLAND_ACCENTS[id].fill).toBe(swift("dark", id, "fill"));
+    });
     for (const mode of ["light", "dark"] as const) {
       it(`has ${id} in ${mode} as the page draws it`, () => {
         expect(swift(mode, id, "accent")).toBe(token(mode, id, "accent"));

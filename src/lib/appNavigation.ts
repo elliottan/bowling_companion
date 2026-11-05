@@ -21,7 +21,8 @@ export type SettingsSection =
   | "appearance"
   | "profile"
   | "tools"
-  | "legal";
+  | "legal"
+  | "live-activity";
 
 import type { LayoutSeed } from "./layoutShare";
 

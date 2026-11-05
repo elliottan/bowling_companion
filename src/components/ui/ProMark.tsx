@@ -11,7 +11,7 @@ import { useId } from "react";
  * small mark is the pin alone and its colors carry it.
  */
 
-const PIN_PATH =
+export const PIN_PATH =
   "M 50 5 C 57 5 63 11 63 20 C 63 30 60 40 60 52 C 60 64 63 70 67 80 C 72 91 76 100 76 114 " +
   "C 76 130 71 143 65 149 L 65 151 L 35 151 L 35 149 C 29 143 24 130 24 114 C 24 100 28 91 33 80 " +
   "C 37 70 40 64 40 52 C 40 40 37 30 37 20 C 37 11 43 5 50 5 Z";
@@ -21,7 +21,7 @@ const PIN_PATH =
 export const PRO_GOLD = "#e9b949";
 const GRAPHITE_TOP = "#27303d";
 const GRAPHITE_BOTTOM = "#0f141b";
-const CREAM = "#fff8ed";
+export const CREAM = "#fff8ed";
 
 export function ProMark({
   size = 44,

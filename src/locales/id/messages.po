@@ -1892,6 +1892,11 @@ msgstr "Akhir {board}"
 msgid "Final ft"
 msgstr "Ft akhir"
 
+#. On the Live Activity: the game is over and this is its score
+#: src/components/LiveActivityPreviews.tsx
+msgid "Final score"
+msgstr "Skor akhir"
+
 #. A short greeting at the top of Home; the bowler's name may follow it. The pocket is the bowling term for the gap between the 1 and 3 pins that a good strike ball hits
 #: src/lib/greeting.ts
 msgid "Find the pocket"
@@ -1970,6 +1975,11 @@ msgstr "frame {frame}, lemparan {ball} (spare)"
 msgid "frame {frame}, ball {ball} (strike)"
 msgstr "frame {frame}, lemparan {ball} (strike)"
 
+#. On the Live Activity: the frame being bowled, 1 to 10
+#: src/components/LiveActivityPreviews.tsx
+msgid "Frame {frameNumber}"
+msgstr "Frame {frameNumber}"
+
 #: src/components/ActiveGameScorer.tsx
 msgid "Frame {frameNumber}, ball {ball} is already recorded. Changing it rescores the game from that frame on."
 msgstr "Frame {frameNumber}, lemparan {ball} sudah tercatat. Mengubahnya akan menghitung ulang skor game mulai dari frame itu."
@@ -2001,6 +2011,7 @@ msgstr "Game"
 msgid "game {gameNumber}"
 msgstr "game {gameNumber}"
 
+#: src/components/LiveActivityPreviews.tsx
 #: src/components/SessionFilterBar.tsx
 #: src/components/SessionLanePanel.tsx
 #: src/components/Stats.tsx
@@ -2318,6 +2329,14 @@ msgstr "Di Safari, ketuk Bagikan <0/> lalu \"Tambahkan ke Layar Utama\". Chrome 
 msgid "In the app, open Settings, then Backup & restore, and import."
 msgstr "Di aplikasi, buka Pengaturan, lalu Cadangan & pemulihan, dan impor."
 
+#: src/views/LiveActivityView.tsx
+msgid "In the Dynamic Island"
+msgstr "Di Dynamic Island"
+
+#: src/views/ProOfferView.tsx
+msgid "In the iPhone app, the score follows you as you bowl: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
+msgstr "Di aplikasi iPhone, skor mengikutimu saat bowling: di Layar Terkunci, di Dynamic Island, dan di Apple Watch-mu."
+
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
 msgstr "Tambah {label}"
@@ -2362,6 +2381,10 @@ msgstr "Ke pocket"
 #: src/views/CatalogView.tsx
 msgid "It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in."
 msgstr "Diunduh sekali, lalu bisa dipakai offline. Tiap bola sudah terisi inti, coverstock, RG, dan diff-nya."
+
+#: src/views/LiveActivityView.tsx
+msgid "It goes away a few minutes after the last ball of a game, and comes back with the first ball of the next."
+msgstr "Hilang beberapa menit setelah bola terakhir sebuah game, dan muncul lagi dengan bola pertama game berikutnya."
 
 #: src/components/BallFormDialog.tsx
 msgid "It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
@@ -2540,6 +2563,10 @@ msgstr "Layout, pola, katalog, dan panduan"
 msgid "League, practice, tournament…"
 msgstr "Liga, latihan, turnamen…"
 
+#: src/views/LiveActivityView.tsx
+msgid "Leave the phone on the ball return. Your watch's Smart Stack shows the game, your total and the last three frames."
+msgstr "Tinggalkan ponsel di ball return. Tumpukan Pintar di jam tanganmu menampilkan game, totalmu, dan tiga frame terakhir."
+
 #. Bowling term: the pins left standing after the first ball of a frame
 #: src/components/Stats.tsx
 msgid "Leaves"
@@ -2650,9 +2677,10 @@ msgstr "Tautkan ke katalog"
 msgid "Linked to catalog"
 msgstr "Tertaut ke katalog"
 
+#: src/views/LiveActivityView.tsx
 #: src/views/SettingsView.tsx
-msgid "Live Activity on the Lock Screen"
-msgstr "Aktivitas Langsung di Layar Terkunci"
+msgid "Live Activity"
+msgstr "Aktivitas Langsung"
 
 #: src/components/OilPatternManager.tsx
 msgid "Load table for {name}"
@@ -2765,6 +2793,11 @@ msgstr "Kelola arsenal"
 #: src/components/SessionForm.tsx
 msgid "Manage oil patterns"
 msgstr "Kelola pola minyak"
+
+#. On the Live Activity: the highest score the game can still finish on
+#: src/components/LiveActivityPreviews.tsx
+msgid "Max {max}"
+msgstr "Maks {max}"
 
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #: src/components/statsMetrics.ts
@@ -3115,6 +3148,11 @@ msgstr "Samudra, Senja, Anggur, dan Mawar, di samping hijau Felt."
 msgid "of makeables made"
 msgstr "dari sisa pin yang bisa di-spare berhasil dikonversi"
 
+#. A setting's value in a Settings row: switched off
+#: src/views/SettingsView.tsx
+msgid "Off"
+msgstr "Mati"
+
 #. Short for release offset, a bowling term
 #: src/views/BowlingProfileView.tsx
 msgid "Offset"
@@ -3140,10 +3178,23 @@ msgstr "Pola minyak"
 msgid "Oil patterns"
 msgstr "Pola minyak"
 
+#. A setting's value in a Settings row: switched on
+#: src/views/SettingsView.tsx
+msgid "On"
+msgstr "Nyala"
+
 #. Step 1 of moving games from the web to the app. headpin.app is a web address and stays as it is
 #: src/lib/moveGames.ts
 msgid "On headpin.app, open Settings, then Backup & restore, and export your games."
 msgstr "Di headpin.app, buka Pengaturan, lalu Cadangan & pemulihan, dan ekspor game-mu."
+
+#: src/views/LiveActivityView.tsx
+msgid "On the Lock Screen"
+msgstr "Di Layar Terkunci"
+
+#: src/views/LiveActivityView.tsx
+msgid "On your Apple Watch"
+msgstr "Di Apple Watch-mu"
 
 #: src/components/NextSteps.tsx
 msgid "Once a ball is in your arsenal you can name it on every shot, and the stats split by ball."
@@ -3447,6 +3498,10 @@ msgstr "Preset, {preset}"
 #: src/views/SettingsView.tsx
 msgid "Privacy and terms"
 msgstr "Privasi dan ketentuan"
+
+#: src/views/SettingsView.tsx
+msgid "Pro"
+msgstr "Pro"
 
 #: src/views/ProOfferView.tsx
 msgid "Pro is bought in the iPhone app, which is not in the App Store yet."
@@ -3941,6 +3996,14 @@ msgstr "Tampilkan yang diarsipkan ({count})"
 msgid "Show retired ({count})"
 msgstr "Tampilkan yang dipensiunkan ({count})"
 
+#: src/views/LiveActivityView.tsx
+msgid "Show your game"
+msgstr "Tampilkan game-mu"
+
+#: src/views/LiveActivityView.tsx
+msgid "Show your game as a Live Activity"
+msgstr "Tampilkan game-mu sebagai Aktivitas Langsung"
+
 #. A filter on the spare lines screen: leaves of one standing pin
 #: src/lib/spareLines.ts
 msgid "Single pins"
@@ -4244,11 +4307,16 @@ msgstr "Kuat"
 msgid "Sunset"
 msgstr "Senja"
 
+#. A sample bowling alley's name, on a picture of the Lock Screen
+#: src/lib/liveActivitySample.ts
+msgid "Sunset Lanes"
+msgstr "Sunset Lanes"
+
 #: src/views/SettingsView.tsx
 msgid "Support"
 msgstr "Dukungan"
 
-#: src/views/SettingsView.tsx
+#: src/views/LiveActivityView.tsx
 msgid "Switched off for Headpin in the iPhone's Settings"
 msgstr "Dimatikan untuk Headpin di Pengaturan iPhone"
 
@@ -4549,6 +4617,15 @@ msgstr "Coba di visualizer jalur"
 msgid "Try your layouts"
 msgstr "Coba layout-mu"
 
+#. A sample session's name, on a picture of the Lock Screen
+#: src/lib/liveActivitySample.ts
+msgid "Tuesday league"
+msgstr "Liga Selasa"
+
+#: src/views/LiveActivityView.tsx
+msgid "Turn on with Pro"
+msgstr "Nyalakan dengan Pro"
+
 #: src/views/LayoutLabView.tsx
 msgid "Two handed"
 msgstr "Dua tangan"
@@ -4836,6 +4913,10 @@ msgstr "Tempat kamu membidik tiap spare"
 msgid "Which hand do you bowl with?"
 msgstr "Kamu melempar dengan tangan yang mana?"
 
+#: src/views/LiveActivityView.tsx
+msgid "While you're in another app, your total sits at the top of the screen. Touch and hold it to see the frame you're on and the last four frames."
+msgstr "Saat kamu di aplikasi lain, totalmu ada di bagian atas layar. Sentuh dan tahan untuk melihat frame saat ini dan empat frame terakhir."
+
 #: src/views/LaneNotesView.tsx
 msgid "Write down how a lane plays, and it'll be here next time you're on it."
 msgstr "Catat karakter lintasan, dan catatannya ada di sini saat kamu bermain di lintasan itu lagi."
@@ -4907,9 +4988,13 @@ msgstr "Game sebelumnya ada di Semua."
 msgid "Your estimated average with each ball, by alley, lane pair and pattern."
 msgstr "Perkiraan rata-ratamu dengan tiap bola, menurut arena, pasangan lintasan, dan pola."
 
-#: src/views/SettingsView.tsx
-msgid "Your game's score, frame by frame, while you bowl"
-msgstr "Skor game-mu, frame demi frame, saat kamu bermain"
+#: src/views/LiveActivityView.tsx
+msgid "Your game follows you off the screen. From the first ball, the score is on your Lock Screen, in the Dynamic Island and on your Apple Watch, and it changes with every ball you enter."
+msgstr "Game-mu tetap terlihat di luar aplikasi. Sejak bola pertama, skornya ada di Layar Terkunci, di Dynamic Island, dan di Apple Watch-mu, dan berubah setiap kali kamu memasukkan bola."
+
+#: src/views/ProOfferView.tsx
+msgid "Your game on the Lock Screen"
+msgstr "Game-mu di Layar Terkunci"
 
 #: src/components/MoveGamesDialog.tsx
 msgid "Your games stay in this browser. Bring them along:"
@@ -4962,6 +5047,10 @@ msgstr "Skormu masih ada di perangkat ini."
 #: src/views/StatsView.tsx
 msgid "Your sessions could not be read. Reload the app, then try again."
 msgstr "Sesimu tidak bisa dibaca. Muat ulang aplikasi, lalu coba lagi."
+
+#: src/views/LiveActivityView.tsx
+msgid "Your total, the frame you're on and the best score still possible, over all ten frames as your scorecard shows them. Pick up the phone between balls and it's there."
+msgstr "Totalmu, frame saat ini, dan skor tertinggi yang masih mungkin, di sepanjang sepuluh frame seperti di kartu skormu. Angkat ponsel di antara lemparan, dan semuanya ada di sana."
 
 #: src/components/PatternSheet.tsx
 msgid "Zoom in"
