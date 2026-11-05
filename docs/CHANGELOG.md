@@ -9,6 +9,19 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.86.1: Buttons that stay one button, and History and Stats back to one row (2026-11-05)
+
+- The round buttons at the top of a screen and a sheet no longer flip between
+  two different looks as a sheet rises or a screen slides in. The iPhone app
+  had been swapping the app's own button for the iPhone's Liquid Glass copy
+  whenever it held still, and back whenever it moved; now there is only the
+  one (ADR-241).
+- History and Stats are back to one row at the top, the name beside its
+  buttons, without the large title and the extra room above the list
+  (ADR-242).
+- Home's tiles and recent sessions no longer carry a small arrow in their
+  corner; they still look raised and pressable.
+
 ## 0.86.0: Sixteen new balls from the autumn 2026 releases (2026-11-05)
 
 - The ball catalog has the latest releases: Brunswick Strategy Logic, Purple

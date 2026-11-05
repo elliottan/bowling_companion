@@ -138,10 +138,9 @@ class HeadpinViewController: CAPBridgeViewController, UIGestureRecognizerDelegat
         bridge?.registerPluginInstance(HeadpinTabBarPlugin())
         bridge?.registerPluginInstance(HeadpinLiveActivityPlugin())
         bridge?.registerPluginInstance(HeadpinAlertPlugin())
-        bridge?.registerPluginInstance(HeadpinGlassPlugin())
         // Seen in the Xcode console at launch: proof that this controller, and
         // not the storyboard's plain one, is the one running.
-        CAPLog.print("⚡️  HeadpinViewController: registered HeadpinStore, HeadpinTabBar, HeadpinLiveActivity, HeadpinAlert and HeadpinGlass")
+        CAPLog.print("⚡️  HeadpinViewController: registered HeadpinStore, HeadpinTabBar, HeadpinLiveActivity and HeadpinAlert")
         guard let webView = webView else { return }
         webView.allowsBackForwardNavigationGestures = false
         // The page never scrolls as a whole (its screens scroll inside it), so

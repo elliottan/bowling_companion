@@ -146,14 +146,11 @@ one by about a seventh, a wide pill a little), glows out from where the finger
 landed and brightens, then springs back a touch past its size on release
 (`.glass-press`). It never shrinks and dims: that is the older iOS's press.
 
-**In the iPhone app the phone draws a bar's controls** (ADR-238): a round
-button, a confirm and a segmented control inside a tab's floating header, a
-pushed screen's bar or a sheet's bar are each laid over by UIKit's own glass
-once they sit still, and the page's copy shows whenever they move. So a
-control in a bar is always an `IconButton` or a `SegmentedControl`, never a
-hand-rolled one, or the phone has nothing to draw it from. Its glyph is a
-Lucide icon or one of the app's own; a new one wants an SF Symbol entry in
-`src/lib/nativeGlass.ts`, or it is sent as a picture.
+**A control is drawn once, by the page** (ADR-241). The iPhone app once laid
+UIKit's glass over a bar's controls while they sat still and handed back to
+the page's copy whenever they moved, and the two copies never matched: the
+icon flipped between two looks as a sheet rose or a screen slid. A control
+never swaps for a look-alike mid-screen.
 
 **Edit is a pencil**, on chrome and in content alike (ADR-179): the round glass
 pencil in a bar turns a read screen into a form and becomes the tick that
@@ -311,8 +308,9 @@ centres its icon, name and count.
 
 **A card that is a button looks like one** (`.card-button`): Home's tiles and
 its recent sessions are raised off the page, a step lighter at the top with a
-rim of light and a soft shadow, carry a chevron, and sink when pressed (they
-shrink a little and darken, then spring back). Flat, they were the same slab
+rim of light and a soft shadow, and sink when pressed (they shrink a little
+and darken, then spring back). They carry no chevron: the raise already says
+they can be tapped, and a chevron in every tile's corner was clutter. Flat, they were the same slab
 as the cards that only hold numbers, and nothing said they could be tapped. A
 card that only shows numbers stays flat.
 
@@ -385,9 +383,9 @@ tile of its own (ADR-126).
 
 Settings has iOS's large title: it scrolls away with the page, and the name
 comes in small and centred in a frosted bar as it goes (`CompactTitleBar`,
-ADR-191). History and Stats have it too (`FloatingHeader`, ADR-240), with
-their round controls at the bar's top right and a pinned row (Stats' range,
-centred, and the filter chips) that sticks under the bar.
+ADR-191). History and Stats do not (ADR-242): their small title and round
+controls share one pinned row, because a large title there was empty room
+above the list.
 
 Ordered by what a bowler can lose or must not miss, not by how often it is
 opened. **Backup & restore leads, alone and louder than a row**, because the

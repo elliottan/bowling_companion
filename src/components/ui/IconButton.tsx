@@ -1,5 +1,4 @@
-import { useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { useGlassButton } from "../../lib/nativeGlass";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 type Variant = "default" | "danger" | "solid" | "inverse" | "round" | "confirm" | "lane";
 
@@ -22,7 +21,8 @@ const VARIANT: Record<Variant, string> = {
   //
   // Pressed, it swells under the finger and brightens, as iOS 26's glass does
   // (`.glass-press`), where it used to shrink and dim, which is the older
-  // iOS's press. In a bar in the iPhone app the phone draws it (ADR-238).
+  // iOS's press. The page draws it everywhere, the iPhone app included
+  // (ADR-241).
   round: "glass glass-press rounded-full text-ink",
   // The tinted twin of `round`: a header's confirm, as prominent as a primary
   // button. A variant rather than a className, because competing `bg-*`
@@ -63,17 +63,14 @@ export function IconButton({
   compact?: boolean;
   label: string;
   /** A count on the button's top corner (the filters applied). Part of the
-   *  button rather than beside it, so the phone draws it with the button. */
+   *  button rather than beside it. */
   badge?: number;
   children: ReactNode;
 }) {
-  const ref = useRef<HTMLButtonElement | null>(null);
   const glass = variant === "round" || variant === "confirm";
   const shownBadge = badge && badge > 0 ? String(badge) : undefined;
-  useGlassButton(ref, { prominent: variant === "confirm", badge: shownBadge, enabled: !rest.disabled, wanted: glass });
   return (
     <button
-      ref={ref}
       type="button"
       aria-label={label}
       onPointerDown={(e) => {

@@ -1,7 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { CSSProperties, ReactNode, RefObject, UIEvent } from "react";
-import { GlassBarContext } from "../lib/nativeGlass";
-import { LARGE_TITLE } from "./ui/typography";
+import { useEffect, useRef, useState } from "react";
+import type { ReactNode, RefObject, UIEvent } from "react";
 
 interface FloatingHeaderProps {
   /** The scroll area this header sits over. Bound here, used by the view for
@@ -10,23 +8,8 @@ interface FloatingHeaderProps {
    *  argument is then not a `RefObject<HTMLDivElement>`; the ref a caller makes
    *  with `useRef<HTMLDivElement | null>(null)` still fits. */
   scrollerRef: RefObject<HTMLDivElement>;
-  /**
-   * The tab's name, as iOS's large title (ADR-240): large, leading, part of
-   * the page, so it scrolls away with it, and as it goes under the bar the
-   * name comes in small and centred there. None on a screen whose own bar
-   * already names it (Stats pushed from a session).
-   */
-  title?: string;
-  /** The bar's trailing controls: round buttons, top right, as a navigation
-   *  bar's are. */
-  actions?: ReactNode;
-  /**
-   * What stays in view under the bar once the title has gone: a range to
-   * choose, the filters applied. It sits under the large title at rest and
-   * sticks beneath the bar as the page scrolls, as a segmented control under
-   * an iOS large title does.
-   */
-  pinned?: ReactNode;
+  /** The row that stays: title, actions and filter chips. */
+  header: ReactNode;
   /** Forwarded to the scroller, for remembering where the reader was. */
   onScroll?: (event: UIEvent<HTMLDivElement>) => void;
   /** The list itself. */
@@ -34,57 +17,40 @@ interface FloatingHeaderProps {
 }
 
 /**
- * A tab's header as an iOS large-title screen draws one: a bar that stays put,
- * with the round controls at its trailing end, a large title that is part of
- * the page and scrolls away under the bar, the name coming in small and
- * centred there as it goes (ADR-240), and a pinned row (a range, the filters)
- * that sticks under the bar.
+ * A tab's header that stays where it is while the list scrolls under it, as an
+ * iOS large-title screen's bar does once it has collapsed: the title, the
+ * actions and the filters are always a tap away, and the list passes beneath
+ * them behind a frosted wash that fades out at the header's foot
+ * (`.floating-header-ground`), never at a hard edge (ADR-185).
  *
- * The bar's ground is the floating headers' frosted wash
- * (`.floating-header-ground`), always on and ending at the bar's foot, so the
- * list passes under it as a soft shape and at rest it frosts nothing (ADR-185).
- * It used to be one block holding the title, the controls and the chips, all
- * pinned, which kept the title small and the controls beside it in the middle
- * of the row.
+ * It used to slide away as the reader scrolled down and come back on a
+ * scroll up. That hid the filters exactly when a long list needed them, and a
+ * header that moves on its own under a moving list read as the page jumping.
  *
  * The box reaches up under the status bar, so the list passes under the clock
- * as well, and the bar pads itself back down by the same safe area. The page
- * starts a bar's height down; the height is measured, because the safe area
- * and the text size set it.
+ * as well as under the header, and the header pads itself back down by the
+ * same safe area. The list starts a header's height down, so its top is never
+ * hidden; the height is measured, because filter chips make the row taller and
+ * they come and go while the screen is open.
+ *
+ * The wash is always there, and it ends at the header's foot, fading out
+ * inside the header's own bottom margin. It used to show only once the list
+ * had scrolled, because it reached past the foot and frosted the first card's
+ * top at rest. Keyed to the scroll, it went missing whenever the scroll event
+ * lagged the list (a restored position, an iPhone fling), and the list ran
+ * under the title and the chips with nothing behind them. Ending at the foot,
+ * there is nothing under it at rest, and nothing to time.
  */
-export function FloatingHeader({ scrollerRef, title, actions, pinned, onScroll, children }: FloatingHeaderProps) {
-  const barRef = useRef<HTMLDivElement | null>(null);
-  const titleRef = useRef<HTMLHeadingElement | null>(null);
-  const pinnedRef = useRef<HTMLDivElement | null>(null);
+export function FloatingHeader({ scrollerRef, header, onScroll, children }: FloatingHeaderProps) {
+  const rowRef = useRef<HTMLDivElement | null>(null);
   const [height, setHeight] = useState(0);
-  // The large title has gone under the bar, so the bar shows the name.
-  const [compact, setCompact] = useState(false);
-  // The pinned row has reached the bar and sticks under it.
-  const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
-    const el = barRef.current;
+    const el = rowRef.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const obs = new ResizeObserver(() => setHeight(el.offsetHeight));
     obs.observe(el);
     return () => obs.disconnect();
-  }, []);
-
-  // Read on every scroll rather than against a fixed distance: the title's
-  // height depends on the language and the text size. Only reads layout, and
-  // React drops an update that changes nothing.
-  const measure = useCallback(() => {
-    const bar = barRef.current;
-    if (!bar) return;
-    const barBottom = bar.getBoundingClientRect().bottom;
-    const name = titleRef.current;
-    if (name) {
-      // Halfway under is gone: behind the bar's ground the rest is unreadable.
-      const r = name.getBoundingClientRect();
-      setCompact((r.top + r.bottom) / 2 <= barBottom);
-    }
-    const row = pinnedRef.current;
-    if (row) setStuck(row.getBoundingClientRect().top <= barBottom + 0.5);
   }, []);
 
   return (
@@ -92,73 +58,29 @@ export function FloatingHeader({ scrollerRef, title, actions, pinned, onScroll, 
       className="relative -mx-3 min-h-0 flex-1 overflow-hidden sm:-mx-6"
       // Up under the status bar. Inline, because Tailwind cannot negate an
       // env() value: `-mt-[env(...)]` builds no rule at all, silently.
-      style={{ marginTop: "calc(-1 * env(safe-area-inset-top))", "--floating-bar-h": `${height}px` } as CSSProperties}
+      style={{ marginTop: "calc(-1 * env(safe-area-inset-top))" }}
     >
       <div
         ref={scrollerRef}
-        onScroll={(e) => {
-          measure();
-          onScroll?.(e);
-        }}
+        onScroll={onScroll}
         // Ends clear of the tab bar on a tab, which `<main>` says through
         // `--tab-clear`; nothing anywhere else (ADR-171).
         className="ios-bounce h-full overflow-y-auto overscroll-contain pb-[var(--tab-clear,0px)]"
       >
         <div style={{ height }} aria-hidden="true" />
-        {title && (
-          <h1 ref={titleRef} className={`${LARGE_TITLE} mb-2 hyphens-auto break-words px-3 sm:px-6`}>
-            {title}
-          </h1>
-        )}
-        {pinned && (
-          <div
-            ref={pinnedRef}
-            data-floating-pinned=""
-            className="sticky z-[1] px-3 sm:px-6"
-            style={{ top: height }}
-          >
-            {/* Its own frosted ground, reaching up behind the bar's fade once
-                it sticks there, so the list passes under the two as one band
-                rather than showing through a seam between them. */}
-            <div
-              aria-hidden="true"
-              className={`floating-header-ground absolute inset-x-0 bottom-0 ${stuck ? "-top-3" : "top-0"}`}
-            />
-            <div className="relative">
-              <GlassBarContext.Provider value={true}>{pinned}</GlassBarContext.Provider>
-            </div>
-          </div>
-        )}
         {children}
       </div>
 
-      {/* Measured on this box rather than on an inner one. It is positioned,
-          so it contains the margins of the rows inside it. */}
+      {/* Measured on this box rather than on an inner one. It is positioned, so
+          it contains the margins of the rows inside it, and an inner box would
+          let the last of those escape and leave the list a margin short. */}
       <div
-        ref={barRef}
+        ref={rowRef}
         data-floating-header=""
-        className="absolute inset-x-0 top-0 z-[2] px-3 pt-[env(safe-area-inset-top)] sm:px-6"
+        className="absolute inset-x-0 top-0 z-[1] px-3 pt-[env(safe-area-inset-top)] sm:px-6"
       >
         <div aria-hidden="true" className="floating-header-ground absolute inset-0" />
-        <div className="relative flex min-h-11 items-center justify-end gap-1 pb-1">
-          {/* A picture of the large title, out of the accessibility tree, and
-              nothing until the large one has gone under the bar: the name is
-              never on screen twice. */}
-          {title && (
-            <p
-              aria-hidden="true"
-              data-compact-title=""
-              className={`pointer-events-none absolute inset-x-24 top-0 flex h-11 items-center justify-center truncate text-body font-semibold text-ink transition-opacity duration-200 ${
-                compact ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              {title}
-            </p>
-          )}
-          {/* The bar's round controls are the phone's to draw in the iPhone
-              app (ADR-238). */}
-          <GlassBarContext.Provider value={true}>{actions}</GlassBarContext.Provider>
-        </div>
+        <div className="relative">{header}</div>
       </div>
     </div>
   );

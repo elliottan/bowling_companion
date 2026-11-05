@@ -16,9 +16,7 @@ async function geometry(page: Page) {
     const scroller = document.querySelector(sel) as HTMLElement;
     const card = scroller.querySelector("ul > li") as HTMLElement;
     return {
-      // The bar, which stays put; the large title is part of the page and
-      // scrolls away with it (ADR-240).
-      heading: document.querySelector("[data-floating-header]")!.getBoundingClientRect().y,
+      heading: document.querySelector("h1")!.getBoundingClientRect().y,
       // A node inside the list, in screen coordinates: this is what the reader
       // watches, and it must answer to the finger and to nothing else.
       content: card.getBoundingClientRect().y,
@@ -77,7 +75,7 @@ test("the header stays put while the list scrolls under it", async ({ page }) =>
   await history(page, 5);
   const open = await geometry(page);
 
-  // Down, then further down, then back: the bar never moves, and the list
+  // Down, then further down, then back: the title never moves, and the list
   // moves by the scroll and by nothing else (ADR-185).
   for (const by of [60, 120, -40]) {
     const before = await geometry(page);
