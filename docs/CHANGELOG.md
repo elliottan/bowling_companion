@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.85.2: Buttons that stay one button, and History and Stats back to one row (2026-11-05)
+## 0.86.1: Buttons that stay one button, and History and Stats back to one row (2026-11-05)
 
 - The round buttons at the top of a screen and a sheet no longer flip between
   two different looks as a sheet rises or a screen slides in. The iPhone app
@@ -21,6 +21,15 @@ had all shipped.
   (ADR-242).
 - Home's tiles and recent sessions no longer carry a small arrow in their
   corner; they still look raised and pressable.
+
+## 0.86.0: Sixteen new balls from the autumn 2026 releases (2026-11-05)
+
+- The ball catalog has the latest releases: Brunswick Strategy Logic, Purple
+  Rhino Pro and Vaporize S.E.; DV8 Outsider and Smooth Criminal; Ebonite Go
+  Time; Hammer Blacklist and Reckoning; MOTIV Orion Nebula and Royal Venom;
+  Radical Intel Recon Hybrid and Vexed Variant; Storm Ion Max Veil, Ion Pro
+  Pearl, PhysiX Ignition and !Q Focus. Each has its specs, its weights and a
+  photo. Now 848 balls.
 
 ## 0.85.1: The old Vercel address sends you to headpin.app (2026-11-05)
 

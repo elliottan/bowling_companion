@@ -5466,5 +5466,55 @@
     "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/ej2uu7lf83vtfzplaw9j",
     "_sku": "MTVBASRBT",
     "_discontinued": false
+  },
+  {
+    "brand": "Motiv",
+    "name": "Orion Nebula",
+    "releaseDate": "2026-11-25",
+    "coverstockRaw": "Dynamic Leverage Solid Reactive",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Hadron",
+    "rg": 2.5,
+    "diff": 0.045,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/medium-oil/orion-nebula.html"
+    ],
+    "productUrl": "https://www.motivbowling.com/products/balls/medium-oil/orion-nebula.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.5,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.65,
+        "diff": 0.02,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.02,
+        "mbDiff": null
+      }
+    ],
+    "_imageUrl": "https://www.motivbowling.com/userfiles/filemanager/d2v59kn7rfrrvdvw0laa",
+    "_sku": "MTVBNBORN",
+    "_discontinued": false
   }
 ]
