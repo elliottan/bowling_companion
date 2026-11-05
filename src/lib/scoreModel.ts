@@ -516,15 +516,15 @@ function count(profile: StrikeProfile): Counted {
   };
 }
 
-/** The leaves a ball is expected to miss most, worst first. A leave the bowler
- *  always makes costs nothing however often it comes up. */
+/** The leaves a ball is expected to miss most, worst first, and then the ones
+ *  it leaves most. A ball whose leaves the bowler always makes still shows
+ *  what it leaves, ahead of an empty space (ADR-243). */
 function costliest(profile: StrikeProfile, spares: SpareBook): LeaveCost[] {
   return [...profile.leaves.values()]
     .map(({ pins, count: left }) => {
       const r = spares.rate(pins);
       return { pins, left, chances: r.chances, made: r.made, thin: r.thin, misses: left * (1 - r.makeRate) };
     })
-    .filter((l) => l.misses >= 1)
     .sort((a, b) => b.misses - a.misses || b.left - a.left)
     .slice(0, COSTLIEST_LEAVES);
 }

@@ -15,7 +15,7 @@ import { getLiveActivityEnabled, setLiveActivityEnabled } from "../services/bowl
 import type { LiveActivityStatus } from "../lib/nativeLiveActivity";
 
 /**
- * The Live Activity's page in Settings (ADR-243): what it shows and where, in
+ * The Live Activity's page in Settings (ADR-244): what it shows and where, in
  * pictures of the three places it is drawn, with the switch above them. Pro:
  * without it the switch is veiled and opens the Pro page, and the pictures
  * stay, since they are what the bowler would get.

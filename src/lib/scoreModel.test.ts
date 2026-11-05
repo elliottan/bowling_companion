@@ -220,7 +220,7 @@ describe("estimating each ball", () => {
     expect(counted.pickupChances).toBe(tenPin.pickupChances + sevenTen.pickupChances);
   });
 
-  it("names the leaves a ball costs most, and leaves out the ones always made", () => {
+  it("names the leaves a ball costs most first, then the ones always made", () => {
     const frames = (ball: number) =>
       Array.from({ length: 10 }, (_, i) =>
         i === 9
@@ -234,8 +234,10 @@ describe("estimating each ball", () => {
     expect(first.pins).toEqual(SPLIT);
     expect(first.made).toBe(0);
     expect(first.left).toBe(18);
-    // Every 10 pin was made, so it costs nothing and is not named.
-    expect(rest.find((l) => l.pins.join() === "10")).toBeUndefined();
+    // Every 10 pin was made, so it costs least, but it is still what the ball
+    // leaves, so it is named after the split (ADR-243).
+    expect(rest.map((l) => l.pins.join())).toContain("10");
+    expect(rest.find((l) => l.pins.join() === "10")!.made).toBe(rest.find((l) => l.pins.join() === "10")!.chances);
   });
 
   it("ranks the balls with enough behind them, and lists the thin ones after", () => {

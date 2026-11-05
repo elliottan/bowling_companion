@@ -38,7 +38,7 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | Scoring | Sessions with alley, lane, pattern and type; score first, file later | ✓ | | Recording |
 | Scoring | Ball, stance, target and breakpoint on each shot, strike-ball moves | ✓ | | Recording, and what Pro later reads |
 | Scoring | Spare lines: the shot a leave opens with, and lines that follow your moves | ✓ | | Part of entering a shot, not analysis |
-| Scoring | The game on the iPhone's Lock Screen, Dynamic Island and Apple Watch (ADR-221, ADR-227) | | ✓ | A convenience of the iPhone app, not part of keeping score: every ball is still entered and read without it (ADR-243) |
+| Scoring | The game on the iPhone's Lock Screen, Dynamic Island and Apple Watch (ADR-221, ADR-227) | | ✓ | A convenience of the iPhone app, not part of keeping score: every ball is still entered and read without it (ADR-244) |
 | History | Every session and game, filters, reopening a game | ✓ | | The bowler's own data |
 | History | Backup, export and import | ✓ | | Never gate the bowler's data |
 | Stats | Average, high game and series, game count, score trend chart | ✓ | | What every free app shows |

@@ -362,7 +362,7 @@ function useLiveActivityStatus(given?: LiveActivityStatus | null): LiveActivityS
  * that can draw them (iOS 18, ADR-227). Nothing is drawn until the phone has said it
  * can, so the web, the Android app and an older iPhone never see a row that
  * does nothing. It opens the Live Activity's page, which shows what it looks like
- * and holds the switch (ADR-243); the row says whether it is on, or carries the
+ * and holds the switch (ADR-244); the row says whether it is on, or carries the
  * lock while Pro is not open.
  */
 export function LiveActivityRow({ status, onOpen }: { status: LiveActivityStatus | null; onOpen: () => void }) {

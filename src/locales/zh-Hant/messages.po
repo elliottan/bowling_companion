@@ -52,8 +52,6 @@ msgstr "{0, plural, other {# 顆球}}"
 #. A count of shots thrown (first balls), not of bowling balls owned
 #. A count of shots thrown (first balls), not of bowling balls owned
 #. A count of shots thrown (first balls), not of bowling balls owned
-#. A count of shots thrown (first balls), not of bowling balls owned
-#. A count of shots thrown (first balls), not of bowling balls owned
 #. placeholder {0}: ball.balls
 #. placeholder {0}: ball.firstBalls
 #. placeholder {0}: estimate.firstBalls
@@ -61,7 +59,6 @@ msgstr "{0, plural, other {# 顆球}}"
 #: src/components/BallGameSessionsDialog.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
-#: src/views/GamePlanView.tsx
 msgctxt "balls thrown"
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, other {# 次投球}}"
@@ -100,11 +97,9 @@ msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, other {# 個油型}}"
 
 #. placeholder {0}: pending.incoming.sessions
-#. placeholder {0}: report.sessions
 #. placeholder {0}: stats.totalSessions
 #: src/components/FirstRun.tsx
 #: src/lib/shareCard.ts
-#: src/views/GamePlanView.tsx
 msgid "{0, plural, one {# session} other {# sessions}}"
 msgstr "{0, plural, other {# 個場次}}"
 
@@ -142,6 +137,18 @@ msgstr "{0, plural, other {球道 {lanes}}}"
 msgid "{0, plural, one {Lane {list}} other {Lanes {list}}}"
 msgstr "{0, plural, other {球道 {list}}}"
 
+#. How many times this ball left these pins standing
+#. placeholder {0}: leave.left
+#: src/components/BallEstimates.tsx
+msgid "{0, plural, one {Left # time} other {Left # times}}"
+msgstr "{0, plural, other {留下 # 次}}"
+
+#. Shots thrown (first balls) with this ball in scope, too few to trust its estimate
+#. placeholder {0}: estimate.firstBalls
+#: src/components/BallEstimates.tsx
+msgid "{0, plural, one {Only # ball here, too few to rank.} other {Only # balls here, too few to rank.}}"
+msgstr "{0, plural, other {這裡只有 # 次投球，太少無法排名。}}"
+
 #. placeholder {0}: leaves.length
 #: src/components/SpareLineBulkSheet.tsx
 msgid "{0, plural, one {Save for all # leave} other {Save for all # leaves}}"
@@ -166,6 +173,24 @@ msgstr "{0, plural, other {這台裝置已有 # 個場次。還原會將其取�
 #: src/components/Stats.tsx
 msgid "{0, plural, one {time} other {times}}"
 msgstr "{0, plural, other {次}}"
+
+#. Pins a game this ball is worth against the bowler's own average at this alley, e.g. +5 a game against your 196 here
+#. placeholder {0}: signedPins(estimate.difference)
+#: src/components/BallEstimates.tsx
+msgid "{0} a game against your {average} here"
+msgstr "相對你在這裡的 {average}，每局 {0}"
+
+#. Spoken: a ball's rate is this many percentage points above every ball's together.
+#. placeholder {0}: formatNumber(gap)
+#: src/components/BallEstimates.tsx
+msgid "{0} points above all balls"
+msgstr "比所有球高 {0} 個百分點"
+
+#. Spoken: a ball's rate is this many percentage points below every ball's together.
+#. placeholder {0}: formatNumber(-gap)
+#: src/components/BallEstimates.tsx
+msgid "{0} points below all balls"
+msgstr "比所有球低 {0} 個百分點"
 
 #: src/components/FirstRun.tsx
 msgid "{age}. Holds {sessions}, {games}, {balls}."
@@ -226,6 +251,11 @@ msgstr "{count, plural, other {查看全部 # 顆球}}"
 #: src/components/Stats.tsx
 msgid "{count, plural, one {View all # leave} other {View all # leaves}}"
 msgstr "{count, plural, other {查看全部 # 種殘瓶}}"
+
+#. Under a ball's name: the shots thrown with it (already counted, e.g. 349 balls), then its strike rate as a percentage
+#: src/components/BallEstimates.tsx
+msgid "{count} · strike {strike}"
+msgstr "{count} · 全倒 {strike}"
 
 #: src/views/CatalogView.tsx
 msgid "{count} colors"
@@ -389,14 +419,6 @@ msgstr "{line}，{who}"
 msgid "{losingSessions, plural, one {This file is older than what is on this device. You would lose # session.} other {This file is older than what is on this device. You would lose # sessions.}}"
 msgstr "{losingSessions, plural, other {此檔案比這台裝置上的資料舊，你會失去 # 個場次。}}"
 
-#: src/components/BallEstimates.tsx
-msgid "{made}/{chances} made"
-msgstr "{made}/{chances} 成功"
-
-#: src/components/BallEstimates.tsx
-msgid "{made}/{chances} made, few"
-msgstr "{made}/{chances} 成功，樣本少"
-
 #: src/views/GuidesView.tsx
 msgid "{minutes} min read"
 msgstr "閱讀 {minutes} 分鐘"
@@ -482,9 +504,19 @@ msgstr "{pin} 號瓶站立"
 msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
 msgstr "{pins, plural, other {第 {frame} 格，第 {ball} 球（# 支球瓶）}}"
 
-#: src/views/GamePlanView.tsx
-msgid "{shots}, {sessions}"
-msgstr "{shots}，{sessions}"
+#: src/components/BallEstimates.tsx
+msgid "{sessions, plural, one {# session} other {# sessions}}"
+msgstr "{sessions, plural, other {# 個場次}}"
+
+#: src/components/BallEstimates.tsx
+msgid "{sessions} · {shots}"
+msgstr "{sessions} · {shots}"
+
+#. A count of shots thrown (first balls), not of bowling balls owned
+#: src/components/BallEstimates.tsx
+msgctxt "balls thrown"
+msgid "{shots, plural, one {# ball} other {# balls}}"
+msgstr "{shots, plural, other {# 次投球}}"
 
 #: src/components/BallGameSessionsDialog.tsx
 msgid "{spoken} {made} of {of}"
@@ -682,10 +714,6 @@ msgstr "實際"
 msgid "Actual line"
 msgstr "實際路線"
 
-#: src/components/BallEstimates.tsx
-msgid "Actual overall average: {average}"
-msgstr "實際整體平均分：{average}"
-
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
 #: src/views/SpareLinesView.tsx
@@ -781,11 +809,14 @@ msgid "after a strike {value}"
 msgstr "全倒後 {value}"
 
 #. Bowling term. A short column heading over the share of strikes thrown right after a strike.
-#. Bowling term. A short column heading over the share of strikes thrown right after a strike.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 msgid "After strike"
 msgstr "全倒後"
+
+#. Heading over a ball's rates, each compared with every ball's together
+#: src/components/BallEstimates.tsx
+msgid "Against all balls"
+msgstr "與所有球相比"
 
 #. Stats tab window: every session, a short segment label
 #: src/components/SessionFilterBar.tsx
@@ -799,10 +830,6 @@ msgstr "全部"
 #: src/components/SessionFilterBar.tsx
 msgid "All alleys"
 msgstr "所有球館"
-
-#: src/components/BallEstimates.tsx
-msgid "All balls"
-msgstr "所有球"
 
 #: src/components/SessionFilterBar.tsx
 msgid "All events"
@@ -1137,6 +1164,11 @@ msgstr "恢復到球庫"
 msgid "Bulk edit"
 msgstr "批次編輯"
 
+#. Heading over a list of the bowler's balls, ranked.
+#: src/components/BallEstimates.tsx
+msgid "By ball"
+msgstr "按球"
+
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "By game"
@@ -1342,11 +1374,6 @@ msgstr "球心"
 #: src/views/LayoutLabView.tsx
 msgid "Core type"
 msgstr "球心類型"
-
-#. Bowling term. The pin leaves (what is left standing after the first ball) that cost this bowler the most.
-#: src/components/BallEstimates.tsx
-msgid "Costliest leaves"
-msgstr "失分最多的殘瓶"
 
 #. Bowling term: the outer shell material of a ball
 #. Bowling term: the outer shell material of a ball
@@ -1702,13 +1729,6 @@ msgstr "要編輯這筆已記錄的投球嗎？"
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "請為兩條球道輸入整數。"
-
-#. Short column heading: estimated average.
-#. Short column heading: estimated average.
-#: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
-msgid "Est."
-msgstr "預估"
 
 #: src/components/BallEstimates.tsx
 #: src/views/ProOfferView.tsx
@@ -2576,6 +2596,11 @@ msgstr "分瓶殘瓶 {value}"
 msgid "Leaves the oil"
 msgstr "出油點"
 
+#. Bowling term. The pin leaves (what is left standing after the first ball) this ball gave, the ones that cost the most spares first.
+#: src/components/BallEstimates.tsx
+msgid "Leaves, costliest first"
+msgstr "殘瓶，損失最大的在前"
+
 #: src/components/LaneVisualizer.tsx
 #: src/views/LayoutLabView.tsx
 msgid "Left"
@@ -2586,10 +2611,6 @@ msgstr "左"
 msgctxt "times a leave was left"
 msgid "Left"
 msgstr "次數"
-
-#: src/components/BallEstimates.tsx
-msgid "Left {count}"
-msgstr "殘留 {count} 次"
 
 #. A ball layout card: the bowler throws left-handed
 #: src/lib/shareCard.ts
@@ -2728,11 +2749,14 @@ msgstr "低"
 msgid "Low flare on purpose. Burns less board on the way down for fresh oil or a spare-adjacent ball."
 msgstr "刻意壓低油圈。下行時消耗較少板數，適合新鮮油面，或接近補中球的用法。"
 
-#. Bowling term. A short column heading over the share of leaves picked up for a spare.
+#. Under a percentage: the share of this leave picked up for a spare
+#: src/components/BallEstimates.tsx
+msgid "made"
+msgstr "補中"
+
 #. Bowling term. A short column heading over the share of leaves picked up for a spare.
 #. Bowling term: spares made out of the chances. Shown as made/chances.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 #: src/components/SpareLineFormDialog.tsx
 msgid "Made"
 msgstr "補中"
@@ -2741,6 +2765,11 @@ msgstr "補中"
 #: src/components/Stats.tsx
 msgid "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to follow it, so it is not on this card."
 msgstr "補中數除以機會數，接著是比率。第 10 格最後一球之後的殘瓶沒有補中球可接，因此不列入此卡片。"
+
+#. Under a percentage: the share of this leave picked up, from too few tries to trust
+#: src/components/BallEstimates.tsx
+msgid "made, few tries"
+msgstr "補中，嘗試太少"
 
 #. Bowling term: a leave that can be converted into a spare
 #: src/views/OpenFramesView.tsx
@@ -2962,14 +2991,15 @@ msgstr "尚無可比較的局"
 msgid "No lane notes yet"
 msgstr "尚無球道備註"
 
-#: src/components/BallEstimates.tsx
-msgid "No leave it gives you is one you often miss."
-msgstr "它造成的殘瓶中，沒有你常漏掉的。"
-
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
 msgid "No leaves fit these filters."
 msgstr "沒有符合篩選條件的殘瓶。"
+
+#. A ball with no pins left standing after any of its first balls in scope
+#: src/components/BallEstimates.tsx
+msgid "No leaves here yet. Every first ball was a strike."
+msgstr "這裡還沒有殘瓶。每個第一球都是全倒。"
 
 #. A filter on the spare lines screen: leaves the bowler has not written a line (stance and target) for
 #: src/lib/spareLines.ts
@@ -3713,6 +3743,11 @@ msgstr "右手"
 msgid "Rose"
 msgstr "玫瑰"
 
+#. A ball's rate equals every ball's together. Spoken after the rate.
+#: src/components/BallEstimates.tsx
+msgid "same as all balls"
+msgstr "與所有球相同"
+
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/LaneNotesTab.tsx
@@ -4085,11 +4120,9 @@ msgid "Specs and pictures of current balls"
 msgstr "現行球款的規格與圖片"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
-#. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins
 #. Bowling term: leaves with a gap between standing pins and the head pin down, a group on the Stats tab
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 #: src/lib/pins.ts
 #: src/views/OpenFramesView.tsx
 msgid "Splits"
@@ -4183,7 +4216,6 @@ msgstr "全倒"
 #. Bowling term: all ten pins down with the first ball. A rate label.
 #. Bowling term: all ten pins down with the first ball. A rate label.
 #. Bowling term: all ten pins down with the first ball. A rate label.
-#. Bowling term: all ten pins down with the first ball. A rate label.
 #. Bowling term: all ten pins down with the first ball. Column heading.
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #. Bowling term: all ten pins knocked down with the first ball of a frame
@@ -4201,7 +4233,9 @@ msgid "Strike"
 msgstr "全倒"
 
 #. Bowling term. Spoken name of the strike rate column, then its percentage.
+#. Bowling term. Spoken name of the strike rate column, then its percentage.
 #: src/components/BallEstimates.tsx
+#: src/components/ProOfferSamples.tsx
 msgid "strike {value}"
 msgstr "全倒 {value}"
 
@@ -4933,6 +4967,10 @@ msgstr "你已經打過幾個場次了。有缺少什麼功能，或有哪裡不
 #: src/components/HomeProfile.tsx
 msgid "Your arsenal"
 msgstr "你的球庫"
+
+#: src/components/BallEstimates.tsx
+msgid "Your average here"
+msgstr "你在這裡的平均分"
 
 #: src/views/SettingsView.tsx
 msgid "Your balls and their layouts"

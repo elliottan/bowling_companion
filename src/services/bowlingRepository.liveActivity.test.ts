@@ -204,7 +204,7 @@ describe("Live Activity wiring", () => {
     expect(liveActivity.tidy).not.toHaveBeenCalled();
   });
 
-  describe("is Pro (ADR-243)", () => {
+  describe("is Pro (ADR-244)", () => {
     it("shows nothing while Pro is locked, and starts at the next ball once it opens", async () => {
       setLiveActivityProOpen(false);
       const { gameId } = await newGame();

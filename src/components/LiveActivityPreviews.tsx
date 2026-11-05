@@ -6,7 +6,7 @@ import type { PaletteId } from "../lib/palette";
 import { CREAM, PIN_PATH } from "./ui/ProMark";
 
 /**
- * What the Live Activity looks like, for its page in Settings (ADR-243): the
+ * What the Live Activity looks like, for its page in Settings (ADR-244): the
  * Lock Screen, the Dynamic Island and the Apple Watch's Smart Stack.
  *
  * The phone draws the real thing in SwiftUI (`ios/App/HeadpinLiveActivity`),

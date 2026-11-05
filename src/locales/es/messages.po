@@ -52,8 +52,6 @@ msgstr "{0, plural, one {# bola} other {# bolas}}"
 #. A count of shots thrown (first balls), not of bowling balls owned
 #. A count of shots thrown (first balls), not of bowling balls owned
 #. A count of shots thrown (first balls), not of bowling balls owned
-#. A count of shots thrown (first balls), not of bowling balls owned
-#. A count of shots thrown (first balls), not of bowling balls owned
 #. placeholder {0}: ball.balls
 #. placeholder {0}: ball.firstBalls
 #. placeholder {0}: estimate.firstBalls
@@ -61,7 +59,6 @@ msgstr "{0, plural, one {# bola} other {# bolas}}"
 #: src/components/BallGameSessionsDialog.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
-#: src/views/GamePlanView.tsx
 msgctxt "balls thrown"
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, one {# tiro} other {# tiros}}"
@@ -100,11 +97,9 @@ msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, one {# patrón} other {# patrones}}"
 
 #. placeholder {0}: pending.incoming.sessions
-#. placeholder {0}: report.sessions
 #. placeholder {0}: stats.totalSessions
 #: src/components/FirstRun.tsx
 #: src/lib/shareCard.ts
-#: src/views/GamePlanView.tsx
 msgid "{0, plural, one {# session} other {# sessions}}"
 msgstr "{0, plural, one {# sesión} other {# sesiones}}"
 
@@ -142,6 +137,18 @@ msgstr "{0, plural, one {Pista {lanes}} other {Pistas {lanes}}}"
 msgid "{0, plural, one {Lane {list}} other {Lanes {list}}}"
 msgstr "{0, plural, one {Pista {list}} other {Pistas {list}}}"
 
+#. How many times this ball left these pins standing
+#. placeholder {0}: leave.left
+#: src/components/BallEstimates.tsx
+msgid "{0, plural, one {Left # time} other {Left # times}}"
+msgstr "{0, plural, one {Dejada # vez} other {Dejada # veces}}"
+
+#. Shots thrown (first balls) with this ball in scope, too few to trust its estimate
+#. placeholder {0}: estimate.firstBalls
+#: src/components/BallEstimates.tsx
+msgid "{0, plural, one {Only # ball here, too few to rank.} other {Only # balls here, too few to rank.}}"
+msgstr "{0, plural, one {Solo # tiro aquí, muy pocos para clasificar.} other {Solo # tiros aquí, muy pocos para clasificar.}}"
+
 #. placeholder {0}: leaves.length
 #: src/components/SpareLineBulkSheet.tsx
 msgid "{0, plural, one {Save for all # leave} other {Save for all # leaves}}"
@@ -166,6 +173,24 @@ msgstr "{0, plural, one {Este dispositivo ya tiene # sesión. Al restaurar, se r
 #: src/components/Stats.tsx
 msgid "{0, plural, one {time} other {times}}"
 msgstr "{0, plural, one {vez} other {veces}}"
+
+#. Pins a game this ball is worth against the bowler's own average at this alley, e.g. +5 a game against your 196 here
+#. placeholder {0}: signedPins(estimate.difference)
+#: src/components/BallEstimates.tsx
+msgid "{0} a game against your {average} here"
+msgstr "{0} por juego frente a tu {average} aquí"
+
+#. Spoken: a ball's rate is this many percentage points above every ball's together.
+#. placeholder {0}: formatNumber(gap)
+#: src/components/BallEstimates.tsx
+msgid "{0} points above all balls"
+msgstr "{0} puntos por encima de todas las bolas"
+
+#. Spoken: a ball's rate is this many percentage points below every ball's together.
+#. placeholder {0}: formatNumber(-gap)
+#: src/components/BallEstimates.tsx
+msgid "{0} points below all balls"
+msgstr "{0} puntos por debajo de todas las bolas"
 
 #: src/components/FirstRun.tsx
 msgid "{age}. Holds {sessions}, {games}, {balls}."
@@ -226,6 +251,11 @@ msgstr "{count, plural, one {Ver # bola} other {Ver las # bolas}}"
 #: src/components/Stats.tsx
 msgid "{count, plural, one {View all # leave} other {View all # leaves}}"
 msgstr "{count, plural, one {Ver # dejada} other {Ver las # dejadas}}"
+
+#. Under a ball's name: the shots thrown with it (already counted, e.g. 349 balls), then its strike rate as a percentage
+#: src/components/BallEstimates.tsx
+msgid "{count} · strike {strike}"
+msgstr "{count} · strike {strike}"
 
 #: src/views/CatalogView.tsx
 msgid "{count} colors"
@@ -389,14 +419,6 @@ msgstr "{line}, {who}"
 msgid "{losingSessions, plural, one {This file is older than what is on this device. You would lose # session.} other {This file is older than what is on this device. You would lose # sessions.}}"
 msgstr "{losingSessions, plural, one {Este archivo es más antiguo que lo que hay en este dispositivo. Perderías # sesión.} other {Este archivo es más antiguo que lo que hay en este dispositivo. Perderías # sesiones.}}"
 
-#: src/components/BallEstimates.tsx
-msgid "{made}/{chances} made"
-msgstr "{made}/{chances} logradas"
-
-#: src/components/BallEstimates.tsx
-msgid "{made}/{chances} made, few"
-msgstr "{made}/{chances} logradas, pocas"
-
 #: src/views/GuidesView.tsx
 msgid "{minutes} min read"
 msgstr "{minutes} min de lectura"
@@ -482,9 +504,19 @@ msgstr "Pino {pin} en pie"
 msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
 msgstr "{pins, plural, one {cuadro {frame}, bola {ball} (# pino)} other {cuadro {frame}, bola {ball} (# pinos)}}"
 
-#: src/views/GamePlanView.tsx
-msgid "{shots}, {sessions}"
-msgstr "{shots}, {sessions}"
+#: src/components/BallEstimates.tsx
+msgid "{sessions, plural, one {# session} other {# sessions}}"
+msgstr "{sessions, plural, one {# sesión} other {# sesiones}}"
+
+#: src/components/BallEstimates.tsx
+msgid "{sessions} · {shots}"
+msgstr "{sessions} · {shots}"
+
+#. A count of shots thrown (first balls), not of bowling balls owned
+#: src/components/BallEstimates.tsx
+msgctxt "balls thrown"
+msgid "{shots, plural, one {# ball} other {# balls}}"
+msgstr "{shots, plural, one {# tiro} other {# tiros}}"
 
 #: src/components/BallGameSessionsDialog.tsx
 msgid "{spoken} {made} of {of}"
@@ -682,10 +714,6 @@ msgstr "Real"
 msgid "Actual line"
 msgstr "Línea real"
 
-#: src/components/BallEstimates.tsx
-msgid "Actual overall average: {average}"
-msgstr "Promedio general real: {average}"
-
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
 #: src/views/SpareLinesView.tsx
@@ -781,11 +809,14 @@ msgid "after a strike {value}"
 msgstr "después de strike {value}"
 
 #. Bowling term. A short column heading over the share of strikes thrown right after a strike.
-#. Bowling term. A short column heading over the share of strikes thrown right after a strike.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 msgid "After strike"
 msgstr "Tras strike"
+
+#. Heading over a ball's rates, each compared with every ball's together
+#: src/components/BallEstimates.tsx
+msgid "Against all balls"
+msgstr "Frente a todas las bolas"
 
 #. Stats tab window: every session, a short segment label
 #: src/components/SessionFilterBar.tsx
@@ -799,10 +830,6 @@ msgstr "Todo"
 #: src/components/SessionFilterBar.tsx
 msgid "All alleys"
 msgstr "Todos los boliches"
-
-#: src/components/BallEstimates.tsx
-msgid "All balls"
-msgstr "Todas las bolas"
 
 #: src/components/SessionFilterBar.tsx
 msgid "All events"
@@ -1137,6 +1164,11 @@ msgstr "Recuperar al arsenal"
 msgid "Bulk edit"
 msgstr "Edición en bloque"
 
+#. Heading over a list of the bowler's balls, ranked.
+#: src/components/BallEstimates.tsx
+msgid "By ball"
+msgstr "Por bola"
+
 #: src/components/ProOfferSamples.tsx
 #: src/components/Stats.tsx
 msgid "By game"
@@ -1342,11 +1374,6 @@ msgstr "Núcleo"
 #: src/views/LayoutLabView.tsx
 msgid "Core type"
 msgstr "Tipo de núcleo"
-
-#. Bowling term. The pin leaves (what is left standing after the first ball) that cost this bowler the most.
-#: src/components/BallEstimates.tsx
-msgid "Costliest leaves"
-msgstr "Dejadas más costosas"
 
 #. Bowling term: the outer shell material of a ball
 #. Bowling term: the outer shell material of a ball
@@ -1702,13 +1729,6 @@ msgstr "¿Editar este tiro registrado?"
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "Ingresa números enteros para ambas pistas."
-
-#. Short column heading: estimated average.
-#. Short column heading: estimated average.
-#: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
-msgid "Est."
-msgstr "Est."
 
 #: src/components/BallEstimates.tsx
 #: src/views/ProOfferView.tsx
@@ -2576,6 +2596,11 @@ msgstr "dejadas que quedaron en split {value}"
 msgid "Leaves the oil"
 msgstr "Sale del aceite"
 
+#. Bowling term. The pin leaves (what is left standing after the first ball) this ball gave, the ones that cost the most spares first.
+#: src/components/BallEstimates.tsx
+msgid "Leaves, costliest first"
+msgstr "Dejadas, las más costosas primero"
+
 #: src/components/LaneVisualizer.tsx
 #: src/views/LayoutLabView.tsx
 msgid "Left"
@@ -2586,10 +2611,6 @@ msgstr "Izquierda"
 msgctxt "times a leave was left"
 msgid "Left"
 msgstr "Veces"
-
-#: src/components/BallEstimates.tsx
-msgid "Left {count}"
-msgstr "{count} veces"
 
 #. A ball layout card: the bowler throws left-handed
 #: src/lib/shareCard.ts
@@ -2728,11 +2749,14 @@ msgstr "Bajo"
 msgid "Low flare on purpose. Burns less board on the way down for fresh oil or a spare-adjacent ball."
 msgstr "Flare bajo a propósito. Gasta menos tablas en el recorrido, para aceite fresco o una bola cercana a la de spare."
 
-#. Bowling term. A short column heading over the share of leaves picked up for a spare.
+#. Under a percentage: the share of this leave picked up for a spare
+#: src/components/BallEstimates.tsx
+msgid "made"
+msgstr "hechas"
+
 #. Bowling term. A short column heading over the share of leaves picked up for a spare.
 #. Bowling term: spares made out of the chances. Shown as made/chances.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 #: src/components/SpareLineFormDialog.tsx
 msgid "Made"
 msgstr "Hechas"
@@ -2741,6 +2765,11 @@ msgstr "Hechas"
 #: src/components/Stats.tsx
 msgid "Made over chances, then the rate. A leave off the last ball of the 10th has no spare to follow it, so it is not on this card."
 msgstr "Hechas sobre oportunidades, luego la tasa. Una dejada de la última bola del 10 no tiene un spare después, así que no aparece en esta tarjeta."
+
+#. Under a percentage: the share of this leave picked up, from too few tries to trust
+#: src/components/BallEstimates.tsx
+msgid "made, few tries"
+msgstr "hechas, pocos intentos"
 
 #. Bowling term: a leave that can be converted into a spare
 #: src/views/OpenFramesView.tsx
@@ -2962,14 +2991,15 @@ msgstr "Aún no hay juegos para comparar"
 msgid "No lane notes yet"
 msgstr "Aún no hay notas de pista"
 
-#: src/components/BallEstimates.tsx
-msgid "No leave it gives you is one you often miss."
-msgstr "Ninguna de las dejadas que te deja es de las que sueles fallar."
-
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
 msgid "No leaves fit these filters."
 msgstr "Ninguna dejada coincide con estos filtros."
+
+#. A ball with no pins left standing after any of its first balls in scope
+#: src/components/BallEstimates.tsx
+msgid "No leaves here yet. Every first ball was a strike."
+msgstr "Aún no hay dejadas aquí. Cada primera bola fue strike."
 
 #. A filter on the spare lines screen: leaves the bowler has not written a line (stance and target) for
 #: src/lib/spareLines.ts
@@ -3713,6 +3743,11 @@ msgstr "Diestro"
 msgid "Rose"
 msgstr "Rosa"
 
+#. A ball's rate equals every ball's together. Spoken after the rate.
+#: src/components/BallEstimates.tsx
+msgid "same as all balls"
+msgstr "igual que todas las bolas"
+
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/LaneNotesTab.tsx
@@ -4085,11 +4120,9 @@ msgid "Specs and pictures of current balls"
 msgstr "Especificaciones y fotos de las bolas actuales"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
-#. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins
 #. Bowling term: leaves with a gap between standing pins and the head pin down, a group on the Stats tab
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 #: src/lib/pins.ts
 #: src/views/OpenFramesView.tsx
 msgid "Splits"
@@ -4183,7 +4216,6 @@ msgstr "strike"
 #. Bowling term: all ten pins down with the first ball. A rate label.
 #. Bowling term: all ten pins down with the first ball. A rate label.
 #. Bowling term: all ten pins down with the first ball. A rate label.
-#. Bowling term: all ten pins down with the first ball. A rate label.
 #. Bowling term: all ten pins down with the first ball. Column heading.
 #. Bowling term: all ten pins knocked down with the first ball of a frame
 #. Bowling term: all ten pins knocked down with the first ball of a frame
@@ -4201,7 +4233,9 @@ msgid "Strike"
 msgstr "Strike"
 
 #. Bowling term. Spoken name of the strike rate column, then its percentage.
+#. Bowling term. Spoken name of the strike rate column, then its percentage.
 #: src/components/BallEstimates.tsx
+#: src/components/ProOfferSamples.tsx
 msgid "strike {value}"
 msgstr "strike {value}"
 
@@ -4933,6 +4967,10 @@ msgstr "Ya llevas varias sesiones. ¿Qué falta, o qué te estorba?"
 #: src/components/HomeProfile.tsx
 msgid "Your arsenal"
 msgstr "Tu arsenal"
+
+#: src/components/BallEstimates.tsx
+msgid "Your average here"
+msgstr "Tu promedio aquí"
 
 #: src/views/SettingsView.tsx
 msgid "Your balls and their layouts"

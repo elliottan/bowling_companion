@@ -402,7 +402,7 @@ draws. A setting a bowler has to see to understand is a `ListRow` instead,
 carrying its value ("On") before the chevron, and its page holds the switch
 with pictures of what it turns on: "Live Activity", first in the App group,
 opens the Lock Screen, the Dynamic Island and the Apple Watch drawn with a
-sample game (ADR-243). A row appears only where the setting can do something:
+sample game (ADR-244). A row appears only where the setting can do something:
 Live Activity is in the iPhone app on iOS 18 or later (ADR-227), and nowhere
 else. "Privacy and terms" pushes a screen in
 Settings with the site page's own text (ADR-181), not a trip to the site. Rows
@@ -488,13 +488,14 @@ small "Pro" label beside the bowler's name is the same graphite and gold.
 **A hint can be waved away, and comes back.** Every hint has an action and an X.
 The X is a snooze with an end, kept per thing it was about, not a permanent no.
 
-**A report leads with its answers.** The Alley report opens on what you'd
-average with each ball there and keeps the detail one tap down (its lines are
-off the screen for now, ADR-163). A ball's row says its estimate, marked with a
-tilde so it is never read as a score, its difference from your average, and
-every rate as a column, under an All balls row that every ball is read against;
-opening it shows the leaves it costs most, never a sentence about what to throw
-(ADR-147, ADR-149). A line read across sessions names the
+**A report leads with its answers.** The Alley report opens on one card of
+you at that alley: your average, what it is read from, and your four rates.
+Under it the balls are ranked by what you'd average with each, and the detail
+is one tap down in a sheet (its lines are off the screen for now, ADR-163). A
+ball's row says its estimate, marked with a tilde so it is never read as a
+score, and a pill for its difference from your average; its sheet shows its
+rates against every ball's and its top three leaves with the share made as a
+percentage, never a sentence about what to throw (ADR-147, ADR-243). A line read across sessions names the
 alley and pattern it was thrown on, since which pattern is half of what a line
 means (ADR-148). Numbers in a table beat
 the same numbers in sentences: the screen is read standing at the lanes.

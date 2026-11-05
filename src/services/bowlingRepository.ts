@@ -53,7 +53,7 @@ export async function setLiveActivityEnabled(enabled: boolean): Promise<void> {
 }
 
 /**
- * Whether Pro is open, as the shell last said (ADR-243). The Live Activity is
+ * Whether Pro is open, as the shell last said (ADR-244). The Live Activity is
  * Pro, and the paths that start one run outside React, so the shell hands the
  * answer down here before any effect runs (`App`), as it hands the palette to
  * `<html>`. Open until told: where nothing sells Pro nothing tells it, and the

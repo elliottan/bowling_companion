@@ -218,7 +218,7 @@ function App() {
   const proStore = useProStore();
   const pro = useMemo(() => appProAccess(proStore), [proStore]);
   useAppliedPalette(!pro.locked);
-  // The Live Activity is Pro (ADR-243), and what starts one runs outside
+  // The Live Activity is Pro (ADR-244), and what starts one runs outside
   // React: told before any effect, so the launch's tidy already knows.
   useLayoutEffect(() => setLiveActivityProOpen(!pro.locked), [pro.locked]);
   const [sharedLine] = useState(() => decodeLineParams(currentSearch()));

@@ -5,7 +5,7 @@ import type { Frame, PinNumber } from "../types/bowling";
 
 /**
  * The sample game and the island's colors behind the Live Activity's pictures
- * in Settings (`LiveActivityPreviews`, ADR-243).
+ * in Settings (`LiveActivityPreviews`, ADR-244).
  */
 
 /**
