@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.85.1: Buttons that stay one button, and History and Stats back to one row (2026-11-05)
+## 0.85.2: Buttons that stay one button, and History and Stats back to one row (2026-11-05)
 
 - The round buttons at the top of a screen and a sheet no longer flip between
   two different looks as a sheet rises or a screen slides in. The iPhone app
@@ -21,6 +21,11 @@ had all shipped.
   (ADR-242).
 - Home's tiles and recent sessions no longer carry a small arrow in their
   corner; they still look raised and pressable.
+
+## 0.85.1: The old Vercel address sends you to headpin.app (2026-11-05)
+
+- Opening `bowling-companion.vercel.app`, or any page under it, now takes you
+  to the same page on `headpin.app`.
 
 ## 0.85.0: Sheets that rise from the bottom, and Home's cards that look like buttons (2026-11-04)
 

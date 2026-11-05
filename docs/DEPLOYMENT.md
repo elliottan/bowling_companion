@@ -104,13 +104,18 @@ CLI run links the directory to a Vercel project (interactive, one-time).
 
 ### What `vercel.json` is for
 
-It carries a redirect, two rewrites and the response headers.
+It carries redirects, two rewrites and the response headers.
 
 The redirect is `www.headpin.app` to the bare `headpin.app`. That is not
 cosmetic. Browser storage is scoped to an origin,
 and `www.` is a different origin, so an app served on both would give a user
 two databases, two installs and two halves of a history depending on which
 link they happened to tap. One canonical origin, for ever.
+
+The project's old address, `bowling-companion.vercel.app`, redirects to
+`headpin.app` the same way, path kept, so an old link lands on the same page.
+Storage does not follow the redirect: a browser that only ever used the old
+origin keeps its games there, and they are not moved across.
 
 The redirect is 307 rather than 308 deliberately: a permanent redirect is
 cached hard by browsers and could not be reversed on a device that had already
