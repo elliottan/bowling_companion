@@ -6,6 +6,39 @@ access (ADR-137). It replaces the earlier handout, which described a run done
 from web search summaries alone (ADR-135); everything that run found has since
 been re-read against the real pages.
 
+## 2026-11-05: the autumn 2026 releases
+
+- `usbc-index` rebuilt (5,124 rows). `select-balls -- --since 2026-06-01`
+  queued 56; routing gave 20 bowwwl, 1 PDF, 1 MOTIV, 34 manual.
+- **Sixteen promoted**, now **848 balls, all 16 with a photo**: Brunswick
+  Strategy Logic, Purple Rhino Pro, Vaporize S.E.; DV8 Outsider, Smooth
+  Criminal; Ebonite Go Time; Hammer Blacklist, Reckoning; MOTIV Orion Nebula,
+  Royal Venom; Radical Intel Recon Hybrid, Vexed Variant; Storm Ion Max Veil,
+  Ion Pro Pearl, PhysiX Ignition, !Q Focus. Ion Pro Pearl's Storm PDF has no
+  spec table, so its bowwwl page was parsed. Purple Rhino Pro and Vaporize S.E.
+  were found at bowwwl slugs routing missed (`purple-rhino-pro`, `vaporize-se`).
+  Some release dates are later in November 2026, as bowwwl prints them.
+- **Orion Nebula's photo** needed `MOTIV_USER_AGENT`; it was fetched with curl
+  and set with `set-ball-image`.
+- **Dropped as colourways of catalog rows:** Fury (five colours), Black Widow
+  Toxin Hybrid Scarlet/Purple/Black, Black Widow Toxin Pearl Red/Black, Ion Max
+  Pink/White/Blue, The One Urethane 78D Navy.
+- **Hammer's "Black Widow Purple Pearl Urethane 78D" and "Effect Purple Pearl
+  Urethane 78D"** look like the `Purple Pearl Urethane 78D` already in (Hammer's
+  page names neither), so neither was added.
+- **No source found** (bowwwl 404 on slug variants, maker pages missing or not
+  reachable; rotogrip.com and 900global.com failed TLS from the cloud session):
+  Storm The Code Black, Ion Pro Pearl PTLP, Max Orbit Under 13 Lbs., Hy-Road
+  Hybrid, Lock Axis, Savage Lock, SPI Clear All Colors, Ultimate Motor; Roto
+  Grip Idol Star, Hustle SNY, RST Ex-Torque, Attention BP; 900 Global Zen Blue
+  Label, Cruise 78D Urethane, Reality Magenta, HB Honey Badger Dark Out, Cruise
+  PC Purple/Copper; Brunswick Vaporize X, LT-48 Pro Obsidian, Johnny Petraglia
+  BVL, Hyperize; Ebonite Pivot Apex, Shadow Angular One; Hammer Black Widow 3.0
+  Ruby, Pure Effect, Effect Attack Hybrid, Effect Attack Red Solid, Gauntlet
+  Knight Solid; Radical The Hitter Teal. Many are colourways or not yet on
+  bowwwl; rerun the same `select-balls` in a few weeks, since bowwwl adds pages
+  around release day.
+
 ## 2026-10-13: the 2022 to 2024 slice
 
 Done by the session that followed this handout, from the queue below.

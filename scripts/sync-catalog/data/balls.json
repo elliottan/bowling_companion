@@ -37752,5 +37752,742 @@
         "mbDiff": null
       }
     ]
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Strategy Logic",
+    "releaseDate": "2026-10-22",
+    "coverstockRaw": "HK22C2 - EVO Hybrid Reactive",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Dual Centric",
+    "rg": 2.509,
+    "diff": 0.047,
+    "mbDiff": 0.016,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/brunswick/strategy-logic"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.52,
+        "diff": 0.041,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 15,
+        "rg": 2.509,
+        "diff": 0.047,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 14,
+        "rg": 2.516,
+        "diff": 0.047,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.597,
+        "diff": 0.041,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 12,
+        "rg": 2.593,
+        "diff": 0.041,
+        "mbDiff": 0.014
+      }
+    ]
+  },
+  {
+    "brand": "DV8",
+    "name": "Outsider",
+    "releaseDate": "2026-10-22",
+    "coverstockRaw": "HK22 - Jailbreak (F7) Solid Reactive",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Renegade",
+    "rg": 2.499,
+    "diff": 0.04,
+    "mbDiff": 0.02,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/dv8/outsider"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.513,
+        "diff": 0.034,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 15,
+        "rg": 2.499,
+        "diff": 0.04,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 14,
+        "rg": 2.516,
+        "diff": 0.04,
+        "mbDiff": 0.02
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.045,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 12,
+        "rg": 2.602,
+        "diff": 0.045,
+        "mbDiff": 0.01
+      }
+    ]
+  },
+  {
+    "brand": "DV8",
+    "name": "Smooth Criminal",
+    "releaseDate": "2026-10-22",
+    "coverstockRaw": "Jailbreak (S5) Hybrid Reactive",
+    "factoryFinish": "500/1000/3000 Siaair Micro Pad",
+    "coreName": "Larceny",
+    "rg": 2.471,
+    "diff": 0.028,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/dv8/smooth-criminal"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.483,
+        "diff": 0.025,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.471,
+        "diff": 0.028,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.488,
+        "diff": 0.028,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.558,
+        "diff": 0.03,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.579,
+        "diff": 0.03,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Ebonite",
+    "name": "Go Time",
+    "releaseDate": "2026-11-19",
+    "coverstockRaw": "HK22 - GB 13.7 Solid Reactive",
+    "factoryFinish": "500/1500 Siaair Micro Pad",
+    "coreName": "Big Time",
+    "rg": 2.508,
+    "diff": 0.054,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/ebonite/go-time"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.517,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.508,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.538,
+        "diff": 0.054,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.574,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.597,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Hammer",
+    "name": "Blacklist",
+    "releaseDate": "2026-11-19",
+    "coverstockRaw": "HK22C - Cohesion Pearl Reactive",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Stacked LED",
+    "rg": 2.545,
+    "diff": 0.047,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/hammer/blacklist"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.554,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.545,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.561,
+        "diff": 0.047,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.585,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.608,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Hammer",
+    "name": "Reckoning",
+    "releaseDate": "2026-11-19",
+    "coverstockRaw": "HK22C2 Solid Reactive",
+    "factoryFinish": "500/1000 Siaair Micro Pad",
+    "coreName": "Vindicator",
+    "rg": 2.474,
+    "diff": 0.053,
+    "mbDiff": 0.016,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/hammer/reckoning"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.488,
+        "diff": 0.045,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 15,
+        "rg": 2.474,
+        "diff": 0.053,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 14,
+        "rg": 2.502,
+        "diff": 0.053,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.597,
+        "diff": 0.041,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 12,
+        "rg": 2.593,
+        "diff": 0.041,
+        "mbDiff": 0.014
+      }
+    ]
+  },
+  {
+    "brand": "Motiv",
+    "name": "Orion Nebula",
+    "releaseDate": "2026-11-25",
+    "coverstockRaw": "Dynamic Leverage Solid Reactive",
+    "factoryFinish": "3000 Grit LSS",
+    "coreName": "Hadron",
+    "rg": 2.5,
+    "diff": 0.045,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.motivbowling.com/products/balls/medium-oil/orion-nebula.html"
+    ],
+    "productUrl": "https://www.motivbowling.com/products/balls/medium-oil/orion-nebula.html",
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.5,
+        "diff": 0.038,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.5,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.049,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.65,
+        "diff": 0.02,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.02,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Motiv",
+    "name": "Royal Venom",
+    "releaseDate": "2026-11-05",
+    "coverstockRaw": "Hybrid Reactive",
+    "factoryFinish": "3000 LSS",
+    "coreName": "Torx V3",
+    "rg": 2.48,
+    "diff": 0.056,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/motiv/royal-venom"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.046,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.48,
+        "diff": 0.056,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.051,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.58,
+        "diff": 0.023,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.016,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Radical",
+    "name": "Intel Recon Hybrid",
+    "releaseDate": "2026-11-19",
+    "coverstockRaw": "HK22 - HyperKinetic Hybrid Reactive",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Modified Intel",
+    "rg": 2.483,
+    "diff": 0.032,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/radical/intel-recon-hybrid"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.495,
+        "diff": 0.028,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.483,
+        "diff": 0.032,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.499,
+        "diff": 0.032,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.574,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.597,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Radical",
+    "name": "Vexed Variant",
+    "releaseDate": "2026-10-22",
+    "coverstockRaw": "HK22C+ Solid Reactive",
+    "factoryFinish": "500/2000 Siaair Micro Pad",
+    "coreName": "Vexed Variant",
+    "rg": 2.49,
+    "diff": 0.045,
+    "mbDiff": 0.015,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/radical/vexed-variant"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.501,
+        "diff": 0.04,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.045,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 14,
+        "rg": 2.506,
+        "diff": 0.045,
+        "mbDiff": 0.015
+      },
+      {
+        "weight": 13,
+        "rg": 2.589,
+        "diff": 0.043,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.612,
+        "diff": 0.043,
+        "mbDiff": 0.011
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Ion Max Veil",
+    "releaseDate": "2026-10-29",
+    "coverstockRaw": "NRG Smooth Solid Reactive",
+    "factoryFinish": "4000 Abralon",
+    "coreName": "Element Max A.I.",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": 0.014,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/ion-max-veil"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.053,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 14,
+        "rg": 2.49,
+        "diff": 0.053,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": null,
+        "diff": null,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "Ion Pro Pearl",
+    "releaseDate": "2026-11-06",
+    "coverstockRaw": "NRG Pearl Reactive",
+    "factoryFinish": "4000 Abralon",
+    "coreName": "Element Tour A.I.",
+    "rg": 2.47,
+    "diff": 0.035,
+    "mbDiff": 0.014,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/ion-pro-pearl"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.035,
+        "mbDiff": 0.013
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.035,
+        "mbDiff": 0.014
+      },
+      {
+        "weight": 14,
+        "rg": 2.51,
+        "diff": 0.036,
+        "mbDiff": 0.01
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.58,
+        "diff": 0.031,
+        "mbDiff": 0.009
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "PhysiX Ignition",
+    "releaseDate": "2026-11-19",
+    "coverstockRaw": "R2S DEEP Solid Reactive",
+    "factoryFinish": "Power Edge",
+    "coreName": "Atomic A.I.",
+    "rg": 2.47,
+    "diff": 0.055,
+    "mbDiff": 0.018,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/physix-ignition"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.47,
+        "diff": 0.056,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 15,
+        "rg": 2.47,
+        "diff": 0.055,
+        "mbDiff": 0.018
+      },
+      {
+        "weight": 14,
+        "rg": 2.52,
+        "diff": 0.054,
+        "mbDiff": 0.016
+      },
+      {
+        "weight": 13,
+        "rg": 2.56,
+        "diff": 0.034,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.58,
+        "diff": 0.031,
+        "mbDiff": 0.009
+      }
+    ]
+  },
+  {
+    "brand": "Storm",
+    "name": "!Q Focus",
+    "releaseDate": "2026-11-12",
+    "coverstockRaw": "XT Shine Pearl Reactive",
+    "factoryFinish": "Power Edge",
+    "coreName": "C3 Centripetal Control",
+    "rg": 2.49,
+    "diff": 0.029,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/storm/q-focus"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.49,
+        "diff": 0.035,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.49,
+        "diff": 0.029,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.54,
+        "diff": 0.034,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.59,
+        "diff": 0.045,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.65,
+        "diff": 0.035,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Purple Rhino Pro",
+    "releaseDate": "2026-10-22",
+    "coverstockRaw": "Savvy Hook 4.0 Solid Reactive",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Vintage Light Bulb",
+    "rg": 2.568,
+    "diff": 0.032,
+    "mbDiff": null,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/brunswick/purple-rhino-pro"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.517,
+        "diff": 0.044,
+        "mbDiff": null
+      },
+      {
+        "weight": 15,
+        "rg": 2.568,
+        "diff": 0.032,
+        "mbDiff": null
+      },
+      {
+        "weight": 14,
+        "rg": 2.585,
+        "diff": 0.032,
+        "mbDiff": null
+      },
+      {
+        "weight": 13,
+        "rg": 2.574,
+        "diff": 0.04,
+        "mbDiff": null
+      },
+      {
+        "weight": 12,
+        "rg": 2.597,
+        "diff": 0.04,
+        "mbDiff": null
+      }
+    ]
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Vaporize S.E.",
+    "releaseDate": "2025-05-06",
+    "coverstockRaw": "HK22C - EVO Pearl Plus+ Reactive",
+    "factoryFinish": "500/1000/1500 Siaair, Crown Factory Compound",
+    "coreName": "Zone Asymmetric",
+    "rg": 2.478,
+    "diff": 0.048,
+    "mbDiff": 0.017,
+    "sourceUrls": [
+      "https://www.bowwwl.com/bowling-ball-database/brunswick/vaporize-se"
+    ],
+    "weights": [
+      {
+        "weight": 16,
+        "rg": 2.492,
+        "diff": 0.046,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 15,
+        "rg": 2.478,
+        "diff": 0.048,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 14,
+        "rg": 2.495,
+        "diff": 0.046,
+        "mbDiff": 0.017
+      },
+      {
+        "weight": 13,
+        "rg": 2.589,
+        "diff": 0.043,
+        "mbDiff": 0.011
+      },
+      {
+        "weight": 12,
+        "rg": 2.612,
+        "diff": 0.043,
+        "mbDiff": 0.011
+      }
+    ]
   }
 ]

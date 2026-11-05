@@ -2245,6 +2245,18 @@
   },
   {
     "brand": "Brunswick",
+    "name": "Purple Rhino Pro (2026)",
+    "normalizedName": "purple rhino pro 2026",
+    "approvalDate": "2026-10-13"
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Strategy Logic",
+    "normalizedName": "strategy logic",
+    "approvalDate": "2026-10-13"
+  },
+  {
+    "brand": "Brunswick",
     "name": "Vaporize X",
     "normalizedName": "vaporize x",
     "approvalDate": "2026-09-29"
@@ -2455,6 +2467,12 @@
   },
   {
     "brand": "Brunswick",
+    "name": "Attitude Control Black",
+    "normalizedName": "attitude control black",
+    "approvalDate": "2025-05-27"
+  },
+  {
+    "brand": "Brunswick",
     "name": "Ethos Solid",
     "normalizedName": "ethos solid",
     "approvalDate": "2025-05-27"
@@ -2632,6 +2650,12 @@
     "name": "Johnny Petraglia BVL Blue-Purple",
     "normalizedName": "johnny petraglia bvl blue purple",
     "approvalDate": "2023-08-08"
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Quantum Evo Response",
+    "normalizedName": "quantum evo response",
+    "approvalDate": "2023-06-27"
   },
   {
     "brand": "Brunswick",
@@ -3361,6 +3385,12 @@
   },
   {
     "brand": "Brunswick",
+    "name": "Fanatic Pearl",
+    "normalizedName": "fanatic pearl",
+    "approvalDate": "2017-06-13"
+  },
+  {
+    "brand": "Brunswick",
     "name": "Magnitude 035",
     "normalizedName": "magnitude 035",
     "approvalDate": "2017-06-13"
@@ -3429,12 +3459,6 @@
     "brand": "Brunswick",
     "name": "Dark Nirvana",
     "normalizedName": "dark nirvana",
-    "approvalDate": "2017-03-07"
-  },
-  {
-    "brand": "Brunswick",
-    "name": "Imperial Nirvana",
-    "normalizedName": "imperial nirvana",
     "approvalDate": "2017-03-07"
   },
   {
@@ -3517,12 +3541,6 @@
   },
   {
     "brand": "Brunswick",
-    "name": "Fanatic",
-    "normalizedName": "fanatic",
-    "approvalDate": "2016-06-14"
-  },
-  {
-    "brand": "Brunswick",
     "name": "Fanatic BTU",
     "normalizedName": "fanatic btu",
     "approvalDate": "2016-06-14"
@@ -3543,12 +3561,6 @@
     "brand": "Brunswick",
     "name": "Nirvana Evol",
     "normalizedName": "nirvana evol",
-    "approvalDate": "2016-05-03"
-  },
-  {
-    "brand": "Brunswick",
-    "name": "Siege Buster",
-    "normalizedName": "siege buster",
     "approvalDate": "2016-05-03"
   },
   {
@@ -3645,6 +3657,12 @@
     "brand": "Brunswick",
     "name": "Fresh Cloud",
     "normalizedName": "fresh cloud",
+    "approvalDate": "2015-09-01"
+  },
+  {
+    "brand": "Brunswick",
+    "name": "In-Out",
+    "normalizedName": "in out",
     "approvalDate": "2015-09-01"
   },
   {
@@ -3805,12 +3823,6 @@
   },
   {
     "brand": "Brunswick",
-    "name": "The Premium Ringer",
-    "normalizedName": "the premium ringer",
-    "approvalDate": "2014-10-01"
-  },
-  {
-    "brand": "Brunswick",
     "name": "Brute",
     "normalizedName": "brute",
     "approvalDate": "2014-08-01"
@@ -3916,6 +3928,12 @@
     "name": "Purple Rhino Pro Legacy",
     "normalizedName": "purple rhino pro legacy",
     "approvalDate": "2013-11-01"
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Mastermind",
+    "normalizedName": "mastermind",
+    "approvalDate": "2013-10-01"
   },
   {
     "brand": "Brunswick",
@@ -4105,6 +4123,12 @@
   },
   {
     "brand": "Brunswick",
+    "name": "Warm Zone",
+    "normalizedName": "warm zone",
+    "approvalDate": "2012-04-01"
+  },
+  {
+    "brand": "Brunswick",
     "name": "C*(System) Versa-Max",
     "normalizedName": "c system versa max",
     "approvalDate": "2012-01-01"
@@ -4231,12 +4255,6 @@
   },
   {
     "brand": "Brunswick",
-    "name": "Danger Zone Code 2",
-    "normalizedName": "danger zone code 2",
-    "approvalDate": "2011-03-01"
-  },
-  {
-    "brand": "Brunswick",
     "name": "Karma Black/Blue Solid",
     "normalizedName": "karma black blue solid",
     "approvalDate": "2011-03-01"
@@ -4315,20 +4333,26 @@
   },
   {
     "brand": "Brunswick",
+    "name": "C*(System) 4.5",
+    "normalizedName": "c system 4 5",
+    "approvalDate": "2010-06-01"
+  },
+  {
+    "brand": "Brunswick",
     "name": "Fiery Siege",
     "normalizedName": "fiery siege",
     "approvalDate": "2010-06-01"
   },
   {
     "brand": "Brunswick",
-    "name": "Avalanche Urethane",
-    "normalizedName": "avalanche urethane",
-    "approvalDate": "2010-05-01"
+    "name": "Revolver",
+    "normalizedName": "revolver",
+    "approvalDate": "2010-06-01"
   },
   {
     "brand": "Brunswick",
-    "name": "C*(System) 3.5 LE",
-    "normalizedName": "c system 3 5 le",
+    "name": "Avalanche Urethane",
+    "normalizedName": "avalanche urethane",
     "approvalDate": "2010-05-01"
   },
   {
@@ -4401,6 +4425,12 @@
     "brand": "Brunswick",
     "name": "Battering Siege",
     "normalizedName": "battering siege",
+    "approvalDate": "2010-02-01"
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Siege Polyester Black",
+    "normalizedName": "siege polyester black",
     "approvalDate": "2010-02-01"
   },
   {
@@ -4879,12 +4909,6 @@
   },
   {
     "brand": "Brunswick",
-    "name": "PBA Inferno Black/White",
-    "normalizedName": "pba inferno black white",
-    "approvalDate": "2006-11-01"
-  },
-  {
-    "brand": "Brunswick",
     "name": "BVP Mammoth",
     "normalizedName": "bvp mammoth",
     "approvalDate": "2006-10-01"
@@ -4953,12 +4977,6 @@
     "brand": "Brunswick",
     "name": "Radical Inferno",
     "normalizedName": "radical inferno",
-    "approvalDate": "2006-06-01"
-  },
-  {
-    "brand": "Brunswick",
-    "name": "Red Zone",
-    "normalizedName": "red zone",
     "approvalDate": "2006-06-01"
   },
   {
@@ -5125,12 +5143,6 @@
   },
   {
     "brand": "Brunswick",
-    "name": "Majestic Zone II",
-    "normalizedName": "majestic zone 2",
-    "approvalDate": "2005-04-01"
-  },
-  {
-    "brand": "Brunswick",
     "name": "Groove Urethane",
     "normalizedName": "groove urethane",
     "approvalDate": "2005-03-01"
@@ -5187,6 +5199,12 @@
     "brand": "Brunswick",
     "name": "BVP Punisher",
     "normalizedName": "bvp punisher",
+    "approvalDate": "2004-10-01"
+  },
+  {
+    "brand": "Brunswick",
+    "name": "PBA Tour HP",
+    "normalizedName": "pba tour hp",
     "approvalDate": "2004-10-01"
   },
   {
@@ -5335,12 +5353,6 @@
   },
   {
     "brand": "Brunswick",
-    "name": "Quantum Elite",
-    "normalizedName": "quantum elite",
-    "approvalDate": "2003-10-01"
-  },
-  {
-    "brand": "Brunswick",
     "name": "Quantum Furious",
     "normalizedName": "quantum furious",
     "approvalDate": "2003-10-01"
@@ -5367,6 +5379,18 @@
     "brand": "Brunswick",
     "name": "Danger Zone 6",
     "normalizedName": "danger zone 6",
+    "approvalDate": "2003-09-01"
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Danger Zone Extreme",
+    "normalizedName": "danger zone extreme",
+    "approvalDate": "2003-09-01"
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Monster SlayR",
+    "normalizedName": "monster slayr",
     "approvalDate": "2003-09-01"
   },
   {
@@ -5476,12 +5500,6 @@
     "name": "Parker Bohn International II",
     "normalizedName": "parker bohn international 2",
     "approvalDate": "2002-12-01"
-  },
-  {
-    "brand": "Brunswick",
-    "name": "Attitude Anaconda",
-    "normalizedName": "attitude anaconda",
-    "approvalDate": "2002-11-01"
   },
   {
     "brand": "Brunswick",
@@ -5671,6 +5689,12 @@
   },
   {
     "brand": "Brunswick",
+    "name": "TNT Raging Red",
+    "normalizedName": "tnt raging red",
+    "approvalDate": "2002-04-01"
+  },
+  {
+    "brand": "Brunswick",
     "name": "Fuze Detonator",
     "normalizedName": "fuze detonator",
     "approvalDate": "2002-01-01"
@@ -5794,18 +5818,6 @@
     "name": "Quantum Rick Blood",
     "normalizedName": "quantum rick blood",
     "approvalDate": "2001-05-01"
-  },
-  {
-    "brand": "Brunswick",
-    "name": "Zone Rush",
-    "normalizedName": "zone rush",
-    "approvalDate": "2001-05-01"
-  },
-  {
-    "brand": "Brunswick",
-    "name": "Monster Red/Black",
-    "normalizedName": "monster red black",
-    "approvalDate": "2001-04-01"
   },
   {
     "brand": "Brunswick",
@@ -5967,12 +5979,6 @@
     "brand": "Brunswick",
     "name": "Battle Zone Missile",
     "normalizedName": "battle zone missile",
-    "approvalDate": "2000-02-01"
-  },
-  {
-    "brand": "Brunswick",
-    "name": "Warner Bros. Scooby Doo",
-    "normalizedName": "warner bros scooby doo",
     "approvalDate": "2000-02-01"
   },
   {
@@ -6607,44 +6613,44 @@
   },
   {
     "brand": "Brunswick",
-    "name": "Attitude Control Black",
-    "normalizedName": "attitude control black",
+    "name": "Attitude Anaconda",
+    "normalizedName": "attitude anaconda",
     "approvalDate": null
   },
   {
     "brand": "Brunswick",
-    "name": "C*(System) 4.5",
-    "normalizedName": "c system 4 5",
+    "name": "C*(System) 3.5 LE",
+    "normalizedName": "c system 3 5 le",
     "approvalDate": null
   },
   {
     "brand": "Brunswick",
-    "name": "Danger Zone Extreme",
-    "normalizedName": "danger zone extreme",
+    "name": "Danger Zone Code 2",
+    "normalizedName": "danger zone code 2",
     "approvalDate": null
   },
   {
     "brand": "Brunswick",
-    "name": "Fanatic Pearl",
-    "normalizedName": "fanatic pearl",
+    "name": "Fanatic",
+    "normalizedName": "fanatic",
     "approvalDate": null
   },
   {
     "brand": "Brunswick",
-    "name": "In-Out",
-    "normalizedName": "in out",
+    "name": "Imperial Nirvana",
+    "normalizedName": "imperial nirvana",
     "approvalDate": null
   },
   {
     "brand": "Brunswick",
-    "name": "Mastermind",
-    "normalizedName": "mastermind",
+    "name": "Majestic Zone II",
+    "normalizedName": "majestic zone 2",
     "approvalDate": null
   },
   {
     "brand": "Brunswick",
-    "name": "Monster SlayR",
-    "normalizedName": "monster slayr",
+    "name": "Monster Red/Black",
+    "normalizedName": "monster red black",
     "approvalDate": null
   },
   {
@@ -6655,38 +6661,44 @@
   },
   {
     "brand": "Brunswick",
-    "name": "PBA Tour HP",
-    "normalizedName": "pba tour hp",
+    "name": "PBA Inferno Black/White",
+    "normalizedName": "pba inferno black white",
     "approvalDate": null
   },
   {
     "brand": "Brunswick",
-    "name": "Quantum Evo Response",
-    "normalizedName": "quantum evo response",
+    "name": "Quantum Elite",
+    "normalizedName": "quantum elite",
     "approvalDate": null
   },
   {
     "brand": "Brunswick",
-    "name": "Revolver",
-    "normalizedName": "revolver",
+    "name": "Red Zone",
+    "normalizedName": "red zone",
     "approvalDate": null
   },
   {
     "brand": "Brunswick",
-    "name": "Siege Polyester Black",
-    "normalizedName": "siege polyester black",
+    "name": "Siege Buster",
+    "normalizedName": "siege buster",
     "approvalDate": null
   },
   {
     "brand": "Brunswick",
-    "name": "TNT Raging Red",
-    "normalizedName": "tnt raging red",
+    "name": "The Premium Ringer",
+    "normalizedName": "the premium ringer",
     "approvalDate": null
   },
   {
     "brand": "Brunswick",
-    "name": "Warm Zone",
-    "normalizedName": "warm zone",
+    "name": "Warner Bros. Scooby Doo",
+    "normalizedName": "warner bros scooby doo",
+    "approvalDate": null
+  },
+  {
+    "brand": "Brunswick",
+    "name": "Zone Rush",
+    "normalizedName": "zone rush",
     "approvalDate": null
   },
   {
@@ -6742,6 +6754,12 @@
     "name": "Rally",
     "normalizedName": "rally",
     "approvalDate": "2025-04-01"
+  },
+  {
+    "brand": "Columbia 300",
+    "name": "Piranha PowerCOR Pearl",
+    "normalizedName": "piranha powercor pearl",
+    "approvalDate": "2025-02-04"
   },
   {
     "brand": "Columbia 300",
@@ -6802,6 +6820,12 @@
     "name": "Cuda PowerCOR Pearl",
     "normalizedName": "cuda powercor pearl",
     "approvalDate": "2023-06-13"
+  },
+  {
+    "brand": "Columbia 300",
+    "name": "XTech (11 Lb. Only)",
+    "normalizedName": "xtech 11 lb only",
+    "approvalDate": "2023-04-11"
   },
   {
     "brand": "Columbia 300",
@@ -7099,12 +7123,6 @@
   },
   {
     "brand": "Columbia 300",
-    "name": "Savage Life",
-    "normalizedName": "savage life",
-    "approvalDate": "2019-02-12"
-  },
-  {
-    "brand": "Columbia 300",
     "name": "Lit Navy",
     "normalizedName": "lit navy",
     "approvalDate": "2019-01-29"
@@ -7360,12 +7378,6 @@
     "name": "Impulse Solid",
     "normalizedName": "impulse solid",
     "approvalDate": "2017-03-07"
-  },
-  {
-    "brand": "Columbia 300",
-    "name": "Piranha Magenta",
-    "normalizedName": "piranha magenta",
-    "approvalDate": "2017-02-14"
   },
   {
     "brand": "Columbia 300",
@@ -7711,6 +7723,12 @@
   },
   {
     "brand": "Columbia 300",
+    "name": "Eruption Pro 50's Anniversary",
+    "normalizedName": "eruption pro 50 s anniversary",
+    "approvalDate": "2014-10-01"
+  },
+  {
+    "brand": "Columbia 300",
     "name": "Enigma Red/Orange/Yellow",
     "normalizedName": "enigma red orange yellow",
     "approvalDate": "2014-09-01"
@@ -7963,12 +7981,6 @@
   },
   {
     "brand": "Columbia 300",
-    "name": "The Momentum Solid",
-    "normalizedName": "the momentum solid",
-    "approvalDate": "2013-05-01"
-  },
-  {
-    "brand": "Columbia 300",
     "name": "Extreme Chaos 2 Navy/Orange/Smoke Gray",
     "normalizedName": "extreme chaos 2 navy orange smoke gray",
     "approvalDate": "2013-04-01"
@@ -8146,12 +8158,6 @@
     "name": "Ricochet Miracle SE",
     "normalizedName": "ricochet miracle se",
     "approvalDate": "2011-08-01"
-  },
-  {
-    "brand": "Columbia 300",
-    "name": "Eruption",
-    "normalizedName": "eruption",
-    "approvalDate": "2011-05-01"
   },
   {
     "brand": "Columbia 300",
@@ -8569,12 +8575,6 @@
   },
   {
     "brand": "Columbia 300",
-    "name": "Wrath Dead Flush",
-    "normalizedName": "wrath dead flush",
-    "approvalDate": "2008-01-01"
-  },
-  {
-    "brand": "Columbia 300",
     "name": "Momentum",
     "normalizedName": "momentum",
     "approvalDate": "2007-11-01"
@@ -8769,12 +8769,6 @@
     "brand": "Columbia 300",
     "name": "Flipside Fanatic Purple/Gold",
     "normalizedName": "flipside fanatic purple gold",
-    "approvalDate": "2006-04-01"
-  },
-  {
-    "brand": "Columbia 300",
-    "name": "Hyjinx",
-    "normalizedName": "hyjinx",
     "approvalDate": "2006-04-01"
   },
   {
@@ -9169,12 +9163,6 @@
   },
   {
     "brand": "Columbia 300",
-    "name": "Messenger Ti Traction",
-    "normalizedName": "messenger ti traction",
-    "approvalDate": "2003-08-01"
-  },
-  {
-    "brand": "Columbia 300",
     "name": "Messenger Ti Tungsten/C",
     "normalizedName": "messenger ti tungsten c",
     "approvalDate": "2003-08-01"
@@ -9184,6 +9172,12 @@
     "name": "Spirit II",
     "normalizedName": "spirit 2",
     "approvalDate": "2003-08-01"
+  },
+  {
+    "brand": "Columbia 300",
+    "name": "Throttle",
+    "normalizedName": "throttle",
+    "approvalDate": "2003-06-01"
   },
   {
     "brand": "Columbia 300",
@@ -9201,6 +9195,12 @@
     "brand": "Columbia 300",
     "name": "Columbia Special",
     "normalizedName": "columbia special",
+    "approvalDate": "2003-04-01"
+  },
+  {
+    "brand": "Columbia 300",
+    "name": "Icon EQ",
+    "normalizedName": "icon eq",
     "approvalDate": "2003-04-01"
   },
   {
@@ -9409,18 +9409,6 @@
   },
   {
     "brand": "Columbia 300",
-    "name": "Reaction Rip",
-    "normalizedName": "reaction rip",
-    "approvalDate": "2001-10-01"
-  },
-  {
-    "brand": "Columbia 300",
-    "name": "Sport Ball",
-    "normalizedName": "sport ball",
-    "approvalDate": "2001-10-01"
-  },
-  {
-    "brand": "Columbia 300",
     "name": "Pulse - White Pin",
     "normalizedName": "pulse white pin",
     "approvalDate": "2001-08-01"
@@ -9507,6 +9495,12 @@
     "brand": "Columbia 300",
     "name": "K-Ball",
     "normalizedName": "k ball",
+    "approvalDate": "2000-12-01"
+  },
+  {
+    "brand": "Columbia 300",
+    "name": "Messenger Titanium Pearl",
+    "normalizedName": "messenger titanium pearl",
     "approvalDate": "2000-12-01"
   },
   {
@@ -9613,6 +9607,12 @@
   },
   {
     "brand": "Columbia 300",
+    "name": "Scout Black/Red",
+    "normalizedName": "scout black red",
+    "approvalDate": "2000-02-01"
+  },
+  {
+    "brand": "Columbia 300",
     "name": "E-Ball",
     "normalizedName": "e ball",
     "approvalDate": "1999-12-01"
@@ -9697,6 +9697,12 @@
   },
   {
     "brand": "Columbia 300",
+    "name": "Chaos",
+    "normalizedName": "chaos",
+    "approvalDate": "1999-02-01"
+  },
+  {
+    "brand": "Columbia 300",
     "name": "A-Ball",
     "normalizedName": "a ball",
     "approvalDate": "1999-01-01"
@@ -9723,6 +9729,12 @@
     "brand": "Columbia 300",
     "name": "Pit Boss",
     "normalizedName": "pit boss",
+    "approvalDate": "1998-04-01"
+  },
+  {
+    "brand": "Columbia 300",
+    "name": "Renegade Pearl",
+    "normalizedName": "renegade pearl",
     "approvalDate": "1998-04-01"
   },
   {
@@ -9778,6 +9790,12 @@
     "name": "Primal Rage",
     "normalizedName": "primal rage",
     "approvalDate": "1997-05-01"
+  },
+  {
+    "brand": "Columbia 300",
+    "name": "Super Beast",
+    "normalizedName": "super beast",
+    "approvalDate": "1997-04-01"
   },
   {
     "brand": "Columbia 300",
@@ -9931,12 +9949,6 @@
   },
   {
     "brand": "Columbia 300",
-    "name": "BUD 2",
-    "normalizedName": "bud 2",
-    "approvalDate": "1991-09-01"
-  },
-  {
-    "brand": "Columbia 300",
     "name": "Blue Dot",
     "normalizedName": "blue dot",
     "approvalDate": "1991-01-01"
@@ -9949,62 +9961,62 @@
   },
   {
     "brand": "Columbia 300",
-    "name": "Chaos",
-    "normalizedName": "chaos",
+    "name": "BUD 2",
+    "normalizedName": "bud 2",
     "approvalDate": null
   },
   {
     "brand": "Columbia 300",
-    "name": "Eruption Pro 50's Anniversary",
-    "normalizedName": "eruption pro 50 s anniversary",
+    "name": "Eruption",
+    "normalizedName": "eruption",
     "approvalDate": null
   },
   {
     "brand": "Columbia 300",
-    "name": "Icon EQ",
-    "normalizedName": "icon eq",
+    "name": "Hyjinx",
+    "normalizedName": "hyjinx",
     "approvalDate": null
   },
   {
     "brand": "Columbia 300",
-    "name": "Messenger Titanium Pearl",
-    "normalizedName": "messenger titanium pearl",
+    "name": "Messenger Ti Traction",
+    "normalizedName": "messenger ti traction",
     "approvalDate": null
   },
   {
     "brand": "Columbia 300",
-    "name": "Piranha PowerCOR Pearl",
-    "normalizedName": "piranha powercor pearl",
+    "name": "Piranha Magenta",
+    "normalizedName": "piranha magenta",
     "approvalDate": null
   },
   {
     "brand": "Columbia 300",
-    "name": "Renegade Pearl",
-    "normalizedName": "renegade pearl",
+    "name": "Reaction Rip",
+    "normalizedName": "reaction rip",
     "approvalDate": null
   },
   {
     "brand": "Columbia 300",
-    "name": "Scout Black/Red",
-    "normalizedName": "scout black red",
+    "name": "Savage Life",
+    "normalizedName": "savage life",
     "approvalDate": null
   },
   {
     "brand": "Columbia 300",
-    "name": "Super Beast",
-    "normalizedName": "super beast",
+    "name": "Sport Ball",
+    "normalizedName": "sport ball",
     "approvalDate": null
   },
   {
     "brand": "Columbia 300",
-    "name": "Throttle",
-    "normalizedName": "throttle",
+    "name": "The Momentum Solid",
+    "normalizedName": "the momentum solid",
     "approvalDate": null
   },
   {
     "brand": "Columbia 300",
-    "name": "XTech (11 Lb. Only)",
-    "normalizedName": "xtech 11 lb only",
+    "name": "Wrath Dead Flush",
+    "normalizedName": "wrath dead flush",
     "approvalDate": null
   },
   {
@@ -10012,6 +10024,18 @@
     "name": "Zenith",
     "normalizedName": "zenith",
     "approvalDate": null
+  },
+  {
+    "brand": "DV8",
+    "name": "Outsider",
+    "normalizedName": "outsider",
+    "approvalDate": "2026-10-13"
+  },
+  {
+    "brand": "DV8",
+    "name": "Smooth Criminal",
+    "normalizedName": "smooth criminal",
+    "approvalDate": "2026-10-13"
   },
   {
     "brand": "DV8",
@@ -10159,21 +10183,9 @@
   },
   {
     "brand": "DV8",
-    "name": "Verge Solid Orange-White",
-    "normalizedName": "verge solid orange white",
-    "approvalDate": "2022-09-20"
-  },
-  {
-    "brand": "DV8",
     "name": "Hell Cat",
     "normalizedName": "hell cat",
     "approvalDate": "2022-06-21"
-  },
-  {
-    "brand": "DV8",
-    "name": "Diamond Diva",
-    "normalizedName": "diamond diva",
-    "approvalDate": "2022-05-24"
   },
   {
     "brand": "DV8",
@@ -10293,6 +10305,12 @@
     "brand": "DV8",
     "name": "Instigator",
     "normalizedName": "instigator",
+    "approvalDate": "2019-06-11"
+  },
+  {
+    "brand": "DV8",
+    "name": "Night Prowler",
+    "normalizedName": "night prowler",
     "approvalDate": "2019-06-11"
   },
   {
@@ -10681,6 +10699,12 @@
   },
   {
     "brand": "DV8",
+    "name": "Diva Pearl",
+    "normalizedName": "diva pearl",
+    "approvalDate": "2013-12-01"
+  },
+  {
+    "brand": "DV8",
     "name": "Misfit Neon Red/Orange Solid",
     "normalizedName": "misfit neon red orange solid",
     "approvalDate": "2013-12-01"
@@ -10813,12 +10837,6 @@
   },
   {
     "brand": "DV8",
-    "name": "Misfit Orange/Blue",
-    "normalizedName": "misfit orange blue",
-    "approvalDate": "2011-07-01"
-  },
-  {
-    "brand": "DV8",
     "name": "Misfit Yellow/Magenta",
     "normalizedName": "misfit yellow magenta",
     "approvalDate": "2011-07-01"
@@ -10831,14 +10849,20 @@
   },
   {
     "brand": "DV8",
-    "name": "Diva Pearl",
-    "normalizedName": "diva pearl",
+    "name": "Diamond Diva",
+    "normalizedName": "diamond diva",
     "approvalDate": null
   },
   {
     "brand": "DV8",
-    "name": "Night Prowler",
-    "normalizedName": "night prowler",
+    "name": "Misfit Orange/Blue",
+    "normalizedName": "misfit orange blue",
+    "approvalDate": null
+  },
+  {
+    "brand": "DV8",
+    "name": "Verge Solid Orange-White",
+    "normalizedName": "verge solid orange white",
     "approvalDate": null
   },
   {
@@ -10846,6 +10870,12 @@
     "name": "Wicked Collision",
     "normalizedName": "wicked collision",
     "approvalDate": null
+  },
+  {
+    "brand": "Ebonite",
+    "name": "Go Time",
+    "normalizedName": "go time",
+    "approvalDate": "2026-10-13"
   },
   {
     "brand": "Ebonite",
@@ -11092,6 +11122,12 @@
     "name": "Iron Angular One",
     "normalizedName": "iron angular one",
     "approvalDate": "2024-09-10"
+  },
+  {
+    "brand": "Ebonite",
+    "name": "Crusher",
+    "normalizedName": "crusher",
+    "approvalDate": "2024-09-03"
   },
   {
     "brand": "Ebonite",
@@ -11491,12 +11527,6 @@
   },
   {
     "brand": "Ebonite",
-    "name": "The One Master",
-    "normalizedName": "the one master",
-    "approvalDate": "2019-10-22"
-  },
-  {
-    "brand": "Ebonite",
     "name": "Mission Reload",
     "normalizedName": "mission reload",
     "approvalDate": "2019-10-15"
@@ -11511,6 +11541,12 @@
     "brand": "Ebonite",
     "name": "The One Dominate",
     "normalizedName": "the one dominate",
+    "approvalDate": "2019-10-08"
+  },
+  {
+    "brand": "Ebonite",
+    "name": "Werewolf Magenta/Black/White",
+    "normalizedName": "werewolf magenta black white",
     "approvalDate": "2019-10-08"
   },
   {
@@ -11803,12 +11839,6 @@
   },
   {
     "brand": "Ebonite",
-    "name": "Turbo-R Purple/Red/Silver",
-    "normalizedName": "turbo r purple red silver",
-    "approvalDate": "2018-04-24"
-  },
-  {
-    "brand": "Ebonite",
     "name": "Magic Angular One",
     "normalizedName": "magic angular one",
     "approvalDate": "2018-04-03"
@@ -11824,12 +11854,6 @@
     "name": "Maverick 3",
     "normalizedName": "maverick 3",
     "approvalDate": "2018-03-06"
-  },
-  {
-    "brand": "Ebonite",
-    "name": "Warrior Ultimate",
-    "normalizedName": "warrior ultimate",
-    "approvalDate": "2018-02-27"
   },
   {
     "brand": "Ebonite",
@@ -11875,15 +11899,15 @@
   },
   {
     "brand": "Ebonite",
-    "name": "Pivot Boost",
-    "normalizedName": "pivot boost",
+    "name": "Matrix Revolution",
+    "normalizedName": "matrix revolution",
     "approvalDate": "2017-11-28"
   },
   {
     "brand": "Ebonite",
-    "name": "Mission Shadow",
-    "normalizedName": "mission shadow",
-    "approvalDate": "2017-11-14"
+    "name": "Pivot Boost",
+    "normalizedName": "pivot boost",
+    "approvalDate": "2017-11-28"
   },
   {
     "brand": "Ebonite",
@@ -12493,12 +12517,6 @@
   },
   {
     "brand": "Ebonite",
-    "name": "Pivot X",
-    "normalizedName": "pivot x",
-    "approvalDate": "2015-05-01"
-  },
-  {
-    "brand": "Ebonite",
     "name": "The One Nature",
     "normalizedName": "the one nature",
     "approvalDate": "2015-04-01"
@@ -12631,6 +12649,12 @@
   },
   {
     "brand": "Ebonite",
+    "name": "Evolution Angular One XL5000 (Black/Orange/Burgundy)",
+    "normalizedName": "evolution angular one xl5000 black orange burgundy",
+    "approvalDate": "2014-09-01"
+  },
+  {
+    "brand": "Ebonite",
     "name": "Legend One",
     "normalizedName": "legend one",
     "approvalDate": "2014-09-01"
@@ -12676,12 +12700,6 @@
     "name": "Xtra Breaker",
     "normalizedName": "xtra breaker",
     "approvalDate": "2014-07-01"
-  },
-  {
-    "brand": "Ebonite",
-    "name": "Energy Source",
-    "normalizedName": "energy source",
-    "approvalDate": "2014-06-01"
   },
   {
     "brand": "Ebonite",
@@ -13045,12 +13063,6 @@
   },
   {
     "brand": "Ebonite",
-    "name": "Crush/R Blue/Green",
-    "normalizedName": "crush r blue green",
-    "approvalDate": "2012-06-01"
-  },
-  {
-    "brand": "Ebonite",
     "name": "Crush/R Purple/Orange/Yellow",
     "normalizedName": "crush r purple orange yellow",
     "approvalDate": "2012-06-01"
@@ -13150,6 +13162,12 @@
     "name": "Warning Sign",
     "normalizedName": "warning sign",
     "approvalDate": "2011-10-01"
+  },
+  {
+    "brand": "Ebonite",
+    "name": "Mission X",
+    "normalizedName": "mission x",
+    "approvalDate": "2011-09-01"
   },
   {
     "brand": "Ebonite",
@@ -13345,6 +13363,12 @@
   },
   {
     "brand": "Ebonite",
+    "name": "Tornado Black/Pink/Silver",
+    "normalizedName": "tornado black pink silver",
+    "approvalDate": "2010-06-01"
+  },
+  {
+    "brand": "Ebonite",
     "name": "Tornado Black/Purple/Silver",
     "normalizedName": "tornado black purple silver",
     "approvalDate": "2010-06-01"
@@ -13501,12 +13525,6 @@
   },
   {
     "brand": "Ebonite",
-    "name": "Tomb Raider Control",
-    "normalizedName": "tomb raider control",
-    "approvalDate": "2009-03-01"
-  },
-  {
-    "brand": "Ebonite",
     "name": "Total Game Breaker",
     "normalizedName": "total game breaker",
     "approvalDate": "2009-03-01"
@@ -13579,9 +13597,9 @@
   },
   {
     "brand": "Ebonite",
-    "name": "Aurora NGS",
-    "normalizedName": "aurora ngs",
-    "approvalDate": "2008-09-01"
+    "name": "The One Pearl",
+    "normalizedName": "the one pearl",
+    "approvalDate": "2008-10-01"
   },
   {
     "brand": "Ebonite",
@@ -13903,6 +13921,12 @@
   },
   {
     "brand": "Ebonite",
+    "name": "Smash Time Pearl",
+    "normalizedName": "smash time pearl",
+    "approvalDate": "2006-09-01"
+  },
+  {
+    "brand": "Ebonite",
     "name": "Mega X Super Hook",
     "normalizedName": "mega x super hook",
     "approvalDate": "2006-08-01"
@@ -13990,12 +14014,6 @@
     "name": "Whirlwind",
     "normalizedName": "whirlwind",
     "approvalDate": "2006-03-01"
-  },
-  {
-    "brand": "Ebonite",
-    "name": "Tomahawk X-Plosion Green",
-    "normalizedName": "tomahawk x plosion green",
-    "approvalDate": "2006-02-01"
   },
   {
     "brand": "Ebonite",
@@ -14155,6 +14173,12 @@
   },
   {
     "brand": "Ebonite",
+    "name": "Big Time",
+    "normalizedName": "big time",
+    "approvalDate": "2005-01-01"
+  },
+  {
+    "brand": "Ebonite",
     "name": "No Limit Black/Gold",
     "normalizedName": "no limit black gold",
     "approvalDate": "2005-01-01"
@@ -14275,12 +14299,6 @@
   },
   {
     "brand": "Ebonite",
-    "name": "Show Time Sanded",
-    "normalizedName": "show time sanded",
-    "approvalDate": "2004-04-01"
-  },
-  {
-    "brand": "Ebonite",
     "name": "V2 Sweet",
     "normalizedName": "v2 sweet",
     "approvalDate": "2004-04-01"
@@ -14313,6 +14331,12 @@
     "brand": "Ebonite",
     "name": "Apache 6 Star Hunter Green",
     "normalizedName": "apache 6 star hunter green",
+    "approvalDate": "2004-01-01"
+  },
+  {
+    "brand": "Ebonite",
+    "name": "Apex Addiction Spinner",
+    "normalizedName": "apex addiction spinner",
     "approvalDate": "2004-01-01"
   },
   {
@@ -14481,6 +14505,12 @@
     "brand": "Ebonite",
     "name": "TPC Warrior Blue Swirl",
     "normalizedName": "tpc warrior blue swirl",
+    "approvalDate": "2004-01-01"
+  },
+  {
+    "brand": "Ebonite",
+    "name": "TPC Warrior Red",
+    "normalizedName": "tpc warrior red",
     "approvalDate": "2004-01-01"
   },
   {
@@ -14689,6 +14719,12 @@
   },
   {
     "brand": "Ebonite",
+    "name": "Predator Purple Sparkle",
+    "normalizedName": "predator purple sparkle",
+    "approvalDate": "2003-01-01"
+  },
+  {
+    "brand": "Ebonite",
     "name": "Apex Addiction",
     "normalizedName": "apex addiction",
     "approvalDate": "2002-12-01"
@@ -14773,12 +14809,6 @@
   },
   {
     "brand": "Ebonite",
-    "name": "Great White Reactive",
-    "normalizedName": "great white reactive",
-    "approvalDate": "2002-07-01"
-  },
-  {
-    "brand": "Ebonite",
     "name": "Hustler Pool Ball",
     "normalizedName": "hustler pool ball",
     "approvalDate": "2002-07-01"
@@ -14839,12 +14869,6 @@
   },
   {
     "brand": "Ebonite",
-    "name": "Matrix Conquest",
-    "normalizedName": "matrix conquest",
-    "approvalDate": "2002-03-01"
-  },
-  {
-    "brand": "Ebonite",
     "name": "Matrix Obsession",
     "normalizedName": "matrix obsession",
     "approvalDate": "2002-03-01"
@@ -14883,6 +14907,12 @@
     "brand": "Ebonite",
     "name": "Optyx Krypt Keeper",
     "normalizedName": "optyx krypt keeper",
+    "approvalDate": "2002-01-01"
+  },
+  {
+    "brand": "Ebonite",
+    "name": "Optyx Snake",
+    "normalizedName": "optyx snake",
     "approvalDate": "2002-01-01"
   },
   {
@@ -14961,12 +14991,6 @@
     "brand": "Ebonite",
     "name": "Matrix Dominator",
     "normalizedName": "matrix dominator",
-    "approvalDate": "2001-06-01"
-  },
-  {
-    "brand": "Ebonite",
-    "name": "Optyx Dragon",
-    "normalizedName": "optyx dragon",
     "approvalDate": "2001-06-01"
   },
   {
@@ -15319,6 +15343,12 @@
   },
   {
     "brand": "Ebonite",
+    "name": "Gyro Pearl",
+    "normalizedName": "gyro pearl",
+    "approvalDate": "1998-04-01"
+  },
+  {
+    "brand": "Ebonite",
     "name": "Puma",
     "normalizedName": "puma",
     "approvalDate": "1998-04-01"
@@ -15589,86 +15619,86 @@
   },
   {
     "brand": "Ebonite",
-    "name": "Apex Addiction Spinner",
-    "normalizedName": "apex addiction spinner",
+    "name": "Tomahawk X-Plosion Green",
+    "normalizedName": "tomahawk x plosion green",
     "approvalDate": null
   },
   {
     "brand": "Ebonite",
-    "name": "TPC Warrior Red",
-    "normalizedName": "tpc warrior red",
+    "name": "Aurora NGS",
+    "normalizedName": "aurora ngs",
     "approvalDate": null
   },
   {
     "brand": "Ebonite",
-    "name": "Big Time",
-    "normalizedName": "big time",
+    "name": "Crush/R Blue/Green",
+    "normalizedName": "crush r blue green",
     "approvalDate": null
   },
   {
     "brand": "Ebonite",
-    "name": "Crusher",
-    "normalizedName": "crusher",
+    "name": "Energy Source",
+    "normalizedName": "energy source",
     "approvalDate": null
   },
   {
     "brand": "Ebonite",
-    "name": "Evolution Angular One XL5000 (Black/Orange/Burgundy)",
-    "normalizedName": "evolution angular one xl5000 black orange burgundy",
+    "name": "Great White Reactive",
+    "normalizedName": "great white reactive",
     "approvalDate": null
   },
   {
     "brand": "Ebonite",
-    "name": "Gyro Pearl",
-    "normalizedName": "gyro pearl",
+    "name": "Matrix Conquest",
+    "normalizedName": "matrix conquest",
     "approvalDate": null
   },
   {
     "brand": "Ebonite",
-    "name": "Matrix Revolution",
-    "normalizedName": "matrix revolution",
+    "name": "Mission Shadow",
+    "normalizedName": "mission shadow",
     "approvalDate": null
   },
   {
     "brand": "Ebonite",
-    "name": "Mission X",
-    "normalizedName": "mission x",
+    "name": "Optyx Dragon",
+    "normalizedName": "optyx dragon",
     "approvalDate": null
   },
   {
     "brand": "Ebonite",
-    "name": "Optyx Snake",
-    "normalizedName": "optyx snake",
+    "name": "Pivot X",
+    "normalizedName": "pivot x",
     "approvalDate": null
   },
   {
     "brand": "Ebonite",
-    "name": "Predator Purple Sparkle",
-    "normalizedName": "predator purple sparkle",
+    "name": "Show Time Sanded",
+    "normalizedName": "show time sanded",
     "approvalDate": null
   },
   {
     "brand": "Ebonite",
-    "name": "Smash Time Pearl",
-    "normalizedName": "smash time pearl",
+    "name": "The One Master",
+    "normalizedName": "the one master",
     "approvalDate": null
   },
   {
     "brand": "Ebonite",
-    "name": "The One Pearl",
-    "normalizedName": "the one pearl",
+    "name": "Tomb Raider Control",
+    "normalizedName": "tomb raider control",
     "approvalDate": null
   },
   {
     "brand": "Ebonite",
-    "name": "Tornado Black/Pink/Silver",
-    "normalizedName": "tornado black pink silver",
+    "name": "Turbo-R Purple/Red/Silver",
+    "normalizedName": "turbo r purple red silver",
     "approvalDate": null
   },
   {
     "brand": "Ebonite",
-    "name": "Werewolf Magenta/Black/White",
-    "normalizedName": "werewolf magenta black white",
+    "name": "Warrior Ultimate",
+    "normalizedName": "warrior ultimate",
     "approvalDate": null
   },
   {
@@ -15793,6 +15823,18 @@
   },
   {
     "brand": "Hammer",
+    "name": "Blacklist",
+    "normalizedName": "blacklist",
+    "approvalDate": "2026-10-13"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Reckoning",
+    "normalizedName": "reckoning",
+    "approvalDate": "2026-10-13"
+  },
+  {
+    "brand": "Hammer",
     "name": "Black Widow 3.0 Ruby",
     "normalizedName": "black widow 3 0 ruby",
     "approvalDate": "2026-09-29"
@@ -15829,12 +15871,6 @@
   },
   {
     "brand": "Hammer",
-    "name": "Deep Ocean Vibe",
-    "normalizedName": "deep ocean vibe",
-    "approvalDate": "2026-06-30"
-  },
-  {
-    "brand": "Hammer",
     "name": "Fallout",
     "normalizedName": "fallout",
     "approvalDate": "2026-06-30"
@@ -15862,12 +15898,6 @@
     "name": "Effect Attack Red Solid",
     "normalizedName": "effect attack red solid",
     "approvalDate": "2026-06-16"
-  },
-  {
-    "brand": "Hammer",
-    "name": "Gauntlet Knight Hybrid",
-    "normalizedName": "gauntlet knight hybrid",
-    "approvalDate": "2026-06-02"
   },
   {
     "brand": "Hammer",
@@ -16357,12 +16387,6 @@
   },
   {
     "brand": "Hammer",
-    "name": "Magenta Urethane Pearl",
-    "normalizedName": "magenta urethane pearl",
-    "approvalDate": "2023-06-13"
-  },
-  {
-    "brand": "Hammer",
     "name": "Radioactive Vibe",
     "normalizedName": "radioactive vibe",
     "approvalDate": "2023-06-13"
@@ -16423,6 +16447,12 @@
   },
   {
     "brand": "Hammer",
+    "name": "Black Widow Legend Black Pearl",
+    "normalizedName": "black widow legend black pearl",
+    "approvalDate": "2023-03-07"
+  },
+  {
+    "brand": "Hammer",
     "name": "Black Widow Legend Black Solid",
     "normalizedName": "black widow legend black solid",
     "approvalDate": "2023-03-07"
@@ -16462,6 +16492,12 @@
     "name": "Vibe Red Pearl",
     "normalizedName": "vibe red pearl",
     "approvalDate": "2022-11-01"
+  },
+  {
+    "brand": "Hammer",
+    "name": "3D Offset Attack",
+    "normalizedName": "3d offset attack",
+    "approvalDate": "2022-10-18"
   },
   {
     "brand": "Hammer",
@@ -16693,12 +16729,6 @@
   },
   {
     "brand": "Hammer",
-    "name": "Black Widow Hybrid",
-    "normalizedName": "black widow hybrid",
-    "approvalDate": "2021-03-16"
-  },
-  {
-    "brand": "Hammer",
     "name": "Black Widow Real Monster",
     "normalizedName": "black widow real monster",
     "approvalDate": "2021-03-02"
@@ -16773,12 +16803,6 @@
     "brand": "Hammer",
     "name": "Redemption Multi",
     "normalizedName": "redemption multi",
-    "approvalDate": "2020-09-01"
-  },
-  {
-    "brand": "Hammer",
-    "name": "Redemption Tour",
-    "normalizedName": "redemption tour",
     "approvalDate": "2020-09-01"
   },
   {
@@ -16924,6 +16948,12 @@
     "name": "Statement Hybrid",
     "normalizedName": "statement hybrid",
     "approvalDate": "2019-07-19"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Rip'D Survivor Edition",
+    "normalizedName": "rip d survivor edition",
+    "approvalDate": "2019-07-16"
   },
   {
     "brand": "Hammer",
@@ -17275,9 +17305,21 @@
   },
   {
     "brand": "Hammer",
+    "name": "H2",
+    "normalizedName": "h2",
+    "approvalDate": "2017-12-05"
+  },
+  {
+    "brand": "Hammer",
     "name": "The Scorpion Pure",
     "normalizedName": "the scorpion pure",
     "approvalDate": "2017-11-14"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Black Widow Urethane",
+    "normalizedName": "black widow urethane",
+    "approvalDate": "2017-11-01"
   },
   {
     "brand": "Hammer",
@@ -17373,6 +17415,12 @@
     "brand": "Hammer",
     "name": "Vibe Blue (2017)",
     "normalizedName": "vibe blue 2017",
+    "approvalDate": "2017-05-23"
+  },
+  {
+    "brand": "Hammer",
+    "name": "Vibe Cherry (2017)",
+    "normalizedName": "vibe cherry 2017",
     "approvalDate": "2017-05-23"
   },
   {
@@ -17989,12 +18037,6 @@
   },
   {
     "brand": "Hammer",
-    "name": "Black Widow The W",
-    "normalizedName": "black widow the w",
-    "approvalDate": "2013-10-01"
-  },
-  {
-    "brand": "Hammer",
     "name": "Cold Blood",
     "normalizedName": "cold blood",
     "approvalDate": "2013-09-01"
@@ -18039,12 +18081,6 @@
     "brand": "Hammer",
     "name": "Wild Blood",
     "normalizedName": "wild blood",
-    "approvalDate": "2013-05-01"
-  },
-  {
-    "brand": "Hammer",
-    "name": "Wild Blood (Yellow Pin)",
-    "normalizedName": "wild blood yellow pin",
     "approvalDate": "2013-05-01"
   },
   {
@@ -18151,12 +18187,6 @@
   },
   {
     "brand": "Hammer",
-    "name": "Taboo Deep Purple",
-    "normalizedName": "taboo deep purple",
-    "approvalDate": "2012-08-01"
-  },
-  {
-    "brand": "Hammer",
     "name": "Made In USA 2012 (Purple)",
     "normalizedName": "made in usa 2012 purple",
     "approvalDate": "2012-07-01"
@@ -18259,6 +18289,12 @@
   },
   {
     "brand": "Hammer",
+    "name": "Taboo RPM",
+    "normalizedName": "taboo rpm",
+    "approvalDate": "2011-11-01"
+  },
+  {
+    "brand": "Hammer",
     "name": "Taboo TORC",
     "normalizedName": "taboo torc",
     "approvalDate": "2011-11-01"
@@ -18268,12 +18304,6 @@
     "name": "Arson Death",
     "normalizedName": "arson death",
     "approvalDate": "2011-10-01"
-  },
-  {
-    "brand": "Hammer",
-    "name": "Black Widow Red/Black/Silver",
-    "normalizedName": "black widow red black silver",
-    "approvalDate": "2011-09-01"
   },
   {
     "brand": "Hammer",
@@ -18793,12 +18823,6 @@
   },
   {
     "brand": "Hammer",
-    "name": "Ultimatum",
-    "normalizedName": "ultimatum",
-    "approvalDate": "2008-03-01"
-  },
-  {
-    "brand": "Hammer",
     "name": "Black Widow Bite II",
     "normalizedName": "black widow bite 2",
     "approvalDate": "2008-02-01"
@@ -19015,6 +19039,12 @@
   },
   {
     "brand": "Hammer",
+    "name": "Nail Black/Red/Orange",
+    "normalizedName": "nail black red orange",
+    "approvalDate": "2006-06-01"
+  },
+  {
+    "brand": "Hammer",
     "name": "Nail Navy/Orange",
     "normalizedName": "nail navy orange",
     "approvalDate": "2006-06-01"
@@ -19051,12 +19081,6 @@
   },
   {
     "brand": "Hammer",
-    "name": "Big Force Diesel",
-    "normalizedName": "big force diesel",
-    "approvalDate": "2006-05-01"
-  },
-  {
-    "brand": "Hammer",
     "name": "Hammer Polyester",
     "normalizedName": "hammer polyester",
     "approvalDate": "2006-05-01"
@@ -19087,6 +19111,12 @@
   },
   {
     "brand": "Hammer",
+    "name": "Black Widow",
+    "normalizedName": "black widow",
+    "approvalDate": "2006-03-01"
+  },
+  {
+    "brand": "Hammer",
     "name": "Galaxy Harv",
     "normalizedName": "galaxy harv",
     "approvalDate": "2006-03-01"
@@ -19101,6 +19131,12 @@
     "brand": "Hammer",
     "name": "Ultra Mega X",
     "normalizedName": "ultra mega x",
+    "approvalDate": "2006-03-01"
+  },
+  {
+    "brand": "Hammer",
+    "name": "X5",
+    "normalizedName": "x5",
     "approvalDate": "2006-03-01"
   },
   {
@@ -19483,6 +19519,12 @@
   },
   {
     "brand": "Hammer",
+    "name": "Diesel Reactive Pearl",
+    "normalizedName": "diesel reactive pearl",
+    "approvalDate": "2002-11-01"
+  },
+  {
+    "brand": "Hammer",
     "name": "Vicious Pearl",
     "normalizedName": "vicious pearl",
     "approvalDate": "2002-11-01"
@@ -19555,8 +19597,8 @@
   },
   {
     "brand": "Hammer",
-    "name": "Jan-90 Faball",
-    "normalizedName": "jan 90 faball",
+    "name": "Jan-90 Page 67 of 146Faball",
+    "normalizedName": "jan 90 page 67 of 146faball",
     "approvalDate": "2000-01-01"
   },
   {
@@ -19633,68 +19675,68 @@
   },
   {
     "brand": "Hammer",
-    "name": "3D Offset Attack",
-    "normalizedName": "3d offset attack",
+    "name": "Black Widow Red/Black/Silver",
+    "normalizedName": "black widow red black silver",
     "approvalDate": null
   },
   {
     "brand": "Hammer",
-    "name": "Black Widow",
-    "normalizedName": "black widow",
+    "name": "Big Force Diesel",
+    "normalizedName": "big force diesel",
     "approvalDate": null
   },
   {
     "brand": "Hammer",
-    "name": "Black Widow Legend Black Pearl",
-    "normalizedName": "black widow legend black pearl",
+    "name": "Black Widow Hybrid",
+    "normalizedName": "black widow hybrid",
     "approvalDate": null
   },
   {
     "brand": "Hammer",
-    "name": "Black Widow Urethane",
-    "normalizedName": "black widow urethane",
+    "name": "Black Widow The W",
+    "normalizedName": "black widow the w",
     "approvalDate": null
   },
   {
     "brand": "Hammer",
-    "name": "Diesel Reactive Pearl",
-    "normalizedName": "diesel reactive pearl",
+    "name": "Deep Ocean Vibe",
+    "normalizedName": "deep ocean vibe",
     "approvalDate": null
   },
   {
     "brand": "Hammer",
-    "name": "H2",
-    "normalizedName": "h2",
+    "name": "Gauntlet Knight Hybrid",
+    "normalizedName": "gauntlet knight hybrid",
     "approvalDate": null
   },
   {
     "brand": "Hammer",
-    "name": "Nail Black/Red/Orange",
-    "normalizedName": "nail black red orange",
+    "name": "Magenta Urethane Pearl",
+    "normalizedName": "magenta urethane pearl",
     "approvalDate": null
   },
   {
     "brand": "Hammer",
-    "name": "Rip'D Survivor Edition",
-    "normalizedName": "rip d survivor edition",
+    "name": "Redemption Tour",
+    "normalizedName": "redemption tour",
     "approvalDate": null
   },
   {
     "brand": "Hammer",
-    "name": "Taboo RPM",
-    "normalizedName": "taboo rpm",
+    "name": "Taboo Deep Purple",
+    "normalizedName": "taboo deep purple",
     "approvalDate": null
   },
   {
     "brand": "Hammer",
-    "name": "Vibe Cherry (2017)",
-    "normalizedName": "vibe cherry 2017",
+    "name": "Ultimatum",
+    "normalizedName": "ultimatum",
     "approvalDate": null
   },
   {
     "brand": "Hammer",
-    "name": "X5",
-    "normalizedName": "x5",
+    "name": "Wild Blood (Yellow Pin)",
+    "normalizedName": "wild blood yellow pin",
     "approvalDate": null
   },
   {
@@ -19702,6 +19744,12 @@
     "name": "Zero Mercy Tour",
     "normalizedName": "zero mercy tour",
     "approvalDate": null
+  },
+  {
+    "brand": "Motiv",
+    "name": "(Orion) Nebula",
+    "normalizedName": "orion nebula",
+    "approvalDate": "2026-11-03"
   },
   {
     "brand": "Motiv",
@@ -19894,12 +19942,6 @@
     "name": "(Subzero) Forge",
     "normalizedName": "subzero forge",
     "approvalDate": "2024-08-20"
-  },
-  {
-    "brand": "Motiv",
-    "name": "Pride (Liberty)",
-    "normalizedName": "pride liberty",
-    "approvalDate": "2024-07-16"
   },
   {
     "brand": "Motiv",
@@ -20119,6 +20161,12 @@
   },
   {
     "brand": "Motiv",
+    "name": "(Iron) Forge",
+    "normalizedName": "iron forge",
+    "approvalDate": "2021-10-19"
+  },
+  {
+    "brand": "Motiv",
     "name": "Pride",
     "normalizedName": "pride",
     "approvalDate": "2021-09-07"
@@ -20139,12 +20187,6 @@
     "brand": "Motiv",
     "name": "Liberty",
     "normalizedName": "liberty",
-    "approvalDate": "2021-07-27"
-  },
-  {
-    "brand": "Motiv",
-    "name": "Stadium",
-    "normalizedName": "stadium",
     "approvalDate": "2021-07-27"
   },
   {
@@ -20176,12 +20218,6 @@
     "name": "Ripcord (Velocity)",
     "normalizedName": "ripcord velocity",
     "approvalDate": "2021-06-15"
-  },
-  {
-    "brand": "Motiv",
-    "name": "VIP (Affliction)",
-    "normalizedName": "vip affliction",
-    "approvalDate": "2021-04-20"
   },
   {
     "brand": "Motiv",
@@ -20242,6 +20278,12 @@
     "name": "Trident (Tempest)",
     "normalizedName": "trident tempest",
     "approvalDate": "2020-06-16"
+  },
+  {
+    "brand": "Motiv",
+    "name": "(Allegiant) Sniper Orange Pearl",
+    "normalizedName": "allegiant sniper orange pearl",
+    "approvalDate": "2020-04-07"
   },
   {
     "brand": "Motiv",
@@ -20539,12 +20581,6 @@
   },
   {
     "brand": "Motiv",
-    "name": "Freestyle Rush",
-    "normalizedName": "freestyle rush",
-    "approvalDate": "2017-04-25"
-  },
-  {
-    "brand": "Motiv",
     "name": "Tank Burgundy (Rampage)",
     "normalizedName": "tank burgundy rampage",
     "approvalDate": "2017-04-25"
@@ -20692,6 +20728,12 @@
     "name": "Red Revolt",
     "normalizedName": "red revolt",
     "approvalDate": "2015-05-01"
+  },
+  {
+    "brand": "Motiv",
+    "name": "Tag Black (Graffiti)",
+    "normalizedName": "tag black graffiti",
+    "approvalDate": "2015-03-01"
   },
   {
     "brand": "Motiv",
@@ -20905,6 +20947,12 @@
   },
   {
     "brand": "Motiv",
+    "name": "Primal TV4",
+    "normalizedName": "primal tv4",
+    "approvalDate": "2011-01-01"
+  },
+  {
+    "brand": "Motiv",
     "name": "Recon RX1 Silver Pearl",
     "normalizedName": "recon rx1 silver pearl",
     "approvalDate": "2010-12-01"
@@ -20983,26 +21031,26 @@
   },
   {
     "brand": "Motiv",
-    "name": "(Allegiant) Sniper Orange Pearl",
-    "normalizedName": "allegiant sniper orange pearl",
+    "name": "Freestyle Rush",
+    "normalizedName": "freestyle rush",
     "approvalDate": null
   },
   {
     "brand": "Motiv",
-    "name": "(Iron) Forge",
-    "normalizedName": "iron forge",
+    "name": "Pride (Liberty)",
+    "normalizedName": "pride liberty",
     "approvalDate": null
   },
   {
     "brand": "Motiv",
-    "name": "Primal TV4",
-    "normalizedName": "primal tv4",
+    "name": "Stadium",
+    "normalizedName": "stadium",
     "approvalDate": null
   },
   {
     "brand": "Motiv",
-    "name": "Tag Black (Graffiti)",
-    "normalizedName": "tag black graffiti",
+    "name": "VIP (Affliction)",
+    "normalizedName": "vip affliction",
     "approvalDate": null
   },
   {
@@ -21010,6 +21058,30 @@
     "name": "VIP ExJ (Sigma)",
     "normalizedName": "vip exj sigma",
     "approvalDate": null
+  },
+  {
+    "brand": "Radical",
+    "name": "Intel Recon Hybrid",
+    "normalizedName": "intel recon hybrid",
+    "approvalDate": "2026-10-13"
+  },
+  {
+    "brand": "Radical",
+    "name": "The Hitter Teal",
+    "normalizedName": "the hitter teal",
+    "approvalDate": "2026-10-13"
+  },
+  {
+    "brand": "Radical",
+    "name": "Vexed Variant",
+    "normalizedName": "vexed variant",
+    "approvalDate": "2026-10-13"
+  },
+  {
+    "brand": "Radical",
+    "name": "Evil Eye Pearl",
+    "normalizedName": "evil eye pearl",
+    "approvalDate": "2026-06-30"
   },
   {
     "brand": "Radical",
@@ -21091,6 +21163,12 @@
   },
   {
     "brand": "Radical",
+    "name": "Power Hitter",
+    "normalizedName": "power hitter",
+    "approvalDate": "2025-05-30"
+  },
+  {
+    "brand": "Radical",
     "name": "No Doubt Solid",
     "normalizedName": "no doubt solid",
     "approvalDate": "2025-05-27"
@@ -21169,12 +21247,6 @@
   },
   {
     "brand": "Radical",
-    "name": "Max Bias",
-    "normalizedName": "max bias",
-    "approvalDate": "2024-05-28"
-  },
-  {
-    "brand": "Radical",
     "name": "Rattler NU",
     "normalizedName": "rattler nu",
     "approvalDate": "2024-05-28"
@@ -21208,12 +21280,6 @@
     "name": "Zig Zag",
     "normalizedName": "zig zag",
     "approvalDate": "2023-11-07"
-  },
-  {
-    "brand": "Radical",
-    "name": "Sneak Attack Hybrid",
-    "normalizedName": "sneak attack hybrid",
-    "approvalDate": "2023-10-10"
   },
   {
     "brand": "Radical",
@@ -21496,12 +21562,6 @@
     "name": "Katana Khan",
     "normalizedName": "katana khan",
     "approvalDate": "2019-09-24"
-  },
-  {
-    "brand": "Radical",
-    "name": "Conspiracy Theory",
-    "normalizedName": "conspiracy theory",
-    "approvalDate": "2019-09-20"
   },
   {
     "brand": "Radical",
@@ -21949,6 +22009,12 @@
   },
   {
     "brand": "Radical",
+    "name": "Time's Up!",
+    "normalizedName": "time s up",
+    "approvalDate": "2011-07-01"
+  },
+  {
+    "brand": "Radical",
     "name": "Slant",
     "normalizedName": "slant",
     "approvalDate": "2011-03-01"
@@ -21961,20 +22027,20 @@
   },
   {
     "brand": "Radical",
-    "name": "Evil Eye Pearl",
-    "normalizedName": "evil eye pearl",
+    "name": "Conspiracy Theory",
+    "normalizedName": "conspiracy theory",
     "approvalDate": null
   },
   {
     "brand": "Radical",
-    "name": "Power Hitter",
-    "normalizedName": "power hitter",
+    "name": "Max Bias",
+    "normalizedName": "max bias",
     "approvalDate": null
   },
   {
     "brand": "Radical",
-    "name": "Time's Up!",
-    "normalizedName": "time s up",
+    "name": "Sneak Attack Hybrid",
+    "normalizedName": "sneak attack hybrid",
     "approvalDate": null
   },
   {
@@ -22237,12 +22303,6 @@
   },
   {
     "brand": "Roto Grip",
-    "name": "Optimum Idol Glow",
-    "normalizedName": "optimum idol glow",
-    "approvalDate": "2024-11-05"
-  },
-  {
-    "brand": "Roto Grip",
     "name": "RST Hyperdrive",
     "normalizedName": "rst hyperdrive",
     "approvalDate": "2024-11-05"
@@ -22339,12 +22399,6 @@
   },
   {
     "brand": "Roto Grip",
-    "name": "Hustle (SPP) Sky-Pink-Purple",
-    "normalizedName": "hustle spp sky pink purple",
-    "approvalDate": "2024-01-02"
-  },
-  {
-    "brand": "Roto Grip",
     "name": "Hustle (WM) White/Magenta",
     "normalizedName": "hustle wm white magenta",
     "approvalDate": "2024-01-02"
@@ -22354,6 +22408,12 @@
     "name": "RST X-4 S",
     "normalizedName": "rst x 4 s",
     "approvalDate": "2024-01-02"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Attention Star",
+    "normalizedName": "attention star",
+    "approvalDate": "2023-12-26"
   },
   {
     "brand": "Roto Grip",
@@ -22564,12 +22624,6 @@
     "name": "Purple Gem",
     "normalizedName": "purple gem",
     "approvalDate": "2022-08-02"
-  },
-  {
-    "brand": "Roto Grip",
-    "name": "RST X-3",
-    "normalizedName": "rst x 3",
-    "approvalDate": "2022-05-10"
   },
   {
     "brand": "Roto Grip",
@@ -22975,6 +23029,12 @@
   },
   {
     "brand": "Roto Grip",
+    "name": "Pro Defiant",
+    "normalizedName": "pro defiant",
+    "approvalDate": "2019-03-05"
+  },
+  {
+    "brand": "Roto Grip",
     "name": "Halo Pearl",
     "normalizedName": "halo pearl",
     "approvalDate": "2019-02-05"
@@ -23002,6 +23062,12 @@
     "name": "Halo Burn",
     "normalizedName": "halo burn",
     "approvalDate": "2018-12-11"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Huge Cell",
+    "normalizedName": "huge cell",
+    "approvalDate": "2018-10-31"
   },
   {
     "brand": "Roto Grip",
@@ -23044,12 +23110,6 @@
     "name": "Hustle White/Charcoal",
     "normalizedName": "hustle white charcoal",
     "approvalDate": "2018-07-17"
-  },
-  {
-    "brand": "Roto Grip",
-    "name": "Halo",
-    "normalizedName": "halo",
-    "approvalDate": "2018-06-26"
   },
   {
     "brand": "Roto Grip",
@@ -23377,12 +23437,6 @@
   },
   {
     "brand": "Roto Grip",
-    "name": "Wreck-It",
-    "normalizedName": "wreck it",
-    "approvalDate": "2016-06-28"
-  },
-  {
-    "brand": "Roto Grip",
     "name": "Power Cell",
     "normalizedName": "power cell",
     "approvalDate": "2016-06-07"
@@ -23410,12 +23464,6 @@
     "name": "Hy-Wire",
     "normalizedName": "hy wire",
     "approvalDate": "2016-02-28"
-  },
-  {
-    "brand": "Roto Grip",
-    "name": "Defiant Rage",
-    "normalizedName": "defiant rage",
-    "approvalDate": "2016-02-01"
   },
   {
     "brand": "Roto Grip",
@@ -23463,12 +23511,6 @@
     "brand": "Roto Grip",
     "name": "Hotwire",
     "normalizedName": "hotwire",
-    "approvalDate": "2015-07-01"
-  },
-  {
-    "brand": "Roto Grip",
-    "name": "Loco Blue/Copper",
-    "normalizedName": "loco blue copper",
     "approvalDate": "2015-07-01"
   },
   {
@@ -23671,12 +23713,6 @@
   },
   {
     "brand": "Roto Grip",
-    "name": "Asylum",
-    "normalizedName": "asylum",
-    "approvalDate": "2013-11-01"
-  },
-  {
-    "brand": "Roto Grip",
     "name": "Uproar",
     "normalizedName": "uproar",
     "approvalDate": "2013-11-01"
@@ -23721,6 +23757,12 @@
     "brand": "Roto Grip",
     "name": "Micro Cell Pearl",
     "normalizedName": "micro cell pearl",
+    "approvalDate": "2013-07-01"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Rumble",
+    "normalizedName": "rumble",
     "approvalDate": "2013-07-01"
   },
   {
@@ -24019,6 +24061,12 @@
   },
   {
     "brand": "Roto Grip",
+    "name": "Theory",
+    "normalizedName": "theory",
+    "approvalDate": "2010-10-01"
+  },
+  {
+    "brand": "Roto Grip",
     "name": "Republic",
     "normalizedName": "republic",
     "approvalDate": "2010-08-01"
@@ -24217,6 +24265,12 @@
   },
   {
     "brand": "Roto Grip",
+    "name": "Hybrid Cell",
+    "normalizedName": "hybrid cell",
+    "approvalDate": "2008-07-01"
+  },
+  {
+    "brand": "Roto Grip",
     "name": "Silver Streak/R",
     "normalizedName": "silver streak r",
     "approvalDate": "2008-07-01"
@@ -24232,6 +24286,12 @@
     "name": "Strike Cell",
     "normalizedName": "strike cell",
     "approvalDate": "2008-04-01"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Master Illusion",
+    "normalizedName": "master illusion",
+    "approvalDate": "2008-03-01"
   },
   {
     "brand": "Roto Grip",
@@ -24316,6 +24376,12 @@
     "name": "Silver Streak LE",
     "normalizedName": "silver streak le",
     "approvalDate": "2006-08-01"
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Earth",
+    "normalizedName": "earth",
+    "approvalDate": "2006-06-01"
   },
   {
     "brand": "Roto Grip",
@@ -24435,12 +24501,6 @@
     "brand": "Roto Grip",
     "name": "SD 73 Infinity",
     "normalizedName": "sd 73 infinity",
-    "approvalDate": "2005-01-01"
-  },
-  {
-    "brand": "Roto Grip",
-    "name": "Spare Tire",
-    "normalizedName": "spare tire",
     "approvalDate": "2005-01-01"
   },
   {
@@ -24745,50 +24805,56 @@
   },
   {
     "brand": "Roto Grip",
-    "name": "Attention Star",
-    "normalizedName": "attention star",
+    "name": "Asylum",
+    "normalizedName": "asylum",
     "approvalDate": null
   },
   {
     "brand": "Roto Grip",
-    "name": "Earth",
-    "normalizedName": "earth",
+    "name": "Defiant Rage",
+    "normalizedName": "defiant rage",
     "approvalDate": null
   },
   {
     "brand": "Roto Grip",
-    "name": "Huge Cell",
-    "normalizedName": "huge cell",
+    "name": "Halo",
+    "normalizedName": "halo",
     "approvalDate": null
   },
   {
     "brand": "Roto Grip",
-    "name": "Hybrid Cell",
-    "normalizedName": "hybrid cell",
+    "name": "Hustle (SPP) Sky-Pink-Purple",
+    "normalizedName": "hustle spp sky pink purple",
     "approvalDate": null
   },
   {
     "brand": "Roto Grip",
-    "name": "Master Illusion",
-    "normalizedName": "master illusion",
+    "name": "Loco Blue/Copper",
+    "normalizedName": "loco blue copper",
     "approvalDate": null
   },
   {
     "brand": "Roto Grip",
-    "name": "Pro Defiant",
-    "normalizedName": "pro defiant",
+    "name": "Optimum Idol Glow",
+    "normalizedName": "optimum idol glow",
     "approvalDate": null
   },
   {
     "brand": "Roto Grip",
-    "name": "Rumble",
-    "normalizedName": "rumble",
+    "name": "RST X-3",
+    "normalizedName": "rst x 3",
     "approvalDate": null
   },
   {
     "brand": "Roto Grip",
-    "name": "Theory",
-    "normalizedName": "theory",
+    "name": "Spare Tire",
+    "normalizedName": "spare tire",
+    "approvalDate": null
+  },
+  {
+    "brand": "Roto Grip",
+    "name": "Wreck-It",
+    "normalizedName": "wreck it",
     "approvalDate": null
   },
   {
@@ -24796,6 +24862,18 @@
     "name": "XLR8",
     "normalizedName": "xlr8",
     "approvalDate": null
+  },
+  {
+    "brand": "Storm",
+    "name": "Ion Pro Pearl",
+    "normalizedName": "ion pro pearl",
+    "approvalDate": "2026-10-13"
+  },
+  {
+    "brand": "Storm",
+    "name": "The Code Black",
+    "normalizedName": "the code black",
+    "approvalDate": "2026-10-13"
   },
   {
     "brand": "Storm",
@@ -24862,12 +24940,6 @@
     "name": "Virtual Gravity Blaze",
     "normalizedName": "virtual gravity blaze",
     "approvalDate": "2026-07-28"
-  },
-  {
-    "brand": "Storm",
-    "name": "Orbit Arc (Under 13 Lb.)",
-    "normalizedName": "orbit arc under 13 lb",
-    "approvalDate": "2026-07-14"
   },
   {
     "brand": "Storm",
@@ -25345,12 +25417,6 @@
   },
   {
     "brand": "Storm",
-    "name": "!Q Tour A.I.",
-    "normalizedName": "q tour a 1",
-    "approvalDate": "2024-12-10"
-  },
-  {
-    "brand": "Storm",
     "name": "Ghost Lock II",
     "normalizedName": "ghost lock 2",
     "approvalDate": "2024-12-03"
@@ -25477,6 +25543,12 @@
   },
   {
     "brand": "Storm",
+    "name": "Domination FP",
+    "normalizedName": "domination fp",
+    "approvalDate": "2024-06-04"
+  },
+  {
+    "brand": "Storm",
     "name": "!Q Super G",
     "normalizedName": "q super g",
     "approvalDate": "2024-05-21"
@@ -25509,12 +25581,6 @@
     "brand": "Storm",
     "name": "Gate Way",
     "normalizedName": "gate way",
-    "approvalDate": "2024-04-02"
-  },
-  {
-    "brand": "Storm",
-    "name": "Genius Solution",
-    "normalizedName": "genius solution",
     "approvalDate": "2024-04-02"
   },
   {
@@ -25624,12 +25690,6 @@
     "name": "Summit Peak",
     "normalizedName": "summit peak",
     "approvalDate": "2023-12-05"
-  },
-  {
-    "brand": "Storm",
-    "name": "Hy-Road Pink Pearl",
-    "normalizedName": "hy road pink pearl",
-    "approvalDate": "2023-11-28"
   },
   {
     "brand": "Storm",
@@ -25960,12 +26020,6 @@
     "name": "Super Nova",
     "normalizedName": "super nova",
     "approvalDate": "2022-08-02"
-  },
-  {
-    "brand": "Storm",
-    "name": "Spectre Sapphire",
-    "normalizedName": "spectre sapphire",
-    "approvalDate": "2022-05-31"
   },
   {
     "brand": "Storm",
@@ -26389,6 +26443,12 @@
   },
   {
     "brand": "Storm",
+    "name": "Marvel Maxx Impact",
+    "normalizedName": "marvel maxx impact",
+    "approvalDate": "2020-09-22"
+  },
+  {
+    "brand": "Storm",
     "name": "PhysiX Power Elite",
     "normalizedName": "physix power elite",
     "approvalDate": "2020-09-22"
@@ -26611,12 +26671,6 @@
   },
   {
     "brand": "Storm",
-    "name": "Match Up Bronze/Gunmetal",
-    "normalizedName": "match up bronze gunmetal",
-    "approvalDate": "2019-12-03"
-  },
-  {
-    "brand": "Storm",
     "name": "Sure Domination",
     "normalizedName": "sure domination",
     "approvalDate": "2019-11-26"
@@ -26655,6 +26709,12 @@
     "brand": "Storm",
     "name": "Match Up Blue/Navy/White",
     "normalizedName": "match up blue navy white",
+    "approvalDate": "2019-10-08"
+  },
+  {
+    "brand": "Storm",
+    "name": "Pitch Purple",
+    "normalizedName": "pitch purple",
     "approvalDate": "2019-10-08"
   },
   {
@@ -26739,12 +26799,6 @@
     "brand": "Storm",
     "name": "Sword Explosion",
     "normalizedName": "sword explosion",
-    "approvalDate": "2019-06-04"
-  },
-  {
-    "brand": "Storm",
-    "name": "X-Out Breast Cancer (!Q Tour 20)",
-    "normalizedName": "x out breast cancer q tour 20",
     "approvalDate": "2019-06-04"
   },
   {
@@ -26845,12 +26899,6 @@
   },
   {
     "brand": "Storm",
-    "name": "PhysiX M",
-    "normalizedName": "physix m",
-    "approvalDate": "2019-02-05"
-  },
-  {
-    "brand": "Storm",
     "name": "Shift Lock LTD",
     "normalizedName": "shift lock ltd",
     "approvalDate": "2019-01-22"
@@ -26896,6 +26944,12 @@
     "name": "Phaze Tour",
     "normalizedName": "phaze tour",
     "approvalDate": "2018-11-01"
+  },
+  {
+    "brand": "Storm",
+    "name": "!Q Tour Red",
+    "normalizedName": "q tour red",
+    "approvalDate": "2018-10-31"
   },
   {
     "brand": "Storm",
@@ -27193,12 +27247,6 @@
   },
   {
     "brand": "Storm",
-    "name": "Torrent Rush",
-    "normalizedName": "torrent rush",
-    "approvalDate": "2017-08-08"
-  },
-  {
-    "brand": "Storm",
     "name": "EXPO '17",
     "normalizedName": "expo 17",
     "approvalDate": "2017-06-27"
@@ -27337,6 +27385,12 @@
   },
   {
     "brand": "Storm",
+    "name": "Code Perfect",
+    "normalizedName": "code perfect",
+    "approvalDate": "2017-01-17"
+  },
+  {
+    "brand": "Storm",
     "name": "Sword Perfect",
     "normalizedName": "sword perfect",
     "approvalDate": "2017-01-17"
@@ -27351,12 +27405,6 @@
     "brand": "Storm",
     "name": "Phaze Grip",
     "normalizedName": "phaze grip",
-    "approvalDate": "2017-01-03"
-  },
-  {
-    "brand": "Storm",
-    "name": "Sure Lock",
-    "normalizedName": "sure lock",
     "approvalDate": "2017-01-03"
   },
   {
@@ -27433,6 +27481,12 @@
   },
   {
     "brand": "Storm",
+    "name": "Ice (All Colors)",
+    "normalizedName": "ice all colors",
+    "approvalDate": "2016-08-30"
+  },
+  {
+    "brand": "Storm",
     "name": "Marvel Maxx Gold",
     "normalizedName": "marvel maxx gold",
     "approvalDate": "2016-08-30"
@@ -27493,6 +27547,12 @@
   },
   {
     "brand": "Storm",
+    "name": "Virtual Gravity N/S",
+    "normalizedName": "virtual gravity n s",
+    "approvalDate": "2016-05-24"
+  },
+  {
+    "brand": "Storm",
     "name": "Rocket Ship",
     "normalizedName": "rocket ship",
     "approvalDate": "2016-05-03"
@@ -27549,6 +27609,12 @@
     "brand": "Storm",
     "name": "Tropical Storm Cherry/White",
     "normalizedName": "tropical storm cherry white",
+    "approvalDate": "2016-03-29"
+  },
+  {
+    "brand": "Storm",
+    "name": "Tropical Storm Sky Blue/Charcoal",
+    "normalizedName": "tropical storm sky blue charcoal",
     "approvalDate": "2016-03-29"
   },
   {
@@ -27889,6 +27955,12 @@
   },
   {
     "brand": "Storm",
+    "name": "Storm Nation White/Pink Polyester",
+    "normalizedName": "storm nation white pink polyester",
+    "approvalDate": "2014-09-01"
+  },
+  {
+    "brand": "Storm",
     "name": "Crux",
     "normalizedName": "crux",
     "approvalDate": "2014-08-01"
@@ -27939,6 +28011,12 @@
     "brand": "Storm",
     "name": "Storm White Polyester Spare Ball",
     "normalizedName": "storm white polyester spare ball",
+    "approvalDate": "2014-07-01"
+  },
+  {
+    "brand": "Storm",
+    "name": "Zero Gravity Gold",
+    "normalizedName": "zero gravity gold",
     "approvalDate": "2014-07-01"
   },
   {
@@ -28123,12 +28201,6 @@
   },
   {
     "brand": "Storm",
-    "name": "Code Black",
-    "normalizedName": "code black",
-    "approvalDate": "2013-07-01"
-  },
-  {
-    "brand": "Storm",
     "name": "Control II Blue/Green",
     "normalizedName": "control 2 blue green",
     "approvalDate": "2013-07-01"
@@ -28159,8 +28231,20 @@
   },
   {
     "brand": "Storm",
+    "name": "Sync Premium",
+    "normalizedName": "sync premium",
+    "approvalDate": "2013-07-01"
+  },
+  {
+    "brand": "Storm",
     "name": "Mix Blue/Orange",
     "normalizedName": "mix blue orange",
+    "approvalDate": "2013-06-01"
+  },
+  {
+    "brand": "Storm",
+    "name": "Mix Red/Silver",
+    "normalizedName": "mix red silver",
     "approvalDate": "2013-06-01"
   },
   {
@@ -28627,12 +28711,6 @@
   },
   {
     "brand": "Storm",
-    "name": "Ultra Furious",
-    "normalizedName": "ultra furious",
-    "approvalDate": "2011-02-01"
-  },
-  {
-    "brand": "Storm",
     "name": "Virtual Gravity Nano",
     "normalizedName": "virtual gravity nano",
     "approvalDate": "2011-01-01"
@@ -28903,6 +28981,12 @@
   },
   {
     "brand": "Storm",
+    "name": "Fast",
+    "normalizedName": "fast",
+    "approvalDate": "2009-04-01"
+  },
+  {
+    "brand": "Storm",
     "name": "Furious",
     "normalizedName": "furious",
     "approvalDate": "2009-04-01"
@@ -29103,6 +29187,12 @@
     "brand": "Storm",
     "name": "Global Shift",
     "normalizedName": "global shift",
+    "approvalDate": "2007-12-01"
+  },
+  {
+    "brand": "Storm",
+    "name": "Passion Lust",
+    "normalizedName": "passion lust",
     "approvalDate": "2007-12-01"
   },
   {
@@ -29383,12 +29473,6 @@
   },
   {
     "brand": "Storm",
-    "name": "Dark Thunder",
-    "normalizedName": "dark thunder",
-    "approvalDate": "2005-11-01"
-  },
-  {
-    "brand": "Storm",
     "name": "Perfecta",
     "normalizedName": "perfecta",
     "approvalDate": "2005-11-01"
@@ -29569,12 +29653,6 @@
   },
   {
     "brand": "Storm",
-    "name": "Atomic Charge",
-    "normalizedName": "atomic charge",
-    "approvalDate": "2004-11-01"
-  },
-  {
-    "brand": "Storm",
     "name": "Eraser Banshee",
     "normalizedName": "eraser banshee",
     "approvalDate": "2004-11-01"
@@ -29680,12 +29758,6 @@
     "name": "Thunder Road SE",
     "normalizedName": "thunder road se",
     "approvalDate": "2004-02-01"
-  },
-  {
-    "brand": "Storm",
-    "name": "Razor Wire",
-    "normalizedName": "razor wire",
-    "approvalDate": "2004-01-01"
   },
   {
     "brand": "Storm",
@@ -29863,9 +29935,21 @@
   },
   {
     "brand": "Storm",
+    "name": "Riverside Resort Pro-Am",
+    "normalizedName": "riverside resort pro am",
+    "approvalDate": "2003-02-01"
+  },
+  {
+    "brand": "Storm",
     "name": "Shock Trauma Elvis",
     "normalizedName": "shock trauma elvis",
     "approvalDate": "2003-02-01"
+  },
+  {
+    "brand": "Storm",
+    "name": "Trauma Unit Carbide",
+    "normalizedName": "trauma unit carbide",
+    "approvalDate": "2003-01-01"
   },
   {
     "brand": "Storm",
@@ -29902,6 +29986,12 @@
     "name": "Neo Plasma BB-X Carbide",
     "normalizedName": "neo plasma bb x carbide",
     "approvalDate": "2002-08-01"
+  },
+  {
+    "brand": "Storm",
+    "name": "Big Hit Pearl Purple/Teal",
+    "normalizedName": "big hit pearl purple teal",
+    "approvalDate": "2002-07-01"
   },
   {
     "brand": "Storm",
@@ -30115,12 +30205,6 @@
   },
   {
     "brand": "Storm",
-    "name": "Eraser 2",
-    "normalizedName": "eraser 2",
-    "approvalDate": "2001-03-01"
-  },
-  {
-    "brand": "Storm",
     "name": "Too Hot",
     "normalizedName": "too hot",
     "approvalDate": "2001-02-01"
@@ -30315,6 +30399,12 @@
     "brand": "Storm",
     "name": "Blue Hot Flame",
     "normalizedName": "blue hot flame",
+    "approvalDate": "1998-08-01"
+  },
+  {
+    "brand": "Storm",
+    "name": "Green Sunstorm",
+    "normalizedName": "green sunstorm",
     "approvalDate": "1998-08-01"
   },
   {
@@ -30517,62 +30607,68 @@
   },
   {
     "brand": "Storm",
-    "name": "Big Hit Pearl Purple/Teal",
-    "normalizedName": "big hit pearl purple teal",
+    "name": "Atomic Charge",
+    "normalizedName": "atomic charge",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "Code Perfect",
-    "normalizedName": "code perfect",
+    "name": "Code Black",
+    "normalizedName": "code black",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "Domination FP",
-    "normalizedName": "domination fp",
+    "name": "Dark Thunder",
+    "normalizedName": "dark thunder",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "Fast",
-    "normalizedName": "fast",
+    "name": "Eraser 2",
+    "normalizedName": "eraser 2",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "Green Sunstorm",
-    "normalizedName": "green sunstorm",
+    "name": "Genius Solution",
+    "normalizedName": "genius solution",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "Ice (All Colors)",
-    "normalizedName": "ice all colors",
+    "name": "Hy-Road Pink Pearl",
+    "normalizedName": "hy road pink pearl",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "!Q Tour Red",
-    "normalizedName": "q tour red",
+    "name": "!Q Tour A.I.",
+    "normalizedName": "q tour a 1",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "Marvel Maxx Impact",
-    "normalizedName": "marvel maxx impact",
+    "name": "Lunar Orbit (Under 13 lbs.)",
+    "normalizedName": "lunar orbit under 13 lbs",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "Mix Red/Silver",
-    "normalizedName": "mix red silver",
+    "name": "Match Up Bronze/Gunmetal",
+    "normalizedName": "match up bronze gunmetal",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "Passion Lust",
-    "normalizedName": "passion lust",
+    "name": "Orbit Arc (Under 13 Lb.)",
+    "normalizedName": "orbit arc under 13 lb",
+    "approvalDate": null
+  },
+  {
+    "brand": "Storm",
+    "name": "PhysiX M",
+    "normalizedName": "physix m",
     "approvalDate": null
   },
   {
@@ -30583,50 +30679,38 @@
   },
   {
     "brand": "Storm",
-    "name": "Pitch Purple",
-    "normalizedName": "pitch purple",
+    "name": "Razor Wire",
+    "normalizedName": "razor wire",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "Riverside Resort Pro-Am",
-    "normalizedName": "riverside resort pro am",
+    "name": "Spectre Sapphire",
+    "normalizedName": "spectre sapphire",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "Storm Nation White/Pink Polyester",
-    "normalizedName": "storm nation white pink polyester",
+    "name": "Sure Lock",
+    "normalizedName": "sure lock",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "Sync Premium",
-    "normalizedName": "sync premium",
+    "name": "Torrent Rush",
+    "normalizedName": "torrent rush",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "Trauma Unit Carbide",
-    "normalizedName": "trauma unit carbide",
+    "name": "Ultra Furious",
+    "normalizedName": "ultra furious",
     "approvalDate": null
   },
   {
     "brand": "Storm",
-    "name": "Tropical Storm Sky Blue/Charcoal",
-    "normalizedName": "tropical storm sky blue charcoal",
-    "approvalDate": null
-  },
-  {
-    "brand": "Storm",
-    "name": "Virtual Gravity N/S",
-    "normalizedName": "virtual gravity n s",
-    "approvalDate": null
-  },
-  {
-    "brand": "Storm",
-    "name": "Zero Gravity Gold",
-    "normalizedName": "zero gravity gold",
+    "name": "X-Out Breast Cancer (!Q Tour 20)",
+    "normalizedName": "x out breast cancer q tour 20",
     "approvalDate": null
   },
   {
