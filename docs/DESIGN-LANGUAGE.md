@@ -328,7 +328,7 @@ line of secondary text.
 
 ## 4a. Home's profile rows
 
-Home opens on the bowler, not on a menu (ADR-244). The greeting has the top
+Home opens on the bowler, not on a menu (ADR-245). The greeting has the top
 line to itself, with the app's mark (or the Pro mark) at its end. Under it the
 **hero card**: the bowler's average, large, the last session's average beside
 its label (green above the average, red below), the latest sessions as a line

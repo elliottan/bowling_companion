@@ -18,7 +18,7 @@ export interface HomeSummary {
 
 /**
  * What Home's hero card says: the bowler's average, the last session against
- * it, and the line of the latest sessions between them (ADR-244). Read from
+ * it, and the line of the latest sessions between them (ADR-245). Read from
  * finished games only, as every average in the app is.
  */
 export function summarizeHome(sessions: SessionSummary[]): HomeSummary {

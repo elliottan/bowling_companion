@@ -6,7 +6,7 @@ import type { ToolsActions } from "./ToolsList";
 import { GROUP_HEADING } from "./ui/typography";
 
 /*
- * Small pictures of what each tool does, for Home's tool cards (ADR-244). They
+ * Small pictures of what each tool does, for Home's tool cards (ADR-245). They
  * are drawings, not the tools' own components: a card is a door, and the
  * screen behind it draws the real thing. Each is drawn to a 160 x 80 box and
  * fills its card's width.
@@ -150,7 +150,7 @@ function ToolCard({
 }
 
 /**
- * The tools on Home, as cards with a picture of what each does (ADR-244). A
+ * The tools on Home, as cards with a picture of what each does (ADR-245). A
  * row with a line under it described a tool; a picture makes it something to
  * try. Two by two, so the four sit as one block, and the guides as a row under
  * them. Settings keeps the plain list (`ToolsList`), which is a way back to

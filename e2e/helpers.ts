@@ -166,7 +166,7 @@ export async function preferDownloadOverShare(page: Page) {
 
 /**
  * Open the arsenal from Home: one row named Arsenal, with the balls or, for an
- * empty bag, "Add balls to your bag" under the name (ADR-244).
+ * empty bag, "Add balls to your bag" under the name (ADR-245).
  */
 export async function openArsenalFromHome(page: Page) {
   await page.getByRole("button", { name: /^Arsenal/ }).click();

@@ -40,7 +40,7 @@ describe("Home (ADR-115)", () => {
   });
 
   /**
-   * The hero leads (ADR-244): the bowler's average, the last session against
+   * The hero leads (ADR-245): the bowler's average, the last session against
    * it, and Start session. The bowler's own things follow, then the tools.
    * Recent sessions are left to History.
    */

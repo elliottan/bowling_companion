@@ -10321,7 +10321,7 @@ leaves a bowler guessing what it turns on.
   converted"), so a Spanish bowler sees "Partida 2" on the page and "Game 2"
   on the Lock Screen until the extension is translated.
 
-## ADR-244: Home leads with a hero card, and shows the tools as pictures
+## ADR-245: Home leads with a hero card, and shows the tools as pictures
 
 **Status.** Accepted, 2026-11-06, at the owner's request. Supersedes the top
 band of ADR-146 and the recent sessions row on Home.

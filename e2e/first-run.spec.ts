@@ -166,7 +166,7 @@ test("a restore brings the history back and never asks the hand twice", async ({
   // Straight into the app: the file carried the handedness, so the question
   // that would have overwritten it is never asked.
   await expect(page.getByRole("dialog", { name: "Set up Headpin" })).toHaveCount(0);
-  // The perfect game is back: Home's hero reads it as the average (ADR-244).
+  // The perfect game is back: Home's hero reads it as the average (ADR-245).
   await expect(page.getByRole("region", { name: "Your average" })).toContainText("300");
 });
 
