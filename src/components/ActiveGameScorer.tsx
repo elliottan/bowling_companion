@@ -949,6 +949,7 @@ export function ActiveGameScorer({
               else updateStandingPins(pins);
             }}
             size="sm"
+            reserveCorner
             cornerSlot={
               pocketShotIsFresh ? (
                 <button

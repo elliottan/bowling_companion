@@ -17,6 +17,7 @@ describe("normalizePatternName", () => {
 
   it("stops a sheet shouting", () => {
     expect(normalizePatternName("BIG BEN")).toBe("Big Ben");
+    expect(normalizePatternName("DEAD MAN'S CURVE V2")).toBe("Dead Man's Curve V2");
   });
 
   it("keeps the pattern code, which is how a sheet is identified", () => {

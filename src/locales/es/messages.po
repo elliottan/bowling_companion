@@ -91,6 +91,11 @@ msgstr "{0, plural, one {# pista} other {# pistas}}"
 msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, one {# patrón} other {# patrones}}"
 
+#. placeholder {0}: sessions.length
+#: src/components/GameSlotSessionsDialog.tsx
+msgid "{0, plural, one {# session, newest first} other {# sessions, newest first}}"
+msgstr "{0, plural, one {# sesión, la más reciente primero} other {# sesiones, las más recientes primero}}"
+
 #. placeholder {0}: pending.incoming.sessions
 #. placeholder {0}: stats.totalSessions
 #: src/components/FirstRun.tsx
@@ -2005,6 +2010,7 @@ msgstr "Juego"
 msgid "game {gameNumber}"
 msgstr "juego {gameNumber}"
 
+#: src/components/GameSlotSessionsDialog.tsx
 #: src/components/LiveActivityPreviews.tsx
 #: src/components/SessionFilterBar.tsx
 #: src/components/SessionLanePanel.tsx
@@ -2057,6 +2063,10 @@ msgstr "Pistas del juego {gameNumber}"
 msgid "Game {gameNumber}, {score}"
 msgstr "Juego {gameNumber}, {score}"
 
+#: src/views/ActiveSessionView.tsx
+msgid "Game {gameNumber}, frame 1 starts on"
+msgstr "Juego {gameNumber}, el cuadro 1 empieza en"
+
 #: src/components/ScoreTrendChart.tsx
 msgid "Game {gameNumber}: {score}"
 msgstr "Juego {gameNumber}: {score}"
@@ -2089,6 +2099,7 @@ msgstr "Obtener"
 msgid "Get a deeper analysis of your stats."
 msgstr "Obtén un análisis más a fondo de tus estadísticas."
 
+#: src/components/ui/useProAction.tsx
 #: src/views/SettingsView.tsx
 msgid "Get Headpin Pro"
 msgstr "Obtener Headpin Pro"
@@ -3117,6 +3128,10 @@ msgstr "Nada en los últimos 3 meses"
 msgid "Nothing matches"
 msgstr "Sin coincidencias"
 
+#: src/components/CatalogRequest.tsx
+msgid "Nothing matches \"{query}\""
+msgstr "Nada coincide con \"{query}\""
+
 #: src/views/OpenFramesView.tsx
 msgid "Nothing open yet"
 msgstr "Aún no hay cuadros abiertos"
@@ -3621,6 +3636,22 @@ msgstr "Reemplazar todo"
 msgid "Replacing"
 msgstr "Reemplazando"
 
+#: src/components/CatalogRequest.tsx
+msgid "Request a ball"
+msgstr "Pedir una bola"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request a pattern"
+msgstr "Pedir un patrón"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request this ball"
+msgstr "Pedir esta bola"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request this pattern"
+msgstr "Pedir este patrón"
+
 #: src/views/CatalogView.tsx
 msgid "Reset all filters"
 msgstr "Restablecer todos los filtros"
@@ -3858,6 +3889,10 @@ msgstr "Buscar en el catálogo"
 msgid "Second lane"
 msgstr "Segunda pista"
 
+#: src/components/ui/useProAction.tsx
+msgid "See Headpin Pro"
+msgstr "Ver Headpin Pro"
+
 #: src/views/SettingsView.tsx
 msgid "See what Pro adds"
 msgstr "Ver qué agrega Pro"
@@ -3869,6 +3904,10 @@ msgstr "Selecciona al menos un pino para esta dejada."
 #: src/views/SettingsView.tsx
 msgid "Send feedback"
 msgstr "Enviar comentarios"
+
+#: src/components/CatalogRequest.tsx
+msgid "Send us the pattern sheet and we'll add it to the catalog."
+msgstr "Envíanos la hoja del patrón y lo agregamos al catálogo."
 
 #: src/lib/shareCard.ts
 msgid "Series"
@@ -4413,6 +4452,10 @@ msgstr "Tabla objetivo (flechas)"
 msgid "Tell me"
 msgstr "Cuéntame"
 
+#: src/components/CatalogRequest.tsx
+msgid "Tell us which ball it is and we'll add it to the catalog."
+msgstr "Dinos qué bola es y la agregamos al catálogo."
+
 #: src/views/AppearanceView.tsx
 msgid "Text size"
 msgstr "Tamaño del texto"
@@ -4422,6 +4465,7 @@ msgid "That file could not be read."
 msgstr "No se pudo leer ese archivo."
 
 #: src/lib/backupValidation.ts
+#: src/services/backupRepository.ts
 msgid "That file is not a Headpin backup."
 msgstr "Ese archivo no es un respaldo de Headpin."
 
@@ -4429,11 +4473,13 @@ msgstr "Ese archivo no es un respaldo de Headpin."
 msgid "The app crashed"
 msgstr "La app falló"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "The App Store did not answer: {reason}"
 msgstr "La App Store no respondió: {reason}"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "The App Store did not answer. Try again in a moment."
@@ -4853,6 +4899,7 @@ msgstr "Volumen"
 msgid "Waiting for a connection"
 msgstr "Esperando una conexión"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/SettingsView.tsx
 msgid "Waiting for approval. Pro opens as soon as it comes through."
 msgstr "Esperando aprobación. Pro se activa en cuanto llegue."

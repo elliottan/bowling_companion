@@ -91,6 +91,11 @@ msgstr "{0, plural, other {# 條球道}}"
 msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, other {# 個油型}}"
 
+#. placeholder {0}: sessions.length
+#: src/components/GameSlotSessionsDialog.tsx
+msgid "{0, plural, one {# session, newest first} other {# sessions, newest first}}"
+msgstr "{0, plural, other {# 個場次，最新的在前}}"
+
 #. placeholder {0}: pending.incoming.sessions
 #. placeholder {0}: stats.totalSessions
 #: src/components/FirstRun.tsx
@@ -2005,6 +2010,7 @@ msgstr "局"
 msgid "game {gameNumber}"
 msgstr "第 {gameNumber} 局"
 
+#: src/components/GameSlotSessionsDialog.tsx
 #: src/components/LiveActivityPreviews.tsx
 #: src/components/SessionFilterBar.tsx
 #: src/components/SessionLanePanel.tsx
@@ -2057,6 +2063,10 @@ msgstr "第 {gameNumber} 局球道"
 msgid "Game {gameNumber}, {score}"
 msgstr "第 {gameNumber} 局，{score}"
 
+#: src/views/ActiveSessionView.tsx
+msgid "Game {gameNumber}, frame 1 starts on"
+msgstr "第 {gameNumber} 局，第 1 格開始於"
+
 #: src/components/ScoreTrendChart.tsx
 msgid "Game {gameNumber}: {score}"
 msgstr "第 {gameNumber} 局：{score}"
@@ -2089,6 +2099,7 @@ msgstr "取得"
 msgid "Get a deeper analysis of your stats."
 msgstr "深入分析你的統計資料。"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/SettingsView.tsx
 msgid "Get Headpin Pro"
 msgstr "取得 Headpin Pro"
@@ -3117,6 +3128,10 @@ msgstr "近 3 個月沒有紀錄"
 msgid "Nothing matches"
 msgstr "沒有符合的項目"
 
+#: src/components/CatalogRequest.tsx
+msgid "Nothing matches \"{query}\""
+msgstr "沒有符合「{query}」的項目"
+
 #: src/views/OpenFramesView.tsx
 msgid "Nothing open yet"
 msgstr "尚無失誤"
@@ -3621,6 +3636,22 @@ msgstr "全部取代"
 msgid "Replacing"
 msgstr "取代中"
 
+#: src/components/CatalogRequest.tsx
+msgid "Request a ball"
+msgstr "申請新增球款"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request a pattern"
+msgstr "申請新增油型"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request this ball"
+msgstr "申請新增這顆球"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request this pattern"
+msgstr "申請新增這個油型"
+
 #: src/views/CatalogView.tsx
 msgid "Reset all filters"
 msgstr "重設所有篩選條件"
@@ -3858,6 +3889,10 @@ msgstr "搜尋型錄"
 msgid "Second lane"
 msgstr "第二條球道"
 
+#: src/components/ui/useProAction.tsx
+msgid "See Headpin Pro"
+msgstr "查看 Headpin Pro"
+
 #: src/views/SettingsView.tsx
 msgid "See what Pro adds"
 msgstr "看看 Pro 有什麼"
@@ -3869,6 +3904,10 @@ msgstr "請至少為這個殘瓶選一支球瓶。"
 #: src/views/SettingsView.tsx
 msgid "Send feedback"
 msgstr "傳送意見回饋"
+
+#: src/components/CatalogRequest.tsx
+msgid "Send us the pattern sheet and we'll add it to the catalog."
+msgstr "把油型表寄給我們，我們會加進型錄。"
 
 #: src/lib/shareCard.ts
 msgid "Series"
@@ -4413,6 +4452,10 @@ msgstr "目標板（箭頭）"
 msgid "Tell me"
 msgstr "告訴我們"
 
+#: src/components/CatalogRequest.tsx
+msgid "Tell us which ball it is and we'll add it to the catalog."
+msgstr "告訴我們是哪顆球，我們會加進型錄。"
+
 #: src/views/AppearanceView.tsx
 msgid "Text size"
 msgstr "文字大小"
@@ -4422,6 +4465,7 @@ msgid "That file could not be read."
 msgstr "無法讀取該檔案。"
 
 #: src/lib/backupValidation.ts
+#: src/services/backupRepository.ts
 msgid "That file is not a Headpin backup."
 msgstr "該檔案不是 Headpin 備份。"
 
@@ -4429,11 +4473,13 @@ msgstr "該檔案不是 Headpin 備份。"
 msgid "The app crashed"
 msgstr "App 當機了"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "The App Store did not answer: {reason}"
 msgstr "App Store 沒有回應：{reason}"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "The App Store did not answer. Try again in a moment."
@@ -4853,6 +4899,7 @@ msgstr "油量"
 msgid "Waiting for a connection"
 msgstr "等待連線"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/SettingsView.tsx
 msgid "Waiting for approval. Pro opens as soon as it comes through."
 msgstr "等待核准中。核准後 Pro 會立即開啟。"

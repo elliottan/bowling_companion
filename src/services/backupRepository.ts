@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { db, linkLegacySessionOilPatterns } from "../db/bowlingDb";
 import { validateBackup } from "../lib/backupValidation";
 import { shareFileFromApp } from "../lib/nativeShare";
@@ -341,7 +342,7 @@ function parseBackupJson(text: string): unknown {
   try {
     return JSON.parse(text) as unknown;
   } catch {
-    throw new Error("That file is not a Headpin backup.");
+    throw new Error(t`That file is not a Headpin backup.`);
   }
 }
 

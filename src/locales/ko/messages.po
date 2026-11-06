@@ -91,6 +91,11 @@ msgstr "{0, plural, other {레인 #개}}"
 msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, other {패턴 #개}}"
 
+#. placeholder {0}: sessions.length
+#: src/components/GameSlotSessionsDialog.tsx
+msgid "{0, plural, one {# session, newest first} other {# sessions, newest first}}"
+msgstr "{0, plural, other {세션 #개, 최신순}}"
+
 #. placeholder {0}: pending.incoming.sessions
 #. placeholder {0}: stats.totalSessions
 #: src/components/FirstRun.tsx
@@ -2005,6 +2010,7 @@ msgstr "게임"
 msgid "game {gameNumber}"
 msgstr "게임 {gameNumber}"
 
+#: src/components/GameSlotSessionsDialog.tsx
 #: src/components/LiveActivityPreviews.tsx
 #: src/components/SessionFilterBar.tsx
 #: src/components/SessionLanePanel.tsx
@@ -2057,6 +2063,10 @@ msgstr "게임 {gameNumber} 레인"
 msgid "Game {gameNumber}, {score}"
 msgstr "게임 {gameNumber}, {score}"
 
+#: src/views/ActiveSessionView.tsx
+msgid "Game {gameNumber}, frame 1 starts on"
+msgstr "게임 {gameNumber}, 프레임 1 시작 레인"
+
 #: src/components/ScoreTrendChart.tsx
 msgid "Game {gameNumber}: {score}"
 msgstr "게임 {gameNumber}: {score}"
@@ -2089,6 +2099,7 @@ msgstr "받기"
 msgid "Get a deeper analysis of your stats."
 msgstr "통계를 더 깊이 분석해 보세요."
 
+#: src/components/ui/useProAction.tsx
 #: src/views/SettingsView.tsx
 msgid "Get Headpin Pro"
 msgstr "Headpin Pro 받기"
@@ -3117,6 +3128,10 @@ msgstr "최근 3개월 기록이 없어요"
 msgid "Nothing matches"
 msgstr "일치하는 항목이 없어요"
 
+#: src/components/CatalogRequest.tsx
+msgid "Nothing matches \"{query}\""
+msgstr "\"{query}\"와 일치하는 항목이 없어요"
+
 #: src/views/OpenFramesView.tsx
 msgid "Nothing open yet"
 msgstr "아직 오픈 프레임이 없어요"
@@ -3621,6 +3636,22 @@ msgstr "모두 교체"
 msgid "Replacing"
 msgstr "교체하는 중"
 
+#: src/components/CatalogRequest.tsx
+msgid "Request a ball"
+msgstr "볼 요청하기"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request a pattern"
+msgstr "패턴 요청하기"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request this ball"
+msgstr "이 볼 요청하기"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request this pattern"
+msgstr "이 패턴 요청하기"
+
 #: src/views/CatalogView.tsx
 msgid "Reset all filters"
 msgstr "모든 필터 초기화"
@@ -3858,6 +3889,10 @@ msgstr "카탈로그 검색"
 msgid "Second lane"
 msgstr "두 번째 레인"
 
+#: src/components/ui/useProAction.tsx
+msgid "See Headpin Pro"
+msgstr "Headpin Pro 보기"
+
 #: src/views/SettingsView.tsx
 msgid "See what Pro adds"
 msgstr "Pro로 추가되는 기능 보기"
@@ -3869,6 +3904,10 @@ msgstr "남은 핀을 하나 이상 선택하세요."
 #: src/views/SettingsView.tsx
 msgid "Send feedback"
 msgstr "의견 보내기"
+
+#: src/components/CatalogRequest.tsx
+msgid "Send us the pattern sheet and we'll add it to the catalog."
+msgstr "패턴 시트를 보내 주시면 카탈로그에 추가할게요."
 
 #: src/lib/shareCard.ts
 msgid "Series"
@@ -4413,6 +4452,10 @@ msgstr "타깃 보드 (스팟)"
 msgid "Tell me"
 msgstr "알려 주기"
 
+#: src/components/CatalogRequest.tsx
+msgid "Tell us which ball it is and we'll add it to the catalog."
+msgstr "어떤 볼인지 알려 주시면 카탈로그에 추가할게요."
+
 #: src/views/AppearanceView.tsx
 msgid "Text size"
 msgstr "글자 크기"
@@ -4422,6 +4465,7 @@ msgid "That file could not be read."
 msgstr "파일을 읽을 수 없어요."
 
 #: src/lib/backupValidation.ts
+#: src/services/backupRepository.ts
 msgid "That file is not a Headpin backup."
 msgstr "이 파일은 Headpin 백업이 아니에요."
 
@@ -4429,11 +4473,13 @@ msgstr "이 파일은 Headpin 백업이 아니에요."
 msgid "The app crashed"
 msgstr "앱이 중단됐어요"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "The App Store did not answer: {reason}"
 msgstr "App Store에서 응답이 없어요: {reason}"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "The App Store did not answer. Try again in a moment."
@@ -4853,6 +4899,7 @@ msgstr "오일량"
 msgid "Waiting for a connection"
 msgstr "연결 대기 중"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/SettingsView.tsx
 msgid "Waiting for approval. Pro opens as soon as it comes through."
 msgstr "승인을 기다리고 있어요. 승인되는 즉시 Pro가 열려요."

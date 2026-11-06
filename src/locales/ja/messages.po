@@ -91,6 +91,11 @@ msgstr "{0, plural, other {#レーン}}"
 msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, other {#パターン}}"
 
+#. placeholder {0}: sessions.length
+#: src/components/GameSlotSessionsDialog.tsx
+msgid "{0, plural, one {# session, newest first} other {# sessions, newest first}}"
+msgstr "{0, plural, other {#セッション、新しい順}}"
+
 #. placeholder {0}: pending.incoming.sessions
 #. placeholder {0}: stats.totalSessions
 #: src/components/FirstRun.tsx
@@ -2005,6 +2010,7 @@ msgstr "ゲーム"
 msgid "game {gameNumber}"
 msgstr "ゲーム{gameNumber}"
 
+#: src/components/GameSlotSessionsDialog.tsx
 #: src/components/LiveActivityPreviews.tsx
 #: src/components/SessionFilterBar.tsx
 #: src/components/SessionLanePanel.tsx
@@ -2057,6 +2063,10 @@ msgstr "ゲーム{gameNumber}のレーン"
 msgid "Game {gameNumber}, {score}"
 msgstr "ゲーム{gameNumber}、{score}"
 
+#: src/views/ActiveSessionView.tsx
+msgid "Game {gameNumber}, frame 1 starts on"
+msgstr "ゲーム{gameNumber}、1フレームの開始レーン"
+
 #: src/components/ScoreTrendChart.tsx
 msgid "Game {gameNumber}: {score}"
 msgstr "ゲーム{gameNumber}: {score}"
@@ -2089,6 +2099,7 @@ msgstr "入手"
 msgid "Get a deeper analysis of your stats."
 msgstr "統計をさらに詳しく分析できます。"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/SettingsView.tsx
 msgid "Get Headpin Pro"
 msgstr "Headpin Proを入手"
@@ -3117,6 +3128,10 @@ msgstr "過去3か月はデータなし"
 msgid "Nothing matches"
 msgstr "一致なし"
 
+#: src/components/CatalogRequest.tsx
+msgid "Nothing matches \"{query}\""
+msgstr "「{query}」に一致するものはありません"
+
 #: src/views/OpenFramesView.tsx
 msgid "Nothing open yet"
 msgstr "オープンはまだありません"
@@ -3621,6 +3636,22 @@ msgstr "すべて置き換える"
 msgid "Replacing"
 msgstr "置き換え中"
 
+#: src/components/CatalogRequest.tsx
+msgid "Request a ball"
+msgstr "ボールをリクエスト"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request a pattern"
+msgstr "パターンをリクエスト"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request this ball"
+msgstr "このボールをリクエスト"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request this pattern"
+msgstr "このパターンをリクエスト"
+
 #: src/views/CatalogView.tsx
 msgid "Reset all filters"
 msgstr "すべてのフィルターをリセット"
@@ -3858,6 +3889,10 @@ msgstr "カタログを検索"
 msgid "Second lane"
 msgstr "2つ目のレーン"
 
+#: src/components/ui/useProAction.tsx
+msgid "See Headpin Pro"
+msgstr "Headpin Proを見る"
+
 #: src/views/SettingsView.tsx
 msgid "See what Pro adds"
 msgstr "Proでできること"
@@ -3869,6 +3904,10 @@ msgstr "この残りピンには、1本以上のピンを選んでください�
 #: src/views/SettingsView.tsx
 msgid "Send feedback"
 msgstr "フィードバックを送信"
+
+#: src/components/CatalogRequest.tsx
+msgid "Send us the pattern sheet and we'll add it to the catalog."
+msgstr "パターンシートを送っていただければ、カタログに追加します。"
 
 #: src/lib/shareCard.ts
 msgid "Series"
@@ -4413,6 +4452,10 @@ msgstr "目標ボード (スパット)"
 msgid "Tell me"
 msgstr "意見を送る"
 
+#: src/components/CatalogRequest.tsx
+msgid "Tell us which ball it is and we'll add it to the catalog."
+msgstr "どのボールか教えていただければ、カタログに追加します。"
+
 #: src/views/AppearanceView.tsx
 msgid "Text size"
 msgstr "文字サイズ"
@@ -4422,6 +4465,7 @@ msgid "That file could not be read."
 msgstr "このファイルを読み込めませんでした。"
 
 #: src/lib/backupValidation.ts
+#: src/services/backupRepository.ts
 msgid "That file is not a Headpin backup."
 msgstr "このファイルはHeadpinのバックアップではありません。"
 
@@ -4429,11 +4473,13 @@ msgstr "このファイルはHeadpinのバックアップではありません�
 msgid "The app crashed"
 msgstr "アプリがクラッシュしました"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "The App Store did not answer: {reason}"
 msgstr "App Storeから応答がありませんでした: {reason}"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "The App Store did not answer. Try again in a moment."
@@ -4853,6 +4899,7 @@ msgstr "オイル量"
 msgid "Waiting for a connection"
 msgstr "接続を待っています"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/SettingsView.tsx
 msgid "Waiting for approval. Pro opens as soon as it comes through."
 msgstr "承認待ちです。承認されるとすぐにProが使えるようになります。"
