@@ -397,7 +397,7 @@ await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }
 
 // Home has no Arsenal button: the balls beside the greeting open it
 // (e2e/helpers.ts, openArsenalFromHome).
-await page.getByRole("list", { name: "Your arsenal" }).getByRole("button").first().click();
+await page.getByRole("button", { name: /^Arsenal/ }).click();
 await shootBothThemes(page, "arsenal");
 await page.getByRole("banner").getByRole("button", { name: "Back", exact: true }).first().click();
 

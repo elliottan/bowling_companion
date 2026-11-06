@@ -328,24 +328,32 @@ line of secondary text.
 
 ## 4a. Home's profile rows
 
-Home opens on the bowler, not on a menu. The top band is two columns: the
-app's mark and a greeting (with the name they gave, or the greeting alone) on
-the left, and the arsenal on the right, a little wider because it carries
-pictures. The arsenal is a grid of its balls, two rows of four, filled row by
-row and never scrolled: a scroller in the top band would be a second scroll
-axis for a preview whose only job is "these are yours", so a bigger bag shows
-its overflow as a count in the last slot. It carries no heading and no total:
-the balls say what the grid is, and every ball opens the arsenal. Under
-the band, the spare lines, lane notes and Alley report are three equal tiles in
-one row, each with its count under its name, or while it holds nothing, what it
-is for ("None yet" told a new bowler it was empty and nothing more), and the recent sessions are one row of tiles that scrolls sideways,
-bled to the screen edge so a tile cut off there says there is more. A row's
-heading opens the screen it previews. Only the tools and reference stay a
-`ListGroup`, because they are the same for every bowler: the oil patterns are
-there, a catalog like the balls, and the Alley report is a tile, since it reads
-nothing but the bowler's own games (ADR-146). Each tool row carries one line
-saying what it does: "Layouts" and "Line visualizer" are names a new bowler
-would otherwise have to tap to learn.
+Home opens on the bowler, not on a menu (ADR-244). The greeting has the top
+line to itself, with the app's mark (or the Pro mark) at its end. Under it the
+**hero card**: the bowler's average, large, the last session's average beside
+its label (green above the average, red below), the latest sessions as a line
+with the average dashed across it, and **Start session**, the thing Home is
+most often opened for. It is kept short on purpose, so the bowler's own things
+and the tools still show on the first screen. Before the first finished game
+the hero is the Start session button alone, and before the first session the
+empty state is the whole ask.
+
+Under the hero the **arsenal is one row that is plainly a button**: a few of
+its balls overlapping, its name, its count and a chevron. It was a grid of
+balls beside the greeting with no name on it, and read as decoration rather
+than a way in. Then the spare lines, lane notes and Alley report as three
+equal tiles, each with its count under its name, or while it holds nothing,
+what it is for. Recent sessions are not on Home: History is one tap away, and
+the hero already carries the last one.
+
+The **tools are cards with a picture** of what each does, two by two: a line
+hooking down the lane, a ball with its layout drawn on, an oil pattern's load,
+real balls from the catalog. A row with a line under it described a tool; a
+picture makes it something to try. The guides are one row under them. The
+pictures are drawings (`ToolCards`), not the tools' own components, since a
+card is a door. Settings keeps the plain `ToolsList`, which is a way back to
+the same screens, not a showcase. The Alley report stays with the bowler's
+tiles, since it reads nothing but their games (ADR-146).
 
 Home holds **one prompt at a time**: the backup card, else one setup step,
 else the feedback ask, and none of them before the first session, where the

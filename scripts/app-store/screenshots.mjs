@@ -345,7 +345,7 @@ if (wanted("line") || wanted("pattern")) {
 
 if (wanted("arsenal")) {
   await setTheme("dark");
-  await page.getByRole("list", { name: tr("Your arsenal") }).getByRole("button").first().click();
+  await page.getByRole("button", { name: new RegExp(`^${tr("Arsenal")}`) }).click();
   await wait(700);
   await shoot(shot("arsenal"));
   await home();

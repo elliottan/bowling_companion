@@ -9,7 +9,7 @@ import {
   setBackupNudgeSnoozedUntil,
   setBowlerName
 } from "../services/bowlingRepository";
-import { addBall, addOilPattern } from "../services/ballRepository";
+import { addBall } from "../services/ballRepository";
 import { GREETINGS } from "../lib/greeting";
 import { ProAccessContext } from "../lib/useProAccess";
 import type { ProAccess } from "../lib/pro";
@@ -17,8 +17,6 @@ import type { ProAccess } from "../lib/pro";
 function renderHome(overrides: Partial<Parameters<typeof DashboardView>[0]> = {}) {
   const props = {
     onStartSession: vi.fn(),
-    onOpenSession: vi.fn(),
-    onViewAll: vi.fn(),
     onOpenCatalog: vi.fn(),
     onOpenLineVisualizer: vi.fn(),
     onOpenLayoutLab: vi.fn(),
@@ -42,27 +40,29 @@ describe("Home (ADR-115)", () => {
   });
 
   /**
-   * The Tonight card (recent alleys, Start session, Last time) is gone: the
-   * floating button starts a session. The bowler's own things come first, as
-   * one profile, and the tools and reference follow.
+   * The hero leads (ADR-244): the bowler's average, the last session against
+   * it, and Start session. The bowler's own things follow, then the tools.
+   * Recent sessions are left to History.
    */
-  it("has no Tonight card, and the profile comes before the tools", async () => {
+  it("leads with the hero, then the bowler's own things, then the tools", async () => {
     const id = Number(
       await createSession({ date: "2026-09-30", alley_name: "Chinese Swimming Club", description: "League" })
     );
-    await addGameToSession(id, { game_number: 1 });
+    const g = Number(await addGameToSession(id, { game_number: 1 }));
+    await db.games.update(g, { final_score: 190 });
     renderHome();
 
-    const recent = await screen.findByText("Recent sessions");
-    expect(screen.queryByText("Tonight")).not.toBeInTheDocument();
-    expect(screen.queryByText(/^Last time/)).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Start a session at/ })).not.toBeInTheDocument();
+    const hero = await screen.findByRole("region", { name: "Your average" });
+    await waitFor(() => expect(hero).toHaveTextContent("190"));
+    expect(hero).toHaveTextContent("Last session 190");
     expect(screen.getByRole("button", { name: "Start session" })).toBeInTheDocument();
-    expect(screen.queryByText("My bowling")).not.toBeInTheDocument();
+    expect(screen.queryByText("Recent sessions")).not.toBeInTheDocument();
+    expect(screen.queryByText("Tonight")).not.toBeInTheDocument();
 
+    const arsenal = screen.getByRole("button", { name: /^Arsenal/ });
+    expect(hero.compareDocumentPosition(arsenal) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(
-      recent.compareDocumentPosition(screen.getByText("Tools and reference")) &
-        Node.DOCUMENT_POSITION_FOLLOWING
+      arsenal.compareDocumentPosition(screen.getByText("Tools and reference")) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
   });
 
@@ -81,14 +81,18 @@ describe("Home (ADR-115)", () => {
     expect(await screen.findByRole("dialog", { name: "Start session" })).toBeInTheDocument();
   });
 
-  it("names the floating button once there are sessions", async () => {
+  it("starts a session from the hero's button, even before a game is finished", async () => {
     await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" });
     renderHome();
 
-    const fab = await screen.findByRole("button", { name: "Start session" });
+    const start = await screen.findByRole("button", { name: "Start session" });
     // Printed, not only spoken: a plus alone said nothing about what it adds.
-    expect(fab).toHaveTextContent("Start session");
+    expect(start).toHaveTextContent("Start session");
+    // No average to show yet, so no hero card around it.
+    expect(screen.queryByRole("region", { name: "Your average" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Start scoring" })).not.toBeInTheDocument();
+    fireEvent.click(start);
+    expect(await screen.findByRole("dialog", { name: "Start session" })).toBeInTheDocument();
   });
 
   it("asks for the balls once, in the arsenal's own slot, not again as a step", async () => {
@@ -145,23 +149,21 @@ describe("Home (ADR-115)", () => {
     expect(await screen.findByRole("heading", { level: 1, name: /, Sam$/ })).toBeInTheDocument();
   });
 
-  it("shows the arsenal as its balls, each opening the arsenal", async () => {
+  it("shows the arsenal as one row, named and counted, that opens it", async () => {
     await addBall({ name: "Phaze II", is_spare_ball: false });
     await addBall({ name: "Plastic", is_spare_ball: true });
     const props = renderHome();
-    fireEvent.click(await screen.findByRole("button", { name: "Plastic" }));
+    const row = await screen.findByRole("button", { name: /^Arsenal/ });
+    await waitFor(() => expect(row).toHaveTextContent("Arsenal2 balls"));
+    fireEvent.click(row);
     expect(props.onOpenArsenal).toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: "Phaze II" })).toBeInTheDocument();
-    // No heading and no total: the balls are the grid.
-    expect(screen.queryByText("Arsenal")).not.toBeInTheDocument();
   });
 
-  it("shows two rows of balls at most, and counts the rest", async () => {
-    for (let i = 1; i <= 11; i++) await addBall({ name: `Ball ${i}`, is_spare_ball: false });
+  it("asks for the balls on the arsenal row while the bag is empty", async () => {
     const props = renderHome();
-    expect(await screen.findByRole("button", { name: "Ball 7" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Ball 8" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "4 more balls" }));
+    const row = await screen.findByRole("button", { name: /^Arsenal/ });
+    await waitFor(() => expect(row).toHaveTextContent("Add balls to your bag"));
+    fireEvent.click(row);
     expect(props.onOpenArsenal).toHaveBeenCalled();
   });
 
@@ -184,37 +186,19 @@ describe("Home (ADR-115)", () => {
     await waitFor(() => expect(tile).toHaveTextContent("2 alleys"));
   });
 
-  it("lists the oil patterns with the tools, not the bowler's tiles", async () => {
+  it("shows every tool as a card with the guides under them, each opening its screen", async () => {
     const props = renderHome();
-    fireEvent.click(await screen.findByRole("button", { name: /^Oil patterns/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Line visualizer/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Layouts/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Oil patterns/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Ball catalog/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Guides/ }));
+    expect(props.onOpenLineVisualizer).toHaveBeenCalled();
+    expect(props.onOpenLayoutLab).toHaveBeenCalled();
     expect(props.onOpenOilPatterns).toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: /^Oil patterns/ }).closest("ul, [role=list], section")?.textContent).toContain("Guides");
-  });
-
-  it("shows a session tile as its event, alley, date, games and average", async () => {
-    const id = Number(
-      await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl", description: "League" })
-    );
-    const g1 = Number(await addGameToSession(id, { game_number: 1 }));
-    const g2 = Number(await addGameToSession(id, { game_number: 2 }));
-    await db.games.update(g1, { final_score: 180 });
-    await db.games.update(g2, { final_score: 201 });
-    const props = renderHome();
-
-    const tile = await screen.findByRole("button", { name: /Open session: Orchid Bowl/ });
-    await waitFor(() => expect(tile).toHaveTextContent("191AVG(2 GMS)"));
-    expect(tile).toHaveTextContent("League");
-    expect(tile).not.toHaveTextContent(/Lane/);
-    fireEvent.click(tile);
-    expect(props.onOpenSession).toHaveBeenCalledWith(id, true);
-  });
-
-  it("names the oil pattern on a session tile", async () => {
-    const patternId = Number(await addOilPattern("SG Nationals 2026"));
-    await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl", oil_pattern_id: patternId });
-    renderHome();
-    const tile = await screen.findByRole("button", { name: /Open session: Orchid Bowl/ });
-    await waitFor(() => expect(tile).toHaveTextContent("SG Nationals 2026"));
+    expect(props.onOpenCatalog).toHaveBeenCalled();
+    expect(props.onOpenGuides).toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: /^Oil patterns/ }).closest("section")?.textContent).toContain("Guides");
   });
 
   it("leads with the game in progress when there is one", async () => {
@@ -241,16 +225,6 @@ describe("Home (ADR-115)", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Alley report" }));
     expect(props.onOpenAlleyReport).toHaveBeenCalled();
   });
-
-  it("shows the latest eight sessions and sends the rest to History", async () => {
-    for (let d = 1; d <= 9; d++) {
-      await createSession({ date: `2026-09-0${d}`, alley_name: `Alley ${d}` });
-    }
-    const props = renderHome();
-    fireEvent.click(await screen.findByRole("button", { name: "View all" }));
-    expect(props.onViewAll).toHaveBeenCalled();
-    await waitFor(() => expect(screen.queryAllByRole("button", { name: /Alley 1\b/ })).toHaveLength(0));
-  });
 });
 
 describe("Home and Pro (ADR-164)", () => {
@@ -264,8 +238,6 @@ describe("Home and Pro (ADR-164)", () => {
       <ProAccessContext.Provider value={access}>
         <DashboardView
           onStartSession={vi.fn()}
-          onOpenSession={vi.fn()}
-          onViewAll={vi.fn()}
           onOpenCatalog={vi.fn()}
           onOpenLineVisualizer={vi.fn()}
           onOpenLayoutLab={vi.fn()}

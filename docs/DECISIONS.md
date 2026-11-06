@@ -10320,3 +10320,36 @@ leaves a bowler guessing what it turns on.
   the phone still draws its own in English (I18N.md, "What is still not
   converted"), so a Spanish bowler sees "Partida 2" on the page and "Game 2"
   on the Lock Screen until the extension is translated.
+
+## ADR-244: Home leads with a hero card, and shows the tools as pictures
+
+**Status.** Accepted, 2026-11-06, at the owner's request. Supersedes the top
+band of ADR-146 and the recent sessions row on Home.
+
+**Context.** Home's top band put the greeting beside a grid of ball pictures
+with no name on it, and the owner found it messy and not obviously tappable.
+The tools sat at the foot as a plain list, easy to miss, and the owner wants
+bowlers to find them and want to try them. Recent sessions were the least
+important row on the screen.
+
+**Decision.**
+
+- **The greeting has the top line**, with the app's mark at its end.
+- **A hero card leads:** the average over every finished game, the last
+  session's average, a line of the latest twelve sessions with the average
+  dashed across it, and Start session inside it. The floating Start session
+  button goes. The card is short, so more fits on the first screen. Before
+  the first finished game it is the button alone.
+- **The arsenal is one row:** a few balls overlapping, "Arsenal", the count
+  (or "Add balls to your bag") and a chevron.
+- **Recent sessions leave Home.** History holds them, and the hero carries
+  the last one.
+- **The tools are a 2x2 grid of cards with a drawing each** (`ToolCards`),
+  with the guides as a row under them. Settings keeps `ToolsList`.
+
+**Consequences.**
+
+- More of Home fits on the first screen, and the tools are on it on a tall
+  phone.
+- A past session is opened from History, not from Home.
+

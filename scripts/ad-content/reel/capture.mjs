@@ -514,7 +514,7 @@ await take("arsenal", {
   async run({ app, tap, mark, wait }) {
     await mark("home", { x: 0, y: 0, w: 390, h: 844 });
     await wait(500);
-    await tap(app.getByRole("list", { name: "Your arsenal" }).getByRole("button").first(), "tap-arsenal", 900);
+    await tap(app.getByRole("button", { name: /^Arsenal/ }), "tap-arsenal", 900);
     await mark("list", { x: 0, y: 0, w: 390, h: 844 });
     await wait(1400);
   }

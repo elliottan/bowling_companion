@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.89.0: A new Home (2026-11-06)
+
+- Home opens on a card with your average, your last session and a line of
+  your recent sessions, with Start session right in it.
+- Your arsenal is one row with its balls, its name and how many there are,
+  so it is clear it opens your bag.
+- The tools (Line visualizer, Layouts, Oil patterns, Ball catalog) are cards
+  with a picture of what each one does, with Guides under them.
+- Recent sessions are no longer on Home; History has them all (ADR-244).
+
 ## 0.88.1: Stats' buttons sit at the edge (2026-11-06)
 
 - On Stats, the filter and share buttons now sit at the right edge with the

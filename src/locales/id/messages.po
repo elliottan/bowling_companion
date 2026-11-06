@@ -86,11 +86,6 @@ msgstr "{0, plural, other {# game}}"
 msgid "{0, plural, one {# lane} other {# lanes}}"
 msgstr "{0, plural, other {# lintasan}}"
 
-#. placeholder {0}: count - shown.length
-#: src/components/HomeProfile.tsx
-msgid "{0, plural, one {# more ball} other {# more balls}}"
-msgstr "{0, plural, other {# bola lagi}}"
-
 #. placeholder {0}: patterns.length
 #: src/lib/lineReport.ts
 msgid "{0, plural, one {# pattern} other {# patterns}}"
@@ -236,6 +231,11 @@ msgstr "{column} {value}"
 msgid "{conversions} of {chances} made"
 msgstr "{conversions} dari {chances} berhasil"
 
+#. Bowling balls owned, in the bowler's bag
+#: src/components/HomeProfile.tsx
+msgid "{count, plural, one {# ball} other {# balls}}"
+msgstr "{count, plural, other {# bola}}"
+
 #: src/lib/shareCard.ts
 msgid "{count, plural, one {# game series} other {# game series}}"
 msgstr "{count, plural, other {seri # game}}"
@@ -334,10 +334,6 @@ msgstr "{from} sampai {to}"
 #: src/views/HistoryView.tsx
 msgid "{gameCount, plural, one {\"{alley}\" and its game will be permanently deleted. This can't be undone.} other {\"{alley}\" and all # games will be permanently deleted. This can't be undone.}}"
 msgstr "{gameCount, plural, other {\"{alley}\" dan # game di dalamnya akan dihapus secara permanen. Tindakan ini tidak bisa dibatalkan.}}"
-
-#: src/components/HomeProfile.tsx
-msgid "{games, plural, one {(# GM)} other {(# GMS)}}"
-msgstr "{games, plural, other {(# GM)}}"
 
 #: src/components/Stats.tsx
 msgid "{gap} above your average"
@@ -664,6 +660,7 @@ msgstr "Bola boling dengan dua lubang jari tanpa lubang jempol, menampilkan layo
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "Bola boling dengan dua lubang jari tanpa lubang jempol, menampilkan layout Storm VLS {pinToPap} x {core} x {buffer} inci."
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "Layout pengeboran, digambar di atas bola"
@@ -969,11 +966,6 @@ msgstr "avg"
 msgid "Avg"
 msgstr "Avg"
 
-#. Bowling term: short for average, the mean score per game. Keep it very short, it sits in a small tile.
-#: src/components/HomeProfile.tsx
-msgid "AVG"
-msgstr "AVG"
-
 #. Short for average, labelling the dashed average line on a chart, the number after it
 #. Short for average, labelling the dashed average line on a chart, the number after it
 #: src/components/ScoreTrendChart.tsx
@@ -1056,6 +1048,7 @@ msgstr "Bola"
 msgid "Ball #{ballId}"
 msgstr "Bola #{ballId}"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Ball catalog"
 msgstr "Katalog bola"
@@ -1610,6 +1603,7 @@ msgstr "Seret titik lepas, target, dan titik belok di lintasan, atur bentuk hook
 msgid "Drag to reorder {name}"
 msgstr "Seret untuk mengatur ulang urutan {name}"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Draw a line on the lane, over the oil"
 msgstr "Gambar jalur di lintasan, di atas minyak"
@@ -2142,6 +2136,7 @@ msgstr "Garis tengah grip"
 msgid "Grip style"
 msgstr "Gaya grip"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 #: src/views/GuidesView.tsx
 msgid "Guides"
@@ -2315,10 +2310,6 @@ msgstr "Dalam"
 #: src/components/MetricTrendChart.tsx
 msgid "In order. {points}."
 msgstr "Berurutan. {points}."
-
-#: src/components/HomeProfile.tsx
-msgid "In progress"
-msgstr "Berlangsung"
 
 #: src/components/InstallPrompt.tsx
 msgid "In Safari, tap Share <0/> then \"Add to Home Screen\". Chrome and Firefox on iOS cannot do this, so open the page in Safari first."
@@ -2497,6 +2488,11 @@ msgstr "Cadangan terakhir hari ini"
 msgid "Last backup yesterday"
 msgstr "Cadangan terakhir kemarin"
 
+#. Label before the bowler's average in their latest session, e.g. Last session 214
+#: src/components/HomeProfile.tsx
+msgid "Last session"
+msgstr "Sesi terakhir"
+
 #. Length reading: the ball turns late
 #: src/lib/ballLayout.ts
 msgid "Late"
@@ -2550,6 +2546,7 @@ msgid "Layout {layout}"
 msgstr "Layout {layout}"
 
 #. Bowling term: the drilling layout of a ball
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 #: src/views/LayoutLabView.tsx
 msgid "Layouts"
@@ -2660,6 +2657,7 @@ msgstr "Alat jalur dan layout, statistik lebih mendalam, perkiraan rata-rata, da
 msgid "Line sandbox"
 msgstr "Sandbox jalur"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Line visualizer"
 msgstr "Visualizer jalur"
@@ -2725,6 +2723,7 @@ msgstr "Load"
 msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
 msgstr "Sudut pengeboran panjang untuk jarak, sudut VAL pendek untuk belokan tajam. Down-and-in di dinding minyak."
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Look up a pattern's length and oil"
 msgstr "Cari panjang dan minyak sebuah pola"
@@ -3174,6 +3173,7 @@ msgstr "Pola minyak"
 
 #: src/components/OilPatternManager.tsx
 #: src/components/SessionForm.tsx
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Oil patterns"
 msgstr "Pola minyak"
@@ -3253,7 +3253,6 @@ msgstr "Buka lembar sesi dan catatan lintasan"
 msgid "Open session stats"
 msgstr "Buka statistik sesi"
 
-#: src/components/HomeProfile.tsx
 #: src/components/SessionHistory.tsx
 msgid "Open session: {alley}, {date}"
 msgstr "Buka sesi: {alley}, {date}"
@@ -3553,10 +3552,6 @@ msgstr "Membaca…"
 #: src/lib/greeting.ts
 msgid "Ready to roll"
 msgstr "Siap melempar"
-
-#: src/components/HomeProfile.tsx
-msgid "Recent sessions"
-msgstr "Sesi terbaru"
 
 #. Bowling term: the easiest oil pattern tier, a high oil ratio (Kegel's tiers are Sport, Challenge and Recreation)
 #: src/lib/oilPattern.ts
@@ -4115,6 +4110,7 @@ msgstr "Spare: sisa pin yang bisa di-spare dan berhasil dikonversi, tidak termas
 msgid "Spares"
 msgstr "Spare"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
 msgstr "Spesifikasi dan gambar bola terkini"
@@ -4179,8 +4175,8 @@ msgstr "Mulai dari awal"
 msgid "Start scoring"
 msgstr "Mulai mencatat skor"
 
+#: src/components/HomeProfile.tsx
 #: src/components/SessionFormDialog.tsx
-#: src/views/DashboardView.tsx
 #: src/views/NoSessionView.tsx
 msgid "Start session"
 msgstr "Mulai sesi"
@@ -4777,6 +4773,7 @@ msgstr "Pakai layout {preset}?"
 msgid "Use the line for pins {pins}"
 msgstr "Pakai jalur untuk pin {pins}"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Using Headpin, layouts and equipment"
 msgstr "Memakai Headpin, layout, dan peralatan"
@@ -4802,10 +4799,6 @@ msgstr "Lihat jalur aktual"
 #: src/components/ShotDetailBar.tsx
 msgid "View actual line on the lane"
 msgstr "Lihat jalur aktual di lintasan"
-
-#: src/components/HomeProfile.tsx
-msgid "View all"
-msgstr "Lihat semua"
 
 #: src/components/Stats.tsx
 msgid "View all {count}"
@@ -4965,8 +4958,8 @@ msgid "You've bowled a few sessions now. What's missing, or what's getting in yo
 msgstr "Kamu sudah beberapa sesi bermain. Apa yang kurang, atau apa yang menghalangimu?"
 
 #: src/components/HomeProfile.tsx
-msgid "Your arsenal"
-msgstr "Arsenalmu"
+msgid "Your average"
+msgstr "Rata-ratamu"
 
 #: src/components/BallEstimates.tsx
 msgid "Your average here"

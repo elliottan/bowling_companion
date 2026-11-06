@@ -86,11 +86,6 @@ msgstr "{0, plural, other {# 局}}"
 msgid "{0, plural, one {# lane} other {# lanes}}"
 msgstr "{0, plural, other {# 條球道}}"
 
-#. placeholder {0}: count - shown.length
-#: src/components/HomeProfile.tsx
-msgid "{0, plural, one {# more ball} other {# more balls}}"
-msgstr "{0, plural, other {另外 # 顆球}}"
-
 #. placeholder {0}: patterns.length
 #: src/lib/lineReport.ts
 msgid "{0, plural, one {# pattern} other {# patterns}}"
@@ -236,6 +231,11 @@ msgstr "{column} {value}"
 msgid "{conversions} of {chances} made"
 msgstr "{chances} 次中成功 {conversions} 次"
 
+#. Bowling balls owned, in the bowler's bag
+#: src/components/HomeProfile.tsx
+msgid "{count, plural, one {# ball} other {# balls}}"
+msgstr "{count, plural, other {# 顆球}}"
+
 #: src/lib/shareCard.ts
 msgid "{count, plural, one {# game series} other {# game series}}"
 msgstr "{count, plural, other {# 局系列賽}}"
@@ -334,10 +334,6 @@ msgstr "{from} 至 {to}"
 #: src/views/HistoryView.tsx
 msgid "{gameCount, plural, one {\"{alley}\" and its game will be permanently deleted. This can't be undone.} other {\"{alley}\" and all # games will be permanently deleted. This can't be undone.}}"
 msgstr "{gameCount, plural, other {「{alley}」及全部 # 局將被永久刪除，且無法復原。}}"
-
-#: src/components/HomeProfile.tsx
-msgid "{games, plural, one {(# GM)} other {(# GMS)}}"
-msgstr "{games, plural, other {(# 局)}}"
 
 #: src/components/Stats.tsx
 msgid "{gap} above your average"
@@ -664,6 +660,7 @@ msgstr "一顆打了兩個手指孔、沒有拇指孔的保齡球，顯示 {dril
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "一顆打了兩個手指孔、沒有拇指孔的保齡球，顯示 {pinToPap} × {core} × {buffer} 英吋的 Storm VLS 打孔配置。"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "畫在球上的打孔配置"
@@ -969,11 +966,6 @@ msgstr "平均"
 msgid "Avg"
 msgstr "平均"
 
-#. Bowling term: short for average, the mean score per game. Keep it very short, it sits in a small tile.
-#: src/components/HomeProfile.tsx
-msgid "AVG"
-msgstr "平均"
-
 #. Short for average, labelling the dashed average line on a chart, the number after it
 #. Short for average, labelling the dashed average line on a chart, the number after it
 #: src/components/ScoreTrendChart.tsx
@@ -1056,6 +1048,7 @@ msgstr "球"
 msgid "Ball #{ballId}"
 msgstr "球 #{ballId}"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Ball catalog"
 msgstr "球型錄"
@@ -1610,6 +1603,7 @@ msgstr "在球道上拖曳出手點、目標與轉折點，調整曲球弧度，
 msgid "Drag to reorder {name}"
 msgstr "拖曳以重新排序 {name}"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Draw a line on the lane, over the oil"
 msgstr "在球道上畫出路線，疊在油型上"
@@ -2142,6 +2136,7 @@ msgstr "握孔中線"
 msgid "Grip style"
 msgstr "握法"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 #: src/views/GuidesView.tsx
 msgid "Guides"
@@ -2315,10 +2310,6 @@ msgstr "內"
 #: src/components/MetricTrendChart.tsx
 msgid "In order. {points}."
 msgstr "依序：{points}。"
-
-#: src/components/HomeProfile.tsx
-msgid "In progress"
-msgstr "進行中"
 
 #: src/components/InstallPrompt.tsx
 msgid "In Safari, tap Share <0/> then \"Add to Home Screen\". Chrome and Firefox on iOS cannot do this, so open the page in Safari first."
@@ -2497,6 +2488,11 @@ msgstr "上次備份：今天"
 msgid "Last backup yesterday"
 msgstr "上次備份：昨天"
 
+#. Label before the bowler's average in their latest session, e.g. Last session 214
+#: src/components/HomeProfile.tsx
+msgid "Last session"
+msgstr "上次場次"
+
 #. Length reading: the ball turns late
 #: src/lib/ballLayout.ts
 msgid "Late"
@@ -2550,6 +2546,7 @@ msgid "Layout {layout}"
 msgstr "配置 {layout}"
 
 #. Bowling term: the drilling layout of a ball
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 #: src/views/LayoutLabView.tsx
 msgid "Layouts"
@@ -2660,6 +2657,7 @@ msgstr "路線與打孔配置工具、進階統計、預估平均分，以及更
 msgid "Line sandbox"
 msgstr "路線沙盒"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Line visualizer"
 msgstr "路線視覺化"
@@ -2725,6 +2723,7 @@ msgstr "上油次數"
 msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
 msgstr "長打孔角度求長度，短 VAL 角度求強勁轉折。在油牆上呈現向下向內的走勢。"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Look up a pattern's length and oil"
 msgstr "查詢油型的油長與油量"
@@ -3174,6 +3173,7 @@ msgstr "油型"
 
 #: src/components/OilPatternManager.tsx
 #: src/components/SessionForm.tsx
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Oil patterns"
 msgstr "油型"
@@ -3253,7 +3253,6 @@ msgstr "開啟場次表與球道備註"
 msgid "Open session stats"
 msgstr "開啟場次統計"
 
-#: src/components/HomeProfile.tsx
 #: src/components/SessionHistory.tsx
 msgid "Open session: {alley}, {date}"
 msgstr "開啟場次：{alley}，{date}"
@@ -3553,10 +3552,6 @@ msgstr "讀取中…"
 #: src/lib/greeting.ts
 msgid "Ready to roll"
 msgstr "準備開打"
-
-#: src/components/HomeProfile.tsx
-msgid "Recent sessions"
-msgstr "近期場次"
 
 #. Bowling term: the easiest oil pattern tier, a high oil ratio (Kegel's tiers are Sport, Challenge and Recreation)
 #: src/lib/oilPattern.ts
@@ -4115,6 +4110,7 @@ msgstr "補中：可補殘瓶的補中率，不含分瓶與洗出。"
 msgid "Spares"
 msgstr "補中"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
 msgstr "現行球款的規格與圖片"
@@ -4179,8 +4175,8 @@ msgstr "重新開始"
 msgid "Start scoring"
 msgstr "開始計分"
 
+#: src/components/HomeProfile.tsx
 #: src/components/SessionFormDialog.tsx
-#: src/views/DashboardView.tsx
 #: src/views/NoSessionView.tsx
 msgid "Start session"
 msgstr "開始場次"
@@ -4777,6 +4773,7 @@ msgstr "要使用 {preset} 打孔配置嗎？"
 msgid "Use the line for pins {pins}"
 msgstr "使用球瓶 {pins} 的路線"
 
+#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Using Headpin, layouts and equipment"
 msgstr "使用 Headpin、打孔配置與裝備"
@@ -4802,10 +4799,6 @@ msgstr "檢視實際路線"
 #: src/components/ShotDetailBar.tsx
 msgid "View actual line on the lane"
 msgstr "在球道上檢視實際路線"
-
-#: src/components/HomeProfile.tsx
-msgid "View all"
-msgstr "檢視全部"
 
 #: src/components/Stats.tsx
 msgid "View all {count}"
@@ -4965,8 +4958,8 @@ msgid "You've bowled a few sessions now. What's missing, or what's getting in yo
 msgstr "你已經打過幾個場次了。有缺少什麼功能，或有哪裡不順手嗎？"
 
 #: src/components/HomeProfile.tsx
-msgid "Your arsenal"
-msgstr "你的球庫"
+msgid "Your average"
+msgstr "你的平均分"
 
 #: src/components/BallEstimates.tsx
 msgid "Your average here"

@@ -165,14 +165,9 @@ export async function preferDownloadOverShare(page: Page) {
 }
 
 /**
- * Open the arsenal from Home. The grid beside the greeting has no heading: an
- * empty bag is one "Add balls to your bag" box, and a full one is its balls,
- * each of which opens the arsenal.
+ * Open the arsenal from Home: one row named Arsenal, with the balls or, for an
+ * empty bag, "Add balls to your bag" under the name (ADR-244).
  */
 export async function openArsenalFromHome(page: Page) {
-  await page
-    .getByRole("button", { name: "Add balls to your bag" })
-    .or(page.getByRole("list", { name: "Your arsenal" }).getByRole("button"))
-    .first()
-    .click();
+  await page.getByRole("button", { name: /^Arsenal/ }).click();
 }

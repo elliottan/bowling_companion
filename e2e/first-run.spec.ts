@@ -166,7 +166,8 @@ test("a restore brings the history back and never asks the hand twice", async ({
   // Straight into the app: the file carried the handedness, so the question
   // that would have overwritten it is never asked.
   await expect(page.getByRole("dialog", { name: "Set up Headpin" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /Open session: Restored Lanes/ })).toBeVisible();
+  // The perfect game is back: Home's hero reads it as the average (ADR-244).
+  await expect(page.getByRole("region", { name: "Your average" })).toContainText("300");
 });
 
 test("a bowler who already has sessions is never asked if they are new", async ({ page }) => {
