@@ -192,41 +192,42 @@ export function StatsView({
         scrollerRef={scrollerRef}
         header={
           <>
-            {/* One row: the title, the two actions, then the range at the far
-                right, where it used to take a row of its own under the header. */}
+            {/* One row: the title leading, and everything that acts on the
+                numbers as one cluster at the trailing edge, the range then the
+                two round actions, so the filter lands where History's does. The actions sat between the title and the range,
+                each pushed by its own auto margin, and read as stranded in the
+                middle of the row. */}
             <div className={`${TAB_TITLE_ROW} mb-3 flex-wrap gap-2`}>
               {mode === "tab" && <h1 className={TAB_TITLE}>{t`Stats`}</h1>}
-              <div className="ml-auto flex shrink-0 items-center gap-1">
-                {/* Neither action has anything to act on before the first
-                    finished game: there is nothing to filter, and the share would be
-                    a card of zeros. */}
-                {anyFinished && (
-                  <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+              <div className="ml-auto flex shrink-0 items-center gap-2">
+                {/* Hidden until there is something to narrow: on a device with
+                    no games the empty state is the whole screen. */}
+                {finished.length > 0 && (
+                  <div className="min-w-44">
+                    <SegmentedControl
+                      label={t`Sessions counted`}
+                      options={rangeOptions}
+                      value={range}
+                      onChange={setRange}
+                    />
+                  </div>
                 )}
-                {/* The two drill-downs used to live behind this control, which meant
-                    a screen full of numbers hid the two screens that explain them
-                    behind a menu with no name on it. They are rows under the tiles
-                    now (ADR-063b put them there to get them off the bottom of a long
-                    scroll; under the tiles is neither the bottom nor a menu), and the
-                    header keeps its one action, which is the share. */}
-                {filtered.length > 0 && (
-                  <IconButton label={t`Share these stats`} variant="round" onClick={() => setShareOpen(true)}>
-                    <ShareIosIcon size={20} aria-hidden="true" />
-                  </IconButton>
-                )}
-              </div>
-              {/* Hidden until there is something to narrow: on a device with
-                  no games the empty state is the whole screen. */}
-              {finished.length > 0 && (
-                <div className="ml-auto min-w-44">
-                  <SegmentedControl
-                    label={t`Sessions counted`}
-                    options={rangeOptions}
-                    value={range}
-                    onChange={setRange}
-                  />
+                <div className="flex shrink-0 items-center gap-1">
+                  {/* Neither action has anything to act on before the first
+                      finished game: there is nothing to filter, and the share
+                      would be a card of zeros. */}
+                  {anyFinished && (
+                    <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+                  )}
+                  {/* The drill-downs are rows under the tiles (ADR-063b), so the
+                      header keeps its one action besides the filter: the share. */}
+                  {filtered.length > 0 && (
+                    <IconButton label={t`Share these stats`} variant="round" onClick={() => setShareOpen(true)}>
+                      <ShareIosIcon size={20} aria-hidden="true" />
+                    </IconButton>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
 
             <SessionFilterChips filters={filters} />

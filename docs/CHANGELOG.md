@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.88.1: Stats' buttons sit at the edge (2026-11-06)
+
+- On Stats, the filter and share buttons now sit at the right edge with the
+  range beside them, instead of floating between the title and the range.
+  The filter is in the same place as on History.
+
 ## 0.88.0: The Live Activity has a page of its own, and is Headpin Pro (2026-11-05)
 
 - Settings, App: the Live Activity row now opens a page that shows what it
