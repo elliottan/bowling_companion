@@ -9,6 +9,11 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.89.1: One number per decision (2026-11-06)
+
+- No change in the app. The decision behind the new Home is renumbered
+  ADR-245, since ADR-244 was already the Live Activity's.
+
 ## 0.89.0: A new Home (2026-11-06)
 
 - Home opens on a card with your average, your last session and a line of
@@ -17,7 +22,7 @@ had all shipped.
   so it is clear it opens your bag.
 - The tools (Line visualizer, Layouts, Oil patterns, Ball catalog) are cards
   with a picture of what each one does, with Guides under them.
-- Recent sessions are no longer on Home; History has them all (ADR-244).
+- Recent sessions are no longer on Home; History has them all (ADR-245).
 
 ## 0.88.1: Stats' buttons sit at the edge (2026-11-06)
 

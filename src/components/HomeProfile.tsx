@@ -12,7 +12,7 @@ const ARSENAL_STACK = 5;
 
 /**
  * The arsenal as one row that is plainly a button: a few of its balls
- * overlapping, its name and count, and a chevron (ADR-244). It used to be a
+ * overlapping, its name and count, and a chevron (ADR-245). It used to be a
  * grid of balls beside the greeting with no name on it, which read as
  * decoration rather than a way into the arsenal.
  */
@@ -101,7 +101,7 @@ function TrendLine({ trend, average }: { trend: number[]; average: number }) {
 /**
  * Home's hero: the bowler's average, the last session against it, the line of
  * the latest sessions between them, and Start session, the one thing Home is
- * most often opened to do (ADR-244). Kept short, so the bowler's own things
+ * most often opened to do (ADR-245). Kept short, so the bowler's own things
  * and the tools still show on the first screen.
  */
 export function HomeHero({ summary, onStart, disabled }: { summary: HomeSummary; onStart: () => void; disabled?: boolean }) {

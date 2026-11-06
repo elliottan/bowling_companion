@@ -147,7 +147,7 @@ export function DashboardView({
     <section className="mx-auto w-full max-w-xl px-3 pb-4 pt-3 sm:px-6 sm:pt-5">
       <GetTheAppBanner />
       {/* The greeting is the screen's title, on a line of its own with the
-          app's mark at its end (ADR-244). It offers a name only while there is
+          app's mark at its end (ADR-245). It offers a name only while there is
           none: a name is set once, and changing it lives in Settings. */}
       <div className="mb-3 flex items-start gap-3">
         <div className="min-w-0 flex-1">
@@ -220,7 +220,7 @@ export function DashboardView({
       {/* The bowler's own things: the arsenal as a row that is plainly a way
           in, then spare lines, lane notes and the Alley report as equal tiles.
           Recent sessions are left to History, which is one tap away: the hero
-          already carries the last one (ADR-244). The tools, the same for
+          already carries the last one (ADR-245). The tools, the same for
           everyone, follow as cards (ADR-146). */}
       <div className="mt-3 space-y-3">
         <ArsenalRow balls={balls} onOpenArsenal={onOpenArsenal} />
