@@ -94,7 +94,7 @@ if (STATE) {
   }
   await home();
   await app.getByRole("navigation").getByRole("button", { name: "Home" }).click();
-  await app.getByRole("list", { name: "Your arsenal" }).getByRole("button").first().click();
+  await app.getByRole("button", { name: /^Arsenal/ }).click();
   await app.waitForTimeout(800);
   taken.arsenal = await app.screenshot({ type: "png" });
   await context.close();

@@ -1,14 +1,14 @@
 import { plural, t } from "@lingui/core/macro";
-import { ChevronRight, PlayCircle, Plus, ShieldCheck } from "lucide-react";
+import { ChevronRight, PlayCircle, ShieldCheck } from "lucide-react";
 import { PinIcon } from "../components/icons";
-import { ToolsList } from "../components/ToolsList";
-import { useState } from "react";
+import { ToolCards } from "../components/ToolCards";
+import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { alleyLabel } from "../lib/sessionLabels";
-import { Fab, FabRow } from "../components/ui/Fab";
-import { ArsenalGrid, ProfileTiles, RecentSessionStrip } from "../components/HomeProfile";
+import { ArsenalRow, HomeHero, ProfileTiles } from "../components/HomeProfile";
+import { summarizeHome } from "../lib/homeSummary";
 import { BowlerNameSheet } from "../components/BowlerNameSheet";
 import { GREETINGS, greeting } from "../lib/greeting";
 import { GetTheAppBanner } from "../components/GetTheAppBanner";
@@ -42,9 +42,6 @@ interface DashboardViewProps {
   error?: string;
   resumable?: ResumableGame | null;
   onResume?: () => void;
-  onOpenSession: (sessionId: number, openStats?: boolean) => void;
-  onViewAll: () => void;
-  activeSessionId?: number | null;
   onOpenCatalog: () => void;
   onOpenLineVisualizer: () => void;
   onOpenLayoutLab: () => void;
@@ -57,15 +54,9 @@ interface DashboardViewProps {
   onOpenBackup: () => void;
 }
 
-/** Recent sessions on Home, as one sideways row of tiles. History is one tap
- *  away and holds the rest, with the games and the lanes; a few weeks of tiles
- *  is enough to find last week's session without Home becoming a second
- *  History. */
-const RECENT_LIMIT = 8;
-
-/** Next steps Home asks for elsewhere. The arsenal grid's empty slot, beside
- *  the greeting, already asks for the balls, and a step asking again was the
- *  same card twice. */
+/** Next steps Home asks for elsewhere. The arsenal row, while the bag is
+ *  empty, already asks for the balls, and a step asking again was the same
+ *  card twice. */
 const HOME_SKIPPED_STEPS: readonly NextStepKey[] = ["arsenal"];
 
 // A stable empty list: `?? []` would be a new array on every render.
@@ -77,9 +68,6 @@ export function DashboardView({
   error,
   resumable,
   onResume,
-  onOpenSession,
-  onViewAll,
-  activeSessionId,
   onOpenCatalog,
   onOpenLineVisualizer,
   onOpenLayoutLab,
@@ -110,7 +98,7 @@ export function DashboardView({
   // so it is read whole and cut here.
   const liveSessions = useLiveQuery(() => getSessionList());
   const sessions = liveSessions ?? NO_SESSIONS;
-  const recent = sessions.slice(0, RECENT_LIMIT);
+  const summary = useMemo(() => summarizeHome(sessions), [sessions]);
   const loadingRecent = liveSessions === undefined;
   const coldStart = !loadingRecent && sessions.length === 0;
   // The alleys the Alley report can pick from: every named one, as typed.
@@ -154,35 +142,16 @@ export function DashboardView({
   const setupCard = coldStart || protection ? null : stepOwed ? "step" : "feedback";
 
   return (
-    // The foot clears the floating Start session button (56px, 8px above the
-    // tab bar) and no more: `<main>` already pads by the tab bar, and the 96px
-    // this used to add let a Home that fits the screen scroll up a step.
-    <section className="mx-auto w-full max-w-xl px-3 pb-[4.25rem] pt-3 sm:px-6 sm:pt-5">
+    // Start session is in the hero now, so there is no floating button to
+    // clear: `<main>` already pads by the tab bar.
+    <section className="mx-auto w-full max-w-xl px-3 pb-4 pt-3 sm:px-6 sm:pt-5">
       <GetTheAppBanner />
-      {/* The greeting is the screen's title. It offers a name only while there
-          is none: a name is set once, and changing it lives in Settings. */}
-      {/* The top band is the bowler: the app's mark and the greeting on the
-          left, their arsenal on the right. The arsenal takes the wider share
-          because it carries pictures; the left column has room to grow. */}
-      <div className="mb-4 flex items-start gap-4">
-        {/* 38%, and wider for the longest word of the greeting (up to 60%),
-            so a Korean or long word is never cut: `anywhere` shrank the floor
-            to one letter and the column let it. */}
-        <div className="flex w-[38%] min-w-min max-w-[60%] shrink-0 flex-col items-start">
-          {/* The app's mark, and once this copy has Pro, the Pro mark in its
-              place (ADR-167). */}
-          {owned ? (
-            <ProMark size={44} title="Headpin Pro" className="mb-2 rounded-xl shadow-sm" />
-          ) : (
-            <img
-              src="/icons/icon-192.png"
-              alt=""
-              width={44}
-              height={44}
-              className="mb-2 h-11 w-11 rounded-xl shadow-sm"
-            />
-          )}
-          <h1 className="text-xl font-bold leading-tight text-ink break-words">
+      {/* The greeting is the screen's title, on a line of its own with the
+          app's mark at its end (ADR-244). It offers a name only while there is
+          none: a name is set once, and changing it lives in Settings. */}
+      <div className="mb-3 flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="break-words text-title-2 font-bold leading-tight tracking-tight text-ink">
             {named ? greeting(name, greetingIndex) : "\u00a0"}
           </h1>
           {named && !name && (
@@ -195,9 +164,13 @@ export function DashboardView({
             </button>
           )}
         </div>
-        <div className="min-w-0 flex-1">
-          <ArsenalGrid balls={balls} onOpenArsenal={onOpenArsenal} />
-        </div>
+        {/* The app's mark, and once this copy has Pro, the Pro mark in its
+            place (ADR-167). */}
+        {owned ? (
+          <ProMark size={40} title="Headpin Pro" className="shrink-0 rounded-xl shadow-sm" />
+        ) : (
+          <img src="/icons/icon-192.png" alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-xl shadow-sm" />
+        )}
       </div>
 
       {error && (
@@ -219,7 +192,9 @@ export function DashboardView({
             {t`Start scoring`}
           </Button>
         </EmptyState>
-      ) : resumable ? (
+      ) : (
+        <div className="space-y-3">
+          {resumable && (
         <button
           type="button"
           onClick={onResume}
@@ -234,14 +209,21 @@ export function DashboardView({
           </span>
           <ChevronRight size={20} aria-hidden="true" className="shrink-0" />
         </button>
-      ) : null}
+          )}
+          {/* Not before the sessions are read, or it would flash in empty. */}
+          {!loadingRecent && (
+            <HomeHero summary={summary} onStart={() => setShowForm(true)} disabled={isSubmitting} />
+          )}
+        </div>
+      )}
 
-      {/* The rest of the bowler's own things, under the greeting and the
-          arsenal: spare lines, lane notes and the Alley report as equal tiles,
-          and the latest sessions. The tools and reading that are the same for
-          everyone, the oil patterns among them, follow as a list, because they
-          are a different kind of place (ADR-146). */}
+      {/* The bowler's own things: the arsenal as a row that is plainly a way
+          in, then spare lines, lane notes and the Alley report as equal tiles.
+          Recent sessions are left to History, which is one tap away: the hero
+          already carries the last one (ADR-244). The tools, the same for
+          everyone, follow as cards (ADR-146). */}
       <div className="mt-3 space-y-3">
+        <ArsenalRow balls={balls} onOpenArsenal={onOpenArsenal} />
         <ProfileTiles
           spareLines={facts?.answeredSpareLines}
           laneNotes={facts?.laneNoteCount}
@@ -250,15 +232,6 @@ export function DashboardView({
           onOpenLaneNotes={onOpenLaneNotes}
           onOpenAlleyReport={onOpenAlleyReport}
         />
-        {!coldStart && !loadingRecent && (
-          <RecentSessionStrip
-            sessions={recent}
-            activeSessionId={activeSessionId}
-            onOpenSession={onOpenSession}
-            hasMore={sessions.length > RECENT_LIMIT}
-            onViewAll={onViewAll}
-          />
-        )}
       </div>
 
       <div className="mt-2">
@@ -321,7 +294,7 @@ export function DashboardView({
       <ProHomeBanner />
 
       <div className="mt-6">
-        <ToolsList
+        <ToolCards
           heading={t`Tools and reference`}
           onOpenLayoutLab={onOpenLayoutLab}
           onOpenLineVisualizer={onOpenLineVisualizer}
@@ -330,14 +303,6 @@ export function DashboardView({
           onOpenGuides={onOpenGuides}
         />
       </div>
-
-      {/* Not on a cold start, where the empty state's button is the way in,
-          and not before the sessions are read, or it would flash in first. */}
-      {!coldStart && !loadingRecent && (
-        <FabRow>
-          <Fab icon={Plus} label={t`Start session`} extended onClick={() => setShowForm(true)} />
-        </FabRow>
-      )}
 
       <SessionFormDialog
         open={showForm}

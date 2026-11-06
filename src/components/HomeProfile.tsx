@@ -1,112 +1,148 @@
 import { plural, t } from "@lingui/core/macro";
-import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { ChevronRight, Plus, type LucideIcon } from "lucide-react";
 import { BowlingBallIcon, GamePlanIcon, LanePairIcon, SpareLineIcon } from "./icons";
 import { CatalogBallImage } from "./CatalogBallImage";
-import { GROUP_HEADING } from "./ui/typography";
-import { TAP_TARGET_44 } from "./ui/Chip";
-import { calculateGameScore } from "../lib/scoring";
-import { formatSessionDate } from "../lib/dates";
-import { alleyLabel } from "../lib/sessionLabels";
-import type { Ball, SessionSummary } from "../types/bowling";
+import { formatNumber } from "../lib/format";
+import type { HomeSummary } from "../lib/homeSummary";
+import type { Ball } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
 
-/**
- * A strip that scrolls sideways, bled to the screen edge so a tile cut off at
- * the edge says there is more. `py-1`, not `pb-1`: overflow-x-auto forces
- * overflow-y to auto, which would clip a tile's shadow at the top.
- */
-const STRIP = "scrollbar-none -mx-3 flex gap-2 overflow-x-auto overscroll-x-none px-3 py-1 sm:-mx-6 sm:px-6";
+/** Balls drawn overlapping on the arsenal row: enough to read as a bag. */
+const ARSENAL_STACK = 5;
 
-/** The heading over a row of the profile, with room for one small action. */
-function RowHeading({ label, trailing }: { label: string; trailing?: ReactNode }) {
+/**
+ * The arsenal as one row that is plainly a button: a few of its balls
+ * overlapping, its name and count, and a chevron (ADR-244). It used to be a
+ * grid of balls beside the greeting with no name on it, which read as
+ * decoration rather than a way into the arsenal.
+ */
+export function ArsenalRow({ balls, onOpenArsenal }: { balls: Ball[] | undefined; onOpenArsenal: () => void }) {
+  const count = balls?.length ?? 0;
+  const shown = (balls ?? []).slice(0, ARSENAL_STACK);
+  const detail =
+    balls === undefined
+      ? "\u00a0"
+      : count === 0
+        ? t`Add balls to your bag`
+        : t({ message: plural(count, { one: "# ball", other: "# balls" }), comment: "Bowling balls owned, in the bowler's bag" });
   return (
-    <div className="mb-1 flex items-center justify-between gap-3 px-4">
-      <h2 className={GROUP_HEADING}>{label}</h2>
-      {trailing}
+    <button
+      type="button"
+      onClick={onOpenArsenal}
+      className="card-button flex min-h-[60px] w-full items-center gap-3 rounded-[22px] px-4 py-3 text-left"
+    >
+      {count === 0 ? (
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+          <BowlingBallIcon size={20} aria-hidden="true" />
+        </span>
+      ) : (
+        <span className="flex shrink-0" aria-hidden="true">
+          {shown.map((ball, i) => (
+            <span
+              key={ball.id}
+              className={`h-9 w-9 shrink-0 rounded-full ring-2 ring-surface ${i > 0 ? "-ml-2.5" : ""}`}
+            >
+              {ball.catalog_snapshot ? (
+                <CatalogBallImage
+                  src={ball.catalog_snapshot.imageThumb}
+                  alt=""
+                  brand={ball.catalog_snapshot.brand as Manufacturer}
+                  size="thumb"
+                  bare
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-ink-tertiary">
+                  <BowlingBallIcon size={18} aria-hidden="true" />
+                </span>
+              )}
+            </span>
+          ))}
+        </span>
+      )}
+      <span className="min-w-0 flex-1">
+        <span className="block text-headline leading-snug text-ink">{t`Arsenal`}</span>
+        <span className="block text-footnote leading-snug text-ink-secondary">{detail}</span>
+      </span>
+      <ChevronRight size={17} strokeWidth={2.25} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+    </button>
+  );
+}
+
+/** The latest session averages as a line, with the bowler's average dashed
+ *  across it and the last session marked. Drawn to a 100 x 40 box and
+ *  stretched, so it takes whatever width the card leaves it. */
+function TrendLine({ trend, average }: { trend: number[]; average: number }) {
+  const lo = Math.min(average, ...trend);
+  const hi = Math.max(average, ...trend);
+  const span = hi - lo || 1;
+  const y = (v: number) => 36 - ((v - lo) / span) * 32;
+  const x = (i: number) => (i / (trend.length - 1)) * 96 + 2;
+  const d = trend.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(2)} ${y(v).toFixed(2)}`).join(" ");
+  const lastX = x(trend.length - 1);
+  const lastY = y(trend[trend.length - 1]);
+  return (
+    <div className="relative h-14 w-full">
+    <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="absolute inset-0 h-full w-full overflow-visible" aria-hidden="true">
+      <line x1="0" x2="100" y1={y(average)} y2={y(average)} vectorEffect="non-scaling-stroke" strokeDasharray="3 3" className="stroke-ink-tertiary" strokeOpacity={0.5} />
+      <path d={`${d} L${lastX} 40 L2 40 Z`} className="fill-accent" fillOpacity={0.12} />
+      <path d={d} fill="none" vectorEffect="non-scaling-stroke" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" className="stroke-accent" />
+    </svg>
+      {/* The last session as a dot, drawn over the stretched line so it stays
+          round. */}
+      <span
+        aria-hidden="true"
+        className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-accent"
+        style={{ left: `${lastX}%`, top: `${(lastY / 40) * 100}%` }}
+      />
     </div>
   );
 }
 
-interface ArsenalGridProps {
-  balls: Ball[] | undefined;
-  onOpenArsenal: () => void;
-}
-
-/** Two rows of four: as many balls as sit beside the greeting at full size. */
-const ARSENAL_SLOTS = 8;
-
 /**
- * The arsenal as its balls, beside the greeting. The pictures are the color on
- * Home: a count of balls says how many, the balls themselves say which.
- *
- * It fills row by row and does not scroll. A scroller inside the top band of
- * the screen would be a second scroll axis under the thumb for a preview whose
- * job is only to say "these are yours"; the full list is one tap away. A bag
- * that holds more than the grid shows its overflow as a count in the last slot.
- * No heading and no total: the balls say what the grid is, and the count in
- * the last slot is the only number it needs.
+ * Home's hero: the bowler's average, the last session against it, the line of
+ * the latest sessions between them, and Start session, the one thing Home is
+ * most often opened to do (ADR-244). Kept short, so the bowler's own things
+ * and the tools still show on the first screen.
  */
-export function ArsenalGrid({ balls, onOpenArsenal }: ArsenalGridProps) {
-  const count = balls?.length ?? 0;
-  const overflow = count > ARSENAL_SLOTS;
-  const shown = balls ? balls.slice(0, overflow ? ARSENAL_SLOTS - 1 : ARSENAL_SLOTS) : [];
+export function HomeHero({ summary, onStart, disabled }: { summary: HomeSummary; onStart: () => void; disabled?: boolean }) {
+  const { average, last, trend } = summary;
+  const start = (
+    <button
+      type="button"
+      onClick={onStart}
+      disabled={disabled}
+      className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full bg-accent-fill px-4 py-2.5 text-callout font-semibold text-accent-on-fill active:bg-accent-fill-hover disabled:opacity-50"
+    >
+      <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
+      {t`Start session`}
+    </button>
+  );
+  if (average === null || last === null) return start;
+  const diff = last.average - Math.round(average);
+  const tone = diff > 0 ? "text-success-700" : diff < 0 ? "text-danger-700" : "text-ink";
   return (
-    <section aria-label={t`Arsenal`}>
-      {balls === undefined ? (
-        <div className="aspect-[2/1]" />
-      ) : balls.length === 0 ? (
-        <button
-          type="button"
-          onClick={onOpenArsenal}
-          className="flex aspect-[2/1] w-full flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-edge-strong bg-surface px-3 text-center active:bg-surface-muted"
-        >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
-            <BowlingBallIcon size={18} aria-hidden="true" />
-          </span>
-          <span className="text-xs font-semibold text-ink">{t`Add balls to your bag`}</span>
-        </button>
-      ) : (
-        <ul className="grid grid-cols-4 gap-1.5" aria-label={t`Your arsenal`}>
-          {shown.map((ball) => (
-            <li key={ball.id}>
-              <button
-                type="button"
-                onClick={onOpenArsenal}
-                aria-label={ball.name}
-                title={ball.name}
-                className="block aspect-square w-full rounded-full active:opacity-70"
-              >
-                {ball.catalog_snapshot ? (
-                  <CatalogBallImage
-                    src={ball.catalog_snapshot.imageThumb}
-                    alt=""
-                    brand={ball.catalog_snapshot.brand as Manufacturer}
-                    size="thumb"
-                    bare
-                  />
-                ) : (
-                  <span className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-ink-tertiary">
-                    <BowlingBallIcon size={20} aria-hidden="true" />
-                  </span>
-                )}
-              </button>
-            </li>
-          ))}
-          {overflow && (
-            <li>
-              <button
-                type="button"
-                onClick={onOpenArsenal}
-                aria-label={plural(count - shown.length, { one: "# more ball", other: "# more balls" })}
-                className="flex aspect-square w-full items-center justify-center rounded-full bg-accent-soft text-sm font-bold tabular-nums text-accent active:opacity-70"
-              >
-                +{count - shown.length}
-              </button>
-            </li>
-          )}
-        </ul>
-      )}
+    <section
+      aria-label={t`Your average`}
+      className="rounded-[26px] bg-[radial-gradient(130%_100%_at_100%_0%,rgb(var(--color-accent-soft)),rgb(var(--color-surface))_70%)] p-4"
+    >
+      <div className="flex items-end gap-4">
+        <div className="shrink-0">
+          <p className="text-caption font-semibold uppercase tracking-wide text-ink-secondary">{t`Your average`}</p>
+          <p className="text-large-title font-extrabold leading-none tracking-tight tabular-nums text-ink">
+            {formatNumber(Math.round(average))}
+          </p>
+          <p className="mt-1.5 text-footnote text-ink-secondary">
+            {t({ message: "Last session", comment: "Label before the bowler's average in their latest session, e.g. Last session 214" })}{" "}
+            <span className={`font-semibold tabular-nums ${tone}`}>{formatNumber(last.average)}</span>
+          </p>
+        </div>
+        {trend.length > 1 && (
+          <div className="relative min-w-0 flex-1 pb-1">
+            <TrendLine trend={trend} average={average} />
+          </div>
+        )}
+      </div>
+      <div className="mt-3">{start}</div>
     </section>
   );
 }
@@ -217,127 +253,5 @@ export function ProfileTiles({
         onClick={onOpenAlleyReport}
       />
     </div>
-  );
-}
-
-/** Games in a session, and the mean of the finished ones. */
-function sessionTileFacts(summary: SessionSummary): {
-  games: number;
-  average: number | null;
-  inProgress: boolean;
-} {
-  const { games } = summary;
-  const finished = games.flatMap((g) => (g.final_score !== undefined ? [g.final_score] : []));
-  return {
-    games: games.length,
-    average: finished.length
-      ? Math.round(finished.reduce((a, b) => a + b, 0) / finished.length)
-      : null,
-    inProgress: games.some(
-      (g) => g.final_score === undefined && !calculateGameScore(g.frames).isComplete
-    )
-  };
-}
-
-function SessionTile({
-  summary,
-  isActive,
-  onOpen
-}: {
-  summary: SessionSummary;
-  isActive: boolean;
-  onOpen: (sessionId: number, openStats?: boolean) => void;
-}) {
-  const { session } = summary;
-  const { games, average, inProgress } = sessionTileFacts(summary);
-  const alley = alleyLabel(session.alley_name);
-  const event = session.description?.trim();
-  const date = formatSessionDate(session.date);
-  const pattern = session.oil_pattern?.trim();
-
-  return (
-    <button
-      type="button"
-      aria-label={t`Open session: ${{ alley }}, ${{ date }}`}
-      onClick={() => session.id && onOpen(session.id, !inProgress)}
-      // The width grows with the text size, as the row scrolls sideways
-      // anyway: a fixed 10rem cut the alley and the average to "Chinese S...".
-      // Raised and pressable, as Home's tiles are (`.card-button`): it opens
-      // the session.
-      className={`card-button flex h-full w-[calc(10rem*var(--type-scale))] flex-col rounded-[22px] px-3.5 py-3 text-left ${
-        // An outline, not a ring: the raised card draws its own shadow, and
-        // a ring is drawn in the same shadow, which one of the two would lose.
-        isActive ? "outline outline-2 -outline-offset-2 outline-accent-fill" : ""
-      }`}
-    >
-      <span className="line-clamp-2 block w-full break-words text-sm font-semibold leading-snug text-ink">{event || alley}</span>
-      {event && <span className="block w-full truncate text-xs text-ink-secondary">{alley}</span>}
-      <span className="block w-full truncate text-xs text-ink-secondary">{date}</span>
-      {pattern && <span className="block w-full truncate text-xs text-ink-secondary">{pattern}</span>}
-      {/* The average leads, in the accent: it is the number a bowler looks
-          for. The game count rides beside it, smaller, as its context. */}
-      <span className="mt-auto flex w-full flex-wrap items-baseline gap-x-1 pt-2 tabular-nums">
-        {average !== null ? (
-          <>
-            <span className="text-lg font-bold leading-none text-accent">{average}</span>
-            <span className="text-caption-2 font-bold tracking-wide text-accent">{t({ message: "AVG", comment: "Bowling term: short for average, the mean score per game. Keep it very short, it sits in a small tile." })}</span>
-          </>
-        ) : inProgress ? (
-          <span className="whitespace-nowrap text-xs font-semibold text-accent">{t`In progress`}</span>
-        ) : null}
-        <span className="whitespace-nowrap text-caption-2 font-semibold tracking-wide text-ink-secondary">
-          {plural(games, { one: "(# GM)", other: "(# GMS)" })}
-        </span>
-      </span>
-    </button>
-  );
-}
-
-interface RecentSessionStripProps {
-  sessions: SessionSummary[];
-  activeSessionId?: number | null;
-  onOpenSession: (sessionId: number, openStats?: boolean) => void;
-  /** More sessions than the row shows, so History is offered. */
-  hasMore: boolean;
-  onViewAll: () => void;
-}
-
-/** The latest sessions as one sideways row. History holds every one of them,
- *  with the games and the lanes; the tile is enough to find last week's. */
-export function RecentSessionStrip({
-  sessions,
-  activeSessionId,
-  onOpenSession,
-  hasMore,
-  onViewAll
-}: RecentSessionStripProps) {
-  return (
-    <section>
-      <RowHeading
-        label={t`Recent sessions`}
-        trailing={
-          hasMore && (
-            <button
-              type="button"
-              onClick={onViewAll}
-              className={`relative text-xs font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
-            >
-              {t`View all`}
-            </button>
-          )
-        }
-      />
-      <ul className={STRIP} aria-label={t`Recent sessions`}>
-        {sessions.map((summary) => (
-          <li key={summary.session.id} className="shrink-0">
-            <SessionTile
-              summary={summary}
-              isActive={summary.session.id != null && summary.session.id === activeSessionId}
-              onOpen={onOpenSession}
-            />
-          </li>
-        ))}
-      </ul>
-    </section>
   );
 }

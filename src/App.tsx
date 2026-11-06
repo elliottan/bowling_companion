@@ -645,9 +645,6 @@ function App() {
             error={startError}
             resumable={resumable}
             onResume={() => resumable && openSession(resumable.sessionId)}
-            onOpenSession={openSession}
-            onViewAll={() => goTo("history")}
-            activeSessionId={activeSessionId}
             onOpenCatalog={() => pushOverlay("catalog")}
             onOpenLineVisualizer={() => dispatch({ type: "openLineSandbox" })}
             onOpenArsenal={() => pushOverlay("arsenal")}
