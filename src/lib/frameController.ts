@@ -276,6 +276,11 @@ export function editFrameShotPins(
     if (normalized.length === 0) {
       // First-ball strike: no second shot.
       shots = shots.slice(0, 1);
+    } else if (!frame.shots[1] && !isStrike(frame)) {
+      // The frame being bowled: its second ball has not been thrown, so there
+      // is nothing to force. Correcting the leave keeps the frame open on ball
+      // 2 rather than recording a spare nobody threw (ADR-246).
+      shots = shots.slice(0, 1);
     } else {
       // Editing the first ball of a 1–9 frame forces the second shot to a spare
       // (all remaining pins cleared). This guarantees an editable second shot
@@ -285,106 +290,6 @@ export function editFrameShotPins(
     }
   }
   return upsertFrame(frames, finalizeFrame({ ...frame, shots }));
-}
-
-/**
- * Enter edit mode for one already-recorded frame: re-bowl it from shot 1.
- * The caller passes the pre-edit state into `completeEdit` to restore the live
- * position once the frame's shots are re-entered.
- */
-export function beginEdit(
-  state: FrameControllerState,
-  frameNumber: number
-): FrameControllerState {
-  return {
-    ...state,
-    frames: state.frames.filter((f) => f.frame_number !== frameNumber),
-    currentFrameNumber: frameNumber,
-    currentShot: 1,
-    availablePins: ALL_PINS,
-    standingPins: [],
-    isComplete: false,
-    currentShotMeta: {}
-  };
-}
-
-/**
- * Enter edit mode starting from a specific shot within an already-recorded frame.
- * Shots before shotIndex are preserved. The pin deck is pre-filled with the
- * recorded shot's pins. Editing continues forward from that shot.
- */
-export function beginEditFromShot(
-  state: FrameControllerState,
-  frameNumber: number,
-  shotIndex: number
-): FrameControllerState {
-  const frame = state.frames.find((f) => f.frame_number === frameNumber);
-  if (!frame || !frame.shots[shotIndex]) {
-    return beginEdit(state, frameNumber);
-  }
-
-  const shot = frame.shots[shotIndex];
-
-  // Compute available pins entering this shot
-  let availablePins: PinNumber[];
-  if (shotIndex === 0) {
-    availablePins = ALL_PINS;
-  } else {
-    const prevPins = frame.shots[shotIndex - 1].pins_standing;
-    availablePins = prevPins.length === 0 ? ALL_PINS : prevPins;
-  }
-
-  // Keep shots before shotIndex; drop from shotIndex onwards
-  const priorShots = frame.shots.slice(0, shotIndex);
-  let updatedFrames: Frame[];
-  if (priorShots.length > 0) {
-    const partialFrame = finalizeFrame({ ...frame, shots: priorShots });
-    updatedFrames = [
-      ...state.frames.filter((f) => f.frame_number !== frameNumber),
-      partialFrame
-    ].sort((a, b) => a.frame_number - b.frame_number);
-  } else {
-    updatedFrames = state.frames.filter((f) => f.frame_number !== frameNumber);
-  }
-
-  return {
-    ...state,
-    frames: updatedFrames,
-    currentFrameNumber: frameNumber,
-    currentShot: (shotIndex + 1) as ActiveShot,
-    availablePins,
-    standingPins: shot.pins_standing, // pre-fill with recorded pins
-    isComplete: false,
-    currentShotMeta: {}
-  };
-}
-
-/**
- * Finish an in-progress edit. `editResult` is the result of the final
- * `submitShot` during editing; `liveState` is the controller state captured
- * before the edit began. Returns the merged frames with the live position
- * re-derived from the full frame set (reusing the hydrate rules).
- */
-export function completeEdit(
-  editResult: ShotSubmissionResult,
-  liveState: FrameControllerState
-): ShotSubmissionResult {
-  const frames = editResult.state.frames;
-  const resumed = hydrateFrameController(frames);
-
-  return {
-    savedFrame: editResult.savedFrame,
-    state: {
-      ...liveState,
-      frames,
-      currentFrameNumber: resumed.currentFrameNumber,
-      currentShot: resumed.currentShot,
-      availablePins: resumed.availablePins,
-      standingPins: resumed.standingPins,
-      isComplete: resumed.isComplete,
-      currentShotMeta: {}
-    }
-  };
 }
 
 /**

@@ -251,7 +251,9 @@ export function normalizePatternName(raw: string): string {
   name = name.replace(/\s{2,}/g, " ").trim();
   // A sheet shouting its title is the sheet's style, not the name's.
   if (name === name.toUpperCase()) {
-    name = name.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
+    // A letter after an apostrophe is not a word start: "DEAD MAN'S" is
+    // "Dead Man's", not "Dead Man'S".
+    name = name.toLowerCase().replace(/(?<!')\b[a-z]/g, (c) => c.toUpperCase());
   }
   return name.trim();
 }

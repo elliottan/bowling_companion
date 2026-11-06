@@ -24,6 +24,12 @@ interface PinGridProps {
    *  right-hander), where the ball enters. The deck stays a dumb pin renderer:
    *  it positions whatever it is given and knows nothing about it. */
   cornerSlot?: ReactNode;
+  /** Keep a strip of wood under the pins for `cornerSlot`, on every shot
+   *  whether the slot is filled or not. Beside the 1 pin there is not room for
+   *  it on a narrow deck: on a 360-wide phone, and on a 390-wide one in a
+   *  longer language, the toggle sat over the 1 pin and took its taps. Always
+   *  reserved, so the deck and the buttons under it never move between balls. */
+  reserveCorner?: boolean;
 }
 
 
@@ -42,7 +48,8 @@ export function PinGrid({
   onChange,
   readOnly = false,
   size = "default",
-  cornerSlot
+  cornerSlot,
+  reserveCorner = false
 }: PinGridProps) {
   const handedness = useHandedness();
   const standingSet = new Set(standingPins);
@@ -94,7 +101,7 @@ export function PinGrid({
   // width, which is a scoring-screen layout change, not a sizing tweak.
   const pinSize = sm ? "h-8 w-8 text-xs" : "h-11 w-11 text-sm sm:h-12 sm:w-12";
   const rowGap = sm ? "gap-1.5" : "gap-2 sm:gap-3";
-  const pad = sm ? "p-2" : "p-4";
+  const pad = reserveCorner ? (sm ? "px-2 pt-2 pb-9" : "px-4 pt-4 pb-11") : sm ? "p-2" : "p-4";
   const maxW = sm ? "max-w-[11rem]" : "max-w-[16rem]";
 
   return (

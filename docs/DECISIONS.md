@@ -10353,3 +10353,27 @@ important row on the screen.
   phone.
 - A past session is opened from History, not from Home.
 
+
+## ADR-246: Correcting the first ball of the frame being bowled keeps it open
+
+**Status.** Accepted, 2026-11-06. Narrows the rule in `editFrameShotPins` that
+editing the first ball of frames 1 to 9 forces the second ball to a spare.
+
+**Context.** Editing a recorded first ball rewrites the frame's second ball as
+a spare, so a frame that already had two balls, or a strike turned into a
+leave, always has a second ball to edit. The rule also caught the frame still
+being bowled: a bowler who recorded ball 1, saw the leave was wrong and tapped
+it on the card to fix it got a spare they never threw, and the game moved on
+to the next frame with it scored.
+
+**Decision.** When the frame being edited has only its first ball and that
+ball was not a strike, correcting it keeps the frame at one ball. The scorer
+resumes on ball 2 of that frame against the corrected leave. A frame with a
+second ball, and a recorded strike changed to a leave, are forced to a spare
+as before.
+
+**Consequences.**
+
+- No score is ever made of a ball that was not thrown.
+- The beginEdit, beginEditFromShot and completeEdit helpers, which nothing
+  called any more, are gone with their tests.

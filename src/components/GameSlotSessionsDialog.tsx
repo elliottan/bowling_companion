@@ -1,3 +1,4 @@
+import { plural, t } from "@lingui/core/macro";
 import type { GameSlotSession } from "../lib/stats";
 import { GameRowsSheet } from "./GameRowsSheet";
 
@@ -17,8 +18,8 @@ interface GameSlotSessionsDialogProps {
 export function GameSlotSessionsDialog({ gameNumber, sessions, onSelect, onClose }: GameSlotSessionsDialogProps) {
   return (
     <GameRowsSheet
-      title={`Game ${gameNumber}`}
-      subtitle={`${sessions.length} ${sessions.length === 1 ? "session" : "sessions"}, newest first`}
+      title={t`Game ${gameNumber}`}
+      subtitle={plural(sessions.length, { one: "# session, newest first", other: "# sessions, newest first" })}
       rows={sessions}
       onSelect={onSelect}
       onClose={onClose}

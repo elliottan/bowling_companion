@@ -1006,7 +1006,7 @@ export function ActiveSessionView({
                 {/* Named for the game being changed: the same dialog is opened
                     from every game, and the fix is usually to one of them. */}
                 <span className={`block ${GROUP_HEADING}`}>
-                  Game {activeGame?.game_number ?? 1}, frame 1 starts on
+                  {t`Game ${{ gameNumber: activeGame?.game_number ?? 1 }}, frame 1 starts on`}
                 </span>
                 <div className="mt-1.5 flex items-center gap-2">
                   {(["A", "B"] as const).map((side) => {
