@@ -741,6 +741,28 @@ export async function countSessionsOnPattern(patternId: number): Promise<number>
   return db.sessions.where("oil_pattern_id").equals(patternId).count();
 }
 
+/**
+ * How many games were bowled on each pattern, by its id. Games, not sessions:
+ * a night of six games on a pattern says more about knowing it than a single
+ * game does. Every game row counts, finished or not. Read off the indexed
+ * columns alone, without a frame.
+ */
+export async function getGamesPerPattern(): Promise<Map<number, number>> {
+  const sessions = await db.sessions.where("oil_pattern_id").above(0).toArray();
+  const patternOf = new Map<number, number>();
+  for (const s of sessions) {
+    if (s.id != null && s.oil_pattern_id != null) patternOf.set(s.id, s.oil_pattern_id);
+  }
+  const counts = new Map<number, number>();
+  if (patternOf.size === 0) return counts;
+  const games = await db.games.where("session_id").anyOf([...patternOf.keys()]).toArray();
+  for (const g of games) {
+    const pattern = patternOf.get(g.session_id);
+    if (pattern != null) counts.set(pattern, (counts.get(pattern) ?? 0) + 1);
+  }
+  return counts;
+}
+
 export async function getSessionList(): Promise<SessionSummary[]> {
   return loadSessions("unscored");
 }

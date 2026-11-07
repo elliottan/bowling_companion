@@ -113,6 +113,12 @@ describe("the search index", () => {
     expect(term("positive axis").some((i) => i.title.startsWith("PAP"))).toBe(true);
   });
 
+  it("finds a corner pin leave by the left-hander's name for it", () => {
+    const r = searchIndex(buildSearchIndex(sources()), "flat 7");
+    expect(r.top?.title).toBe("Flat 10");
+    expect(r.top?.subtitle).toContain("the 4 pin lying in front of the 7");
+  });
+
   it("puts a strong match on top, and only once", () => {
     const results = searchIndex(buildSearchIndex(sources()), "brooklyn");
     expect(results.top?.title).toBe("Brooklyn");
@@ -139,6 +145,20 @@ describe("the search index", () => {
     expect(top?.section).toBe("sessions");
     expect(own.items).toHaveLength(5);
     expect(own.more).toBe(2);
+  });
+
+  it("shows the games bowled on a pattern, and ranks it ahead of an equal match never bowled", () => {
+    const patterns: OilPattern[] = [
+      { id: 1, name: "Shark", distance: 44 },
+      { id: 2, name: "Scorpion", distance: 41 }
+    ];
+    const index = buildSearchIndex(sources({ sessions: [], patterns, patternGames: new Map([[2, 7]]) }));
+    const r = searchIndex(index, "s");
+    // The better of the two leads as the top hit, the other stays in its group.
+    const items = [r.top!, ...r.sections.find((s) => s.section === "patterns")!.items];
+    expect(items.map((i) => i.title)).toEqual(["Scorpion", "Shark"]);
+    expect(items[0].subtitle).toBe("41 ft · 7 games");
+    expect(items[1].subtitle).toBe("44 ft");
   });
 
   it("finds a screen by its name", () => {

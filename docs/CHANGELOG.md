@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.91.0: Your patterns first, and plainer bowling terms (2026-11-07)
+
+- Oil patterns lists the ones you bowl on most first, in order of how many
+  games you've bowled on each, and each row shows that count. Patterns you
+  haven't bowled keep their order below. A pattern in search shows its games
+  too (ADR-248).
+- The Bowling terms guides are rewritten in plainer words, without the
+  regional names and the introductions. The strike guide adds the flat 10
+  beside the ringing 10, with the left-hander's flat 7 and ringing 7, and
+  searching any of those names finds them.
+
 ## 0.90.0: Search, and the words bowlers use (2026-11-07)
 
 - Home has a search. Tap the magnifier beside the app's mark: it opens over

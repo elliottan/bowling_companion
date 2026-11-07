@@ -50,7 +50,7 @@ import {
   clearRecentSearches,
   readRecentSearches
 } from "../lib/recentSearches";
-import { getSessionList } from "../services/bowlingRepository";
+import { getGamesPerPattern, getSessionList } from "../services/bowlingRepository";
 import { getAllOilPatterns, getBalls } from "../services/ballRepository";
 import { getAllCatalog } from "../services/ballCatalogRepository";
 import type { Ball, OilPattern, SessionSummary } from "../types/bowling";
@@ -87,6 +87,7 @@ const NO_SESSIONS: SessionSummary[] = [];
 const NO_PATTERNS: OilPattern[] = [];
 const NO_BALLS: Ball[] = [];
 const NO_CATALOG: CatalogBall[] = [];
+const NO_GAMES: ReadonlyMap<number, number> = new Map();
 
 function sectionHeading(section: SearchSection): string {
   switch (section) {
@@ -141,10 +142,11 @@ export function SearchView({ onClose, onOpen, onSearchCatalog, active = true }: 
   // Whatever the catalog screen last synced. The search never fetches it: a
   // first sync parses the whole catalog, which is the catalog screen's to pay.
   const catalog = useLiveQuery(() => getAllCatalog()) ?? NO_CATALOG;
+  const patternGames = useLiveQuery(() => getGamesPerPattern()) ?? NO_GAMES;
 
   const index = useMemo(
-    () => buildSearchIndex({ sessions, patterns, balls, catalog, screens: screenEntries() }),
-    [sessions, patterns, balls, catalog]
+    () => buildSearchIndex({ sessions, patterns, balls, catalog, patternGames, screens: screenEntries() }),
+    [sessions, patterns, balls, catalog, patternGames]
   );
   const trimmed = query.trim();
   const results = useMemo(() => searchIndex(index, trimmed, Number.POSITIVE_INFINITY), [index, trimmed]);

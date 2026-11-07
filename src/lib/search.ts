@@ -77,6 +77,12 @@ export interface SearchItem {
   /** What a query is matched against: the first is the item's name, the rest
    *  are words that find it without being its name (a ball's brand). */
   terms: string[];
+  /** Other names for the same thing ("flat 7" for the flat 10), matched as
+   *  well as its own name, a little below it. */
+  aliases?: string[];
+  /** Breaks a tie between equal matches, highest first: games bowled on a
+   *  pattern. */
+  weight?: number;
   /** A catalog photo, for a ball. */
   image?: string | null;
   brand?: string;
@@ -97,6 +103,9 @@ export interface SearchSources {
   balls: readonly Ball[];
   catalog: readonly CatalogBall[];
   screens: readonly ScreenEntry[];
+  /** Games bowled on each pattern, by id: shown on its row, and what puts the
+   *  patterns the bowler knows ahead of equal matches they have never bowled. */
+  patternGames?: ReadonlyMap<number, number>;
 }
 
 /** Lowercase, accents off, so "Café" is found by "cafe". For matching only:
@@ -153,12 +162,16 @@ const SECTION_WEIGHT: Record<SearchSection, number> = {
  *  one whose own name matched. */
 const SECONDARY = 0.6;
 
+/** An alias is another name for the thing, so it ranks nearly as its name. */
+const ALIAS = 0.95;
+
 export function itemScore(item: SearchItem, query: string): number {
   let best = 0;
   item.terms.forEach((term, i) => {
     const score = matchScore(term, query) * (i === 0 ? 1 : SECONDARY);
     if (score > best) best = score;
   });
+  for (const alias of item.aliases ?? []) best = Math.max(best, matchScore(alias, query) * ALIAS);
   return best === 0 ? 0 : best + SECTION_WEIGHT[item.section];
 }
 
@@ -224,11 +237,15 @@ export function buildSearchIndex(sources: SearchSources): SearchItem[] {
   for (const pattern of sources.patterns) {
     if (pattern.id == null) continue;
     const feet = patternLength(pattern);
+    const games = sources.patternGames?.get(pattern.id) ?? 0;
+    const length = feet != null ? t`${{ feet: formatNumber(Math.round(feet)) }} ft` : undefined;
+    const bowled = games > 0 ? plural(games, { one: "# game", other: "# games" }) : undefined;
     items.push({
       key: `pattern:${pattern.id}`,
       section: "patterns",
       title: pattern.name,
-      subtitle: feet != null ? t`${{ feet: formatNumber(Math.round(feet)) }} ft` : undefined,
+      subtitle: [length, bowled].filter(Boolean).join(" · ") || undefined,
+      weight: games,
       terms: [pattern.name],
       target: { kind: "pattern", patternId: pattern.id }
     });
@@ -277,7 +294,8 @@ export function buildSearchIndex(sources: SearchSources): SearchItem[] {
           subtitle: entry.text,
           // The term is often written "PAP, the positive axis point", and
           // either half is how a bowler would ask for it.
-          terms: [entry.term, ...entry.term.split(/,\s*/).slice(1), ...(entry.aliases ?? [])],
+          terms: [entry.term, ...entry.term.split(/,\s*/).slice(1)],
+          aliases: entry.aliases,
           target: { kind: "guide", guideId: guide.id }
         });
       });
@@ -322,7 +340,10 @@ export function searchIndex(items: readonly SearchItem[], query: string, limit =
   const scored = items
     .map((item) => ({ item, score: itemScore(item, query) }))
     .filter((s) => s.score > 0)
-    .sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title));
+    .sort(
+      (a, b) =>
+        b.score - a.score || (b.item.weight ?? 0) - (a.item.weight ?? 0) || a.item.title.localeCompare(b.item.title)
+    );
 
   const top = scored.length > 0 && scored[0].score >= TOP_HIT_SCORE ? scored[0].item : null;
 

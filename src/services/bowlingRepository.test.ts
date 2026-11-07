@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { db, linkLegacySessionOilPatterns } from "../db/bowlingDb";
 import {
+  getGamesPerPattern,
   addNextGameToSession,
   addGameToSession,
   createSession,
@@ -491,5 +492,27 @@ describe("empty sessions", () => {
     // Saving the tenth again, as an edit does, is not a second game.
     await saveFrame(gameId, tenth);
     expect(reportGameFinished).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("getGamesPerPattern", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("counts games, not sessions, on each pattern, and leaves out sessions with none", async () => {
+    const a = Number(await db.sessions.add({ date: "2026-10-01", alley_name: "A", oil_pattern_id: 7 }));
+    const b = Number(await db.sessions.add({ date: "2026-10-02", alley_name: "A", oil_pattern_id: 7 }));
+    const c = Number(await db.sessions.add({ date: "2026-10-03", alley_name: "A", oil_pattern_id: 9 }));
+    const d = Number(await db.sessions.add({ date: "2026-10-04", alley_name: "A" }));
+    for (const [session, games] of [[a, 3], [b, 2], [c, 1], [d, 4]] as const) {
+      for (let n = 1; n <= games; n++) await db.games.add({ session_id: session, game_number: n });
+    }
+    expect(await getGamesPerPattern()).toEqual(new Map([[7, 5], [9, 1]]));
+  });
+
+  it("answers an empty map before any pattern is on a session", async () => {
+    expect((await getGamesPerPattern()).size).toBe(0);
   });
 });

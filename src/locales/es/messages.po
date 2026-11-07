@@ -345,6 +345,11 @@ msgstr "{from} a {to}"
 msgid "{gameCount, plural, one {\"{alley}\" and its game will be permanently deleted. This can't be undone.} other {\"{alley}\" and all # games will be permanently deleted. This can't be undone.}}"
 msgstr "{gameCount, plural, one {\"{alley}\" y su juego se eliminarán de forma permanente. Esto no se puede deshacer.} other {\"{alley}\" y sus # juegos se eliminarán de forma permanente. Esto no se puede deshacer.}}"
 
+#: src/components/OilPatternManager.tsx
+#: src/lib/search.ts
+msgid "{games, plural, one {# game} other {# games}}"
+msgstr "{games, plural, one {# juego} other {# juegos}}"
+
 #: src/components/Stats.tsx
 msgid "{gap} above your average"
 msgstr "{gap} por encima de tu promedio"
