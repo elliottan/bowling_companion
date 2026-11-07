@@ -23,11 +23,55 @@ export type GuideBlock =
   | { kind: "list"; items: string[] }
   /** A term and what it means, for the words a layout conversation
    *  assumes you already have. */
-  | { kind: "terms"; items: Array<{ term: string; text: string; aliases?: string[] }> }
+  | { kind: "terms"; items: GuideTerm[] }
   /** A drawing. The id names one of the figures in `components/GuideFigure`,
    *  which owns the geometry: `lib` cannot import a component, and a figure is
    *  markup rather than content. The caption is also its spoken name. */
   | { kind: "figure"; figure: GuideFigureId; caption: string };
+
+/** One word and what it means. */
+export interface GuideTerm {
+  term: string;
+  text: string;
+  /** Other names for it, which find it in a search without being shown. */
+  aliases?: string[];
+  /** A small picture of it, drawn by `components/TermFigure`. */
+  figure?: TermFigure;
+}
+
+/**
+ * The picture beside a term (ADR-249). Data rather than markup, for the same
+ * reason as `GuideFigureId`: `lib` names what to draw, and the component owns
+ * the geometry.
+ */
+export type TermFigure =
+  /** A pin deck from the approach, with these pins standing and any in
+   *  `mark` drawn in the accent. */
+  | { kind: "leave"; standing: number[]; mark?: number[] }
+  /** A pin's flight on a strike: drawn for both hands where they differ. */
+  | { kind: "pin-move"; motion: "ring" | "flat" | "messenger" }
+  /** Where the ball meets the rack. */
+  | { kind: "ball"; hit: "pocket" | "brooklyn" | "high" | "light" }
+  /** Frames as a scoresheet writes them, one array of balls each. */
+  | { kind: "frames"; frames: string[][] }
+  /** The lane from above, foul line on the left, with one part lit. */
+  | { kind: "lane"; part: LanePart };
+
+export type LanePart =
+  | "approach"
+  | "foul-line"
+  | "boards"
+  | "arrows"
+  | "spots"
+  | "heads"
+  | "mids"
+  | "backend"
+  | "breakpoint"
+  | "oil"
+  | "crown" // the house shot: more oil in the middle
+  | "sport"
+  | "breakdown"
+  | "carry-down";
 
 /** Kept in step with `GuideFigureId` in `components/GuideFigure.tsx` by hand,
  *  because importing it here would point `lib` at a component. A figure named
@@ -52,6 +96,9 @@ export interface Guide {
   /** Where the claims come from. A layout article that cannot be checked is
    *  worth less than one that can, since the bowler is about to spend money. */
   sources?: GuideSource[];
+  /** A page of short terms rather than an article: it gets its own search,
+   *  and a term can be opened by name (ADR-249). */
+  glossary?: boolean;
 }
 
 export type GuideTopic = "Getting started" | "Bowling terms" | "Layouts" | "Equipment";
@@ -141,19 +188,22 @@ export const GUIDES: readonly Guide[] = [
     ]
   },
   {
-    id: "strike-words",
-    title: "The pocket and strike words",
-    summary: "Where the ball should hit, and the pins a good hit can still leave.",
+    id: "bowling-terms",
+    title: "Bowling terms",
+    summary: "The words bowlers use, each in a sentence or two, with a picture where one helps.",
     topic: "Bowling terms",
-    minutes: 2,
+    minutes: 8,
+    glossary: true,
     body: [
+      { kind: "heading", text: "Strikes and the pocket" },
       {
         kind: "terms",
         items: [
           {
             term: "Pocket",
             text: "Where the ball has the best chance of a strike. For a right-hander it's between the 1 and 3 pins. For a left-hander it's between the 1 and 2.",
-            aliases: ["Strike pocket"]
+            aliases: ["Strike pocket"],
+            figure: { kind: "ball", hit: "pocket" }
           },
           {
             term: "Flush",
@@ -162,17 +212,20 @@ export const GUIDES: readonly Guide[] = [
           {
             term: "High hit",
             text: "The ball catches too much of the headpin.",
-            aliases: ["High"]
+            aliases: ["High"],
+            figure: { kind: "ball", hit: "high" }
           },
           {
             term: "Light hit",
             text: "The ball catches too little of the headpin. Some bowlers call it low.",
-            aliases: ["Light", "Low"]
+            aliases: ["Light", "Low"],
+            figure: { kind: "ball", hit: "light" }
           },
           {
             term: "Brooklyn",
             text: "A ball that crosses to the other side of the headpin. A right-hander's Brooklyn hits the 1 and 2, and a left-hander's hits the 1 and 3.",
-            aliases: ["Crossover"]
+            aliases: ["Crossover"],
+            figure: { kind: "ball", hit: "brooklyn" }
           },
           {
             term: "Carry",
@@ -181,7 +234,8 @@ export const GUIDES: readonly Guide[] = [
           {
             term: "Messenger",
             text: "A pin that slides across the deck and knocks down a pin on the far side. It's often the headpin.",
-            aliases: ["Bird dog"]
+            aliases: ["Bird dog"],
+            figure: { kind: "pin-move", motion: "messenger" }
           },
           {
             term: "Tap",
@@ -195,130 +249,118 @@ export const GUIDES: readonly Guide[] = [
         items: [
           {
             term: "Corner pins",
-            text: "The 7 and the 10, at the back corners of the rack. The 10 is a right-hander's, and the 7 is a left-hander's."
+            text: "The 7 and the 10, at the back corners of the rack. The 10 is the one a right-hander leaves most, and the 7 is a left-hander's.",
+            figure: { kind: "leave", standing: [7, 10], mark: [7, 10] }
           },
           {
             term: "Ringing 10",
-            text: "For a right-hander, the 6 pin flies around the 10 and leaves it standing. Some call it a solid 10 or a wrap 10. A left-hander's is the ringing 7, where the 4 pin goes around the 7.",
-            aliases: ["Ringing 7", "Solid 10", "Wrap 10", "Solid 7", "Pocket 10"]
+            text: "For a right-hander, the 6 pin flies around the 10 and leaves it standing. Some call it a solid 10 or a wrap 10. A left-hander's is the ringing 7, where the 4 pin goes around the 7. It often comes from a ball that meets the pocket at too steep an angle, or one still skidding when it gets there.",
+            aliases: ["Ringing 7", "Solid 10", "Wrap 10", "Solid 7", "Pocket 10"],
+            figure: { kind: "pin-move", motion: "ring" }
           },
           {
             term: "Flat 10",
-            text: "For a right-hander, the 6 pin drops into the gutter in front of the 10 and never touches it. A left-hander's is the flat 7, with the 4 pin lying in front of the 7.",
-            aliases: ["Flat 7", "Weak 10"]
+            text: "For a right-hander, the 6 pin drops into the gutter in front of the 10 and never touches it. A left-hander's is the flat 7, with the 4 pin lying in front of the 7. It usually means the ball ran out of energy before the pins and deflected.",
+            aliases: ["Flat 7", "Weak 10"],
+            figure: { kind: "pin-move", motion: "flat" }
           }
         ]
       },
-      {
-        kind: "text",
-        text: "A ringing 10 often comes from a ball that reaches the pocket at too steep an angle, or one still skidding when it gets there. A flat 10 usually means the ball ran out of energy before the pins and deflected. For a left-hander, read the 4 and 7 for the 6 and 10."
-      }
-    ],
-    sources: [
-      GLOSSARY_SOURCE,
-      {
-        label: "Storm: why the 10 pin haunts bowlers",
-        url: "https://www.stormbowling.com/read/demystifying-the-mystery-why-the-10-pin-haunts-bowlers"
-      },
-      {
-        label: "Bowling This Month: kicking out the corners",
-        url: "https://www.bowlingthismonth.com/bowling-tips/kicking-out-the-corners-part-1"
-      }
-    ]
-  },
-  {
-    id: "leave-words",
-    title: "Spare and split names",
-    summary: "The leaves that have names, and which pins each one is.",
-    topic: "Bowling terms",
-    minutes: 2,
-    body: [
+      { kind: "heading", text: "Leaves" },
       {
         kind: "terms",
         items: [
           {
             term: "Leave",
-            text: "The pins still standing after your first ball."
+            text: "The pins still standing after your first ball.",
+            figure: { kind: "leave", standing: [3, 6, 10] }
           },
           {
             term: "Split",
-            text: "The headpin is down, and the pins left standing aren't next to each other."
+            text: "The headpin is down, and the pins left standing aren't next to each other.",
+            figure: { kind: "leave", standing: [4, 6] }
           },
           {
             term: "Baby split",
-            text: "A split with the pins close enough to hit both with the ball, like the 3-10 or the 2-7."
+            text: "A split with the pins close enough to hit both with the ball, like the 3-10 or the 2-7.",
+            figure: { kind: "leave", standing: [3, 10] }
           },
           {
             term: "7-10 split",
-            text: "Both corner pins. It's one of the hardest spares to make."
+            text: "Both corner pins. It's one of the hardest spares to make.",
+            figure: { kind: "leave", standing: [7, 10] }
           },
           {
             term: "Big four",
-            text: "The 4, 6, 7 and 10."
+            text: "The 4, 6, 7 and 10.",
+            figure: { kind: "leave", standing: [4, 6, 7, 10] }
           },
           {
             term: "Greek church",
-            text: "The 4-6-7-9-10 or the 4-6-7-8-10."
+            text: "The 4-6-7-9-10 or the 4-6-7-8-10.",
+            figure: { kind: "leave", standing: [4, 6, 7, 9, 10] }
           },
           {
             term: "Washout",
-            text: "It looks like a split, but the headpin is still up, as in the 1-2-10."
+            text: "It looks like a split, but the headpin is still up, as in the 1-2-10.",
+            figure: { kind: "leave", standing: [1, 2, 10] }
           },
           {
             term: "Bucket",
-            text: "The 2-4-5-8 or the 3-5-6-9."
+            text: "The 2-4-5-8 or the 3-5-6-9.",
+            figure: { kind: "leave", standing: [2, 4, 5, 8] }
           },
           {
             term: "Sleeper",
-            text: "A pin hidden straight behind another one, so it's hard to see from the approach."
+            text: "A pin hidden straight behind another one, so it's hard to see from the approach.",
+            figure: { kind: "leave", standing: [2, 8], mark: [8] }
           },
           {
             term: "Double wood",
-            text: "Two pins in a line, one behind the other. The 2-8, 3-9 and 1-5 are the usual ones."
+            text: "Two pins in a line, one behind the other. The 2-8, 3-9 and 1-5 are the usual ones.",
+            figure: { kind: "leave", standing: [3, 9] }
           }
         ]
-      }
-    ],
-    sources: [GLOSSARY_SOURCE]
-  },
-  {
-    id: "scoring-words",
-    title: "Scoring words",
-    summary: "What a mark, a turkey or a Dutch 200 means on a scoresheet.",
-    topic: "Bowling terms",
-    minutes: 2,
-    body: [
+      },
+      { kind: "heading", text: "Scoring" },
       {
         kind: "terms",
         items: [
           {
             term: "Strike",
-            text: "All ten pins down with the first ball of a frame. It's written X."
+            text: "All ten pins down with the first ball of a frame. It's written X.",
+            figure: { kind: "frames", frames: [["X"]] }
           },
           {
             term: "Spare",
-            text: "Every pin left after the first ball knocked down with the second. It's written /."
+            text: "Every pin left after the first ball knocked down with the second. It's written /.",
+            figure: { kind: "frames", frames: [["7", "/"]] }
           },
           {
             term: "Open frame",
             text: "A frame with no strike and no spare.",
-            aliases: ["Open"]
+            aliases: ["Open"],
+            figure: { kind: "frames", frames: [["7", "2"]] }
           },
           {
             term: "Mark",
-            text: "A strike or a spare."
+            text: "A strike or a spare.",
+            figure: { kind: "frames", frames: [["X"], ["8", "/"]] }
           },
           {
             term: "Double",
-            text: "Two strikes in a row."
+            text: "Two strikes in a row.",
+            figure: { kind: "frames", frames: [["X"], ["X"]] }
           },
           {
             term: "Turkey",
-            text: "Three strikes in a row."
+            text: "Three strikes in a row.",
+            figure: { kind: "frames", frames: [["X"], ["X"], ["X"]] }
           },
           {
             term: "Hambone",
-            text: "Four strikes in a row."
+            text: "Four strikes in a row.",
+            figure: { kind: "frames", frames: [["X"], ["X"], ["X"], ["X"]] }
           },
           {
             term: "Bagger",
@@ -332,74 +374,77 @@ export const GUIDES: readonly Guide[] = [
           {
             term: "Perfect game",
             text: "Twelve strikes in a row, for a score of 300.",
-            aliases: ["300"]
+            aliases: ["300"],
+            figure: { kind: "frames", frames: [["X"], ["X", "X", "X"]] }
           },
           {
             term: "Dutch 200",
-            text: "Strikes and spares in turn for the whole game. It always scores exactly 200."
+            text: "Strikes and spares in turn for the whole game. It always scores exactly 200.",
+            figure: { kind: "frames", frames: [["X"], ["9", "/"], ["X"], ["8", "/"]] }
           },
           {
             term: "Fill ball",
-            text: "The extra ball in the tenth frame after a spare. A strike in the tenth gets two."
+            text: "The extra ball in the tenth frame after a spare. A strike in the tenth gets two.",
+            figure: { kind: "frames", frames: [["9", "/", "7"]] }
           },
           {
             term: "Foul",
-            text: "Crossing the foul line as you deliver the ball. The ball scores zero, and it's written F."
+            text: "Crossing the foul line as you deliver the ball. The ball scores zero, and it's written F.",
+            figure: { kind: "frames", frames: [["F", "8"]] }
           }
         ]
-      }
-    ],
-    sources: [GLOSSARY_SOURCE]
-  },
-  {
-    id: "lane-words",
-    title: "Lane and oil words",
-    summary: "The parts of a lane, and how the oil on it changes as you bowl.",
-    topic: "Bowling terms",
-    minutes: 3,
-    body: [
+      },
       { kind: "heading", text: "The lane" },
       {
         kind: "terms",
         items: [
           {
             term: "Approach",
-            text: "The floor you walk on up to the foul line."
+            text: "The floor you walk on up to the foul line.",
+            figure: { kind: "lane", part: "approach" }
           },
           {
             term: "Foul line",
-            text: "The line where the approach ends and the lane begins."
+            text: "The line where the approach ends and the lane begins.",
+            figure: { kind: "lane", part: "foul-line" }
           },
           {
             term: "Boards",
-            text: "A lane is 39 boards wide. They're counted from your throwing side, so board 1 is the right edge for a right-hander and the left edge for a left-hander."
+            text: "A lane is 39 boards wide. They're counted from your throwing side, so board 1 is the right edge for a right-hander and the left edge for a left-hander.",
+            figure: { kind: "lane", part: "boards" }
           },
           {
             term: "Arrows",
             text: "Seven arrows about 15 feet past the foul line, one on every fifth board. Most bowlers aim at them.",
-            aliases: ["Targets"]
+            aliases: ["Targets"],
+            figure: { kind: "lane", part: "arrows" }
           },
           {
             term: "Spots",
             text: "A row of dots about 6 feet past the foul line.",
-            aliases: ["Dots"]
+            aliases: ["Dots"],
+            figure: { kind: "lane", part: "spots" }
           },
           {
             term: "Heads",
-            text: "The front of the lane, from the foul line to about the arrows."
+            text: "The front of the lane, from the foul line to about the arrows.",
+            figure: { kind: "lane", part: "heads" }
           },
           {
             term: "Mids",
-            text: "The middle of the lane, between the heads and the backend."
+            text: "The middle of the lane, between the heads and the backend.",
+            figure: { kind: "lane", part: "mids" }
           },
           {
             term: "Backend",
             text: "About the last third of the lane. There's little or no oil on it, so it's where the ball hooks.",
-            aliases: ["Back end"]
+            aliases: ["Back end"],
+            figure: { kind: "lane", part: "backend" }
           },
           {
             term: "Breakpoint",
-            text: "Where the ball turns hardest toward the pins. It's usually a few feet past the end of the oil."
+            text: "Where the ball turns hardest toward the pins. It's usually a few feet past the end of the oil.",
+            figure: { kind: "lane", part: "breakpoint" }
           }
         ]
       },
@@ -409,42 +454,37 @@ export const GUIDES: readonly Guide[] = [
         items: [
           {
             term: "Oil pattern",
-            text: "How the oil is laid on the lane: how far down it goes, and how much is on each board."
+            text: "How the oil is laid on the lane: how far down it goes, and how much is on each board.",
+            figure: { kind: "lane", part: "oil" }
           },
           {
             term: "House shot",
-            text: "The pattern most alleys put down for leagues and open bowling. It has more oil in the middle than on the outside, so a ball that misses a little gets steered back toward the pocket."
+            text: "The pattern most alleys put down for leagues and open bowling. It has more oil in the middle than on the outside, so a ball that misses a little gets steered back toward the pocket.",
+            figure: { kind: "lane", part: "crown" }
           },
           {
             term: "Sport shot",
-            text: "A flatter pattern used in tournaments. A missed shot gets much less help on it."
+            text: "A flatter pattern used in tournaments. A missed shot gets much less help on it.",
+            figure: { kind: "lane", part: "sport" }
           },
           {
             term: "Breakdown",
             text: "Each ball wipes a little oil off the path it rolls on. Where lots of balls go, the lane dries out and balls hook sooner.",
-            aliases: ["Burn"]
+            aliases: ["Burn"],
+            figure: { kind: "lane", part: "breakdown" }
           },
           {
             term: "Carry-down",
-            text: "Oil that balls drag onto the dry backend. Later balls skid further before they hook."
+            text: "Oil that balls drag onto the dry backend. Later balls skid further before they hook.",
+            figure: { kind: "lane", part: "carry-down" }
           },
           {
             term: "Transition",
             text: "How the lane changes over a session as the oil breaks down and carries down."
           }
         ]
-      }
-    ],
-    sources: [GLOSSARY_SOURCE]
-  },
-  {
-    id: "bowler-words",
-    title: "Bowler and ball words",
-    summary: "Styles of bowler, and the words for how a ball spins.",
-    topic: "Bowling terms",
-    minutes: 2,
-    body: [
-      { kind: "heading", text: "Styles" },
+      },
+      { kind: "heading", text: "Bowlers and balls" },
       {
         kind: "terms",
         items: [
@@ -459,13 +499,7 @@ export const GUIDES: readonly Guide[] = [
           {
             term: "Tweener",
             text: "Somewhere between a stroker and a cranker."
-          }
-        ]
-      },
-      { kind: "heading", text: "Spin" },
-      {
-        kind: "terms",
-        items: [
+          },
           {
             term: "Rev rate",
             text: "How fast the ball spins, in revolutions per minute.",
@@ -478,13 +512,7 @@ export const GUIDES: readonly Guide[] = [
           {
             term: "Axis tilt",
             text: "How far the spin axis leans up from flat. A ball with a lot of tilt skids further before it hooks."
-          }
-        ]
-      },
-      { kind: "heading", text: "The ball" },
-      {
-        kind: "terms",
-        items: [
+          },
           {
             term: "Coverstock",
             text: "The ball's outer shell, which decides how much it grips the lane. Reactive resin grips the most and plastic the least, which is why plastic is the usual spare ball. Urethane sits between them.",
@@ -513,7 +541,17 @@ export const GUIDES: readonly Guide[] = [
         ]
       }
     ],
-    sources: [GLOSSARY_SOURCE]
+    sources: [
+      GLOSSARY_SOURCE,
+      {
+        label: "Storm: why the 10 pin haunts bowlers",
+        url: "https://www.stormbowling.com/read/demystifying-the-mystery-why-the-10-pin-haunts-bowlers"
+      },
+      {
+        label: "Bowling This Month: kicking out the corners",
+        url: "https://www.bowlingthismonth.com/bowling-tips/kicking-out-the-corners-part-1"
+      }
+    ]
   },
   {
     id: "layout-vocabulary",
@@ -739,6 +777,14 @@ export const GUIDES: readonly Guide[] = [
     ]
   }
 ];
+
+/** A term's id on its page, from its name: "7-10 split" is `7-10-split`. */
+export function termSlug(term: string): string {
+  return term
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 /** Lookup by id, for the route and the article screen. Undefined for an id
  *  that is not in the list: a stale bookmark opens the list, not an error. */

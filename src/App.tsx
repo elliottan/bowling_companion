@@ -576,7 +576,7 @@ function App() {
       case "catalog-ball":
         return dispatch({ type: "openCatalogBall", ballId: target.catalogId, push: true });
       case "guide":
-        return dispatch({ type: "openGuide", guideId: target.guideId, push: true });
+        return dispatch({ type: "openGuide", guideId: target.guideId, push: true, term: target.term });
       case "screen":
         switch (target.screen) {
           case "line":
@@ -886,6 +886,7 @@ function App() {
                 key={`guides-${i}`}
                 onBack={popOverlay}
                 openGuideId={nav.openGuideId}
+                focusTerm={nav.openGuideTerm ?? undefined}
                 onOpenGuide={(guideId) => dispatch({ type: "openGuide", guideId })}
               />
             );
