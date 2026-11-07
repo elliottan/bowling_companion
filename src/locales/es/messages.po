@@ -873,12 +873,6 @@ msgstr "Boliche"
 msgid "Alley and lane are required."
 msgstr "El boliche y la pista son obligatorios."
 
-#: src/components/HomeProfile.tsx
-#: src/views/GamePlanView.tsx
-#: src/views/SearchView.tsx
-msgid "Alley report"
-msgstr "Reporte del boliche"
-
 #: src/views/CatalogView.tsx
 msgid "Already in your arsenal"
 msgstr "Ya está en tu arsenal"
@@ -1204,7 +1198,6 @@ msgid "By session"
 msgstr "Por sesión"
 
 #: src/components/ConfirmDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/ui/SearchField.tsx
 msgid "Cancel"
 msgstr "Cancelar"
@@ -1475,10 +1468,6 @@ msgstr "¿Eliminar bola?"
 msgid "Delete game {gameNumber}"
 msgstr "Eliminar juego {gameNumber}"
 
-#: src/components/LaneNotesTab.tsx
-msgid "Delete lane {lane} notes"
-msgstr "Eliminar notas de la pista {lane}"
-
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Delete note"
 msgstr "Eliminar nota"
@@ -1496,7 +1485,6 @@ msgid "Delete spare line for pins {pins}"
 msgstr "Eliminar línea de spare para los pinos {pins}"
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "Delete the note for lane {lane}?"
 msgstr "¿Eliminar la nota de la pista {lane}?"
 
@@ -2103,6 +2091,12 @@ msgstr "Juego {gameNumber}: {score}"
 msgid "Game by game"
 msgstr "Juego por juego"
 
+#: src/components/HomeProfile.tsx
+#: src/views/GamePlanView.tsx
+#: src/views/SearchView.tsx
+msgid "Game plan"
+msgstr "Plan de juego"
+
 #: src/components/Stats.tsx
 #: src/views/ActiveSessionView.tsx
 msgid "Games"
@@ -2321,10 +2315,6 @@ msgstr "Cuántas veces más aceite lleva el centro que cada franja de tablas, le
 #: src/components/LaneNoteFormDialog.tsx
 msgid "How this lane plays: transition, where it hooks, ball reaction…"
 msgstr "Cómo juega esta pista: transición, dónde engancha, reacción de la bola…"
-
-#: src/components/LaneNotesTab.tsx
-msgid "How this lane plays…"
-msgstr "Cómo juega esta pista…"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "How's Headpin working for you?"
@@ -3827,7 +3817,6 @@ msgstr "igual que todas las bolas"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/OilPatternFormDialog.tsx
 #: src/components/ui/FormSheet.tsx
 #: src/views/ActiveSessionView.tsx
@@ -4678,7 +4667,6 @@ msgid "This deletes everything on this device: {0, plural, one {# session} other
 msgstr "Esto elimina todo en este dispositivo: {0, plural, one {# sesión} other {# sesiones}}, {1, plural, one {# juego} other {# juegos}}, {2, plural, one {# bola} other {# bolas}}. En su lugar instala {3, plural, one {# sesión} other {# sesiones}} y {4, plural, one {# juego} other {# juegos}} del archivo, guardados {age}."
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
 msgstr "Esto elimina tu nota de esta pista. Tus juegos no se ven afectados."
 

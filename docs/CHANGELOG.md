@@ -9,8 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.91.1: Home's tool cards show their names alone (2026-11-07)
+## 0.92.0: Game plan, a lane note sheet in the session, and plainer tool cards (2026-11-07)
 
+- The Alley report is now Game plan, on its Home tile, its screen and in
+  search. It reads which ball to throw by alley, oil and lane, which is more
+  than a report on an alley.
+- A lane's pencil in a session's Lanes tab opens the same Edit lane note
+  sheet as the Lane notes screen, with the alley and lane already set, rather
+  than editing inside the lane's box. Deleting a note is in that sheet too.
 - The Line visualizer, Layouts, Oil patterns and Ball catalog cards on Home
   show just their titles under the drawings, without the line of description.
   Settings' list of tools keeps its descriptions.

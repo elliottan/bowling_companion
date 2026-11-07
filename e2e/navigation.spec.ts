@@ -157,7 +157,7 @@ test("back closes the oil pattern manager, not the session form under it", async
   await expect(page.getByPlaceholder("League, practice, tournament…")).toHaveValue("keep me");
 });
 
-test("Stats opened from the alley report is a push, and back returns to it", async ({ page }) => {
+test("Stats opened from Game plan is a push, and back returns to it", async ({ page }) => {
   // Driven by URL rather than by tapping a callout: a callout needs six games
   // at one alley behind it, and what is under test here is the shape of the
   // hand-off, not the thresholds that produce one.
@@ -173,7 +173,7 @@ test("Stats opened from the alley report is a push, and back returns to it", asy
   for (let i = 0; i < 12; i++) await recordShot(page, []);
   await waitForScoresPersisted(page);
   await page.goto("/app/?pro#/home/game-plan");
-  await expect(page.getByRole("dialog", { name: "Alley report" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Game plan" })).toBeVisible();
 
   await page.goto("/app/?pro#/home/game-plan/stats-push");
 
@@ -187,7 +187,7 @@ test("Stats opened from the alley report is a push, and back returns to it", asy
 
   await page.goBack();
   await expect(page).toHaveURL(/#\/home\/game-plan$/);
-  await expect(page.getByRole("dialog", { name: "Alley report" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Game plan" })).toBeVisible();
 });
 
 /**

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "../db/bowlingDb";
 import { GamePlanView } from "./GamePlanView";
 
-describe("the alley report with nothing to read", () => {
+describe("Game plan with nothing to read", () => {
   beforeEach(async () => {
     await db.delete();
     await db.open();

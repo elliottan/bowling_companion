@@ -341,7 +341,7 @@ empty state is the whole ask.
 Under the hero the **arsenal is one row that is plainly a button**: a few of
 its balls overlapping, its name, its count and a chevron. It was a grid of
 balls beside the greeting with no name on it, and read as decoration rather
-than a way in. Then the spare lines, lane notes and Alley report as three
+than a way in. Then the spare lines, lane notes and Game plan as three
 equal tiles, each with its count under its name, or while it holds nothing,
 what it is for. Recent sessions are not on Home: History is one tap away, and
 the hero already carries the last one.
@@ -352,7 +352,7 @@ real balls from the catalog. A row with a line under it described a tool; a
 picture makes it something to try. The guides are one row under them. The
 pictures are drawings (`ToolCards`), not the tools' own components, since a
 card is a door. Settings keeps the plain `ToolsList`, which is a way back to
-the same screens, not a showcase. The Alley report stays with the bowler's
+the same screens, not a showcase. Game plan stays with the bowler's
 tiles, since it reads nothing but their games (ADR-146).
 
 Home holds **one prompt at a time**: the backup card, else one setup step,
@@ -471,7 +471,7 @@ lock in the middle of them and the whole card as the tap: shown sharp, with the
 mark below it, the card read as open. The mark on a card or a row is the lock
 alone, never the word "Pro", which a screen of locks repeated over and over. A locked list shows its first rows in full, the
 bowler's own numbers, then one more row blurred under the mark, and nothing
-after it: one ball on Stats and the Alley report (`lib/proPreview`,
+after it: one ball on Stats and Game plan (`lib/proPreview`,
 `ProBlur`). Locked controls stay where they are, out of reach, under the lock
 alone and the whole block as the tap (`ProVeil`, ADR-202, ADR-203): the lane's
 fields lightly blurred, the layout lab's sliders drawn as they are (`clear`),
@@ -496,7 +496,7 @@ small "Pro" label beside the bowler's name is the same graphite and gold.
 **A hint can be waved away, and comes back.** Every hint has an action and an X.
 The X is a snooze with an end, kept per thing it was about, not a permanent no.
 
-**A report leads with its answers.** The Alley report opens on one card of
+**A report leads with its answers.** Game plan opens on one card of
 you at that alley: your average, what it is read from, and your four rates.
 Under it the balls are ranked by what you'd average with each, and the detail
 is one tap down in a sheet (its lines are off the screen for now, ADR-163). A
@@ -563,7 +563,7 @@ its empty state has one action, "Start scoring", straight to the deck, with no
 floating button beside it: three controls that all started a session put a
 choice to someone with nothing to choose on (ADR-150). What it
 does not do is remove the chrome: the bowler profile (the arsenal grid and the
-spare line, lane note and Alley report tiles) and the Tools and reference list
+spare line, lane note and Game plan tiles) and the Tools and reference list
 stay below the empty state and stay reachable, because they are the only way to
 several screens (ADR-069, ADR-115).
 

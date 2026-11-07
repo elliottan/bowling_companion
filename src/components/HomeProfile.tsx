@@ -244,7 +244,7 @@ export function ProfileTiles({
       />
       <Tile
         icon={GamePlanIcon}
-        label={t`Alley report`}
+        label={t`Game plan`}
         detail={counted(
           alleys,
           (n) => plural(n, { one: "# alley", other: "# alleys" }),

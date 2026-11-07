@@ -873,12 +873,6 @@ msgstr "Arena boling"
 msgid "Alley and lane are required."
 msgstr "Arena boling dan lintasan wajib diisi."
 
-#: src/components/HomeProfile.tsx
-#: src/views/GamePlanView.tsx
-#: src/views/SearchView.tsx
-msgid "Alley report"
-msgstr "Laporan arena boling"
-
 #: src/views/CatalogView.tsx
 msgid "Already in your arsenal"
 msgstr "Sudah ada di arsenalmu"
@@ -1204,7 +1198,6 @@ msgid "By session"
 msgstr "Per sesi"
 
 #: src/components/ConfirmDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/ui/SearchField.tsx
 msgid "Cancel"
 msgstr "Batal"
@@ -1475,10 +1468,6 @@ msgstr "Hapus bola?"
 msgid "Delete game {gameNumber}"
 msgstr "Hapus game {gameNumber}"
 
-#: src/components/LaneNotesTab.tsx
-msgid "Delete lane {lane} notes"
-msgstr "Hapus catatan lintasan {lane}"
-
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Delete note"
 msgstr "Hapus catatan"
@@ -1496,7 +1485,6 @@ msgid "Delete spare line for pins {pins}"
 msgstr "Hapus jalur spare untuk pin {pins}"
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "Delete the note for lane {lane}?"
 msgstr "Hapus catatan untuk lintasan {lane}?"
 
@@ -2103,6 +2091,12 @@ msgstr "Game {gameNumber}: {score}"
 msgid "Game by game"
 msgstr "Game demi game"
 
+#: src/components/HomeProfile.tsx
+#: src/views/GamePlanView.tsx
+#: src/views/SearchView.tsx
+msgid "Game plan"
+msgstr "Rencana main"
+
 #: src/components/Stats.tsx
 #: src/views/ActiveSessionView.tsx
 msgid "Games"
@@ -2321,10 +2315,6 @@ msgstr "Berapa kali lipat minyak di bagian tengah dibandingkan tiap kelompok pap
 #: src/components/LaneNoteFormDialog.tsx
 msgid "How this lane plays: transition, where it hooks, ball reaction…"
 msgstr "Karakter lintasan ini: transisi, tempat bola hook, reaksi bola…"
-
-#: src/components/LaneNotesTab.tsx
-msgid "How this lane plays…"
-msgstr "Karakter lintasan ini…"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "How's Headpin working for you?"
@@ -3827,7 +3817,6 @@ msgstr "sama dengan semua bola"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/OilPatternFormDialog.tsx
 #: src/components/ui/FormSheet.tsx
 #: src/views/ActiveSessionView.tsx
@@ -4678,7 +4667,6 @@ msgid "This deletes everything on this device: {0, plural, one {# session} other
 msgstr "Ini menghapus semua yang ada di perangkat ini: {0, plural, other {# sesi}}, {1, plural, other {# game}}, {2, plural, other {# bola}}. Sebagai gantinya, ini memasang {3, plural, other {# sesi}} dan {4, plural, other {# game}} dari file, disimpan {age}."
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
 msgstr "Ini menghapus catatanmu di lintasan ini. Game-mu tidak terpengaruh."
 

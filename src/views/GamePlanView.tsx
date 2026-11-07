@@ -142,7 +142,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
     .join(" \u00b7 ");
 
   return (
-    <PushScreen title={t`Alley report`} onBack={onBack}>
+    <PushScreen title={t`Game plan`} onBack={onBack}>
         <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
           {error ? (
             <ErrorBanner>{t`Your sessions could not be read. Reload the app, then try again.`}</ErrorBanner>

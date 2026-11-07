@@ -873,12 +873,6 @@ msgstr "Alley"
 msgid "Alley and lane are required."
 msgstr "Alley and lane are required."
 
-#: src/components/HomeProfile.tsx
-#: src/views/GamePlanView.tsx
-#: src/views/SearchView.tsx
-msgid "Alley report"
-msgstr "Alley report"
-
 #: src/views/CatalogView.tsx
 msgid "Already in your arsenal"
 msgstr "Already in your arsenal"
@@ -1204,7 +1198,6 @@ msgid "By session"
 msgstr "By session"
 
 #: src/components/ConfirmDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/ui/SearchField.tsx
 msgid "Cancel"
 msgstr "Cancel"
@@ -1475,10 +1468,6 @@ msgstr "Delete ball?"
 msgid "Delete game {gameNumber}"
 msgstr "Delete game {gameNumber}"
 
-#: src/components/LaneNotesTab.tsx
-msgid "Delete lane {lane} notes"
-msgstr "Delete lane {lane} notes"
-
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Delete note"
 msgstr "Delete note"
@@ -1496,7 +1485,6 @@ msgid "Delete spare line for pins {pins}"
 msgstr "Delete spare line for pins {pins}"
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "Delete the note for lane {lane}?"
 msgstr "Delete the note for lane {lane}?"
 
@@ -2103,6 +2091,12 @@ msgstr "Game {gameNumber}: {score}"
 msgid "Game by game"
 msgstr "Game by game"
 
+#: src/components/HomeProfile.tsx
+#: src/views/GamePlanView.tsx
+#: src/views/SearchView.tsx
+msgid "Game plan"
+msgstr "Game plan"
+
 #: src/components/Stats.tsx
 #: src/views/ActiveSessionView.tsx
 msgid "Games"
@@ -2321,10 +2315,6 @@ msgstr "How many times more oil the middle carries than each band of boards, rea
 #: src/components/LaneNoteFormDialog.tsx
 msgid "How this lane plays: transition, where it hooks, ball reaction…"
 msgstr "How this lane plays: transition, where it hooks, ball reaction…"
-
-#: src/components/LaneNotesTab.tsx
-msgid "How this lane plays…"
-msgstr "How this lane plays…"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "How's Headpin working for you?"
@@ -3827,7 +3817,6 @@ msgstr "same as all balls"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/OilPatternFormDialog.tsx
 #: src/components/ui/FormSheet.tsx
 #: src/views/ActiveSessionView.tsx
@@ -4678,7 +4667,6 @@ msgid "This deletes everything on this device: {0, plural, one {# session} other
 msgstr "This deletes everything on this device: {0, plural, one {# session} other {# sessions}}, {1, plural, one {# game} other {# games}}, {2, plural, one {# ball} other {# balls}}. It installs the file's {3, plural, one {# session} other {# sessions}}, {4, plural, one {# game} other {# games}} instead, saved {age}."
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
 msgstr "This deletes your note on this lane. Your games aren't affected."
 

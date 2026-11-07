@@ -873,12 +873,6 @@ msgstr "球馆"
 msgid "Alley and lane are required."
 msgstr "必须填写球馆和球道。"
 
-#: src/components/HomeProfile.tsx
-#: src/views/GamePlanView.tsx
-#: src/views/SearchView.tsx
-msgid "Alley report"
-msgstr "球馆报告"
-
 #: src/views/CatalogView.tsx
 msgid "Already in your arsenal"
 msgstr "已在你的球库中"
@@ -1204,7 +1198,6 @@ msgid "By session"
 msgstr "按场次"
 
 #: src/components/ConfirmDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/ui/SearchField.tsx
 msgid "Cancel"
 msgstr "取消"
@@ -1475,10 +1468,6 @@ msgstr "要删除这颗球吗？"
 msgid "Delete game {gameNumber}"
 msgstr "删除第 {gameNumber} 局"
 
-#: src/components/LaneNotesTab.tsx
-msgid "Delete lane {lane} notes"
-msgstr "删除球道 {lane} 备注"
-
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Delete note"
 msgstr "删除备注"
@@ -1496,7 +1485,6 @@ msgid "Delete spare line for pins {pins}"
 msgstr "删除球瓶 {pins} 的补中路线"
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "Delete the note for lane {lane}?"
 msgstr "要删除球道 {lane} 的备注吗？"
 
@@ -2103,6 +2091,12 @@ msgstr "第 {gameNumber} 局：{score}"
 msgid "Game by game"
 msgstr "逐局"
 
+#: src/components/HomeProfile.tsx
+#: src/views/GamePlanView.tsx
+#: src/views/SearchView.tsx
+msgid "Game plan"
+msgstr "比赛策略"
+
 #: src/components/Stats.tsx
 #: src/views/ActiveSessionView.tsx
 msgid "Games"
@@ -2321,10 +2315,6 @@ msgstr "中间的油量是每一段板区的几倍，依油型表上的印法由
 #: src/components/LaneNoteFormDialog.tsx
 msgid "How this lane plays: transition, where it hooks, ball reaction…"
 msgstr "这条球道的状况：油型转变、哪里开始拐弯、球的反应…"
-
-#: src/components/LaneNotesTab.tsx
-msgid "How this lane plays…"
-msgstr "这条球道的状况…"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "How's Headpin working for you?"
@@ -3827,7 +3817,6 @@ msgstr "与所有球相同"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/OilPatternFormDialog.tsx
 #: src/components/ui/FormSheet.tsx
 #: src/views/ActiveSessionView.tsx
@@ -4678,7 +4667,6 @@ msgid "This deletes everything on this device: {0, plural, one {# session} other
 msgstr "这会删除此设备上的所有数据：{0, plural, other {# 个场次}}、{1, plural, other {# 局}}、{2, plural, other {# 颗球}}。并改为安装文件中的 {3, plural, other {# 个场次}}、{4, plural, other {# 局}}，保存于{age}。"
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
 msgstr "这会删除你在这条球道上的备注，不会影响你的比赛。"
 
