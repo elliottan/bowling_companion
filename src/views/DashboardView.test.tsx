@@ -117,7 +117,7 @@ describe("Home (ADR-115)", () => {
     renderHome();
     // The tile is drawn before the counts behind its line are read, so the
     // line is waited for, not checked the moment the tile appears.
-    const tile = await screen.findByRole("button", { name: "Alley report" });
+    const tile = await screen.findByRole("button", { name: "Game plan" });
     await waitFor(() => expect(tile).toHaveTextContent("Your numbers at each alley"));
     expect(screen.queryByText("None yet")).not.toBeInTheDocument();
   });
@@ -167,22 +167,22 @@ describe("Home (ADR-115)", () => {
     expect(props.onOpenArsenal).toHaveBeenCalled();
   });
 
-  it("puts spare lines, lane notes and the Alley report side by side as tiles", async () => {
+  it("puts spare lines, lane notes and the Game plan side by side as tiles", async () => {
     const props = renderHome();
     fireEvent.click(await screen.findByRole("button", { name: "Spare lines" }));
     fireEvent.click(screen.getByRole("button", { name: "Lane notes" }));
-    fireEvent.click(screen.getByRole("button", { name: "Alley report" }));
+    fireEvent.click(screen.getByRole("button", { name: "Game plan" }));
     expect(props.onOpenSpareLines).toHaveBeenCalled();
     expect(props.onOpenLaneNotes).toHaveBeenCalled();
     expect(props.onOpenAlleyReport).toHaveBeenCalled();
   });
 
-  it("counts the alleys bowled at on the Alley report tile", async () => {
+  it("counts the alleys bowled at on the Game plan tile", async () => {
     await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" });
     await createSession({ date: "2026-10-07", alley_name: "Orchid Bowl" });
     await createSession({ date: "2026-10-08", alley_name: "Sea Bowl" });
     renderHome();
-    const tile = await screen.findByRole("button", { name: "Alley report" });
+    const tile = await screen.findByRole("button", { name: "Game plan" });
     await waitFor(() => expect(tile).toHaveTextContent("2 alleys"));
   });
 
@@ -211,18 +211,19 @@ describe("Home (ADR-115)", () => {
     expect(screen.queryByText("Tonight")).not.toBeInTheDocument();
   });
 
-  it("keeps the tools apart from your own things, with no Game plan card", async () => {
+  it("keeps the tools apart from your own things, with Game plan only as a tile", async () => {
     await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" });
     renderHome();
     expect(await screen.findByText("Tools and reference")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^Line visualizer/ })).toBeInTheDocument();
-    expect(screen.queryByText("Game plan")).not.toBeInTheDocument();
+    // The old full-width Game plan card is gone; the name is the tile's alone.
+    expect(screen.getAllByText("Game plan")).toHaveLength(1);
   });
 
-  it("opens the Alley report from its tile", async () => {
+  it("opens the Game plan from its tile", async () => {
     await createSession({ date: "2026-09-30", alley_name: "Orchid Bowl" });
     const props = renderHome();
-    fireEvent.click(await screen.findByRole("button", { name: "Alley report" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Game plan" }));
     expect(props.onOpenAlleyReport).toHaveBeenCalled();
   });
 });

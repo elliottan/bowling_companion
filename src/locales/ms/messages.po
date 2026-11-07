@@ -679,7 +679,6 @@ msgstr "Bola boling yang digerudi dengan dua lubang jari tanpa lubang ibu jari, 
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "Bola boling yang digerudi dengan dua lubang jari tanpa lubang ibu jari, menunjukkan layout Storm VLS {pinToPap} x {core} x {buffer} inci."
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "Layout gerudi, dilukis pada bola"
@@ -873,12 +872,6 @@ msgstr "Pusat boling"
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Alley and lane are required."
 msgstr "Pusat boling dan lorong diperlukan."
-
-#: src/components/HomeProfile.tsx
-#: src/views/GamePlanView.tsx
-#: src/views/SearchView.tsx
-msgid "Alley report"
-msgstr "Laporan pusat boling"
 
 #: src/views/CatalogView.tsx
 msgid "Already in your arsenal"
@@ -1205,7 +1198,6 @@ msgid "By session"
 msgstr "Mengikut sesi"
 
 #: src/components/ConfirmDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/ui/SearchField.tsx
 msgid "Cancel"
 msgstr "Batal"
@@ -1476,10 +1468,6 @@ msgstr "Padam bola?"
 msgid "Delete game {gameNumber}"
 msgstr "Padam permainan {gameNumber}"
 
-#: src/components/LaneNotesTab.tsx
-msgid "Delete lane {lane} notes"
-msgstr "Padam nota lorong {lane}"
-
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Delete note"
 msgstr "Padam nota"
@@ -1497,7 +1485,6 @@ msgid "Delete spare line for pins {pins}"
 msgstr "Padam laluan spare untuk pin {pins}"
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "Delete the note for lane {lane}?"
 msgstr "Padam nota untuk lorong {lane}?"
 
@@ -1638,7 +1625,6 @@ msgstr "Seret titik lepas, sasaran dan titik belok pada lorong, bentukkan hook, 
 msgid "Drag to reorder {name}"
 msgstr "Seret untuk menyusun semula {name}"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Draw a line on the lane, over the oil"
 msgstr "Lukis laluan pada lorong, di atas minyak"
@@ -2105,6 +2091,12 @@ msgstr "Permainan {gameNumber}: {score}"
 msgid "Game by game"
 msgstr "Permainan demi permainan"
 
+#: src/components/HomeProfile.tsx
+#: src/views/GamePlanView.tsx
+#: src/views/SearchView.tsx
+msgid "Game plan"
+msgstr "Pelan main"
+
 #: src/components/Stats.tsx
 #: src/views/ActiveSessionView.tsx
 msgid "Games"
@@ -2323,10 +2315,6 @@ msgstr "Berapa kali ganda lebih banyak minyak di tengah berbanding setiap jalur 
 #: src/components/LaneNoteFormDialog.tsx
 msgid "How this lane plays: transition, where it hooks, ball reaction…"
 msgstr "Ciri lorong ini: peralihan, tempat bola hook, tindak balas bola…"
-
-#: src/components/LaneNotesTab.tsx
-msgid "How this lane plays…"
-msgstr "Ciri lorong ini…"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "How's Headpin working for you?"
@@ -2775,7 +2763,6 @@ msgstr "Load"
 msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
 msgstr "Sudut gerudi panjang untuk jarak, sudut VAL pendek untuk belokan tajam. Down-and-in pada dinding."
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Look up a pattern's length and oil"
 msgstr "Semak panjang dan minyak sesuatu corak"
@@ -3836,7 +3823,6 @@ msgstr "sama seperti semua bola"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/OilPatternFormDialog.tsx
 #: src/components/ui/FormSheet.tsx
 #: src/views/ActiveSessionView.tsx
@@ -4242,7 +4228,6 @@ msgstr "Spare: baki pin boleh di-spare yang berjaya, tidak termasuk split dan wa
 msgid "Spares"
 msgstr "Spare"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
 msgstr "Spesifikasi dan gambar bola semasa"
@@ -4694,7 +4679,6 @@ msgid "This deletes everything on this device: {0, plural, one {# session} other
 msgstr "Ini memadam segala-galanya pada peranti ini: {0, plural, other {# sesi}}, {1, plural, other {# permainan}}, {2, plural, other {# bola}}. Ia memasang {3, plural, other {# sesi}} dan {4, plural, other {# permainan}} daripada fail itu sebagai ganti, disimpan {age}."
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
 msgstr "Ini memadam nota anda pada lorong ini. Permainan anda tidak terjejas."
 

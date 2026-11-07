@@ -679,7 +679,6 @@ msgstr "フィンガーホール2つでサムホールのないボウリング�
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "フィンガーホール2つでサムホールのないボウリングボール。{pinToPap}×{core}×{buffer}インチのStorm VLSレイアウトを表示しています。"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "ボールに描くドリルレイアウト"
@@ -873,12 +872,6 @@ msgstr "ボウリング場"
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Alley and lane are required."
 msgstr "ボウリング場とレーンは必須です。"
-
-#: src/components/HomeProfile.tsx
-#: src/views/GamePlanView.tsx
-#: src/views/SearchView.tsx
-msgid "Alley report"
-msgstr "センターレポート"
 
 #: src/views/CatalogView.tsx
 msgid "Already in your arsenal"
@@ -1205,7 +1198,6 @@ msgid "By session"
 msgstr "セッション別"
 
 #: src/components/ConfirmDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/ui/SearchField.tsx
 msgid "Cancel"
 msgstr "キャンセル"
@@ -1476,10 +1468,6 @@ msgstr "ボールを削除しますか？"
 msgid "Delete game {gameNumber}"
 msgstr "ゲーム{gameNumber}を削除"
 
-#: src/components/LaneNotesTab.tsx
-msgid "Delete lane {lane} notes"
-msgstr "レーン{lane}のメモを削除"
-
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Delete note"
 msgstr "メモを削除"
@@ -1497,7 +1485,6 @@ msgid "Delete spare line for pins {pins}"
 msgstr "ピン{pins}のスペアラインを削除"
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "Delete the note for lane {lane}?"
 msgstr "レーン{lane}のメモを削除しますか？"
 
@@ -1638,7 +1625,6 @@ msgstr "レーン上でリリース位置、目標、ブレイクポイントを
 msgid "Drag to reorder {name}"
 msgstr "ドラッグして{name}を並べ替え"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Draw a line on the lane, over the oil"
 msgstr "オイルの上に重ねてレーンにラインを描く"
@@ -2105,6 +2091,12 @@ msgstr "ゲーム{gameNumber}: {score}"
 msgid "Game by game"
 msgstr "ゲームごと"
 
+#: src/components/HomeProfile.tsx
+#: src/views/GamePlanView.tsx
+#: src/views/SearchView.tsx
+msgid "Game plan"
+msgstr "ゲームプラン"
+
 #: src/components/Stats.tsx
 #: src/views/ActiveSessionView.tsx
 msgid "Games"
@@ -2323,10 +2315,6 @@ msgstr "中央のオイルが各ボード帯の何倍あるかを、シートの
 #: src/components/LaneNoteFormDialog.tsx
 msgid "How this lane plays: transition, where it hooks, ball reaction…"
 msgstr "このレーンの特徴：トランジション、フックする位置、ボールの反応…"
-
-#: src/components/LaneNotesTab.tsx
-msgid "How this lane plays…"
-msgstr "このレーンの特徴…"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "How's Headpin working for you?"
@@ -2775,7 +2763,6 @@ msgstr "ロード"
 msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
 msgstr "長いドリリングアングルで走りを出し、短いVALアングルで強く曲げます。壁のあるハウスパターンなら、ダウンアンドインで攻められます。"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Look up a pattern's length and oil"
 msgstr "パターンの長さとオイルを調べる"
@@ -3836,7 +3823,6 @@ msgstr "全ボールと同じ"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/OilPatternFormDialog.tsx
 #: src/components/ui/FormSheet.tsx
 #: src/views/ActiveSessionView.tsx
@@ -4242,7 +4228,6 @@ msgstr "スペア: 取れる残りピンのうち成功した割合。スプリ�
 msgid "Spares"
 msgstr "スペア"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
 msgstr "現行ボールのスペックと写真"
@@ -4694,7 +4679,6 @@ msgid "This deletes everything on this device: {0, plural, one {# session} other
 msgstr "この端末上のすべて（{0, plural, other {#セッション}}、{1, plural, other {#ゲーム}}、{2, plural, other {#ボール}}）を削除します。代わりに、ファイルの{3, plural, other {#セッション}}、{4, plural, other {#ゲーム}}を読み込みます。保存日時: {age}。"
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
 msgstr "このレーンのメモを削除します。ゲームには影響しません。"
 

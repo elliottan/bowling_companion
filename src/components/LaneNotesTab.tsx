@@ -1,15 +1,14 @@
 import { t } from "@lingui/core/macro";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { ConfirmDialog } from "./ConfirmDialog";
-import { deleteLaneNote, getLaneNotes, upsertLaneNote } from "../services/ballRepository";
+import { getLaneNotes } from "../services/ballRepository";
 import type { LaneNote } from "../types/bowling";
-import { Button } from "./ui/Button";
 import { IconButton } from "./ui/IconButton";
 import { EmptyState } from "./ui/EmptyState";
 import { LanePairIcon } from "./icons";
-import { FIELD_DENSE_TEXTAREA } from "./ui/field";
+import { LaneNoteFormDialog } from "./LaneNoteFormDialog";
 
 interface LaneNotesTabProps {
   alley: string;
@@ -37,7 +36,9 @@ function pairLeft(n: number): number {
 /**
  * Lane notes for one alley, laid out as physical pairs (odd lane left, even lane
  * right) just like the session sheet. Shows every pair with a note plus the
- * active game's pair, scrolls to it, and allows quick inline edits.
+ * active game's pair, and scrolls to it. A lane's pencil opens the same edit
+ * sheet the Lane notes screen uses (`LaneNoteFormDialog`), not an editor in
+ * the cell: one way to change a note, wherever it is opened from.
  */
 export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
   // Live, and re-run when the alley changes: editing a note here or on the
@@ -48,9 +49,9 @@ export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
   );
   const notes = live ?? NO_NOTES;
   const loading = live === undefined;
-  const [editingLane, setEditingLane] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
-  const [pendingDelete, setPendingDelete] = useState<LaneNote | null>(null);
+  // The note open in the edit sheet. A lane with no note yet opens one with
+  // no id, its alley and lane already set.
+  const [editing, setEditing] = useState<LaneNote | null>(null);
   const currentRowRef = useRef<HTMLDivElement | null>(null);
 
   const currentLaneSet = useMemo(
@@ -88,27 +89,13 @@ export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
     if (!loading) currentRowRef.current?.scrollIntoView({ block: "center" });
   }, [loading, rows]);
 
-  async function save(lane: string) {
-    await upsertLaneNote(alley, lane, draft.trim());
-    setEditingLane(null);
-  }
-
-  async function remove(note: LaneNote) {
-    if (note.id == null) return;
-    await deleteLaneNote(note.id);
-    setEditingLane(null);
-  }
-
   if (loading) return <p className="px-1 py-4 text-sm text-ink-secondary">{t`Loading…`}</p>;
   if (rows.length === 0)
     return (
       <EmptyState icon={LanePairIcon} title={t`No lane notes yet`} />
     );
 
-  function openEdit(lane: string, note?: LaneNote) {
-    setEditingLane(lane);
-    setDraft(note?.notes ?? "");
-  }
+  const open = (lane: string, note?: LaneNote) => setEditing(note ?? { alley, lane, notes: "" });
 
   return (
     <div className="space-y-2">
@@ -122,39 +109,29 @@ export function LaneNotesTab({ alley, currentLanes }: LaneNotesTabProps) {
             lane={row.left}
             note={row.leftNote}
             current={currentLaneSet.has(row.left)}
-            editing={editingLane === row.left}
-            draft={draft}
-            onDraft={setDraft}
-            onEdit={() => openEdit(row.left, row.leftNote)}
-            onCancel={() => setEditingLane(null)}
-            onSave={() => save(row.left)}
-            onDelete={row.leftNote ? () => setPendingDelete(row.leftNote!) : undefined}
+            onEdit={() => open(row.left, row.leftNote)}
           />
           <LaneCell
             lane={row.right}
             note={row.rightNote}
             current={currentLaneSet.has(row.right)}
-            editing={editingLane === row.right}
-            draft={draft}
-            onDraft={setDraft}
-            onEdit={() => openEdit(row.right, row.rightNote)}
-            onCancel={() => setEditingLane(null)}
-            onSave={() => save(row.right)}
-            onDelete={row.rightNote ? () => setPendingDelete(row.rightNote!) : undefined}
+            onEdit={() => open(row.right, row.rightNote)}
           />
         </div>
       ))}
-      <ConfirmDialog
-        open={pendingDelete !== null}
-        title={t`Delete the note for lane ${{ lane: pendingDelete?.lane ?? "" }}?`}
-        message={t`This deletes your note on this lane. Your games aren't affected.`}
-        onConfirm={() => {
-          const note = pendingDelete;
-          setPendingDelete(null);
-          if (note) void remove(note);
-        }}
-        onCancel={() => setPendingDelete(null)}
-      />
+      {/* To the body: the session sheet's panel carries a transform, which
+          would hold a fixed sheet inside it rather than over the screen. */}
+      {editing &&
+        createPortal(
+          <LaneNoteFormDialog
+            key={editing.id ?? `new-${editing.lane}`}
+            note={editing}
+            alleys={[alley]}
+            onClose={() => setEditing(null)}
+            onSaved={() => setEditing(null)}
+          />,
+          document.body
+        )}
     </div>
   );
 }
@@ -163,27 +140,10 @@ interface LaneCellProps {
   lane: string;
   note?: LaneNote;
   current: boolean;
-  editing: boolean;
-  draft: string;
-  onDraft: (s: string) => void;
   onEdit: () => void;
-  onCancel: () => void;
-  onSave: () => void;
-  onDelete?: () => void;
 }
 
-function LaneCell({
-  lane,
-  note,
-  current,
-  editing,
-  draft,
-  onDraft,
-  onEdit,
-  onCancel,
-  onSave,
-  onDelete
-}: LaneCellProps) {
+function LaneCell({ lane, note, current, onEdit }: LaneCellProps) {
   return (
     <div
       className={`rounded-lg border p-2.5 ${
@@ -194,37 +154,11 @@ function LaneCell({
         <span className="text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
           {t`Lane ${{ lane }}`}
         </span>
-        {!editing && (
-          <IconButton compact onClick={onEdit} label={t`Edit lane ${{ lane }} notes`}>
-            <Pencil size={15} aria-hidden="true" />
-          </IconButton>
-        )}
+        <IconButton compact onClick={onEdit} label={t`Edit lane ${{ lane }} notes`}>
+          <Pencil size={15} aria-hidden="true" />
+        </IconButton>
       </div>
-      {editing ? (
-        <div className="mt-1.5 space-y-1.5">
-          <textarea
-            value={draft}
-            onChange={(e) => onDraft(e.target.value)}
-            rows={3}
-            autoFocus
-            placeholder={t`How this lane plays…`}
-            className={FIELD_DENSE_TEXTAREA}
-          />
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Button variant="primary" onClick={onSave} className="text-xs">
-              {t`Save`}
-            </Button>
-            <Button variant="secondary" onClick={onCancel} className="text-xs">
-              {t`Cancel`}
-            </Button>
-            {onDelete && (
-              <IconButton onClick={onDelete} label={t`Delete lane ${{ lane }} notes`} variant="danger" className="ml-auto">
-                <Trash2 size={13} aria-hidden="true" />
-              </IconButton>
-            )}
-          </div>
-        </div>
-      ) : note?.notes ? (
+      {note?.notes ? (
         <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-snug text-ink-secondary">
           {note.notes}
         </p>

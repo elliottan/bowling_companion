@@ -116,7 +116,7 @@ function screenEntries(): ScreenEntry[] {
     { screen: "oil-patterns", title: t`Oil patterns` },
     { screen: "spares", title: t`Spare lines` },
     { screen: "lanes", title: t`Lane notes` },
-    { screen: "game-plan", title: t`Alley report` },
+    { screen: "game-plan", title: t`Game plan` },
     { screen: "layout-lab", title: t`Layouts` },
     { screen: "line", title: t`Line visualizer` },
     { screen: "guides", title: t`Guides` },

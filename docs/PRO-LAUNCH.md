@@ -49,8 +49,8 @@ is built and free today, so with no bowlers yet nothing is taken from anyone.
 | Stats | Every other ball's row and details | | ✓ | Equipment depth |
 | Stats | The chart of the average, the pocket and the spare, by session and by game slot (ADR-201) | ✓ | | The free numbers, over time |
 | Home | Tonight, profile, first run, guides | ✓ | | Getting started |
-| Alley report | What you'd average with your best ball there | ✓ | | A taste (ADR-167) |
-| Alley report | What you'd average with each other ball there | | ✓ | Reads across sessions, the deepest read in the app. Its lines (best lines, the last session, line changes) are off the screen for now (ADR-163) |
+| Game plan | What you'd average with your best ball there | ✓ | | A taste (ADR-167) |
+| Game plan | What you'd average with each other ball there | | ✓ | Reads across sessions, the deepest read in the app. Its lines (best lines, the last session, line changes) are off the screen for now (ADR-163) |
 | Lane | A shot's line drawn on the lane, behind its info button | ✓ | | Seeing what you entered |
 | Lane | Dragging a shot's line on that lane, from score entry | | ✓ | Same as the sandbox (ADR-165). Typing the boards stays free |
 | Lane | The sandbox, read-only: any line drawn on the lane, its pattern, the other hand | ✓ | | Seeing a line, the best preview of Pro |
@@ -97,7 +97,7 @@ On the web always, and in the app before purchase. It follows
   button: "Get Headpin Pro" in the app, "Get the app" on the web.
 - **A locked list is a taste** (ADR-167): its first rows in full, then one row
   blurred under the mark, and nothing after: the best ball on Stats and on the
-  Alley report. Every leave is free (ADR-201).
+  Game plan. Every leave is free (ADR-201).
 - **A locked chart metric keeps its chip** (ADR-201), with a lock beside its
   name, and a tap goes to Pro rather than plotting. The First ball card shows
   the pocket in full and blurs the rest under one lock.
@@ -219,7 +219,7 @@ switch.
       (`HeadpinStorePlugin.swift`, ADR-158), product `app.headpin.pro`. Try it
       in the simulator from Xcode, with `Headpin.storekit` (the `App` scheme
       selects it).
-- [x] The locked card, `components/ui/ProLock`, on Stats and the Alley report.
+- [x] The locked card, `components/ui/ProLock`, on Stats and Game plan.
 - [x] The sandbox and the layout lab: read-only without Pro, shared links
       included, with their controls blurred in place under `ProVeil` (ADR-167).
 

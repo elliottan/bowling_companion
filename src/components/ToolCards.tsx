@@ -124,12 +124,10 @@ function CatalogArt() {
 function ToolCard({
   art,
   label,
-  description,
   onClick
 }: {
   art: ReactNode;
   label: string;
-  description: string;
   onClick: () => void;
 }) {
   return (
@@ -143,7 +141,6 @@ function ToolCard({
           ("Especificaciones") is wider than half the screen. */}
       <span className="block w-full hyphens-auto px-3 pb-3 pt-2 [overflow-wrap:anywhere]">
         <span className="block text-subhead font-semibold leading-tight text-ink">{label}</span>
-        <span className="mt-0.5 block text-caption leading-snug text-ink-secondary">{description}</span>
       </span>
     </button>
   );
@@ -153,7 +150,7 @@ function ToolCard({
  * The tools on Home, as cards with a picture of what each does (ADR-245). A
  * row with a line under it described a tool; a picture makes it something to
  * try. Two by two, so the four sit as one block, and the guides as a row under
- * them. Settings keeps the plain list (`ToolsList`), which is a way back to
+ * them. A card is its title alone: the drawing says what the tool does. Settings keeps the plain list (`ToolsList`), which is a way back to
  * them, not a showcase.
  */
 export function ToolCards({ heading, ...open }: ToolsActions & { heading: string }) {
@@ -164,25 +161,21 @@ export function ToolCards({ heading, ...open }: ToolsActions & { heading: string
         <ToolCard
           art={<LaneArt />}
           label={t`Line visualizer`}
-          description={t`Draw a line on the lane, over the oil`}
           onClick={open.onOpenLineVisualizer}
         />
         <ToolCard
           art={<LayoutArt />}
           label={t`Layouts`}
-          description={t`A drilling layout, drawn on the ball`}
           onClick={open.onOpenLayoutLab}
         />
         <ToolCard
           art={<OilArt />}
           label={t`Oil patterns`}
-          description={t`Look up a pattern's length and oil`}
           onClick={open.onOpenOilPatterns}
         />
         <ToolCard
           art={<CatalogArt />}
           label={t`Ball catalog`}
-          description={t`Specs and pictures of current balls`}
           onClick={open.onOpenCatalog}
         />
       </div>

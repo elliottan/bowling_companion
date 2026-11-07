@@ -679,7 +679,6 @@ msgstr "A bowling ball drilled with two finger holes and no thumb hole, showing 
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "A drilling layout, drawn on the ball"
@@ -873,12 +872,6 @@ msgstr "Alley"
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Alley and lane are required."
 msgstr "Alley and lane are required."
-
-#: src/components/HomeProfile.tsx
-#: src/views/GamePlanView.tsx
-#: src/views/SearchView.tsx
-msgid "Alley report"
-msgstr "Alley report"
 
 #: src/views/CatalogView.tsx
 msgid "Already in your arsenal"
@@ -1205,7 +1198,6 @@ msgid "By session"
 msgstr "By session"
 
 #: src/components/ConfirmDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/ui/SearchField.tsx
 msgid "Cancel"
 msgstr "Cancel"
@@ -1476,10 +1468,6 @@ msgstr "Delete ball?"
 msgid "Delete game {gameNumber}"
 msgstr "Delete game {gameNumber}"
 
-#: src/components/LaneNotesTab.tsx
-msgid "Delete lane {lane} notes"
-msgstr "Delete lane {lane} notes"
-
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Delete note"
 msgstr "Delete note"
@@ -1497,7 +1485,6 @@ msgid "Delete spare line for pins {pins}"
 msgstr "Delete spare line for pins {pins}"
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "Delete the note for lane {lane}?"
 msgstr "Delete the note for lane {lane}?"
 
@@ -1638,7 +1625,6 @@ msgstr "Drag the laydown, target and breakpoint on the lane, shape the hook, and
 msgid "Drag to reorder {name}"
 msgstr "Drag to reorder {name}"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Draw a line on the lane, over the oil"
 msgstr "Draw a line on the lane, over the oil"
@@ -2105,6 +2091,12 @@ msgstr "Game {gameNumber}: {score}"
 msgid "Game by game"
 msgstr "Game by game"
 
+#: src/components/HomeProfile.tsx
+#: src/views/GamePlanView.tsx
+#: src/views/SearchView.tsx
+msgid "Game plan"
+msgstr "Game plan"
+
 #: src/components/Stats.tsx
 #: src/views/ActiveSessionView.tsx
 msgid "Games"
@@ -2323,10 +2315,6 @@ msgstr "How many times more oil the middle carries than each band of boards, rea
 #: src/components/LaneNoteFormDialog.tsx
 msgid "How this lane plays: transition, where it hooks, ball reaction…"
 msgstr "How this lane plays: transition, where it hooks, ball reaction…"
-
-#: src/components/LaneNotesTab.tsx
-msgid "How this lane plays…"
-msgstr "How this lane plays…"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "How's Headpin working for you?"
@@ -2775,7 +2763,6 @@ msgstr "Loads"
 msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
 msgstr "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Look up a pattern's length and oil"
 msgstr "Look up a pattern's length and oil"
@@ -3836,7 +3823,6 @@ msgstr "same as all balls"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/OilPatternFormDialog.tsx
 #: src/components/ui/FormSheet.tsx
 #: src/views/ActiveSessionView.tsx
@@ -4242,7 +4228,6 @@ msgstr "Spare: makeable leaves converted, excludes splits and washouts."
 msgid "Spares"
 msgstr "Spares"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
 msgstr "Specs and pictures of current balls"
@@ -4694,7 +4679,6 @@ msgid "This deletes everything on this device: {0, plural, one {# session} other
 msgstr "This deletes everything on this device: {0, plural, one {# session} other {# sessions}}, {1, plural, one {# game} other {# games}}, {2, plural, one {# ball} other {# balls}}. It installs the file's {3, plural, one {# session} other {# sessions}}, {4, plural, one {# game} other {# games}} instead, saved {age}."
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
 msgstr "This deletes your note on this lane. Your games aren't affected."
 

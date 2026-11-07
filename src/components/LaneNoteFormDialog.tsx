@@ -12,7 +12,9 @@ import { FIELD, FIELD_LABEL, FIELD_TEXTAREA } from "./ui/field";
 const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
 
 interface LaneNoteFormDialogProps {
-  /** The note being edited, or null when adding a new one. */
+  /** The note being edited, or null when adding a new one. A note with no id
+   *  is a new note on a lane already chosen (the session sheet's lanes): its
+   *  alley and lane are fixed, and only the notes are asked for. */
   note: LaneNote | null;
   /** Every alley the user has bowled at, for the add form's suggestions. */
   alleys: string[];
@@ -28,10 +30,14 @@ interface LaneNoteFormDialogProps {
  *
  * Editing does not re-open the alley and lane fields. They are the note's
  * identity, not fields of it, so they read as a header and the sheet is about
- * the one thing you actually came to change.
+ * the one thing you actually came to change. The session sheet's lane notes
+ * open this same sheet, a new note included, rather than editing in place.
  */
 export function LaneNoteFormDialog({ note, alleys, onClose, onSaved }: LaneNoteFormDialogProps) {
-  const editing = note !== null;
+  // The alley and lane are settled once a note is handed in; whether it is
+  // saved yet decides Add or Edit, and whether there is anything to delete.
+  const laneFixed = note !== null;
+  const editing = note?.id != null;
   const [alley, setAlley] = useState(note?.alley ?? "");
   const [showAlleyList, setShowAlleyList] = useState(false);
   const [lane, setLane] = useState(note?.lane ?? "");
@@ -85,7 +91,7 @@ export function LaneNoteFormDialog({ note, alleys, onClose, onSaved }: LaneNoteF
         banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
       >
         <div className="space-y-4">
-          {editing ? (
+          {laneFixed ? (
             <div className="flex items-center gap-3 rounded-xl border border-edge bg-surface p-3">
               <LaneBadge lane={note.lane} />
               <p className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{note.alley}</p>

@@ -679,7 +679,6 @@ msgstr "엄지 구멍 없이 손가락 구멍 2개로 드릴링한 볼, {drillin
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "엄지 구멍 없이 손가락 구멍 2개로 드릴링한 볼, {pinToPap} × {core} × {buffer}인치 Storm VLS 레이아웃."
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "볼 위에 그려 보는 드릴링 레이아웃"
@@ -873,12 +872,6 @@ msgstr "볼링장"
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Alley and lane are required."
 msgstr "볼링장과 레인을 입력해 주세요."
-
-#: src/components/HomeProfile.tsx
-#: src/views/GamePlanView.tsx
-#: src/views/SearchView.tsx
-msgid "Alley report"
-msgstr "볼링장 리포트"
 
 #: src/views/CatalogView.tsx
 msgid "Already in your arsenal"
@@ -1205,7 +1198,6 @@ msgid "By session"
 msgstr "세션별"
 
 #: src/components/ConfirmDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/ui/SearchField.tsx
 msgid "Cancel"
 msgstr "취소"
@@ -1476,10 +1468,6 @@ msgstr "볼을 삭제할까요?"
 msgid "Delete game {gameNumber}"
 msgstr "게임 {gameNumber} 삭제"
 
-#: src/components/LaneNotesTab.tsx
-msgid "Delete lane {lane} notes"
-msgstr "레인 {lane} 메모 삭제"
-
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Delete note"
 msgstr "메모 삭제"
@@ -1497,7 +1485,6 @@ msgid "Delete spare line for pins {pins}"
 msgstr "핀 {pins} 스페어 라인 삭제"
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "Delete the note for lane {lane}?"
 msgstr "레인 {lane} 메모를 삭제할까요?"
 
@@ -1638,7 +1625,6 @@ msgstr "레인에서 릴리스 지점, 타깃, 브레이크 포인트를 드래�
 msgid "Drag to reorder {name}"
 msgstr "{name} 순서 바꾸려면 드래그"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Draw a line on the lane, over the oil"
 msgstr "오일 위, 레인에 라인 그리기"
@@ -2105,6 +2091,12 @@ msgstr "게임 {gameNumber}: {score}"
 msgid "Game by game"
 msgstr "게임별"
 
+#: src/components/HomeProfile.tsx
+#: src/views/GamePlanView.tsx
+#: src/views/SearchView.tsx
+msgid "Game plan"
+msgstr "게임 플랜"
+
 #: src/components/Stats.tsx
 #: src/views/ActiveSessionView.tsx
 msgid "Games"
@@ -2323,10 +2315,6 @@ msgstr "가운데에 각 보드 구간보다 오일이 몇 배 더 있는지예�
 #: src/components/LaneNoteFormDialog.tsx
 msgid "How this lane plays: transition, where it hooks, ball reaction…"
 msgstr "이 레인의 특성: 변화, 훅이 걸리는 위치, 볼 반응…"
-
-#: src/components/LaneNotesTab.tsx
-msgid "How this lane plays…"
-msgstr "이 레인의 특성…"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "How's Headpin working for you?"
@@ -2775,7 +2763,6 @@ msgstr "로드"
 msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
 msgstr "긴 드릴링 앵글로 길이를 내고, 짧은 VAL 앵글로 급하게 꺾어요. 벽이 있는 하우스 패턴에서는 다운 앤 인으로 공략하기 좋아요."
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Look up a pattern's length and oil"
 msgstr "패턴의 길이와 오일량 찾아보기"
@@ -3836,7 +3823,6 @@ msgstr "전체 볼과 같음"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 #: src/components/OilPatternFormDialog.tsx
 #: src/components/ui/FormSheet.tsx
 #: src/views/ActiveSessionView.tsx
@@ -4242,7 +4228,6 @@ msgstr "스페어: 처리 가능한 남은 핀 중 성공한 비율이에요. �
 msgid "Spares"
 msgstr "스페어"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
 msgstr "현재 볼의 사양과 사진"
@@ -4694,7 +4679,6 @@ msgid "This deletes everything on this device: {0, plural, one {# session} other
 msgstr "이 기기의 모든 데이터를 삭제해요: {0, plural, other {세션 #개}}, {1, plural, other {게임 #개}}, {2, plural, other {볼 #개}}. 대신 파일에 있는 {3, plural, other {세션 #개}}, {4, plural, other {게임 #개}}를 설치해요. 저장 시점: {age}."
 
 #: src/components/LaneNoteFormDialog.tsx
-#: src/components/LaneNotesTab.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
 msgstr "이 레인에 남긴 메모를 삭제해요. 게임에는 영향이 없어요."
 
