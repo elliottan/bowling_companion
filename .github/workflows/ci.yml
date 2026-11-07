@@ -63,9 +63,17 @@ jobs:
           - name: chromium
             browser: chromium
             args: --project=chromium --grep-invert "text fit"
-          - name: webkit
+          #
+          # WebKit one test at a time, split over two runners instead. Two
+          # WebKit workers beside the dev server starve a four-core runner:
+          # tests ran two to three times slower than alone and the longest
+          # ones (a whole game bowled) reached the 30s limit.
+          - name: webkit 1/2
             browser: webkit
-            args: --project=webkit
+            args: --project=webkit --shard=1/2 --workers=1
+          - name: webkit 2/2
+            browser: webkit
+            args: --project=webkit --shard=2/2 --workers=1
           # Eight languages, each a walk of every main screen, and one engine
           # is enough for font metrics (ADR-225). Its own job, the locales four
           # at a time: run in line it was five and a half minutes on its own.
@@ -102,7 +110,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.name }}
+          name: playwright-report-${{ strategy.job-index }}
           path: playwright-report/
           retention-days: 7
 

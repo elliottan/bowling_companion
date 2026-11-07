@@ -12,8 +12,9 @@ had all shipped.
 ## 0.91.1: A faster check before each deploy (2026-11-07)
 
 - No change in the app. CI runs its checks and each browser's end-to-end
-  tests side by side instead of one after another, the end-to-end tests two
-  at a time and the text-fit languages four at a time.
+  tests side by side instead of one after another: Chromium two tests at a
+  time, WebKit split over two runners, and the text-fit languages four at a
+  time.
 - End-to-end tests that only need a finished session to read write one
   straight into the database rather than bowling twelve balls through the
   scorer for it. Tests that repeated another's steps are folded into it, with
