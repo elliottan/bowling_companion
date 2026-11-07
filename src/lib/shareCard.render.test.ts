@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildLayoutCard, buildLineCard, buildSessionCard, buildStatsCard, renderShareCard } from "./shareCard";
 import type { OilPass } from "../types/bowling";

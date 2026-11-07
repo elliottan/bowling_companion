@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { RECORD_SHOT, clearDatabase, openSessionForm, recordShot, startSession, waitForScoresPersisted, openArsenalFromHome } from "./helpers";
+import { RECORD_SHOT, clearDatabase, openSessionForm, recordShot, startSession, seedFinishedSessions, openArsenalFromHome } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await clearDatabase(page);
@@ -33,31 +33,27 @@ test("an overlay named like a Settings section is still the overlay", async ({ p
   await expect(page.getByRole("region", { name: "Backup & restore" })).toHaveCount(0);
 });
 
-test("the in-app back control and the platform back agree", async ({ page }) => {
-  await page.getByRole("button", { name: "Catalog" }).click();
-  await page.getByPlaceholder("Search name, brand, coverstock…").fill("phaze");
-  await page.getByRole("button", { name: /Phaze/i }).first().click();
-  await expect(page).toHaveURL(/#\/home\/catalog\/ball\/[a-z0-9-]+$/);
-
-  // The nav-bar back control is the chevron alone (DESIGN-LANGUAGE 1).
-  await page.getByRole("button", { name: "Back", exact: true }).last().click();
-
-  // One screen closed, not both: the control goes through history rather than
-  // popping state itself, so it cannot double up with the platform gesture.
-  await expect(page).toHaveURL(/#\/home\/catalog$/);
-  await expect(page.getByRole("dialog", { name: "Catalog" })).toBeVisible();
-});
-
-test("back from a catalog ball closes the ball, not the catalog", async ({ page }) => {
+test("back from a catalog ball closes the ball, not the catalog, by either back", async ({ page }) => {
   await page.getByRole("button", { name: "Catalog" }).click();
   await expect(page).toHaveURL(/#\/home\/catalog$/);
-
   await page.getByPlaceholder("Search name, brand, coverstock…").fill("phaze");
-  await page.getByRole("button", { name: /Phaze/i }).first().click();
+  const ball = page.getByRole("button", { name: /Phaze/i }).first();
+
+  // The platform back.
+  await ball.click();
   // The detail is a place of its own, so it names the ball in the URL.
   await expect(page).toHaveURL(/#\/home\/catalog\/ball\/[a-z0-9-]+$/);
-
   await page.goBack();
+  await expect(page).toHaveURL(/#\/home\/catalog$/);
+  await expect(page.getByRole("dialog", { name: "Catalog" })).toBeVisible();
+
+  // The in-app back control agrees. The nav-bar back control is the chevron
+  // alone (DESIGN-LANGUAGE 1), and it closes one screen, not both: it goes
+  // through history rather than popping state itself, so it cannot double up
+  // with the platform gesture.
+  await ball.click();
+  await expect(page).toHaveURL(/#\/home\/catalog\/ball\/[a-z0-9-]+$/);
+  await page.getByRole("button", { name: "Back", exact: true }).last().click();
   await expect(page).toHaveURL(/#\/home\/catalog$/);
   await expect(page.getByRole("dialog", { name: "Catalog" })).toBeVisible();
 });
@@ -169,9 +165,7 @@ test("Stats opened from the alley report is a push, and back returns to it", asy
   //
   // One finished game first: with nothing to read, Stats hides its share
   // (ADR-150), and it reads finished games only (ADR-216).
-  await startSession(page, "Push Lanes");
-  for (let i = 0; i < 12; i++) await recordShot(page, []);
-  await waitForScoresPersisted(page);
+  await seedFinishedSessions(page, ["Push Lanes"]);
   await page.goto("/app/?pro#/home/game-plan");
   await expect(page.getByRole("dialog", { name: "Alley report" })).toBeVisible();
 
@@ -198,24 +192,14 @@ test("Stats opened from the alley report is a push, and back returns to it", asy
 test("a finished session opened from History pushes, and back returns to History", async ({
   page
 }) => {
-  await startSession(page, "Read Lanes");
-  // A perfect game, so nothing is left to finish and the session is a thing to
-  // read rather than a thing to bowl.
-  for (let i = 0; i < 12; i++) await recordShot(page, []);
-  // Assert the precondition rather than assume it. The live-entry control going
-  // away is how a finished game shows itself, and waiting for it is what makes
-  // the read behind the tap below see a scored game: without this the loop can
-  // return with the tenth frame still open, the session is then one you are
-  // still bowling, and it correctly opens in the Active tab instead.
-  await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
-  // And wait for the score to be stored, not merely drawn: the navigation
-  // below is a fresh page load, and it would otherwise race the write that
-  // makes this session one to read rather than one to bowl.
-  await waitForScoresPersisted(page);
+  // A perfect game, stored, so nothing is left to finish and the session is a
+  // thing to read rather than a thing to bowl. Seeded rather than bowled: the
+  // subject is where the session opens, and a game bowled through the scorer
+  // is drawn finished a render before the score that makes it so is stored,
+  // which a navigation straight after it could race.
+  await seedFinishedSessions(page, ["Read Lanes"]);
 
-  // Straight to History by URL, which starts the back stack fresh: bowling the
-  // game walked through the scorer and raised the backup and share prompts,
-  // and each of those leaves entries of its own behind.
+  // Straight to History by URL, which starts the back stack fresh.
   await page.goto("/app/?pro#/history");
   await expect(page).toHaveURL(/#\/history$/);
   await page.getByRole("button", { name: /Read Lanes/ }).click();
@@ -242,10 +226,7 @@ test("a finished session opened from History pushes, and back returns to History
 });
 
 test("the screen's own back, with the session sheet up, leaves cleanly", async ({ page }) => {
-  await startSession(page, "Chevron Lanes");
-  for (let i = 0; i < 12; i++) await recordShot(page, []);
-  await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
-  await waitForScoresPersisted(page);
+  await seedFinishedSessions(page, ["Chevron Lanes"]);
 
   await page.goto("/app/?pro#/history");
   await page.getByRole("button", { name: /Chevron Lanes/ }).click();
@@ -269,10 +250,7 @@ test("the screen's own back, with the session sheet up, leaves cleanly", async (
 });
 
 test("share opens over the session sheet, and back closes one layer at a time", async ({ page }) => {
-  await startSession(page, "Layer Lanes");
-  for (let i = 0; i < 12; i++) await recordShot(page, []);
-  await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
-  await waitForScoresPersisted(page);
+  await seedFinishedSessions(page, ["Layer Lanes"]);
 
   await page.goto("/app/?pro#/history");
   await page.getByRole("button", { name: /Layer Lanes/ }).click();
@@ -282,6 +260,9 @@ test("share opens over the session sheet, and back closes one layer at a time", 
   await page.getByRole("button", { name: "Share this session" }).click();
   const share = page.getByRole("dialog", { name: "Share image" });
   await expect(share).toBeVisible();
+  // The card is drawn on a canvas and handed over as a blob; a preview that
+  // never resolves would leave the user sharing something they cannot see.
+  await expect(share.locator("img")).toHaveAttribute("src", /^blob:/);
   // On top: the share's own controls take the tap, not the sheet under it.
   await expect(share.getByRole("button").first()).toBeEnabled();
   await share.getByRole("button").first().click({ trial: true });

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { preferDownloadOverShare, RECORD_SHOT, recordShot, startSession } from "./helpers";
+import { preferDownloadOverShare, RECORD_SHOT, recordShot, seedFinishedSessions, startSession } from "./helpers";
 
 /** Wipe the database and reload, landing on a genuine first run. */
 async function freshInstall(page: Parameters<typeof startSession>[0]) {
@@ -18,12 +18,15 @@ async function freshInstall(page: Parameters<typeof startSession>[0]) {
  * Empty Home's one way in opens the session form (ADR-215), and a bowler can
  * still start without filling anything in (ADR-080).
  */
-test("starts the first session from the form, with nothing filled in", async ({ page }) => {
+test("walks a new bowler into the app and the first session, with nothing filled in", async ({ page }) => {
   await freshInstall(page);
   await page.getByRole("button", { name: "Start fresh" }).click();
+  await expect(page.getByText("How do you bowl?")).toBeVisible();
   await page.getByRole("button", { name: "right-handed" }).click();
   await page.getByRole("button", { name: "Next", exact: true }).click();
 
+  // The first run is done and hands over to the app.
+  await expect(page.getByRole("dialog", { name: "Set up Headpin" })).toHaveCount(0);
   await page.getByRole("button", { name: "Start scoring" }).click();
   const sheet = page.getByRole("dialog", { name: "Start session" });
   await sheet.getByRole("button", { name: "Start session" }).click();
@@ -80,20 +83,6 @@ test("the welcome screen is the first thing painted, never a Dashboard first", a
   );
 });
 
-test("walks new bowlers through to the app", async ({ page }) => {
-  await freshInstall(page);
-
-  await page.getByRole("button", { name: "Start fresh" }).click();
-  await expect(page.getByText("How do you bowl?")).toBeVisible();
-
-  await page.getByRole("button", { name: "right-handed" }).click();
-  await page.getByRole("button", { name: "Next", exact: true }).click();
-
-  // The first run is done and hands over to the app.
-  await expect(page.getByRole("dialog", { name: "Set up Headpin" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Start scoring" })).toBeVisible();
-});
-
 test("restoring opens the file picker, and cancelling costs nothing", async ({ page }) => {
   await freshInstall(page);
 
@@ -146,8 +135,8 @@ test("a restore brings the history back and never asks the hand twice", async ({
   await page.getByRole("button", { name: "left-handed" }).click();
   await page.getByRole("button", { name: "Next", exact: true }).click();
 
-  await startSession(page, "Restored Lanes");
-  for (let i = 0; i < 12; i++) await recordShot(page, []);
+  // A perfect game, stored: the subject is the restore, not the bowling.
+  await seedFinishedSessions(page, ["Restored Lanes"]);
 
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Settings" }).click();

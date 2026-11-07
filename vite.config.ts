@@ -383,10 +383,20 @@ export default defineConfig({
     })
   ],
   test: {
-    environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     globals: true,
     exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**"],
+    // Two environments, by file type. A component test (.tsx) renders, so it
+    // gets jsdom. A logic test (.ts) runs on plain Node: building a jsdom per
+    // file was most of the suite's time (117s of "environment" across 186
+    // files), and scoring, geometry and stats never touch a document. A .ts
+    // test that does reach for `window` or `document` says so in its first
+    // line, `// @vitest-environment jsdom`, and one that forgets fails at once
+    // with "window is not defined".
+    projects: [
+      { extends: true, test: { name: "dom", environment: "jsdom", include: ["**/*.test.tsx"] } },
+      { extends: true, test: { name: "logic", environment: "node", include: ["**/*.test.ts"] } }
+    ],
     coverage: {
       provider: "v8",
       reporter: ["text-summary", "html", "json-summary"],

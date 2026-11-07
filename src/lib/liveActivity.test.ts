@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
 import { buildLiveActivityState, currentAppearance, hasRecordedBall, maxPossibleScore } from "./liveActivity";
 import { calculateGameScore } from "./scoring";

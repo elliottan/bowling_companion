@@ -9,6 +9,19 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.92.1: A faster check before each deploy (2026-11-07)
+
+- No change in the app. CI runs its checks and each browser's end-to-end
+  tests side by side instead of one after another: Chromium two tests at a
+  time, WebKit split over two runners, and the text-fit languages four at a
+  time.
+- End-to-end tests that only need a finished session to read write one
+  straight into the database rather than bowling twelve balls through the
+  scorer for it. Tests that repeated another's steps are folded into it, with
+  every assertion kept, and the 10th-frame test now checks the total it was
+  named for.
+- Logic unit tests run on plain Node rather than in a browser stand-in, which
+  was most of the unit suite's time.
 ## 0.92.0: Every bowling term on one page, with pictures (2026-11-07)
 
 - The five Bowling terms guides are now one page, Bowling terms, with a
