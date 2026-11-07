@@ -2095,7 +2095,7 @@ msgstr "Permainan demi permainan"
 #: src/views/GamePlanView.tsx
 #: src/views/SearchView.tsx
 msgid "Game plan"
-msgstr "Rancangan permainan"
+msgstr "Pelan main"
 
 #: src/components/Stats.tsx
 #: src/views/ActiveSessionView.tsx
