@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import { clearDatabase, recordShot, startSession } from "./helpers";
+import { clearDatabase, seedFinishedSessions } from "./helpers";
 
 // A short screen, so a handful of nights is enough to give the list something
 // to scroll and to put the reader near the end of it while they do.
@@ -51,11 +51,7 @@ async function scrollBy(page: Page, by: number) {
  */
 async function history(page: Page, nights: number) {
   await clearDatabase(page);
-  for (let i = 0; i < nights; i++) {
-    await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
-    await startSession(page, `Lane ${i + 1} Bowl`);
-    for (let shot = 0; shot < 12; shot++) await recordShot(page, []);
-  }
+  await seedFinishedSessions(page, Array.from({ length: nights }, (_, i) => `Lane ${i + 1} Bowl`));
   await page.getByRole("button", { name: "History" }).click();
   await expect(page.getByRole("heading", { name: "History" })).toBeVisible();
 

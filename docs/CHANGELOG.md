@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.92.0: Game plan, a lane note sheet in the session, and plainer tool cards (2026-11-07)
+## 0.93.0: Game plan, a lane note sheet in the session, and plainer tool cards (2026-11-07)
 
 - The Alley report is now Game plan, on its Home tile, its screen and in
   search. It reads which ball to throw by alley, oil and lane, which is more
@@ -20,6 +20,30 @@ had all shipped.
 - The Line visualizer, Layouts, Oil patterns and Ball catalog cards on Home
   show just their titles under the drawings, without the line of description.
   Settings' list of tools keeps its descriptions.
+## 0.92.1: A faster check before each deploy (2026-11-07)
+
+- No change in the app. CI runs its checks and each browser's end-to-end
+  tests side by side instead of one after another: Chromium two tests at a
+  time, WebKit split over two runners, and the text-fit languages four at a
+  time.
+- End-to-end tests that only need a finished session to read write one
+  straight into the database rather than bowling twelve balls through the
+  scorer for it. Tests that repeated another's steps are folded into it, with
+  every assertion kept, and the 10th-frame test now checks the total it was
+  named for.
+- Logic unit tests run on plain Node rather than in a browser stand-in, which
+  was most of the unit suite's time.
+## 0.92.0: Every bowling term on one page, with pictures (2026-11-07)
+
+- The five Bowling terms guides are now one page, Bowling terms, with a
+  search at the top that narrows it as you type (ADR-249).
+- Terms have pictures where one helps: named leaves and splits on a pin deck,
+  the pocket, a Brooklyn and high and light hits with the ball meeting the
+  rack, the 6 pin wrapping around the 10 on a ringing 10 and lying in the
+  gutter on a flat 10, drawn for right- and left-handers, scoring words as
+  scoresheet frames, and lane and oil words on a drawing of the lane.
+- A term found in the app's search opens this page scrolled to that term,
+  marked for a moment.
 
 ## 0.91.0: Your patterns first, and plainer bowling terms (2026-11-07)
 

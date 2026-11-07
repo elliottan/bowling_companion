@@ -91,3 +91,36 @@ describe("GuidesView", () => {
     });
   });
 });
+
+describe("the Bowling terms page (ADR-249)", () => {
+  it("narrows every term on the page as a search is typed, by name, other name or meaning", () => {
+    render(<GuidesView onBack={vi.fn()} openGuideId="bowling-terms" onOpenGuide={vi.fn()} />);
+    expect(screen.getByRole("heading", { name: "Greek church" })).toBeInTheDocument();
+    const field = screen.getByRole("searchbox", { name: "Search terms" });
+
+    fireEvent.change(field, { target: { value: "flat 7" } });
+    expect(screen.getByRole("heading", { name: "Flat 10" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Greek church" })).toBeNull();
+    // A heading whose terms all fell away goes with them.
+    expect(screen.queryByText("Scoring")).toBeNull();
+
+    fireEvent.change(field, { target: { value: "zzqx" } });
+    expect(screen.getByText("No terms match “zzqx”")).toBeInTheDocument();
+  });
+
+  it("draws a term's picture beside it, named for the term", () => {
+    render(<GuidesView onBack={vi.fn()} openGuideId="bowling-terms" onOpenGuide={vi.fn()} />);
+    expect(screen.getByRole("img", { name: "Greek church" })).toBeInTheDocument();
+    // Ringing 10 is drawn for each hand.
+    expect(screen.getAllByRole("img", { name: "Ringing 10" })).toHaveLength(2);
+  });
+
+  it("scrolls to the term it was opened on, and marks it", async () => {
+    const scroll = vi.fn();
+    Element.prototype.scrollIntoView = scroll;
+    render(<GuidesView onBack={vi.fn()} openGuideId="bowling-terms" onOpenGuide={vi.fn()} focusTerm="greek-church" />);
+    const row = document.getElementById("term-greek-church")!;
+    expect(row.className).toContain("bg-accent-soft");
+    await waitFor(() => expect(scroll).toHaveBeenCalled());
+  });
+});

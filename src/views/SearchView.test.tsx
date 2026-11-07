@@ -58,7 +58,7 @@ describe("SearchView", () => {
     const row = await screen.findByRole("button", { name: /^Pocket/ });
     expect(row.textContent).toContain("between the 1 and 3 pins");
     fireEvent.click(row);
-    expect(onOpen).toHaveBeenCalledWith({ kind: "guide", guideId: "strike-words" });
+    expect(onOpen).toHaveBeenCalledWith({ kind: "guide", guideId: "bowling-terms", term: "pocket" });
   });
 
   it("shows recent searches, fills one back in, and clears them", async () => {

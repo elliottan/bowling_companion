@@ -74,26 +74,5 @@ test("exports a backup, clears the database, and restores it via import", async 
   await expect(page.getByRole("button", { name: /Backup Lanes/ })).toBeVisible();
 });
 
-test("a finished game in a browser tab asks for a copy, and it can be closed", async ({ page }) => {
-  await startSession(page, "Eviction Lanes");
-
-  // Nothing to lose yet: the session exists but no game is finished, and
-  // asking now would train the user to ignore the prompt (ADR-068).
-  await expect(page.getByText("Save a copy")).toHaveCount(0);
-
-  // Bowl a perfect game to finish it.
-  for (let i = 0; i < 12; i++) {
-    await recordShot(page, []);
-  }
-
-  // Playwright is a browser tab, never standalone, so the tab policy applies:
-  // one unsaved session is enough.
-  await expect(
-    page.getByText("Saved on this phone only.", { exact: false })
-  ).toBeVisible();
-
-  // The close is the only dismissal now; while it is merely due, closing it
-  // snoozes exactly as Later did (ADR-073).
-  await page.getByRole("button", { name: "Dismiss backup reminder" }).click();
-  await expect(page.getByText("Save a copy")).toHaveCount(0);
-});
+// The prompt a finished game raises in a browser tab is walked in
+// share.spec.ts, with the share offer it outranks, on one bowled game.

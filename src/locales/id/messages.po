@@ -2658,6 +2658,7 @@ msgid "Left hand, 2H"
 msgstr "Tangan kiri, 2H"
 
 #: src/components/HandednessPicker.tsx
+#: src/components/TermFigure.tsx
 #: src/views/BowlingProfileView.tsx
 #: src/views/SettingsView.tsx
 msgid "Left-handed"
@@ -3099,6 +3100,10 @@ msgstr "Belum ada jalur spare"
 #: src/components/Stats.tsx
 msgid "No stats yet"
 msgstr "Belum ada statistik"
+
+#: src/views/GuidesView.tsx
+msgid "No terms match “{query}”"
+msgstr "Tidak ada istilah yang cocok dengan “{query}”"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "No thanks"
@@ -3800,6 +3805,7 @@ msgid "Right hand, 2H"
 msgstr "Tangan kanan, 2H"
 
 #: src/components/HandednessPicker.tsx
+#: src/components/TermFigure.tsx
 #: src/views/BowlingProfileView.tsx
 #: src/views/SettingsView.tsx
 msgid "Right-handed"
@@ -3926,6 +3932,12 @@ msgstr "Cari nama, merek, coverstock…"
 #: src/components/OilPatternManager.tsx
 msgid "Search patterns"
 msgstr "Cari pola"
+
+#. Placeholder of the search on the Bowling terms page
+#. Placeholder of the search on the Bowling terms page
+#: src/views/GuidesView.tsx
+msgid "Search terms"
+msgstr "Cari istilah"
 
 #: src/views/SearchView.tsx
 msgid "Search the ball catalog for “{query}”"

@@ -110,6 +110,9 @@ export interface NavState {
    *  guides list is the top overlay, and the Overlay union cannot carry an
    *  id. */
   openGuideId: string | null;
+  /** The term the open guide scrolls to, when a search result named one
+   *  (ADR-249). Content beside the guide rather than part of its route. */
+  openGuideTerm: string | null;
   /** The line whose shots are open in the Alley report, by `lineReport` id. A
    *  layer on top of the game-plan overlay for the same reason as
    *  `catalogBallId`. */
@@ -158,7 +161,7 @@ export type NavAction =
   /** `push` opens the catalog first when it is not the screen on top, which
    *  is how a search result reaches a ball. */
   | { type: "openCatalogBall"; ballId: string; push?: boolean }
-  | { type: "openGuide"; guideId: string; push?: boolean }
+  | { type: "openGuide"; guideId: string; push?: boolean; term?: string }
   /** The pattern list, pushed, with one pattern's sheet already open. */
   | { type: "openPattern"; patternId: number }
   /** The arsenal, pushed, with one ball's sheet already open. */
@@ -215,6 +218,7 @@ export const INITIAL_NAV: NavState = {
   overlays: [],
   catalogBallId: null,
   openGuideId: null,
+  openGuideTerm: null,
   reportLineId: null,
   layoutSeed: null,
   viewedSessionId: null,
@@ -302,6 +306,7 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         viewedSessionId: null,
         catalogBallId: null,
         openGuideId: null,
+        openGuideTerm: null,
         reportLineId: null,
         layoutSeed: null,
         openPatternId: null,
@@ -331,7 +336,7 @@ export function navReducer(state: NavState, action: NavAction): NavState {
       // leaves the catalog standing. An open guide is the same layer over the
       // guides list.
       if (state.catalogBallId !== null) return { ...state, catalogBallId: null };
-      if (state.openGuideId !== null) return { ...state, openGuideId: null };
+      if (state.openGuideId !== null) return { ...state, openGuideId: null, openGuideTerm: null };
       // Only while the report is the screen on top: a game opened from a shot
       // sits over the line, and back has to take the game off first.
       if (
@@ -362,10 +367,12 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         ? { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: null, catalogBallId: action.ballId }
         : { ...state, catalogBallId: action.ballId };
 
-    case "openGuide":
+    case "openGuide": {
+      const term = action.term ?? null;
       return action.push && state.overlays[state.overlays.length - 1] !== "guides"
-        ? { ...state, overlays: [...state.overlays, "guides"], openGuideId: action.guideId }
-        : { ...state, openGuideId: action.guideId };
+        ? { ...state, overlays: [...state.overlays, "guides"], openGuideId: action.guideId, openGuideTerm: term }
+        : { ...state, openGuideId: action.guideId, openGuideTerm: term };
+    }
 
     /**
      * A screen and the thing on it in one move, as a search result asks for.
@@ -459,6 +466,9 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         overlays: route.overlays,
         catalogBallId: route.catalogBallId ?? null,
         openGuideId: route.guideId ?? null,
+        // A back that leaves the same article open keeps its place; anything
+        // else is a fresh visit.
+        openGuideTerm: route.guideId && route.guideId === state.openGuideId ? state.openGuideTerm : null,
         // The line view is off the screen for now (ADR-163), so an old link to
         // one opens the report and leaves no id behind: a back press that
         // closes nothing would be the only thing it did.

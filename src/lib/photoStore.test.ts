@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { createPhotoStore, photoFileName, type PhotoFile, type PhotoFiles } from "./photoStore";
 import { nativePhotoStore } from "./nativePhotoStore";

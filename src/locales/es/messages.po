@@ -2658,6 +2658,7 @@ msgid "Left hand, 2H"
 msgstr "Mano izquierda, a dos manos"
 
 #: src/components/HandednessPicker.tsx
+#: src/components/TermFigure.tsx
 #: src/views/BowlingProfileView.tsx
 #: src/views/SettingsView.tsx
 msgid "Left-handed"
@@ -3099,6 +3100,10 @@ msgstr "Aún no hay líneas de spare"
 #: src/components/Stats.tsx
 msgid "No stats yet"
 msgstr "Aún no hay estadísticas"
+
+#: src/views/GuidesView.tsx
+msgid "No terms match “{query}”"
+msgstr "Ningún término coincide con “{query}”"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "No thanks"
@@ -3800,6 +3805,7 @@ msgid "Right hand, 2H"
 msgstr "Mano derecha, a dos manos"
 
 #: src/components/HandednessPicker.tsx
+#: src/components/TermFigure.tsx
 #: src/views/BowlingProfileView.tsx
 #: src/views/SettingsView.tsx
 msgid "Right-handed"
@@ -3926,6 +3932,12 @@ msgstr "Buscar nombre, marca, cubierta…"
 #: src/components/OilPatternManager.tsx
 msgid "Search patterns"
 msgstr "Buscar patrones"
+
+#. Placeholder of the search on the Bowling terms page
+#. Placeholder of the search on the Bowling terms page
+#: src/views/GuidesView.tsx
+msgid "Search terms"
+msgstr "Buscar términos"
 
 #: src/views/SearchView.tsx
 msgid "Search the ball catalog for “{query}”"

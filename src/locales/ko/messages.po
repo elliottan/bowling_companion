@@ -2658,6 +2658,7 @@ msgid "Left hand, 2H"
 msgstr "왼손, 투핸드"
 
 #: src/components/HandednessPicker.tsx
+#: src/components/TermFigure.tsx
 #: src/views/BowlingProfileView.tsx
 #: src/views/SettingsView.tsx
 msgid "Left-handed"
@@ -3099,6 +3100,10 @@ msgstr "아직 스페어 라인이 없어요"
 #: src/components/Stats.tsx
 msgid "No stats yet"
 msgstr "아직 통계가 없어요"
+
+#: src/views/GuidesView.tsx
+msgid "No terms match “{query}”"
+msgstr "“{query}”와 일치하는 용어가 없습니다"
 
 #: src/components/FeedbackPrompt.tsx
 msgid "No thanks"
@@ -3800,6 +3805,7 @@ msgid "Right hand, 2H"
 msgstr "오른손, 투핸드"
 
 #: src/components/HandednessPicker.tsx
+#: src/components/TermFigure.tsx
 #: src/views/BowlingProfileView.tsx
 #: src/views/SettingsView.tsx
 msgid "Right-handed"
@@ -3926,6 +3932,12 @@ msgstr "이름, 브랜드, 커버스톡 검색…"
 #: src/components/OilPatternManager.tsx
 msgid "Search patterns"
 msgstr "패턴 검색"
+
+#. Placeholder of the search on the Bowling terms page
+#. Placeholder of the search on the Bowling terms page
+#: src/views/GuidesView.tsx
+msgid "Search terms"
+msgstr "용어 검색"
 
 #: src/views/SearchView.tsx
 msgid "Search the ball catalog for “{query}”"

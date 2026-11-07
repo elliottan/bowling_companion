@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 /** The scorer's commit button reads "Next", with what it would record
  *  bracketed under it; the accessible name reads "Next (Strike)". */
@@ -83,69 +83,63 @@ export async function startSession(page: Page, alley: string) {
  *   (to knock them down).
  */
 export async function recordShot(page: Page, standingAfter: number[]) {
-  const standingSet = new Set(standingAfter);
-  for (let pin = 1; pin <= 10; pin++) {
-    if (standingSet.has(pin)) {
-      // Should be standing — click if currently "down" (and enabled).
-      const downBtn = page.locator(`button[aria-label="Pin ${pin}, down"]:not([disabled])`);
-      if (await downBtn.count()) await downBtn.click();
-    } else {
-      // Should be knocked down — click if currently "standing" (and enabled).
-      const standingBtn = page.locator(`button[aria-label="Pin ${pin}, standing"]:not([disabled])`);
-      if (await standingBtn.count()) await standingBtn.click();
+  // The deck is read in one round trip rather than ten: a pin's state does not
+  // change when another pin is tapped, so what needs a tap is known up front.
+  // A strike on a fresh rack (pins start down) taps nothing at all.
+  const toTap = await page.evaluate((standing) => {
+    const want = new Set(standing);
+    const taps: string[] = [];
+    for (let pin = 1; pin <= 10; pin++) {
+      const label = want.has(pin) ? `Pin ${pin}, down` : `Pin ${pin}, standing`;
+      if (document.querySelector(`button[aria-label="${label}"]:not([disabled])`)) taps.push(label);
     }
+    return taps;
+  }, standingAfter);
+  for (const label of toTap) {
+    await page.locator(`button[aria-label="${label}"]:not([disabled])`).click();
   }
   await page.getByRole("button", { name: RECORD_SHOT }).click();
 }
 
 /**
- * Wait until every game in the database carries its final score.
+ * Write finished sessions straight into the database, one perfect game each,
+ * and reload so the app reads them. For a test whose subject is a list, a
+ * filter or a screen that reads a finished session, not the bowling: bowling
+ * twelve balls through the scorer per night is what the scoring specs test,
+ * and it was the bulk of these specs' running time.
  *
- * The scorer drops its live-entry controls the moment the frames say the game
- * is over, and that is a render ahead of the row it is derived from: the last
- * frame and the final score go into one Dexie transaction, and a navigation
- * issued before that transaction commits takes the whole shot with it. The app
- * is then right to call the session one you are still bowling, about a game the
- * screen had already shown as finished, and a test that navigated on the pixel
- * fails somewhere else entirely.
- *
- * So a test that bowls a game out and then leaves the scorer waits here first,
- * on the stored row rather than on the button. Read straight out of IndexedDB
- * rather than through the app, because the point is to know what survived a
- * reload, which is exactly what the UI cannot say.
+ * Listed oldest first, so the last alley is the most recent night and the
+ * first card in History. Stored the way the scorer stores them: the session
+ * row, one game with its lanes, ten frames and the final score
+ * (`calculateGameScore`, the app's own engine, so the total cannot drift from
+ * what the scorer would have written).
  */
-export async function waitForScoresPersisted(page: Page) {
-  await expect
-    .poll(
-      () =>
-        page.evaluate(
-          () =>
-            new Promise<boolean>((resolve) => {
-              const req = indexedDB.open("BowlingCompanionDB");
-              req.onerror = () => resolve(false);
-              req.onsuccess = () => {
-                const database = req.result;
-                if (!database.objectStoreNames.contains("games")) {
-                  database.close();
-                  resolve(false);
-                  return;
-                }
-                const rows = database.transaction("games", "readonly").objectStore("games").getAll();
-                rows.onerror = () => {
-                  database.close();
-                  resolve(false);
-                };
-                rows.onsuccess = () => {
-                  const games = rows.result as Array<{ final_score?: number }>;
-                  database.close();
-                  resolve(games.length > 0 && games.every((g) => g.final_score !== undefined));
-                };
-              };
-            })
-        ),
-      { timeout: 10_000 }
-    )
-    .toBe(true);
+export async function seedFinishedSessions(page: Page, alleys: string[]) {
+  await page.evaluate(async (names) => {
+    // A source module the dev server serves, untyped here.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const load = new Function("p", "return import(p)") as (p: string) => Promise<any>;
+    const repo = await load("/src/services/bowlingRepository.ts");
+    const { db } = await load("/src/db/bowlingDb.ts");
+    const { calculateGameScore } = await load("/src/lib/scoring.ts");
+    const dayKey = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    for (let i = 0; i < names.length; i++) {
+      const date = dayKey(new Date(Date.now() - (names.length - 1 - i) * 86_400_000));
+      const sessionId = await repo.createSession({ date, alley_name: names[i] });
+      const gameId = Number(await db.games.add({ session_id: sessionId, game_number: 1, lanes: ["11", "12"], start_lane: "11" }));
+      const frames = Array.from({ length: 10 }, (_, f) => ({
+        game_id: gameId,
+        frame_number: f + 1,
+        shots: Array.from({ length: f === 9 ? 3 : 1 }, () => ({ pins_standing: [] })),
+        is_strike: true,
+        is_spare: false
+      }));
+      await db.frames.bulkAdd(frames);
+      await db.games.update(gameId, { final_score: calculateGameScore(frames).total });
+    }
+  }, alleys);
+  await page.reload();
 }
 
 /**

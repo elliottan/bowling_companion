@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const shareFileFromApp = vi.fn(async (_name: string, _data: Blob | string) => "shared" as "shared" | "cancelled");

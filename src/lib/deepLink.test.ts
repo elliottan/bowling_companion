@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
 const listeners: Array<(e: { url: string }) => void> = [];

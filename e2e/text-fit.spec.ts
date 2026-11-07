@@ -615,8 +615,9 @@ test.describe("text fit", () => {
             let why = "the control that opens this screen was not found";
             const reached = await screen.prepare(page).then(() => true, (e: Error) => { why = String(e.message).split("\n")[0]; return false; });
             if (!reached) failures.push({ locale, screen: screen.name, width: WIDTHS[0], text: "(screen)", path: "-", kind: "unreachable", widths: why });
+            // Only a screen something was tapped on has moved since it settled.
+            await settle(page);
           }
-          await settle(page);
           if (SHOTS_DIR) {
             await page.screenshot({ path: join(SHOTS_DIR, `${locale}-${size}-${screen.name}.png`), fullPage: true });
           }
