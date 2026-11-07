@@ -679,7 +679,6 @@ msgstr "엄지 구멍 없이 손가락 구멍 2개로 드릴링한 볼, {drillin
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "엄지 구멍 없이 손가락 구멍 2개로 드릴링한 볼, {pinToPap} × {core} × {buffer}인치 Storm VLS 레이아웃."
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "볼 위에 그려 보는 드릴링 레이아웃"
@@ -1638,7 +1637,6 @@ msgstr "레인에서 릴리스 지점, 타깃, 브레이크 포인트를 드래�
 msgid "Drag to reorder {name}"
 msgstr "{name} 순서 바꾸려면 드래그"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Draw a line on the lane, over the oil"
 msgstr "오일 위, 레인에 라인 그리기"
@@ -2774,7 +2772,6 @@ msgstr "로드"
 msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
 msgstr "긴 드릴링 앵글로 길이를 내고, 짧은 VAL 앵글로 급하게 꺾어요. 벽이 있는 하우스 패턴에서는 다운 앤 인으로 공략하기 좋아요."
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Look up a pattern's length and oil"
 msgstr "패턴의 길이와 오일량 찾아보기"
@@ -4230,7 +4227,6 @@ msgstr "스페어: 처리 가능한 남은 핀 중 성공한 비율이에요. �
 msgid "Spares"
 msgstr "스페어"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
 msgstr "현재 볼의 사양과 사진"

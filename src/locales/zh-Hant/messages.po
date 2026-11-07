@@ -679,7 +679,6 @@ msgstr "一顆打了兩個手指孔、沒有拇指孔的保齡球，顯示 {dril
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "一顆打了兩個手指孔、沒有拇指孔的保齡球，顯示 {pinToPap} × {core} × {buffer} 英吋的 Storm VLS 打孔配置。"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "畫在球上的打孔配置"
@@ -1638,7 +1637,6 @@ msgstr "在球道上拖曳出手點、目標與轉折點，調整曲球弧度，
 msgid "Drag to reorder {name}"
 msgstr "拖曳以重新排序 {name}"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Draw a line on the lane, over the oil"
 msgstr "在球道上畫出路線，疊在油型上"
@@ -2774,7 +2772,6 @@ msgstr "上油次數"
 msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
 msgstr "長打孔角度求長度，短 VAL 角度求強勁轉折。在油牆上呈現向下向內的走勢。"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Look up a pattern's length and oil"
 msgstr "查詢油型的油長與油量"
@@ -4230,7 +4227,6 @@ msgstr "補中：可補殘瓶的補中率，不含分瓶與洗出。"
 msgid "Spares"
 msgstr "補中"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
 msgstr "現行球款的規格與圖片"

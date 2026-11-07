@@ -679,7 +679,6 @@ msgstr "Una bola de boliche perforada con dos hoyos para los dedos y sin hoyo pa
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "Una bola de boliche perforada con dos hoyos para los dedos y sin hoyo para el pulgar, con un layout Storm VLS de {pinToPap} por {core} por {buffer} pulgadas."
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "Un layout de perforación, dibujado en la bola"
@@ -1638,7 +1637,6 @@ msgstr "Arrastra el punto de soltada, el objetivo y el punto de quiebre sobre la
 msgid "Drag to reorder {name}"
 msgstr "Arrastra para reordenar {name}"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Draw a line on the lane, over the oil"
 msgstr "Dibuja una línea en la pista, sobre el aceite"
@@ -2774,7 +2772,6 @@ msgstr "Cargas"
 msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
 msgstr "Ángulo de perforación largo para ganar largo, ángulo VAL corto para una esquina marcada. Down-and-in contra una pared."
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Look up a pattern's length and oil"
 msgstr "Consulta el largo y el aceite de un patrón"
@@ -4230,7 +4227,6 @@ msgstr "Spare: dejadas convertibles hechas, sin contar splits ni washouts."
 msgid "Spares"
 msgstr "Spares"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
 msgstr "Especificaciones y fotos de las bolas actuales"

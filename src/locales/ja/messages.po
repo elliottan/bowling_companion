@@ -679,7 +679,6 @@ msgstr "フィンガーホール2つでサムホールのないボウリング�
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "フィンガーホール2つでサムホールのないボウリングボール。{pinToPap}×{core}×{buffer}インチのStorm VLSレイアウトを表示しています。"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "ボールに描くドリルレイアウト"
@@ -1638,7 +1637,6 @@ msgstr "レーン上でリリース位置、目標、ブレイクポイントを
 msgid "Drag to reorder {name}"
 msgstr "ドラッグして{name}を並べ替え"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Draw a line on the lane, over the oil"
 msgstr "オイルの上に重ねてレーンにラインを描く"
@@ -2774,7 +2772,6 @@ msgstr "ロード"
 msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
 msgstr "長いドリリングアングルで走りを出し、短いVALアングルで強く曲げます。壁のあるハウスパターンなら、ダウンアンドインで攻められます。"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Look up a pattern's length and oil"
 msgstr "パターンの長さとオイルを調べる"
@@ -4230,7 +4227,6 @@ msgstr "スペア: 取れる残りピンのうち成功した割合。スプリ�
 msgid "Spares"
 msgstr "スペア"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
 msgstr "現行ボールのスペックと写真"

@@ -679,7 +679,6 @@ msgstr "Bola boling yang digerudi dengan dua lubang jari tanpa lubang ibu jari, 
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "Bola boling yang digerudi dengan dua lubang jari tanpa lubang ibu jari, menunjukkan layout Storm VLS {pinToPap} x {core} x {buffer} inci."
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "Layout gerudi, dilukis pada bola"
@@ -1638,7 +1637,6 @@ msgstr "Seret titik lepas, sasaran dan titik belok pada lorong, bentukkan hook, 
 msgid "Drag to reorder {name}"
 msgstr "Seret untuk menyusun semula {name}"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Draw a line on the lane, over the oil"
 msgstr "Lukis laluan pada lorong, di atas minyak"
@@ -2774,7 +2772,6 @@ msgstr "Load"
 msgid "Long drilling angle for length, short VAL angle for a hard corner. Down-and-in on a wall."
 msgstr "Sudut gerudi panjang untuk jarak, sudut VAL pendek untuk belokan tajam. Down-and-in pada dinding."
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Look up a pattern's length and oil"
 msgstr "Semak panjang dan minyak sesuatu corak"
@@ -4230,7 +4227,6 @@ msgstr "Spare: baki pin boleh di-spare yang berjaya, tidak termasuk split dan wa
 msgid "Spares"
 msgstr "Spare"
 
-#: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
 msgstr "Spesifikasi dan gambar bola semasa"

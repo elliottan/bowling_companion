@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.91.1: Home's tool cards show their names alone (2026-11-07)
+
+- The Line visualizer, Layouts, Oil patterns and Ball catalog cards on Home
+  show just their titles under the drawings, without the line of description.
+  Settings' list of tools keeps its descriptions.
+
 ## 0.91.0: Your patterns first, and plainer bowling terms (2026-11-07)
 
 - Oil patterns lists the ones you bowl on most first, in order of how many
