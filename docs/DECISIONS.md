@@ -10449,3 +10449,30 @@ tie between equal matches.
 
 **Consequences.** Starting a game on a pattern can move it up the list. The
 picker in the session form keeps its own order.
+
+
+## ADR-249: Bowling terms are one page of short definitions, with pictures
+
+**Status.** Accepted, 2026-11-07, at the owner's request. Replaces the five
+terminology articles of ADR-247.
+
+**Context.** The terms were split across five articles. A bowler looking up
+one word had to know which article held it, and many of the words (a Greek
+church, a ringing 10) are easier to show than to describe.
+
+**Decision.**
+
+- **One guide, `bowling-terms`, marked `glossary`**, holds every short term
+  under headings. Its page has a search at the top that narrows the terms as
+  it is typed, by name, other name or meaning, and drops a heading whose
+  terms all fall away.
+- **A term may carry a figure** (`TermFigure` in `lib/guides`, drawn by
+  `components/TermFigure`): a pin deck from the approach for a leave, a pin's
+  flight or the ball meeting the rack, drawn for both hands where the hands
+  differ, scoresheet frames, or the lane from above with one part lit.
+  Inline SVG on the theme tokens, as the layout figures are.
+- **The app's search opens the page on the term** (`openGuideTerm`, content
+  beside the guide, not part of the route): it scrolls there and marks it.
+
+**Consequences.** Links shared to the five old articles open the guides list,
+as any stale guide link does; they were live for less than a day.

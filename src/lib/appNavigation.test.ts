@@ -450,9 +450,12 @@ describe("what a search result opens (ADR-247)", () => {
   });
 
   it("pushes the guides under an article, and back takes the article first", () => {
-    const state = fromSearch({ type: "openGuide", guideId: "strike-words", push: true });
+    const state = fromSearch({ type: "openGuide", guideId: "bowling-terms", push: true, term: "greek-church" });
     expect(state.overlays).toEqual(["search", "guides"]);
-    expect(state.openGuideId).toBe("strike-words");
+    expect(state.openGuideId).toBe("bowling-terms");
+    expect(state.openGuideTerm).toBe("greek-church");
+    // Back takes the article, and the term it was opened on goes with it.
+    expect(run([{ type: "popOverlay" }], state).openGuideTerm).toBeNull();
     expect(run([{ type: "popOverlay" }], state).overlays).toEqual(["search", "guides"]);
   });
 

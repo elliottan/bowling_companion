@@ -820,6 +820,11 @@ read once inside it. The link points at a small page of the guide's own
 preview from the page behind the link and ignores the `#`: that page carries the
 guide's title, summary and a card, then hands the visitor to the app.
 
+**Bowling terms are one page, not articles** (ADR-249): a definition in a
+sentence or two, with a small drawing where the word names something seen
+on the lane, and a search at the top of the page. A word is shown, not
+described, wherever it can be.
+
 Sentence case everywhere except the small uppercase group headings, which take
 their classes from `GROUP_HEADING` (`src/components/ui/typography.ts`). Second
 person, active voice, and say what happens rather than what the app does:
