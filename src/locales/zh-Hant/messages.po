@@ -245,6 +245,10 @@ msgstr "{count, plural, other {# 顆球}}"
 msgid "{count, plural, one {# game series} other {# game series}}"
 msgstr "{count, plural, other {# 局系列賽}}"
 
+#: src/lib/search.ts
+msgid "{count, plural, one {# session} other {# sessions}}"
+msgstr "{count, plural, other {# 個場次}}"
+
 #: src/lib/sessionLabels.ts
 msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, other {球道 {lanes}}}"
@@ -298,6 +302,7 @@ msgstr "向右 {distance}"
 #: src/components/OilPatternManager.tsx
 #: src/components/PatternFilterSheet.tsx
 #: src/components/PatternSheet.tsx
+#: src/lib/search.ts
 #: src/lib/shareCard.ts
 msgid "{feet} ft"
 msgstr "{feet} ft"
@@ -504,6 +509,10 @@ msgstr "{pin} 號瓶站立"
 #: src/components/ActiveGameScorer.tsx
 msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
 msgstr "{pins, plural, other {第 {frame} 格，第 {ball} 球（# 支球瓶）}}"
+
+#: src/components/PatternSheet.tsx
+msgid "{sessionCount, plural, one {Your # session on this pattern} other {Your # sessions on this pattern}}"
+msgstr "{sessionCount, plural, other {你在這個油型的 # 個場次}}"
 
 #: src/components/BallEstimates.tsx
 msgid "{sessions, plural, one {# session} other {# sessions}}"
@@ -862,6 +871,7 @@ msgstr "必須填寫球館和球道。"
 
 #: src/components/HomeProfile.tsx
 #: src/views/GamePlanView.tsx
+#: src/views/SearchView.tsx
 msgid "Alley report"
 msgstr "球館報告"
 
@@ -907,6 +917,7 @@ msgstr "右手球友的助走道木板示意圖，分為外側、中間、內側
 
 #: src/components/HomeProfile.tsx
 #: src/views/ArsenalView.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Arsenal"
 msgstr "球庫"
@@ -1004,6 +1015,7 @@ msgid "Backend"
 msgstr "後段"
 
 #: src/views/BackupRestoreView.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Backup & restore"
 msgstr "備份與還原"
@@ -1055,6 +1067,7 @@ msgstr "球 #{ballId}"
 
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
+#: src/views/SearchView.tsx
 msgid "Ball catalog"
 msgstr "球型錄"
 
@@ -1077,6 +1090,11 @@ msgstr "球：無。點一下可變更"
 #: src/components/Stats.tsx
 msgid "Balls"
 msgstr "球"
+
+#. Placeholder of the app-wide search field: the kinds of thing it finds
+#: src/views/SearchView.tsx
+msgid "Balls, patterns, alleys, terms"
+msgstr "球、油型、球館、術語"
 
 #. A drilling layout preset name on the layout lab: the middle of every range
 #: src/lib/ballLayout.ts
@@ -1129,6 +1147,11 @@ msgstr "保齡球道路線圖"
 #: src/views/SettingsView.tsx
 msgid "Bowling profile"
 msgstr "投球檔案"
+
+#. A group of search results: words bowlers use, and what each means
+#: src/views/SearchView.tsx
+msgid "Bowling terms"
+msgstr "保齡球術語"
 
 #: src/views/CatalogView.tsx
 msgid "Brand"
@@ -1277,7 +1300,9 @@ msgstr "選擇備份檔案"
 msgid "Choose one"
 msgstr "選擇一個"
 
+#. Removes every recent search
 #: src/components/SessionFilterBar.tsx
+#: src/views/SearchView.tsx
 msgid "Clear"
 msgstr "清除"
 
@@ -2112,6 +2137,11 @@ msgstr "升級 Pro 即可視覺化你的球打孔配置"
 msgid "Get the app"
 msgstr "下載 App"
 
+#. A group of search results: screens of the app to open
+#: src/views/SearchView.tsx
+msgid "Go to"
+msgstr "前往"
+
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
 msgstr "前往第 {frameNumber} 格"
@@ -2150,6 +2180,7 @@ msgstr "握法"
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 #: src/views/GuidesView.tsx
+#: src/views/SearchView.tsx
 msgid "Guides"
 msgstr "指南"
 
@@ -2227,6 +2258,7 @@ msgstr "單局最高"
 #. Tab name: the list of past sessions
 #: src/App.tsx
 #: src/views/HistoryView.tsx
+#: src/views/SearchView.tsx
 msgid "History"
 msgstr "紀錄"
 
@@ -2436,6 +2468,7 @@ msgstr "球道必須是整數。"
 
 #: src/components/HomeProfile.tsx
 #: src/views/LaneNotesView.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Lane notes"
 msgstr "球道備註"
@@ -2560,6 +2593,7 @@ msgstr "配置 {layout}"
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 #: src/views/LayoutLabView.tsx
+#: src/views/SearchView.tsx
 msgid "Layouts"
 msgstr "打孔配置"
 
@@ -2670,6 +2704,7 @@ msgstr "路線沙盒"
 
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
+#: src/views/SearchView.tsx
 msgid "Line visualizer"
 msgstr "路線視覺化"
 
@@ -3049,6 +3084,10 @@ msgstr "沒有符合篩選條件的油型"
 msgid "No pins standing"
 msgstr "沒有站立的球瓶"
 
+#: src/views/SearchView.tsx
+msgid "No results for “{query}”"
+msgstr "找不到「{query}」的結果"
+
 #: src/views/NoSessionView.tsx
 msgid "No session running"
 msgstr "沒有進行中的場次"
@@ -3190,6 +3229,7 @@ msgstr "油型"
 #: src/components/SessionForm.tsx
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
+#: src/views/SearchView.tsx
 msgid "Oil patterns"
 msgstr "油型"
 
@@ -3568,6 +3608,11 @@ msgstr "讀取中…"
 msgid "Ready to roll"
 msgstr "準備開打"
 
+#. Heading over the last few searches
+#: src/views/SearchView.tsx
+msgid "Recent"
+msgstr "最近搜尋"
+
 #. Bowling term: the easiest oil pattern tier, a high oil ratio (Kegel's tiers are Sport, Challenge and Recreation)
 #: src/lib/oilPattern.ts
 msgid "Recreation"
@@ -3705,6 +3750,10 @@ msgstr "讓球退役"
 #: src/components/BallFormDialog.tsx
 msgid "Retire this ball?"
 msgstr "要讓這顆球退役嗎？"
+
+#: src/lib/search.ts
+msgid "Retired"
+msgstr "已退役"
 
 #: src/components/PatternSheet.tsx
 msgid "Reverse passes"
@@ -3868,8 +3917,14 @@ msgid "Scoring"
 msgstr "計分"
 
 #: src/components/ui/SearchField.tsx
+#: src/views/DashboardView.tsx
+#: src/views/SearchView.tsx
 msgid "Search"
 msgstr "搜尋"
+
+#: src/views/SearchView.tsx
+msgid "Search Headpin"
+msgstr "搜尋 Headpin"
 
 #. Bowling term: the coverstock is the outer shell of a ball
 #: src/components/BallFormDialog.tsx
@@ -3880,6 +3935,10 @@ msgstr "搜尋名稱、品牌、球皮…"
 #: src/components/OilPatternManager.tsx
 msgid "Search patterns"
 msgstr "搜尋油型"
+
+#: src/views/SearchView.tsx
+msgid "Search the ball catalog for “{query}”"
+msgstr "在球型錄中搜尋「{query}」"
 
 #: src/views/CatalogView.tsx
 msgid "Search the catalog"
@@ -3937,9 +3996,19 @@ msgstr "場次統計"
 msgid "Sessions already bowled on it keep the pattern. If any still use it, it is archived instead of deleted."
 msgstr "已在此油型上打過的場次會保留該油型。若仍有場次使用，它會被封存而不是刪除。"
 
+#. A search result: every session bowled at the alley named
+#: src/lib/search.ts
+msgid "Sessions at {value}"
+msgstr "在 {value} 的場次"
+
 #: src/views/StatsView.tsx
 msgid "Sessions counted"
 msgstr "計入的場次"
+
+#. A search result: every session bowled on the oil pattern named
+#: src/lib/search.ts
+msgid "Sessions on {value}"
+msgstr "使用 {value} 的場次"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Set lanes"
@@ -3959,6 +4028,7 @@ msgstr "只會設定這一局的雙球道。"
 
 #. Tab name
 #: src/App.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Settings"
 msgstr "設定"
@@ -4021,6 +4091,11 @@ msgstr "短定位銷"
 #: src/views/ArsenalView.tsx
 msgid "Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
 msgstr "已用這顆球記錄的投球會保留分數，但會失去球名。若想在紀錄中保留它，請改為退役。"
+
+#. Expands a group of search results to every one it found
+#: src/views/SearchView.tsx
+msgid "Show all {count}"
+msgstr "顯示全部 {count} 個"
 
 #: src/components/OilPatternManager.tsx
 msgid "Show archived ({count})"
@@ -4131,6 +4206,7 @@ msgstr "補中路線"
 
 #. Bowling term: your saved line (where you stand and aim) for each spare leave
 #: src/components/HomeProfile.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 #: src/views/SpareLinesView.tsx
 msgid "Spare lines"
@@ -4224,6 +4300,7 @@ msgstr "開始場次"
 #. Tab name: averages and rates, short for statistics
 #: src/App.tsx
 #: src/components/SessionLanePanel.tsx
+#: src/views/SearchView.tsx
 #: src/views/StatsView.tsx
 msgid "Stats"
 msgstr "統計"
@@ -4642,6 +4719,11 @@ msgstr "今天"
 msgid "Tools and reference"
 msgstr "工具與參考"
 
+#. Heading over the single best search result
+#: src/views/SearchView.tsx
+msgid "Top hit"
+msgstr "最佳結果"
+
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"
 msgstr "俯視"
@@ -4650,6 +4732,15 @@ msgstr "俯視"
 #: src/components/PatternSheet.tsx
 msgid "Track zones"
 msgstr "軌跡區"
+
+#. Heading over a few suggested searches
+#: src/views/SearchView.tsx
+msgid "Try"
+msgstr "試試"
+
+#: src/views/SearchView.tsx
+msgid "Try a ball, a pattern, an alley or a word you've heard, like pocket."
+msgstr "試試搜尋球、油型、球館，或聽過的術語，例如球袋（pocket）。"
 
 #: src/components/PatternSheet.tsx
 msgid "Try in the line visualizer"
@@ -4821,8 +4912,8 @@ msgstr "使用球瓶 {pins} 的路線"
 
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
-msgid "Using Headpin, layouts and equipment"
-msgstr "使用 Headpin、打孔配置與裝備"
+msgid "Using Headpin, bowling terms, layouts and equipment"
+msgstr "Headpin 使用方式、保齡球術語、佈局與裝備"
 
 #. Bowling term: vertical axis line, a reference line across the ball through the PAP, square to the grip midline. Keep the abbreviation. A label on a ball diagram.
 #. Bowling term: vertical axis line, a reference line across the ball through the PAP. Keep the abbreviation. A tiny label under an angle on a ball diagram.
@@ -5079,6 +5170,10 @@ msgstr "你每一局完成後的分數。"
 #: src/components/AppErrorBoundary.tsx
 msgid "Your scores are still on this device."
 msgstr "你的分數仍保留在此裝置上。"
+
+#: src/views/SearchView.tsx
+msgid "Your sessions"
+msgstr "你的場次"
 
 #: src/views/GamePlanView.tsx
 #: src/views/GameTrendView.tsx

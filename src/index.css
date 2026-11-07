@@ -349,6 +349,50 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 }
 
+/* The search (ADR-247): the field drops in from just above where it rests,
+   and what it opened over stays in sight behind a blur, as a phone's search
+   opens over the screen it was called from. */
+@keyframes search-in {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-search-in {
+  animation: search-in 0.26s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.animate-fade-in {
+  animation: fade-in 0.22s ease-out;
+}
+
+.search-backdrop {
+  background: rgb(var(--color-surface-sunken) / 0.72);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-search-in,
+  .animate-fade-in {
+    animation: none;
+  }
+}
+
 /* Centered dialogs settle in rather than appearing on a frame. */
 @keyframes pop-in {
   from {

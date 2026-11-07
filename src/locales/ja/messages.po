@@ -245,6 +245,10 @@ msgstr "{count, plural, other {#個のボール}}"
 msgid "{count, plural, one {# game series} other {# game series}}"
 msgstr "{count, plural, other {#ゲームのシリーズ}}"
 
+#: src/lib/search.ts
+msgid "{count, plural, one {# session} other {# sessions}}"
+msgstr "{count, plural, other {#セッション}}"
+
 #: src/lib/sessionLabels.ts
 msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, other {レーン{lanes}}}"
@@ -298,6 +302,7 @@ msgstr "右へ{distance}"
 #: src/components/OilPatternManager.tsx
 #: src/components/PatternFilterSheet.tsx
 #: src/components/PatternSheet.tsx
+#: src/lib/search.ts
 #: src/lib/shareCard.ts
 msgid "{feet} ft"
 msgstr "{feet} ft"
@@ -504,6 +509,10 @@ msgstr "{pin}番ピンが残り"
 #: src/components/ActiveGameScorer.tsx
 msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
 msgstr "{pins, plural, other {フレーム{frame}、{ball}投目(#ピン)}}"
+
+#: src/components/PatternSheet.tsx
+msgid "{sessionCount, plural, one {Your # session on this pattern} other {Your # sessions on this pattern}}"
+msgstr "{sessionCount, plural, other {このパターンでの#セッション}}"
 
 #: src/components/BallEstimates.tsx
 msgid "{sessions, plural, one {# session} other {# sessions}}"
@@ -862,6 +871,7 @@ msgstr "ボウリング場とレーンは必須です。"
 
 #: src/components/HomeProfile.tsx
 #: src/views/GamePlanView.tsx
+#: src/views/SearchView.tsx
 msgid "Alley report"
 msgstr "センターレポート"
 
@@ -907,6 +917,7 @@ msgstr "右投げ用のアプローチのボード図。アウトサイド、ミ
 
 #: src/components/HomeProfile.tsx
 #: src/views/ArsenalView.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Arsenal"
 msgstr "アーセナル"
@@ -1004,6 +1015,7 @@ msgid "Backend"
 msgstr "バックエンド"
 
 #: src/views/BackupRestoreView.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Backup & restore"
 msgstr "バックアップと復元"
@@ -1055,6 +1067,7 @@ msgstr "ボール #{ballId}"
 
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
+#: src/views/SearchView.tsx
 msgid "Ball catalog"
 msgstr "ボールカタログ"
 
@@ -1077,6 +1090,11 @@ msgstr "ボール: なし。タップして変更"
 #: src/components/Stats.tsx
 msgid "Balls"
 msgstr "ボール"
+
+#. Placeholder of the app-wide search field: the kinds of thing it finds
+#: src/views/SearchView.tsx
+msgid "Balls, patterns, alleys, terms"
+msgstr "ボール、パターン、ボウリング場、用語"
 
 #. A drilling layout preset name on the layout lab: the middle of every range
 #: src/lib/ballLayout.ts
@@ -1129,6 +1147,11 @@ msgstr "ボウリングレーンのライン図"
 #: src/views/SettingsView.tsx
 msgid "Bowling profile"
 msgstr "プロフィール"
+
+#. A group of search results: words bowlers use, and what each means
+#: src/views/SearchView.tsx
+msgid "Bowling terms"
+msgstr "ボウリング用語"
 
 #: src/views/CatalogView.tsx
 msgid "Brand"
@@ -1277,7 +1300,9 @@ msgstr "バックアップファイルを選択"
 msgid "Choose one"
 msgstr "選択してください"
 
+#. Removes every recent search
 #: src/components/SessionFilterBar.tsx
+#: src/views/SearchView.tsx
 msgid "Clear"
 msgstr "クリア"
 
@@ -2112,6 +2137,11 @@ msgstr "Proでボールのレイアウトを可視化"
 msgid "Get the app"
 msgstr "アプリを入手"
 
+#. A group of search results: screens of the app to open
+#: src/views/SearchView.tsx
+msgid "Go to"
+msgstr "移動"
+
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
 msgstr "{frameNumber}フレームへ移動"
@@ -2150,6 +2180,7 @@ msgstr "グリップスタイル"
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 #: src/views/GuidesView.tsx
+#: src/views/SearchView.tsx
 msgid "Guides"
 msgstr "ガイド"
 
@@ -2227,6 +2258,7 @@ msgstr "ハイゲーム"
 #. Tab name: the list of past sessions
 #: src/App.tsx
 #: src/views/HistoryView.tsx
+#: src/views/SearchView.tsx
 msgid "History"
 msgstr "履歴"
 
@@ -2436,6 +2468,7 @@ msgstr "レーンは整数で入力してください。"
 
 #: src/components/HomeProfile.tsx
 #: src/views/LaneNotesView.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Lane notes"
 msgstr "レーンメモ"
@@ -2560,6 +2593,7 @@ msgstr "レイアウト {layout}"
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 #: src/views/LayoutLabView.tsx
+#: src/views/SearchView.tsx
 msgid "Layouts"
 msgstr "レイアウト"
 
@@ -2670,6 +2704,7 @@ msgstr "ラインサンドボックス"
 
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
+#: src/views/SearchView.tsx
 msgid "Line visualizer"
 msgstr "ラインビジュアライザー"
 
@@ -3049,6 +3084,10 @@ msgstr "条件に合うパターンがありません"
 msgid "No pins standing"
 msgstr "立っているピンなし"
 
+#: src/views/SearchView.tsx
+msgid "No results for “{query}”"
+msgstr "「{query}」の検索結果はありません"
+
 #: src/views/NoSessionView.tsx
 msgid "No session running"
 msgstr "進行中のセッションなし"
@@ -3190,6 +3229,7 @@ msgstr "オイルパターン"
 #: src/components/SessionForm.tsx
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
+#: src/views/SearchView.tsx
 msgid "Oil patterns"
 msgstr "オイルパターン"
 
@@ -3568,6 +3608,11 @@ msgstr "読み取り中…"
 msgid "Ready to roll"
 msgstr "さあ、投げましょう"
 
+#. Heading over the last few searches
+#: src/views/SearchView.tsx
+msgid "Recent"
+msgstr "最近の検索"
+
 #. Bowling term: the easiest oil pattern tier, a high oil ratio (Kegel's tiers are Sport, Challenge and Recreation)
 #: src/lib/oilPattern.ts
 msgid "Recreation"
@@ -3705,6 +3750,10 @@ msgstr "ボールを引退"
 #: src/components/BallFormDialog.tsx
 msgid "Retire this ball?"
 msgstr "このボールを引退させますか？"
+
+#: src/lib/search.ts
+msgid "Retired"
+msgstr "引退"
 
 #: src/components/PatternSheet.tsx
 msgid "Reverse passes"
@@ -3868,8 +3917,14 @@ msgid "Scoring"
 msgstr "スコアリング"
 
 #: src/components/ui/SearchField.tsx
+#: src/views/DashboardView.tsx
+#: src/views/SearchView.tsx
 msgid "Search"
 msgstr "検索"
+
+#: src/views/SearchView.tsx
+msgid "Search Headpin"
+msgstr "Headpinを検索"
 
 #. Bowling term: the coverstock is the outer shell of a ball
 #: src/components/BallFormDialog.tsx
@@ -3880,6 +3935,10 @@ msgstr "名前、ブランド、カバーストックを検索…"
 #: src/components/OilPatternManager.tsx
 msgid "Search patterns"
 msgstr "パターンを検索"
+
+#: src/views/SearchView.tsx
+msgid "Search the ball catalog for “{query}”"
+msgstr "ボールカタログで「{query}」を検索"
 
 #: src/views/CatalogView.tsx
 msgid "Search the catalog"
@@ -3937,9 +3996,19 @@ msgstr "セッション統計"
 msgid "Sessions already bowled on it keep the pattern. If any still use it, it is archived instead of deleted."
 msgstr "このパターンで投げたセッションにはパターンが残ります。使用中のセッションがある場合は、削除ではなくアーカイブされます。"
 
+#. A search result: every session bowled at the alley named
+#: src/lib/search.ts
+msgid "Sessions at {value}"
+msgstr "{value}でのセッション"
+
 #: src/views/StatsView.tsx
 msgid "Sessions counted"
 msgstr "集計対象セッション"
+
+#. A search result: every session bowled on the oil pattern named
+#: src/lib/search.ts
+msgid "Sessions on {value}"
+msgstr "{value}でのセッション"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Set lanes"
@@ -3959,6 +4028,7 @@ msgstr "このゲームのみペアを設定します。"
 
 #. Tab name
 #: src/App.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Settings"
 msgstr "設定"
@@ -4021,6 +4091,11 @@ msgstr "ショートピン"
 #: src/views/ArsenalView.tsx
 msgid "Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
 msgstr "このボールで記録済みの投球のスコアは残りますが、ボール名は消えます。履歴に残したい場合は、代わりに引退させてください。"
+
+#. Expands a group of search results to every one it found
+#: src/views/SearchView.tsx
+msgid "Show all {count}"
+msgstr "{count}件すべて表示"
 
 #: src/components/OilPatternManager.tsx
 msgid "Show archived ({count})"
@@ -4131,6 +4206,7 @@ msgstr "スペアライン"
 
 #. Bowling term: your saved line (where you stand and aim) for each spare leave
 #: src/components/HomeProfile.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 #: src/views/SpareLinesView.tsx
 msgid "Spare lines"
@@ -4224,6 +4300,7 @@ msgstr "セッションを開始"
 #. Tab name: averages and rates, short for statistics
 #: src/App.tsx
 #: src/components/SessionLanePanel.tsx
+#: src/views/SearchView.tsx
 #: src/views/StatsView.tsx
 msgid "Stats"
 msgstr "統計"
@@ -4642,6 +4719,11 @@ msgstr "今日"
 msgid "Tools and reference"
 msgstr "ツールと資料"
 
+#. Heading over the single best search result
+#: src/views/SearchView.tsx
+msgid "Top hit"
+msgstr "トップヒット"
+
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"
 msgstr "真上から"
@@ -4650,6 +4732,15 @@ msgstr "真上から"
 #: src/components/PatternSheet.tsx
 msgid "Track zones"
 msgstr "トラックゾーン"
+
+#. Heading over a few suggested searches
+#: src/views/SearchView.tsx
+msgid "Try"
+msgstr "候補"
+
+#: src/views/SearchView.tsx
+msgid "Try a ball, a pattern, an alley or a word you've heard, like pocket."
+msgstr "ボール、パターン、ボウリング場、または「ポケット」のような用語を試してください。"
 
 #: src/components/PatternSheet.tsx
 msgid "Try in the line visualizer"
@@ -4821,8 +4912,8 @@ msgstr "ピン{pins}のラインを使う"
 
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
-msgid "Using Headpin, layouts and equipment"
-msgstr "Headpinの使い方、レイアウト、用具"
+msgid "Using Headpin, bowling terms, layouts and equipment"
+msgstr "Headpinの使い方、ボウリング用語、レイアウトと用具"
 
 #. Bowling term: vertical axis line, a reference line across the ball through the PAP, square to the grip midline. Keep the abbreviation. A label on a ball diagram.
 #. Bowling term: vertical axis line, a reference line across the ball through the PAP. Keep the abbreviation. A tiny label under an angle on a ball diagram.
@@ -5079,6 +5170,10 @@ msgstr "終了したゲームごとのスコア。"
 #: src/components/AppErrorBoundary.tsx
 msgid "Your scores are still on this device."
 msgstr "スコアはこの端末に残っています。"
+
+#: src/views/SearchView.tsx
+msgid "Your sessions"
+msgstr "あなたのセッション"
 
 #: src/views/GamePlanView.tsx
 #: src/views/GameTrendView.tsx

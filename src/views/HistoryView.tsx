@@ -12,6 +12,7 @@ import {
   SessionFilterSheet
 } from "../components/SessionFilterBar";
 import { FloatingHeader } from "../components/FloatingHeader";
+import { PushScreen } from "../components/PushScreen";
 import { rememberScroll, restoreScroll, useRememberedState } from "../lib/viewMemory";
 import { useSessionFilters } from "./useSessionFilters";
 import type { SessionSummary } from "../types/bowling";
@@ -19,14 +20,25 @@ import type { SessionSummary } from "../types/bowling";
 interface HistoryViewProps {
   onOpenSession: (sessionId: number) => void;
   activeSessionId: number | null;
+  /** `push` when a pattern's sheet or the search sends a bowler here with the
+   *  filter set (ADR-247): the same list, as a pushed screen, so back returns
+   *  to where the question was asked. The filter is the tab's own, shared, as
+   *  the pushed Stats' is (ADR-083). */
+  mode?: "tab" | "push";
+  /** Required in `push` mode. */
+  onBack?: () => void;
 }
 
 const PAGE = 15; // sessions loaded per infinite-scroll step
 
 export function HistoryView({
   onOpenSession,
-  activeSessionId
+  activeSessionId,
+  mode = "tab",
+  onBack
 }: HistoryViewProps) {
+  // Its own memory when pushed, so leaving it does not move the tab's list.
+  const memory = mode === "push" ? "history-push" : "history";
   // The list reads scores, never shots, so it takes the loader that skips the
   // frames of games that already have one (ADR-066).
   const filters = useSessionFilters({ frames: "unscored" });
@@ -36,7 +48,7 @@ export function HistoryView({
   const [pendingDelete, setPendingDelete] = useState<SessionSummary | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const [visibleCount, setVisibleCount] = useRememberedState("history:visible", PAGE);
+  const [visibleCount, setVisibleCount] = useRememberedState(`${memory}:visible`, PAGE);
   // The list the window belongs to. Comparing it during render resets the
   // window when the filters change a list, which an effect would only do a
   // render later, after painting a short list scrolled to the wrong place.
@@ -50,8 +62,8 @@ export function HistoryView({
   // the scroller here.
   useEffect(() => {
     const el = scrollerRef.current;
-    return el ? restoreScroll(el, "history:sessions") : undefined;
-  }, []);
+    return el ? restoreScroll(el, `${memory}:sessions`) : undefined;
+  }, [memory]);
 
   // React's documented "adjust state during render" rather than in an effect:
   // it re-renders before anything is shown, so no wasted paint.
@@ -78,12 +90,15 @@ export function HistoryView({
     // the linter cannot see that it is a `useState` setter and stable.
   }, [sessionList.length, setVisibleCount]);
 
-  return (
+  const body = (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
       <FloatingHeader
         scrollerRef={scrollerRef}
         header={
           <>
+            {/* Pushed, the bar names the screen and carries the filter, its one
+                trailing action, so there is no title row to leave empty. */}
+            {mode === "tab" && (
             <div className={`${TAB_TITLE_ROW} mb-3 justify-between gap-3`}>
               <h1 className={TAB_TITLE}>{t`History`}</h1>
               {/* Nothing to narrow before the first session, and a control
@@ -95,6 +110,7 @@ export function HistoryView({
                 </div>
               )}
             </div>
+            )}
 
             {error && <ErrorBanner className="mb-3">{t`Your sessions could not be read. Reload the app, then try again.`}</ErrorBanner>}
             {deleteError && <ErrorBanner className="mb-3">{deleteError}</ErrorBanner>}
@@ -102,7 +118,7 @@ export function HistoryView({
             <SessionFilterChips filters={filters} />
           </>
         }
-        onScroll={(e) => rememberScroll("history:sessions", e.currentTarget.scrollTop)}
+        onScroll={(e) => rememberScroll(`${memory}:sessions`, e.currentTarget.scrollTop)}
       >
         <div className="px-3 pb-5 sm:px-6 sm:pb-8">
           <SessionHistory
@@ -137,6 +153,22 @@ export function HistoryView({
         onCancel={() => setPendingDelete(null)}
       />
     </section>
+  );
+
+  if (mode === "tab") return body;
+  return (
+    <PushScreen
+      title={t`History`}
+      onBack={onBack ?? (() => {})}
+      active={!filtersOpen && pendingDelete === null}
+      trailing={
+        filters.history.length > 0 ? (
+          <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
+        ) : undefined
+      }
+    >
+      {body}
+    </PushScreen>
   );
 }
 

@@ -9,6 +9,21 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.90.0: Search, and the words bowlers use (2026-11-07)
+
+- Home has a search. Tap the magnifier beside the app's mark: it opens over
+  the screen with the keyboard up, offering your last five searches and a few
+  suggestions. It finds your sessions by pattern, alley or event, your oil
+  patterns, your balls, the ball catalog, bowling terms with what they mean,
+  the guides and the app's screens (ADR-247).
+- Searching an oil pattern offers every session you bowled on it, which opens
+  History with that pattern filtered.
+- A pattern's page leads with "Your N sessions on this pattern", which opens
+  the same filtered History.
+- New guides under Bowling terms: the pocket, a Brooklyn and other strike
+  words; splits, buckets and the leaves with names; turkeys, marks and scoring
+  words; heads, backends and lane words; crankers, strokers and ball words.
+
 ## 0.89.2: Fixes from a bug bash (2026-11-06)
 
 - Correcting the first ball of the frame you are bowling, by tapping it on

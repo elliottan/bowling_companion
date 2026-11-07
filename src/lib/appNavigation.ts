@@ -72,7 +72,16 @@ export type Overlay =
   /** The Stats tab's own screen, pushed rather than switched to. The game plan
    *  hands off to it with the filters already set, and a hand-off that switched
    *  tabs left no way back to the screen that made the point (ADR-083). */
-  | "stats-push";
+  | "stats-push"
+  /** History's list, pushed rather than switched to, for the same reason as
+   *  `stats-push`: a pattern's sheet and the search hand off to it with the
+   *  filter already set, and back returns to where the question was asked
+   *  (ADR-247). */
+  | "history-push"
+  /** The search over everything (ADR-247). A layer over the screen it was
+   *  opened from, blurred behind it, and whatever a result opens is pushed on
+   *  top, so back comes home to the results as they were typed. */
+  | "search";
 
 export interface NavState {
   view: AppView;
@@ -121,6 +130,14 @@ export interface NavState {
    *  A field beside the `line` overlay for the same reason as `catalogBallId`:
    *  it is content, not part of the route (see `layoutSeed`). */
   lineSandboxPatternId: number | null;
+  /** The pattern whose sheet the pushed `oil-patterns` list opens on, when a
+   *  search result sent it there. Content beside the overlay, like
+   *  `lineSandboxPatternId`, so not part of the route. */
+  openPatternId: number | null;
+  /** The ball whose sheet the pushed arsenal opens on, from a search result. */
+  openArsenalBallId: number | null;
+  /** What the pushed catalog opens already searched for, from a search. */
+  catalogSearch: string | null;
 }
 
 export type NavAction =
@@ -138,8 +155,16 @@ export type NavAction =
   | { type: "goToSettingsSection"; section: SettingsSection }
   | { type: "pushOverlay"; overlay: Overlay }
   | { type: "popOverlay" }
-  | { type: "openCatalogBall"; ballId: string }
-  | { type: "openGuide"; guideId: string }
+  /** `push` opens the catalog first when it is not the screen on top, which
+   *  is how a search result reaches a ball. */
+  | { type: "openCatalogBall"; ballId: string; push?: boolean }
+  | { type: "openGuide"; guideId: string; push?: boolean }
+  /** The pattern list, pushed, with one pattern's sheet already open. */
+  | { type: "openPattern"; patternId: number }
+  /** The arsenal, pushed, with one ball's sheet already open. */
+  | { type: "openArsenalBall"; ballId: number }
+  /** The catalog, pushed, already searched for `query`. */
+  | { type: "openCatalogSearch"; query: string }
   | { type: "openReportLine"; lineId: string }
   /** Open the layout lab, optionally on a layout something else chose. */
   | { type: "openLayoutLab"; seed?: LayoutSeed }
@@ -193,7 +218,10 @@ export const INITIAL_NAV: NavState = {
   reportLineId: null,
   layoutSeed: null,
   viewedSessionId: null,
-  lineSandboxPatternId: null
+  lineSandboxPatternId: null,
+  openPatternId: null,
+  openArsenalBallId: null,
+  catalogSearch: null
 };
 
 export function navReducer(state: NavState, action: NavAction): NavState {
@@ -275,7 +303,10 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         catalogBallId: null,
         openGuideId: null,
         reportLineId: null,
-        layoutSeed: null
+        layoutSeed: null,
+        openPatternId: null,
+        openArsenalBallId: null,
+        catalogSearch: null
       };
 
     case "pushOverlay":
@@ -287,8 +318,12 @@ export function navReducer(state: NavState, action: NavAction): NavState {
             ...state,
             overlays: [...state.overlays, action.overlay],
             // Reaching the lab on its own is asking about no ball in
-            // particular, so a seed left over from the last one goes.
-            layoutSeed: action.overlay === "layout-lab" ? null : state.layoutSeed
+            // particular, so a seed left over from the last one goes. The
+            // same for a pattern, a ball or a catalog search a result left.
+            layoutSeed: action.overlay === "layout-lab" ? null : state.layoutSeed,
+            openPatternId: action.overlay === "oil-patterns" ? null : state.openPatternId,
+            openArsenalBallId: action.overlay === "arsenal" ? null : state.openArsenalBallId,
+            catalogSearch: action.overlay === "catalog" ? null : state.catalogSearch
           };
 
     case "popOverlay": {
@@ -312,16 +347,39 @@ export function navReducer(state: NavState, action: NavAction): NavState {
       // flash the last one on its way in.
       const next = overlays.includes("layout-lab") ? state.layoutSeed : null;
       const pattern = overlays.includes("line") ? state.lineSandboxPatternId : null;
+      const seeds = {
+        openPatternId: overlays.includes("oil-patterns") ? state.openPatternId : null,
+        openArsenalBallId: overlays.includes("arsenal") ? state.openArsenalBallId : null,
+        catalogSearch: overlays.includes("catalog") ? state.catalogSearch : null
+      };
       return overlays.includes("session")
-        ? { ...state, overlays, layoutSeed: next, lineSandboxPatternId: pattern }
-        : { ...state, overlays, layoutSeed: next, lineSandboxPatternId: pattern, viewedSessionId: null };
+        ? { ...state, ...seeds, overlays, layoutSeed: next, lineSandboxPatternId: pattern }
+        : { ...state, ...seeds, overlays, layoutSeed: next, lineSandboxPatternId: pattern, viewedSessionId: null };
     }
 
     case "openCatalogBall":
-      return { ...state, catalogBallId: action.ballId };
+      return action.push && state.overlays[state.overlays.length - 1] !== "catalog"
+        ? { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: null, catalogBallId: action.ballId }
+        : { ...state, catalogBallId: action.ballId };
 
     case "openGuide":
-      return { ...state, openGuideId: action.guideId };
+      return action.push && state.overlays[state.overlays.length - 1] !== "guides"
+        ? { ...state, overlays: [...state.overlays, "guides"], openGuideId: action.guideId }
+        : { ...state, openGuideId: action.guideId };
+
+    /**
+     * A screen and the thing on it in one move, as a search result asks for.
+     * One action rather than a push and then a write, for the reason
+     * `openLayoutLab` gives: the screen and what it opens on arrive together.
+     */
+    case "openPattern":
+      return { ...state, overlays: [...state.overlays, "oil-patterns"], openPatternId: action.patternId };
+
+    case "openArsenalBall":
+      return { ...state, overlays: [...state.overlays, "arsenal"], openArsenalBallId: action.ballId };
+
+    case "openCatalogSearch":
+      return { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: action.query, catalogBallId: null };
 
     case "openReportLine":
       return { ...state, reportLineId: action.lineId };
@@ -412,7 +470,12 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         viewedSessionId: route.viewedSessionId ?? null,
         // The pattern is content rather than route, but a back that leaves the
         // sandbox in place (closing the Pro page over it) keeps its pattern.
-        lineSandboxPatternId: route.overlays.includes("line") ? state.lineSandboxPatternId : null
+        lineSandboxPatternId: route.overlays.includes("line") ? state.lineSandboxPatternId : null,
+        // The same for what a search result opened a list on: kept by a back
+        // that leaves the list standing, gone with it otherwise.
+        openPatternId: route.overlays.includes("oil-patterns") ? state.openPatternId : null,
+        openArsenalBallId: route.overlays.includes("arsenal") ? state.openArsenalBallId : null,
+        catalogSearch: route.overlays.includes("catalog") ? state.catalogSearch : null
       };
     }
 

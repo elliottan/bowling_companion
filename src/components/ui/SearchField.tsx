@@ -27,7 +27,9 @@ export function SearchField({
   placeholder,
   label,
   autoFocus = false,
-  className = ""
+  className = "",
+  onCancel,
+  onSubmit
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -36,14 +38,25 @@ export function SearchField({
   label?: string;
   autoFocus?: boolean;
   className?: string;
+  /** Where Cancel leaves the whole screen rather than only the search: the
+   *  app's own search (ADR-247). Cancel then always shows, as it does on a
+   *  search screen of the phone's, and runs this instead of emptying. */
+  onCancel?: () => void;
+  /** The keyboard's Search key, after the keyboard goes. */
+  onSubmit?: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(autoFocus);
-  const live = focused || value !== "";
+  const live = focused || value !== "" || onCancel !== undefined;
 
   const keepFocus = (e: PointerEvent) => e.preventDefault();
 
   const cancel = () => {
+    if (onCancel) {
+      inputRef.current?.blur();
+      onCancel();
+      return;
+    }
     onChange("");
     inputRef.current?.blur();
     setFocused(false);
@@ -56,6 +69,7 @@ export function SearchField({
       cancel();
     } else if (e.key === "Enter") {
       e.currentTarget.blur();
+      onSubmit?.();
     }
   };
 

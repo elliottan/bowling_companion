@@ -230,9 +230,12 @@ interface ArsenalViewProps {
    *  axis. Optional, so the screen still renders in a test that only cares
    *  about the list. */
   onViewLayout?: (seed: LayoutSeed) => void;
+  /** A ball whose sheet opens over the list as it arrives, from the app's
+   *  search. Back from the sheet leaves the arsenal standing under it. */
+  initialBallId?: number;
 }
 
-export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
+export function ArsenalView({ onBack, onViewLayout, initialBallId }: ArsenalViewProps) {
   // Live: Dexie re-runs this whenever the table changes, so saving, deleting
   // and reordering do not each have to remember to refresh the list.
   const live = useLiveQuery(() => getBalls());
@@ -277,6 +280,16 @@ export function ArsenalView({ onBack, onViewLayout }: ArsenalViewProps) {
   // null = closed; { ball: null } = adding; { ball } = editing.
   const [form, setForm] = useState<{ ball: Ball | null } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Ball | null>(null);
+
+  // The ball a search result asked for, opened once the list has been read.
+  // Adjusted during render rather than in an effect, so the sheet is up on
+  // the first frame the list is, not one after it.
+  const [pendingOpen, setPendingOpen] = useState(initialBallId ?? null);
+  if (pendingOpen != null && live) {
+    setPendingOpen(null);
+    const ball = live.find((b) => b.id === pendingOpen);
+    if (ball) setForm({ ball });
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { delay: 180, tolerance: 6 } })

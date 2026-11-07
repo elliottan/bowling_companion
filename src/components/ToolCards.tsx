@@ -196,7 +196,7 @@ export function ToolCards({ heading, ...open }: ToolsActions & { heading: string
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-body leading-snug text-ink">{t`Guides`}</span>
-          <span className="block text-footnote leading-snug text-ink-secondary">{t`Using Headpin, layouts and equipment`}</span>
+          <span className="block text-footnote leading-snug text-ink-secondary">{t`Using Headpin, bowling terms, layouts and equipment`}</span>
         </span>
         <ChevronRight size={17} strokeWidth={2.25} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
       </button>

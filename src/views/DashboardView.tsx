@@ -1,5 +1,6 @@
 import { plural, t } from "@lingui/core/macro";
-import { ChevronRight, PlayCircle, ShieldCheck } from "lucide-react";
+import { ChevronRight, PlayCircle, Search, ShieldCheck } from "lucide-react";
+import { IconButton } from "../components/ui/IconButton";
 import { PinIcon } from "../components/icons";
 import { ToolCards } from "../components/ToolCards";
 import { useMemo, useState } from "react";
@@ -52,6 +53,8 @@ interface DashboardViewProps {
   onOpenSpareLines: () => void;
   onOpenGuides: () => void;
   onOpenBackup: () => void;
+  /** The search over everything (ADR-247). */
+  onOpenSearch?: () => void;
 }
 
 /** Next steps Home asks for elsewhere. The arsenal row, while the bag is
@@ -77,7 +80,8 @@ export function DashboardView({
   onOpenOilPatterns,
   onOpenSpareLines,
   onOpenGuides,
-  onOpenBackup
+  onOpenBackup,
+  onOpenSearch
 }: DashboardViewProps) {
   const [showForm, setShowForm] = useState(false);
   const owned = useProOwned();
@@ -149,7 +153,7 @@ export function DashboardView({
       {/* The greeting is the screen's title, on a line of its own with the
           app's mark at its end (ADR-245). It offers a name only while there is
           none: a name is set once, and changing it lives in Settings. */}
-      <div className="mb-3 flex items-start gap-3">
+      <div className="mb-3 flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <h1 className="break-words text-title-2 font-bold leading-tight tracking-tight text-ink">
             {named ? greeting(name, greetingIndex) : "\u00a0"}
@@ -164,6 +168,14 @@ export function DashboardView({
             </button>
           )}
         </div>
+        {/* The search, round glass beside the mark, where a phone's own
+            screens keep theirs: at the top, in reach of the eye before the
+            thumb (ADR-247). */}
+        {onOpenSearch && (
+          <IconButton label={t`Search`} variant="round" onClick={onOpenSearch} className="shrink-0">
+            <Search size={20} strokeWidth={2.25} aria-hidden="true" />
+          </IconButton>
+        )}
         {/* The app's mark, and once this copy has Pro, the Pro mark in its
             place (ADR-167). */}
         {owned ? (

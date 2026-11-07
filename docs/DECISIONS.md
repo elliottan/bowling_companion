@@ -10377,3 +10377,55 @@ as before.
 - No score is ever made of a ball that was not thrown.
 - The beginEdit, beginEditFromShot and completeEdit helpers, which nothing
   called any more, are gone with their tests.
+
+
+## ADR-247: One search over everything, opened from Home
+
+**Status.** Accepted, 2026-11-07, at the owner's request.
+
+**Context.** Each list had its own search (the catalog, the patterns), and
+nothing searched across them. A bowler who heard "Brooklyn" from the bench,
+or wanted every session on the pattern they bowl next week, had to know which
+screen held the answer. The owner asked for a magnifier at the top of Home
+that opens a search with the keyboard up, the screen behind it blurred,
+suggestions and the last five searches, finding balls, oil patterns, alleys
+and bowling terms, with the sessions on a pattern as one of the answers. The
+pattern's own sheet was to offer the same jump.
+
+**Decision.**
+
+- **A round glass magnifier sits beside the app's mark on Home.** It pushes a
+  `search` layer: the screen it opened over stays in sight behind a blur, the
+  field drops in at the top and takes focus, so the keyboard rises with it.
+  The field sits at the top, not by the keyboard as iOS 26's Search tab puts
+  it, because a field pinned over a web view's keyboard is the viewport
+  problem `docs/VIEWPORT-BUG.md` records. Cancel closes the search, and is
+  always shown there.
+- **Before anything is typed**: the last five searches (`recentSearches`,
+  localStorage, as a convenience of this phone and never in a backup), and
+  chips of the bowler's most bowled pattern and alley, then a few guide words.
+- **As it is typed** (`lib/search`): the best match on its own as Top hit,
+  then groups in a fixed order, the bowler's own first: their sessions (by
+  pattern, alley and event, each with its count), oil patterns, the arsenal,
+  bowling terms with their meaning on the row, guides, the catalog balls this
+  phone already holds, and the app's screens. Five a group, with Show all.
+  A search for a pattern always brings "Sessions on" it when one was bowled
+  on it. The catalog's own screen, already searched, is one row at the foot,
+  since the search never fetches the catalog.
+- **A result is pushed over the search**, so back returns to the results as
+  typed. History is pushed as `history-push`, the tab's list with its filter
+  set, for the reason ADR-083 gives the pushed Stats. The filter is the tab's
+  shared one, written whole: the asked facet and nothing else.
+- **A pattern's sheet leads with "Your N sessions on this pattern"**, once
+  there is one, to the same pushed History.
+- **Guides gain a Bowling terms shelf**, five articles of terms, each sourced.
+  A term carries aliases ("bird dog", "Jersey") so it is found by any of its
+  names.
+
+**Consequences.**
+
+- Search is the one pushed screen loaded with the shell, since iOS raises the
+  keyboard only for a focus made inside the tap.
+- Visiting a pattern's sessions leaves History's filter on that pattern, as a
+  hand-off from the game plan leaves Stats'.
+- The guide words are English, as the guides are (docs/I18N.md).

@@ -622,6 +622,17 @@ once there is text, and Cancel sliding in beside it while the search is live.
 Clear keeps the keyboard and Cancel lets it go, as on the phone. It has no
 focus ring, because Cancel already says it is live.
 
+**The app's own search is one screen over everything** (ADR-247), opened
+from a round glass magnifier beside Home's mark. It covers the screen it was
+opened over with a blur rather than replacing it, its field at the top and
+focused so the keyboard comes with it, and its Cancel always shown, since
+Cancel leaves the search. Empty, it offers the last five searches and a row
+of suggestion chips; typed, the best match leads as Top hit, then one
+`ListGroup` per kind of thing, the bowler's own first, five to a group with
+Show all, and the letters typed drawn bold in each title. A result is pushed
+over it, so back returns to the results. A scroll of the results lets the
+keyboard go, as a phone's search does.
+
 **A day is a `DateButton`, and a number that is nudged has a `Stepper`**
 (ADR-237). The date reads as the device writes it, on a grey chip that opens
 the phone's own picker, never a form box of digits. A value a bowler moves a

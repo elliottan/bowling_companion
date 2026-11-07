@@ -245,6 +245,10 @@ msgstr "{count, plural, other {# bola}}"
 msgid "{count, plural, one {# game series} other {# game series}}"
 msgstr "{count, plural, other {siri # permainan}}"
 
+#: src/lib/search.ts
+msgid "{count, plural, one {# session} other {# sessions}}"
+msgstr "{count, plural, other {# sesi}}"
+
 #: src/lib/sessionLabels.ts
 msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, other {Lorong {lanes}}}"
@@ -298,6 +302,7 @@ msgstr "{distance} ke kanan"
 #: src/components/OilPatternManager.tsx
 #: src/components/PatternFilterSheet.tsx
 #: src/components/PatternSheet.tsx
+#: src/lib/search.ts
 #: src/lib/shareCard.ts
 msgid "{feet} ft"
 msgstr "{feet} ft"
@@ -504,6 +509,10 @@ msgstr "Pin {pin} berdiri"
 #: src/components/ActiveGameScorer.tsx
 msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
 msgstr "{pins, plural, other {frame {frame}, balingan {ball} (# pin)}}"
+
+#: src/components/PatternSheet.tsx
+msgid "{sessionCount, plural, one {Your # session on this pattern} other {Your # sessions on this pattern}}"
+msgstr "{sessionCount, plural, other {# sesi anda pada corak ini}}"
 
 #: src/components/BallEstimates.tsx
 msgid "{sessions, plural, one {# session} other {# sessions}}"
@@ -862,6 +871,7 @@ msgstr "Pusat boling dan lorong diperlukan."
 
 #: src/components/HomeProfile.tsx
 #: src/views/GamePlanView.tsx
+#: src/views/SearchView.tsx
 msgid "Alley report"
 msgstr "Laporan pusat boling"
 
@@ -907,6 +917,7 @@ msgstr "Rajah papan approach untuk pemain boling tangan kanan, dibahagikan kepad
 
 #: src/components/HomeProfile.tsx
 #: src/views/ArsenalView.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Arsenal"
 msgstr "Arsenal"
@@ -1004,6 +1015,7 @@ msgid "Backend"
 msgstr "Bahagian hujung lorong"
 
 #: src/views/BackupRestoreView.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Backup & restore"
 msgstr "Sandaran & pemulihan"
@@ -1055,6 +1067,7 @@ msgstr "Bola #{ballId}"
 
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
+#: src/views/SearchView.tsx
 msgid "Ball catalog"
 msgstr "Katalog bola"
 
@@ -1077,6 +1090,11 @@ msgstr "Bola: tiada. Ketik untuk menukar"
 #: src/components/Stats.tsx
 msgid "Balls"
 msgstr "Bola"
+
+#. Placeholder of the app-wide search field: the kinds of thing it finds
+#: src/views/SearchView.tsx
+msgid "Balls, patterns, alleys, terms"
+msgstr "Bola, corak, pusat boling, istilah"
 
 #. A drilling layout preset name on the layout lab: the middle of every range
 #: src/lib/ballLayout.ts
@@ -1129,6 +1147,11 @@ msgstr "Rajah laluan di lorong boling"
 #: src/views/SettingsView.tsx
 msgid "Bowling profile"
 msgstr "Profil boling"
+
+#. A group of search results: words bowlers use, and what each means
+#: src/views/SearchView.tsx
+msgid "Bowling terms"
+msgstr "Istilah boling"
 
 #: src/views/CatalogView.tsx
 msgid "Brand"
@@ -1277,7 +1300,9 @@ msgstr "Pilih fail sandaran"
 msgid "Choose one"
 msgstr "Pilih satu"
 
+#. Removes every recent search
 #: src/components/SessionFilterBar.tsx
+#: src/views/SearchView.tsx
 msgid "Clear"
 msgstr "Kosongkan"
 
@@ -2112,6 +2137,11 @@ msgstr "Dapatkan Pro untuk memvisualkan layout bola anda"
 msgid "Get the app"
 msgstr "Dapatkan apl"
 
+#. A group of search results: screens of the app to open
+#: src/views/SearchView.tsx
+msgid "Go to"
+msgstr "Pergi ke"
+
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
 msgstr "Pergi ke frame {frameNumber}"
@@ -2150,6 +2180,7 @@ msgstr "Gaya cengkaman"
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 #: src/views/GuidesView.tsx
+#: src/views/SearchView.tsx
 msgid "Guides"
 msgstr "Panduan"
 
@@ -2227,6 +2258,7 @@ msgstr "Permainan tertinggi"
 #. Tab name: the list of past sessions
 #: src/App.tsx
 #: src/views/HistoryView.tsx
+#: src/views/SearchView.tsx
 msgid "History"
 msgstr "Sejarah"
 
@@ -2436,6 +2468,7 @@ msgstr "Lorong mestilah nombor bulat."
 
 #: src/components/HomeProfile.tsx
 #: src/views/LaneNotesView.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Lane notes"
 msgstr "Nota lorong"
@@ -2560,6 +2593,7 @@ msgstr "Layout {layout}"
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 #: src/views/LayoutLabView.tsx
+#: src/views/SearchView.tsx
 msgid "Layouts"
 msgstr "Layout"
 
@@ -2670,6 +2704,7 @@ msgstr "Sandbox laluan"
 
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
+#: src/views/SearchView.tsx
 msgid "Line visualizer"
 msgstr "Visualizer laluan"
 
@@ -3049,6 +3084,10 @@ msgstr "Tiada corak sepadan dengan penapis ini"
 msgid "No pins standing"
 msgstr "Tiada pin berdiri"
 
+#: src/views/SearchView.tsx
+msgid "No results for “{query}”"
+msgstr "Tiada hasil untuk “{query}”"
+
 #: src/views/NoSessionView.tsx
 msgid "No session running"
 msgstr "Tiada sesi sedang berjalan"
@@ -3190,6 +3229,7 @@ msgstr "Corak minyak"
 #: src/components/SessionForm.tsx
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
+#: src/views/SearchView.tsx
 msgid "Oil patterns"
 msgstr "Corak minyak"
 
@@ -3568,6 +3608,11 @@ msgstr "Membaca…"
 msgid "Ready to roll"
 msgstr "Sedia membaling"
 
+#. Heading over the last few searches
+#: src/views/SearchView.tsx
+msgid "Recent"
+msgstr "Terkini"
+
 #. Bowling term: the easiest oil pattern tier, a high oil ratio (Kegel's tiers are Sport, Challenge and Recreation)
 #: src/lib/oilPattern.ts
 msgid "Recreation"
@@ -3705,6 +3750,10 @@ msgstr "Bersarakan bola"
 #: src/components/BallFormDialog.tsx
 msgid "Retire this ball?"
 msgstr "Bersarakan bola ini?"
+
+#: src/lib/search.ts
+msgid "Retired"
+msgstr "Dibersarakan"
 
 #: src/components/PatternSheet.tsx
 msgid "Reverse passes"
@@ -3868,8 +3917,14 @@ msgid "Scoring"
 msgstr "Pemarkahan"
 
 #: src/components/ui/SearchField.tsx
+#: src/views/DashboardView.tsx
+#: src/views/SearchView.tsx
 msgid "Search"
 msgstr "Cari"
+
+#: src/views/SearchView.tsx
+msgid "Search Headpin"
+msgstr "Cari dalam Headpin"
 
 #. Bowling term: the coverstock is the outer shell of a ball
 #: src/components/BallFormDialog.tsx
@@ -3880,6 +3935,10 @@ msgstr "Cari nama, jenama, coverstock…"
 #: src/components/OilPatternManager.tsx
 msgid "Search patterns"
 msgstr "Cari corak"
+
+#: src/views/SearchView.tsx
+msgid "Search the ball catalog for “{query}”"
+msgstr "Cari “{query}” dalam katalog bola"
 
 #: src/views/CatalogView.tsx
 msgid "Search the catalog"
@@ -3937,9 +3996,19 @@ msgstr "Statistik sesi"
 msgid "Sessions already bowled on it keep the pattern. If any still use it, it is archived instead of deleted."
 msgstr "Sesi yang sudah dimainkan padanya mengekalkan corak itu. Jika ada yang masih menggunakannya, corak itu diarkibkan dan bukan dipadam."
 
+#. A search result: every session bowled at the alley named
+#: src/lib/search.ts
+msgid "Sessions at {value}"
+msgstr "Sesi di {value}"
+
 #: src/views/StatsView.tsx
 msgid "Sessions counted"
 msgstr "Sesi dikira"
+
+#. A search result: every session bowled on the oil pattern named
+#: src/lib/search.ts
+msgid "Sessions on {value}"
+msgstr "Sesi pada corak {value}"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Set lanes"
@@ -3959,6 +4028,7 @@ msgstr "Menetapkan pasangan lorong untuk permainan ini sahaja."
 
 #. Tab name
 #: src/App.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Settings"
 msgstr "Tetapan"
@@ -4021,6 +4091,11 @@ msgstr "Pin pendek"
 #: src/views/ArsenalView.tsx
 msgid "Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
 msgstr "Balingan yang sudah direkodkan dengan bola ini mengekalkan skornya, tetapi kehilangan nama bola. Untuk mengekalkannya dalam sejarah anda, lebih baik bersarakan bola ini."
+
+#. Expands a group of search results to every one it found
+#: src/views/SearchView.tsx
+msgid "Show all {count}"
+msgstr "Lihat semua {count}"
 
 #: src/components/OilPatternManager.tsx
 msgid "Show archived ({count})"
@@ -4131,6 +4206,7 @@ msgstr "Laluan spare"
 
 #. Bowling term: your saved line (where you stand and aim) for each spare leave
 #: src/components/HomeProfile.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 #: src/views/SpareLinesView.tsx
 msgid "Spare lines"
@@ -4224,6 +4300,7 @@ msgstr "Mulakan sesi"
 #. Tab name: averages and rates, short for statistics
 #: src/App.tsx
 #: src/components/SessionLanePanel.tsx
+#: src/views/SearchView.tsx
 #: src/views/StatsView.tsx
 msgid "Stats"
 msgstr "Statistik"
@@ -4642,6 +4719,11 @@ msgstr "hari ini"
 msgid "Tools and reference"
 msgstr "Alat dan rujukan"
 
+#. Heading over the single best search result
+#: src/views/SearchView.tsx
+msgid "Top hit"
+msgstr "Hasil teratas"
+
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"
 msgstr "Pandangan atas"
@@ -4650,6 +4732,15 @@ msgstr "Pandangan atas"
 #: src/components/PatternSheet.tsx
 msgid "Track zones"
 msgstr "Zon trek"
+
+#. Heading over a few suggested searches
+#: src/views/SearchView.tsx
+msgid "Try"
+msgstr "Cuba"
+
+#: src/views/SearchView.tsx
+msgid "Try a ball, a pattern, an alley or a word you've heard, like pocket."
+msgstr "Cuba bola, corak, pusat boling atau istilah yang pernah anda dengar, seperti pocket."
 
 #: src/components/PatternSheet.tsx
 msgid "Try in the line visualizer"
@@ -4821,8 +4912,8 @@ msgstr "Gunakan laluan untuk pin {pins}"
 
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
-msgid "Using Headpin, layouts and equipment"
-msgstr "Menggunakan Headpin, layout dan peralatan"
+msgid "Using Headpin, bowling terms, layouts and equipment"
+msgstr "Cara guna Headpin, istilah boling, susun atur dan peralatan"
 
 #. Bowling term: vertical axis line, a reference line across the ball through the PAP, square to the grip midline. Keep the abbreviation. A label on a ball diagram.
 #. Bowling term: vertical axis line, a reference line across the ball through the PAP. Keep the abbreviation. A tiny label under an angle on a ball diagram.
@@ -5079,6 +5170,10 @@ msgstr "Skor anda bagi setiap permainan yang selesai."
 #: src/components/AppErrorBoundary.tsx
 msgid "Your scores are still on this device."
 msgstr "Skor anda masih ada pada peranti ini."
+
+#: src/views/SearchView.tsx
+msgid "Your sessions"
+msgstr "Sesi anda"
 
 #: src/views/GamePlanView.tsx
 #: src/views/GameTrendView.tsx

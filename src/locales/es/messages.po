@@ -245,6 +245,10 @@ msgstr "{count, plural, one {# bola} other {# bolas}}"
 msgid "{count, plural, one {# game series} other {# game series}}"
 msgstr "{count, plural, one {serie de # juego} other {serie de # juegos}}"
 
+#: src/lib/search.ts
+msgid "{count, plural, one {# session} other {# sessions}}"
+msgstr "{count, plural, one {# sesión} other {# sesiones}}"
+
 #: src/lib/sessionLabels.ts
 msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, one {Pista {lanes}} other {Pistas {lanes}}}"
@@ -298,6 +302,7 @@ msgstr "{distance} a la derecha"
 #: src/components/OilPatternManager.tsx
 #: src/components/PatternFilterSheet.tsx
 #: src/components/PatternSheet.tsx
+#: src/lib/search.ts
 #: src/lib/shareCard.ts
 msgid "{feet} ft"
 msgstr "{feet} ft"
@@ -504,6 +509,10 @@ msgstr "Pino {pin} en pie"
 #: src/components/ActiveGameScorer.tsx
 msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
 msgstr "{pins, plural, one {cuadro {frame}, bola {ball} (# pino)} other {cuadro {frame}, bola {ball} (# pinos)}}"
+
+#: src/components/PatternSheet.tsx
+msgid "{sessionCount, plural, one {Your # session on this pattern} other {Your # sessions on this pattern}}"
+msgstr "{sessionCount, plural, one {Tu # sesión en este patrón} other {Tus # sesiones en este patrón}}"
 
 #: src/components/BallEstimates.tsx
 msgid "{sessions, plural, one {# session} other {# sessions}}"
@@ -862,6 +871,7 @@ msgstr "El boliche y la pista son obligatorios."
 
 #: src/components/HomeProfile.tsx
 #: src/views/GamePlanView.tsx
+#: src/views/SearchView.tsx
 msgid "Alley report"
 msgstr "Reporte del boliche"
 
@@ -907,6 +917,7 @@ msgstr "Diagrama de las tablas de la aproximación para un jugador diestro, divi
 
 #: src/components/HomeProfile.tsx
 #: src/views/ArsenalView.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Arsenal"
 msgstr "Arsenal"
@@ -1004,6 +1015,7 @@ msgid "Backend"
 msgstr "Parte final"
 
 #: src/views/BackupRestoreView.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Backup & restore"
 msgstr "Respaldos"
@@ -1055,6 +1067,7 @@ msgstr "Bola #{ballId}"
 
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
+#: src/views/SearchView.tsx
 msgid "Ball catalog"
 msgstr "Catálogo de bolas"
 
@@ -1077,6 +1090,11 @@ msgstr "Bola: ninguna. Toca para cambiar"
 #: src/components/Stats.tsx
 msgid "Balls"
 msgstr "Bolas"
+
+#. Placeholder of the app-wide search field: the kinds of thing it finds
+#: src/views/SearchView.tsx
+msgid "Balls, patterns, alleys, terms"
+msgstr "Bolas, patrones, boliches, términos"
 
 #. A drilling layout preset name on the layout lab: the middle of every range
 #: src/lib/ballLayout.ts
@@ -1129,6 +1147,11 @@ msgstr "Diagrama de líneas de la pista de boliche"
 #: src/views/SettingsView.tsx
 msgid "Bowling profile"
 msgstr "Perfil de boliche"
+
+#. A group of search results: words bowlers use, and what each means
+#: src/views/SearchView.tsx
+msgid "Bowling terms"
+msgstr "Términos de boliche"
 
 #: src/views/CatalogView.tsx
 msgid "Brand"
@@ -1277,7 +1300,9 @@ msgstr "Elegir un archivo de respaldo"
 msgid "Choose one"
 msgstr "Elige uno"
 
+#. Removes every recent search
 #: src/components/SessionFilterBar.tsx
+#: src/views/SearchView.tsx
 msgid "Clear"
 msgstr "Borrar"
 
@@ -2112,6 +2137,11 @@ msgstr "Obtén Pro para visualizar el layout de tu bola"
 msgid "Get the app"
 msgstr "Obtener la app"
 
+#. A group of search results: screens of the app to open
+#: src/views/SearchView.tsx
+msgid "Go to"
+msgstr "Ir a"
+
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
 msgstr "Ir al cuadro {frameNumber}"
@@ -2150,6 +2180,7 @@ msgstr "Estilo de agarre"
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 #: src/views/GuidesView.tsx
+#: src/views/SearchView.tsx
 msgid "Guides"
 msgstr "Guías"
 
@@ -2227,6 +2258,7 @@ msgstr "Juego más alto"
 #. Tab name: the list of past sessions
 #: src/App.tsx
 #: src/views/HistoryView.tsx
+#: src/views/SearchView.tsx
 msgid "History"
 msgstr "Historial"
 
@@ -2436,6 +2468,7 @@ msgstr "La pista debe ser un número entero."
 
 #: src/components/HomeProfile.tsx
 #: src/views/LaneNotesView.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Lane notes"
 msgstr "Notas de pista"
@@ -2560,6 +2593,7 @@ msgstr "Layout {layout}"
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
 #: src/views/LayoutLabView.tsx
+#: src/views/SearchView.tsx
 msgid "Layouts"
 msgstr "Layouts"
 
@@ -2670,6 +2704,7 @@ msgstr "Laboratorio de líneas"
 
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
+#: src/views/SearchView.tsx
 msgid "Line visualizer"
 msgstr "Visualizador de líneas"
 
@@ -3049,6 +3084,10 @@ msgstr "Ningún patrón coincide con estos filtros"
 msgid "No pins standing"
 msgstr "Sin pinos en pie"
 
+#: src/views/SearchView.tsx
+msgid "No results for “{query}”"
+msgstr "Sin resultados para “{query}”"
+
 #: src/views/NoSessionView.tsx
 msgid "No session running"
 msgstr "No hay una sesión en curso"
@@ -3190,6 +3229,7 @@ msgstr "Patrón de aceite"
 #: src/components/SessionForm.tsx
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
+#: src/views/SearchView.tsx
 msgid "Oil patterns"
 msgstr "Patrones de aceite"
 
@@ -3568,6 +3608,11 @@ msgstr "Leyendo…"
 msgid "Ready to roll"
 msgstr "Listo para jugar"
 
+#. Heading over the last few searches
+#: src/views/SearchView.tsx
+msgid "Recent"
+msgstr "Recientes"
+
 #. Bowling term: the easiest oil pattern tier, a high oil ratio (Kegel's tiers are Sport, Challenge and Recreation)
 #: src/lib/oilPattern.ts
 msgid "Recreation"
@@ -3705,6 +3750,10 @@ msgstr "Retirar bola"
 #: src/components/BallFormDialog.tsx
 msgid "Retire this ball?"
 msgstr "¿Retirar esta bola?"
+
+#: src/lib/search.ts
+msgid "Retired"
+msgstr "Retirada"
 
 #: src/components/PatternSheet.tsx
 msgid "Reverse passes"
@@ -3868,8 +3917,14 @@ msgid "Scoring"
 msgstr "Puntaje"
 
 #: src/components/ui/SearchField.tsx
+#: src/views/DashboardView.tsx
+#: src/views/SearchView.tsx
 msgid "Search"
 msgstr "Buscar"
+
+#: src/views/SearchView.tsx
+msgid "Search Headpin"
+msgstr "Buscar en Headpin"
 
 #. Bowling term: the coverstock is the outer shell of a ball
 #: src/components/BallFormDialog.tsx
@@ -3880,6 +3935,10 @@ msgstr "Buscar nombre, marca, cubierta…"
 #: src/components/OilPatternManager.tsx
 msgid "Search patterns"
 msgstr "Buscar patrones"
+
+#: src/views/SearchView.tsx
+msgid "Search the ball catalog for “{query}”"
+msgstr "Buscar “{query}” en el catálogo de bolas"
 
 #: src/views/CatalogView.tsx
 msgid "Search the catalog"
@@ -3937,9 +3996,19 @@ msgstr "Estadísticas de la sesión"
 msgid "Sessions already bowled on it keep the pattern. If any still use it, it is archived instead of deleted."
 msgstr "Las sesiones ya jugadas con él conservan el patrón. Si alguna lo sigue usando, se archiva en lugar de eliminarse."
 
+#. A search result: every session bowled at the alley named
+#: src/lib/search.ts
+msgid "Sessions at {value}"
+msgstr "Sesiones en {value}"
+
 #: src/views/StatsView.tsx
 msgid "Sessions counted"
 msgstr "Sesiones contadas"
+
+#. A search result: every session bowled on the oil pattern named
+#: src/lib/search.ts
+msgid "Sessions on {value}"
+msgstr "Sesiones con {value}"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Set lanes"
@@ -3959,6 +4028,7 @@ msgstr "Define el par solo para este juego."
 
 #. Tab name
 #: src/App.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 msgid "Settings"
 msgstr "Ajustes"
@@ -4021,6 +4091,11 @@ msgstr "Pin corto"
 #: src/views/ArsenalView.tsx
 msgid "Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
 msgstr "Los tiros ya registrados con esta bola conservan su puntaje, pero pierden el nombre de la bola. Para conservarla en tu historial, mejor retírala."
+
+#. Expands a group of search results to every one it found
+#: src/views/SearchView.tsx
+msgid "Show all {count}"
+msgstr "Ver las {count}"
 
 #: src/components/OilPatternManager.tsx
 msgid "Show archived ({count})"
@@ -4131,6 +4206,7 @@ msgstr "Línea de spare"
 
 #. Bowling term: your saved line (where you stand and aim) for each spare leave
 #: src/components/HomeProfile.tsx
+#: src/views/SearchView.tsx
 #: src/views/SettingsView.tsx
 #: src/views/SpareLinesView.tsx
 msgid "Spare lines"
@@ -4224,6 +4300,7 @@ msgstr "Nueva sesión"
 #. Tab name: averages and rates, short for statistics
 #: src/App.tsx
 #: src/components/SessionLanePanel.tsx
+#: src/views/SearchView.tsx
 #: src/views/StatsView.tsx
 msgid "Stats"
 msgstr "Estadísticas"
@@ -4642,6 +4719,11 @@ msgstr "hoy"
 msgid "Tools and reference"
 msgstr "Herramientas"
 
+#. Heading over the single best search result
+#: src/views/SearchView.tsx
+msgid "Top hit"
+msgstr "Mejor resultado"
+
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"
 msgstr "Vista superior"
@@ -4650,6 +4732,15 @@ msgstr "Vista superior"
 #: src/components/PatternSheet.tsx
 msgid "Track zones"
 msgstr "Zonas de la pista"
+
+#. Heading over a few suggested searches
+#: src/views/SearchView.tsx
+msgid "Try"
+msgstr "Prueba"
+
+#: src/views/SearchView.tsx
+msgid "Try a ball, a pattern, an alley or a word you've heard, like pocket."
+msgstr "Prueba una bola, un patrón, un boliche o una palabra que hayas oído, como pocket."
 
 #: src/components/PatternSheet.tsx
 msgid "Try in the line visualizer"
@@ -4821,8 +4912,8 @@ msgstr "Usar la línea para los pinos {pins}"
 
 #: src/components/ToolCards.tsx
 #: src/components/ToolsList.tsx
-msgid "Using Headpin, layouts and equipment"
-msgstr "Uso de Headpin, layouts y equipo"
+msgid "Using Headpin, bowling terms, layouts and equipment"
+msgstr "Cómo usar Headpin, términos de boliche, layouts y equipo"
 
 #. Bowling term: vertical axis line, a reference line across the ball through the PAP, square to the grip midline. Keep the abbreviation. A label on a ball diagram.
 #. Bowling term: vertical axis line, a reference line across the ball through the PAP. Keep the abbreviation. A tiny label under an angle on a ball diagram.
@@ -5079,6 +5170,10 @@ msgstr "Tu puntaje por juego terminado."
 #: src/components/AppErrorBoundary.tsx
 msgid "Your scores are still on this device."
 msgstr "Tus puntajes siguen en este dispositivo."
+
+#: src/views/SearchView.tsx
+msgid "Your sessions"
+msgstr "Tus sesiones"
 
 #: src/views/GamePlanView.tsx
 #: src/views/GameTrendView.tsx
