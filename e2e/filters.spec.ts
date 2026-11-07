@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { clearDatabase, recordShot, startSession } from "./helpers";
+import { clearDatabase, seedFinishedSessions } from "./helpers";
+import type { Page } from "@playwright/test";
 
 // Taps, not clicks. The chip bug was invisible to a mouse: the click handler
 // ran either way, but only the touch path left the view rendering the old
@@ -8,17 +9,13 @@ import { clearDatabase, recordShot, startSession } from "./helpers";
 test.use({ hasTouch: true, isMobile: true });
 
 /** Two nights at two houses, so there is something to filter down to. */
-async function twoNights(page: Parameters<typeof startSession>[0]) {
+async function twoNights(page: Page) {
   await clearDatabase(page);
-  for (const alley of ["Alpha Lanes", "Beta Lanes"]) {
-    await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
-    await startSession(page, alley);
-    for (let i = 0; i < 12; i++) await recordShot(page, []);
-  }
+  await seedFinishedSessions(page, ["Alpha Lanes", "Beta Lanes"]);
   await page.getByRole("button", { name: "History" }).click();
 }
 
-async function applyAlley(page: Parameters<typeof startSession>[0], alley: string) {
+async function applyAlley(page: Page, alley: string) {
   await page.getByRole("button", { name: /^Filters/ }).tap();
   await page.getByLabel("Alley").selectOption(alley);
   await page.getByRole("dialog", { name: "Filters" }).getByRole("button", { name: "Done" }).tap();
@@ -28,11 +25,7 @@ test("the alley list leads with the house bowled most", async ({ page }) => {
   await clearDatabase(page);
   // Beta twice, Alpha once. Alphabetical would put Alpha first, so the order
   // here is the frequency rule and nothing else.
-  for (const alley of ["Alpha Lanes", "Beta Lanes", "Beta Lanes"]) {
-    await page.getByRole("navigation").getByRole("button", { name: "Home" }).click();
-    await startSession(page, alley);
-    for (let i = 0; i < 12; i++) await recordShot(page, []);
-  }
+  await seedFinishedSessions(page, ["Alpha Lanes", "Beta Lanes", "Beta Lanes"]);
   await page.getByRole("button", { name: "History" }).click();
 
   await page.getByRole("button", { name: /^Filters/ }).tap();

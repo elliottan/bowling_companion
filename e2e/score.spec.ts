@@ -21,16 +21,6 @@ test("scores strike, spare, and open frames with a correct running total", async
   await expect(page.getByText("20").first()).toBeVisible();
 });
 
-test("persists the session and shows it in history", async ({ page }) => {
-  await startSession(page, "History Lanes");
-  await recordShot(page, []); // one strike so a frame is saved
-
-  await page.getByRole("button", { name: "History" }).click();
-  // The session row is a button; a location-filter <option> shares the alley
-  // name, so target the row specifically.
-  await expect(page.getByRole("button", { name: /History Lanes/ })).toBeVisible();
-});
-
 test("editing a past shot inline (no edit button) re-derives the frame", async ({ page }) => {
   await startSession(page, "Edit Lanes");
   await recordShot(page, []); // F1 strike
@@ -51,8 +41,11 @@ test("editing a past shot inline (no edit button) re-derives the frame", async (
   await expect(page.getByText("/").first()).toBeVisible();
 });
 
-test("10th frame: strike + spare + open third shot scores correctly", async ({ page }) => {
+test("10th frame: a strike earns two more balls, and the game ends on the right total", async ({ page }) => {
   await startSession(page, "Tenth Lanes");
+
+  // Live entry is active while the game is in progress.
+  await expect(page.getByRole("button", { name: RECORD_SHOT })).toBeVisible();
 
   // Bowl frames 1-9 as open (leave 8,9,10 each = 7 pinfall).
   for (let f = 1; f <= 9; f++) {
@@ -60,27 +53,16 @@ test("10th frame: strike + spare + open third shot scores correctly", async ({ p
     await recordShot(page, [8, 9, 10]);
   }
 
-  // 10th: a strike earns three balls — strike, then 9, then the final ball.
+  // 10th: a strike earns three balls: strike, then 9, then the third ball at
+  // the 7 left standing, which it picks up (only the 7 is still up to tap).
   await recordShot(page, []); // shot 1 strike (earns shots 2 + 3)
   await recordShot(page, [7]); // shot 2 leaves the 7
-  await recordShot(page, [4, 8, 9, 10]); // shot 3 final ball
+  await recordShot(page, [4, 8, 9, 10]); // shot 3 clears the 7
 
   // Game complete → the live-entry "Next" control disappears.
   await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
-});
-
-test("completing a game removes the live-entry controls", async ({ page }) => {
-  await startSession(page, "Next Game Lanes");
-
-  // Live entry is active while the game is in progress.
-  await expect(page.getByRole("button", { name: RECORD_SHOT })).toBeVisible();
-
-  // Bowl a perfect game to complete it.
-  for (let i = 0; i < 12; i++) {
-    await recordShot(page, []);
-  }
-
-  await expect(page.getByRole("button", { name: RECORD_SHOT })).toHaveCount(0);
+  // Nine frames of 7 and a tenth of X 9 /: 63 + 20.
+  await expect(page.getByText("83", { exact: true }).first()).toBeVisible();
   // Nothing that records a ball is left on a finished game, undo included
   // (ADR-094): the way back in is Edit shots.
   await expect(page.getByRole("button", { name: "Undo last shot" })).toHaveCount(0);

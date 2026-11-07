@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
 import { APP_STORE_URL, FREE_APP_PATH, PRO_OPEN, PRO_OWNED, appProAccess, appStoreId, devProUnlock, isFreeAppPath, openAppStore, webProAccess } from "./pro";
 import { LOCK_FREE_WEB } from "./appStore";

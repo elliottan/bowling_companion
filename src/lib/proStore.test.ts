@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { PRO_PRODUCT_ID, sellsPro, useProStore, type StorePlugin } from "./proStore";

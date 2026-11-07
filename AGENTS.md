@@ -50,8 +50,9 @@ green `verify`. `npm test` skips coverage, so it is for a fast inner loop, never
 for the last run before a push. Deploy by merging to
 `main`; the `deploy` skill is the manual fallback.
 
-`verify` runs exactly what CI runs, in the same order, and that is the point of
-it. It once did not: CI ran `test:coverage` and `verify` ran plain `npm test`,
+`verify` runs exactly what CI runs, and that is the point of it. CI runs the
+same commands as parallel jobs (checks, then the e2e browsers side by side),
+which changes the wall clock and nothing else. It once did not: CI ran `test:coverage` and `verify` ran plain `npm test`,
 so two pushes cleared a green `verify`, went straight to production through
 Vercel, and only then turned CI red on a coverage floor. A gate that is weaker
 than the judge is not a gate.

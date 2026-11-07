@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "../db/bowlingDb";
 import { gameFinished } from "../lib/usage";

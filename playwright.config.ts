@@ -26,7 +26,12 @@ export default defineConfig({
   // which reproduces at the 51st test of 52 and not in any smaller subset. It
   // is tracked in docs/ROADMAP.md rather than papered over silently.
   retries: 1,
-  workers: 1,
+  // Two at a time. Each test has a browser context of its own, so its own
+  // IndexedDB, and nothing else is shared but the dev server. One at a time
+  // was the default this started from rather than a need, and it was most of
+  // the wall clock. Files are spread across the workers; a file's tests still
+  // run in order (fullyParallel above).
+  workers: 2,
   reporter: process.env.CI ? "list" : "line",
   use: {
     baseURL: `http://localhost:${port}`,

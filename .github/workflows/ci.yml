@@ -6,13 +6,23 @@ on:
   pull_request:
     branches: [main]
 
+# A newer push to the same PR makes the older run moot; main is never
+# cancelled, because every push there is a deploy and wants its own verdict.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+# The gate is `npm run verify`, run as parallel jobs rather than one line of
+# steps: the same commands, nothing skipped, so it is no weaker than the local
+# `verify`, but the wall clock is the slowest job rather than the sum of them.
+# It used to be one job of about 23 minutes, 18 of them end-to-end tests run
+# one at a time, Chromium then WebKit.
 jobs:
-  verify:
+  checks:
     # Pinned: ubuntu-latest is Ubuntu 26.04 now, which Playwright 1.60 cannot install browsers on.
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-      issues: write
     steps:
       - uses: actions/checkout@v4
 
@@ -39,37 +49,75 @@ jobs:
       - name: Build (typecheck + production bundle + PWA)
         run: npm run build
 
-      # Both projects in playwright.config.ts, not just chromium. The webkit
-      # project is the iPhone the launch crowd actually bowls with, and CI
-      # installed only chromium, so all 54 of its tests failed to launch a
-      # browser. It went unseen while the copy sweep crashed the run before
-      # the e2e step was ever reached.
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium webkit
+  e2e:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    strategy:
+      # Every browser reports, so one red does not hide another.
+      fail-fast: false
+      matrix:
+        include:
+          # Both projects in playwright.config.ts, not just chromium. The
+          # webkit project is the iPhone the launch crowd actually bowls with.
+          - name: chromium
+            browser: chromium
+            args: --project=chromium --grep-invert "text fit"
+          - name: webkit
+            browser: webkit
+            args: --project=webkit
+          # Eight languages, each a walk of every main screen, and one engine
+          # is enough for font metrics (ADR-225). Its own job, the locales four
+          # at a time: run in line it was five and a half minutes on its own.
+          - name: text-fit
+            browser: chromium
+            args: --project=chromium e2e/text-fit.spec.ts --workers=4
+            fonts: true
+    name: e2e (${{ matrix.name }})
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install the Playwright browser
+        run: npx playwright install --with-deps ${{ matrix.browser }}
 
       # The faces e2e/text-fit.spec.ts measures with: Inter for Latin text,
       # close to the phones' own, and Noto Sans CJK. Without them the runner
       # falls back to DejaVu Sans, far wider than any phone (ADR-225).
       - name: Install fonts for the text-fit check
+        if: matrix.fonts
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends fonts-inter fonts-noto-cjk
 
-      - name: End-to-end smoke tests
-        run: npm run test:e2e
+      - name: End-to-end tests
+        run: npx playwright test ${{ matrix.args }}
 
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.name }}
           path: playwright-report/
           retention-days: 7
 
-      # A red run on `main` is a shipped-broken production build, because
-      # Vercel deploys the push regardless of this workflow. Four such runs
-      # once went unnoticed for a day, so a failure files an issue rather than
-      # waiting to be looked at.
+  # A red run on `main` is a shipped-broken production build, because
+  # Vercel deploys the push regardless of this workflow. Four such runs
+  # once went unnoticed for a day, so a failure files an issue rather than
+  # waiting to be looked at.
+  report:
+    needs: [checks, e2e]
+    if: failure() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+    steps:
       - name: Open an issue when main is red
-        if: failure() && github.ref == 'refs/heads/main'
         uses: actions/github-script@v7
         with:
           script: |
