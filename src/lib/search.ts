@@ -1,7 +1,7 @@
 import { plural, t } from "@lingui/core/macro";
 import type { Ball, OilPattern, SessionSummary } from "../types/bowling";
 import type { CatalogBall } from "../types/catalog";
-import { GUIDES } from "./guides";
+import { GUIDES, termSlug } from "./guides";
 import { patternLength } from "./oilPattern";
 import { formatNumber } from "./format";
 
@@ -65,7 +65,7 @@ export type SearchTarget =
   | { kind: "sessions"; facet: SessionFacet; value: string }
   | { kind: "arsenal-ball"; ballId: number }
   | { kind: "catalog-ball"; catalogId: string }
-  | { kind: "guide"; guideId: string }
+  | { kind: "guide"; guideId: string; term?: string }
   | { kind: "screen"; screen: SearchScreen };
 
 export interface SearchItem {
@@ -296,7 +296,7 @@ export function buildSearchIndex(sources: SearchSources): SearchItem[] {
           // either half is how a bowler would ask for it.
           terms: [entry.term, ...entry.term.split(/,\s*/).slice(1)],
           aliases: entry.aliases,
-          target: { kind: "guide", guideId: guide.id }
+          target: { kind: "guide", guideId: guide.id, term: termSlug(entry.term) }
         });
       });
     });

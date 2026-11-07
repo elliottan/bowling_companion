@@ -107,7 +107,7 @@ describe("the search index", () => {
         (i): i is NonNullable<typeof i> => i?.section === "terms"
       );
     };
-    expect(term("brooklyn")[0]?.target).toEqual({ kind: "guide", guideId: "strike-words" });
+    expect(term("brooklyn")[0]?.target).toEqual({ kind: "guide", guideId: "bowling-terms", term: "brooklyn" });
     expect(term("bird dog").some((i) => i.title === "Messenger")).toBe(true);
     // "PAP, the positive axis point", found by its second half.
     expect(term("positive axis").some((i) => i.title.startsWith("PAP"))).toBe(true);

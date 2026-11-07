@@ -9,6 +9,18 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.92.0: Every bowling term on one page, with pictures (2026-11-07)
+
+- The five Bowling terms guides are now one page, Bowling terms, with a
+  search at the top that narrows it as you type (ADR-249).
+- Terms have pictures where one helps: named leaves and splits on a pin deck,
+  the pocket, a Brooklyn and high and light hits with the ball meeting the
+  rack, the 6 pin wrapping around the 10 on a ringing 10 and lying in the
+  gutter on a flat 10, drawn for right- and left-handers, scoring words as
+  scoresheet frames, and lane and oil words on a drawing of the lane.
+- A term found in the app's search opens this page scrolled to that term,
+  marked for a moment.
+
 ## 0.91.0: Your patterns first, and plainer bowling terms (2026-11-07)
 
 - Oil patterns lists the ones you bowl on most first, in order of how many
