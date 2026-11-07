@@ -1,3 +1,4 @@
+import { t } from "@lingui/core/macro";
 import { ArrowUpRight, MailPlus } from "lucide-react";
 import type { ReactNode } from "react";
 import { catalogRequestMailto, openMail, type CatalogRequestKind } from "../lib/links";
@@ -9,8 +10,6 @@ import { ListGroup, ListRow } from "./ui/ListGroup";
 function openRequest(kind: CatalogRequestKind, query: string) {
   openMail(catalogRequestMailto(kind, query));
 }
-
-const NOUN: Record<CatalogRequestKind, string> = { ball: "ball", pattern: "pattern" };
 
 /**
  * What a search that found nothing says: the catalog is missing it, and the
@@ -31,16 +30,16 @@ export function CatalogRequestEmpty({
   return (
     <EmptyState
       icon={kind === "ball" ? BowlingBallIcon : OilPatternIcon}
-      title={`Nothing matches "${typed}"`}
+      title={t`Nothing matches "${{ query: typed }}"`}
       description={
         kind === "ball"
-          ? "Tell us which ball it is and we'll add it to the catalog."
-          : "Send us the pattern sheet and we'll add it to the catalog."
+          ? t`Tell us which ball it is and we'll add it to the catalog.`
+          : t`Send us the pattern sheet and we'll add it to the catalog.`
       }
     >
       <Button variant="primary" onClick={() => openRequest(kind, typed)}>
         <MailPlus size={16} aria-hidden="true" />
-        Request this {NOUN[kind]}
+        {kind === "ball" ? t`Request this ball` : t`Request this pattern`}
       </Button>
       {children}
     </EmptyState>
@@ -55,7 +54,7 @@ export function CatalogRequestRow({ kind, query = "" }: { kind: CatalogRequestKi
       <ListGroup>
         <ListRow
           icon={MailPlus}
-          label={`Request a ${NOUN[kind]}`}
+          label={kind === "ball" ? t`Request a ball` : t`Request a pattern`}
           onClick={() => openRequest(kind, query)}
           trailing={<ArrowUpRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />}
         />

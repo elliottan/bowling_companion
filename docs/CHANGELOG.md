@@ -9,6 +9,21 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.89.2: Fixes from a bug bash (2026-11-06)
+
+- Correcting the first ball of the frame you are bowling, by tapping it on
+  the card, no longer records a spare you never threw: the frame stays open
+  for ball 2 (ADR-246).
+- On a narrow phone, or in a longer language, the Pocket toggle no longer
+  sits over the 1 pin and takes its taps. The deck keeps room for it under
+  the pins.
+- Text that stayed in English in every language is now translated: the
+  "Request a ball" and "Request a pattern" rows and their empty searches, the
+  lane sheet's "Game 1, frame 1 starts on", the title of the sheet a Stats
+  game point opens, the App Store messages on the Pro buttons, and the error
+  for restoring a file that is not a backup.
+- The Kegel pattern Dead Man's Curve V2 is no longer spelled "Dead Man'S".
+
 ## 0.89.1: One number per decision (2026-11-06)
 
 - No change in the app. The decision behind the new Home is renumbered

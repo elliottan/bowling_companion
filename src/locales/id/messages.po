@@ -91,6 +91,11 @@ msgstr "{0, plural, other {# lintasan}}"
 msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, other {# pola}}"
 
+#. placeholder {0}: sessions.length
+#: src/components/GameSlotSessionsDialog.tsx
+msgid "{0, plural, one {# session, newest first} other {# sessions, newest first}}"
+msgstr "{0, plural, other {# sesi, terbaru dulu}}"
+
 #. placeholder {0}: pending.incoming.sessions
 #. placeholder {0}: stats.totalSessions
 #: src/components/FirstRun.tsx
@@ -2005,6 +2010,7 @@ msgstr "Game"
 msgid "game {gameNumber}"
 msgstr "game {gameNumber}"
 
+#: src/components/GameSlotSessionsDialog.tsx
 #: src/components/LiveActivityPreviews.tsx
 #: src/components/SessionFilterBar.tsx
 #: src/components/SessionLanePanel.tsx
@@ -2057,6 +2063,10 @@ msgstr "Lintasan game {gameNumber}"
 msgid "Game {gameNumber}, {score}"
 msgstr "Game {gameNumber}, {score}"
 
+#: src/views/ActiveSessionView.tsx
+msgid "Game {gameNumber}, frame 1 starts on"
+msgstr "Game {gameNumber}, frame 1 dimulai di"
+
 #: src/components/ScoreTrendChart.tsx
 msgid "Game {gameNumber}: {score}"
 msgstr "Game {gameNumber}: {score}"
@@ -2089,6 +2099,7 @@ msgstr "Dapatkan"
 msgid "Get a deeper analysis of your stats."
 msgstr "Dapatkan analisis statistikmu yang lebih dalam."
 
+#: src/components/ui/useProAction.tsx
 #: src/views/SettingsView.tsx
 msgid "Get Headpin Pro"
 msgstr "Dapatkan Headpin Pro"
@@ -3117,6 +3128,10 @@ msgstr "Tidak ada dalam 3 bulan terakhir"
 msgid "Nothing matches"
 msgstr "Tidak ada yang cocok"
 
+#: src/components/CatalogRequest.tsx
+msgid "Nothing matches \"{query}\""
+msgstr "Tidak ada yang cocok dengan \"{query}\""
+
 #: src/views/OpenFramesView.tsx
 msgid "Nothing open yet"
 msgstr "Belum ada open frame"
@@ -3621,6 +3636,22 @@ msgstr "Ganti semuanya"
 msgid "Replacing"
 msgstr "Mengganti"
 
+#: src/components/CatalogRequest.tsx
+msgid "Request a ball"
+msgstr "Minta bola"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request a pattern"
+msgstr "Minta pola"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request this ball"
+msgstr "Minta bola ini"
+
+#: src/components/CatalogRequest.tsx
+msgid "Request this pattern"
+msgstr "Minta pola ini"
+
 #: src/views/CatalogView.tsx
 msgid "Reset all filters"
 msgstr "Setel ulang semua filter"
@@ -3858,6 +3889,10 @@ msgstr "Cari di katalog"
 msgid "Second lane"
 msgstr "Lintasan kedua"
 
+#: src/components/ui/useProAction.tsx
+msgid "See Headpin Pro"
+msgstr "Lihat Headpin Pro"
+
 #: src/views/SettingsView.tsx
 msgid "See what Pro adds"
 msgstr "Lihat tambahan di Pro"
@@ -3869,6 +3904,10 @@ msgstr "Pilih setidaknya satu pin untuk sisa pin ini."
 #: src/views/SettingsView.tsx
 msgid "Send feedback"
 msgstr "Kirim masukan"
+
+#: src/components/CatalogRequest.tsx
+msgid "Send us the pattern sheet and we'll add it to the catalog."
+msgstr "Kirim lembar polanya ke kami dan kami tambahkan ke katalog."
 
 #: src/lib/shareCard.ts
 msgid "Series"
@@ -4413,6 +4452,10 @@ msgstr "Papan target (panah)"
 msgid "Tell me"
 msgstr "Ceritakan"
 
+#: src/components/CatalogRequest.tsx
+msgid "Tell us which ball it is and we'll add it to the catalog."
+msgstr "Beri tahu kami bola apa itu dan kami tambahkan ke katalog."
+
 #: src/views/AppearanceView.tsx
 msgid "Text size"
 msgstr "Ukuran teks"
@@ -4422,6 +4465,7 @@ msgid "That file could not be read."
 msgstr "File itu tidak bisa dibaca."
 
 #: src/lib/backupValidation.ts
+#: src/services/backupRepository.ts
 msgid "That file is not a Headpin backup."
 msgstr "File itu bukan cadangan Headpin."
 
@@ -4429,11 +4473,13 @@ msgstr "File itu bukan cadangan Headpin."
 msgid "The app crashed"
 msgstr "Aplikasi berhenti mendadak"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "The App Store did not answer: {reason}"
 msgstr "App Store tidak merespons: {reason}"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "The App Store did not answer. Try again in a moment."
@@ -4853,6 +4899,7 @@ msgstr "Volume"
 msgid "Waiting for a connection"
 msgstr "Menunggu koneksi"
 
+#: src/components/ui/useProAction.tsx
 #: src/views/SettingsView.tsx
 msgid "Waiting for approval. Pro opens as soon as it comes through."
 msgstr "Menunggu persetujuan. Pro terbuka begitu persetujuan masuk."

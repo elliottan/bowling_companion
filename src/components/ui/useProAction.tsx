@@ -69,13 +69,15 @@ export function useProAction(access: LockedProAccess): ProAction {
     }
   }
   return {
-    label: "Get Headpin Pro",
+    label: t`Get Headpin Pro`,
     busy: state === "busy",
     note:
       state === "pending"
-        ? "Waiting for approval. Pro opens as soon as it comes through."
+        ? t`Waiting for approval. Pro opens as soon as it comes through.`
         : state === "failed"
-          ? `The App Store did not answer${why ? `: ${why}` : ". Try again in a moment."}`
+          ? why
+            ? t`The App Store did not answer: ${{ reason: why }}`
+            : t`The App Store did not answer. Try again in a moment.`
           : null,
     start: () => void buy(),
     dialog: null
@@ -94,7 +96,7 @@ export function useProEntry(access: LockedProAccess): ProAction {
   // The Pro page is always there to read, listed or not.
   return {
     ...direct,
-    label: direct.unavailable ? "See Headpin Pro" : direct.label,
+    label: direct.unavailable ? t`See Headpin Pro` : direct.label,
     busy: false,
     unavailable: false,
     note: null,

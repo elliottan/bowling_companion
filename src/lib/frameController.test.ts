@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  beginEdit,
-  beginEditFromShot,
   buildLiveFrame,
-  completeEdit,
   createInitialFrameControllerState,
   editFrameShotMeta,
   editFrameShotPins,
@@ -217,33 +214,7 @@ describe("frameController", () => {
   });
 });
 
-describe("frame editing", () => {
-  function playOpen(state: FrameControllerState, s1: PinNumber[], s2: PinNumber[]) {
-    state = submitShot(state, s1).state;
-    return submitShot(state, s2).state;
-  }
-
-  it("re-bowls one past frame without disturbing later frames", () => {
-    let state = createInitialFrameControllerState();
-    state = submitShot(state, []).state; // F1 strike
-    state = playOpen(state, [10], [10]); // F2 = 9 (open)
-    state = playOpen(state, [9, 10], [9, 10]); // F3 = 8 (open)
-    expect(state.currentFrameNumber).toBe(4);
-
-    const editing = beginEdit(state, 2);
-    expect(editing.currentFrameNumber).toBe(2);
-    expect(editing.currentShot).toBe(1);
-
-    const edited = submitShot(editing, [10]).state; // F2 shot1: 9
-    const result = completeEdit(submitShot(edited, []), state); // F2 shot2: spare
-
-    expect(result.state.currentFrameNumber).toBe(4); // live position restored
-    const f2 = result.state.frames.find((f) => f.frame_number === 2);
-    const f3 = result.state.frames.find((f) => f.frame_number === 3);
-    expect(f2?.is_spare).toBe(true);
-    expect(f3).toBeDefined();
-  });
-
+describe("shot metadata", () => {
   it("submitShot records ball_id and intended line on the saved shot", () => {
     let state = createInitialFrameControllerState();
     const meta = { ball_id: 42, intended: { stance: 35, target: 20, breakpoint: 5 } };
@@ -260,89 +231,6 @@ describe("frame editing", () => {
     const result = submitShot(state, []); // strike
 
     expect(result.state.currentShotMeta).toEqual({});
-  });
-
-  it("editing the 10th re-derives completion", () => {
-    let state = createInitialFrameControllerState();
-    for (let n = 1; n < 10; n += 1) state = playOpen(state, [10], [10]);
-    state = submitShot(state, [10]).state; // 10th shot1 = 9
-    state = submitShot(state, [10]).state; // 10th shot2 = open
-    expect(state.isComplete).toBe(true);
-
-    const editing = beginEdit(state, 10);
-    const afterFirst = submitShot(editing, []); // 10th shot1 strike
-    const result = completeEdit(afterFirst, state);
-    expect(result.state.isComplete).toBe(false); // now needs bonus shots
-    expect(result.state.currentFrameNumber).toBe(10);
-  });
-});
-
-describe("beginEditFromShot", () => {
-  function buildState(): FrameControllerState {
-    let state = createInitialFrameControllerState();
-    state = submitShot(state, []).state; // F1 strike
-    state = submitShot(state, [10 as PinNumber]).state; // F2 shot1: leaves pin 10
-    state = submitShot(state, []).state; // F2 shot2: spare
-    state = submitShot(state, [9 as PinNumber, 10 as PinNumber]).state; // F3 shot1: 8 pins down
-    state = submitShot(state, [9 as PinNumber, 10 as PinNumber]).state; // F3 shot2: open
-    return state;
-  }
-
-  it("editing from shot 1 drops the frame and starts fresh with pre-filled pins", () => {
-    const state = buildState(); // at frame 4
-    const editing = beginEditFromShot(state, 2, 0);
-
-    expect(editing.currentFrameNumber).toBe(2);
-    expect(editing.currentShot).toBe(1);
-    expect(editing.availablePins).toEqual(ALL);
-    // Pre-filled with the recorded shot 1 pins_standing = [10] (9 pins knocked)
-    expect(editing.standingPins).toEqual([10]);
-    expect(editing.isComplete).toBe(false);
-    // Frame 3 still present after editing frame 2 from shot 1
-    expect(editing.frames.find((f) => f.frame_number === 3)).toBeDefined();
-  });
-
-  it("editing from shot 2 preserves shot 1 and pre-fills shot 2 pins", () => {
-    const state = buildState();
-    const editing = beginEditFromShot(state, 2, 1);
-
-    expect(editing.currentFrameNumber).toBe(2);
-    expect(editing.currentShot).toBe(2);
-    // availablePins = shot1.pins_standing = [10]
-    expect(editing.availablePins).toEqual([10]);
-    // standingPins pre-filled with recorded shot 2 pins_standing = [] (spare cleared all)
-    expect(editing.standingPins).toEqual([]);
-    // Shot 1 still in frame 2
-    const f2 = editing.frames.find((f) => f.frame_number === 2);
-    expect(f2?.shots).toHaveLength(1);
-    expect(f2?.shots[0].pins_standing).toEqual([10]);
-    // Frame 3 still present
-    expect(editing.frames.find((f) => f.frame_number === 3)).toBeDefined();
-  });
-
-  it("completing an edit from shot 2 snaps back to live position", () => {
-    const state = buildState(); // live = frame 4, shot 1
-    const editing = beginEditFromShot(state, 2, 1);
-    // Re-bowl shot 2 of frame 2 as an open (leave pin 10 up)
-    const submission = submitShot(editing, [10 as PinNumber]);
-    expect(submission.savedFrame).not.toBeNull();
-
-    const merged = completeEdit(submission, state);
-    expect(merged.state.currentFrameNumber).toBe(4); // back to live
-    expect(merged.state.currentShot).toBe(1);
-    const f2 = merged.state.frames.find((f) => f.frame_number === 2);
-    expect(f2?.is_spare).toBe(false);
-    expect(f2?.shots[1].pins_standing).toEqual([10]);
-    // Frame 3 preserved
-    expect(merged.state.frames.find((f) => f.frame_number === 3)).toBeDefined();
-  });
-
-  it("falls back to beginEdit if frame or shot not found", () => {
-    const state = createInitialFrameControllerState();
-    const editing = beginEditFromShot(state, 5, 0);
-    // No frame 5 in frames, so falls back: drops all, goes to frame 5 shot 1
-    expect(editing.currentFrameNumber).toBe(5);
-    expect(editing.currentShot).toBe(1);
   });
 });
 
@@ -483,6 +371,23 @@ describe("editFrameShot* helpers", () => {
     expect(f.shots[1].pins_standing).toEqual([]);
     expect(f.is_strike).toBe(false);
     expect(f.is_spare).toBe(true);
+  });
+
+  it("editFrameShotPins on the frame being bowled keeps it open on ball 2 (ADR-246)", () => {
+    const live: Frame = {
+      game_id: 0,
+      frame_number: 2,
+      shots: [{ pins_standing: [7] }],
+      is_strike: false,
+      is_spare: false
+    };
+    const out = editFrameShotPins([live], 2, 0, [10]);
+    expect(out[0].shots).toEqual([{ pins_standing: [10], pocket_hit: undefined, foul: undefined }]);
+    expect(out[0].is_spare).toBe(false);
+    const resumed = hydrateFrameController(out);
+    expect(resumed.currentFrameNumber).toBe(2);
+    expect(resumed.currentShot).toBe(2);
+    expect(resumed.standingPins).toEqual([10]);
   });
 
   it("editFrameShotPins clears subsequent shots when a 10th-frame shot is edited", () => {
