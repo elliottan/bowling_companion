@@ -10429,3 +10429,23 @@ pattern's own sheet was to offer the same jump.
 - Visiting a pattern's sessions leaves History's filter on that pattern, as a
   hand-off from the game plan leaves Stats'.
 - The guide words are English, as the guides are (docs/I18N.md).
+
+
+## ADR-248: The pattern list leads with the patterns bowled most
+
+**Status.** Accepted, 2026-11-07, at the owner's request.
+
+**Context.** The catalog seeds itself into the pattern list (ADR-105), so the
+list is a whole alphabet of patterns, and the one a bowler bowls every week
+sat wherever its name fell.
+
+**Decision.** Oil patterns orders every pattern with a game on it first, by
+the number of games bowled on it, most first (`byGamesBowled`), and shows that
+count on its row. Games rather than sessions, since a night of six games on a
+pattern says more than one game does; every game row counts, finished or not
+(`getGamesPerPattern`). Ties and patterns never bowled keep the list's order
+by name. Search shows the same count on a pattern's row and uses it to break a
+tie between equal matches.
+
+**Consequences.** Starting a game on a pattern can move it up the list. The
+picker in the session form keeps its own order.

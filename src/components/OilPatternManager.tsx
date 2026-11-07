@@ -27,7 +27,8 @@ import {
   type PatternClass,
 } from "../lib/oilPattern";
 import { PatternFilterButton, PatternFilterSheet } from "./PatternFilterSheet";
-import { matchesPatternFilters, NO_PATTERN_FILTERS, type PatternFilters } from "../lib/patternFilters";
+import { byGamesBowled, matchesPatternFilters, NO_PATTERN_FILTERS, type PatternFilters } from "../lib/patternFilters";
+import { getGamesPerPattern } from "../services/bowlingRepository";
 import { SearchField } from "./ui/SearchField";
 import { getCatalogPatterns, type CatalogPattern } from "../services/patternCatalog";
 import { LIST_DIVIDER, ListGroup } from "./ui/ListGroup";
@@ -56,6 +57,7 @@ interface OilPatternManagerProps {
 // A stable empty list: `?? []` would be a new array on every render, which
 // invalidates every useMemo downstream of it.
 const NO_PATTERNS: OilPattern[] = [];
+const NO_GAMES: ReadonlyMap<number, number> = new Map();
 
 export function OilPatternManager({
   onBack,
@@ -68,6 +70,9 @@ export function OilPatternManager({
   // Live: adding, renaming, archiving and deleting a pattern all update this
   // list, including when the session form has the manager open on top of it.
   const live = useLiveQuery(() => getAllOilPatterns());
+  // Games bowled on each pattern, which orders the list and is shown on each
+  // row. Live, so a game started on a pattern moves it up.
+  const gamesByPattern = useLiveQuery(() => getGamesPerPattern()) ?? NO_GAMES;
   const patterns = live ?? NO_PATTERNS;
   const isLoading = live === undefined;
   const [error, setError] = useState("");
@@ -141,9 +146,12 @@ export function OilPatternManager({
   // One list, searched one way. The catalog seeds itself into it (ADR-105), so
   // there is nothing here to tell apart from anything else.
   const active = useMemo(
-    () => all.filter((p) =>
-      matchesFilters(p.name, patternLength(p), patternClass(headlineRatio(p.passes)), query, filters)),
-    [all, query, filters]
+    () => byGamesBowled(
+      all.filter((p) =>
+        matchesFilters(p.name, patternLength(p), patternClass(headlineRatio(p.passes)), query, filters)),
+      gamesByPattern
+    ),
+    [all, query, filters, gamesByPattern]
   );
   const catalogShown = useMemo(
     () => catalog.filter((p) =>
@@ -294,6 +302,7 @@ export function OilPatternManager({
               pattern={pattern}
               onEdit={() => openEdit(pattern)}
               onOpenSheet={() => setSheetFor(pattern)}
+              games={pattern.id != null ? gamesByPattern.get(pattern.id) : undefined}
               // As the editor offers it: a pattern of the bowler's own, not
               // one taken from the catalog.
               onRemove={pattern.catalog_id ? undefined : () => setPendingRemove(pattern)}
@@ -509,9 +518,12 @@ function PatternRow({
   onEdit,
   onOpenSheet,
   onRestore,
-  onRemove
+  onRemove,
+  games
 }: {
   pattern: OilPattern;
+  /** Games the bowler has bowled on it, shown on the row once there is one. */
+  games?: number;
   onEdit: () => void;
   /** Given for the active list: the row opens the pattern's detail sheet, and
    *  the editor opens from there. Archived rows have no detail page worth a
@@ -540,6 +552,11 @@ function PatternRow({
             {summarize(pattern)}
           </span>
         </span>
+        {games != null && games > 0 && (
+          <span className="shrink-0 text-footnote tabular-nums text-ink-secondary">
+            {plural(games, { one: "# game", other: "# games" })}
+          </span>
+        )}
         {!onRestore && (
           <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
         )}

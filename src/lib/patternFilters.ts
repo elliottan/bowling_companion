@@ -30,3 +30,22 @@ export function matchesPatternFilters(
   }
   return true;
 }
+
+/**
+ * The bowler's patterns, the ones they have bowled most first.
+ *
+ * Every pattern with a game on it leads, in descending order of games, so
+ * the house shot bowled every week is the first row rather than somewhere in
+ * an alphabet of a whole catalog. The rest keep the order they came in (by
+ * name), and so do ties, so the list does not shuffle between visits.
+ */
+export function byGamesBowled<T extends { id?: number }>(
+  patterns: readonly T[],
+  games: ReadonlyMap<number, number>
+): T[] {
+  const count = (p: T) => (p.id != null ? games.get(p.id) ?? 0 : 0);
+  return patterns
+    .map((pattern, index) => ({ pattern, index, games: count(pattern) }))
+    .sort((a, b) => b.games - a.games || a.index - b.index)
+    .map((entry) => entry.pattern);
+}

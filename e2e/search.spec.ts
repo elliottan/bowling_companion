@@ -34,7 +34,7 @@ test("answers a bowling word with what it means", async ({ page }) => {
   await page.getByRole("button", { name: "Search", exact: true }).tap();
   await page.getByRole("searchbox", { name: "Search Headpin" }).fill("brooklyn");
   const row = page.getByRole("button", { name: /^Brooklyn/ });
-  await expect(row).toContainText("crosses over the headpin");
+  await expect(row).toContainText("crosses to the other side of the headpin");
   await row.tap();
-  await expect(page.getByRole("heading", { name: "The pocket, a Brooklyn and other strike words" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "The pocket and strike words" })).toBeVisible();
 });

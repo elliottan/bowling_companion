@@ -27,6 +27,25 @@ describe("OilPatternManager", () => {
     await addOilPattern("No length");
   });
 
+  it("leads with the patterns bowled most, with each one's games on its row", async () => {
+    const [long] = await db.oil_patterns.where("name").equals("Long one").primaryKeys();
+    const [middle] = await db.oil_patterns.where("name").equals("Middle one").primaryKeys();
+    const add = async (pattern: number, games: number) => {
+      const session = Number(await db.sessions.add({ date: "2026-10-01", alley_name: "Pinecrest Lanes", oil_pattern_id: pattern }));
+      for (let n = 1; n <= games; n++) await db.games.add({ session_id: session, game_number: n });
+    };
+    await add(Number(middle), 1);
+    await add(Number(long), 3);
+    await add(Number(long), 2);
+    render(<OilPatternManager />);
+    expect(await screen.findByText("5 games")).toBeInTheDocument();
+    expect(screen.getByText("1 game")).toBeInTheDocument();
+    const rows = screen.getAllByRole("button", { name: / details$/ }).map((b) => b.getAttribute("aria-label"));
+    expect(rows).toEqual(["Long one details", "Middle one details", "No length details", "Short one details"]);
+    await db.sessions.clear();
+    await db.games.clear();
+  });
+
   it("makes each row one target that opens the pattern, with no pencil beside it", async () => {
     render(<OilPatternManager />);
     expect(await screen.findByRole("button", { name: "Short one details" })).toBeInTheDocument();
