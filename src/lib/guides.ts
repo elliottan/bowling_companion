@@ -23,7 +23,7 @@ export type GuideBlock =
   | { kind: "list"; items: string[] }
   /** A term and what it means, for the words a layout conversation
    *  assumes you already have. */
-  | { kind: "terms"; items: Array<{ term: string; text: string }> }
+  | { kind: "terms"; items: Array<{ term: string; text: string; aliases?: string[] }> }
   /** A drawing. The id names one of the figures in `components/GuideFigure`,
    *  which owns the geometry: `lib` cannot import a component, and a figure is
    *  markup rather than content. The caption is also its spoken name. */
@@ -54,10 +54,21 @@ export interface Guide {
   sources?: GuideSource[];
 }
 
-export type GuideTopic = "Getting started" | "Layouts" | "Equipment";
+export type GuideTopic = "Getting started" | "Bowling terms" | "Layouts" | "Equipment";
 
-/** Order the shelves appear in. */
-export const GUIDE_TOPICS: readonly GuideTopic[] = ["Getting started", "Layouts", "Equipment"];
+/** Order the shelves appear in. The words come before the layouts, since the
+ *  layout articles assume them. */
+export const GUIDE_TOPICS: readonly GuideTopic[] = ["Getting started", "Bowling terms", "Layouts", "Equipment"];
+
+/** What the search offers before anything is typed, after the bowler's own
+ *  pattern and alley: words a bowler hears in the first week of a league,
+ *  each one defined below. English, as the guides are (docs/I18N.md). */
+export const SUGGESTED_TERMS: readonly string[] = ["Pocket", "Brooklyn", "Carry-down", "Turkey", "Rev rate"];
+
+const GLOSSARY_SOURCE: GuideSource = {
+  label: "Wikipedia: glossary of bowling",
+  url: "https://en.wikipedia.org/wiki/Glossary_of_bowling"
+};
 
 export const GUIDES: readonly Guide[] = [
   {
@@ -128,6 +139,341 @@ export const GUIDES: readonly Guide[] = [
         text: "Your games live on this phone and nowhere else. Add Headpin to your home screen so the browser doesn't clear it, and save a copy now and then from Settings, under Backup & restore."
       }
     ]
+  },
+  {
+    id: "strike-words",
+    title: "The pocket, a Brooklyn and other strike words",
+    summary: "Where the ball should hit, and what bowlers call it when it doesn't.",
+    topic: "Bowling terms",
+    minutes: 2,
+    body: [
+      {
+        kind: "text",
+        text: "Most of what gets said after a first ball is about where it hit the pins. These are the words you'll hear from the bench behind you."
+      },
+      {
+        kind: "terms",
+        items: [
+          {
+            term: "Pocket",
+            text: "The spot that gives the best chance of a strike. For a right-hander it's between the 1 and 3 pins, and for a left-hander between the 1 and 2.",
+            aliases: ["Strike pocket"]
+          },
+          {
+            term: "Flush",
+            text: "A solid pocket hit that sends all ten pins into the pit. The strike everyone is trying to throw."
+          },
+          {
+            term: "High and light",
+            text: "High is a ball that hits too much of the headpin, inside the pocket. Light, or low, is one that catches too little of it. Each leaves its own kind of spare."
+          },
+          {
+            term: "Brooklyn",
+            text: "A ball that crosses over the headpin and hits the pocket on the other side: the 1 and 2 for a right-hander, the 1 and 3 for a left-hander. Around New York it's also a Jersey, and around Detroit a Windsor.",
+            aliases: ["Jersey", "Jersey side", "Windsor", "Crossover"]
+          },
+          {
+            term: "Carry",
+            text: "How well a hit knocks the pins down, by the ball itself and by pins hitting other pins. A ball that carries well turns near misses into strikes."
+          },
+          {
+            term: "Messenger",
+            text: "A pin, usually the headpin, that flies across the deck and takes out a pin on the far side. Also called a bird dog.",
+            aliases: ["Bird dog"]
+          },
+          {
+            term: "Ringing 10",
+            text: "On a good-looking pocket hit, the 6 pin flies around the 10 to the outside and leaves it standing."
+          },
+          {
+            term: "Tap",
+            text: "A good hit that leaves one pin standing, most often one in the back row."
+          },
+          {
+            term: "Corner pins",
+            text: "The 7 and the 10, at the back corners of the rack. The single pins a bowler leaves most."
+          }
+        ]
+      }
+    ],
+    sources: [GLOSSARY_SOURCE]
+  },
+  {
+    id: "leave-words",
+    title: "Splits, buckets and the leaves with names",
+    summary: "The spares bowlers name, so you know what a teammate means.",
+    topic: "Bowling terms",
+    minutes: 2,
+    body: [
+      {
+        kind: "text",
+        text: "A leave is whatever's standing after the first ball. The common ones have names, and the names say how hard the spare is."
+      },
+      {
+        kind: "terms",
+        items: [
+          {
+            term: "Split",
+            text: "A leave with the headpin down and at least two pins standing that aren't next to each other, with a gap between them."
+          },
+          {
+            term: "Baby split",
+            text: "A split close enough that the ball can hit both pins, like the 3-10 or the 2-7."
+          },
+          {
+            term: "7-10 split",
+            text: "Both corner pins, as far apart as two pins can be. The hardest spare in the game, and made only now and then."
+          },
+          {
+            term: "Big four",
+            text: "The 4, 6, 7 and 10: two pins standing in each back corner."
+          },
+          {
+            term: "Greek church",
+            text: "Five pins in two groups, the 4-6-7-9-10 or the 4-6-7-8-10."
+          },
+          {
+            term: "Washout",
+            text: "Looks like a split, but the headpin is still standing, like the 1-2-10. It's a spare you can make by hitting the headpin into the rest."
+          },
+          {
+            term: "Bucket",
+            text: "A diamond of four, the 2-4-5-8 or the 3-5-6-9."
+          },
+          {
+            term: "Sleeper",
+            text: "A pin hidden directly behind another, so it's easy to miss from the approach."
+          },
+          {
+            term: "Double wood",
+            text: "Two pins, one straight behind the other: the 2-8, the 3-9 or the 1-5. The back one is a sleeper."
+          }
+        ]
+      },
+      {
+        kind: "text",
+        text: "Headpin keeps the spare lines you shoot for each leave under Spare lines, so the next time it comes up, the boards are already filled in."
+      }
+    ],
+    sources: [GLOSSARY_SOURCE]
+  },
+  {
+    id: "scoring-words",
+    title: "Turkeys, marks and scoring words",
+    summary: "What a double, a turkey, a clean game and a Dutch 200 are.",
+    topic: "Bowling terms",
+    minutes: 2,
+    body: [
+      {
+        kind: "terms",
+        items: [
+          {
+            term: "Strike",
+            text: "All ten pins down on the first ball of a frame. Written X."
+          },
+          {
+            term: "Spare",
+            text: "The pins left after the first ball all knocked down with the second. Written /."
+          },
+          {
+            term: "Open frame",
+            text: "A frame with neither a strike nor a spare.",
+            aliases: ["Open"]
+          },
+          {
+            term: "Mark",
+            text: "A strike or a spare. A game with more marks is a higher game, so a bowler counting marks is counting how few frames went open."
+          },
+          {
+            term: "Double, turkey and hambone",
+            text: "Strikes in a row in one game: two is a double and three is a turkey. Four is usually called a hambone, though it once meant two.",
+            aliases: ["Double", "Turkey", "Hambone"]
+          },
+          {
+            term: "Bagger",
+            text: "A run of strikes named by its length, like a five-bagger or a six-bagger. Six in a row is also a six-pack.",
+            aliases: ["Five-bagger", "Six-bagger", "Six-pack"]
+          },
+          {
+            term: "Clean game",
+            text: "A mark in every one of the ten frames, so no open frame at all."
+          },
+          {
+            term: "Perfect game",
+            text: "Twelve strikes in a row, for a 300.",
+            aliases: ["300"]
+          },
+          {
+            term: "Dutch 200",
+            text: "A game of strikes and spares in turn, frame after frame. It always scores exactly 200."
+          },
+          {
+            term: "Fill ball",
+            text: "The extra ball in the tenth frame after a spare, or the two after a strike, thrown only to count toward that frame."
+          },
+          {
+            term: "Foul",
+            text: "Any part of the body crossing the foul line during the delivery. The ball still knocks pins down, but it scores zero. Written F."
+          }
+        ]
+      },
+      {
+        kind: "text",
+        text: "Headpin scores all of this for you as you tap in the pins, and a foul is under More on the scorer."
+      }
+    ],
+    sources: [GLOSSARY_SOURCE]
+  },
+  {
+    id: "lane-words",
+    title: "Heads, backends and lane words",
+    summary: "The parts of a lane, and how the oil on it changes as you bowl.",
+    topic: "Bowling terms",
+    minutes: 3,
+    body: [
+      { kind: "heading", text: "The lane" },
+      {
+        kind: "terms",
+        items: [
+          {
+            term: "Approach",
+            text: "The floor you walk up on before the foul line. It's also the name for the steps of your delivery up to the release."
+          },
+          {
+            term: "Boards",
+            text: "The 39 strips that make up a lane's width. They're counted from your throwing side's gutter, so board 1 is the right edge for a right-hander."
+          },
+          {
+            term: "Arrows",
+            text: "The seven arrowheads about 15 feet past the foul line, on every fifth board. Most bowlers aim at them rather than at the pins.",
+            aliases: ["Targets"]
+          },
+          {
+            term: "Spots",
+            text: "The row of dots about six feet past the foul line, for lining up closer in than the arrows.",
+            aliases: ["Dots"]
+          },
+          {
+            term: "Heads, mids and backend",
+            text: "The lane in three parts. The heads run from the foul line to about the arrows, the mids are the middle stretch, and the backend is roughly the last third, which has little or no oil. The backend is where the ball hooks.",
+            aliases: ["Heads", "Mids", "Backend", "Back end"]
+          },
+          {
+            term: "Breakpoint",
+            text: "Where the ball stops sliding and turns hardest toward the pins, at its furthest point out. It's usually a few feet past the end of the oil."
+          }
+        ]
+      },
+      { kind: "heading", text: "The oil" },
+      {
+        kind: "terms",
+        items: [
+          {
+            term: "Oil pattern",
+            text: "How the oil is laid on the lane: how far it goes, how much there is and where across the boards. It shapes every shot, which is why Headpin keeps one on each session."
+          },
+          {
+            term: "House shot",
+            text: "The pattern most alleys run for leagues and open bowling. It holds more oil in the middle than on the outside, which steers a slightly missed ball back toward the pocket."
+          },
+          {
+            term: "Sport shot",
+            text: "A flatter, harder pattern, used in tournaments and on the pro tours, that gives a missed shot far less help."
+          },
+          {
+            term: "Burn and breakdown",
+            text: "Every ball takes a little oil off the path it rolls. Down a busy part of the lane the oil wears thin, and balls there grip and hook sooner.",
+            aliases: ["Burn", "Breakdown"]
+          },
+          {
+            term: "Carry-down",
+            text: "Oil that balls pick up and carry onto the dry backend, so later balls skid further before they hook."
+          },
+          {
+            term: "Transition",
+            text: "How a lane changes over a session, from burn, breakdown and carry-down together. Moving to stay in the pocket as it changes is most of reading a lane."
+          }
+        ]
+      }
+    ],
+    sources: [GLOSSARY_SOURCE]
+  },
+  {
+    id: "bowler-words",
+    title: "Crankers, strokers and ball words",
+    summary: "Styles of bowler, how a ball spins, and what it's made of.",
+    topic: "Bowling terms",
+    minutes: 3,
+    body: [
+      { kind: "heading", text: "Kinds of bowler" },
+      {
+        kind: "terms",
+        items: [
+          {
+            term: "Cranker",
+            text: "A bowler with a high rev rate who throws a big hook, trading some control and repeatability for power."
+          },
+          {
+            term: "Stroker",
+            text: "A bowler who keeps the ball smoother and straighter, trading power for control and accuracy they can repeat."
+          },
+          {
+            term: "Tweener",
+            text: "Somewhere between the two, the style of most league bowlers."
+          }
+        ]
+      },
+      { kind: "heading", text: "How the ball turns" },
+      {
+        kind: "terms",
+        items: [
+          {
+            term: "Rev rate",
+            text: "How fast the ball spins, in revolutions per minute. More revs means more hook, and only makes sense next to your ball speed.",
+            aliases: ["Revs", "RPM"]
+          },
+          {
+            term: "Axis rotation",
+            text: "How far the ball's spin axis is turned sideways, like a wheel turning to steer. It's the main thing that makes a ball hook."
+          },
+          {
+            term: "Axis tilt",
+            text: "How far the spin axis leans up from flat. A high tilt, like a spinner's, makes the ball skid further before it hooks."
+          }
+        ]
+      },
+      { kind: "heading", text: "The ball itself" },
+      {
+        kind: "terms",
+        items: [
+          {
+            term: "Coverstock",
+            text: "The outer shell, which decides how much the ball grips the lane. Plastic (polyester) grips least and makes a good spare ball. Urethane grips more and hooks smoothly. Reactive resin grips most and hooks hardest.",
+            aliases: ["Cover", "Plastic", "Urethane", "Reactive", "Reactive resin", "Polyester"]
+          },
+          {
+            term: "Grit",
+            text: "How rough the abrasive was that the surface was sanded with. A lower number is rougher, grabs the lane sooner and hooks earlier.",
+            aliases: ["Surface", "Abralon"]
+          },
+          {
+            term: "Asymmetric core",
+            text: "A core that isn't the same all the way round, so it has a strong side, the PSA, that a layout has to place. A symmetric core has one too, weak enough that most layouts ignore it.",
+            aliases: ["Asymmetric", "Symmetric core", "Symmetric"]
+          },
+          {
+            term: "Conventional and fingertip grip",
+            text: "Conventional puts your fingers in to the second knuckle, as on most balls at an alley's rack. Fingertip stops at the first knuckle, which lets the ball come off the fingers later and spin more.",
+            aliases: ["Conventional grip", "Fingertip grip", "Fingertip"]
+          }
+        ]
+      },
+      {
+        kind: "text",
+        text: "For the words on a drill sheet, PAP, pin and VAL, the layout vocabulary guide picks up from here."
+      }
+    ],
+    sources: [GLOSSARY_SOURCE]
   },
   {
     id: "layout-vocabulary",

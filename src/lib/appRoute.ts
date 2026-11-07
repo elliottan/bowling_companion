@@ -62,6 +62,8 @@ const OVERLAYS: readonly string[] = [
   "pro",
   "line",
   "stats-push",
+  "history-push",
+  "search",
   "session"
 ];
 

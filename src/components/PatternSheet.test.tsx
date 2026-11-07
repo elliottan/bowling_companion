@@ -3,8 +3,32 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { PatternSheet } from "./PatternSheet";
 import { CHROMIUM_6742 } from "../lib/oilPattern.fixture";
 import { resetPatternCatalogCache } from "../services/patternCatalog";
+import { db } from "../db/bowlingDb";
 
 const chromium = { id: 1, name: "Chromium 6742", passes: CHROMIUM_6742 };
+
+describe("PatternSheet, and the sessions bowled on it (ADR-247)", () => {
+  afterEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("offers the bowler's sessions on the pattern, and opens them", async () => {
+    await db.sessions.add({ date: "2026-10-01", alley_name: "Pinecrest Lanes", oil_pattern_id: 1 });
+    await db.sessions.add({ date: "2026-10-08", alley_name: "Pinecrest Lanes", oil_pattern_id: 1 });
+    await db.sessions.add({ date: "2026-10-09", alley_name: "Pinecrest Lanes", oil_pattern_id: 2 });
+    const onShowSessions = vi.fn();
+    render(<PatternSheet pattern={chromium} onClose={() => {}} onShowSessions={onShowSessions} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Your 2 sessions on this pattern" }));
+    expect(onShowSessions).toHaveBeenCalled();
+  });
+
+  it("offers nothing before a session has been bowled on it", async () => {
+    render(<PatternSheet pattern={chromium} onClose={() => {}} onShowSessions={() => {}} />);
+    await screen.findByText("Distance");
+    expect(screen.queryByRole("button", { name: /on this pattern/ })).toBeNull();
+  });
+});
 
 describe("PatternSheet", () => {
   // The bar holds the visualizer, its one action, so the editor opens from the

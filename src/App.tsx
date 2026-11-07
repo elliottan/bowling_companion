@@ -25,7 +25,11 @@ import { NoSessionView } from "./views/NoSessionView";
 import { FirstRun } from "./components/FirstRun";
 import { ActiveSessionView } from "./views/ActiveSessionView";
 import { HistoryView } from "./views/HistoryView";
-import { rememberScroll, restoreScroll } from "./lib/viewMemory";
+// Eager, unlike the other pushed screens: its field has to focus inside the
+// tap that opened it, or iOS keeps the keyboard down (ADR-247).
+import { SearchView } from "./views/SearchView";
+import type { SearchTarget, SessionFacet } from "./lib/search";
+import { rememberScroll, restoreScroll, setRemembered } from "./lib/viewMemory";
 import { localDateKey } from "./lib/dates";
 import { PinIcon } from "./components/icons";
 import { useBoot } from "./views/useBoot";
@@ -543,6 +547,54 @@ function App() {
     else dispatch({ type: "viewSession", sessionId, gameId, ballId });
   }
 
+  /**
+   * History, pushed, narrowed to one pattern, alley or event (ADR-247).
+   *
+   * The filter is History's own, shared with Stats (`useSessionFilters`), so
+   * it is written whole: the one facet asked for, and everything else off, or
+   * a lane or game left from earlier would narrow the answer to a question
+   * nobody asked. The tab keeps it afterwards, as it keeps any filter.
+   */
+  function showSessions(facet: SessionFacet, value: string) {
+    setRemembered("history:alley", facet === "alley" ? value : "");
+    setRemembered("history:pattern", facet === "pattern" ? value : "");
+    setRemembered("history:event", facet === "event" ? value : "");
+    setRemembered<number | null>("history:game", null);
+    setRemembered<string[]>("history:lanes", []);
+    pushOverlay("history-push");
+  }
+
+  /** What a search result opens, pushed over the search so back returns to it. */
+  function openSearchTarget(target: SearchTarget) {
+    switch (target.kind) {
+      case "pattern":
+        return dispatch({ type: "openPattern", patternId: target.patternId });
+      case "sessions":
+        return showSessions(target.facet, target.value);
+      case "arsenal-ball":
+        return dispatch({ type: "openArsenalBall", ballId: target.ballId });
+      case "catalog-ball":
+        return dispatch({ type: "openCatalogBall", ballId: target.catalogId, push: true });
+      case "guide":
+        return dispatch({ type: "openGuide", guideId: target.guideId, push: true });
+      case "screen":
+        switch (target.screen) {
+          case "line":
+            return dispatch({ type: "openLineSandbox" });
+          case "history":
+            return pushOverlay("history-push");
+          case "stats":
+            return pushOverlay("stats-push");
+          // A tab of its own with sections inside, so it is gone to, not
+          // pushed: the search comes off with everything else on top.
+          case "settings":
+            return dispatch({ type: "goToSettingsSection", section: "menu" });
+          default:
+            return pushOverlay(target.screen);
+        }
+    }
+  }
+
   // Thrown in render, not handled here: only AppErrorBoundary can tell a shell
   // older than its database from an ordinary crash.
   if (boot.error) throw boot.error;
@@ -655,6 +707,7 @@ function App() {
             onOpenLayoutLab={() => pushOverlay("layout-lab")}
             onOpenAlleyReport={() => pushOverlay("game-plan")}
             onOpenBackup={goToBackup}
+            onOpenSearch={() => pushOverlay("search")}
           />
         )}
         {view === "active" && !activeSessionId && (
@@ -709,7 +762,9 @@ function App() {
             onDriftModelChange={updateDriftModel}
             onOpenBackup={goToBackup}
             onOpenLineVisualizer={(patternId) => dispatch({ type: "openLineSandbox", patternId })}
-            lineVisualizerOpen={overlays.includes("line")}
+            // Anything pushed over Settings covers a pattern sheet open in it.
+            lineVisualizerOpen={overlays.length > 0}
+            onShowPatternSessions={(name) => showSessions("pattern", name)}
             onOpenArsenal={() => pushOverlay("arsenal")}
             onOpenSpareLines={() => pushOverlay("spares")}
             onOpenLayoutLab={() => pushOverlay("layout-lab")}
@@ -788,6 +843,7 @@ function App() {
               <ArsenalView
                 key={`arsenal-${i}`}
                 onBack={popOverlay}
+                initialBallId={nav.openArsenalBallId ?? undefined}
                 // Pushed over the arsenal rather than replacing it, so back
                 // returns to the list of balls the layout was opened from.
                 onViewLayout={(seed) => dispatch({ type: "openLayoutLab", seed })}
@@ -800,6 +856,7 @@ function App() {
                 onBack={popOverlay}
                 selectedBallId={nav.catalogBallId}
                 onSelectBall={(ballId) => dispatch({ type: "openCatalogBall", ballId })}
+                initialSearch={nav.catalogSearch ?? undefined}
               />
             );
           // Settings sections, pushed over the tab that opened them.
@@ -812,7 +869,11 @@ function App() {
                 onBack={popOverlay}
                 mode="overlay"
                 onOpenLineVisualizer={(patternId) => dispatch({ type: "openLineSandbox", patternId })}
-                covered={overlays.includes("line")}
+                // Covered by whatever is pushed over it: the visualizer, or
+                // History filtered to the pattern its sheet is showing.
+                covered={i < overlays.length - 1}
+                onShowSessions={(name) => showSessions("pattern", name)}
+                initialPatternId={nav.openPatternId ?? undefined}
               />
             );
           case "backup":
@@ -874,6 +935,26 @@ function App() {
                 onBack={popOverlay}
                 onOpenSession={openSession}
                 onOpenSessionGame={openSessionGame}
+              />
+            );
+          case "history-push":
+            return (
+              <HistoryView
+                key={`history-push-${i}`}
+                mode="push"
+                onBack={popOverlay}
+                onOpenSession={openSession}
+                activeSessionId={activeSessionId}
+              />
+            );
+          case "search":
+            return (
+              <SearchView
+                key={`search-${i}`}
+                onClose={popOverlay}
+                onOpen={openSearchTarget}
+                onSearchCatalog={(query) => dispatch({ type: "openCatalogSearch", query })}
+                active={i === overlays.length - 1}
               />
             );
           case "line":

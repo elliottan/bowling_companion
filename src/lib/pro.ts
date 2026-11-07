@@ -66,7 +66,9 @@ export function isFreeAppPath(pathname: string): boolean {
  * headpin.app (ADR-190).
  */
 export function devProUnlock(
-  dev: boolean = import.meta.env.DEV,
+  // `env` is missing outside Vite, where a script (`npm run guide-pages`)
+  // loads this module through the guides, and there it is never the dev server.
+  dev: boolean = import.meta.env?.DEV ?? false,
   search: string = typeof window === "undefined" ? "" : window.location.search
 ): boolean {
   return dev && new URLSearchParams(search).has("pro");

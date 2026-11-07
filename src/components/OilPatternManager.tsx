@@ -46,13 +46,25 @@ interface OilPatternManagerProps {
   onOpenLineVisualizer?: (patternId: number) => void;
   /** True while the line visualizer is up over the manager. */
   covered?: boolean;
+  /** Open History filtered to a pattern, by its name as sessions carry it. */
+  onShowSessions?: (patternName: string) => void;
+  /** A pattern whose sheet opens over the list as it arrives, from the app's
+   *  search. */
+  initialPatternId?: number;
 }
 
 // A stable empty list: `?? []` would be a new array on every render, which
 // invalidates every useMemo downstream of it.
 const NO_PATTERNS: OilPattern[] = [];
 
-export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualizer, covered = false }: OilPatternManagerProps = {}) {
+export function OilPatternManager({
+  onBack,
+  mode = "inline",
+  onOpenLineVisualizer,
+  covered = false,
+  onShowSessions,
+  initialPatternId
+}: OilPatternManagerProps = {}) {
   // Live: adding, renaming, archiving and deleting a pattern all update this
   // list, including when the session form has the manager open on top of it.
   const live = useLiveQuery(() => getAllOilPatterns());
@@ -74,6 +86,15 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
   const [sheetFor, setSheetFor] = useState<OilPattern | null>(null);
   const [filters, setFilters] = useState<PatternFilters>(NO_PATTERN_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  // The pattern a search result asked for, opened once the list has been
+  // read. During render, so the sheet is up on the list's first frame.
+  const [pendingOpen, setPendingOpen] = useState(initialPatternId ?? null);
+  if (pendingOpen != null && live) {
+    setPendingOpen(null);
+    const pattern = live.find((p) => p.id === pendingOpen);
+    if (pattern) setSheetFor(pattern);
+  }
 
   // The shipped catalog (ADR-104). Loaded once, and an empty one simply means
   // nothing to start from, never a broken screen.
@@ -323,6 +344,11 @@ export function OilPatternManager({ onBack, mode = "inline", onOpenLineVisualize
             onOpenLineVisualizer && sheetFor.id != null ? () => onOpenLineVisualizer(sheetFor.id!) : undefined
           }
           active={!covered && !dialogOpen && pendingRemove === null}
+          onShowSessions={
+            onShowSessions
+              ? () => onShowSessions((patterns.find((p) => p.id === sheetFor.id) ?? sheetFor).name)
+              : undefined
+          }
         />
       )}
 

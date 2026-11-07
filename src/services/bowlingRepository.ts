@@ -734,6 +734,13 @@ export async function getSessionHistory(): Promise<SessionSummary[]> {
  * WRONG for anything that counts shots: every stats calculator here must be fed
  * `getSessionHistory`, never this.
  */
+/** How many sessions were bowled on a pattern, by its id. Read off the indexed
+ *  column alone, so a pattern's sheet can offer its sessions without loading
+ *  any of them. */
+export async function countSessionsOnPattern(patternId: number): Promise<number> {
+  return db.sessions.where("oil_pattern_id").equals(patternId).count();
+}
+
 export async function getSessionList(): Promise<SessionSummary[]> {
   return loadSessions("unscored");
 }

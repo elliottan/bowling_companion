@@ -407,3 +407,63 @@ describe("the layout lab, opened on a ball", () => {
     expect(state.layoutSeed).toBeNull();
   });
 });
+
+describe("what a search result opens (ADR-247)", () => {
+  const fromSearch = (action: NavAction) => run([{ type: "pushOverlay", overlay: "search" }, action]);
+
+  it("pushes a pattern's list over the search, open on that pattern", () => {
+    const state = fromSearch({ type: "openPattern", patternId: 4 });
+    expect(state.overlays).toEqual(["search", "oil-patterns"]);
+    expect(state.openPatternId).toBe(4);
+  });
+
+  it("comes back to the search, and forgets the pattern with its list", () => {
+    const state = run([{ type: "popOverlay" }], fromSearch({ type: "openPattern", patternId: 4 }));
+    expect(state.overlays).toEqual(["search"]);
+    expect(state.openPatternId).toBeNull();
+  });
+
+  it("opens the pattern list on no pattern when it is reached on its own", () => {
+    const state = run([{ type: "popOverlay" }, { type: "pushOverlay", overlay: "oil-patterns" }], fromSearch({ type: "openPattern", patternId: 4 }));
+    expect(state.openPatternId).toBeNull();
+  });
+
+  it("pushes the arsenal open on one ball", () => {
+    const state = fromSearch({ type: "openArsenalBall", ballId: 9 });
+    expect(state.overlays).toEqual(["search", "arsenal"]);
+    expect(state.openArsenalBallId).toBe(9);
+  });
+
+  it("pushes the catalog already searched, and with no ball open", () => {
+    const state = fromSearch({ type: "openCatalogSearch", query: "phaze" });
+    expect(state.overlays).toEqual(["search", "catalog"]);
+    expect(state.catalogSearch).toBe("phaze");
+    expect(state.catalogBallId).toBeNull();
+  });
+
+  it("pushes the catalog under a ball it opens, and only when it is not on top already", () => {
+    const pushed = fromSearch({ type: "openCatalogBall", ballId: "storm-phaze", push: true });
+    expect(pushed.overlays).toEqual(["search", "catalog"]);
+    expect(pushed.catalogBallId).toBe("storm-phaze");
+    const inPlace = run([{ type: "pushOverlay", overlay: "catalog" }, { type: "openCatalogBall", ballId: "x", push: true }]);
+    expect(inPlace.overlays).toEqual(["catalog"]);
+  });
+
+  it("pushes the guides under an article, and back takes the article first", () => {
+    const state = fromSearch({ type: "openGuide", guideId: "strike-words", push: true });
+    expect(state.overlays).toEqual(["search", "guides"]);
+    expect(state.openGuideId).toBe("strike-words");
+    expect(run([{ type: "popOverlay" }], state).overlays).toEqual(["search", "guides"]);
+  });
+
+  it("writes the search and the pushed History into the route", () => {
+    const route = parseRoute("#/home/search/history-push");
+    expect(route.overlays).toEqual(["search", "history-push"]);
+  });
+
+  it("lets a settings jump clear what a result left behind", () => {
+    const state = run([{ type: "goToSettingsSection", section: "menu" }], fromSearch({ type: "openArsenalBall", ballId: 9 }));
+    expect(state.overlays).toEqual([]);
+    expect(state.openArsenalBallId).toBeNull();
+  });
+});

@@ -48,7 +48,7 @@ export function ToolsList({ heading, ...open }: ToolsActions & { heading?: strin
       <ListRow
         icon={GraduationCap}
         label={t`Guides`}
-        description={t`Using Headpin, layouts and equipment`}
+        description={t`Using Headpin, bowling terms, layouts and equipment`}
         onClick={open.onOpenGuides}
       />
     </ListGroup>

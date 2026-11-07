@@ -43,7 +43,8 @@ interface SettingsViewProps {
    *  screen. */
   onOpenBackup: () => void;
   onOpenLineVisualizer: (patternId?: number) => void;
-  /** True while the line visualizer is up over Settings. */
+  /** True while a pushed screen (the line visualizer, History filtered to a
+   *  pattern) is up over Settings. */
   lineVisualizerOpen?: boolean;
   /** The same overlays Home opens, so both doors land on the same screen. */
   onOpenArsenal: () => void;
@@ -55,6 +56,8 @@ interface SettingsViewProps {
   onOpenOilPatternsScreen: () => void;
   onOpenCatalog: () => void;
   onOpenGuides: () => void;
+  /** History filtered to a pattern, from the pattern's sheet (ADR-247). */
+  onShowPatternSessions?: (patternName: string) => void;
   /** What the phone says of Live Activities, for a test; asked of the phone
    *  when left out. */
   liveActivityStatus?: LiveActivityStatus | null;
@@ -80,7 +83,7 @@ const LegalView = lazy(() =>
   import("./LegalView").then((m) => ({ default: m.LegalView }))
 );
 
-export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, lineVisualizerOpen = false, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes, onOpenLayoutLab, onOpenOilPatternsScreen, onOpenCatalog, onOpenGuides, liveActivityStatus: liveActivityStatusOverride }: SettingsViewProps) {
+export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, lineVisualizerOpen = false, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes, onOpenLayoutLab, onOpenOilPatternsScreen, onOpenCatalog, onOpenGuides, onShowPatternSessions, liveActivityStatus: liveActivityStatusOverride }: SettingsViewProps) {
   const back = () => onSectionChange("menu");
   // Past the large title, its name moves into the bar (ADR-191).
   const [compact, setCompact] = useState(false);
@@ -113,7 +116,12 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
         {section === "lanes" ? (
           <LaneNotesView onBack={back} />
         ) : section === "oil-patterns" ? (
-          <OilPatternsView onBack={back} onOpenLineVisualizer={onOpenLineVisualizer} covered={lineVisualizerOpen} />
+          <OilPatternsView
+            onBack={back}
+            onOpenLineVisualizer={onOpenLineVisualizer}
+            covered={lineVisualizerOpen}
+            onShowSessions={onShowPatternSessions}
+          />
         ) : section === "appearance" ? (
           <AppearanceView onBack={back} />
         ) : section === "tools" ? (

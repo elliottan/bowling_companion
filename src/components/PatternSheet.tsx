@@ -1,5 +1,6 @@
-import { ArrowUpRight, ChevronRight, Pencil } from "lucide-react";
-import { t } from "@lingui/core/macro";
+import { ArrowUpRight, ChevronRight, History, Pencil } from "lucide-react";
+import { plural, t } from "@lingui/core/macro";
+import { useLiveQuery } from "dexie-react-hooks";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import type { OilPass, OilPattern } from "../types/bowling";
 import {
@@ -12,6 +13,7 @@ import { IconButton } from "./ui/IconButton";
 import { PushScreen } from "./PushScreen";
 import { LaneViewIcon } from "./icons";
 import { catalogSheet, type KeptSheet } from "../services/patternCatalog";
+import { countSessionsOnPattern } from "../services/bowlingRepository";
 import { formatFixed, formatNumber, formatRatio } from "../lib/format";
 
 /**
@@ -45,6 +47,9 @@ interface PatternSheetProps {
   /** Open the pattern's editor. At the foot of the sheet rather than in its
    *  bar, which already carries its one action (DESIGN-LANGUAGE §1). */
   onEdit?: () => void;
+  /** Open History filtered to this pattern. Omitted where the caller has no
+   *  History to send you to (the session form's own copy of the list). */
+  onShowSessions?: () => void;
 }
 
 export function PatternSheet({
@@ -52,8 +57,14 @@ export function PatternSheet({
   onClose,
   onOpenInLineVisualizer,
   active = true,
-  onEdit
+  onEdit,
+  onShowSessions
 }: PatternSheetProps) {
+  // Live, so a session saved on this pattern from under the sheet counts.
+  const sessionCount = useLiveQuery(
+    () => (pattern.id != null && onShowSessions ? countSessionsOnPattern(pattern.id) : 0),
+    [pattern.id, onShowSessions != null]
+  );
   const stats = useMemo(() => oilStats(pattern.passes), [pattern.passes]);
   const ratio = useMemo(() => headlineRatio(pattern.passes), [pattern.passes]);
   const zones = useMemo(() => trackZoneRatios(pattern.passes), [pattern.passes]);
@@ -81,6 +92,23 @@ export function PatternSheet({
       }
     >
         <div className="mx-auto w-full max-w-3xl space-y-4 px-3 py-4 sm:px-6">
+          {/* First, because it is the bowler's own: what they have bowled on
+              this pattern, as History filtered to it (ADR-247). Only once
+              there is a session, since an empty History is no answer. */}
+          {onShowSessions && sessionCount != null && sessionCount > 0 && (
+            <button type="button" onClick={onShowSessions} className={SHEET_ROW}>
+              <span className="flex min-w-0 items-center gap-2">
+                <History size={16} aria-hidden="true" className="shrink-0 text-accent" />
+                <span className="min-w-0">
+                  {plural(sessionCount, {
+                    one: "Your # session on this pattern",
+                    other: "Your # sessions on this pattern"
+                  })}
+                </span>
+              </span>
+              <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+            </button>
+          )}
           {stats.length === 0 ? (
             <p className="text-sm text-ink-secondary">
               {feet != null

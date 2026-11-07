@@ -364,6 +364,8 @@ interface CatalogViewProps {
    *  the detail is a real history entry. */
   selectedBallId: string | null;
   onSelectBall: (ballId: string) => void;
+  /** What the list opens already searched for, from the app's search. */
+  initialSearch?: string;
 }
 
 /** The nearest ancestor that scrolls vertically, or null for the page. */
@@ -375,7 +377,7 @@ function scrollParent(el: HTMLElement): HTMLElement | null {
   return null;
 }
 
-export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogViewProps) {
+export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearch }: CatalogViewProps) {
   const [syncState, setSyncState] = useState<SyncState>({ status: "idle" });
   // The catalog is the one thing in the app that needs the network once. An
   // offline empty state that says "Refresh" offers a button that cannot work,
@@ -393,7 +395,9 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall }: CatalogVie
   const [allBalls, setAllBalls] = useState<CatalogBall[]>([]);
   // Resolved from the id rather than stored: the detail can be restored from a
   // URL before the catalog has loaded, and this simply renders once it has.
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [filters, setFilters] = useState<Filters>(() =>
+    initialSearch ? { ...EMPTY_FILTERS, search: initialSearch } : EMPTY_FILTERS
+  );
   const [sort, setSort] = useState<SortKey>("releaseDate");
   const [addingBall, setAddingBall] = useState<CatalogBall | null>(null);
   const [addSaving, setAddSaving] = useState(false);
