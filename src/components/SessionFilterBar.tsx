@@ -1,4 +1,5 @@
 import { plural, t } from "@lingui/core/macro";
+import { ClearAllButton } from "./ui/ClearAllButton";
 import { Select } from "./ui/Select";
 import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "./ui/Button";
@@ -161,7 +162,12 @@ export function SessionFilterSheet({
   return (
     // A tick rather than an X: every control here has already applied itself,
     // so there is nothing to cancel and leaving only confirms what is on screen.
-    <FormSheet title={t`Filters`} onClose={onClose} dismissAs="done">
+    <FormSheet
+      title={t`Filters`}
+      onClose={onClose}
+      dismissAs="done"
+      leading={<ClearAllButton onClick={filters.clearAll} disabled={activeFilterCount(filters) === 0} />}
+    >
       <div className="space-y-4 px-4 py-4">
         <div>
           <label className={FIELD_LABEL} htmlFor="filter-alley">

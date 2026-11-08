@@ -1,10 +1,11 @@
 import { t } from "@lingui/core/macro";
+import { ClearAllButton } from "./ui/ClearAllButton";
 import { Switch } from "./ui/Switch";
 import { ListFilter } from "lucide-react";
 import { createPortal } from "react-dom";
 import { PinGrid } from "./PinGrid";
 import { FormSheet } from "./ui/FormSheet";
-import { Chip, TAP_TARGET_44 } from "./ui/Chip";
+import { Chip } from "./ui/Chip";
 import { ALL_PINS } from "../lib/pins";
 import { SPARE_FILTERS } from "../lib/spareLines";
 import type { SpareFilters } from "../lib/useSpareFilters";
@@ -52,7 +53,12 @@ export function SpareFilterBar({
           against itself, and this one can open over another sheet. */}
       {pinsOpen &&
         createPortal(
-          <FormSheet title={t`Pins`} onClose={() => onPinsOpenChange(false)} dismissAs="done">
+          <FormSheet
+            title={t`Pins`}
+            onClose={() => onPinsOpenChange(false)}
+            dismissAs="done"
+            leading={<ClearAllButton onClick={() => state.setPins([])} disabled={!pinsActive} />}
+          >
             <div className="space-y-4">
               <div className="mx-auto w-[11.5rem]">
                 <PinGrid
@@ -70,15 +76,6 @@ export function SpareFilterBar({
                   accent="rgb(var(--color-accent-fill))"
                 />
               </label>
-              {pinsActive && (
-                <button
-                  type="button"
-                  onClick={() => state.setPins([])}
-                  className={`relative text-sm font-semibold text-accent active:opacity-60 ${TAP_TARGET_44}`}
-                >
-                  {t`Clear pins`}
-                </button>
-              )}
             </div>
           </FormSheet>,
           document.body

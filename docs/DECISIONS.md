@@ -10694,3 +10694,23 @@ keyboard, so there it was already right.
 - `e2e/keyboard.spec.ts` stands in a visual viewport, since no test browser
   raises a keyboard; a phone in Safari is still the real check.
 
+## ADR-256: Every filter sheet clears from its leading corner
+
+**Status.** Accepted, 2026-11-08, at the owner's request. Follows ADR-253.
+
+**Context.** ADR-253 put the catalog's Clear all where the X would be. The
+other filter sheets kept theirs at the foot, as accent text ("Clear pins" on
+the Leaves pin deck) or a ghost button (the oil patterns' "Clear filters"),
+and History's and Stats' filters had none at all.
+
+**Decision.** `ClearAllButton` (`src/components/ui/ClearAllButton.tsx`) is the
+one control, a glass capsule in `FormSheet`'s `leading` slot, labelled "Clear
+all" and dimmed while nothing is chosen. The catalog, the pin deck, the oil
+pattern filters and the History and Stats filters all carry it there, and none
+at the foot. A lane list's own "Clear" beside its heading stays: it clears
+that list, not the sheet. "Clear filters" in an empty list stays as well: it is
+the way out of a list that filtered to nothing, not a control of the sheet.
+
+**Consequences.** Clearing reads the same everywhere, and History and Stats can
+be cleared from their sheet in one tap where it took one chip at a time.
+

@@ -1,4 +1,5 @@
 import { plural, t } from "@lingui/core/macro";
+import { ClearAllButton } from "../components/ui/ClearAllButton";
 import { Select } from "../components/ui/Select";
 import { Trans } from "@lingui/react/macro";
 import { BookOpen, ExternalLink, Loader2, Palette } from "lucide-react";
@@ -867,14 +868,10 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
           // Where the X would be: it undoes every choice in the sheet, and
           // leaves the search, which is not one of them.
           leading={
-            <button
-              type="button"
+            <ClearAllButton
               onClick={() => setFilters((f) => ({ ...EMPTY_FILTERS, search: f.search }))}
               disabled={activeFilterCount === 0}
-              className="glass glass-press inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold text-ink [--press-scale:1.04] disabled:opacity-40"
-            >
-              {t({ message: "Clear all", comment: "A button that removes every filter at once" })}
-            </button>
+            />
           }
         >
           <div className="space-y-5">

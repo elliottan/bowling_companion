@@ -99,8 +99,12 @@ keyboard, not the size of the job:
   as you went, the filter sheets being the only ones: there is nothing to cancel,
   so an X would be a lie about what leaving does. Those carry a tick trailing
   instead (`dismissAs="done"`), which reads as keeping what is on screen, and
-  where the X would be, a glass "Clear all" capsule (`leading`) that undoes
-  every choice in the sheet and is dimmed while there is none (ADR-253).
+  where the X would be, a glass "Clear all" capsule (`ClearAllButton` as
+  `leading`) that undoes every choice in the sheet and is dimmed while there
+  is none (ADR-253, ADR-256). Every filter sheet has it there and nowhere
+  else: never a line of accent text at the foot. A sheet that only reads
+  your own saved values back (the layout lab's "Reset to your saved
+  settings") is a different action and keeps its button by the values.
 - **`ConfirmDialog`** settles in the middle and scales back out. Questions with
   buttons, including a confirm that has to be earned by typing a phrase, because
   typing `ERASE` is answering rather than entering. In the iPhone app a confirm

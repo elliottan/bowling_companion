@@ -1328,7 +1328,7 @@ msgid "Clear"
 msgstr "クリア"
 
 #. A button that removes every filter at once
-#: src/views/CatalogView.tsx
+#: src/components/ui/ClearAllButton.tsx
 msgid "Clear all"
 msgstr "すべてクリア"
 
@@ -1341,7 +1341,6 @@ msgid "Clear cover filter"
 msgstr "カバーストックフィルターをクリア"
 
 #: src/components/OilPatternManager.tsx
-#: src/components/PatternFilterSheet.tsx
 #: src/components/Stats.tsx
 #: src/views/CatalogView.tsx
 #: src/views/SpareLinesView.tsx
@@ -1360,10 +1359,6 @@ msgstr "パターンをクリア"
 #: src/components/SessionFilterBar.tsx
 msgid "Clear pattern filter"
 msgstr "パターンフィルターをクリア"
-
-#: src/components/SpareFilterBar.tsx
-msgid "Clear pins"
-msgstr "ピンをクリア"
 
 #: src/components/ui/SearchField.tsx
 msgid "Clear search"
