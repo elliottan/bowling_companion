@@ -178,7 +178,9 @@ export function SessionLanePanel({
       // overflow-clip, not hidden: a hidden box is still a scroll container,
       // and focus or scrollIntoView can scroll it, lifting the panel out of
       // place. A clipping box cannot be scrolled at all.
-      className="fixed inset-x-0 bottom-0 z-50 flex justify-center overflow-clip"
+      // Its foot rides on the web app's keyboard while a field in it has
+      // focus, rather than sitting behind it (ADR-255).
+      className="fixed inset-x-0 bottom-[var(--keyboard-inset,0px)] z-50 flex justify-center overflow-clip"
       role="dialog"
       aria-label={t`Session sheet`}
       style={{ ...rootStyle, top, ...(leaving && { pointerEvents: "none" as const }) }}

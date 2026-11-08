@@ -108,7 +108,10 @@ export function FormSheet({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-3"
+      // Lifted clear of the web app's keyboard while a field has focus: the
+      // keyboard is drawn over the page, and the sheet sat behind it with the
+      // field that was tapped (ADR-255). Zero everywhere else.
+      className="fixed inset-0 z-[60] flex items-end justify-center pb-[var(--keyboard-inset,0px)] pt-[var(--keyboard-top,0px)] transition-[padding] duration-200 sm:items-center sm:p-3 sm:pb-[calc(0.75rem+var(--keyboard-inset,0px))]"
       style={rootStyle}
       role="dialog"
       aria-modal="true"

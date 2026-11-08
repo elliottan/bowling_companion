@@ -85,7 +85,9 @@ export function ConfirmDialog({
   // thing on screen, and the completed-game edit prompt is raised from inside it.
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4"
+      // Centred in what the web app's keyboard leaves showing, for a confirm
+      // that is earned by typing a phrase (ADR-255).
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 pb-[calc(1rem+var(--keyboard-inset,0px))] pt-[calc(1rem+var(--keyboard-top,0px))]"
       role="dialog"
       aria-modal="true"
       style={{ ...backdropStyle, ...rootStyle }}

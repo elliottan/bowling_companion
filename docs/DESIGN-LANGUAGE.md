@@ -92,7 +92,9 @@ keyboard, not the size of the job:
   phone it floats as an iOS 26 sheet does (ADR-186): 8px in from the sides and
   the foot, every corner 38px so it follows the phone's own, its round
   controls set in clear of the curve. The session sheet and the lane view's
-  options float the same way. The one
+  options float the same way. In the web app a sheet rides up on the
+  keyboard while a field in it has focus, since the browser draws the
+  keyboard over the page rather than making room (ADR-255). The one
   exception to the leading close is a sheet that has already applied everything
   as you went, the filter sheets being the only ones: there is nothing to cancel,
   so an X would be a lie about what leaving does. Those carry a tick trailing

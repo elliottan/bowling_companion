@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.96.1: Fields in sheets stay above the keyboard on the web (2026-11-08)
+
+- In the web app on a phone, tapping a field in a sheet (the Oil pattern
+  filter in History, say) no longer leaves it behind the keyboard: the sheet
+  rides up on the keyboard and the field stays in sight, as it already did in
+  the iPhone app (ADR-255). The same goes for a confirm you type into, the
+  session sheet, and fields near the foot of a screen.
+
 ## 0.96.0: Balls that share a core or a cover, and ball photos without a tile (2026-11-08)
 
 - A ball's page shows the balls built on the same core and in the same
