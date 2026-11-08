@@ -234,7 +234,7 @@ export function BallCompareView({
                           <CatalogBallImage src={p.ball.imageThumb} alt="" brand={p.ball.brand} size="thumb" />
                         </span>
                         <span
-                          className={`absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-[10px] font-bold leading-none ring-1 ring-surface ${
+                          className={`absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-caption-2 font-bold leading-none ring-1 ring-surface ${
                             p.selected ? "bg-accent-fill text-accent-on-fill" : "bg-ink-strong text-surface"
                           }`}
                         >
