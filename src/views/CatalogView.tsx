@@ -2,7 +2,7 @@ import { plural, t } from "@lingui/core/macro";
 import { ClearAllButton } from "../components/ui/ClearAllButton";
 import { Select } from "../components/ui/Select";
 import { Trans } from "@lingui/react/macro";
-import { BookOpen, ExternalLink, Loader2, Palette } from "lucide-react";
+import { BookOpen, Check, Columns3, ExternalLink, Loader2, Palette } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -15,6 +15,10 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { CatalogRequestEmpty, CatalogRequestRow } from "../components/CatalogRequest";
 import { FormSheet } from "../components/ui/FormSheet";
 import { PushScreen } from "../components/PushScreen";
+import { BallCompareView } from "../components/BallCompareView";
+import { IconButton } from "../components/ui/IconButton";
+import { MAX_COMPARE } from "../lib/ballCompare";
+import { useRememberedState } from "../lib/viewMemory";
 import {
   getAllCatalog,
   syncCatalog,
@@ -29,6 +33,7 @@ import { formatReleaseDate } from "../lib/dates";
 import { formatDate, formatFixed } from "../lib/format";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
 import { kinKey, kinNames, sameCore, sameCover } from "../lib/catalogKin";
+import { coreTypeLabel, coverstockLabel } from "../components/catalogLabels";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -57,32 +62,6 @@ const RG_MAX = 2.95;
 const DIFF_MIN = 0;
 const DIFF_MAX = 0.065;
 const ALL_COVERSTOCK: CoverstockCategory[] = ["Solid", "Pearl", "Hybrid", "Urethane", "Polyester"];
-
-/** What a coverstock category is called on screen. The stored value stays
- *  English; this is only the label. */
-function coverstockLabel(category: CoverstockCategory): string {
-  switch (category) {
-    case "Solid":
-      return t({ message: "Solid", comment: "Bowling term: a coverstock type, a matte cover that grips early" });
-    case "Pearl":
-      return t({ message: "Pearl", comment: "Bowling term: a coverstock type, a shiny cover with mica that skids and then hooks" });
-    case "Hybrid":
-      return t({ message: "Hybrid", comment: "Bowling term: a coverstock type that blends solid and pearl" });
-    case "Urethane":
-      return t({ message: "Urethane", comment: "Bowling term: a coverstock material, a smooth low-friction cover" });
-    case "Polyester":
-      return t({ message: "Polyester", comment: "Bowling term: a coverstock material, plastic, used for straight shots and spares" });
-    default:
-      return category;
-  }
-}
-
-/** What a core type is called on screen. The stored value stays English. */
-function coreTypeLabel(coreType: "Symmetric" | "Asymmetric"): string {
-  return coreType === "Symmetric"
-    ? t({ message: "Symmetric", comment: "Bowling term: a ball with a symmetric core, as opposed to asymmetric" })
-    : t({ message: "Asymmetric", comment: "Bowling term: a ball with an asymmetric core, as opposed to symmetric" });
-}
 
 const EMPTY_FILTERS: Filters = {
   search: "",
@@ -161,6 +140,11 @@ interface DetailPanelProps {
   onSelectBall: (ballId: string) => void;
   /** Back to the list, filtered to one core or one cover. */
   onViewAll: (filter: { core: string } | { cover: string }) => void;
+  /** Whether the ball is picked to compare, and how many are. */
+  comparing: boolean;
+  compareCount: number;
+  onToggleCompare: () => void;
+  onOpenCompare: () => void;
 }
 
 // Swipeable colorway image carousel with pagination dots. Falls back to a
@@ -228,7 +212,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
   );
 }
 
-function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBalls, onSelectBall, onViewAll }: DetailPanelProps) {
+function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBalls, onSelectBall, onViewAll, comparing, compareCount, onToggleCompare, onOpenCompare }: DetailPanelProps) {
   const releaseDate = formatReleaseDate(ball.releaseDate);
   const coreKin = useMemo(() => sameCore(allBalls, ball), [allBalls, ball]);
   const coverKin = useMemo(() => sameCover(allBalls, ball), [allBalls, ball]);
@@ -282,6 +266,28 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
               {t`Add to arsenal`}
             </Button>
           )}
+
+          {/* Into the comparison from the ball itself, beside the list's own
+              picking (ADR-258); once two are picked, straight to it. */}
+          <div className="mt-2 flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={onToggleCompare}
+              disabled={!comparing && compareCount >= MAX_COMPARE}
+              className="flex-1"
+              aria-pressed={comparing}
+            >
+              {comparing ? <Check size={16} aria-hidden="true" /> : <Columns3 size={16} aria-hidden="true" />}
+              {comparing
+                ? t({ message: "In compare", comment: "A button showing this ball is picked to compare; tapping it takes the ball out" })
+                : t({ message: "Add to compare", comment: "Picks this bowling ball to compare with others" })}
+            </Button>
+            {comparing && compareCount >= 2 && (
+              <Button variant="secondary" onClick={onOpenCompare} className="flex-1">
+                {t({ message: `Compare ${{ count: compareCount }}`, comment: "Opens the comparison of the picked bowling balls, with how many are picked" })}
+              </Button>
+            )}
+          </div>
 
           {ball.coreName && coreKin.length > 0 && (
             <KinRow
@@ -501,6 +507,14 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   const [addSaving, setAddSaving] = useState(false);
   const [addError, setAddError] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  // The balls picked to compare, by catalog id, kept while the catalog is
+  // closed and opened again (ADR-258). Picking is a mode of the list: on, a
+  // tap on a row picks the ball rather than opening it.
+  const [compareIds, setCompareIds] = useRememberedState<string[]>("catalog:compare", []);
+  const [picking, setPicking] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const toggleCompare = (id: string) =>
+    setCompareIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : ids.length >= MAX_COMPARE ? ids : [...ids, id]));
   // Set of catalog IDs the user already owns
   const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set());
   const syncStarted = useRef(false);
@@ -618,6 +632,13 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
     return ownedIds.has(key);
   }
 
+  // The picked balls in the order they were picked, and the bowler's own
+  // catalog balls for the map (ADR-258).
+  const compareBalls = compareIds
+    .map((id) => allBalls.find((b) => b.id === id))
+    .filter((b): b is CatalogBall => b !== undefined);
+  const ownedBalls = allBalls.filter(isOwned);
+
   async function handleAddToArsenal(catalogBall: CatalogBall, name: string, colorwaySku?: string) {
     setAddSaving(true);
     setAddError("");
@@ -682,7 +703,45 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           : undefined
       }
       onBack={onBack}
-      active={selectedBallId === null && addingBall === null && !showFilters}
+      active={selectedBallId === null && addingBall === null && !showFilters && !compareOpen}
+      trailing={
+        <IconButton
+          variant={picking ? "confirm" : "round"}
+          label={
+            picking
+              ? t({ message: "Done picking", comment: "Leaves the mode where tapping a ball picks it to compare" })
+              : t({ message: "Pick balls to compare", comment: "Enters a mode where tapping balls in the catalog picks them to compare" })
+          }
+          aria-pressed={picking}
+          onClick={() => setPicking((p) => !p)}
+        >
+          {picking ? <Check size={20} aria-hidden="true" /> : <Columns3 size={20} aria-hidden="true" />}
+        </IconButton>
+      }
+      footer={
+        compareIds.length > 0 && selectedBallId === null ? (
+          // The picked balls ride at the foot, in reach while the list
+          // scrolls, with the way to compare them (ADR-258).
+          <div className="flex items-center gap-2 border-t border-edge bg-surface px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2.5 sm:px-6">
+            <span className="flex shrink-0">
+              {compareBalls.map((b, i) => (
+                <span key={b.id} className={`block h-8 w-8 ${i ? "-ml-2" : ""}`}>
+                  <CatalogBallImage src={b.imageThumb} alt="" brand={b.brand} size="thumb" />
+                </span>
+              ))}
+            </span>
+            <span className="min-w-0 flex-1 text-footnote font-semibold text-ink">
+              {t({ message: `${{ count: compareIds.length }} of ${{ max: MAX_COMPARE }}`, comment: "How many bowling balls are picked to compare, out of the most allowed" })}
+            </span>
+            <Button variant="ghost" onClick={() => setCompareIds([])} className="shrink-0">
+              {t({ message: "Clear", comment: "Takes every ball out of the comparison" })}
+            </Button>
+            <Button variant="primary" onClick={() => setCompareOpen(true)} className="shrink-0">
+              {t({ message: "Compare", comment: "Opens the comparison of the picked bowling balls" })}
+            </Button>
+          </div>
+        ) : undefined
+      }
     >
       {/* Search + filters stay pinned above the list they narrow, stopping
           under the nav bar. They used to reach up behind the bar so the list
@@ -796,9 +855,23 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
               <li key={ball.id} style={ROW_PAINT}>
                 <button
                   type="button"
-                  onClick={() => onSelectBall(ball.id)}
-                  className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-surface-muted transition-colors"
+                  // Picking, a tap picks the ball for the comparison; else it
+                  // opens the ball (ADR-258).
+                  onClick={() => (picking ? toggleCompare(ball.id) : onSelectBall(ball.id))}
+                  aria-pressed={picking ? compareIds.includes(ball.id) : undefined}
+                  disabled={picking && !compareIds.includes(ball.id) && compareIds.length >= MAX_COMPARE}
+                  className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-surface-muted disabled:opacity-50"
                 >
+                  {picking && (
+                    <span
+                      aria-hidden="true"
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
+                        compareIds.includes(ball.id) ? "border-transparent bg-accent-fill text-accent-on-fill" : "border-edge-strong"
+                      }`}
+                    >
+                      {compareIds.includes(ball.id) && <Check size={14} strokeWidth={3} />}
+                    </span>
+                  )}
                   <div className="h-10 w-10 shrink-0">
                     <CatalogBallImage src={ball.imageThumb} alt={ball.name} brand={ball.brand} size="thumb" lazy />
                   </div>
@@ -865,7 +938,11 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
             owned={isOwned(ball)}
             onBack={onBack}
             onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
-            addDialogOpen={!top || addingBall != null}
+            addDialogOpen={!top || addingBall != null || compareOpen}
+            comparing={compareIds.includes(ball.id)}
+            compareCount={compareIds.length}
+            onToggleCompare={() => toggleCompare(ball.id)}
+            onOpenCompare={() => setCompareOpen(true)}
             allBalls={allBalls}
             onSelectBall={onSelectBall}
             onViewAll={(filter) => {
@@ -881,6 +958,18 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           />
         );
       })}
+
+      {/* Over the list or a ball, whichever it was opened from. */}
+      {compareOpen && (
+        <BallCompareView
+          compared={compareBalls}
+          catalog={allBalls}
+          owned={ownedBalls}
+          onRemove={(id) => setCompareIds((ids) => ids.filter((x) => x !== id))}
+          onBack={() => setCompareOpen(false)}
+          active={addingBall === null}
+        />
+      )}
 
       {/* Add-to-arsenal dialog, always rendered at top level so it's reachable from detail view */}
       {/* The filters rise from the bottom edge, as every other filter sheet

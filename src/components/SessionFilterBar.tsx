@@ -178,6 +178,7 @@ export function SessionFilterSheet({
             value={alley}
             onChange={(e) => setAlley(e.target.value)}
             variant="field"
+            applied={alley !== ""}
           >
             <option value="">{t`All alleys`}</option>
             {allAlleys.map((a) => (
@@ -212,6 +213,7 @@ export function SessionFilterSheet({
               value={event}
               onChange={(e) => setEvent(e.target.value)}
               variant="field"
+              applied={event !== ""}
             >
               <option value="">{t`All events`}</option>
               {allEvents.map((e) => (
