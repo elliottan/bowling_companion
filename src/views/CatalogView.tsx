@@ -2,8 +2,8 @@ import { plural, t } from "@lingui/core/macro";
 import { ClearAllButton } from "../components/ui/ClearAllButton";
 import { Select } from "../components/ui/Select";
 import { Trans } from "@lingui/react/macro";
-import { BookOpen, Check, Columns3, ExternalLink, Loader2, Palette } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { BookOpen, Check, Columns3, ExternalLink, Loader2, MailPlus, MoreHorizontal, Palette } from "lucide-react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { Button } from "../components/ui/Button";
@@ -17,6 +17,9 @@ import { FormSheet } from "../components/ui/FormSheet";
 import { PushScreen } from "../components/PushScreen";
 import { BallCompareView } from "../components/BallCompareView";
 import { IconButton } from "../components/ui/IconButton";
+import { ANCHORED_MENU_WIDTH, AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
+import { anchorUnder, type MenuAnchor } from "../lib/menuAnchor";
+import { catalogRequestMailto, openMail } from "../lib/links";
 import { MAX_COMPARE } from "../lib/ballCompare";
 import { useRememberedState } from "../lib/viewMemory";
 import {
@@ -144,7 +147,8 @@ interface DetailPanelProps {
   comparing: boolean;
   compareCount: number;
   onToggleCompare: () => void;
-  onOpenCompare: () => void;
+  /** Absent while the comparison is open under the ball, which back reaches. */
+  onOpenCompare?: () => void;
 }
 
 // Swipeable colorway image carousel with pagination dots. Falls back to a
@@ -282,7 +286,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
                 ? t({ message: "In compare", comment: "A button showing this ball is picked to compare; tapping it takes the ball out" })
                 : t({ message: "Add to compare", comment: "Picks this bowling ball to compare with others" })}
             </Button>
-            {comparing && compareCount >= 2 && (
+            {comparing && compareCount >= 2 && onOpenCompare && (
               <Button variant="secondary" onClick={onOpenCompare} className="flex-1">
                 {t({ message: `Compare ${{ count: compareCount }}`, comment: "Opens the comparison of the picked bowling balls, with how many are picked" })}
               </Button>
@@ -470,6 +474,9 @@ interface CatalogViewProps {
   onShowList?: () => void;
   /** What the list opens already searched for, from the app's search. */
   initialSearch?: string;
+  /** Opens straight on the comparison's map, from the arsenal (ADR-261):
+   *  the map is then the screen, and back from it leaves the catalog. */
+  openMap?: boolean;
 }
 
 /** The nearest ancestor that scrolls vertically, or null for the page. */
@@ -481,7 +488,7 @@ function scrollParent(el: HTMLElement): HTMLElement | null {
   return null;
 }
 
-export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = [], onShowList, initialSearch }: CatalogViewProps) {
+export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = [], onShowList, initialSearch, openMap = false }: CatalogViewProps) {
   const [syncState, setSyncState] = useState<SyncState>({ status: "idle" });
   // The catalog is the one thing in the app that needs the network once. An
   // offline empty state that says "Refresh" offers a button that cannot work,
@@ -512,7 +519,18 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   // tap on a row picks the ball rather than opening it.
   const [compareIds, setCompareIds] = useRememberedState<string[]>("catalog:compare", []);
   const [picking, setPicking] = useState(false);
-  const [compareOpen, setCompareOpen] = useState(false);
+  // Opened from the arsenal, the map is the screen and the list is not
+  // drawn under it, until View all on a ball asks for the list.
+  const [mapOnly, setMapOnly] = useState(openMap);
+  const [compareOpen, setCompareOpen] = useState(openMap);
+  // The ball the comparison was opened over, null for the list: a ball opened
+  // from the comparison's map goes over it, and those under it stay under.
+  const [compareOver, setCompareOver] = useState<string | null>(null);
+  const openCompare = () => {
+    setCompareOver(selectedBallId);
+    setCompareOpen(true);
+  };
+  const [menuAt, setMenuAt] = useState<MenuAnchor | null>(null);
   const toggleCompare = (id: string) =>
     setCompareIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : ids.length >= MAX_COMPARE ? ids : [...ids, id]));
   // Set of catalog IDs the user already owns
@@ -688,6 +706,247 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
     return count;
   })();
 
+  // The open ball over the balls it was reached through, each drawn where it
+  // was left, so a ball opened from another's row slides in over that ball,
+  // and back (or the drag) uncovers it (ADR-257). The comparison sits in
+  // that stack where it was opened: over the ball it came from, or under
+  // every ball when it came from the list, so a ball opened from its map
+  // goes over it and back comes back to it (ADR-261).
+  const stack = [...ballTrail, selectedBallId].filter((id): id is string => id !== null);
+  const overAt = compareOver === null ? -1 : stack.indexOf(compareOver);
+  // Opened over a ball no longer open, the comparison went with it.
+  if (compareOpen && compareOver !== null && overAt < 0) {
+    setCompareOpen(false);
+    setCompareOver(null);
+  }
+  const compareAt = compareOpen ? overAt + 1 : Infinity;
+  const coveredCompare = compareAt < stack.length;
+
+  const detailFor = (id: string, i: number) => {
+    const ball = allBalls.find((b) => b.id === id);
+    if (!ball) return null;
+    const top = i === stack.length - 1;
+    return (
+      <DetailPanel
+        key={ball.id}
+        ball={ball}
+        owned={isOwned(ball)}
+        onBack={onBack}
+        onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
+        addDialogOpen={!top || addingBall != null || (compareOpen && i < compareAt) || menuAt !== null}
+        comparing={compareIds.includes(ball.id)}
+        compareCount={compareIds.length}
+        onToggleCompare={() => toggleCompare(ball.id)}
+        onOpenCompare={compareOpen ? undefined : openCompare}
+        allBalls={allBalls}
+        onSelectBall={onSelectBall}
+        onViewAll={(filter) => {
+          // A fresh list of just those balls: the search and every other
+          // filter would only hide some of what the row counted.
+          setFilters({ ...EMPTY_FILTERS, ...filter });
+          // From the top: the list was left wherever the ball was tapped,
+          // and a few balls at the foot of a long scroll read as none.
+          const bar = filterBarRef.current;
+          (bar && scrollParent(bar))?.scrollTo({ top: 0 });
+          // The comparison goes with the balls: the list is what was asked for.
+          setCompareOpen(false);
+          setMapOnly(false);
+          (onShowList ?? onBack)();
+        }}
+      />
+    );
+  };
+
+  const compareScreen = compareOpen ? (
+    <BallCompareView
+      compared={compareBalls}
+      owned={ownedBalls}
+      onRemove={(id) => setCompareIds((ids) => ids.filter((x) => x !== id))}
+      // From the arsenal, the map is the screen, so back leaves the catalog.
+      onBack={mapOnly ? onBack : () => setCompareOpen(false)}
+      backCloses={!mapOnly}
+      initialTab={openMap ? "map" : "specs"}
+      onOpenBall={onSelectBall}
+      active={addingBall === null && !coveredCompare}
+    />
+  ) : null;
+
+  const layers = (
+    <>
+      {/* Detail panel, a self-contained fixed modal (see DetailPanel) */}
+      {/* The open ball over the balls it was reached through, each drawn
+          where it was left, so a ball opened from another's row slides in
+          over that ball, and back (or the drag) uncovers it (ADR-257). */}
+      {stack.map((id, i) => (
+        <Fragment key={id}>
+          {i === compareAt && compareScreen}
+          {detailFor(id, i)}
+        </Fragment>
+      ))}
+      {compareAt >= stack.length && compareScreen}
+
+      {/* Add-to-arsenal dialog, always rendered at top level so it's reachable from detail view */}
+      {/* The filters rise from the bottom edge, as every other filter sheet
+          in the app does (History, Stats, Oil patterns): it was a card that
+          dropped down over the list from under the Filters chip, which read
+          as a web page's menu rather than a sheet. Each choice applies as it
+          is made, so the sheet is left with a tick, not saved. */}
+      {showFilters && (
+        <FormSheet
+          title={t`Filters`}
+          onClose={() => setShowFilters(false)}
+          dismissAs="done"
+          // Where the X would be: it undoes every choice in the sheet, and
+          // leaves the search, which is not one of them.
+          leading={
+            <ClearAllButton
+              onClick={() => setFilters((f) => ({ ...EMPTY_FILTERS, search: f.search }))}
+              disabled={activeFilterCount === 0}
+            />
+          }
+        >
+          <div className="space-y-5">
+            {/* Brand */}
+            <div>
+              <p className={`mb-2 ${GROUP_HEADING}`}>{t`Brand`}</p>
+              <div className="flex flex-wrap gap-2">
+                {brandsPresent.map((brand) => (
+                  <Chip
+                    key={brand}
+                    selected={filters.brands.has(brand)}
+                    onClick={() => setFilters((f) => ({ ...f, brands: toggleSetValue(f.brands, brand) }))}
+                  >
+                    {brand}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+
+            {/* Coverstock */}
+            <div>
+              <p className={`mb-2 ${GROUP_HEADING}`}>{t({ message: "Cover type", comment: "Bowling term: the kind of coverstock (solid, pearl or hybrid), as opposed to one cover by name" })}</p>
+              <div className="flex flex-wrap gap-2">
+                {ALL_COVERSTOCK.map((cat) => (
+                  <Chip
+                    key={cat}
+                    selected={filters.coverstockCategories.has(cat)}
+                    onClick={() => setFilters((f) => ({ ...f, coverstockCategories: toggleSetValue(f.coverstockCategories, cat) }))}
+                  >
+                    {coverstockLabel(cat)}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+
+            {/* One cover by name, typed with suggestions: there are hundreds. */}
+            <div>
+              <label className={`mb-2 block ${GROUP_HEADING}`} htmlFor="catalog-filter-cover">
+                {t({ message: "Cover", comment: "Bowling term: one coverstock by name, a filter field" })}
+              </label>
+              <ChoiceInput
+                id="catalog-filter-cover"
+                value={filters.cover ?? ""}
+                onChange={(cover) => setFilters((f) => ({ ...f, cover: cover || null }))}
+                options={coverNames}
+                placeholder={t({ message: "All covers", comment: "Bowling term: shown in the cover filter while no cover is chosen" })}
+                clearLabel={t`Clear cover filter`}
+              />
+            </div>
+
+            {/* Core type */}
+            <div>
+              <p className={`mb-2 ${GROUP_HEADING}`}>{t({ message: "Core type", comment: "Bowling term: whether a ball has a symmetric or asymmetric core" })}</p>
+              <div className="flex gap-2">
+                {(["Symmetric", "Asymmetric"] as const).map((ct) => (
+                  <Chip
+                    key={ct}
+                    selected={filters.coreType === ct}
+                    onClick={() => setFilters((f) => ({ ...f, coreType: f.coreType === ct ? null : ct }))}
+                  >
+                    {coreTypeLabel(ct)}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+
+            {/* One core by name, the same way. */}
+            <div>
+              <label className={`mb-2 block ${GROUP_HEADING}`} htmlFor="catalog-filter-core">
+                {t({ message: "Core", comment: "Bowling term: the weight block inside a ball" })}
+              </label>
+              <ChoiceInput
+                id="catalog-filter-core"
+                value={filters.core ?? ""}
+                onChange={(core) => setFilters((f) => ({ ...f, core: core || null }))}
+                options={coreNames}
+                placeholder={t({ message: "All cores", comment: "Bowling term: shown in the core filter while no core is chosen" })}
+                clearLabel={t`Clear core filter`}
+              />
+            </div>
+
+            {/* RG range */}
+            <RangeSlider
+              label={t({ message: "RG", comment: "Bowling term: radius of gyration, a ball spec" })}
+              min={RG_MIN}
+              max={RG_MAX}
+              step={0.01}
+              valueMin={filters.rgMin}
+              valueMax={filters.rgMax}
+              format={(v) => formatFixed(v, 2)}
+              onChange={(min, max) => setFilters((f) => ({ ...f, rgMin: min, rgMax: max }))}
+            />
+
+            {/* Diff range */}
+            <RangeSlider
+              label={t({ message: "Diff", comment: "Bowling term: the differential, a ball spec (short for differential RG)" })}
+              min={DIFF_MIN}
+              max={DIFF_MAX}
+              step={0.001}
+              valueMin={filters.diffMin}
+              valueMax={filters.diffMax}
+              format={(v) => formatFixed(v, 3)}
+              onChange={(min, max) => setFilters((f) => ({ ...f, diffMin: min, diffMax: max }))}
+            />
+          </div>
+        </FormSheet>
+      )}
+      {addingBall && (
+        <AddFromCatalogDialog
+          ball={addingBall}
+          onConfirm={(name, colorwaySku) => void handleAddToArsenal(addingBall, name, colorwaySku)}
+          onCancel={() => { setAddingBall(null); setAddError(""); }}
+          isSaving={addSaving}
+          error={addError}
+        />
+      )}
+      {menuAt && (
+        <AnchoredMenu left={menuAt.left} top={menuAt.top} align="end" onClose={() => setMenuAt(null)}>
+          <AnchoredMenuItem
+            icon={Columns3}
+            onClick={() => {
+              setMenuAt(null);
+              setPicking(true);
+            }}
+          >
+            {t({ message: "Compare balls", comment: "A menu item: starts picking bowling balls in the catalog to compare them" })}
+          </AnchoredMenuItem>
+          <AnchoredMenuItem
+            icon={MailPlus}
+            onClick={() => {
+              setMenuAt(null);
+              openMail(catalogRequestMailto("ball", filters.search.trim()));
+            }}
+          >
+            {t`Request a ball`}
+          </AnchoredMenuItem>
+        </AnchoredMenu>
+      )}
+    </>
+  );
+
+  // From the arsenal, the map alone: no list under it to show on its way out.
+  if (mapOnly) return layers;
+
   return (
     <PushScreen
       title={t`Catalog`}
@@ -703,20 +962,28 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           : undefined
       }
       onBack={onBack}
-      active={selectedBallId === null && addingBall === null && !showFilters && !compareOpen}
+      active={selectedBallId === null && addingBall === null && !showFilters && !compareOpen && menuAt === null}
       trailing={
-        <IconButton
-          variant={picking ? "confirm" : "round"}
-          label={
-            picking
-              ? t({ message: "Done picking", comment: "Leaves the mode where tapping a ball picks it to compare" })
-              : t({ message: "Pick balls to compare", comment: "Enters a mode where tapping balls in the catalog picks them to compare" })
-          }
-          aria-pressed={picking}
-          onClick={() => setPicking((p) => !p)}
-        >
-          {picking ? <Check size={20} aria-hidden="true" /> : <Columns3 size={20} aria-hidden="true" />}
-        </IconButton>
+        picking ? (
+          <IconButton
+            variant="confirm"
+            label={t({ message: "Done picking", comment: "Leaves the mode where tapping a ball picks it to compare" })}
+            aria-pressed
+            onClick={() => setPicking(false)}
+          >
+            <Check size={20} aria-hidden="true" />
+          </IconButton>
+        ) : (
+          // Comparing and asking for a ball, in one menu (ADR-261): a
+          // compare glyph alone in the bar did not say what it did.
+          <IconButton
+            variant="round"
+            label={t`More`}
+            onClick={(e) => setMenuAt(anchorUnder(e.currentTarget, ANCHORED_MENU_WIDTH))}
+          >
+            <MoreHorizontal size={20} aria-hidden="true" />
+          </IconButton>
+        )
       }
       footer={
         compareIds.length > 0 && selectedBallId === null ? (
@@ -736,7 +1003,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
             <Button variant="ghost" onClick={() => setCompareIds([])} className="shrink-0">
               {t({ message: "Clear", comment: "Takes every ball out of the comparison" })}
             </Button>
-            <Button variant="primary" onClick={() => setCompareOpen(true)} className="shrink-0">
+            <Button variant="primary" onClick={openCompare} className="shrink-0">
               {t({ message: "Compare", comment: "Opens the comparison of the picked bowling balls" })}
             </Button>
           </div>
@@ -923,188 +1190,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
         )}
       </div>
 
-      {/* Detail panel, a self-contained fixed modal (see DetailPanel) */}
-      {/* The open ball over the balls it was reached through, each drawn
-          where it was left, so a ball opened from another's row slides in
-          over that ball, and back (or the drag) uncovers it (ADR-257). */}
-      {[...ballTrail, selectedBallId].map((id, i, stack) => {
-        const ball = id ? allBalls.find((b) => b.id === id) : undefined;
-        if (!ball) return null;
-        const top = i === stack.length - 1;
-        return (
-          <DetailPanel
-            key={ball.id}
-            ball={ball}
-            owned={isOwned(ball)}
-            onBack={onBack}
-            onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
-            addDialogOpen={!top || addingBall != null || compareOpen}
-            comparing={compareIds.includes(ball.id)}
-            compareCount={compareIds.length}
-            onToggleCompare={() => toggleCompare(ball.id)}
-            onOpenCompare={() => setCompareOpen(true)}
-            allBalls={allBalls}
-            onSelectBall={onSelectBall}
-            onViewAll={(filter) => {
-              // A fresh list of just those balls: the search and every other
-              // filter would only hide some of what the row counted.
-              setFilters({ ...EMPTY_FILTERS, ...filter });
-              // From the top: the list was left wherever the ball was tapped,
-              // and a few balls at the foot of a long scroll read as none.
-              const bar = filterBarRef.current;
-              (bar && scrollParent(bar))?.scrollTo({ top: 0 });
-              (onShowList ?? onBack)();
-            }}
-          />
-        );
-      })}
-
-      {/* Over the list or a ball, whichever it was opened from. */}
-      {compareOpen && (
-        <BallCompareView
-          compared={compareBalls}
-          catalog={allBalls}
-          owned={ownedBalls}
-          onRemove={(id) => setCompareIds((ids) => ids.filter((x) => x !== id))}
-          onBack={() => setCompareOpen(false)}
-          active={addingBall === null}
-        />
-      )}
-
-      {/* Add-to-arsenal dialog, always rendered at top level so it's reachable from detail view */}
-      {/* The filters rise from the bottom edge, as every other filter sheet
-          in the app does (History, Stats, Oil patterns): it was a card that
-          dropped down over the list from under the Filters chip, which read
-          as a web page's menu rather than a sheet. Each choice applies as it
-          is made, so the sheet is left with a tick, not saved. */}
-      {showFilters && (
-        <FormSheet
-          title={t`Filters`}
-          onClose={() => setShowFilters(false)}
-          dismissAs="done"
-          // Where the X would be: it undoes every choice in the sheet, and
-          // leaves the search, which is not one of them.
-          leading={
-            <ClearAllButton
-              onClick={() => setFilters((f) => ({ ...EMPTY_FILTERS, search: f.search }))}
-              disabled={activeFilterCount === 0}
-            />
-          }
-        >
-          <div className="space-y-5">
-            {/* Brand */}
-            <div>
-              <p className={`mb-2 ${GROUP_HEADING}`}>{t`Brand`}</p>
-              <div className="flex flex-wrap gap-2">
-                {brandsPresent.map((brand) => (
-                  <Chip
-                    key={brand}
-                    selected={filters.brands.has(brand)}
-                    onClick={() => setFilters((f) => ({ ...f, brands: toggleSetValue(f.brands, brand) }))}
-                  >
-                    {brand}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-
-            {/* Coverstock */}
-            <div>
-              <p className={`mb-2 ${GROUP_HEADING}`}>{t({ message: "Cover type", comment: "Bowling term: the kind of coverstock (solid, pearl or hybrid), as opposed to one cover by name" })}</p>
-              <div className="flex flex-wrap gap-2">
-                {ALL_COVERSTOCK.map((cat) => (
-                  <Chip
-                    key={cat}
-                    selected={filters.coverstockCategories.has(cat)}
-                    onClick={() => setFilters((f) => ({ ...f, coverstockCategories: toggleSetValue(f.coverstockCategories, cat) }))}
-                  >
-                    {coverstockLabel(cat)}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-
-            {/* One cover by name, typed with suggestions: there are hundreds. */}
-            <div>
-              <label className={`mb-2 block ${GROUP_HEADING}`} htmlFor="catalog-filter-cover">
-                {t({ message: "Cover", comment: "Bowling term: one coverstock by name, a filter field" })}
-              </label>
-              <ChoiceInput
-                id="catalog-filter-cover"
-                value={filters.cover ?? ""}
-                onChange={(cover) => setFilters((f) => ({ ...f, cover: cover || null }))}
-                options={coverNames}
-                placeholder={t({ message: "All covers", comment: "Bowling term: shown in the cover filter while no cover is chosen" })}
-                clearLabel={t`Clear cover filter`}
-              />
-            </div>
-
-            {/* Core type */}
-            <div>
-              <p className={`mb-2 ${GROUP_HEADING}`}>{t({ message: "Core type", comment: "Bowling term: whether a ball has a symmetric or asymmetric core" })}</p>
-              <div className="flex gap-2">
-                {(["Symmetric", "Asymmetric"] as const).map((ct) => (
-                  <Chip
-                    key={ct}
-                    selected={filters.coreType === ct}
-                    onClick={() => setFilters((f) => ({ ...f, coreType: f.coreType === ct ? null : ct }))}
-                  >
-                    {coreTypeLabel(ct)}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-
-            {/* One core by name, the same way. */}
-            <div>
-              <label className={`mb-2 block ${GROUP_HEADING}`} htmlFor="catalog-filter-core">
-                {t({ message: "Core", comment: "Bowling term: the weight block inside a ball" })}
-              </label>
-              <ChoiceInput
-                id="catalog-filter-core"
-                value={filters.core ?? ""}
-                onChange={(core) => setFilters((f) => ({ ...f, core: core || null }))}
-                options={coreNames}
-                placeholder={t({ message: "All cores", comment: "Bowling term: shown in the core filter while no core is chosen" })}
-                clearLabel={t`Clear core filter`}
-              />
-            </div>
-
-            {/* RG range */}
-            <RangeSlider
-              label={t({ message: "RG", comment: "Bowling term: radius of gyration, a ball spec" })}
-              min={RG_MIN}
-              max={RG_MAX}
-              step={0.01}
-              valueMin={filters.rgMin}
-              valueMax={filters.rgMax}
-              format={(v) => formatFixed(v, 2)}
-              onChange={(min, max) => setFilters((f) => ({ ...f, rgMin: min, rgMax: max }))}
-            />
-
-            {/* Diff range */}
-            <RangeSlider
-              label={t({ message: "Diff", comment: "Bowling term: the differential, a ball spec (short for differential RG)" })}
-              min={DIFF_MIN}
-              max={DIFF_MAX}
-              step={0.001}
-              valueMin={filters.diffMin}
-              valueMax={filters.diffMax}
-              format={(v) => formatFixed(v, 3)}
-              onChange={(min, max) => setFilters((f) => ({ ...f, diffMin: min, diffMax: max }))}
-            />
-          </div>
-        </FormSheet>
-      )}
-      {addingBall && (
-        <AddFromCatalogDialog
-          ball={addingBall}
-          onConfirm={(name, colorwaySku) => void handleAddToArsenal(addingBall, name, colorwaySku)}
-          onCancel={() => { setAddingBall(null); setAddError(""); }}
-          isSaving={addSaving}
-          error={addError}
-        />
-      )}
+      {layers}
     </PushScreen>
   );
 }

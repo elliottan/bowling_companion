@@ -14,6 +14,7 @@ import {
 } from "../components/SessionFilterBar";
 import { FloatingHeader } from "../components/FloatingHeader";
 import { HistoryCalendar } from "../components/HistoryCalendar";
+import { Expand } from "../components/ui/Expand";
 import { IconButton } from "../components/ui/IconButton";
 import {
   clampMonth,
@@ -83,7 +84,7 @@ export function HistoryView({
     () => weekStartFor(typeof navigator === "undefined" ? undefined : navigator.language),
     []
   );
-  const showCalendar = mode === "tab" && calendarShown && filters.history.length > 0;
+  const hasCalendar = mode === "tab" && filters.history.length > 0;
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
@@ -194,16 +195,21 @@ export function HistoryView({
                 pushes the list down below it, so only the sessions scroll and
                 a day tapped lands its first session right under it. Hidden,
                 the list starts under the title as before. */}
-            {showCalendar && !isLoading && (
-              <HistoryCalendar
-                sessions={sessionList}
-                month={month}
-                onMonthChange={setMonth}
-                selectedDay={selectedDay}
-                onSelectDay={selectDay}
-                weekStart={weekStart}
-                bounds={bounds}
-              />
+            {/* Opens downward and closes back up (ADR-261): the switch
+                pushes the list down and draws it back up rather than
+                jumping it a calendar's height on a frame. */}
+            {hasCalendar && !isLoading && (
+              <Expand open={calendarShown}>
+                <HistoryCalendar
+                  sessions={sessionList}
+                  month={month}
+                  onMonthChange={setMonth}
+                  selectedDay={selectedDay}
+                  onSelectDay={selectDay}
+                  weekStart={weekStart}
+                  bounds={bounds}
+                />
+              </Expand>
             )}
           </>
         }

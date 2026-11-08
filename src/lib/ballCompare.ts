@@ -1,8 +1,7 @@
-import { DEFAULT_WEIGHT, type CatalogBall, type CoverstockCategory } from "../types/catalog";
+import { DEFAULT_WEIGHT, type CatalogBall } from "../types/catalog";
 
 /**
- * Comparing catalog balls (ADR-258): their specs at one weight, which value in
- * a row stands out, and which ball in the bowler's bag a ball sits closest to.
+ * Comparing catalog balls (ADR-258): their specs at one weight.
  */
 
 /** The most balls a comparison holds: four columns is what a phone fits. */
@@ -35,62 +34,27 @@ export function weightsOf(balls: readonly CatalogBall[]): number[] {
   return [...set].sort((a, b) => b - a);
 }
 
-/**
- * Which cells in a row are marked: the lowest RG (the ball revs up soonest),
- * the highest diff and MB diff (most flare). Only when the row holds two or
- * more numbers and they are not all the same, since marking every cell, or
- * the only one, says nothing.
- */
-export function marked(values: readonly (number | null)[], want: "low" | "high"): boolean[] {
-  const present = values.filter((v): v is number => v != null);
-  if (present.length < 2) return values.map(() => false);
-  const best = want === "low" ? Math.min(...present) : Math.max(...present);
-  if (present.every((v) => v === best)) return values.map(() => false);
-  return values.map((v) => v === best);
-}
-
-/** How near two balls are to rolling alike, by RG and diff at one weight and
- *  the same kind of cover. Within these, two balls do much the same job. */
-const NEAR_RG = 0.015;
-const NEAR_DIFF = 0.004;
-
-export interface Neighbour {
+/** One ball on the map, numbered as the key under it numbers it. */
+export interface MapPoint {
   ball: CatalogBall;
-  /** The owned ball it sits close to. */
-  owned: CatalogBall;
+  n: number;
+  /** Picked to compare. */
+  selected: boolean;
+  owned: boolean;
 }
 
 /**
- * For each compared ball that is not owned, the owned ball it sits closest
- * to, when that is close enough to do much the same job: the same cover type,
- * RG and diff within a hair. The nearest by RG and diff when there are several.
+ * The balls on the map, numbered: the compared first, in the order they were
+ * picked, then the bowler's own when the bag is shown. Shared by the chart and
+ * its key so the two always number alike.
  */
-export function closeToOwned(
+export function mapPoints(
   compared: readonly CatalogBall[],
   owned: readonly CatalogBall[],
-  weight: number
-): Neighbour[] {
-  const out: Neighbour[] = [];
+  showOwned: boolean
+): MapPoint[] {
   const ownedIds = new Set(owned.map((b) => b.id));
-  for (const ball of compared) {
-    if (ownedIds.has(ball.id)) continue;
-    const a = specsAt(ball, weight);
-    if (a.rg == null || a.diff == null) continue;
-    let best: { owned: CatalogBall; d: number } | null = null;
-    for (const o of owned) {
-      if (o.coverstockCategory !== ball.coverstockCategory) continue;
-      const b = specsAt(o, weight);
-      if (b.rg == null || b.diff == null) continue;
-      const dRg = Math.abs(a.rg - b.rg);
-      const dDiff = Math.abs(a.diff - b.diff);
-      if (dRg > NEAR_RG || dDiff > NEAR_DIFF) continue;
-      const d = dRg / NEAR_RG + dDiff / NEAR_DIFF;
-      if (!best || d < best.d) best = { owned: o, d };
-    }
-    if (best) out.push({ ball, owned: best.owned });
-  }
-  return out;
+  const comparedIds = new Set(compared.map((b) => b.id));
+  const balls = [...compared, ...(showOwned ? owned.filter((b) => !comparedIds.has(b.id)) : [])];
+  return balls.map((ball, i) => ({ ball, n: i + 1, selected: comparedIds.has(ball.id), owned: ownedIds.has(ball.id) }));
 }
-
-/** The cover types in the order the map's legend lists them. */
-export const COVER_ORDER: readonly CoverstockCategory[] = ["Solid", "Pearl", "Hybrid", "Urethane", "Polyester"];

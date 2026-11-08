@@ -71,10 +71,14 @@ describe("History's calendar (ADR-252)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Next month" }));
     expect(onMonthChange).toHaveBeenLastCalledWith({ year: 2026, month: 10 });
 
-    const picker = screen.getByLabelText("Choose month");
-    expect(picker).toHaveValue("2026-10");
-    fireEvent.change(picker, { target: { value: "2025-03" } });
+    fireEvent.click(screen.getByRole("button", { name: "Choose month" }));
+    expect(screen.getByRole("button", { name: "Choose month" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "October 2026" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Previous year" }));
+    fireEvent.click(screen.getByRole("button", { name: "March 2025" }));
     expect(onMonthChange).toHaveBeenLastCalledWith({ year: 2025, month: 2 });
+    // Picked, the days come back.
+    expect(screen.getByRole("button", { name: "Next month" })).toBeInTheDocument();
   });
 
   it("stops at the first and last months with a session (ADR-260)", () => {
@@ -83,11 +87,24 @@ describe("History's calendar (ADR-252)", () => {
     expect(screen.getByRole("button", { name: "Next month" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Previous month" })).toBeEnabled();
 
-    const picker = screen.getByLabelText("Choose month");
-    expect(picker).toHaveAttribute("min", "2026-06");
-    expect(picker).toHaveAttribute("max", "2026-10");
-    fireEvent.change(picker, { target: { value: "2025-03" } });
+    // The picker offers only the months inside them (ADR-261).
+    fireEvent.click(screen.getByRole("button", { name: "Choose month" }));
+    expect(screen.getByRole("button", { name: "May 2026" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "November 2026" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Previous year" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Next year" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "June 2026" }));
     expect(onMonthChange).toHaveBeenLastCalledWith({ year: 2026, month: 5 });
+  });
+
+  it("fills its first and last weeks with the months either side, a night there tappable (ADR-261)", () => {
+    const { onSelectDay } = renderCalendar({ sessions: [...SESSIONS, summary("2026-09-29", [210])] });
+    const over = screen.getByRole("button", { name: "Tuesday, September 29, average 210" });
+    expect(over.className).toContain("opacity-40");
+    fireEvent.click(over);
+    expect(onSelectDay).toHaveBeenCalledWith("2026-09-29");
+    // The month's totals stay its own.
+    expect(screen.getByRole("region", { name: "October 2026" })).toHaveTextContent("3 sessions");
   });
 
   it("marks a day still being bowled without an average", () => {

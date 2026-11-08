@@ -9,6 +9,22 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.101.0: A month picker that stays in your history, a calendar that slides open, and the ball map from your arsenal (2026-11-08)
+
+### Changed
+
+- History's month picker now shows a year's months right in the calendar, and only the months you have bowled in between your first and last sessions can be picked. Months with a session carry a dot, and the arrows step a year while it is open (ADR-261).
+- The calendar's first and last weeks now show the days of the months either side, dimmed, and a night bowled there is shaded and can be tapped.
+- Turning the calendar on or off now slides it open or closed, pushing the sessions down and drawing them back up.
+- The catalog's compare button is now a menu with Compare balls and Request a ball.
+- Compare no longer highlights cells in the specs table or says which ball "rolls much like" one in your bag.
+- The ball map now shows only the balls you are comparing and your own, each with its photo and number, edged differently for Selected and Owned, with no cover-type colours or legend. Your bag's switch sits above the chart, and the weight is now a menu.
+
+### Added
+
+- A Ball map row under your bag in the Arsenal opens the map straight away.
+- Tapping a ball on the map, or in the list under it, shows a small card with its numbers; tapping the card opens the ball's page.
+
 ## 0.100.0: History's calendar stays put, and the status bar scrolls to the top (2026-11-08)
 
 ### Changed

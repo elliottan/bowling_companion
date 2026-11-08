@@ -212,7 +212,9 @@ describe("CatalogView", () => {
     renderCatalog();
     await screen.findByText("Ball 0");
 
-    fireEvent.click(screen.getByRole("button", { name: "Pick balls to compare" }));
+    // Comparing is in the bar's menu, beside asking for a ball (ADR-261).
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
     // Picking, a row picks rather than opens.
     fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
     fireEvent.click(screen.getByRole("button", { name: /Ball 3/ }));
@@ -223,6 +225,43 @@ describe("CatalogView", () => {
     const compare = await screen.findByRole("dialog", { name: "Compare" });
     expect(within(compare).getByRole("button", { name: "Remove Ball 1" })).toBeInTheDocument();
     expect(within(compare).getByRole("button", { name: "Remove Ball 3" })).toBeInTheDocument();
+  });
+
+  it("asks for a ball from the bar's menu (ADR-261)", async () => {
+    await seedCatalog(2);
+    shop.opened.length = 0;
+    renderCatalog();
+    await screen.findByText("Ball 0");
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    // The list's own row at its foot asks too; the menu's is the last drawn.
+    const asks = screen.getAllByRole("button", { name: "Request a ball" });
+    fireEvent.click(asks[asks.length - 1]);
+    expect(shop.opened).toHaveLength(1);
+    expect(shop.opened[0]).toMatch(/^mailto:/);
+    expect(screen.queryByRole("button", { name: "Compare balls" })).toBeNull();
+  });
+
+  it("opens straight on the map from the arsenal, and a ball's card there opens its page over it (ADR-261)", async () => {
+    await seedCatalog(3);
+    await db.balls.add({ name: "Ball 2", brand: "Storm", catalog_ref_id: "ball-2" } as never);
+    const onSelectBall = vi.fn();
+    const onBack = vi.fn();
+    const { rerender } = render(<CatalogView onBack={onBack} selectedBallId={null} onSelectBall={onSelectBall} openMap />);
+    const compare = await screen.findByRole("dialog", { name: "Compare" });
+    // The map is the screen: no list under it.
+    expect(screen.queryByPlaceholderText("Search name, brand, coverstock…")).toBeNull();
+    const key = await within(compare).findByRole("button", { name: /^Ball 2/ });
+    expect(key).toHaveTextContent("Owned");
+    fireEvent.click(key);
+    const card = screen.getByRole("dialog", { name: "Ball 2" });
+    fireEvent.click(within(card).getByRole("button", { name: "Open Ball 2" }));
+    expect(onSelectBall).toHaveBeenCalledWith("ball-2");
+
+    rerender(<CatalogView onBack={onBack} selectedBallId="ball-2" onSelectBall={onSelectBall} openMap />);
+    // The ball goes over the map, which stays under it for back.
+    const dialogs = await screen.findAllByRole("dialog");
+    expect(dialogs[dialogs.length - 1]).toHaveAccessibleName("Ball 2");
+    expect(screen.getByRole("dialog", { name: "Compare", hidden: true })).toBeInTheDocument();
   });
 
   describe("a ball's page", () => {

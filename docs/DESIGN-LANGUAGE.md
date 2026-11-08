@@ -65,18 +65,23 @@ A **tab** has no nav bar: its title leads the page, in `TAB_TITLE` inside a
 `TAB_TITLE_ROW` (`ui/typography`), a row as tall as the round controls that may
 sit beside it, so every tab's title lands on the same line whether it has any.
 Home is the exception, since it opens on the bowler (§4a).
-History is the one tab with a control before its title: the round calendar
-switch, which shows or hides the month over the list (ADR-252). The glyph is
-the accent while the calendar shows, ink while it is hidden.
+History's round calendar switch sits beside its filter, trailing the title
+(ADR-260), and shows or hides the month over the list. The glyph is the accent
+while the calendar shows, ink while it is hidden. The month opens downward and
+closes back up (`ui/Expand`, ADR-261), pushing the list down and drawing it
+back up rather than jumping it.
 
 **History reads by day** (ADR-252). Its sessions sit under a `GROUP_HEADING`
 per day ("Thu, Nov 5"), so a row no longer repeats its date. Over them, on
 until hidden, a month: each day bowled shaded by its average, ranked against
 the other days shown rather than against fixed scores, so the month's best
 night is the deepest and there is no legend to read. It follows the filters
-as the list does. A tap on a bowled day takes the list to that day; the
-month's name opens the phone's own month and year picker, and the arrows step
-a month.
+as the list does. Its first and last weeks are whole, the days of the months
+either side dimmed, and a night bowled there is shaded and tappable too. A tap
+on a bowled day takes the list to that day; the arrows step a month; the
+month's name lays a year's months over the days, only those inside the
+bowler's history open to a tap (ADR-261), never the phone's own wheels, which
+show every month.
 
 ## 1a. Sheet or dialog: you type in a sheet, you answer a dialog
 

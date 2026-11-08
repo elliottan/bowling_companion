@@ -14,7 +14,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Compass, GripVertical, Plus, RotateCcw } from "lucide-react";
+import { ChartScatter, Compass, GripVertical, Plus, RotateCcw } from "lucide-react";
 import { BowlingBallIcon } from "../components/icons";
 import { useMemo, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -28,7 +28,7 @@ import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { IconButton } from "../components/ui/IconButton";
 import { Measure } from "../components/ui/Measure";
-import { LIST_DIVIDER_BASE, ListGroup } from "../components/ui/ListGroup";
+import { LIST_DIVIDER_BASE, ListGroup, ListRow } from "../components/ui/ListGroup";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { activeBalls } from "../lib/arsenal";
 import { deleteBall, getBalls, reorderBalls, setBallRetired } from "../services/ballRepository";
@@ -233,9 +233,11 @@ interface ArsenalViewProps {
   /** A ball whose sheet opens over the list as it arrives, from the app's
    *  search. Back from the sheet leaves the arsenal standing under it. */
   initialBallId?: number;
+  /** Push the comparison's map, the bag on it (ADR-261). */
+  onOpenBallMap?: () => void;
 }
 
-export function ArsenalView({ onBack, onViewLayout, initialBallId }: ArsenalViewProps) {
+export function ArsenalView({ onBack, onViewLayout, initialBallId, onOpenBallMap }: ArsenalViewProps) {
   // Live: Dexie re-runs this whenever the table changes, so saving, deleting
   // and reordering do not each have to remember to refresh the list.
   const live = useLiveQuery(() => getBalls());
@@ -392,6 +394,21 @@ export function ArsenalView({ onBack, onViewLayout, initialBallId }: ArsenalView
                 <p className="px-1 text-sm text-ink-secondary">
                   {t`Every ball you have is retired. Add one, or bring one back.`}
                 </p>
+              )}
+
+              {/* Straight to the bag on the ball map (ADR-261), where each
+                  ball sits by RG and diff beside any picked in the catalog. */}
+              {onOpenBallMap && balls.length > 0 && (
+                <div className="mt-5">
+                  <ListGroup>
+                    <ListRow
+                      icon={ChartScatter}
+                      label={t({ message: "Ball map", comment: "Opens a chart placing the bowler's balls by RG and differential" })}
+                      description={t({ message: "Your bag by RG and diff", comment: "Bowling terms: RG and diff (differential) are ball specs. Under the Ball map row." })}
+                      onClick={onOpenBallMap}
+                    />
+                  </ListGroup>
+                </div>
               )}
 
               {retired.length > 0 && (

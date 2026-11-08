@@ -32,6 +32,9 @@ export interface CalendarDay {
   day: number;
   bowled: BowledDay | null;
   level: HeatLevel;
+  /** A day of the month before or after, filling the first or last week, so
+   *  a night bowled just over the month's edge shows on it. */
+  outside: boolean;
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -49,18 +52,6 @@ export function monthOfDate(date: Date): CalendarMonth {
 export function shiftMonth({ year, month }: CalendarMonth, delta: number): CalendarMonth {
   const index = year * 12 + month + delta;
   return { year: Math.floor(index / 12), month: ((index % 12) + 12) % 12 };
-}
-
-/** `2026-10`, the value an `<input type="month">` reads and writes. */
-export function monthInputValue({ year, month }: CalendarMonth): string {
-  return `${year}-${pad(month + 1)}`;
-}
-
-export function parseMonthInput(value: string): CalendarMonth | null {
-  const m = /^(\d{4})-(\d{2})$/.exec(value);
-  if (!m) return null;
-  const month = Number(m[2]) - 1;
-  return month >= 0 && month < 12 ? { year: Number(m[1]), month } : null;
 }
 
 /** Every day bowled among `sessions`, by its stored key. */
@@ -98,33 +89,55 @@ export function heatLevel(average: number, min: number, max: number): Exclude<He
 }
 
 /**
- * The month's grid: `null` for the blanks before its first day, so the first
- * lands under its weekday, then one cell per day. Weeks start on
- * `weekStart`, 0 for Sunday as `Date.getDay` counts.
+ * The month's grid, in whole weeks: the days of the month before fill the
+ * first week up to the 1st, and the days of the month after fill the last
+ * week, both marked `outside`. Weeks start on `weekStart`, 0 for Sunday as
+ * `Date.getDay` counts.
+ *
+ * Only the month's own averages set the scale, so a night just over the edge
+ * never moves this month's shading; it is shaded on the same scale, held to
+ * the lightest and deepest steps.
  */
 export function monthGrid(
   { year, month }: CalendarMonth,
   days: Map<string, BowledDay>,
   weekStart: number
-): Array<CalendarDay | null> {
+): CalendarDay[] {
   const first = new Date(year, month, 1).getDay();
-  const blanks = (first - weekStart + 7) % 7;
+  const lead = (first - weekStart + 7) % 7;
   const length = new Date(year, month + 1, 0).getDate();
+  const trail = (7 - ((lead + length) % 7)) % 7;
 
-  const cells: Array<CalendarDay | null> = Array.from({ length: blanks }, () => null);
+  const cells: CalendarDay[] = [];
   const averages: number[] = [];
-  for (let day = 1; day <= length; day += 1) {
-    const key = dayKey(year, month, day);
+  // `new Date` carries a day past either end of the month into the next one.
+  for (let offset = -lead; offset < length + trail; offset += 1) {
+    const date = new Date(year, month, 1 + offset);
+    const key = dayKey(date.getFullYear(), date.getMonth(), date.getDate());
+    const outside = offset < 0 || offset >= length;
     const bowled = days.get(key) ?? null;
-    if (bowled?.average != null) averages.push(bowled.average);
-    cells.push({ key, day, bowled, level: 0 });
+    if (!outside && bowled?.average != null) averages.push(bowled.average);
+    cells.push({ key, day: date.getDate(), bowled, level: 0, outside });
   }
   const min = Math.min(...averages);
   const max = Math.max(...averages);
   for (const cell of cells) {
-    if (cell?.bowled?.average != null) cell.level = heatLevel(cell.bowled.average, min, max);
+    const average = cell.bowled?.average;
+    if (average == null) continue;
+    cell.level = averages.length ? heatLevel(Math.min(max, Math.max(min, average)), min, max) : 3;
   }
   return cells;
+}
+
+/** Every month with a session among `sessions`, as `YYYY-MM`, for the month
+ *  picker's dots. */
+export function bowledMonths(sessions: SessionSummary[]): Set<string> {
+  return new Set(sessions.map(({ session }) => session.date.slice(0, 7)));
+}
+
+/** The stored key of a month, `2026-10`, as a session's date starts. */
+export function monthKey({ year, month }: CalendarMonth): string {
+  return `${year}-${pad(month + 1)}`;
 }
 
 /** Bowled days and their sessions in a month, for the line under its name. */
@@ -227,6 +240,14 @@ export function clampMonth(
   if (monthIndex(month) < monthIndex(bounds.min)) return bounds.min;
   if (monthIndex(month) > monthIndex(bounds.max)) return bounds.max;
   return month;
+}
+
+/** Whether `month` is inside `bounds`; every month is with no bounds. */
+export function inBounds(
+  month: CalendarMonth,
+  bounds: { min: CalendarMonth; max: CalendarMonth } | null
+): boolean {
+  return !bounds || (monthIndex(month) >= monthIndex(bounds.min) && monthIndex(month) <= monthIndex(bounds.max));
 }
 
 /** Whether `a` is the same month as `b`. */

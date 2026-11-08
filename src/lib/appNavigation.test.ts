@@ -441,6 +441,16 @@ describe("what a search result opens (ADR-247)", () => {
     expect(state.catalogBallId).toBeNull();
   });
 
+  it("pushes the catalog open on the map, and a later push opens it on the list (ADR-261)", () => {
+    const map = run([{ type: "pushOverlay", overlay: "arsenal" }, { type: "openBallMap" }]);
+    expect(map.overlays).toEqual(["arsenal", "catalog"]);
+    expect(map.catalogMap).toBe(true);
+    const back = run([{ type: "popOverlay" }], map);
+    expect(back.overlays).toEqual(["arsenal"]);
+    expect(back.catalogMap).toBe(false);
+    expect(run([{ type: "pushOverlay", overlay: "catalog" }], back).catalogMap).toBe(false);
+  });
+
   it("pushes the catalog under a ball it opens, and only when it is not on top already", () => {
     const pushed = fromSearch({ type: "openCatalogBall", ballId: "storm-phaze", push: true });
     expect(pushed.overlays).toEqual(["search", "catalog"]);
