@@ -358,7 +358,9 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
 
   await f.check("arsenal: add a ball", async () => {
     await f.toTabs();
-    await f.tap("^(Add balls to your bag|Arsenal)$");
+    // Home's arsenal row (ADR-245) is named by its title and its detail
+    // together, "Arsenal Add balls to your bag", since the new Home (0.89.0).
+    await f.tap("^Arsenal\\b");
     await f.tap("^Add ball$");
     await f.fill("e.g. Storm Phaze II", "Device Phaze");
     await f.tap("^Add$");
