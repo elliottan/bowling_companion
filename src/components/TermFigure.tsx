@@ -79,7 +79,9 @@ const MOVES = {
  *  right-hander. */
 const BALLS = {
   pocket: { at: [5.8, 2.6], from: "M 15.5 12 Q 14.5 6.2 10.2 4.4" },
-  brooklyn: { at: [-5.8, 2.6], from: "M 15.5 12 Q 6 9.5 -1.4 4.6" },
+  // The pocket's own curve, come in further left: the same hook, carried
+  // across the nose to the other side.
+  brooklyn: { at: [-5.8, 2.6], from: "M 3.9 12 Q 2.9 6.2 -1.4 4.4" },
   high: { at: [2.8, 4.4], from: "M 13 13 Q 11.5 7.5 7.1 5.8" },
   // Just right of the pocket, the ball clear of the headpin's middle: the
   // angle that sends all ten into the pit.

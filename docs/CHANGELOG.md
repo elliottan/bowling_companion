@@ -17,6 +17,8 @@ had all shipped.
 - On Bowling terms, Flush now has a picture, with the ball just right of the
   pocket, and Light hit's ball sits further right, onto the 3 with barely any
   of the 1.
+- Brooklyn's picture now hooks into the headpin the way the pocket's does,
+  where it used to slide in flat from the far side.
 
 ## 0.93.1: Fixes from a pass over the tests (2026-11-08)
 
