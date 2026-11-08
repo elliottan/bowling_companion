@@ -3,6 +3,9 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { SessionSummary } from "../types/bowling";
 import {
   bowledDays,
+  clampMonth,
+  monthBounds,
+  sameMonth,
   dayKey,
   groupByDay,
   heatLevel,
@@ -165,5 +168,26 @@ describe("whether the calendar shows", () => {
     expect(readCalendarShown()).toBe(false);
     writeCalendarShown(true);
     expect(readCalendarShown()).toBe(true);
+  });
+});
+
+describe("monthBounds and clampMonth", () => {
+  const bounds = monthBounds([summary("2026-03-02", [150]), summary("2025-11-30", [180]), summary("2026-01-10", [])]);
+
+  it("runs from the first session's month to the last's", () => {
+    expect(bounds).toEqual({ min: { year: 2025, month: 10 }, max: { year: 2026, month: 2 } });
+    expect(monthBounds([])).toBeNull();
+  });
+
+  it("holds a month inside them", () => {
+    expect(clampMonth({ year: 2025, month: 0 }, bounds)).toEqual({ year: 2025, month: 10 });
+    expect(clampMonth({ year: 2026, month: 10 }, bounds)).toEqual({ year: 2026, month: 2 });
+    expect(clampMonth({ year: 2026, month: 0 }, bounds)).toEqual({ year: 2026, month: 0 });
+    expect(clampMonth({ year: 2020, month: 0 }, null)).toEqual({ year: 2020, month: 0 });
+  });
+
+  it("compares months", () => {
+    expect(sameMonth({ year: 2026, month: 2 }, { year: 2026, month: 2 })).toBe(true);
+    expect(sameMonth({ year: 2026, month: 2 }, { year: 2025, month: 2 })).toBe(false);
   });
 });

@@ -90,9 +90,9 @@ test("the list passes under the header rather than stopping at its edge", async 
   await page.waitForTimeout(150);
   const { headerBottom, firstCardTop } = await page.evaluate((sel) => {
     const header = document.querySelector("[data-floating-header]") as HTMLElement;
-    // The first thing in the list, whatever it is: History's calendar
-    // when it shows (ADR-252), else the first day's sessions. After the spacer
-    // the header's height is held by.
+    // The first thing in the list, the first day's sessions: History's
+    // calendar is in the header (ADR-255). After the spacer the header's
+    // height is held by.
     const card = (document.querySelector(sel) as HTMLElement).children[1].firstElementChild as HTMLElement;
     return {
       headerBottom: header.getBoundingClientRect().bottom,
@@ -112,13 +112,44 @@ test("the wash is always on, and at the top of the list it frosts nothing", asyn
   // At rest the first card sits below the wash in full, not behind its blur.
   const { groundBottom, firstCardTop } = await page.evaluate((sel) => {
     const g = document.querySelector("[data-floating-header] .floating-header-ground") as HTMLElement;
-    // The first thing in the list, whatever it is: History's calendar
-    // when it shows (ADR-252), else the first day's sessions. After the spacer
-    // the header's height is held by.
+    // The first thing in the list, the first day's sessions: History's
+    // calendar is in the header (ADR-255). After the spacer the header's
+    // height is held by.
     const card = (document.querySelector(sel) as HTMLElement).children[1].firstElementChild as HTMLElement;
     return { groundBottom: g.getBoundingClientRect().bottom, firstCardTop: card.getBoundingClientRect().top };
   }, SCROLLER);
   expect(firstCardTop).toBeGreaterThanOrEqual(groundBottom - 0.5);
   await scrollBy(page, 120);
   await expect(ground).toHaveCSS("opacity", "1");
+});
+
+test.describe("History's calendar (ADR-255)", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("stays put over the list, which starts below it and alone scrolls", async ({ page }) => {
+    await history(page, 12);
+    const calendar = page.locator("[data-floating-header] section");
+    await expect(calendar).toBeVisible();
+    const read = () =>
+      page.evaluate((sel) => {
+        const scroller = document.querySelector(sel) as HTMLElement;
+        const cal = document.querySelector("[data-floating-header] section") as HTMLElement;
+        const card = scroller.querySelector("ul > li") as HTMLElement;
+        return {
+          calendarTop: cal.getBoundingClientRect().top,
+          calendarBottom: cal.getBoundingClientRect().bottom,
+          cardTop: card.getBoundingClientRect().top
+        };
+      }, SCROLLER);
+
+    const open = await read();
+    // At rest the first session sits below the calendar, not under it.
+    expect(open.cardTop).toBeGreaterThanOrEqual(open.calendarBottom);
+
+    expect(await scrollBy(page, 150)).toBeGreaterThan(0);
+    await page.waitForTimeout(150);
+    const scrolled = await read();
+    expect(scrolled.calendarTop).toBeCloseTo(open.calendarTop, 0);
+    expect(scrolled.cardTop).toBeLessThan(open.cardTop);
+  });
 });

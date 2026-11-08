@@ -64,6 +64,7 @@ import { LaneVisualizerLazy } from "./components/LaneVisualizerLazy";
 import { OverlayLoading } from "./components/OverlayLoading";
 import { UpdateToast } from "./components/UpdateToast";
 import { shouldResetScroll } from "./lib/viewportScroll";
+import { listenForStatusTap } from "./lib/statusTap";
 import { navReducer, type AppView, type Overlay } from "./lib/appNavigation";
 import { markLanesPrompted } from "./lib/lanePrompt";
 import { initialNavFromHash } from "./lib/appRoute";
@@ -320,6 +321,9 @@ function App() {
       document.removeEventListener("visibilitychange", reset);
     };
   }, []);
+
+  // A tap on the status bar scrolls the list in view to its top (statusTap.ts).
+  useEffect(() => listenForStatusTap(), []);
 
   // Best-effort: ask the browser to make our storage persistent so it's
   // less likely to be evicted (Safari especially). Fire-and-forget; the

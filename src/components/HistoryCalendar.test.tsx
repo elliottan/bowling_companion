@@ -77,6 +77,19 @@ describe("History's calendar (ADR-252)", () => {
     expect(onMonthChange).toHaveBeenLastCalledWith({ year: 2025, month: 2 });
   });
 
+  it("stops at the first and last months with a session (ADR-255)", () => {
+    const bounds = { min: { year: 2026, month: 5 }, max: OCTOBER };
+    const { onMonthChange } = renderCalendar({ bounds });
+    expect(screen.getByRole("button", { name: "Next month" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Previous month" })).toBeEnabled();
+
+    const picker = screen.getByLabelText("Choose month");
+    expect(picker).toHaveAttribute("min", "2026-06");
+    expect(picker).toHaveAttribute("max", "2026-10");
+    fireEvent.change(picker, { target: { value: "2025-03" } });
+    expect(onMonthChange).toHaveBeenLastCalledWith({ year: 2026, month: 5 });
+  });
+
   it("marks a day still being bowled without an average", () => {
     renderCalendar({ sessions: [summary("2026-10-28", [undefined])] });
     const day = screen.getByRole("button", { name: "Wednesday, October 28" });

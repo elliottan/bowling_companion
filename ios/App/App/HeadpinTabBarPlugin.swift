@@ -37,6 +37,20 @@ public class HeadpinTabBarPlugin: CAPPlugin, CAPBridgedPlugin, UITabBarDelegate 
     ]
     private var lastHeight: CGFloat = 0
 
+    /// A tap on the status bar, passed to the page as a `statusTap` window
+    /// event. The web view's own scroll-to-top only moves the document, and
+    /// this app never scrolls the document: every list is a scroller inside
+    /// the shell (docs/VIEWPORT-BUG.md), so the page scrolls the one in view
+    /// itself (`src/lib/statusTap.ts`). Capacitor posts the tap; nothing
+    /// installed forwards it, so this plugin, loaded at launch, does.
+    public override func load() {
+        NotificationCenter.default.addObserver(
+            forName: .capacitorStatusBarTapped, object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.bridge?.triggerWindowJSEvent(eventName: "statusTap")
+        }
+    }
+
     /// Puts the bar on screen with these tabs, or updates it: the same call
     /// restyles it when the app's theme changes. `items` is `[{id, title}]`;
     /// `dark` is the app's own theme, which can differ from the phone's, and

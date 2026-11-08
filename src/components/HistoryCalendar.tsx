@@ -4,11 +4,13 @@ import { useMemo, useState } from "react";
 import { formatDate, formatNumber } from "../lib/format";
 import {
   bowledDays,
+  clampMonth,
   dayKey,
   monthGrid,
   monthInputValue,
   monthTotals,
   parseMonthInput,
+  sameMonth,
   shiftMonth,
   type CalendarDay,
   type CalendarMonth,
@@ -27,6 +29,10 @@ interface HistoryCalendarProps {
   onSelectDay: (key: string) => void;
   /** 0 for Sunday, as `Date.getDay` counts. */
   weekStart: number;
+  /** The first and last months with a session: the arrows and the picker
+   *  stop there, so the calendar never turns to a month before the bowler
+   *  started or after their latest night. */
+  bounds?: { min: CalendarMonth; max: CalendarMonth } | null;
   /** Today, for its ring. A prop so a test can fix it. */
   today?: Date;
 }
@@ -48,8 +54,11 @@ export function HistoryCalendar({
   selectedDay,
   onSelectDay,
   weekStart,
+  bounds = null,
   today = new Date()
 }: HistoryCalendarProps) {
+  const atFirst = bounds !== null && sameMonth(month, bounds.min);
+  const atLast = bounds !== null && sameMonth(month, bounds.max);
   const days = useMemo(() => bowledDays(sessions), [sessions]);
   const cells = useMemo(() => monthGrid(month, days, weekStart), [month, days, weekStart]);
   const totals = useMemo(() => monthTotals(month, sessions), [month, sessions]);
@@ -82,9 +91,13 @@ export function HistoryCalendar({
                 type="month"
                 aria-label={t`Choose month`}
                 value={monthInputValue(month)}
+                min={bounds ? monthInputValue(bounds.min) : undefined}
+                max={bounds ? monthInputValue(bounds.max) : undefined}
                 onChange={(e) => {
+                  // Held to the bounds here too: the iPhone's wheels show
+                  // every month whatever `min` and `max` say.
                   const picked = parseMonthInput(e.target.value);
-                  if (picked) onMonthChange(picked);
+                  if (picked) onMonthChange(clampMonth(picked, bounds));
                 }}
                 onClick={(e) => {
                   try {
@@ -111,10 +124,10 @@ export function HistoryCalendar({
           </p>
         </div>
         <div className="flex shrink-0 items-center">
-          <IconButton label={t`Previous month`} onClick={() => onMonthChange(shiftMonth(month, -1))}>
+          <IconButton label={t`Previous month`} disabled={atFirst} onClick={() => onMonthChange(shiftMonth(month, -1))}>
             <ChevronLeft size={22} aria-hidden="true" className="text-accent" />
           </IconButton>
-          <IconButton label={t`Next month`} onClick={() => onMonthChange(shiftMonth(month, 1))}>
+          <IconButton label={t`Next month`} disabled={atLast} onClick={() => onMonthChange(shiftMonth(month, 1))}>
             <ChevronRight size={22} aria-hidden="true" className="text-accent" />
           </IconButton>
         </div>

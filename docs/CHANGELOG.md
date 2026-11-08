@@ -9,11 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.96.1: History's calendar switch beside the filter (2026-11-08)
+## 0.97.0: History's calendar stays put, and the status bar scrolls to the top (2026-11-08)
 
 ### Changed
 
 - On History, the calendar switch now sits at the top right, beside the filter, instead of leading the title on the left.
+- With the calendar on, it stays pinned at the top and only the sessions below it scroll. Tapping a day brings that day's first session to just under the calendar (ADR-255).
+- The calendar's arrows and month picker stop at the months of your first and last sessions.
+
+### Added
+
+- In the iPhone app, tapping the status bar scrolls the screen you are on back to its top.
 
 ## 0.96.0: Balls that share a core or a cover, and ball photos without a tile (2026-11-08)
 
