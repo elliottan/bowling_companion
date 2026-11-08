@@ -26,7 +26,8 @@ had all shipped.
   boxes too narrow for one long word at the largest text size (the scorer's
   line fields, Home's tiles) the word is drawn a little smaller instead of
   being split (ADR-253).
-- Home's tiles hold their description to two lines again.
+- The stats filters no longer say "Pick an alley to filter by lane." The
+  lanes appear once an alley is chosen, which says as much.
 - A ball's page keeps its brand in sight: over the name in the bar once you
   scroll, and as a Brand row in its specs.
 - Every ball photo stands on its own, with no grey square behind it: in the

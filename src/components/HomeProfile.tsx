@@ -184,9 +184,10 @@ function Tile({
             words, and a word wider than the whole tile ("Rencana") is drawn
             a little smaller rather than broken. */}
         <WholeWords text={label} className="block text-subhead font-semibold leading-tight tracking-tight text-ink" />
-        {/* Two lines, not one: an empty tile says what it is for, and that
-            is a short sentence rather than a count. */}
-        <WholeWords text={detail ?? ""} className="line-clamp-2 text-xs text-ink-secondary">
+        {/* A short sentence rather than a count: an empty tile says what it
+            is for. Wrapped in full, not clamped: at the largest text size it
+            takes three or four lines, and a clamp hid the end of it. */}
+        <WholeWords text={detail ?? ""} className="block text-xs text-ink-secondary">
           {detail ?? " "}
         </WholeWords>
       </span>

@@ -3428,10 +3428,6 @@ msgstr "Paga una vez y es tuyo, con todas las funciones Pro que se agreguen desp
 msgid "Pearl"
 msgstr "Perlada"
 
-#: src/components/SessionFilterBar.tsx
-msgid "Pick an alley to filter by lane."
-msgstr "Elige un boliche para filtrar por pista."
-
 #: src/components/FirstRun.tsx
 msgid "Pick another"
 msgstr "Elegir otra"

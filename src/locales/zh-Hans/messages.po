@@ -3428,10 +3428,6 @@ msgstr "一次付费即永久拥有，日后添加的所有 Pro 功能也都包�
 msgid "Pearl"
 msgstr "珍珠"
 
-#: src/components/SessionFilterBar.tsx
-msgid "Pick an alley to filter by lane."
-msgstr "请先选择球馆，才能按球道筛选。"
-
 #: src/components/FirstRun.tsx
 msgid "Pick another"
 msgstr "换一个"

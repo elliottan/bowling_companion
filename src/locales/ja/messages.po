@@ -3428,10 +3428,6 @@ msgstr "一度の購入でずっとご利用いただけ、今後追加される
 msgid "Pearl"
 msgstr "パール"
 
-#: src/components/SessionFilterBar.tsx
-msgid "Pick an alley to filter by lane."
-msgstr "レーンで絞り込むには、ボウリング場を選んでください。"
-
 #: src/components/FirstRun.tsx
 msgid "Pick another"
 msgstr "別のものを選ぶ"

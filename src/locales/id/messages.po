@@ -3428,10 +3428,6 @@ msgstr "Bayar sekali dan jadi milikmu, termasuk setiap fitur Pro yang ditambahka
 msgid "Pearl"
 msgstr "Pearl"
 
-#: src/components/SessionFilterBar.tsx
-msgid "Pick an alley to filter by lane."
-msgstr "Pilih arena boling untuk memfilter menurut lintasan."
-
 #: src/components/FirstRun.tsx
 msgid "Pick another"
 msgstr "Pilih yang lain"

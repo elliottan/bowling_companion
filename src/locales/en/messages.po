@@ -3428,10 +3428,6 @@ msgstr "Pay once and it is yours, with every Pro feature added later included. N
 msgid "Pearl"
 msgstr "Pearl"
 
-#: src/components/SessionFilterBar.tsx
-msgid "Pick an alley to filter by lane."
-msgstr "Pick an alley to filter by lane."
-
 #: src/components/FirstRun.tsx
 msgid "Pick another"
 msgstr "Pick another"

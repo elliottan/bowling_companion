@@ -263,12 +263,6 @@ export function SessionFilterSheet({
             </div>
           </div>
         )}
-
-        {allLanes.length === 0 && (
-          <p className="text-xs text-ink-secondary">
-            {t`Pick an alley to filter by lane.`}
-          </p>
-        )}
       </div>
     </FormSheet>
   );

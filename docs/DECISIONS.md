@@ -10613,6 +10613,7 @@ over its neighbour. That kept the layout and lost the word.
 
 - A long word at the largest text size is drawn a little smaller in the few
   boxes that cannot hold it, which reads better than half a word.
-- Home's tile description is clamped to its two lines again: a `block` beside
-  `line-clamp-2` had won the display, so the clamp never held.
+- Home's tile description is no longer marked as clamped to two lines. A
+  `block` beside `line-clamp-2` had always won the display, so the clamp never
+  held, and holding it hid the end of the sentence at the largest text size.
 

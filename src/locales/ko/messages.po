@@ -3428,10 +3428,6 @@ msgstr "한 번만 결제하면 평생 내 것이고, 이후 추가되는 모든
 msgid "Pearl"
 msgstr "펄"
 
-#: src/components/SessionFilterBar.tsx
-msgid "Pick an alley to filter by lane."
-msgstr "볼링장을 선택하면 레인으로 필터링할 수 있어요."
-
 #: src/components/FirstRun.tsx
 msgid "Pick another"
 msgstr "다른 것 선택"
