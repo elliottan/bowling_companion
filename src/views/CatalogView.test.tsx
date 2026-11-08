@@ -207,6 +207,24 @@ describe("CatalogView", () => {
     expect(screen.getByPlaceholderText("Search name, brand, coverstock…")).toHaveValue("Ball");
   });
 
+  it("picks balls to compare from the list, and opens them side by side (ADR-258)", async () => {
+    await seedCatalog(5);
+    renderCatalog();
+    await screen.findByText("Ball 0");
+
+    fireEvent.click(screen.getByRole("button", { name: "Pick balls to compare" }));
+    // Picking, a row picks rather than opens.
+    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Ball 3/ }));
+    expect(screen.getByRole("button", { name: /Ball 1/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("2 of 4")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+    const compare = await screen.findByRole("dialog", { name: "Compare" });
+    expect(within(compare).getByRole("button", { name: "Remove Ball 1" })).toBeInTheDocument();
+    expect(within(compare).getByRole("button", { name: "Remove Ball 3" })).toBeInTheDocument();
+  });
+
   describe("a ball's page", () => {
     /** Five on one core, two of them in one cover, and one on a core of its own. */
     async function seedKin() {
@@ -283,6 +301,32 @@ describe("CatalogView", () => {
       const names = screen.getAllByRole("listitem").map((li) => li.textContent ?? "");
       expect(names.filter((text) => /Alpha|Bravo|Charlie|Delta|Echo|Foxtrot/.test(text))).toHaveLength(5);
       expect(names.some((text) => text.includes("Foxtrot"))).toBe(false);
+    });
+
+    it("keeps the ball it was opened from drawn beneath (ADR-257)", async () => {
+      await seedKin();
+      render(<CatalogView onBack={vi.fn()} selectedBallId="b" ballTrail={["a"]} onSelectBall={vi.fn()} />);
+
+      await screen.findByRole("region", { name: "Same core: Velocity" });
+      // Both pages are there, the one beneath first, so it is what the drag
+      // back uncovers.
+      const pages = screen.getAllByRole("dialog");
+      expect(pages.map((p) => p.getAttribute("aria-label"))).toEqual(["Catalog", "Alpha", "Bravo"]);
+    });
+
+    it("puts View all on the heading's line, and leaves through onShowList past every ball", async () => {
+      await seedKin();
+      const onShowList = vi.fn();
+      const onBack = vi.fn();
+      render(<CatalogView onBack={onBack} selectedBallId="b" ballTrail={["a"]} onSelectBall={vi.fn()} onShowList={onShowList} />);
+
+      const core = await screen.findByRole("region", { name: "Same core: Velocity" });
+      const viewAll = within(core).getByRole("button", { name: "View all 5 balls" });
+      // Beside the heading, before the row of balls.
+      expect(viewAll.compareDocumentPosition(within(core).getByRole("list")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      fireEvent.click(viewAll);
+      expect(onShowList).toHaveBeenCalled();
+      expect(onBack).not.toHaveBeenCalled();
     });
   });
 });

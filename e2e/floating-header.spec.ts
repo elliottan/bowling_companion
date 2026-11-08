@@ -91,7 +91,7 @@ test("the list passes under the header rather than stopping at its edge", async 
   const { headerBottom, firstCardTop } = await page.evaluate((sel) => {
     const header = document.querySelector("[data-floating-header]") as HTMLElement;
     // The first thing in the list, the first day's sessions: History's
-    // calendar is in the header (ADR-255). After the spacer the header's
+    // calendar is in the header (ADR-260). After the spacer the header's
     // height is held by.
     const card = (document.querySelector(sel) as HTMLElement).children[1].firstElementChild as HTMLElement;
     return {
@@ -113,7 +113,7 @@ test("the wash is always on, and at the top of the list it frosts nothing", asyn
   const { groundBottom, firstCardTop } = await page.evaluate((sel) => {
     const g = document.querySelector("[data-floating-header] .floating-header-ground") as HTMLElement;
     // The first thing in the list, the first day's sessions: History's
-    // calendar is in the header (ADR-255). After the spacer the header's
+    // calendar is in the header (ADR-260). After the spacer the header's
     // height is held by.
     const card = (document.querySelector(sel) as HTMLElement).children[1].firstElementChild as HTMLElement;
     return { groundBottom: g.getBoundingClientRect().bottom, firstCardTop: card.getBoundingClientRect().top };
@@ -123,7 +123,7 @@ test("the wash is always on, and at the top of the list it frosts nothing", asyn
   await expect(ground).toHaveCSS("opacity", "1");
 });
 
-test.describe("History's calendar (ADR-255)", () => {
+test.describe("History's calendar (ADR-260)", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test("stays put over the list, which starts below it and alone scrolls", async ({ page }) => {

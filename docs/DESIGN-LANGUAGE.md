@@ -92,13 +92,19 @@ keyboard, not the size of the job:
   phone it floats as an iOS 26 sheet does (ADR-186): 8px in from the sides and
   the foot, every corner 38px so it follows the phone's own, its round
   controls set in clear of the curve. The session sheet and the lane view's
-  options float the same way. The one
+  options float the same way. In the web app a sheet rides up on the
+  keyboard while a field in it has focus, since the browser draws the
+  keyboard over the page rather than making room (ADR-255). The one
   exception to the leading close is a sheet that has already applied everything
   as you went, the filter sheets being the only ones: there is nothing to cancel,
   so an X would be a lie about what leaving does. Those carry a tick trailing
   instead (`dismissAs="done"`), which reads as keeping what is on screen, and
-  where the X would be, a glass "Clear all" capsule (`leading`) that undoes
-  every choice in the sheet and is dimmed while there is none (ADR-253).
+  where the X would be, a glass "Clear all" capsule (`ClearAllButton` as
+  `leading`) that undoes every choice in the sheet and is dimmed while there
+  is none (ADR-253, ADR-256). Every filter sheet has it there and nowhere
+  else: never a line of accent text at the foot. A sheet that only reads
+  your own saved values back (the layout lab's "Reset to your saved
+  settings") is a different action and keeps its button by the values.
 - **`ConfirmDialog`** settles in the middle and scales back out. Questions with
   buttons, including a confirm that has to be earned by typing a phrase, because
   typing `ERASE` is answering rather than entering. In the iPhone app a confirm
@@ -463,7 +469,11 @@ any phone, scrolls the same way with its row names pinned (ADR-139).
 **A card never scrolls inside the screen** (ADR-196). It holds what it shows
 in full, at most two rows of leaves or six balls, and the rest is one tap away
 under a glass "View all" pill the card's width at its foot. A scroller in a
-scroller was a second thing to find and to fight.
+scroller was a second thing to find and to fight. A row of a few balls on a
+page that is not a card (a catalog ball's Same core and Same cover) puts its
+View all as accent text on the heading's line instead, as iOS puts See All
+beside a section's title, and each ball in it presses like a tile
+(`.tile-press`, ADR-257).
 
 **Only a screen draws a scroll bar** (`.scrollbar-none`, ADR-196). A screen, a
 sheet and a list that fills one keep the indicator iOS draws while the list
@@ -666,6 +676,11 @@ little at a time (a pattern's length, a spare line's boards) gets UIKit's
 minus-and-plus capsule beside its field, and the field stays typeable. A value
 that is picked from a short list is a `Select`; one that is typed fresh, a lane
 number, is just a field.
+
+**A filter field that is on looks on** (ADR-259). A chip that is on is
+filled; a field that is set (`ChoiceInput` with a choice, `Select` with
+`applied`) takes `FIELD_APPLIED`: an accent edge, the accent's tint and the
+value in the accent. Everything in the accent is narrowing the list.
 
 **A short closed list is a `Select`** (`src/components/ui/Select.tsx`,
 ADR-231), never a bare `<select>`: the value with iOS's up-and-down chevrons in

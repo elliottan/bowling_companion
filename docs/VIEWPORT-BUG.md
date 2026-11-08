@@ -250,3 +250,31 @@ cancelled there, because Safari fires them whatever `touch-action` says. A tap
 still zooms in and out. Zoom stays on everywhere else in the app.
 
 Like the fix above, not yet confirmed on a device at the time of writing.
+
+## The web app's keyboard (2026-11-08)
+
+Seen on an iPhone in Safari, not in the app: tapping the Oil pattern field in
+History's filters left the field behind the keyboard. Safari draws the
+keyboard over the page and shrinks only the visual viewport (whatever the
+viewport meta's `interactive-widget` asks), so a sheet fixed to the bottom of
+the screen stays where it is, and the old focus nudge could only scroll the
+field within the sheet's own body, which was behind the keys too. The apps are
+unaffected because their web view shrinks for the keyboard.
+
+Fix (ADR-255): `src/lib/keyboardInset.ts` publishes `--keyboard-inset` (and
+`--keyboard-top`, for when iOS pans to the field) from the visual viewport,
+and what floats over the shell moves up by it: `FormSheet`, `ConfirmDialog`,
+the session's lane panel, and the end padding of the scrollers (`--tab-clear`
+while the tab bar is hidden, a pushed screen's, Search's).
+
+**This is not a return to measuring the shell.** The shell stays `fixed
+inset-0` and nothing sizes it. The inset is read only while a text field has
+focus and is zero the rest of the time, so a stale reading after a rotation
+(the failure every earlier scheme hit) lasts no longer than the field's focus,
+and moves a sheet, never the screen under it. The document scroll clamp is
+untouched: it already stands aside while a field has focus.
+
+`e2e/keyboard.spec.ts` stands in a visual viewport and shrinks it by a
+keyboard's height. Like everything else here, the real check is a phone:
+Safari as a tab, and as an installed web app.
+

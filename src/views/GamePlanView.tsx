@@ -214,6 +214,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                       id="plan-lane"
                       value={lane}
                       onChange={(e) => setLane(e.target.value)}
+                      applied={lane !== ""}
                       variant="field"
                     >
                       <option value="">{t`Any`}</option>
@@ -234,6 +235,7 @@ export function GamePlanView({ onBack, onStartScoring }: GamePlanViewProps) {
                       id="plan-game"
                       value={gameNumber ? String(gameNumber) : ""}
                       onChange={(e) => setGame(e.target.value)}
+                      applied={!!gameNumber}
                       variant="field"
                     >
                       <option value="">{t`Any`}</option>

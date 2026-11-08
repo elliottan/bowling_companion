@@ -10657,8 +10657,163 @@ over its neighbour. That kept the layout and lost the word.
   `block` beside `line-clamp-2` had always won the display, so the clamp never
   held, and holding it hid the end of the sentence at the largest text size.
 
+## ADR-255: The web app moves what floats over the page clear of the keyboard
 
-## ADR-255: History's calendar is pinned over the list, its switch beside the filter
+**Status.** Accepted, 2026-11-08, at the owner's request. Leaves
+`docs/VIEWPORT-BUG.md`'s rule standing: the shell is never sized by a
+measurement.
+
+**Context.** On an iPhone in Safari, a field in a sheet (History's Oil
+pattern filter) went behind the keyboard when tapped. Safari draws the keyboard
+over the page and shrinks only the visual viewport, so the sheet, fixed to the
+screen's foot, stayed put; the focus handler then scrolled the field inside the
+sheet, which was behind the keys as well, and measured "hidden" against the
+wrong edge besides. The iPhone and Android apps shrink their web view for the
+keyboard, so there it was already right.
+
+**Decision.**
+
+- **`--keyboard-inset` and `--keyboard-top`** (`src/lib/keyboardInset.ts`):
+  how much of the screen the keyboard covers at the foot, and what iOS panned
+  off the top to reach the field, from the visual viewport against the layout
+  one. Read only while a field that brings up a keyboard has focus, zero
+  otherwise and in the apps.
+- **What floats over the page moves up by it:** every `FormSheet`, the
+  centred `ConfirmDialog` (a confirm can be earned by typing a phrase), and
+  the session's lane panel. **What scrolls gets the room at its end:** the
+  tab's `--tab-clear` becomes the keyboard's height while the tab bar is
+  hidden for typing, and a pushed screen and Search pad by it.
+- **Then the field is brought into the strip that shows**, by as little as it
+  takes and only if it is hidden, measured against the visual viewport's top
+  and bottom rather than the page's.
+
+**Consequences.**
+
+- A sheet rises with the keyboard and settles back when the field is left,
+  as a native sheet does.
+- `e2e/keyboard.spec.ts` stands in a visual viewport, since no test browser
+  raises a keyboard; a phone in Safari is still the real check.
+
+## ADR-256: Every filter sheet clears from its leading corner
+
+**Status.** Accepted, 2026-11-08, at the owner's request. Follows ADR-253.
+
+**Context.** ADR-253 put the catalog's Clear all where the X would be. The
+other filter sheets kept theirs at the foot, as accent text ("Clear pins" on
+the Leaves pin deck) or a ghost button (the oil patterns' "Clear filters"),
+and History's and Stats' filters had none at all.
+
+**Decision.** `ClearAllButton` (`src/components/ui/ClearAllButton.tsx`) is the
+one control, a glass capsule in `FormSheet`'s `leading` slot, labelled "Clear
+all" and dimmed while nothing is chosen. The catalog, the pin deck, the oil
+pattern filters and the History and Stats filters all carry it there, and none
+at the foot. A lane list's own "Clear" beside its heading stays: it clears
+that list, not the sheet. "Clear filters" in an empty list stays as well: it is
+the way out of a list that filtered to nothing, not a control of the sheet.
+
+**Consequences.** Clearing reads the same everywhere, and History and Stats can
+be cleared from their sheet in one tap where it took one chip at a time.
+
+## ADR-257: A ball opened from another's page stacks on it, and View all sits beside its heading
+
+**Status.** Accepted, 2026-11-08, at the owner's request, from the iPhone app.
+Amends ADR-253 on where View all goes.
+
+**Context.** A ball opened from another ball's Same core or Same cover row
+replaced that ball rather than going over it: one id held the open ball, so
+the first ball's page left the screen and the second slid in over the list.
+Dragged back, the second ball uncovered the catalog list, and the first ball
+snapped in only once the drag let go. The rows' View all was a full-width
+glass pill under each row, a row's height each and a second primary-looking
+button under Add to arsenal. A ball in the rows answered a press with
+nothing.
+
+**Decision.**
+
+- **The open ball sits on a trail** (`catalogBallTrail` beside
+  `catalogBallId`, oldest first). A ball opened from another's page goes on
+  top; back, the drag and the platform's back pop one; a restored route walks
+  the trail back or forward to the ball it names; anything that closes the
+  ball closes the trail. The catalog draws every ball on the trail, each
+  where it was left, so what the drag uncovers is the ball underneath. The
+  URL still names only the top ball: a reload starts a fresh trail.
+- **View all leaves past every ball** in one history jump (`goBack` takes a
+  step count), so the list it filters is what shows, not the ball beneath.
+- **View all is accent text on the heading's line**, at its right, as iOS
+  puts See All beside a section's title, still counting the list it opens.
+- **A ball in a row presses like a native tile** (`.tile-press`): it sinks
+  and dims under the finger and springs back.
+
+**Consequences.** A chain of balls opened one from another is a chain of
+screens, each a back away. Each stays mounted while it is under another,
+which costs a few photos' memory for a chain few will make long.
+
+## ADR-258: Catalog balls compare side by side and on a map
+
+**Status.** Accepted, 2026-11-08, at the owner's request: options A and C of
+the comparison research (the "Ball Compare" page).
+
+**Context.** Every site that compares balls does one of two things: a spec
+table of a few balls (Bowling This Month, bowlingball.com) or a chart that
+places every ball (manufacturers' motion charts). None reads the specs at the
+bowler's weight, though our catalog holds them for 98% of balls, and none
+places a ball against the bowler's own bag.
+
+**Decision.**
+
+- **Picking.** A round button in the catalog's bar turns picking on: a row
+  tap then picks the ball rather than opening it, with a tick beside it, up
+  to four (`MAX_COMPARE`, four columns being what a phone holds). A ball's
+  own page has "Add to compare" under Add to arsenal, and "Compare N" once
+  two are picked. The picked balls ride in a tray at the list's foot, with
+  Clear and Compare. The picks are remembered while the catalog is closed.
+- **Specs (A).** One column a ball: cover type, cover, finish, core, core
+  type, RG, diff, MB diff, released. A weight switch lists every weight any
+  of them has; a ball with no numbers at that weight shows its 15 lb ones,
+  starred, with a footnote. The lowest RG and the highest diff and MB diff
+  are marked, and a line says what the marks mean; nothing is marked where
+  the row has one number or all are equal (`marked`).
+- **Map (C).** RG across (lower revs up sooner), diff up (higher flares
+  more), the whole catalog faint behind, coloured by cover type from five
+  hues checked for colour-blind separation in both themes. The compared balls
+  and the bowler's own are numbered markers, ringed when compared, named in a
+  key under the chart: names drawn on the chart sat on one another where the
+  strong balls bunch. A chip hides the bag.
+- **Rolls like.** Under either tab, a compared ball that is close to one the
+  bowler owns (same cover type, RG within 0.015, diff within 0.004) is named:
+  "PhysiX Ignition rolls much like Black Widow 3.0 in your bag."
+  (`closeToOwned`).
+- **Not a route.** The comparison is a pushed screen on the sheet back stack
+  (`backCloses`), over the list or the ball it was opened from.
+
+**Consequences.**
+
+- Free, as the catalog is. "Your numbers" (option E) is the Pro half, later.
+- The map shows what the specs say. A ball's cover and finish move it as much
+  as its core, and finish is free text, so two dots close together are a
+  strong hint, not a verdict; the line under the chart says as much.
+- Core type still comes from MB diff, as the comparison research flagged, so a
+  comparison inherits that until the catalog stores symmetry on its own.
+
+## ADR-259: A filter field that is on looks on
+
+**Status.** Accepted, 2026-11-08, at the owner's request.
+
+**Context.** In a filter sheet a chip that is on is filled in the accent, but
+a field that was set (a core, a cover, an alley) looked the same as an empty
+one apart from its words, so the sheet did not say at a glance which filters
+were narrowing the list.
+
+**Decision.** `FIELD_APPLIED` (`src/components/ui/field.ts`): the accent's
+edge, its tint behind, and the value in the accent. A `ChoiceInput` takes it
+whenever a choice is made, and a `Select` with `applied` (anything but "All
+...") does too: the catalog's Core and Cover, the oil pattern filter, History
+and Stats' Alley and Event, Game plan's Lane and Game.
+
+**Consequences.** A filter sheet reads at a glance: everything in the accent
+is on, everything grey is off.
+
+## ADR-260: History's calendar is pinned over the list, its switch beside the filter
 
 **Status.** Accepted, 2026-11-08, at the owner's request. Amends ADR-252.
 

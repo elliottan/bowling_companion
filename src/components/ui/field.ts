@@ -18,6 +18,20 @@ export const FIELD_SEARCH =
 /** The same chrome for a `<select>`, which needs room for its own chevron. */
 export const FIELD_SELECT = `${FIELD} appearance-none pr-10`;
 
+/**
+ * A filter field that is narrowing the list: an accent edge, the accent's
+ * tint behind, and the value in the accent, so a sheet of filters says at a
+ * glance which ones are on. A constant rather than overrides on `FIELD`,
+ * since competing utilities resolve by stylesheet order (§2).
+ */
+export const FIELD_APPLIED = FIELD.replace(
+  "border border-transparent bg-ink/[0.06]",
+  "border-[1.5px] border-accent-fill bg-accent-soft"
+).replace("text-subhead text-ink ", "text-subhead font-semibold text-accent ");
+
+/** `FIELD_APPLIED` for a `<select>`. */
+export const FIELD_SELECT_APPLIED = `${FIELD_APPLIED} appearance-none pr-10`;
+
 /** The same chrome for a multi-line field, which sizes by `rows` not height. */
 export const FIELD_TEXTAREA = `${FIELD.replace("h-11", "min-h-11 py-2")} resize-none`;
 

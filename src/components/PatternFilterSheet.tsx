@@ -1,6 +1,6 @@
 import { t } from "@lingui/core/macro";
+import { ClearAllButton } from "./ui/ClearAllButton";
 import { SlidersHorizontal } from "lucide-react";
-import { Button } from "./ui/Button";
 import { Chip } from "./ui/Chip";
 import { FormSheet } from "./ui/FormSheet";
 import { IconButton } from "./ui/IconButton";
@@ -55,7 +55,12 @@ export function PatternFilterSheet({
     onChange({ ...filters, shapes: next });
   }
   return (
-    <FormSheet title={t`Filters`} onClose={onClose} dismissAs="done">
+    <FormSheet
+      title={t`Filters`}
+      onClose={onClose}
+      dismissAs="done"
+      leading={<ClearAllButton onClick={() => onChange(NO_PATTERN_FILTERS)} disabled={patternFilterCount(filters) === 0} />}
+    >
       <div className="space-y-5">
         <div>
           <p className={`mb-2 ${GROUP_HEADING}`}>{t`Play style`}</p>
@@ -84,12 +89,6 @@ export function PatternFilterSheet({
             })
           }
         />
-
-        {patternFilterCount(filters) > 0 && (
-          <Button variant="ghost" onClick={() => onChange(NO_PATTERN_FILTERS)}>
-            {t`Clear filters`}
-          </Button>
-        )}
       </div>
     </FormSheet>
   );

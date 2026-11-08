@@ -201,6 +201,11 @@ msgstr "{age}。包含 {sessions}、{games}、{balls}。"
 msgid "{avg} avg"
 msgstr "平均 {avg}"
 
+#. Two bowling balls with nearly the same specs and the same cover type: a compared ball, and one the bowler owns
+#: src/components/BallCompareView.tsx
+msgid "{ball} rolls much like {owned} in your bag."
+msgstr "{ball} 的球路与你球袋中的 {owned} 十分相近。"
+
 #. A ball's name, then the boards it was thrown on
 #: src/components/alleyHistoryCopy.ts
 msgid "{ballName}, {boards}"
@@ -254,6 +259,7 @@ msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, other {球道 {lanes}}}"
 
 #: src/components/ui/ViewAll.tsx
+#: src/views/CatalogView.tsx
 msgid "{count, plural, one {View all # ball} other {View all # balls}}"
 msgstr "{count, plural, other {查看全部 # 颗球}}"
 
@@ -269,6 +275,11 @@ msgstr "{count} · 全中 {strike}"
 #: src/views/CatalogView.tsx
 msgid "{count} colors"
 msgstr "{count} 种颜色"
+
+#. How many bowling balls are picked to compare, out of the most allowed
+#: src/views/CatalogView.tsx
+msgid "{count} of {max}"
+msgstr "{count} / {max}"
 
 #: src/components/SessionTrendChart.tsx
 msgid "{date}, {alley}, average {average}"
@@ -507,6 +518,10 @@ msgstr "横向 {over}\"，向下 {down}\""
 msgid "{over}\" over, {up}\" up"
 msgstr "横向 {over}\"，向上 {up}\""
 
+#: src/components/BallCompareView.tsx
+msgid "{ownedCount, plural, one {Your bag, # ball} other {Your bag, # balls}}"
+msgstr "{ownedCount, plural, other {你的球袋，# 颗球}}"
+
 #: src/components/SessionForm.tsx
 msgid "{pattern} (archived)"
 msgstr "{pattern}（已归档）"
@@ -605,11 +620,18 @@ msgstr "{weeks, plural, other {# 周前}}"
 msgid "{weeks, plural, one {Last backup # week ago} other {Last backup # weeks ago}}"
 msgstr "{weeks, plural, other {上次备份：# 周前}}"
 
+#. A ball weight in pounds, short
+#: src/components/BallCompareView.tsx
 #: src/components/BallFormDialog.tsx
 #: src/views/ArsenalView.tsx
 #: src/views/LayoutLabView.tsx
 msgid "{weight} lb"
 msgstr "{weight} lb"
+
+#. A footnote under a comparison table: one ball lists no specs at the chosen weight
+#: src/components/BallCompareView.tsx
+msgid "* No specs listed at {weight} lb, so its 15 lb numbers are shown."
+msgstr "* 没有 {weight} lb 的规格，因此显示 15 lb 的数值。"
 
 #: src/components/SessionTrendChart.tsx
 msgid "<0>{average}</0> avg"
@@ -759,6 +781,11 @@ msgstr "添加球道备注"
 msgid "Add a pattern"
 msgstr "添加油型"
 
+#. Shown under a comparison holding a single ball
+#: src/components/BallCompareView.tsx
+msgid "Add another ball from the catalog to compare."
+msgstr "从目录再添加一颗球来比较。"
+
 #: src/components/BallFormDialog.tsx
 #: src/views/ArsenalView.tsx
 msgid "Add ball"
@@ -808,6 +835,11 @@ msgstr "添加你常打的油型"
 #: src/views/CatalogView.tsx
 msgid "Add to arsenal"
 msgstr "添加到球库"
+
+#. Picks this bowling ball to compare with others
+#: src/views/CatalogView.tsx
+msgid "Add to compare"
+msgstr "加入比较"
 
 #: src/views/DashboardView.tsx
 #: src/views/SettingsView.tsx
@@ -957,7 +989,7 @@ msgstr "非对称"
 #. Bowling term: a ball with an asymmetric core, as opposed to symmetric
 #. Bowling term: a ball with an asymmetric core, as opposed to symmetric
 #: src/components/BallFormDialog.tsx
-#: src/views/CatalogView.tsx
+#: src/components/catalogLabels.ts
 #: src/views/LayoutLabView.tsx
 msgid "Asymmetric"
 msgstr "非对称"
@@ -1093,6 +1125,11 @@ msgstr "球的列"
 msgid "Ball name is required."
 msgstr "必须填写球名。"
 
+#. The spoken name of the switch between ball weights in pounds
+#: src/components/BallCompareView.tsx
+msgid "Ball weight"
+msgstr "球重"
+
 #: src/components/ShotDetailBar.tsx
 msgid "Ball: {name}. Tap to change"
 msgstr "球：{name}。点按可更改"
@@ -1104,6 +1141,11 @@ msgstr "球：无。点按可更改"
 #: src/components/Stats.tsx
 msgid "Balls"
 msgstr "球"
+
+#. Bowling terms: RG is the radius of gyration, differential a ball spec. The spoken name of a chart.
+#: src/components/BallMap.tsx
+msgid "Balls by RG and differential"
+msgstr "按 RG 与差值显示的球"
 
 #. Placeholder of the app-wide search field: the kinds of thing it finds
 #: src/views/SearchView.tsx
@@ -1322,13 +1364,15 @@ msgid "Choose one"
 msgstr "选择一个"
 
 #. Removes every recent search
+#. Takes every ball out of the comparison
 #: src/components/SessionFilterBar.tsx
+#: src/views/CatalogView.tsx
 #: src/views/SearchView.tsx
 msgid "Clear"
 msgstr "清除"
 
 #. A button that removes every filter at once
-#: src/views/CatalogView.tsx
+#: src/components/ui/ClearAllButton.tsx
 msgid "Clear all"
 msgstr "全部清除"
 
@@ -1341,7 +1385,6 @@ msgid "Clear cover filter"
 msgstr "清除球皮筛选"
 
 #: src/components/OilPatternManager.tsx
-#: src/components/PatternFilterSheet.tsx
 #: src/components/Stats.tsx
 #: src/views/CatalogView.tsx
 #: src/views/SpareLinesView.tsx
@@ -1360,10 +1403,6 @@ msgstr "清除油型"
 #: src/components/SessionFilterBar.tsx
 msgid "Clear pattern filter"
 msgstr "清除油型筛选"
-
-#: src/components/SpareFilterBar.tsx
-msgid "Clear pins"
-msgstr "清除球瓶"
 
 #: src/components/ui/SearchField.tsx
 msgid "Clear search"
@@ -1404,6 +1443,28 @@ msgstr "即将上架 App Store"
 msgid "Coming to the App Store"
 msgstr "即将上架 App Store"
 
+#. Opens the comparison of the picked bowling balls
+#. The title of the screen that compares bowling balls side by side
+#: src/components/BallCompareView.tsx
+#: src/views/CatalogView.tsx
+msgid "Compare"
+msgstr "比较"
+
+#. Opens the comparison of the picked bowling balls, with how many are picked
+#: src/views/CatalogView.tsx
+msgid "Compare {count}"
+msgstr "比较 {count} 颗"
+
+#. The spoken name of the switch between a table of specs and a map
+#: src/components/BallCompareView.tsx
+msgid "Compare by"
+msgstr "比较方式"
+
+#. Beside a bowling ball's name in a chart key: it is one of the balls being compared
+#: src/components/BallMap.tsx
+msgid "comparing"
+msgstr "比较中"
+
 #: src/views/CatalogView.tsx
 msgid "Connect once to load the catalog"
 msgstr "联网一次即可加载目录"
@@ -1419,6 +1480,8 @@ msgstr "将已保存的补中路线应用到此残瓶"
 
 #. Bowling term: the weight block inside a ball
 #. Bowling term: the weight block inside a ball
+#. Bowling term: the weight block inside a ball
+#: src/components/BallCompareView.tsx
 #: src/views/CatalogView.tsx
 msgid "Core"
 msgstr "球芯"
@@ -1427,6 +1490,8 @@ msgstr "球芯"
 #. Bowling term: whether a ball has a symmetric or asymmetric core
 #. Bowling term: whether a ball has a symmetric or asymmetric core
 #. Bowling term: whether a ball has a symmetric or asymmetric core
+#. Bowling term: whether a ball has a symmetric or asymmetric core
+#: src/components/BallCompareView.tsx
 #: src/components/BallFormDialog.tsx
 #: src/views/CatalogView.tsx
 #: src/views/LayoutLabView.tsx
@@ -1434,11 +1499,15 @@ msgid "Core type"
 msgstr "球芯类型"
 
 #. Bowling term: one coverstock by name, a filter field
+#. Bowling term: one coverstock by name, a filter field
+#: src/components/BallCompareView.tsx
 #: src/views/CatalogView.tsx
 msgid "Cover"
 msgstr "球皮"
 
 #. Bowling term: the kind of coverstock (solid, pearl or hybrid), as opposed to one cover by name
+#. Bowling term: the kind of coverstock (solid, pearl or hybrid), as opposed to one cover by name
+#: src/components/BallCompareView.tsx
 #: src/views/CatalogView.tsx
 msgid "Cover type"
 msgstr "球皮类型"
@@ -1562,6 +1631,8 @@ msgstr "说明"
 
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
+#. Bowling term: the differential, a ball spec (short for differential RG)
+#: src/components/BallCompareView.tsx
 #: src/views/CatalogView.tsx
 msgid "Diff"
 msgstr "Diff"
@@ -1585,6 +1656,11 @@ msgstr "Diff {diff}"
 #: src/views/CatalogView.tsx
 msgid "Diff, high to low"
 msgstr "Diff，由高到低"
+
+#. Bowling term: diff is the differential. A chart's vertical axis title.
+#: src/components/BallMap.tsx
+msgid "Diff: higher flares more"
+msgstr "Diff：越高，flare 越大"
 
 #: src/components/ActiveGameScorer.tsx
 #: src/components/UpdateToast.tsx
@@ -1640,6 +1716,11 @@ msgstr "PSA 到你的 PAP 的距离。它决定球放掉侧旋的速度，这在
 #: src/components/ui/FormSheet.tsx
 msgid "Done"
 msgstr "完成"
+
+#. Leaves the mode where tapping a ball picks it to compare
+#: src/views/CatalogView.tsx
+msgid "Done picking"
+msgstr "完成选择"
 
 #. Bowling term: PAP, the axis point is below the ball's midline.
 #: src/components/PapEditor.tsx
@@ -1705,6 +1786,11 @@ msgstr "以滑块调整双角度或 Storm VLS。默认从基准值开始。"
 #: src/components/BallFormDialog.tsx
 msgid "e.g. Storm Phaze II"
 msgstr "例如 Storm Phaze II"
+
+#. Explains a chart of bowling balls by RG and differential
+#: src/components/BallCompareView.tsx
+msgid "Each dot is a catalog ball, colored by its cover type. Two balls close together roll much alike."
+msgstr "每个点是目录中的一颗球，颜色代表球皮类型。两颗靠得近的球，球路十分相近。"
 
 #. Length reading: the ball turns early
 #: src/lib/ballLayout.ts
@@ -1852,6 +1938,8 @@ msgid "F{frame}"
 msgstr "F{frame}"
 
 #. Bowling term: the surface finish a ball ships with, such as polished or sanded
+#. Bowling term: the surface finish a ball ships with, such as polished or sanded
+#: src/components/BallCompareView.tsx
 #: src/views/CatalogView.tsx
 msgid "Factory finish"
 msgstr "出厂表面处理"
@@ -2370,7 +2458,7 @@ msgid "How's Headpin working for you?"
 msgstr "Headpin 用起来如何？"
 
 #. Bowling term: a coverstock type that blends solid and pearl
-#: src/views/CatalogView.tsx
+#: src/components/catalogLabels.ts
 msgid "Hybrid"
 msgstr "混合"
 
@@ -2392,6 +2480,11 @@ msgstr "导入失败。"
 msgid "In"
 msgstr "内"
 
+#. A button showing this ball is picked to compare; tapping it takes the ball out
+#: src/views/CatalogView.tsx
+msgid "In compare"
+msgstr "已加入比较"
+
 #: src/components/MetricTrendChart.tsx
 msgid "In order. {points}."
 msgstr "依序：{points}。"
@@ -2412,6 +2505,11 @@ msgstr "在灵动岛"
 #: src/views/ProOfferView.tsx
 msgid "In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
 msgstr "在 iPhone app 中，打球时分数会跟着你，每一球都会更新：在锁定屏幕、灵动岛和 Apple Watch 上。"
+
+#. Beside a bowling ball's name in a chart key: the bowler owns it
+#: src/components/BallMap.tsx
+msgid "in your bag"
+msgstr "在你的球袋"
 
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
@@ -2878,6 +2976,16 @@ msgstr "管理球库"
 msgid "Manage oil patterns"
 msgstr "管理油型"
 
+#. A tab: bowling balls placed on a chart of RG and differential
+#: src/components/BallCompareView.tsx
+msgid "Map"
+msgstr "分布图"
+
+#. Bowling terms: RG, diff and MB diff are ball specs. Explains the highlighted cells of a comparison table.
+#: src/components/BallCompareView.tsx
+msgid "Marked: the lowest RG revs up soonest, the highest diff and MB diff flare most."
+msgstr "标示：RG 最低者最早起转，Diff 与 MB diff 最高者 flare 最大。"
+
 #. On the Live Activity: the highest score the game can still finish on
 #: src/components/LiveActivityPreviews.tsx
 msgid "Max {max}"
@@ -2894,6 +3002,8 @@ msgid "MB {mbDiff}"
 msgstr "MB {mbDiff}"
 
 #. Bowling term: the mass bias differential, a ball spec
+#. Bowling term: the mass bias differential, a ball spec
+#: src/components/BallCompareView.tsx
 #: src/views/CatalogView.tsx
 msgid "MB diff"
 msgstr "MB diff"
@@ -3408,6 +3518,8 @@ msgid "over your last {sessions} sessions, {against}"
 msgstr "最近 {sessions} 个场次，{against}"
 
 #. A badge on a ball you already have in your arsenal
+#. A badge on a ball you already have in your arsenal
+#: src/components/BallCompareView.tsx
 #: src/views/CatalogView.tsx
 msgid "Owned"
 msgstr "已拥有"
@@ -3445,13 +3557,23 @@ msgid "Pay once and it is yours, with every Pro feature added later included. No
 msgstr "一次付费即永久拥有，日后添加的所有 Pro 功能也都包含。无需订阅，无需账号。"
 
 #. Bowling term: a coverstock type, a shiny cover with mica that skids and then hooks
-#: src/views/CatalogView.tsx
+#: src/components/catalogLabels.ts
 msgid "Pearl"
 msgstr "珍珠"
 
 #: src/components/FirstRun.tsx
 msgid "Pick another"
 msgstr "换一个"
+
+#. Shown when no balls have been picked to compare
+#: src/components/BallCompareView.tsx
+msgid "Pick balls in the catalog to compare them here."
+msgstr "在目录中选球，即可在这里比较。"
+
+#. Enters a mode where tapping balls in the catalog picks them to compare
+#: src/views/CatalogView.tsx
+msgid "Pick balls to compare"
+msgstr "选择要比较的球"
 
 #. Step 3 of moving games from the web to the app. Files is the phone's Files app
 #: src/lib/moveGames.ts
@@ -3575,7 +3697,7 @@ msgid "Pocket, carry and strike rates, overall and for each ball, game by game."
 msgstr "甜区率、带倒率与全中率，含整体与各球数据，逐局呈现。"
 
 #. Bowling term: a coverstock material, plastic, used for straight shots and spares
-#: src/views/CatalogView.tsx
+#: src/components/catalogLabels.ts
 msgid "Polyester"
 msgstr "聚酯"
 
@@ -3671,6 +3793,11 @@ msgstr "休闲"
 msgid "Release offset"
 msgstr "出手偏移"
 
+#. When a bowling ball came out, a row label
+#: src/components/BallCompareView.tsx
+msgid "Released"
+msgstr "上市"
+
 #: src/views/CatalogView.tsx
 msgid "Released {date}"
 msgstr "发布于 {date}"
@@ -3683,6 +3810,11 @@ msgstr "重新加载"
 #: src/components/OilPatternManager.tsx
 msgid "Remove"
 msgstr "移除"
+
+#. Takes one bowling ball out of the comparison
+#: src/components/BallCompareView.tsx
+msgid "Remove {ball}"
+msgstr "移除 {ball}"
 
 #: src/components/OilPatternManager.tsx
 msgid "Remove {name}?"
@@ -3800,6 +3932,8 @@ msgstr "反向趟数"
 
 #. Bowling term: radius of gyration, a ball spec
 #. Bowling term: radius of gyration, a ball spec
+#. Bowling term: radius of gyration, a ball spec
+#: src/components/BallCompareView.tsx
 #: src/views/CatalogView.tsx
 msgid "RG"
 msgstr "RG"
@@ -3826,6 +3960,11 @@ msgstr "RG {rg}"
 msgid "RG, low to high"
 msgstr "RG，由低到高"
 
+#. Bowling term: RG is the radius of gyration. A chart's horizontal axis title.
+#: src/components/BallMap.tsx
+msgid "RG: lower revs up sooner"
+msgstr "RG：越低，越早起转"
+
 #: src/components/LaneVisualizer.tsx
 #: src/views/LayoutLabView.tsx
 msgid "Right"
@@ -3847,6 +3986,11 @@ msgstr "右手，双手"
 #: src/views/SettingsView.tsx
 msgid "Right-handed"
 msgstr "右手"
+
+#. A chart legend entry: the balls being compared are drawn with a ring
+#: src/components/BallMap.tsx
+msgid "Ringed: comparing"
+msgstr "有外圈：比较中"
 
 #. Accent color name: a pink-red
 #: src/lib/palette.ts
@@ -4196,7 +4340,7 @@ msgid "Smooth"
 msgstr "平顺"
 
 #. Bowling term: a coverstock type, a matte cover that grips early
-#: src/views/CatalogView.tsx
+#: src/components/catalogLabels.ts
 msgid "Solid"
 msgstr "实色"
 
@@ -4266,6 +4410,11 @@ msgstr "补中：可补残瓶的补中率，不含分瓶与洗出。"
 #: src/lib/shareCard.ts
 msgid "Spares"
 msgstr "补中"
+
+#. A tab: bowling ball specs side by side
+#: src/components/BallCompareView.tsx
+msgid "Specs"
+msgstr "规格"
 
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
@@ -4485,7 +4634,7 @@ msgstr "对称"
 #. Bowling term: a ball with a symmetric core, as opposed to asymmetric
 #. Bowling term: a ball with a symmetric core, as opposed to asymmetric
 #: src/components/BallFormDialog.tsx
-#: src/views/CatalogView.tsx
+#: src/components/catalogLabels.ts
 #: src/views/LayoutLabView.tsx
 msgid "Symmetric"
 msgstr "对称"
@@ -4930,7 +5079,7 @@ msgid "Updating…"
 msgstr "更新中…"
 
 #. Bowling term: a coverstock material, a smooth low-friction cover
-#: src/views/CatalogView.tsx
+#: src/components/catalogLabels.ts
 msgid "Urethane"
 msgstr "聚氨酯"
 
@@ -4980,6 +5129,7 @@ msgid "View actual line on the lane"
 msgstr "在球道上查看实际路线"
 
 #: src/components/ui/ViewAll.tsx
+#: src/views/CatalogView.tsx
 msgid "View all {count}"
 msgstr "查看全部 {count} 条"
 

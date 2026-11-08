@@ -77,7 +77,7 @@ describe("History's calendar (ADR-252)", () => {
     expect(onMonthChange).toHaveBeenLastCalledWith({ year: 2025, month: 2 });
   });
 
-  it("stops at the first and last months with a session (ADR-255)", () => {
+  it("stops at the first and last months with a session (ADR-260)", () => {
     const bounds = { min: { year: 2026, month: 5 }, max: OCTOBER };
     const { onMonthChange } = renderCalendar({ bounds });
     expect(screen.getByRole("button", { name: "Next month" })).toBeDisabled();

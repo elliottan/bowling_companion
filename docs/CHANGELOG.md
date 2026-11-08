@@ -9,12 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.97.0: History's calendar stays put, and the status bar scrolls to the top (2026-11-08)
+## 0.100.0: History's calendar stays put, and the status bar scrolls to the top (2026-11-08)
 
 ### Changed
 
 - On History, the calendar switch now sits at the top right, beside the filter, instead of leading the title on the left.
-- With the calendar on, it stays pinned at the top and only the sessions below it scroll. Tapping a day brings that day's first session to just under the calendar (ADR-255).
+- With the calendar on, it stays pinned at the top and only the sessions below it scroll. Tapping a day brings that day's first session to just under the calendar (ADR-260).
 - The calendar's arrows and month picker stop at the months of your first and last sessions.
 - On the Live Activity page, the switch now reads "Enable Live Activity", and the note at the bottom is gone.
 - On the Headpin Pro page, each feature's name and description now sit above its picture. "Estimated average" is now "Game plan", showing the whole Game plan screen and one ball opened on its details. "Your game on the Lock Screen" is now "Live Activity", showing the Lock Screen, the Dynamic Island and the Apple Watch. The Deeper stats column headings no longer run together.
@@ -26,6 +26,47 @@ had all shipped.
 ### Fixed
 
 - A Settings section (Appearance, Bowling profile, Legal and the rest) opened after scrolling Settings showed the "Settings" bar over its own, hiding its back button. Each section now shows its own bar and back button, with its title moving into the bar as you scroll.
+
+## 0.99.0: Compare balls side by side and on a map (2026-11-08)
+
+- Compare up to four catalog balls. Tap the compare button in the catalog's
+  bar and tap balls to pick them, or use Add to compare on a ball's page; the
+  picked balls ride at the foot of the list until you compare them (ADR-258).
+- Specs lays them side by side at the weight you pick, from 12 to 16 lb, and
+  marks the lowest RG and the highest diff and MB diff.
+- Map places them on RG and diff over the whole catalog, with your own bag,
+  coloured by cover type, and says when a ball rolls much like one you own.
+- A filter that is on now looks on: a chosen core, cover, oil pattern, alley,
+  event, lane or game shows in a green-edged field, so a filter sheet says at
+  a glance what is narrowing the list (ADR-259).
+
+## 0.98.0: A ball opened from another's page goes over it (2026-11-08)
+
+- A ball opened from another ball's Same core or Same cover row now slides
+  in over that ball, and going back (the back button, or dragging the page
+  away) returns to it. It used to replace it, so the drag showed the catalog
+  list underneath before the first ball snapped back (ADR-257).
+- View all for those rows is now a small link on the heading's line, at its
+  right, rather than a full-width button under the row.
+- The balls in those rows answer a press: they sink and dim under your
+  finger, and spring back.
+- The catalog's Core and Cover filters, and the oil pattern filter in
+  History and Stats, list every option to scroll through while nothing is
+  typed, and narrow as you type. They showed only the first six.
+
+## 0.97.0: Clear all in every filter sheet's corner, and fields above the keyboard on the web (2026-11-08)
+
+- Every filter sheet clears from its top left corner with Clear all, dimmed
+  while nothing is chosen: the Leaves pin deck (it was "Clear pins" at the
+  foot), the oil pattern filters (it was "Clear filters" at the foot), and
+  History's and Stats' filters, which had no way to clear everything at once
+  (ADR-256).
+
+- In the web app on a phone, tapping a field in a sheet (the Oil pattern
+  filter in History, say) no longer leaves it behind the keyboard: the sheet
+  rides up on the keyboard and the field stays in sight, as it already did in
+  the iPhone app (ADR-255). The same goes for a confirm you type into, the
+  session sheet, and fields near the foot of a screen.
 
 ## 0.96.0: Balls that share a core or a cover, and ball photos without a tile (2026-11-08)
 
