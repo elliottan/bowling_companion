@@ -14,6 +14,9 @@ had all shipped.
 - The search on Bowling terms now stays right under the bar as the page
   scrolls. It used to stop a bar's height too low, with the terms showing
   through above it.
+- On Bowling terms, Flush now has a picture, with the ball just right of the
+  pocket, and Light hit's ball sits further right, onto the 3 with barely any
+  of the 1.
 
 ## 0.93.1: Fixes from a pass over the tests (2026-11-08)
 

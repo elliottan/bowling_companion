@@ -51,7 +51,7 @@ export type TermFigure =
   /** A pin's flight on a strike: drawn for both hands where they differ. */
   | { kind: "pin-move"; motion: "ring" | "flat" | "messenger" }
   /** Where the ball meets the rack. */
-  | { kind: "ball"; hit: "pocket" | "brooklyn" | "high" | "light" }
+  | { kind: "ball"; hit: "pocket" | "flush" | "brooklyn" | "high" | "light" }
   /** Frames as a scoresheet writes them, one array of balls each. */
   | { kind: "frames"; frames: string[][] }
   /** The lane from above, foul line on the left, with one part lit. */
@@ -207,7 +207,8 @@ export const GUIDES: readonly Guide[] = [
           },
           {
             term: "Flush",
-            text: "A pocket hit that knocks all ten pins into the pit."
+            text: "A pocket hit that knocks all ten pins into the pit.",
+            figure: { kind: "ball", hit: "flush" }
           },
           {
             term: "High hit",

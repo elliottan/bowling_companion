@@ -30,7 +30,7 @@ export function TermFigure({ figure, term }: { figure: Figure; term: string }) {
         />
       );
     case "ball":
-      return figure.hit === "pocket" || figure.hit === "brooklyn" ? (
+      return figure.hit === "pocket" || figure.hit === "flush" || figure.hit === "brooklyn" ? (
         <BothHands
           right={<Deck label={term} standing={ALL} ball={BALLS[figure.hit]} />}
           left={<Deck label={term} standing={ALL} ball={BALLS[figure.hit]} mirror />}
@@ -81,7 +81,11 @@ const BALLS = {
   pocket: { at: [5.8, 2.6], from: "M 15.5 12 Q 14.5 6.2 10.2 4.4" },
   brooklyn: { at: [-5.8, 2.6], from: "M 15.5 12 Q 6 9.5 -1.4 4.6" },
   high: { at: [2.8, 4.4], from: "M 13 13 Q 11.5 7.5 7.1 5.8" },
-  light: { at: [8.8, 1.4], from: "M 17 11 Q 16.5 5.5 13.1 2.6" }
+  // Just right of the pocket, the ball clear of the headpin's middle: the
+  // angle that sends all ten into the pit.
+  flush: { at: [8.8, 1.4], from: "M 17 11 Q 16.5 5.5 13.1 2.6" },
+  // Further right again, onto the 3 with barely any of the 1.
+  light: { at: [11.6, -1], from: "M 19.8 8.6 Q 19.3 3.1 15.9 0.2" }
 } as const;
 
 function Deck({
