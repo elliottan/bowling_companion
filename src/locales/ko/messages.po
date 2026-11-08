@@ -4588,6 +4588,10 @@ msgstr "카탈로그를 불러오지 못했어요"
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "카탈로그를 아직 불러오지 못했어요. 한 번만 연결하면 이후에는 오프라인에서도 쓸 수 있어요."
 
+#: src/services/backupRepository.ts
+msgid "The copy of what is on this phone was not saved, so nothing was replaced."
+msgstr "이 휴대폰에 있는 데이터의 사본이 저장되지 않아서 아무것도 교체하지 않았어요."
+
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."
 msgstr "이미지를 만들 수 없어요."

@@ -60,9 +60,12 @@ jobs:
         include:
           # Both projects in playwright.config.ts, not just chromium. The
           # webkit project is the iPhone the launch crowd actually bowls with.
+          # With the offline-boot project, which runs the production build
+          # under a real service worker, so this job builds first.
           - name: chromium
             browser: chromium
-            args: --project=chromium --grep-invert "text fit"
+            args: --project=chromium --project=offline-boot --grep-invert "text fit"
+            build: true
           #
           # WebKit one test at a time, split over two runners instead. Two
           # WebKit workers beside the dev server starve a four-core runner:
@@ -103,8 +106,14 @@ jobs:
         if: matrix.fonts
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends fonts-inter fonts-noto-cjk
 
+      - name: Build, for the offline-boot project
+        if: matrix.build
+        run: npm run build
+
       - name: End-to-end tests
         run: npx playwright test ${{ matrix.args }}
+        env:
+          E2E_BUILT: ${{ matrix.build && '1' || '' }}
 
       - name: Upload Playwright report on failure
         if: failure()

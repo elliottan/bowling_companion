@@ -9,6 +9,20 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.93.1: Fixes from a pass over the tests (2026-11-08)
+
+- In the iPhone and Android apps, a restore no longer replaces your data when
+  the copy of it taken first is not saved: closing that share sheet now stops
+  the restore and says why, where it used to clear everything anyway
+  (ADR-250).
+- A cold start with no network is now checked on every push, against the
+  production build with its service worker.
+- Closing a share sheet is read as cancelling wherever the browser reports it
+  that way, not only where its error is an `Error` (backups and share cards).
+- A v1 backup is converted on import by the same code the database upgrade
+  uses, so its frames are stored without the old per-shot columns beside
+  them.
+
 ## 0.93.0: Game plan, a lane note sheet in the session, and plainer tool cards (2026-11-07)
 
 - The Alley report is now Game plan, on its Home tile, its screen and in
@@ -20,6 +34,7 @@ had all shipped.
 - The Line visualizer, Layouts, Oil patterns and Ball catalog cards on Home
   show just their titles under the drawings, without the line of description.
   Settings' list of tools keeps its descriptions.
+
 ## 0.92.1: A faster check before each deploy (2026-11-07)
 
 - No change in the app. CI runs its checks and each browser's end-to-end

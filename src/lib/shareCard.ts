@@ -945,7 +945,9 @@ export async function shareCardImage(blob: Blob, filename: string): Promise<Shar
     } catch (err) {
       // Closing the sheet is not a failure and must not fall through to a
       // download the user did not ask for.
-      if (err instanceof Error && err.name === "AbortError") return "cancelled";
+      // By name alone, as in shareBackup: not every runtime makes a
+      // DOMException an Error.
+      if ((err as { name?: unknown } | null)?.name === "AbortError") return "cancelled";
       download(blob, filename);
       return "downloaded";
     }

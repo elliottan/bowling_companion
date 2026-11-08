@@ -4588,6 +4588,10 @@ msgstr "カタログが読み込まれていません"
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "カタログはまだ読み込まれていません。一度接続すれば、以降はオフラインで使えます。"
 
+#: src/services/backupRepository.ts
+msgid "The copy of what is on this phone was not saved, so nothing was replaced."
+msgstr "このスマートフォンのデータのコピーが保存されなかったため、何も置き換えていません。"
+
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."
 msgstr "画像を作成できませんでした。"

@@ -10476,3 +10476,29 @@ church, a ringing 10) are easier to show than to describe.
 
 **Consequences.** Links shared to the five old articles open the guides list,
 as any stale guide link does; they were live for less than a day.
+
+## ADR-250: A restore in the apps waits for the safety copy to leave
+
+**Status.** Accepted, 2026-11-08. Follows ADR-038 and ADR-156.
+
+**Context.** ADR-038 saves a copy of the device before an import clears it, and
+the restore screen says so: "Your current data is saved off first." In the
+store apps that copy leaves through the share sheet (ADR-156), written first to
+the app's cache, which the bowler cannot open and the platform may clear. A
+closed sheet was ignored, and the import went on to clear everything, so the
+bowler's history survived only in that cache, if at all: the one case the
+safety copy exists for.
+
+**Decision.** `replaceAllData` stops before clearing anything when the safety
+copy's sheet is closed, and says why: "The copy of what is on this phone was
+not saved, so nothing was replaced." The restore screen closes its confirm so
+the reason shows, and the file can be picked again. The web app is unchanged:
+its copy is a download, which the browser reports as nothing but done.
+
+**Consequences.**
+
+- In the apps a restore over existing data needs the safety copy saved
+  somewhere, Files, Drive or a message, every time. That is one more step
+  before the one that cannot be undone, which is the point of it.
+- A first run on an empty device takes no safety copy, as before, so the
+  restore a new phone starts with is unaffected.

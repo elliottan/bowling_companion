@@ -136,7 +136,33 @@ test("undoes the last ball from the More menu, and the score goes back with it",
   await more.click();
   await expect(undo).toHaveCount(0);
 
-  // It survives a reload, so the undo was written and not only shown.
+  // It survives a reload, so the undo was written and not only shown. The
+  // scorer draws an undo before it stores it (the frames go to IndexedDB after
+  // the screen updates), so the reload waits for the stored game to be empty:
+  // reloading on the pixel can race the delete and bring the strike back,
+  // which then opens no lanes sheet and times out below.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          new Promise<number>((resolve) => {
+            const req = indexedDB.open("BowlingCompanionDB");
+            req.onerror = () => resolve(-1);
+            req.onsuccess = () => {
+              const count = req.result.transaction("frames", "readonly").objectStore("frames").count();
+              count.onsuccess = () => {
+                resolve(count.result);
+                req.result.close();
+              };
+              count.onerror = () => {
+                resolve(-1);
+                req.result.close();
+              };
+            };
+          })
+      )
+    )
+    .toBe(0);
   await page.reload();
   // A game with no shots and no lanes asks for lanes again on open.
   await page.getByRole("dialog", { name: /lanes/i }).getByRole("button", { name: "Close" }).click();
@@ -178,5 +204,9 @@ test("records a foul from the More menu", async ({ page }) => {
   ).toBeVisible();
 
   // Frame 1 scored as a spare: 10 + frame 2's first ball (a foul, so 0) = 10.
-  await expect(page.getByRole("button", { name: /^Frame 1, shot 1: gutter/ }).first()).toBeVisible();
+  // Read off the frame's own label, not a bare "10", which the 10 pin's
+  // label also is.
+  await expect(
+    page.getByRole("button", { name: /^Frame 1, shot 1: gutter, running total 10$/ }).first()
+  ).toBeVisible();
 });

@@ -137,7 +137,7 @@ export function ShareCardDialog({ open, card, onClose, link = null }: ShareCardD
       }
     } catch (err) {
       // A dismissed share sheet rejects, and cancelling is not a failure.
-      if (!(err instanceof Error) || err.name !== "AbortError") {
+      if ((err as { name?: unknown } | null)?.name !== "AbortError") {
         setError(err instanceof Error ? err.message : t`Sharing failed.`);
       }
     } finally {

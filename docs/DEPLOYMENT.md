@@ -278,6 +278,9 @@ then repeat on the Active tab and confirm the toast waits there instead.
 2. Score a frame, reload: data persists (IndexedDB).
 3. Browser offers "Add to Home Screen"; installed app launches standalone.
 4. Toggle airplane mode and reload the installed app: it still boots (offline).
+   Chromium's half of this runs on every push (`e2e/offline-boot.spec.ts`,
+   against the production build); this step is for Safari on a real iPhone,
+   which Playwright cannot take offline under a service worker.
 
 ## Rollback
 

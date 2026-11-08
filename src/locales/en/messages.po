@@ -4588,6 +4588,10 @@ msgstr "The catalog has not loaded"
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "The catalog has not loaded yet. It needs one connection, then it works offline."
 
+#: src/services/backupRepository.ts
+msgid "The copy of what is on this phone was not saved, so nothing was replaced."
+msgstr "The copy of what is on this phone was not saved, so nothing was replaced."
+
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."
 msgstr "The image could not be created."
