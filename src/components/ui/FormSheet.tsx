@@ -51,6 +51,10 @@ interface FormSheetProps {
   /** Replaces the commit in the trailing slot, for a sheet whose trailing
    *  control changes with its state (a pencil that turns into the tick). */
   trailing?: ReactNode;
+  /** A control in the leading slot of a `"done"` sheet, where the X would
+   *  be: a filter sheet's Clear all. The two ends then take equal widths, so
+   *  the title stays centred over a control wider than the tick. */
+  leading?: ReactNode;
   /** False while a sheet or dialog is open on top of this one, so Escape and
    *  the focus trap belong to the topmost layer only. */
   active?: boolean;
@@ -79,6 +83,7 @@ export function FormSheet({
   size = "content",
   dismissAs = "close",
   trailing,
+  leading,
   active = true,
   children
 }: FormSheetProps) {
@@ -148,6 +153,8 @@ export function FormSheet({
               <IconButton onClick={() => dismiss()} label={t`Close`} variant="round">
                 <X size={20} aria-hidden="true" />
               </IconButton>
+            ) : leading ? (
+              <div className="flex min-w-0 flex-1 basis-0 justify-start">{leading}</div>
             ) : (
               <span className="h-11 w-11 shrink-0" />
             )}
@@ -157,7 +164,7 @@ export function FormSheet({
                 <p className="mt-0.5 line-clamp-2 text-xs text-ink-secondary">{subtitle}</p>
               </div>
             ) : (
-              <h2 className="flex-1 text-center text-body font-semibold text-ink">{title}</h2>
+              <h2 className={`text-center text-body font-semibold text-ink ${leading ? "shrink-0" : "flex-1"}`}>{title}</h2>
             )}
             {trailing ? (
               trailing
@@ -173,9 +180,11 @@ export function FormSheet({
             ) : dismissAs === "done" ? (
               // Leaves through `dismiss` like the X it replaces, so the sheet
               // still plays its exit rather than blinking out.
-              <IconButton variant="confirm" onClick={() => dismiss()} label={t`Done`}>
-                <Check size={20} aria-hidden="true" />
-              </IconButton>
+              <div className={leading ? "flex min-w-0 flex-1 basis-0 justify-end" : "contents"}>
+                <IconButton variant="confirm" onClick={() => dismiss()} label={t`Done`}>
+                  <Check size={20} aria-hidden="true" />
+                </IconButton>
+              </div>
             ) : subtitle ? null : (
               // Balances the close, so a centred title is centred. A leading
               // title has nothing to balance and wants the width.

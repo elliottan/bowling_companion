@@ -9,6 +9,8 @@ import { Button } from "../components/ui/Button";
 import { RangeSlider } from "../components/ui/RangeSlider";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import { SearchField } from "../components/ui/SearchField";
+import { ChoiceInput } from "../components/ui/SuggestInput";
+import { ViewAll } from "../components/ui/ViewAll";
 import { EmptyState } from "../components/ui/EmptyState";
 import { CatalogRequestEmpty, CatalogRequestRow } from "../components/CatalogRequest";
 import { FormSheet } from "../components/ui/FormSheet";
@@ -26,6 +28,7 @@ import { FIELD, FIELD_LABEL } from "../components/ui/field";
 import { formatReleaseDate } from "../lib/dates";
 import { formatDate, formatFixed, formatNumber } from "../lib/format";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
+import { kinKey, kinNames, sameCore, sameCover } from "../lib/catalogKin";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -38,6 +41,11 @@ interface Filters {
   brands: Set<Manufacturer>;
   coverstockCategories: Set<CoverstockCategory>;
   coreType: "Symmetric" | "Asymmetric" | null;
+  /** A core by name, matched by its key (`kinKey`), so every spelling of it
+   *  counts. Null for any core. */
+  core: string | null;
+  /** A cover by name ("R2S DEEP Solid Reactive"), matched the same way. */
+  cover: string | null;
   rgMin: number;
   rgMax: number;
   diffMin: number;
@@ -81,6 +89,8 @@ const EMPTY_FILTERS: Filters = {
   brands: new Set(),
   coverstockCategories: new Set(),
   coreType: null,
+  core: null,
+  cover: null,
   rgMin: RG_MIN,
   rgMax: RG_MAX,
   diffMin: DIFF_MIN,
@@ -103,11 +113,15 @@ const CATALOG_PAGE = 40;
 const ROW_PAINT = { contentVisibility: "auto", containIntrinsicSize: "auto 4.25rem" } as const;
 
 function applyFilters(balls: CatalogBall[], filters: Filters, sort: SortKey): CatalogBall[] {
+  const coreKey = kinKey(filters.core);
+  const coverKey = kinKey(filters.cover);
   const filtered = balls.filter((b) => {
     if (!matchesCatalogSearch([b.name, b.brand, b.coverstockRaw, b.coreName], filters.search)) return false;
     if (filters.brands.size > 0 && !filters.brands.has(b.brand)) return false;
     if (filters.coverstockCategories.size > 0 && (b.coverstockCategory === null || !filters.coverstockCategories.has(b.coverstockCategory))) return false;
     if (filters.coreType !== null && b.coreType !== filters.coreType) return false;
+    if (coreKey !== null && kinKey(b.coreName) !== coreKey) return false;
+    if (coverKey !== null && kinKey(b.coverstockRaw) !== coverKey) return false;
     if (b.rg !== null && (b.rg < filters.rgMin || b.rg > filters.rgMax)) return false;
     if (b.diff !== null && (b.diff < filters.diffMin || b.diff > filters.diffMax)) return false;
     return true;
@@ -142,6 +156,11 @@ interface DetailPanelProps {
   /** True while AddFromCatalogDialog is stacked on top, disables this
    *  panel's own Escape/focus-trap so only the topmost overlay responds. */
   addDialogOpen: boolean;
+  /** The whole catalog, for the balls that share this one's core or cover. */
+  allBalls: readonly CatalogBall[];
+  onSelectBall: (ballId: string) => void;
+  /** Back to the list, filtered to one core or one cover. */
+  onViewAll: (filter: { core: string } | { cover: string }) => void;
 }
 
 // Swipeable colorway image carousel with pagination dots. Falls back to a
@@ -209,8 +228,10 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
   );
 }
 
-function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: DetailPanelProps) {
+function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBalls, onSelectBall, onViewAll }: DetailPanelProps) {
   const releaseDate = formatReleaseDate(ball.releaseDate);
+  const coreKin = useMemo(() => sameCore(allBalls, ball), [allBalls, ball]);
+  const coverKin = useMemo(() => sameCover(allBalls, ball), [allBalls, ball]);
   return (
     // A ball detail is one level deeper than the list, so it pushes like one
     //, same nav bar, same back gesture, opened at the top regardless of where
@@ -225,6 +246,9 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
           )}
 
           <dl className="mt-4 space-y-2">
+            {/* The brand rides over the name only until the name scrolls
+                under the bar, so the specs carry it too. */}
+            <SpecItem label={t`Brand`} value={ball.brand} />
             <SpecItem label={t({ message: "Coverstock", comment: "Bowling term: the outer shell material of a ball" })} value={ball.coverstockRaw} />
             <SpecItem label={t`Category`} value={ball.coverstockCategory ? coverstockLabel(ball.coverstockCategory) : t`Unclassified`} />
             {ball.factoryFinish && <SpecItem label={t({ message: "Factory finish", comment: "Bowling term: the surface finish a ball ships with, such as polished or sanded" })} value={ball.factoryFinish} />}
@@ -259,9 +283,75 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen }: Det
             </Button>
           )}
 
+          {ball.coreName && coreKin.length > 0 && (
+            <KinRow
+              heading={t({ message: `Same core: ${{ core: ball.coreName }}`, comment: "Bowling term: a heading over other balls built on the same core (weight block), followed by the core's name" })}
+              balls={coreKin}
+              onSelect={onSelectBall}
+              onViewAll={() => onViewAll({ core: ball.coreName! })}
+            />
+          )}
+          {coverKin.length > 0 && (
+            <KinRow
+              heading={t({ message: `Same cover: ${{ cover: ball.coverstockRaw }}`, comment: "Bowling term: a heading over other balls with the same coverstock, followed by the coverstock's name" })}
+              balls={coverKin}
+              onSelect={onSelectBall}
+              onViewAll={() => onViewAll({ cover: ball.coverstockRaw })}
+            />
+          )}
+
         </div>
       </div>
     </PushScreen>
+  );
+}
+
+/** Balls in one row of a ball's page, and the rest under View all. */
+const KIN_SHOWN = 3;
+
+/**
+ * Other balls on the same core or in the same cover (ADR-251): one row of
+ * three that does not scroll, and the rest under View all, as a card holds
+ * what it shows (ADR-196). View all is the catalog filtered to the same name.
+ */
+function KinRow({
+  heading,
+  balls,
+  onSelect,
+  onViewAll
+}: {
+  heading: string;
+  balls: readonly CatalogBall[];
+  onSelect: (ballId: string) => void;
+  onViewAll: () => void;
+}) {
+  return (
+    <section className="mt-7" aria-label={heading}>
+      <h2 className={`mb-2 ${GROUP_HEADING}`}>{heading}</h2>
+      <ul className="grid grid-cols-3 gap-2">
+        {balls.slice(0, KIN_SHOWN).map((kin) => (
+          <li key={kin.id} className="min-w-0">
+            <button
+              type="button"
+              onClick={() => onSelect(kin.id)}
+              className="flex w-full flex-col items-center gap-1.5 rounded-xl p-1.5 text-center transition-colors hover:bg-surface-muted"
+            >
+              <span className="block w-16">
+                <CatalogBallImage src={kin.imageThumb} alt="" brand={kin.brand} size="thumb" />
+              </span>
+              <span className="w-full min-w-0">
+                {/* Wrapped, never cut: a third of a phone at the largest
+                    text size is narrower than "900 Global". */}
+                <span className="block break-words text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{kin.brand}</span>
+                <span className="block break-words text-footnote font-semibold leading-tight text-ink">{kin.name}</span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      {/* Counts the list it opens, which has this ball in it too. */}
+      {balls.length > KIN_SHOWN && <ViewAll count={balls.length + 1} noun="balls" onClick={onViewAll} />}
+    </section>
   );
 }
 
@@ -406,6 +496,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
   // Set of catalog IDs the user already owns
   const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set());
   const syncStarted = useRef(false);
+  const filterBarRef = useRef<HTMLDivElement | null>(null);
 
   // Load balls from DB into state.
   async function loadBalls() {
@@ -468,6 +559,9 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
     const present = new Set(allBalls.map((b) => b.brand));
     return MANUFACTURERS.filter((brand) => present.has(brand));
   }, [allBalls]);
+  // One name per core and per cover, however many ways the sources spell it.
+  const coreNames = useMemo(() => kinNames(allBalls.map((b) => b.coreName)), [allBalls]);
+  const coverNames = useMemo(() => kinNames(allBalls.map((b) => b.coverstockRaw)), [allBalls]);
 
   // The catalog is 250 rows, each carrying a photo, and every one of them was
   // in the DOM whether or not it had been scrolled to. Windowed the way History
@@ -564,6 +658,8 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
     if (filters.brands.size) count++;
     if (filters.coverstockCategories.size) count++;
     if (filters.coreType) count++;
+    if (filters.core) count++;
+    if (filters.cover) count++;
     if (filters.rgMin > RG_MIN || filters.rgMax < RG_MAX) count++;
     if (filters.diffMin > DIFF_MIN || filters.diffMax < DIFF_MAX) count++;
     return count;
@@ -582,7 +678,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
           bar's own ground is the page's colour nearly solid, so the list
           passing under it between the two is a soft shape, as on every other
           pushed screen. */}
-      <div className="sticky top-0 z-10 mx-auto w-full max-w-3xl border-b border-edge bg-surface-sunken px-3 pt-3 sm:px-6">
+      <div ref={filterBarRef} className="sticky top-0 z-10 mx-auto w-full max-w-3xl border-b border-edge bg-surface-sunken px-3 pt-3 sm:px-6">
         {/* Sync state banner */}
         {syncState.status === "syncing" && (
           <div className="mb-3 flex items-center gap-2 rounded-lg border border-edge bg-surface-muted px-3 py-2 text-sm text-ink-secondary">
@@ -670,6 +766,18 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
               <FilterChip
                 label={coreTypeLabel(filters.coreType)}
                 onRemove={() => setFilters((f) => ({ ...f, coreType: null }))}
+              />
+            )}
+            {filters.core && (
+              <FilterChip
+                label={t({ message: `Core: ${{ core: filters.core }}`, comment: "Bowling term: an active filter on one core (weight block) by name" })}
+                onRemove={() => setFilters((f) => ({ ...f, core: null }))}
+              />
+            )}
+            {filters.cover && (
+              <FilterChip
+                label={t({ message: `Cover: ${{ cover: filters.cover }}`, comment: "Bowling term: an active filter on one coverstock by name" })}
+                onRemove={() => setFilters((f) => ({ ...f, cover: null }))}
               />
             )}
             {(filters.rgMin > RG_MIN || filters.rgMax < RG_MAX) && (
@@ -795,11 +903,24 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
       {/* Detail panel, a self-contained fixed modal (see DetailPanel) */}
       {selectedBall && (
         <DetailPanel
+          key={selectedBall.id}
           ball={selectedBall}
           owned={isOwned(selectedBall)}
           onBack={onBack}
           onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
           addDialogOpen={addingBall != null}
+          allBalls={allBalls}
+          onSelectBall={onSelectBall}
+          onViewAll={(filter) => {
+            // A fresh list of just those balls: the search and every other
+            // filter would only hide some of what the row counted.
+            setFilters({ ...EMPTY_FILTERS, ...filter });
+            // From the top: the list was left wherever the ball was tapped,
+            // and a few balls at the foot of a long scroll read as none.
+            const bar = filterBarRef.current;
+            (bar && scrollParent(bar))?.scrollTo({ top: 0 });
+            onBack();
+          }}
         />
       )}
 
@@ -810,7 +931,23 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
           as a web page's menu rather than a sheet. Each choice applies as it
           is made, so the sheet is left with a tick, not saved. */}
       {showFilters && (
-        <FormSheet title={t`Filters`} onClose={() => setShowFilters(false)} dismissAs="done">
+        <FormSheet
+          title={t`Filters`}
+          onClose={() => setShowFilters(false)}
+          dismissAs="done"
+          // Where the X would be: it undoes every choice in the sheet, and
+          // leaves the search, which is not one of them.
+          leading={
+            <button
+              type="button"
+              onClick={() => setFilters((f) => ({ ...EMPTY_FILTERS, search: f.search }))}
+              disabled={activeFilterCount === 0}
+              className="glass glass-press inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold text-ink [--press-scale:1.04] disabled:opacity-40"
+            >
+              {t({ message: "Clear all", comment: "A button that removes every filter at once" })}
+            </button>
+          }
+        >
           <div className="space-y-5">
             {/* Brand */}
             <div>
@@ -830,7 +967,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
 
             {/* Coverstock */}
             <div>
-              <p className={`mb-2 ${GROUP_HEADING}`}>{t({ message: "Coverstock", comment: "Bowling term: the outer shell material of a ball" })}</p>
+              <p className={`mb-2 ${GROUP_HEADING}`}>{t({ message: "Cover type", comment: "Bowling term: the kind of coverstock (solid, pearl or hybrid), as opposed to one cover by name" })}</p>
               <div className="flex flex-wrap gap-2">
                 {ALL_COVERSTOCK.map((cat) => (
                   <Chip
@@ -842,6 +979,21 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
                   </Chip>
                 ))}
               </div>
+            </div>
+
+            {/* One cover by name, typed with suggestions: there are hundreds. */}
+            <div>
+              <label className={`mb-2 block ${GROUP_HEADING}`} htmlFor="catalog-filter-cover">
+                {t({ message: "Cover", comment: "Bowling term: one coverstock by name, a filter field" })}
+              </label>
+              <ChoiceInput
+                id="catalog-filter-cover"
+                value={filters.cover ?? ""}
+                onChange={(cover) => setFilters((f) => ({ ...f, cover: cover || null }))}
+                options={coverNames}
+                placeholder={t({ message: "All covers", comment: "Bowling term: shown in the cover filter while no cover is chosen" })}
+                clearLabel={t`Clear cover filter`}
+              />
             </div>
 
             {/* Core type */}
@@ -858,6 +1010,21 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
                   </Chip>
                 ))}
               </div>
+            </div>
+
+            {/* One core by name, the same way. */}
+            <div>
+              <label className={`mb-2 block ${GROUP_HEADING}`} htmlFor="catalog-filter-core">
+                {t({ message: "Core", comment: "Bowling term: the weight block inside a ball" })}
+              </label>
+              <ChoiceInput
+                id="catalog-filter-core"
+                value={filters.core ?? ""}
+                onChange={(core) => setFilters((f) => ({ ...f, core: core || null }))}
+                options={coreNames}
+                placeholder={t({ message: "All cores", comment: "Bowling term: shown in the core filter while no core is chosen" })}
+                clearLabel={t`Clear core filter`}
+              />
             </div>
 
             {/* RG range */}
@@ -883,15 +1050,6 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
               format={(v) => formatFixed(v, 3)}
               onChange={(min, max) => setFilters((f) => ({ ...f, diffMin: min, diffMax: max }))}
             />
-
-            {/* Reset */}
-            <button
-              type="button"
-              onClick={() => setFilters(EMPTY_FILTERS)}
-              className={`relative text-xs font-semibold text-accent hover:underline ${TAP_TARGET_44}`}
-            >
-              {t`Reset all filters`}
-            </button>
           </div>
         </FormSheet>
       )}

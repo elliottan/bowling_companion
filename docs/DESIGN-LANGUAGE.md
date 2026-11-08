@@ -83,9 +83,10 @@ keyboard, not the size of the job:
   options float the same way. The one
   exception to the leading close is a sheet that has already applied everything
   as you went, the filter sheets being the only ones: there is nothing to cancel,
-  so an X would be a lie about what leaving does. Those carry no leading control
-  and a tick trailing instead (`dismissAs="done"`), which reads as keeping what
-  is on screen.
+  so an X would be a lie about what leaving does. Those carry a tick trailing
+  instead (`dismissAs="done"`), which reads as keeping what is on screen, and
+  where the X would be, a glass "Clear all" capsule (`leading`) that undoes
+  every choice in the sheet and is dimmed while there is none (ADR-251).
 - **`ConfirmDialog`** settles in the middle and scales back out. Questions with
   buttons, including a confirm that has to be earned by typing a phrase, because
   typing `ERASE` is answering rather than entering. In the iPhone app a confirm

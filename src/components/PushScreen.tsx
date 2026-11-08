@@ -265,6 +265,11 @@ export function PushScreen({
                     largeTitle ? `transition-opacity duration-200 ${compact ? "opacity-100" : "opacity-0"}` : ""
                   }`}
                 >
+                  {/* The eyebrow comes up with the name, so a catalog ball
+                      scrolled under the bar still says whose it is. */}
+                  {largeTitle && eyebrow && (
+                    <p className="truncate text-caption-2 font-semibold uppercase leading-tight tracking-wide text-ink-secondary">{eyebrow}</p>
+                  )}
                   {largeTitle ? (
                     <p className="truncate text-body font-semibold leading-tight text-ink">{title}</p>
                   ) : (

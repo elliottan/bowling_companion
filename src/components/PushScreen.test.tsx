@@ -45,7 +45,10 @@ describe("PushScreen large title (ADR-226)", () => {
     const heading = screen.getByRole("heading", { level: 1, name: "2019 PBA Johnny Petraglia Open" });
     expect(heading).not.toHaveClass("truncate");
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(screen.getByText("Kegel")).toBeInTheDocument();
+    // Over the large title, and in the bar's hidden copy, so the brand comes
+    // up with the name once it has scrolled under the bar.
+    expect(screen.getAllByText("Kegel")).toHaveLength(2);
+    expect(barTitle()).toHaveTextContent("Kegel");
     expect(barTitle()).toHaveAttribute("aria-hidden", "true");
     expect(barTitle()).toHaveClass("opacity-0");
   });

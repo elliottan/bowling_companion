@@ -253,11 +253,11 @@ msgstr "{count, plural, other {#セッション}}"
 msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, other {レーン{lanes}}}"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "{count, plural, one {View all # ball} other {View all # balls}}"
 msgstr "{count, plural, other {#個のボールをすべて表示}}"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "{count, plural, one {View all # leave} other {View all # leaves}}"
 msgstr "{count, plural, other {#種類の残りピンをすべて表示}}"
 
@@ -846,6 +846,16 @@ msgstr "すべて"
 msgid "All alleys"
 msgstr "すべてのボウリング場"
 
+#. Bowling term: shown in the core filter while no core is chosen
+#: src/views/CatalogView.tsx
+msgid "All cores"
+msgstr "すべてのコア"
+
+#. Bowling term: shown in the cover filter while no cover is chosen
+#: src/views/CatalogView.tsx
+msgid "All covers"
+msgstr "すべてのカバーストック"
+
 #: src/components/SessionFilterBar.tsx
 msgid "All events"
 msgstr "すべてのイベント"
@@ -1303,6 +1313,19 @@ msgstr "選択してください"
 msgid "Clear"
 msgstr "クリア"
 
+#. A button that removes every filter at once
+#: src/views/CatalogView.tsx
+msgid "Clear all"
+msgstr "すべてクリア"
+
+#: src/views/CatalogView.tsx
+msgid "Clear core filter"
+msgstr "コアフィルターをクリア"
+
+#: src/views/CatalogView.tsx
+msgid "Clear cover filter"
+msgstr "カバーストックフィルターをクリア"
+
 #: src/components/OilPatternManager.tsx
 #: src/components/PatternFilterSheet.tsx
 #: src/components/Stats.tsx
@@ -1381,6 +1404,7 @@ msgid "Copy a saved spare line onto this leave"
 msgstr "保存済みのスペアラインをこの残りピンにコピー"
 
 #. Bowling term: the weight block inside a ball
+#. Bowling term: the weight block inside a ball
 #: src/views/CatalogView.tsx
 msgid "Core"
 msgstr "コア"
@@ -1395,7 +1419,26 @@ msgstr "コア"
 msgid "Core type"
 msgstr "コアタイプ"
 
-#. Bowling term: the outer shell material of a ball
+#. Bowling term: an active filter on one core (weight block) by name
+#: src/views/CatalogView.tsx
+msgid "Core: {core}"
+msgstr "コア: {core}"
+
+#. Bowling term: one coverstock by name, a filter field
+#: src/views/CatalogView.tsx
+msgid "Cover"
+msgstr "カバーストック"
+
+#. Bowling term: the kind of coverstock (solid, pearl or hybrid), as opposed to one cover by name
+#: src/views/CatalogView.tsx
+msgid "Cover type"
+msgstr "カバーストックの種類"
+
+#. Bowling term: an active filter on one coverstock by name
+#: src/views/CatalogView.tsx
+msgid "Cover: {cover}"
+msgstr "カバーストック: {cover}"
+
 #. Bowling term: the outer shell material of a ball
 #: src/views/CatalogView.tsx
 msgid "Coverstock"
@@ -3694,10 +3737,6 @@ msgstr "このボールをリクエスト"
 msgid "Request this pattern"
 msgstr "このパターンをリクエスト"
 
-#: src/views/CatalogView.tsx
-msgid "Reset all filters"
-msgstr "すべてのフィルターをリセット"
-
 #: src/views/LayoutLabView.tsx
 msgid "Reset to your saved settings"
 msgstr "保存した設定に戻す"
@@ -3820,6 +3859,16 @@ msgstr "ローズ"
 #: src/components/BallEstimates.tsx
 msgid "same as all balls"
 msgstr "全ボールと同じ"
+
+#. Bowling term: a heading over other balls built on the same core (weight block), followed by the core's name
+#: src/views/CatalogView.tsx
+msgid "Same core: {core}"
+msgstr "同じコア: {core}"
+
+#. Bowling term: a heading over other balls with the same coverstock, followed by the coverstock's name
+#: src/views/CatalogView.tsx
+msgid "Same cover: {cover}"
+msgstr "同じカバーストック: {cover}"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
@@ -4942,7 +4991,7 @@ msgstr "実際のラインを見る"
 msgid "View actual line on the lane"
 msgstr "レーン上で実際のラインを見る"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "View all {count}"
 msgstr "{count}件すべて表示"
 

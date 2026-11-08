@@ -10502,3 +10502,52 @@ its copy is a download, which the browser reports as nothing but done.
   before the one that cannot be undone, which is the point of it.
 - A first run on an empty device takes no safety copy, as before, so the
   restore a new phone starts with is unaffected.
+
+## ADR-251: A catalog ball shows the balls on its core and in its cover, and the catalog filters by either
+
+**Status.** Accepted, 2026-11-08, at the owner's request. Follows ADR-196.
+
+**Context.** A ball's page said what it was made of and stopped there. The
+question a bowler brings to it is often the next one: what else is built on
+this core, or wears this cover? The catalog could not answer it either: its
+filters took a cover type and a core type, never one cover or one core by
+name. The brand also left the page as the name scrolled under the bar, since
+it was drawn only over the large title.
+
+**Decision.**
+
+- **Two rows under Add to arsenal**, "Same core: Velocity" and "Same cover:
+  R2S Pearl Reactive". Each holds three balls, newest first, and does not
+  scroll; the rest is under a View all pill at its foot, as a card holds what
+  it shows (ADR-196). The pill counts the list it opens, the ball itself
+  included. A tap on a ball opens its page. View all goes back to
+  the list filtered to that core or that cover alone, with the search and
+  every other filter cleared, since they would only hide some of what the row
+  counted.
+- **One name, one key** (`src/lib/catalogKin.ts`). The sources spell one core
+  several ways ("Torsion A.I. Core", "Torsion AI"), so a name is compared
+  lower case with "core", spaces and punctuation dropped. The rows and the
+  filters use the same key, so View all lands on exactly the balls its row
+  counted.
+- **A name that is only a kind starts no row.** "Solid Reactive", "Polyester"
+  or "Pancake" is shared by balls that have nothing in common but the kind, so
+  a ball whose cover or core is named only that way shows no row for it. The
+  filter still takes such a name, since there it is asked for.
+- **Core and Cover are filters**, each a `ChoiceInput` (there are hundreds),
+  beside Core type and the cover chips, now headed Cover type so the two read
+  apart. The filter offers one spelling per key, the one most balls use.
+- **Clear all sits where the X would be** on a `"done"` sheet, a glass
+  capsule, dimmed while nothing is chosen. It replaces "Reset all filters" at
+  the foot of the catalog's sheet, which had to be scrolled to. It leaves the
+  search, which is not a choice in the sheet.
+- **The brand stays with the name.** A pushed screen's eyebrow comes up into
+  the bar with its title, and the ball's specs carry a Brand row.
+
+**Consequences.**
+
+- A ball opened from a row is a navigation of its own (`shouldPushHistory`),
+  so the platform's back returns to the ball it was opened from; the screen's
+  back still returns to the list.
+- Matching is by name only. Two balls on one core that the sources name
+  differently ("Gas Mask" and "Gas Mask Core 2.0") are two cores here, which is
+  usually right: a revised core is a different block.

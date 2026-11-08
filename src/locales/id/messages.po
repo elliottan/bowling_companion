@@ -253,11 +253,11 @@ msgstr "{count, plural, other {# sesi}}"
 msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, other {Lintasan {lanes}}}"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "{count, plural, one {View all # ball} other {View all # balls}}"
 msgstr "{count, plural, other {Lihat semua # bola}}"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "{count, plural, one {View all # leave} other {View all # leaves}}"
 msgstr "{count, plural, other {Lihat semua # sisa pin}}"
 
@@ -846,6 +846,16 @@ msgstr "Semua"
 msgid "All alleys"
 msgstr "Semua arena boling"
 
+#. Bowling term: shown in the core filter while no core is chosen
+#: src/views/CatalogView.tsx
+msgid "All cores"
+msgstr "Semua inti"
+
+#. Bowling term: shown in the cover filter while no cover is chosen
+#: src/views/CatalogView.tsx
+msgid "All covers"
+msgstr "Semua coverstock"
+
 #: src/components/SessionFilterBar.tsx
 msgid "All events"
 msgstr "Semua jenis sesi"
@@ -1303,6 +1313,19 @@ msgstr "Pilih salah satu"
 msgid "Clear"
 msgstr "Hapus"
 
+#. A button that removes every filter at once
+#: src/views/CatalogView.tsx
+msgid "Clear all"
+msgstr "Hapus semua"
+
+#: src/views/CatalogView.tsx
+msgid "Clear core filter"
+msgstr "Hapus filter inti"
+
+#: src/views/CatalogView.tsx
+msgid "Clear cover filter"
+msgstr "Hapus filter coverstock"
+
 #: src/components/OilPatternManager.tsx
 #: src/components/PatternFilterSheet.tsx
 #: src/components/Stats.tsx
@@ -1381,6 +1404,7 @@ msgid "Copy a saved spare line onto this leave"
 msgstr "Salin jalur spare tersimpan ke sisa pin ini"
 
 #. Bowling term: the weight block inside a ball
+#. Bowling term: the weight block inside a ball
 #: src/views/CatalogView.tsx
 msgid "Core"
 msgstr "Inti"
@@ -1395,7 +1419,26 @@ msgstr "Inti"
 msgid "Core type"
 msgstr "Tipe inti"
 
-#. Bowling term: the outer shell material of a ball
+#. Bowling term: an active filter on one core (weight block) by name
+#: src/views/CatalogView.tsx
+msgid "Core: {core}"
+msgstr "Inti: {core}"
+
+#. Bowling term: one coverstock by name, a filter field
+#: src/views/CatalogView.tsx
+msgid "Cover"
+msgstr "Coverstock"
+
+#. Bowling term: the kind of coverstock (solid, pearl or hybrid), as opposed to one cover by name
+#: src/views/CatalogView.tsx
+msgid "Cover type"
+msgstr "Tipe coverstock"
+
+#. Bowling term: an active filter on one coverstock by name
+#: src/views/CatalogView.tsx
+msgid "Cover: {cover}"
+msgstr "Coverstock: {cover}"
+
 #. Bowling term: the outer shell material of a ball
 #: src/views/CatalogView.tsx
 msgid "Coverstock"
@@ -3694,10 +3737,6 @@ msgstr "Minta bola ini"
 msgid "Request this pattern"
 msgstr "Minta pola ini"
 
-#: src/views/CatalogView.tsx
-msgid "Reset all filters"
-msgstr "Setel ulang semua filter"
-
 #: src/views/LayoutLabView.tsx
 msgid "Reset to your saved settings"
 msgstr "Kembalikan ke pengaturan tersimpanmu"
@@ -3820,6 +3859,16 @@ msgstr "Mawar"
 #: src/components/BallEstimates.tsx
 msgid "same as all balls"
 msgstr "sama dengan semua bola"
+
+#. Bowling term: a heading over other balls built on the same core (weight block), followed by the core's name
+#: src/views/CatalogView.tsx
+msgid "Same core: {core}"
+msgstr "Inti yang sama: {core}"
+
+#. Bowling term: a heading over other balls with the same coverstock, followed by the coverstock's name
+#: src/views/CatalogView.tsx
+msgid "Same cover: {cover}"
+msgstr "Coverstock yang sama: {cover}"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
@@ -4942,7 +4991,7 @@ msgstr "Lihat jalur aktual"
 msgid "View actual line on the lane"
 msgstr "Lihat jalur aktual di lintasan"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "View all {count}"
 msgstr "Lihat semua {count}"
 

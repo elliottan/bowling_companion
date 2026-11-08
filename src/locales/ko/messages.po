@@ -253,11 +253,11 @@ msgstr "{count, plural, other {세션 #개}}"
 msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, other {레인 {lanes}}}"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "{count, plural, one {View all # ball} other {View all # balls}}"
 msgstr "{count, plural, other {볼 #개 모두 보기}}"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "{count, plural, one {View all # leave} other {View all # leaves}}"
 msgstr "{count, plural, other {남은 핀 #가지 모두 보기}}"
 
@@ -846,6 +846,16 @@ msgstr "전체"
 msgid "All alleys"
 msgstr "모든 볼링장"
 
+#. Bowling term: shown in the core filter while no core is chosen
+#: src/views/CatalogView.tsx
+msgid "All cores"
+msgstr "모든 코어"
+
+#. Bowling term: shown in the cover filter while no cover is chosen
+#: src/views/CatalogView.tsx
+msgid "All covers"
+msgstr "모든 커버스톡"
+
 #: src/components/SessionFilterBar.tsx
 msgid "All events"
 msgstr "모든 이벤트"
@@ -1303,6 +1313,19 @@ msgstr "하나 선택"
 msgid "Clear"
 msgstr "지우기"
 
+#. A button that removes every filter at once
+#: src/views/CatalogView.tsx
+msgid "Clear all"
+msgstr "모두 지우기"
+
+#: src/views/CatalogView.tsx
+msgid "Clear core filter"
+msgstr "코어 필터 지우기"
+
+#: src/views/CatalogView.tsx
+msgid "Clear cover filter"
+msgstr "커버스톡 필터 지우기"
+
 #: src/components/OilPatternManager.tsx
 #: src/components/PatternFilterSheet.tsx
 #: src/components/Stats.tsx
@@ -1381,6 +1404,7 @@ msgid "Copy a saved spare line onto this leave"
 msgstr "저장한 스페어 라인을 이 남은 핀에 복사"
 
 #. Bowling term: the weight block inside a ball
+#. Bowling term: the weight block inside a ball
 #: src/views/CatalogView.tsx
 msgid "Core"
 msgstr "코어"
@@ -1395,7 +1419,26 @@ msgstr "코어"
 msgid "Core type"
 msgstr "코어 유형"
 
-#. Bowling term: the outer shell material of a ball
+#. Bowling term: an active filter on one core (weight block) by name
+#: src/views/CatalogView.tsx
+msgid "Core: {core}"
+msgstr "코어: {core}"
+
+#. Bowling term: one coverstock by name, a filter field
+#: src/views/CatalogView.tsx
+msgid "Cover"
+msgstr "커버스톡"
+
+#. Bowling term: the kind of coverstock (solid, pearl or hybrid), as opposed to one cover by name
+#: src/views/CatalogView.tsx
+msgid "Cover type"
+msgstr "커버스톡 유형"
+
+#. Bowling term: an active filter on one coverstock by name
+#: src/views/CatalogView.tsx
+msgid "Cover: {cover}"
+msgstr "커버스톡: {cover}"
+
 #. Bowling term: the outer shell material of a ball
 #: src/views/CatalogView.tsx
 msgid "Coverstock"
@@ -3694,10 +3737,6 @@ msgstr "이 볼 요청하기"
 msgid "Request this pattern"
 msgstr "이 패턴 요청하기"
 
-#: src/views/CatalogView.tsx
-msgid "Reset all filters"
-msgstr "모든 필터 초기화"
-
 #: src/views/LayoutLabView.tsx
 msgid "Reset to your saved settings"
 msgstr "저장된 설정으로 초기화"
@@ -3820,6 +3859,16 @@ msgstr "로즈"
 #: src/components/BallEstimates.tsx
 msgid "same as all balls"
 msgstr "전체 볼과 같음"
+
+#. Bowling term: a heading over other balls built on the same core (weight block), followed by the core's name
+#: src/views/CatalogView.tsx
+msgid "Same core: {core}"
+msgstr "같은 코어: {core}"
+
+#. Bowling term: a heading over other balls with the same coverstock, followed by the coverstock's name
+#: src/views/CatalogView.tsx
+msgid "Same cover: {cover}"
+msgstr "같은 커버스톡: {cover}"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
@@ -4942,7 +4991,7 @@ msgstr "실제 라인 보기"
 msgid "View actual line on the lane"
 msgstr "레인에서 실제 라인 보기"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "View all {count}"
 msgstr "{count}개 모두 보기"
 
