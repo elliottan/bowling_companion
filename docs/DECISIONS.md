@@ -10503,7 +10503,26 @@ its copy is a download, which the browser reports as nothing but done.
 - A first run on an empty device takes no safety copy, as before, so the
   restore a new phone starts with is unaffected.
 
-## ADR-251: A catalog ball shows the balls on its core and in its cover, and the catalog filters by either
+## ADR-251: A segmented control in a header row is as tall as the buttons beside it
+
+**Status.** Accepted, 2026-11-08, at the owner's request ("can it be taller,
+same height as the buttons beside it? It looks a lil awkward now"). Amends
+ADR-228 on size; its look and ADR-200's finger behaviour stand.
+
+**Context.** ADR-228 gave `SegmentedControl` one size, UIKit's 32pt. On Stats
+the range control sits in the title row between the title and two 44pt round
+glass buttons (the filter and the share), and the shorter capsule read as
+dropped between them, its top and foot off both of theirs.
+
+**Decision.** `SegmentedControl` takes `size="bar"`, which draws each segment
+44pt tall with a little more room either side of the label. Stats' range uses
+it. Everywhere else, in forms, sheets and cards, the control stays 32pt.
+
+**Consequences.** A header row's controls share one height, so their tops and
+feet line up. The hit region is 44pt either way, so nothing changes for the
+finger.
+
+## ADR-252: A catalog ball shows the balls on its core and in its cover, and the catalog filters by either
 
 **Status.** Accepted, 2026-11-08, at the owner's request. Follows ADR-196.
 

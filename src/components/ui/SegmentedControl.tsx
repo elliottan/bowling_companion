@@ -14,6 +14,9 @@ interface SegmentedControlProps<T extends string> {
    *  exactly one of these is the answer. */
   value: T | null;
   onChange: (value: T) => void;
+  /** `bar` draws the track 44pt tall, the height of the round glass controls
+   *  it shares a header row with (ADR-251). Everywhere else it is UIKit's 32pt. */
+  size?: "regular" | "bar";
 }
 
 /**
@@ -43,7 +46,8 @@ export function SegmentedControl<T extends string>({
   label,
   options,
   value,
-  onChange
+  onChange,
+  size = "regular"
 }: SegmentedControlProps<T>) {
   const index = options.findIndex((o) => o.value === value);
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -147,11 +151,11 @@ export function SegmentedControl<T extends string>({
             // Ink either way, as the tab bar's labels and UIKit's are: weight
             // marks the answer, and the secondary grey on the track fell short
             // of the contrast floor.
-            // 32pt drawn, UIKit's height, and 44pt to the finger through the
+            // 32pt drawn, UIKit's height (44pt in a header row, ADR-251), and 44pt to the finger through the
             // same invisible `::after` Chip uses: 6px of overhang top and
             // bottom, so two stacked need 12px between them (`gap-3`) or the
             // lower one takes taps aimed at the foot of the upper.
-            className={`relative h-8 whitespace-nowrap rounded-full px-2 text-footnote leading-none text-ink transition-[font-weight] ${TAP_TARGET_44} ${
+            className={`relative ${size === "bar" ? "h-11 px-3" : "h-8 px-2"} whitespace-nowrap rounded-full text-footnote leading-none text-ink transition-[font-weight] ${TAP_TARGET_44} ${
               selected ? "font-semibold" : "font-normal"
             }`}
           >

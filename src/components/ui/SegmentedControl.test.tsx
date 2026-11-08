@@ -23,6 +23,15 @@ describe("SegmentedControl", () => {
     }
   });
 
+  it("draws 32pt by default and 44pt in a header row, beside the round buttons (ADR-251)", () => {
+    const { unmount } = render(<SegmentedControl label="Pick" value="a" options={options} onChange={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "A" })).toHaveClass("h-8");
+    unmount();
+    render(<SegmentedControl label="Pick" value="a" options={options} onChange={vi.fn()} size="bar" />);
+    expect(screen.getByRole("button", { name: "A" })).toHaveClass("h-11");
+    expect(screen.getByRole("button", { name: "A" })).not.toHaveClass("h-8");
+  });
+
   it("reports the choice", () => {
     const onChange = vi.fn();
     render(<SegmentedControl label="Pick" value="a" options={options} onChange={onChange} />);

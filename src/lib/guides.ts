@@ -49,9 +49,9 @@ export type TermFigure =
    *  `mark` drawn in the accent. */
   | { kind: "leave"; standing: number[]; mark?: number[] }
   /** A pin's flight on a strike: drawn for both hands where they differ. */
-  | { kind: "pin-move"; motion: "ring" | "flat" | "messenger" }
+  | { kind: "pin-move"; motion: "ring" | "flat" }
   /** Where the ball meets the rack. */
-  | { kind: "ball"; hit: "pocket" | "brooklyn" | "high" | "light" }
+  | { kind: "ball"; hit: "pocket" | "flush" | "brooklyn" | "high" | "light" }
   /** Frames as a scoresheet writes them, one array of balls each. */
   | { kind: "frames"; frames: string[][] }
   /** The lane from above, foul line on the left, with one part lit. */
@@ -207,7 +207,8 @@ export const GUIDES: readonly Guide[] = [
           },
           {
             term: "Flush",
-            text: "A pocket hit that knocks all ten pins into the pit."
+            text: "A pocket hit that knocks all ten pins into the pit.",
+            figure: { kind: "ball", hit: "flush" }
           },
           {
             term: "High hit",
@@ -234,8 +235,7 @@ export const GUIDES: readonly Guide[] = [
           {
             term: "Messenger",
             text: "A pin that slides across the deck and knocks down a pin on the far side. It's often the headpin.",
-            aliases: ["Bird dog"],
-            figure: { kind: "pin-move", motion: "messenger" }
+            aliases: ["Bird dog"]
           },
           {
             term: "Tap",
@@ -312,13 +312,17 @@ export const GUIDES: readonly Guide[] = [
           },
           {
             term: "Sleeper",
-            text: "A pin hidden straight behind another one, so it's hard to see from the approach.",
+            text: "The back pin of a double wood, hidden straight behind the front one so it's hard to see from the approach.",
             figure: { kind: "leave", standing: [2, 8], mark: [8] }
           },
           {
             term: "Double wood",
             text: "Two pins in a line, one behind the other. The 2-8, 3-9 and 1-5 are the usual ones.",
             figure: { kind: "leave", standing: [3, 9] }
+          },
+          {
+            term: "Dead wood",
+            text: "Pins that are knocked down but stay on the deck or in the gutter. They're cleared away before the next ball."
           }
         ]
       },

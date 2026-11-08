@@ -9,11 +9,11 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.94.0: Balls that share a core or a cover, and ball photos without a tile (2026-11-08)
+## 0.95.0: Balls that share a core or a cover, and ball photos without a tile (2026-11-08)
 
 - A ball's page shows the balls built on the same core and in the same
   cover, three of each with View all for the rest, which opens the catalog
-  filtered to that core or cover (ADR-251).
+  filtered to that core or cover (ADR-252).
 - The catalog filters by one core or one cover by name, and Clear all now
   sits at the top of the filters, where it used to be Reset all filters at
   the foot.
@@ -27,6 +27,33 @@ had all shipped.
   catalog's rows and a ball's own page, the arsenal, the ball pickers, Stats,
   search and the session. A ball with no photo is a round placeholder to
   match.
+
+## 0.94.1: A taller range on Stats (2026-11-08)
+
+- Stats' Last 10 / 3 mo / All switch is now as tall as the filter and share
+  buttons beside it, so the header row lines up (ADR-251).
+
+## 0.94.0: Bowling terms, set straight (2026-11-08)
+
+- The search on Bowling terms now stays right under the bar as the page
+  scrolls. It used to stop a bar's height too low, with the terms showing
+  through above it.
+- On Bowling terms, Flush now has a picture, with the ball just right of the
+  pocket, and Light hit's ball sits further right, onto the 3 with barely any
+  of the 1.
+- Brooklyn's picture now hooks into the headpin the way the pocket's does,
+  where it used to slide in flat from the far side.
+- Messenger no longer has a picture: it drew the headpin flying straight to
+  the 10, which is not how a messenger travels.
+- Bowling terms now explains Dead wood, and Sleeper says it is the back pin
+  of a double wood.
+- Home's tool pictures are truer to life: the Line visualizer's seven arrows
+  sit in a V with the middle one furthest down the lane, Layouts shows a real
+  Benchmark layout (45 x 4 1/2 x 45) with a proper grip, and Oil patterns
+  draws a real house shot's load, board by board.
+- Home's Spare lines, Lane notes and Game plan tiles are picture cards now,
+  each with a drawing across its top, and Lane notes and Game plan have new
+  icons throughout the app: a notebook and a clipboard.
 
 ## 0.93.1: Fixes from a pass over the tests (2026-11-08)
 
