@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.94.0: Ball photos without a tile (2026-11-08)
+
+- Every ball photo stands on its own, with no grey square behind it: in the
+  catalog's rows and a ball's own page, the arsenal, the ball pickers, Stats,
+  search and the session. A ball with no photo is a round placeholder to
+  match.
+
 ## 0.93.1: Fixes from a pass over the tests (2026-11-08)
 
 - In the iPhone and Android apps, a restore no longer replaces your data when

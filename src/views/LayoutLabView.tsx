@@ -105,7 +105,7 @@ function SeededBallCard({ seed }: { seed: LayoutSeed }) {
             size="thumb"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center rounded-lg bg-surface-muted text-ink-tertiary">
+          <div className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-ink-tertiary">
             <BowlingBallIcon size={24} aria-hidden="true" />
           </div>
         )}

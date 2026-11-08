@@ -48,7 +48,6 @@ export function ArsenalRow({ balls, onOpenArsenal }: { balls: Ball[] | undefined
                   alt=""
                   brand={ball.catalog_snapshot.brand as Manufacturer}
                   size="thumb"
-                  bare
                 />
               ) : (
                 <span className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-ink-tertiary">

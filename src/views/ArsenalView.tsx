@@ -126,7 +126,7 @@ function SortableBallRow({ ball, onEdit, system, onViewLayout, onDelete }: Sorta
                 size="thumb"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center rounded-lg bg-surface-muted text-ink-tertiary">
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-ink-tertiary">
                 <BowlingBallIcon size={22} aria-hidden="true" />
               </div>
             )}
@@ -205,7 +205,7 @@ function RetiredBallRow({
           {snap ? (
             <CatalogBallImage src={snap.imageThumb} alt="" brand={snap.brand as Manufacturer} size="thumb" />
           ) : (
-            <div className="flex h-full w-full items-center justify-center rounded-lg bg-surface-muted text-ink-tertiary">
+            <div className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-ink-tertiary">
               <BowlingBallIcon size={20} aria-hidden="true" />
             </div>
           )}

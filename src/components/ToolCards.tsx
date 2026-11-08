@@ -114,7 +114,7 @@ function CatalogArt() {
           key={ball.src}
           className={`shrink-0 rounded-full shadow-md ${i === 1 ? "z-10 h-16 w-16" : "h-12 w-12"} ${i > 0 ? "-ml-3" : ""}`}
         >
-          <CatalogBallImage src={ball.src} alt="" brand={ball.brand} size="thumb" bare />
+          <CatalogBallImage src={ball.src} alt="" brand={ball.brand} size="thumb" />
         </span>
       ))}
     </div>
