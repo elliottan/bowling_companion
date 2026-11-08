@@ -33,11 +33,11 @@ export function LiveActivityView({ status, onBack }: { status: LiveActivityStatu
         </p>
 
         <div className="space-y-2">
-          <ProVeil what={t`Show your game as a Live Activity`} label={t`Turn on with Pro`}>
+          <ProVeil what={t`Enable Live Activity`} label={t`Turn on with Pro`}>
             <ListGroup>
               <ListSwitchRow
                 icon={Smartphone}
-                label={t`Show your game`}
+                label={t`Enable Live Activity`}
                 checked={on ?? true}
                 onChange={(next) => void setLiveActivityEnabled(next)}
               />
@@ -70,10 +70,6 @@ export function LiveActivityView({ status, onBack }: { status: LiveActivityStatu
             <WatchPreview state={sample} />
           </Place>
         </ul>
-
-        <p className="px-1 text-footnote text-ink-secondary">
-          {t`It goes away a few minutes after the last ball of a game, and comes back with the first ball of the next.`}
-        </p>
       </section>
     </PushScreen>
   );

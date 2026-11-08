@@ -1786,6 +1786,10 @@ msgstr "완료된 이 게임을 편집할까요?"
 msgid "Edit this recorded shot?"
 msgstr "기록된 이 투구를 편집할까요?"
 
+#: src/views/LiveActivityView.tsx
+msgid "Enable Live Activity"
+msgstr "실시간 현황 켜기"
+
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "두 레인 모두 정수로 입력하세요."
@@ -2453,10 +2457,6 @@ msgstr "포켓 적중"
 #: src/views/CatalogView.tsx
 msgid "It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in."
 msgstr "한 번만 내려받으면 오프라인에서도 쓸 수 있어요. 볼마다 코어, 커버스톡, RG, Diff가 채워져 있어요."
-
-#: src/views/LiveActivityView.tsx
-msgid "It goes away a few minutes after the last ball of a game, and comes back with the first ball of the next."
-msgstr "게임의 마지막 투구 후 몇 분 뒤에 사라지고, 다음 게임의 첫 투구와 함께 다시 나타나요."
 
 #: src/components/BallFormDialog.tsx
 msgid "It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
@@ -4153,14 +4153,6 @@ msgstr "보관됨 보기 ({count})"
 #: src/views/ArsenalView.tsx
 msgid "Show retired ({count})"
 msgstr "은퇴한 볼 보기 ({count})"
-
-#: src/views/LiveActivityView.tsx
-msgid "Show your game"
-msgstr "게임 표시"
-
-#: src/views/LiveActivityView.tsx
-msgid "Show your game as a Live Activity"
-msgstr "게임을 실시간 현황으로 표시"
 
 #. A filter on the spare lines screen: leaves of one standing pin
 #: src/lib/spareLines.ts

@@ -1786,6 +1786,10 @@ msgstr "Edit game yang sudah selesai ini?"
 msgid "Edit this recorded shot?"
 msgstr "Edit lemparan yang sudah tercatat ini?"
 
+#: src/views/LiveActivityView.tsx
+msgid "Enable Live Activity"
+msgstr "Aktifkan Aktivitas Langsung"
+
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "Masukkan bilangan bulat untuk kedua lintasan."
@@ -2453,10 +2457,6 @@ msgstr "Ke pocket"
 #: src/views/CatalogView.tsx
 msgid "It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in."
 msgstr "Diunduh sekali, lalu bisa dipakai offline. Tiap bola sudah terisi inti, coverstock, RG, dan diff-nya."
-
-#: src/views/LiveActivityView.tsx
-msgid "It goes away a few minutes after the last ball of a game, and comes back with the first ball of the next."
-msgstr "Hilang beberapa menit setelah bola terakhir sebuah game, dan muncul lagi dengan bola pertama game berikutnya."
 
 #: src/components/BallFormDialog.tsx
 msgid "It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
@@ -4153,14 +4153,6 @@ msgstr "Tampilkan yang diarsipkan ({count})"
 #: src/views/ArsenalView.tsx
 msgid "Show retired ({count})"
 msgstr "Tampilkan yang dipensiunkan ({count})"
-
-#: src/views/LiveActivityView.tsx
-msgid "Show your game"
-msgstr "Tampilkan game-mu"
-
-#: src/views/LiveActivityView.tsx
-msgid "Show your game as a Live Activity"
-msgstr "Tampilkan game-mu sebagai Aktivitas Langsung"
 
 #. A filter on the spare lines screen: leaves of one standing pin
 #: src/lib/spareLines.ts

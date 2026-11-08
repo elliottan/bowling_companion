@@ -1786,6 +1786,10 @@ msgstr "要編輯這個已完成的局嗎？"
 msgid "Edit this recorded shot?"
 msgstr "要編輯這筆已記錄的投球嗎？"
 
+#: src/views/LiveActivityView.tsx
+msgid "Enable Live Activity"
+msgstr "啟用即時動態"
+
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "請為兩條球道輸入整數。"
@@ -2453,10 +2457,6 @@ msgstr "進入甜蜜點"
 #: src/views/CatalogView.tsx
 msgid "It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in."
 msgstr "只需下載一次，之後即可離線使用。每顆球都已填好球心、球皮、RG 與 Diff。"
-
-#: src/views/LiveActivityView.tsx
-msgid "It goes away a few minutes after the last ball of a game, and comes back with the first ball of the next."
-msgstr "一局最後一球的幾分鐘後會消失，下一局的第一球又會出現。"
 
 #: src/components/BallFormDialog.tsx
 msgid "It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
@@ -4153,14 +4153,6 @@ msgstr "顯示已封存（{count}）"
 #: src/views/ArsenalView.tsx
 msgid "Show retired ({count})"
 msgstr "顯示已退役（{count}）"
-
-#: src/views/LiveActivityView.tsx
-msgid "Show your game"
-msgstr "顯示你的比賽"
-
-#: src/views/LiveActivityView.tsx
-msgid "Show your game as a Live Activity"
-msgstr "以即時動態顯示你的比賽"
 
 #. A filter on the spare lines screen: leaves of one standing pin
 #: src/lib/spareLines.ts
