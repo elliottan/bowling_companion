@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.96.1: History's calendar switch beside the filter (2026-11-08)
+
+### Changed
+
+- On History, the calendar switch now sits at the top right, beside the filter, instead of leading the title on the left.
+
 ## 0.96.0: Balls that share a core or a cover, and ball photos without a tile (2026-11-08)
 
 - A ball's page shows the balls built on the same core and in the same

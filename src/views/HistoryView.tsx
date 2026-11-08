@@ -153,29 +153,26 @@ export function HistoryView({
                 trailing action, so there is no title row to leave empty. */}
             {mode === "tab" && (
             <div className={`${TAB_TITLE_ROW} mb-3 justify-between gap-3`}>
-              {/* The calendar's switch leads the title (ADR-252), at the
-                  owner's ask: the filter keeps the trailing edge, as on
-                  Stats. Absent, like the filter, before the first session. */}
-              {filters.history.length > 0 && (
-                <IconButton
-                  variant="round"
-                  label={t`Calendar`}
-                  aria-pressed={calendarShown}
-                  onClick={() => {
-                    const next = !calendarShown;
-                    setCalendarShown(next);
-                    writeCalendarShown(next);
-                  }}
-                >
-                  <CalendarDays size={20} aria-hidden="true" className={calendarShown ? "text-accent" : undefined} />
-                </IconButton>
-              )}
               <h1 className={`${TAB_TITLE} min-w-0 flex-1`}>{t`History`}</h1>
               {/* Nothing to narrow before the first session, and a control
                   that can only ever filter an empty list is noise on the
                   screen a new bowler is deciding about. */}
               {filters.history.length > 0 && (
                 <div className="flex shrink-0 items-center gap-1">
+                  {/* The calendar's switch sits beside the filter, both trailing
+                      actions over the list (ADR-252, moved at the owner's ask). */}
+                  <IconButton
+                    variant="round"
+                    label={t`Calendar`}
+                    aria-pressed={calendarShown}
+                    onClick={() => {
+                      const next = !calendarShown;
+                      setCalendarShown(next);
+                      writeCalendarShown(next);
+                    }}
+                  >
+                    <CalendarDays size={20} aria-hidden="true" className={calendarShown ? "text-accent" : undefined} />
+                  </IconButton>
                   <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
                 </div>
               )}
