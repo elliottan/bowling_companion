@@ -27,7 +27,8 @@ interface SuggestInputProps {
   className?: string;
   /** The list's colours, likewise. */
   tone?: "surface" | "dark";
-  /** How many suggestions show at once. */
+  /** How many suggestions show at once. Remembered entries keep to a few;
+   *  a choice among known values shows every one (`ChoiceInput`). */
   limit?: number;
 }
 
@@ -102,7 +103,9 @@ export function SuggestInput({
         <ul
           id={listId}
           role="listbox"
-          className={`scrollbar-none absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border py-1 shadow-lg ${list}`}
+          // Scrolls on its own and keeps the scroll: a long list (every core
+          // in the catalog) reaching its end must not drag the sheet behind.
+          className={`scrollbar-none absolute z-10 mt-1 max-h-60 w-full touch-pan-y overflow-y-auto overscroll-contain rounded-lg border py-1 shadow-lg ${list}`}
         >
           {matches.map((s, i) => (
             // By position too: two entries can share a value, and a repeated
@@ -187,6 +190,10 @@ export function ChoiceInput({
           onChange(v);
         }}
         onCommit={commit}
+        // Every option, not the first few: with nothing typed this is the
+        // whole list to scroll through, and typing narrows it. Six of 280
+        // cores left the rest out of reach until a letter was typed.
+        limit={Infinity}
         placeholder={placeholder}
         ariaLabel={ariaLabel}
         className={clearLabel ? `${className} pr-10` : className}

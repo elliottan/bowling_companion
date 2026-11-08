@@ -19,6 +19,9 @@ had all shipped.
   right, rather than a full-width button under the row.
 - The balls in those rows answer a press: they sink and dim under your
   finger, and spring back.
+- The catalog's Core and Cover filters, and the oil pattern filter in
+  History and Stats, list every option to scroll through while nothing is
+  typed, and narrow as you type. They showed only the first six.
 
 ## 0.97.0: Clear all in every filter sheet's corner, and fields above the keyboard on the web (2026-11-08)
 
