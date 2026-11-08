@@ -677,6 +677,11 @@ minus-and-plus capsule beside its field, and the field stays typeable. A value
 that is picked from a short list is a `Select`; one that is typed fresh, a lane
 number, is just a field.
 
+**A filter field that is on looks on** (ADR-259). A chip that is on is
+filled; a field that is set (`ChoiceInput` with a choice, `Select` with
+`applied`) takes `FIELD_APPLIED`: an accent edge, the accent's tint and the
+value in the accent. Everything in the accent is narrowing the list.
+
 **A short closed list is a `Select`** (`src/components/ui/Select.tsx`,
 ADR-231), never a bare `<select>`: the value with iOS's up-and-down chevrons in
 the accent, which is what says a menu opens from it. Inside the store apps the

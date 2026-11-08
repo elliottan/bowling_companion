@@ -9,6 +9,19 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.99.0: Compare balls side by side and on a map (2026-11-08)
+
+- Compare up to four catalog balls. Tap the compare button in the catalog's
+  bar and tap balls to pick them, or use Add to compare on a ball's page; the
+  picked balls ride at the foot of the list until you compare them (ADR-258).
+- Specs lays them side by side at the weight you pick, from 12 to 16 lb, and
+  marks the lowest RG and the highest diff and MB diff.
+- Map places them on RG and diff over the whole catalog, with your own bag,
+  coloured by cover type, and says when a ball rolls much like one you own.
+- A filter that is on now looks on: a chosen core, cover, oil pattern, alley,
+  event, lane or game shows in a green-edged field, so a filter sheet says at
+  a glance what is narrowing the list (ADR-259).
+
 ## 0.98.0: A ball opened from another's page goes over it (2026-11-08)
 
 - A ball opened from another ball's Same core or Same cover row now slides

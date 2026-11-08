@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import { useId, useMemo, useState } from "react";
-import { FIELD } from "./field";
+import { FIELD, FIELD_APPLIED } from "./field";
 
 export interface Suggestion {
   /** What lands in the field when it is picked. */
@@ -196,7 +196,9 @@ export function ChoiceInput({
         limit={Infinity}
         placeholder={placeholder}
         ariaLabel={ariaLabel}
-        className={clearLabel ? `${className} pr-10` : className}
+        // A choice that is made is a filter that is on: the field takes the
+        // accent, so it reads as applied from across the sheet.
+        className={`${value !== "" && className === FIELD && tone === "surface" ? FIELD_APPLIED : className}${clearLabel ? " pr-10" : ""}`}
         tone={tone}
       />
       {clearLabel && (draft ?? value) !== "" && (

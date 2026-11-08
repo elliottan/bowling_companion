@@ -18,4 +18,21 @@ describe("Select (ADR-231)", () => {
     expect(select.className).toContain("appearance-none");
     expect(container.querySelector("svg[aria-hidden='true']")).not.toBeNull();
   });
+
+  it("takes the accent as a filter that is on, and only then", () => {
+    const { rerender } = render(
+      <Select aria-label="Alley" value="" onChange={() => {}}>
+        <option value="">All alleys</option>
+        <option value="a">Alpha</option>
+      </Select>
+    );
+    expect(screen.getByRole("combobox", { name: "Alley" })).not.toHaveClass("border-accent-fill");
+    rerender(
+      <Select aria-label="Alley" value="a" onChange={() => {}} applied>
+        <option value="">All alleys</option>
+        <option value="a">Alpha</option>
+      </Select>
+    );
+    expect(screen.getByRole("combobox", { name: "Alley" })).toHaveClass("border-accent-fill", "bg-accent-soft");
+  });
 });

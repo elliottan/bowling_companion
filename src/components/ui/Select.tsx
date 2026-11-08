@@ -1,6 +1,6 @@
 import { ChevronsUpDown } from "lucide-react";
 import { Children, isValidElement, type ReactNode, type SelectHTMLAttributes } from "react";
-import { FIELD_DENSE_SELECT, FIELD_DENSE_SELECT_NARROW, FIELD_SELECT } from "./field";
+import { FIELD_DENSE_SELECT, FIELD_DENSE_SELECT_NARROW, FIELD_SELECT, FIELD_SELECT_APPLIED } from "./field";
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   /** `field` for a form's full-size field, `dense` for the score panels,
@@ -10,6 +10,9 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   variant?: "field" | "dense" | "narrow" | "menu";
   /** Sizes the box: the select itself is `w-full` of it. */
   wrapperClassName?: string;
+  /** A filter that is on (anything but "All ..."): the field takes the
+   *  accent, so a sheet of filters shows which are narrowing. `field` only. */
+  applied?: boolean;
   children: ReactNode;
 }
 
@@ -42,7 +45,7 @@ function chosenLabel(children: ReactNode, value: unknown): ReactNode {
  * room for a chevron nothing drew, so a box holding "All alleys" read as a
  * text field, and the one that kept its arrow drew the browser's.
  */
-export function Select({ variant = "field", wrapperClassName = "", className = "", children, ...rest }: SelectProps) {
+export function Select({ variant = "field", wrapperClassName = "", className = "", applied = false, children, ...rest }: SelectProps) {
   return (
     <div className={`relative ${variant === "menu" ? "inline-block h-11 max-w-full" : ""} ${wrapperClassName}`.trim()}>
       {/* A pop-up button is as wide as what it says now, as UIKit's is, not
@@ -53,7 +56,7 @@ export function Select({ variant = "field", wrapperClassName = "", className = "
           {chosenLabel(children, rest.value)}
         </span>
       )}
-      <select className={`${CHROME[variant]} ${className}`.trim()} {...rest}>
+      <select className={`${applied && variant === "field" ? FIELD_SELECT_APPLIED : CHROME[variant]} ${className}`.trim()} {...rest}>
         {children}
       </select>
       <ChevronsUpDown

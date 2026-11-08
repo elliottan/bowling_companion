@@ -155,6 +155,15 @@ textarea,
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
+  /* The ball map's cover types (ADR-258): five categorical hues in a fixed
+     order, checked for colour-blind separation on the card in both themes.
+     Under 3:1 on white for three of them, so every dot the bowler owns or
+     compares is labelled, and the legend names all five. */
+  --color-cover-solid: #2a78d6;
+  --color-cover-pearl: #eb6834;
+  --color-cover-hybrid: #1baf7a;
+  --color-cover-urethane: #eda100;
+  --color-cover-polyester: #e87ba4;
   --color-surface: 255 255 255;
   --color-surface-sunken: 255 248 237; /* lane-50 cream */
   --color-surface-muted: 248 250 252; /* slate-50 */
@@ -183,6 +192,11 @@ textarea,
 
 :root[data-theme="dark"] {
   color-scheme: dark;
+  --color-cover-solid: #3987e5;
+  --color-cover-pearl: #d95926;
+  --color-cover-hybrid: #199e70;
+  --color-cover-urethane: #c98500;
+  --color-cover-polyester: #d55181;
   --color-surface: 30 41 59; /* slate-800, elevated card */
   --color-surface-sunken: 15 23 42; /* slate-900, app background */
   --color-surface-muted: 51 65 85; /* slate-700, subtle raise */

@@ -207,6 +207,24 @@ describe("CatalogView", () => {
     expect(screen.getByPlaceholderText("Search name, brand, coverstock…")).toHaveValue("Ball");
   });
 
+  it("picks balls to compare from the list, and opens them side by side (ADR-258)", async () => {
+    await seedCatalog(5);
+    renderCatalog();
+    await screen.findByText("Ball 0");
+
+    fireEvent.click(screen.getByRole("button", { name: "Pick balls to compare" }));
+    // Picking, a row picks rather than opens.
+    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Ball 3/ }));
+    expect(screen.getByRole("button", { name: /Ball 1/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("2 of 4")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+    const compare = await screen.findByRole("dialog", { name: "Compare" });
+    expect(within(compare).getByRole("button", { name: "Remove Ball 1" })).toBeInTheDocument();
+    expect(within(compare).getByRole("button", { name: "Remove Ball 3" })).toBeInTheDocument();
+  });
+
   describe("a ball's page", () => {
     /** Five on one core, two of them in one cover, and one on a core of its own. */
     async function seedKin() {
