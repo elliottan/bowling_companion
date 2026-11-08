@@ -9,6 +9,11 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.94.1: A taller range on Stats (2026-11-08)
+
+- Stats' Last 10 / 3 mo / All switch is now as tall as the filter and share
+  buttons beside it, so the header row lines up (ADR-251).
+
 ## 0.94.0: Bowling terms, set straight (2026-11-08)
 
 - The search on Bowling terms now stays right under the bar as the page

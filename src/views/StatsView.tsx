@@ -209,6 +209,7 @@ export function StatsView({
                       options={rangeOptions}
                       value={range}
                       onChange={setRange}
+                      size="bar"
                     />
                   </div>
                 )}
