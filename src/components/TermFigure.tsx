@@ -21,9 +21,7 @@ export function TermFigure({ figure, term }: { figure: Figure; term: string }) {
         <Deck label={term} standing={figure.standing} mark={figure.mark} />
       );
     case "pin-move":
-      return figure.motion === "messenger" ? (
-        <Deck label={term} standing={[10]} mark={[1]} faint path={MOVES.messenger} />
-      ) : (
+      return (
         <BothHands
           right={<Deck label={term} standing={[10]} mark={[6]} faint path={MOVES[figure.motion]} />}
           left={<Deck label={term} standing={[7]} mark={[4]} faint path={MOVES[figure.motion]} mirror />}
@@ -70,9 +68,7 @@ const MOVES = {
   // The 6 flies around the outside of the 10 and away behind it.
   ring: "M 12 -20.78 C 21 -21 25.5 -28 23.6 -35.4 S 18 -40.5 14.5 -40",
   // The 6 lies down in the gutter, short of the 10.
-  flat: "M 12 -20.78 Q 19 -21 23.6 -25.4",
-  // The headpin skids across the deck to take out the 10.
-  messenger: "M 0 0 Q 15 -4 16.2 -27.2"
+  flat: "M 12 -20.78 Q 19 -21 23.6 -25.4"
 } as const;
 
 /** Where the ball meets the rack, and the line it came in on, for a

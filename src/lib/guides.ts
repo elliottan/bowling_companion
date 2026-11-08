@@ -49,7 +49,7 @@ export type TermFigure =
    *  `mark` drawn in the accent. */
   | { kind: "leave"; standing: number[]; mark?: number[] }
   /** A pin's flight on a strike: drawn for both hands where they differ. */
-  | { kind: "pin-move"; motion: "ring" | "flat" | "messenger" }
+  | { kind: "pin-move"; motion: "ring" | "flat" }
   /** Where the ball meets the rack. */
   | { kind: "ball"; hit: "pocket" | "flush" | "brooklyn" | "high" | "light" }
   /** Frames as a scoresheet writes them, one array of balls each. */
@@ -235,8 +235,7 @@ export const GUIDES: readonly Guide[] = [
           {
             term: "Messenger",
             text: "A pin that slides across the deck and knocks down a pin on the far side. It's often the headpin.",
-            aliases: ["Bird dog"],
-            figure: { kind: "pin-move", motion: "messenger" }
+            aliases: ["Bird dog"]
           },
           {
             term: "Tap",

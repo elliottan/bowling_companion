@@ -19,6 +19,8 @@ had all shipped.
   of the 1.
 - Brooklyn's picture now hooks into the headpin the way the pocket's does,
   where it used to slide in flat from the far side.
+- Messenger no longer has a picture: it drew the headpin flying straight to
+  the 10, which is not how a messenger travels.
 
 ## 0.93.1: Fixes from a pass over the tests (2026-11-08)
 
