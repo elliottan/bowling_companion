@@ -11,8 +11,8 @@ test.beforeEach(async ({ page }) => {
  * that made a screen depend on the network would have shipped green.
  *
  * The dev server has no service worker (see playwright.config.ts), so this
- * cannot check a cold offline boot; that is the manual check in
- * docs/DEPLOYMENT.md. What it does check is the part that is the app's own
+ * cannot check a cold offline boot; e2e/offline-boot.spec.ts does, against the
+ * production build. What this one checks is the part that is the app's own
  * doing: everything is on the device, so nothing a bowler does mid-session
  * needs the network.
  */

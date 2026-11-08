@@ -4588,6 +4588,10 @@ msgstr "型錄尚未載入"
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "型錄尚未載入。只需連線一次，之後即可離線使用。"
 
+#: src/services/backupRepository.ts
+msgid "The copy of what is on this phone was not saved, so nothing was replaced."
+msgstr "這支手機上資料的副本沒有儲存，所以沒有取代任何內容。"
+
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."
 msgstr "無法建立圖片。"

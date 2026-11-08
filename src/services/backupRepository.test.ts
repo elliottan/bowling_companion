@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../db/bowlingDb";
 import {
   backupFilename,
   createBackup,
   exportBackup,
   prepareImport,
-  replaceAllData
+  replaceAllData,
+  shareBackup
 } from "./backupRepository";
 import type { BowlingBackup } from "../types/bowling";
 import { addGameToSession, createSession, getSessionHistory, getSetting, saveFrame } from "./bowlingRepository";
@@ -173,6 +174,39 @@ describe("backupRepository", () => {
     expect(frame.shots[0].pins_standing).toEqual([7, 10]);
     expect(frame.shots[1].pins_standing).toEqual([]);
     expect(frame.is_spare).toBe(true);
+  });
+
+  it("imports a v1 tenth frame's third ball, and drops the v1 columns", async () => {
+    const v1Backup = {
+      app: "bowling-companion" as const,
+      version: 1 as const,
+      exported_at: new Date().toISOString(),
+      tables: {
+        sessions: [{ id: 1, date: "2026-05-27", alley_name: "V1 Lanes" }],
+        games: [{ id: 1, session_id: 1, game_number: 1 }],
+        frames: [{
+          id: 1, game_id: 1, frame_number: 10,
+          shot_1_pins_standing: [],
+          shot_1_notes: "flush",
+          shot_2_pins_standing: [10],
+          shot_3_pins_standing: [],
+          is_strike: true, is_spare: false
+        }]
+      }
+    };
+
+    await importBackup(v1Backup);
+    const [stored] = (await db.frames.toArray()) as unknown as Array<Record<string, unknown>>;
+
+    expect(stored.shots).toEqual([
+      { pins_standing: [], notes: "flush" },
+      { pins_standing: [10], notes: undefined },
+      { pins_standing: [] }
+    ]);
+    // The same row the v2 database upgrade writes: no flat columns beside it.
+    expect(stored).not.toHaveProperty("shot_1_pins_standing");
+    expect(stored).not.toHaveProperty("shot_3_pins_standing");
+    expect(stored).not.toHaveProperty("shot_1_notes");
   });
 
   it("exports and reimports balls and oil patterns", async () => {
@@ -433,5 +467,89 @@ describe("backup completeness", () => {
     for (const [name, rows] of Object.entries(before.tables)) {
       expect(rows, `${name} must have a row to round trip`).not.toHaveLength(0);
     }
+  });
+});
+
+/**
+ * The share sheet is where a backup leaves an iPhone (ADR-067), and the e2e
+ * suite turns it off to get a file on disk (preferDownloadOverShare), so its
+ * three outcomes are pinned here: shared, cancelled, and refused.
+ */
+describe("shareBackup through the share sheet", () => {
+  const nav = navigator as Navigator & { share?: unknown; canShare?: unknown };
+  let shared: File[][];
+  let clicks: number;
+
+  function offerSheet(share: (data: { files: File[] }) => Promise<void>) {
+    Object.defineProperty(nav, "canShare", { configurable: true, value: () => true });
+    Object.defineProperty(nav, "share", {
+      configurable: true,
+      value: async (data: { files: File[] }) => {
+        shared.push(data.files);
+        await share(data);
+      }
+    });
+  }
+
+  beforeEach(async () => {
+    shared = [];
+    clicks = 0;
+    URL.createObjectURL = () => "blob:stub";
+    URL.revokeObjectURL = () => {};
+    HTMLAnchorElement.prototype.click = () => {
+      clicks += 1;
+    };
+    await db.delete();
+    await db.open();
+    await createSession({ date: "2026-07-19", alley_name: "Share Lanes" });
+  });
+
+  afterEach(() => {
+    delete (nav as { share?: unknown }).share;
+    delete (nav as { canShare?: unknown }).canShare;
+  });
+
+  it("hands the sheet the file alone, and records the backup", async () => {
+    offerSheet(async () => {});
+
+    expect(await shareBackup()).toBe("shared");
+
+    expect(shared).toHaveLength(1);
+    expect(shared[0]).toHaveLength(1);
+    expect(shared[0][0].name).toMatch(/^headpin-.*\.json$/);
+    expect(JSON.parse(await shared[0][0].text()).tables.sessions).toHaveLength(1);
+    expect(clicks).toBe(0);
+    expect(await getSetting("last_backup_at")).toEqual(expect.any(String));
+  });
+
+  it("reads a closed sheet as cancelled, and records nothing", async () => {
+    offerSheet(async () => {
+      throw new DOMException("Share canceled", "AbortError");
+    });
+
+    expect(await shareBackup()).toBe("cancelled");
+
+    // Nothing left the device, so the reminder has to keep asking.
+    expect(await getSetting("last_backup_at")).toBeUndefined();
+    expect(clicks).toBe(0);
+  });
+
+  it("falls back to a download when the sheet refuses, rather than leaving nothing", async () => {
+    offerSheet(async () => {
+      throw new DOMException("Not allowed", "NotAllowedError");
+    });
+
+    expect(await shareBackup()).toBe("downloaded");
+
+    expect(clicks).toBe(1);
+    expect(await getSetting("last_backup_at")).toEqual(expect.any(String));
+  });
+
+  it("downloads where the browser cannot share a file", async () => {
+    Object.defineProperty(nav, "canShare", { configurable: true, value: () => false });
+
+    expect(await shareBackup()).toBe("downloaded");
+
+    expect(clicks).toBe(1);
   });
 });

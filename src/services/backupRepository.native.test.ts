@@ -5,8 +5,8 @@ const shareFileFromApp = vi.fn(async (_name: string, _data: Blob | string) => "s
 vi.mock("../lib/nativeShare", () => ({ shareFileFromApp: (n: string, d: Blob | string) => shareFileFromApp(n, d) }));
 
 const { db } = await import("../db/bowlingDb");
-const { exportBackup, shareBackup } = await import("./backupRepository");
-const { getSetting } = await import("./bowlingRepository");
+const { createBackup, exportBackup, prepareImport, replaceAllData, shareBackup } = await import("./backupRepository");
+const { createSession, getSetting } = await import("./bowlingRepository");
 
 /** The store apps' web views neither download nor share (ADR-156). */
 describe("backups in the store apps", () => {
@@ -35,6 +35,30 @@ describe("backups in the store apps", () => {
     shareFileFromApp.mockResolvedValueOnce("cancelled");
     expect(await shareBackup()).toBe("cancelled");
     expect(await getSetting("last_backup_at")).toBeUndefined();
+  });
+
+  it("replaces nothing when the safety copy's sheet is closed (ADR-250)", async () => {
+    await db.sessions.clear();
+    await createSession({ date: "2026-11-01", alley_name: "Only Copy Lanes" });
+    const incoming = await prepareImport(JSON.stringify({ ...(await createBackup()), tables: { ...(await createBackup()).tables, sessions: [] } }));
+    // The sheet the safety copy opens on is closed: nothing left the phone.
+    shareFileFromApp.mockResolvedValueOnce("cancelled");
+
+    await expect(replaceAllData(incoming.backup)).rejects.toThrow(/not saved/);
+
+    expect(shareFileFromApp.mock.calls[0][0]).toMatch(/^pre-import-/);
+    // What was on the phone is still there.
+    expect((await db.sessions.toArray()).map((s) => s.alley_name)).toEqual(["Only Copy Lanes"]);
+  });
+
+  it("replaces once the safety copy has left through the sheet", async () => {
+    await db.sessions.clear();
+    await createSession({ date: "2026-11-01", alley_name: "Old Lanes" });
+    const incoming = await prepareImport(JSON.stringify({ ...(await createBackup()), tables: { ...(await createBackup()).tables, sessions: [] } }));
+
+    await replaceAllData(incoming.backup);
+
+    expect(await db.sessions.count()).toBe(0);
   });
 
   it("sends the error screen's export through the sheet too", async () => {

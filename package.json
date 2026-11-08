@@ -1,7 +1,7 @@
 {
   "name": "bowling-companion",
   "private": true,
-  "version": "0.93.0",
+  "version": "0.93.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,7 +16,7 @@
     "lint": "eslint .",
     "i18n:extract": "lingui extract --clean",
     "i18n:check": "node scripts/i18n-check.mjs",
-    "verify": "npm run lint && npm run i18n:check && npm run test:coverage && npm run build && npm run test:e2e",
+    "verify": "npm run lint && npm run i18n:check && npm run test:coverage && npm run build && E2E_BUILT=1 npm run test:e2e",
     "prepare": "git config core.hooksPath .githooks || true",
     "icons": "node scripts/generate-icons.mjs",
     "sync-catalog": "tsx scripts/sync-catalog/build.ts",

@@ -1,12 +1,12 @@
 import { t } from "@lingui/core/macro";
-import { db, linkLegacySessionOilPatterns } from "../db/bowlingDb";
+import { db, linkLegacySessionOilPatterns, migrateFrameV1ToV2 } from "../db/bowlingDb";
 import { validateBackup } from "../lib/backupValidation";
 import { shareFileFromApp } from "../lib/nativeShare";
 import { liveActivity } from "../lib/nativeLiveActivity";
 import { isNativeApp } from "../lib/platform";
 import { isSpare, isStrike } from "../lib/scoring";
 import { setSetting } from "./bowlingRepository";
-import type { BowlingBackup, PinNumber, Shot } from "../types/bowling";
+import type { BowlingBackup, Frame } from "../types/bowling";
 
 export interface ImportBackupResult {
   sessions: number;
@@ -65,12 +65,14 @@ export function backupFilename(backup: BowlingBackup): string {
  * web, and the share sheet in the store apps, whose web views do not download
  * (ADR-156).
  */
-async function downloadBackup(backup: BowlingBackup, filename: string): Promise<void> {
+async function downloadBackup(
+  backup: BowlingBackup,
+  filename: string
+): Promise<"shared" | "downloaded" | "cancelled"> {
   const json = JSON.stringify(backup, null, 2);
-  if (isNativeApp()) {
-    await shareFileFromApp(filename, json);
-    return;
-  }
+  // In the apps the file leaves through the sheet, which can be closed. The
+  // caller hears about it: a safety copy that never left is no safety copy.
+  if (isNativeApp()) return shareFileFromApp(filename, json);
   const blob = new Blob([json], {
     type: "application/json"
   });
@@ -83,6 +85,7 @@ async function downloadBackup(backup: BowlingBackup, filename: string): Promise<
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+  return "downloaded";
 }
 
 /**
@@ -132,7 +135,9 @@ export async function shareBackup(): Promise<BackupDestination> {
     } catch (err) {
       // AbortError is the user closing the sheet. Anything else falls back to
       // a download rather than leaving them with nothing.
-      if (err instanceof Error && err.name === "AbortError") return "cancelled";
+      // Read by name alone: a DOMException is an Error in every browser by
+      // spec, but not in every runtime that hands one back (jsdom is not).
+      if ((err as { name?: unknown } | null)?.name === "AbortError") return "cancelled";
       await downloadBackup(backup, backupFilename(backup));
       await recordBackup();
       return "downloaded";
@@ -222,7 +227,13 @@ export async function replaceAllData(
   // pre-import file of an empty database only confuses a first-time user.
   if (options.safetyCopy !== false) {
     const safetyCopy = await createBackup();
-    await downloadBackup(safetyCopy, `pre-import-${backupFilename(safetyCopy)}`);
+    const saved = await downloadBackup(safetyCopy, `pre-import-${backupFilename(safetyCopy)}`);
+    // Closing the sheet in the apps means the copy is in the app's cache at
+    // most, which the bowler cannot reach and the platform may clear. Wiping
+    // now would leave the file being restored as the only copy (ADR-250).
+    if (saved === "cancelled") {
+      throw new Error(t`The copy of what is on this phone was not saved, so nothing was replaced.`);
+    }
   }
 
   await db.transaction(
@@ -310,22 +321,12 @@ function rederiveFrameMarks(backup: BowlingBackup): BowlingBackup {
 function normalizeBackup(backup: BowlingBackup): BowlingBackup {
   if (backup.version === 2 || backup.version === 3) return rederiveFrameMarks(backup);
 
-  // Transform v1 flat frame fields → shots[]
+  // v1 flat frame fields to shots[], by the same transform the v2 database
+  // upgrade runs, on a copy so the parsed file is left as it was read.
   const frames = backup.tables.frames.map((frame) => {
-    const raw = frame as unknown as Record<string, unknown>;
-    if (Array.isArray(raw.shots)) return frame;
-
-    const shots: Shot[] = [];
-    if (raw.shot_1_pins_standing !== undefined) {
-      shots.push({ pins_standing: raw.shot_1_pins_standing as PinNumber[], notes: raw.shot_1_notes as string | undefined });
-    }
-    if (raw.shot_2_pins_standing !== undefined) {
-      shots.push({ pins_standing: raw.shot_2_pins_standing as PinNumber[], notes: raw.shot_2_notes as string | undefined });
-    }
-    if (raw.shot_3_pins_standing !== undefined) {
-      shots.push({ pins_standing: raw.shot_3_pins_standing as PinNumber[] });
-    }
-    return { ...frame, shots };
+    const copy = { ...(frame as unknown as Record<string, unknown>) };
+    migrateFrameV1ToV2(copy);
+    return copy as unknown as Frame;
   });
 
   return rederiveFrameMarks({

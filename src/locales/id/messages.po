@@ -4588,6 +4588,10 @@ msgstr "Katalog belum dimuat"
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "Katalog belum dimuat. Katalog butuh koneksi satu kali, setelah itu bisa dipakai offline."
 
+#: src/services/backupRepository.ts
+msgid "The copy of what is on this phone was not saved, so nothing was replaced."
+msgstr "Salinan isi ponsel ini tidak tersimpan, jadi tidak ada yang diganti."
+
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."
 msgstr "Gambar tidak bisa dibuat."

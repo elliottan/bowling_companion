@@ -31,28 +31,7 @@ export class BowlingDatabase extends Dexie {
       oil_patterns: "++id, name",
       spare_lines: "++id"
     }).upgrade(async (tx) => {
-      await tx.table("frames").toCollection().modify((frame: Record<string, unknown>) => {
-        // Only migrate if still in old flat format (safety guard)
-        if (Array.isArray(frame.shots)) return;
-
-        const shots: Shot[] = [];
-        if (frame.shot_1_pins_standing !== undefined) {
-          shots.push({ pins_standing: frame.shot_1_pins_standing as PinNumber[], notes: frame.shot_1_notes as string | undefined });
-        }
-        if (frame.shot_2_pins_standing !== undefined) {
-          shots.push({ pins_standing: frame.shot_2_pins_standing as PinNumber[], notes: frame.shot_2_notes as string | undefined });
-        }
-        if (frame.shot_3_pins_standing !== undefined) {
-          shots.push({ pins_standing: frame.shot_3_pins_standing as PinNumber[] });
-        }
-
-        frame.shots = shots;
-        delete frame.shot_1_pins_standing;
-        delete frame.shot_2_pins_standing;
-        delete frame.shot_3_pins_standing;
-        delete frame.shot_1_notes;
-        delete frame.shot_2_notes;
-      });
+      await tx.table("frames").toCollection().modify((frame: Record<string, unknown>) => migrateFrameV1ToV2(frame));
     });
 
     this.version(3).stores({
@@ -65,14 +44,7 @@ export class BowlingDatabase extends Dexie {
       lane_notes: "++id, [alley+lane]"
     }).upgrade(async (tx) => {
       // Backfill the cross-lane config from the legacy single lane_number.
-      await tx.table("games").toCollection().modify((game: Record<string, unknown>) => {
-        if (Array.isArray(game.lanes)) return; // already migrated
-        const lane = typeof game.lane_number === "string" ? game.lane_number.trim() : "";
-        if (lane) {
-          game.lanes = [lane];
-          game.start_lane = lane;
-        }
-      });
+      await tx.table("games").toCollection().modify((game: Record<string, unknown>) => migrateGameV2ToV3(game));
     });
 
     // Key-value preferences (handedness, etc.), keyed by `key`.
@@ -175,6 +147,8 @@ export async function linkLegacySessionOilPatterns(
 
 export const db = new BowlingDatabase();
 
+/** v1 stored one column per shot; v2 a `shots` array. Run by the v2 upgrade
+ *  and by backup import, which can land a v1 file at any time. Idempotent. */
 export function migrateFrameV1ToV2(frame: Record<string, unknown>): void {
   if (Array.isArray(frame.shots)) return;
 
@@ -197,6 +171,8 @@ export function migrateFrameV1ToV2(frame: Record<string, unknown>): void {
   delete frame.shot_2_notes;
 }
 
+/** v3 replaced the single `lane_number` with `lanes` + `start_lane`. Run by
+ *  the v3 upgrade. Idempotent. */
 export function migrateGameV2ToV3(game: Record<string, unknown>): void {
   if (Array.isArray(game.lanes)) return;
   const lane = typeof game.lane_number === "string" ? game.lane_number.trim() : "";

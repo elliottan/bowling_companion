@@ -97,10 +97,11 @@ returning to with a `--repeat-each` run and a browser trace.
 
 `swUpdate` is covered by unit tests (applies when safe, holds while unsafe, once
 per page, the foreground check, the stale-shell error names), but the last mile,
-a real worker activating over a real page, is not. Playwright would need a
-second built copy of the app served by `vite preview`, deployed mid-run, which
-the current single-`webServer` config cannot express. Until then it is the
-manual check in `docs/DEPLOYMENT.md`.
+a real worker activating over a real page, is not. The suite now serves the
+production build under `vite preview` (the `offline-boot` project, which covers
+a cold start with no network), so what is left is a second build of a different
+version to deploy over it mid-run. Until then it is the manual check in
+`docs/DEPLOYMENT.md`.
 
 ### The session sheet is the last sheet off `FormSheet`
 

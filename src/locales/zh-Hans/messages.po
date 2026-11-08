@@ -4588,6 +4588,10 @@ msgstr "目录尚未加载"
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "目录尚未加载。只需联网一次，之后即可离线使用。"
 
+#: src/services/backupRepository.ts
+msgid "The copy of what is on this phone was not saved, so nothing was replaced."
+msgstr "这部手机上数据的副本没有保存，所以没有替换任何内容。"
+
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."
 msgstr "无法创建图片。"

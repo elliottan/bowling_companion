@@ -94,6 +94,11 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
       window.location.reload();
     } catch (err) {
+      // The confirm closes so the reason is on screen rather than behind it.
+      // Nothing was replaced (the safety copy that was not saved stops it
+      // before the wipe, ADR-250), so the file can simply be picked again.
+      setPending(null);
+      setConfirmText("");
       setError(err instanceof Error ? err.message : t`Import failed.`);
       setIsBusy(false);
     }
