@@ -10813,3 +10813,33 @@ and Stats' Alley and Event, Game plan's Lane and Game.
 **Consequences.** A filter sheet reads at a glance: everything in the accent
 is on, everything grey is off.
 
+## ADR-260: History's calendar is pinned over the list, its switch beside the filter
+
+**Status.** Accepted, 2026-11-08, at the owner's request. Amends ADR-252.
+
+**Context.** ADR-252 put the month in a card that scrolled away with the list,
+and the calendar switch leading the title row. On a device the switch on the
+left read as misplaced, and a calendar that scrolls away is gone exactly when a
+bowler is reading down the days it chose.
+
+**Decision.**
+
+- **The switch sits at the trailing edge, beside the filter**, so the title
+  leads the row as it does on every other tab.
+- **Shown, the calendar is part of the floating header** (ADR-185), under the
+  title and the chips. The list starts below it and only the list scrolls; a
+  day tapped scrolls its first session to just under the calendar. Hidden,
+  the list starts under the title as before.
+- **The month stops at the bowler's history**: the arrows and the month picker
+  cannot go before the first session's month or after the last's, and a
+  remembered month outside them shows the nearest one in range.
+- **A tap on the status bar scrolls the list in view to its top**, on every
+  screen. The native app forwards the tap as a `statusTap` window event
+  (`HeadpinTabBarPlugin.swift`) and `src/lib/statusTap.ts` scrolls the nearest
+  scroller under the middle of the screen, because the web view's own gesture
+  only moves the document, which this app never scrolls (docs/VIEWPORT-BUG.md).
+
+**Consequences.** The calendar takes its height off the list on a short phone,
+which is what hiding it is for. An installed web app still has no status-bar
+tap: Safari gives a page no signal for it, and making the document scrollable
+to catch one would undo the VIEWPORT-BUG fix.

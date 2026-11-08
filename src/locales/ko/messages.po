@@ -1872,12 +1872,15 @@ msgstr "완료된 이 게임을 편집할까요?"
 msgid "Edit this recorded shot?"
 msgstr "기록된 이 투구를 편집할까요?"
 
+#: src/views/LiveActivityView.tsx
+msgid "Enable Live Activity"
+msgstr "실시간 현황 켜기"
+
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "두 레인 모두 정수로 입력하세요."
 
 #: src/components/BallEstimates.tsx
-#: src/views/ProOfferView.tsx
 msgid "Estimated average"
 msgstr "예상 에버리지"
 
@@ -2226,6 +2229,7 @@ msgstr "게임별"
 
 #: src/components/HomeProfile.tsx
 #: src/views/GamePlanView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SearchView.tsx
 msgid "Game plan"
 msgstr "게임 플랜"
@@ -2499,8 +2503,8 @@ msgid "In the Dynamic Island"
 msgstr "Dynamic Island에서"
 
 #: src/views/ProOfferView.tsx
-msgid "In the iPhone app, the score follows you as you bowl: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
-msgstr "iPhone 앱에서는 볼링하는 동안 점수가 따라와요. 잠금 화면, Dynamic Island, Apple Watch에서 볼 수 있어요."
+msgid "In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
+msgstr "iPhone 앱에서는 볼링하는 동안 점수가 따라오고, 공을 던질 때마다 바뀌어요. 잠금 화면, Dynamic Island, Apple Watch에서 볼 수 있어요."
 
 #. Beside a bowling ball's name in a chart key: the bowler owns it
 #: src/components/BallMap.tsx
@@ -2551,10 +2555,6 @@ msgstr "포켓 적중"
 #: src/views/CatalogView.tsx
 msgid "It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in."
 msgstr "한 번만 내려받으면 오프라인에서도 쓸 수 있어요. 볼마다 코어, 커버스톡, RG, Diff가 채워져 있어요."
-
-#: src/views/LiveActivityView.tsx
-msgid "It goes away a few minutes after the last ball of a game, and comes back with the first ball of the next."
-msgstr "게임의 마지막 투구 후 몇 분 뒤에 사라지고, 다음 게임의 첫 투구와 함께 다시 나타나요."
 
 #: src/components/BallFormDialog.tsx
 msgid "It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
@@ -2859,6 +2859,7 @@ msgid "Linked to catalog"
 msgstr "카탈로그에 연결됨"
 
 #: src/views/LiveActivityView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "Live Activity"
 msgstr "실시간 현황"
@@ -4298,14 +4299,6 @@ msgstr "보관됨 보기 ({count})"
 msgid "Show retired ({count})"
 msgstr "은퇴한 볼 보기 ({count})"
 
-#: src/views/LiveActivityView.tsx
-msgid "Show your game"
-msgstr "게임 표시"
-
-#: src/views/LiveActivityView.tsx
-msgid "Show your game as a Live Activity"
-msgstr "게임을 실시간 현황으로 표시"
-
 #. A filter on the spare lines screen: leaves of one standing pin
 #: src/lib/spareLines.ts
 msgid "Single pins"
@@ -4542,9 +4535,7 @@ msgid "Strike"
 msgstr "스트라이크"
 
 #. Bowling term. Spoken name of the strike rate column, then its percentage.
-#. Bowling term. Spoken name of the strike rate column, then its percentage.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 msgid "strike {value}"
 msgstr "스트라이크 {value}"
 
@@ -5317,16 +5308,12 @@ msgid "Your earlier games are under All."
 msgstr "이전 게임은 전체에 있어요."
 
 #: src/views/ProOfferView.tsx
-msgid "Your estimated average with each ball, by alley, lane pair and pattern."
-msgstr "볼링장, 레인 페어, 패턴별로 본 볼마다의 예상 에버리지예요."
+msgid "Your estimated average with each ball, by alley, lane pair and pattern. Open a ball to see its rates against your others and the leaves it costs you most."
+msgstr "볼링장, 레인 페어, 패턴별로 본 볼마다의 예상 에버리지예요. 볼을 열면 다른 볼과 비교한 비율과 손실이 가장 큰 남은 핀을 볼 수 있어요."
 
 #: src/views/LiveActivityView.tsx
 msgid "Your game follows you off the screen. From the first ball, the score is on your Lock Screen, in the Dynamic Island and on your Apple Watch, and it changes with every ball you enter."
 msgstr "앱 밖에서도 게임을 확인할 수 있어요. 첫 투구부터 점수가 잠금 화면, Dynamic Island, Apple Watch에 표시되고, 투구를 입력할 때마다 바뀌어요."
-
-#: src/views/ProOfferView.tsx
-msgid "Your game on the Lock Screen"
-msgstr "잠금 화면에 게임 표시"
 
 #: src/components/MoveGamesDialog.tsx
 msgid "Your games stay in this browser. Bring them along:"

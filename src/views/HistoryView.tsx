@@ -16,6 +16,8 @@ import { FloatingHeader } from "../components/FloatingHeader";
 import { HistoryCalendar } from "../components/HistoryCalendar";
 import { IconButton } from "../components/ui/IconButton";
 import {
+  clampMonth,
+  monthBounds,
   monthOfDate,
   readCalendarShown,
   weekStartFor,
@@ -68,7 +70,11 @@ export function HistoryView({
   // device. The month is the tab's while the app is open, so leaving History
   // and coming back keeps the month being read.
   const [calendarShown, setCalendarShown] = useState(readCalendarShown);
-  const [month, setMonth] = useRememberedState<CalendarMonth>(`${memory}:month`, monthOfDate(new Date()));
+  const [rememberedMonth, setMonth] = useRememberedState<CalendarMonth>(`${memory}:month`, monthOfDate(new Date()));
+  // Never before the first session's month or after the last's: a month with
+  // nothing in it either side of the bowler's history is a dead end.
+  const bounds = useMemo(() => monthBounds(filters.history), [filters.history]);
+  const month = clampMonth(rememberedMonth, bounds);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   // A day tapped whose heading the list has yet to scroll to: set on the tap,
   // taken once the heading is rendered, which may be after a longer window.
@@ -153,29 +159,26 @@ export function HistoryView({
                 trailing action, so there is no title row to leave empty. */}
             {mode === "tab" && (
             <div className={`${TAB_TITLE_ROW} mb-3 justify-between gap-3`}>
-              {/* The calendar's switch leads the title (ADR-252), at the
-                  owner's ask: the filter keeps the trailing edge, as on
-                  Stats. Absent, like the filter, before the first session. */}
-              {filters.history.length > 0 && (
-                <IconButton
-                  variant="round"
-                  label={t`Calendar`}
-                  aria-pressed={calendarShown}
-                  onClick={() => {
-                    const next = !calendarShown;
-                    setCalendarShown(next);
-                    writeCalendarShown(next);
-                  }}
-                >
-                  <CalendarDays size={20} aria-hidden="true" className={calendarShown ? "text-accent" : undefined} />
-                </IconButton>
-              )}
               <h1 className={`${TAB_TITLE} min-w-0 flex-1`}>{t`History`}</h1>
               {/* Nothing to narrow before the first session, and a control
                   that can only ever filter an empty list is noise on the
                   screen a new bowler is deciding about. */}
               {filters.history.length > 0 && (
                 <div className="flex shrink-0 items-center gap-1">
+                  {/* The calendar's switch sits beside the filter, both trailing
+                      actions over the list (ADR-252, moved at the owner's ask). */}
+                  <IconButton
+                    variant="round"
+                    label={t`Calendar`}
+                    aria-pressed={calendarShown}
+                    onClick={() => {
+                      const next = !calendarShown;
+                      setCalendarShown(next);
+                      writeCalendarShown(next);
+                    }}
+                  >
+                    <CalendarDays size={20} aria-hidden="true" className={calendarShown ? "text-accent" : undefined} />
+                  </IconButton>
                   <SessionFilterButton filters={filters} onOpen={() => setFiltersOpen(true)} />
                 </div>
               )}
@@ -186,21 +189,27 @@ export function HistoryView({
             {deleteError && <ErrorBanner className="mb-3">{deleteError}</ErrorBanner>}
 
             <SessionFilterChips filters={filters} />
+
+            {/* Pinned with the title, not scrolled with the list: shown, it
+                pushes the list down below it, so only the sessions scroll and
+                a day tapped lands its first session right under it. Hidden,
+                the list starts under the title as before. */}
+            {showCalendar && !isLoading && (
+              <HistoryCalendar
+                sessions={sessionList}
+                month={month}
+                onMonthChange={setMonth}
+                selectedDay={selectedDay}
+                onSelectDay={selectDay}
+                weekStart={weekStart}
+                bounds={bounds}
+              />
+            )}
           </>
         }
         onScroll={(e) => rememberScroll(`${memory}:sessions`, e.currentTarget.scrollTop)}
       >
         <div className="px-3 pb-5 sm:px-6 sm:pb-8">
-          {showCalendar && !isLoading && (
-            <HistoryCalendar
-              sessions={sessionList}
-              month={month}
-              onMonthChange={setMonth}
-              selectedDay={selectedDay}
-              onSelectDay={selectDay}
-              weekStart={weekStart}
-            />
-          )}
           <SessionHistory
             sessions={sessionList.slice(0, visibleCount)}
             isLoading={isLoading}

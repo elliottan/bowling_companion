@@ -88,7 +88,7 @@ describe("the Live Activity page", () => {
 
   it("is on by default, and turning it off takes the activity down", async () => {
     render(withPro(PRO_OWNED, <LiveActivityView status={{ supported: true, enabled: true }} onBack={vi.fn()} />));
-    const toggle = await screen.findByRole("switch", { name: /Show your game/ });
+    const toggle = await screen.findByRole("switch", { name: /Enable Live Activity/ });
     await waitFor(() => expect(toggle).toBeChecked());
 
     fireEvent.click(toggle);
@@ -112,7 +112,7 @@ describe("the Live Activity page", () => {
     // The switch is under the veil, out of reach; the pictures are not.
     expect(screen.queryByRole("switch")).toBeNull();
     expect(screen.getByRole("heading", { name: "On the Lock Screen" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Show your game as a Live Activity/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Enable Live Activity/ }));
     expect(openOffer).toHaveBeenCalled();
     expect(await getLiveActivityEnabled()).toBe(true);
   });

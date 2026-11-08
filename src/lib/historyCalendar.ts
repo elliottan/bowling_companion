@@ -201,3 +201,35 @@ export function writeCalendarShown(shown: boolean): void {
     // Private mode or storage blocked: it holds for this run only.
   }
 }
+
+/** The months a bowler can turn the calendar to: the first session's to the
+ *  last's. Null with no sessions. */
+export function monthBounds(sessions: SessionSummary[]): { min: CalendarMonth; max: CalendarMonth } | null {
+  let first: string | null = null;
+  let last: string | null = null;
+  for (const { session } of sessions) {
+    if (first === null || session.date < first) first = session.date;
+    if (last === null || session.date > last) last = session.date;
+  }
+  if (first === null || last === null) return null;
+  const toMonth = (date: string): CalendarMonth => ({ year: Number(date.slice(0, 4)), month: Number(date.slice(5, 7)) - 1 });
+  return { min: toMonth(first), max: toMonth(last) };
+}
+
+const monthIndex = ({ year, month }: CalendarMonth) => year * 12 + month;
+
+/** `month`, held within `bounds`. */
+export function clampMonth(
+  month: CalendarMonth,
+  bounds: { min: CalendarMonth; max: CalendarMonth } | null
+): CalendarMonth {
+  if (!bounds) return month;
+  if (monthIndex(month) < monthIndex(bounds.min)) return bounds.min;
+  if (monthIndex(month) > monthIndex(bounds.max)) return bounds.max;
+  return month;
+}
+
+/** Whether `a` is the same month as `b`. */
+export function sameMonth(a: CalendarMonth, b: CalendarMonth): boolean {
+  return monthIndex(a) === monthIndex(b);
+}

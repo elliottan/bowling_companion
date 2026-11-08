@@ -9,6 +9,24 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.100.0: History's calendar stays put, and the status bar scrolls to the top (2026-11-08)
+
+### Changed
+
+- On History, the calendar switch now sits at the top right, beside the filter, instead of leading the title on the left.
+- With the calendar on, it stays pinned at the top and only the sessions below it scroll. Tapping a day brings that day's first session to just under the calendar (ADR-260).
+- The calendar's arrows and month picker stop at the months of your first and last sessions.
+- On the Live Activity page, the switch now reads "Enable Live Activity", and the note at the bottom is gone.
+- On the Headpin Pro page, each feature's name and description now sit above its picture. "Estimated average" is now "Game plan", showing the whole Game plan screen and one ball opened on its details. "Your game on the Lock Screen" is now "Live Activity", showing the Lock Screen, the Dynamic Island and the Apple Watch. The Deeper stats column headings no longer run together.
+
+### Added
+
+- In the iPhone app, tapping the status bar scrolls the screen you are on back to its top.
+
+### Fixed
+
+- A Settings section (Appearance, Bowling profile, Legal and the rest) opened after scrolling Settings showed the "Settings" bar over its own, hiding its back button. Each section now shows its own bar and back button, with its title moving into the bar as you scroll.
+
 ## 0.99.0: Compare balls side by side and on a map (2026-11-08)
 
 - Compare up to four catalog balls. Tap the compare button in the catalog's

@@ -1872,12 +1872,15 @@ msgstr "要编辑这个已完成的局吗？"
 msgid "Edit this recorded shot?"
 msgstr "要编辑这笔已记录的投球吗？"
 
+#: src/views/LiveActivityView.tsx
+msgid "Enable Live Activity"
+msgstr "启用实时活动"
+
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "请为两条球道输入整数。"
 
 #: src/components/BallEstimates.tsx
-#: src/views/ProOfferView.tsx
 msgid "Estimated average"
 msgstr "预计平均分"
 
@@ -2226,6 +2229,7 @@ msgstr "逐局"
 
 #: src/components/HomeProfile.tsx
 #: src/views/GamePlanView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SearchView.tsx
 msgid "Game plan"
 msgstr "比赛策略"
@@ -2499,8 +2503,8 @@ msgid "In the Dynamic Island"
 msgstr "在灵动岛"
 
 #: src/views/ProOfferView.tsx
-msgid "In the iPhone app, the score follows you as you bowl: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
-msgstr "在 iPhone app 中，打球时分数会跟着你：在锁定屏幕、灵动岛和 Apple Watch 上。"
+msgid "In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
+msgstr "在 iPhone app 中，打球时分数会跟着你，每一球都会更新：在锁定屏幕、灵动岛和 Apple Watch 上。"
 
 #. Beside a bowling ball's name in a chart key: the bowler owns it
 #: src/components/BallMap.tsx
@@ -2551,10 +2555,6 @@ msgstr "进入甜区"
 #: src/views/CatalogView.tsx
 msgid "It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in."
 msgstr "只需下载一次，之后即可离线使用。每颗球都已填好球芯、球皮、RG 与 Diff。"
-
-#: src/views/LiveActivityView.tsx
-msgid "It goes away a few minutes after the last ball of a game, and comes back with the first ball of the next."
-msgstr "一局最后一球的几分钟后会消失，下一局的第一球又会出现。"
 
 #: src/components/BallFormDialog.tsx
 msgid "It leaves your arsenal and the ball pickers. Every shot it threw keeps its name, and you can bring it back from Retired."
@@ -2859,6 +2859,7 @@ msgid "Linked to catalog"
 msgstr "已链接到目录"
 
 #: src/views/LiveActivityView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "Live Activity"
 msgstr "实时活动"
@@ -4298,14 +4299,6 @@ msgstr "显示已归档（{count}）"
 msgid "Show retired ({count})"
 msgstr "显示已退役（{count}）"
 
-#: src/views/LiveActivityView.tsx
-msgid "Show your game"
-msgstr "显示你的比赛"
-
-#: src/views/LiveActivityView.tsx
-msgid "Show your game as a Live Activity"
-msgstr "以实时活动显示你的比赛"
-
 #. A filter on the spare lines screen: leaves of one standing pin
 #: src/lib/spareLines.ts
 msgid "Single pins"
@@ -4542,9 +4535,7 @@ msgid "Strike"
 msgstr "全中"
 
 #. Bowling term. Spoken name of the strike rate column, then its percentage.
-#. Bowling term. Spoken name of the strike rate column, then its percentage.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 msgid "strike {value}"
 msgstr "全中 {value}"
 
@@ -5317,16 +5308,12 @@ msgid "Your earlier games are under All."
 msgstr "你较早的局在“全部”下面。"
 
 #: src/views/ProOfferView.tsx
-msgid "Your estimated average with each ball, by alley, lane pair and pattern."
-msgstr "按球馆、双球道与油型，预估你使用每颗球的平均分。"
+msgid "Your estimated average with each ball, by alley, lane pair and pattern. Open a ball to see its rates against your others and the leaves it costs you most."
+msgstr "按球馆、双球道与油型，预估你使用每颗球的平均分。打开一颗球，可看到它与其他球相比的各项比率，以及让你损失最多的残瓶。"
 
 #: src/views/LiveActivityView.tsx
 msgid "Your game follows you off the screen. From the first ball, the score is on your Lock Screen, in the Dynamic Island and on your Apple Watch, and it changes with every ball you enter."
 msgstr "不打开 app 也能看比赛。从第一球起，分数会出现在锁定屏幕、灵动岛和 Apple Watch 上，每输入一球就会更新。"
-
-#: src/views/ProOfferView.tsx
-msgid "Your game on the Lock Screen"
-msgstr "在锁定屏幕看你的比赛"
 
 #: src/components/MoveGamesDialog.tsx
 msgid "Your games stay in this browser. Bring them along:"
