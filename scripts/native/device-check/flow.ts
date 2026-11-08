@@ -359,8 +359,9 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
   await f.check("arsenal: add a ball", async () => {
     await f.toTabs();
     // Home's arsenal row (ADR-245) is named by its title and its detail
-    // together, "Arsenal Add balls to your bag", since the new Home (0.89.0).
-    await f.tap("^Arsenal\\b");
+    // together since the new Home (0.89.0). Read as text, with no space
+    // between the two lines: "ArsenalAdd balls to your bag".
+    await f.tap("^Arsenal");
     await f.tap("^Add ball$");
     await f.fill("e.g. Storm Phaze II", "Device Phaze");
     await f.tap("^Add$");
