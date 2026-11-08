@@ -21,6 +21,10 @@ had all shipped.
 
 - In the iPhone app, tapping the status bar scrolls the screen you are on back to its top.
 
+### Fixed
+
+- A Settings section (Appearance, Bowling profile, Legal and the rest) opened after scrolling Settings showed the "Settings" bar over its own, hiding its back button. Each section now shows its own bar and back button, with its title moving into the bar as you scroll.
+
 ## 0.96.0: Balls that share a core or a cover, and ball photos without a tile (2026-11-08)
 
 - A ball's page shows the balls built on the same core and in the same

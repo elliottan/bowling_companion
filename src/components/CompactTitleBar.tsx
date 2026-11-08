@@ -9,13 +9,17 @@ export const LARGE_TITLE_SCROLL_PX = 44;
  * away, and then it fades in, so the name is never on screen twice. The large
  * title is the heading; this is a picture of it, kept out of the
  * accessibility tree.
+ *
+ * z-4: over the tab's own list, and under a section the tab pushes inline
+ * (`PushScreen`, z-5). At z-10 it stayed on top of the pushed section once the
+ * tab had scrolled, so Appearance showed "Settings" and lost its back button.
  */
 export function CompactTitleBar({ title, shown }: { title: string; shown: boolean }) {
   return (
     <div
       aria-hidden="true"
       data-compact-title=""
-      className={`pointer-events-none absolute inset-x-0 top-0 z-10 transition-opacity duration-200 ${
+      className={`pointer-events-none absolute inset-x-0 top-0 z-[4] transition-opacity duration-200 ${
         shown ? "opacity-100" : "opacity-0"
       }`}
     >
