@@ -56,6 +56,17 @@ describe("ChoiceInput", () => {
     );
   }
 
+  it("lists every option while nothing is typed, and narrows as it is", () => {
+    const cores = Array.from({ length: 40 }, (_, i) => `Core ${String(i).padStart(2, "0")}`);
+    render(<ChoiceInput ariaLabel="Core" value="" onChange={vi.fn()} options={cores} placeholder="All cores" />);
+    const field = screen.getByRole("combobox", { name: "Core" });
+    fireEvent.focus(field);
+    // All forty, in a list that scrolls, not the first six.
+    expect(screen.getAllByRole("option")).toHaveLength(40);
+    fireEvent.change(field, { target: { value: "core 3" } });
+    expect(screen.getAllByRole("option")).toHaveLength(10);
+  });
+
   it("takes a tapped option, and clears back to none", () => {
     const onChange = vi.fn();
     render(<Choice onChange={onChange} />);

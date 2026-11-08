@@ -254,6 +254,7 @@ msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 
 #: src/components/ui/ViewAll.tsx
+#: src/views/CatalogView.tsx
 msgid "{count, plural, one {View all # ball} other {View all # balls}}"
 msgstr "{count, plural, one {View all # ball} other {View all # balls}}"
 
@@ -4984,6 +4985,7 @@ msgid "View actual line on the lane"
 msgstr "View actual line on the lane"
 
 #: src/components/ui/ViewAll.tsx
+#: src/views/CatalogView.tsx
 msgid "View all {count}"
 msgstr "View all {count}"
 

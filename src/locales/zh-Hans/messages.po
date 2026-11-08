@@ -254,6 +254,7 @@ msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, other {球道 {lanes}}}"
 
 #: src/components/ui/ViewAll.tsx
+#: src/views/CatalogView.tsx
 msgid "{count, plural, one {View all # ball} other {View all # balls}}"
 msgstr "{count, plural, other {查看全部 # 颗球}}"
 
@@ -4984,6 +4985,7 @@ msgid "View actual line on the lane"
 msgstr "在球道上查看实际路线"
 
 #: src/components/ui/ViewAll.tsx
+#: src/views/CatalogView.tsx
 msgid "View all {count}"
 msgstr "查看全部 {count} 条"
 

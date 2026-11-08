@@ -182,13 +182,14 @@ export function useHistoryRoute(state: NavState, dispatch: (action: NavAction) =
   }, [state]);
 
   /**
-   * Go back one step. Prefers the history stack so the platform's own back
-   * stays in step; falls back to dispatching when there is nothing of ours on
-   * the stack (a deep link opened straight into an overlay), because
+   * Go back one step, or `steps` of them at once (the list under a stack of
+   * catalog balls). Prefers the history stack so the platform's own back
+   * stays in step; falls back to dispatching when there is not enough of ours
+   * on the stack (a deep link opened straight into an overlay), because
    * `history.back()` there would leave the app entirely.
    */
   return useCallback(
-    (fallback: NavAction) => {
+    (fallback: NavAction, steps = 1) => {
       if (sentinel.current) {
         // A screen's own back pressed with a sheet still up. Most sheets are
         // modal and cover that control, but the session sheet leaves its
@@ -205,6 +206,17 @@ export function useHistoryRoute(state: NavState, dispatch: (action: NavAction) =
           // Nothing of ours under the sentinel: collect it, and dispatch.
           consumingSentinel.current = true;
           window.history.back();
+          dispatch(fallback);
+        }
+        return;
+      }
+      if (steps > 1) {
+        if (depth.current >= steps) {
+          // One popstate arrives for the whole jump and counts one step of
+          // it; the rest are counted here.
+          depth.current -= steps - 1;
+          window.history.go(-steps);
+        } else {
           dispatch(fallback);
         }
         return;

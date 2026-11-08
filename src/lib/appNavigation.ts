@@ -105,6 +105,12 @@ export interface NavState {
    *  Overlay union cannot. It lives here, not in CatalogView, so the platform
    *  back gesture pops it like any other push (see useHistoryRoute). */
   catalogBallId: string | null;
+  /** The catalog balls under the open one, oldest first. A ball opened from
+   *  another's Same core or Same cover row is pushed over it rather than in
+   *  its place, so back and the drag-back gesture return to that ball, with
+   *  it already drawn underneath, not to the list (ADR-257). Empty whenever no
+   *  ball is open. */
+  catalogBallTrail: string[];
   /** The guide whose article is open, by id. A layer on top of the guides
    *  overlay for the same reason as `catalogBallId`: it exists only while the
    *  guides list is the top overlay, and the Overlay union cannot carry an
@@ -161,6 +167,8 @@ export type NavAction =
   /** `push` opens the catalog first when it is not the screen on top, which
    *  is how a search result reaches a ball. */
   | { type: "openCatalogBall"; ballId: string; push?: boolean }
+  /** Every catalog ball closed at once, back to the list under them. */
+  | { type: "closeCatalogBalls" }
   | { type: "openGuide"; guideId: string; push?: boolean; term?: string }
   /** The pattern list, pushed, with one pattern's sheet already open. */
   | { type: "openPattern"; patternId: number }
@@ -217,6 +225,7 @@ export const INITIAL_NAV: NavState = {
   settingsSection: "menu",
   overlays: [],
   catalogBallId: null,
+  catalogBallTrail: [],
   openGuideId: null,
   openGuideTerm: null,
   reportLineId: null,
@@ -229,6 +238,23 @@ export const INITIAL_NAV: NavState = {
 };
 
 export function navReducer(state: NavState, action: NavAction): NavState {
+  const next = reduce(state, action);
+  // A trail is only ever under an open ball: whatever closed the ball closed
+  // the balls beneath it too.
+  return next.catalogBallId === null && next.catalogBallTrail.length > 0 ? { ...next, catalogBallTrail: [] } : next;
+}
+
+/** Where a restored route leaves the trail: a back to a ball beneath drops
+ *  the balls above it, a forward to a new ball stacks the one it left. */
+function trailAfterRestore(state: NavState, ballId: string | null): string[] {
+  if (ballId === null) return [];
+  if (ballId === state.catalogBallId) return state.catalogBallTrail;
+  const below = state.catalogBallTrail.lastIndexOf(ballId);
+  if (below >= 0) return state.catalogBallTrail.slice(0, below);
+  return state.catalogBallId !== null ? [...state.catalogBallTrail, state.catalogBallId] : [];
+}
+
+function reduce(state: NavState, action: NavAction): NavState {
   switch (action.type) {
     case "goTo": {
       const { view } = action;
@@ -335,7 +361,12 @@ export function navReducer(state: NavState, action: NavAction): NavState {
       // A ball detail is on top of the catalog, so back takes it first and
       // leaves the catalog standing. An open guide is the same layer over the
       // guides list.
-      if (state.catalogBallId !== null) return { ...state, catalogBallId: null };
+      if (state.catalogBallId !== null) {
+        const trail = state.catalogBallTrail;
+        return trail.length > 0
+          ? { ...state, catalogBallId: trail[trail.length - 1], catalogBallTrail: trail.slice(0, -1) }
+          : { ...state, catalogBallId: null };
+      }
       if (state.openGuideId !== null) return { ...state, openGuideId: null, openGuideTerm: null };
       // Only while the report is the screen on top: a game opened from a shot
       // sits over the line, and back has to take the game off first.
@@ -364,8 +395,19 @@ export function navReducer(state: NavState, action: NavAction): NavState {
 
     case "openCatalogBall":
       return action.push && state.overlays[state.overlays.length - 1] !== "catalog"
-        ? { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: null, catalogBallId: action.ballId }
-        : { ...state, catalogBallId: action.ballId };
+        ? { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: null, catalogBallId: action.ballId, catalogBallTrail: [] }
+        : {
+            ...state,
+            catalogBallId: action.ballId,
+            // Opened from another ball's page, it goes over that ball.
+            catalogBallTrail:
+              state.catalogBallId !== null && state.catalogBallId !== action.ballId
+                ? [...state.catalogBallTrail, state.catalogBallId]
+                : state.catalogBallTrail
+          };
+
+    case "closeCatalogBalls":
+      return { ...state, catalogBallId: null, catalogBallTrail: [] };
 
     case "openGuide": {
       const term = action.term ?? null;
@@ -465,6 +507,7 @@ export function navReducer(state: NavState, action: NavAction): NavState {
         settingsSection: route.settingsSection ?? "menu",
         overlays: route.overlays,
         catalogBallId: route.catalogBallId ?? null,
+        catalogBallTrail: trailAfterRestore(state, route.catalogBallId ?? null),
         openGuideId: route.guideId ?? null,
         // A back that leaves the same article open keeps its place; anything
         // else is a fresh visit.

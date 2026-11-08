@@ -928,3 +928,24 @@ input[type="date"]::-webkit-date-and-time-value {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* A tile that is a button without being a raised card (a ball in a row of
+   them): pressed, it sinks and dims under the finger as `.card-button` does,
+   and springs back when let go, so a tap is answered the moment it lands. */
+.tile-press {
+  transition:
+    transform 380ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 160ms ease-out;
+}
+.tile-press:active {
+  transform: scale(0.94);
+  background-color: rgb(var(--color-ink) / 0.06);
+  transition:
+    transform 140ms cubic-bezier(0.32, 0.72, 0, 1),
+    background-color 60ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile-press:active {
+    transform: none;
+  }
+}

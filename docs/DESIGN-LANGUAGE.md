@@ -469,7 +469,11 @@ any phone, scrolls the same way with its row names pinned (ADR-139).
 **A card never scrolls inside the screen** (ADR-196). It holds what it shows
 in full, at most two rows of leaves or six balls, and the rest is one tap away
 under a glass "View all" pill the card's width at its foot. A scroller in a
-scroller was a second thing to find and to fight.
+scroller was a second thing to find and to fight. A row of a few balls on a
+page that is not a card (a catalog ball's Same core and Same cover) puts its
+View all as accent text on the heading's line instead, as iOS puts See All
+beside a section's title, and each ball in it presses like a tile
+(`.tile-press`, ADR-257).
 
 **Only a screen draws a scroll bar** (`.scrollbar-none`, ADR-196). A screen, a
 sheet and a list that fills one keep the indicator iOS draws while the list
