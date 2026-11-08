@@ -312,13 +312,17 @@ export const GUIDES: readonly Guide[] = [
           },
           {
             term: "Sleeper",
-            text: "A pin hidden straight behind another one, so it's hard to see from the approach.",
+            text: "The back pin of a double wood, hidden straight behind the front one so it's hard to see from the approach.",
             figure: { kind: "leave", standing: [2, 8], mark: [8] }
           },
           {
             term: "Double wood",
             text: "Two pins in a line, one behind the other. The 2-8, 3-9 and 1-5 are the usual ones.",
             figure: { kind: "leave", standing: [3, 9] }
+          },
+          {
+            term: "Dead wood",
+            text: "Pins that are knocked down but stay on the deck or in the gutter. They're cleared away before the next ball."
           }
         ]
       },

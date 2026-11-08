@@ -21,6 +21,8 @@ had all shipped.
   where it used to slide in flat from the far side.
 - Messenger no longer has a picture: it drew the headpin flying straight to
   the 10, which is not how a messenger travels.
+- Bowling terms now explains Dead wood, and Sleeper says it is the back pin
+  of a double wood.
 
 ## 0.93.1: Fixes from a pass over the tests (2026-11-08)
 
