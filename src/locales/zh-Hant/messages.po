@@ -1795,7 +1795,6 @@ msgid "Enter whole numbers for both lanes."
 msgstr "請為兩條球道輸入整數。"
 
 #: src/components/BallEstimates.tsx
-#: src/views/ProOfferView.tsx
 msgid "Estimated average"
 msgstr "預估平均分"
 
@@ -2142,6 +2141,7 @@ msgstr "逐局"
 
 #: src/components/HomeProfile.tsx
 #: src/views/GamePlanView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SearchView.tsx
 msgid "Game plan"
 msgstr "比賽策略"
@@ -2410,8 +2410,8 @@ msgid "In the Dynamic Island"
 msgstr "在動態島"
 
 #: src/views/ProOfferView.tsx
-msgid "In the iPhone app, the score follows you as you bowl: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
-msgstr "在 iPhone app 中，打球時分數會跟著你：在鎖定畫面、動態島和 Apple Watch 上。"
+msgid "In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
+msgstr "在 iPhone app 中，打球時分數會跟著你，每一球都會更新：在鎖定畫面、動態島和 Apple Watch 上。"
 
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
@@ -2761,6 +2761,7 @@ msgid "Linked to catalog"
 msgstr "已連結至型錄"
 
 #: src/views/LiveActivityView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "Live Activity"
 msgstr "即時動態"
@@ -4385,9 +4386,7 @@ msgid "Strike"
 msgstr "全倒"
 
 #. Bowling term. Spoken name of the strike rate column, then its percentage.
-#. Bowling term. Spoken name of the strike rate column, then its percentage.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 msgid "strike {value}"
 msgstr "全倒 {value}"
 
@@ -5159,16 +5158,12 @@ msgid "Your earlier games are under All."
 msgstr "你較早的局在「全部」底下。"
 
 #: src/views/ProOfferView.tsx
-msgid "Your estimated average with each ball, by alley, lane pair and pattern."
-msgstr "依球館、雙球道與油型，預估你使用每顆球的平均分。"
+msgid "Your estimated average with each ball, by alley, lane pair and pattern. Open a ball to see its rates against your others and the leaves it costs you most."
+msgstr "依球館、雙球道與油型，預估你使用每顆球的平均分。打開一顆球，可看到它與其他球相比的各項比率，以及讓你損失最多的殘瓶。"
 
 #: src/views/LiveActivityView.tsx
 msgid "Your game follows you off the screen. From the first ball, the score is on your Lock Screen, in the Dynamic Island and on your Apple Watch, and it changes with every ball you enter."
 msgstr "不開 app 也能看比賽。從第一球起，分數會出現在鎖定畫面、動態島和 Apple Watch 上，每輸入一球就會更新。"
-
-#: src/views/ProOfferView.tsx
-msgid "Your game on the Lock Screen"
-msgstr "在鎖定畫面看你的比賽"
 
 #: src/components/MoveGamesDialog.tsx
 msgid "Your games stay in this browser. Bring them along:"

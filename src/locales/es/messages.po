@@ -1795,7 +1795,6 @@ msgid "Enter whole numbers for both lanes."
 msgstr "Ingresa números enteros para ambas pistas."
 
 #: src/components/BallEstimates.tsx
-#: src/views/ProOfferView.tsx
 msgid "Estimated average"
 msgstr "Promedio estimado"
 
@@ -2142,6 +2141,7 @@ msgstr "Juego por juego"
 
 #: src/components/HomeProfile.tsx
 #: src/views/GamePlanView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SearchView.tsx
 msgid "Game plan"
 msgstr "Plan de juego"
@@ -2410,8 +2410,8 @@ msgid "In the Dynamic Island"
 msgstr "En la Dynamic Island"
 
 #: src/views/ProOfferView.tsx
-msgid "In the iPhone app, the score follows you as you bowl: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
-msgstr "En la app de iPhone, la puntuación te sigue mientras juegas: en la pantalla bloqueada, en la Dynamic Island y en tu Apple Watch."
+msgid "In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
+msgstr "En la app de iPhone, tu puntuación te sigue mientras juegas y se actualiza con cada bola: en la pantalla bloqueada, en la Dynamic Island y en tu Apple Watch."
 
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
@@ -2761,6 +2761,7 @@ msgid "Linked to catalog"
 msgstr "Vinculada al catálogo"
 
 #: src/views/LiveActivityView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "Live Activity"
 msgstr "Actividad en vivo"
@@ -4385,9 +4386,7 @@ msgid "Strike"
 msgstr "Strike"
 
 #. Bowling term. Spoken name of the strike rate column, then its percentage.
-#. Bowling term. Spoken name of the strike rate column, then its percentage.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 msgid "strike {value}"
 msgstr "strike {value}"
 
@@ -5159,16 +5158,12 @@ msgid "Your earlier games are under All."
 msgstr "Tus juegos anteriores están en Todos."
 
 #: src/views/ProOfferView.tsx
-msgid "Your estimated average with each ball, by alley, lane pair and pattern."
-msgstr "Tu promedio estimado con cada bola, por boliche, par de pistas y patrón."
+msgid "Your estimated average with each ball, by alley, lane pair and pattern. Open a ball to see its rates against your others and the leaves it costs you most."
+msgstr "Tu promedio estimado con cada bola, por boliche, par de pistas y patrón. Abre una bola para ver sus porcentajes frente a las demás y las dejadas que más te cuestan."
 
 #: src/views/LiveActivityView.tsx
 msgid "Your game follows you off the screen. From the first ball, the score is on your Lock Screen, in the Dynamic Island and on your Apple Watch, and it changes with every ball you enter."
 msgstr "Tu juego te sigue fuera de la pantalla. Desde la primera bola, la puntuación está en la pantalla bloqueada, en la Dynamic Island y en tu Apple Watch, y cambia con cada bola que anotas."
-
-#: src/views/ProOfferView.tsx
-msgid "Your game on the Lock Screen"
-msgstr "Tu juego en la pantalla bloqueada"
 
 #: src/components/MoveGamesDialog.tsx
 msgid "Your games stay in this browser. Bring them along:"

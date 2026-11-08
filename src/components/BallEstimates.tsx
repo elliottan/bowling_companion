@@ -335,7 +335,7 @@ function LeaveTile({ leave }: { leave: LeaveCost }) {
 
 /** One ball: its estimate against the bowler's average, its rates against
  *  every ball's, and its leaves, costliest first. */
-function BallEstimateDetail({ estimate, report }: { estimate: BallEstimate; report: Estimates }) {
+export function BallEstimateDetail({ estimate, report }: { estimate: BallEstimate; report: Estimates }) {
   const leavesHeading = t({
     message: "Leaves, costliest first",
     comment: "Bowling term. The pin leaves (what is left standing after the first ball) this ball gave, the ones that cost the most spares first."

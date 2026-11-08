@@ -29,7 +29,8 @@ describe("the Pro page (ADR-164)", () => {
       "Move your line",
       "Try your layouts",
       "Deeper stats",
-      "Estimated average",
+      "Game plan",
+      "Live Activity",
       "More colors"
     ]) {
       expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();

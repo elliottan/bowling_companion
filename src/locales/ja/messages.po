@@ -1795,7 +1795,6 @@ msgid "Enter whole numbers for both lanes."
 msgstr "両方のレーンに整数を入力してください。"
 
 #: src/components/BallEstimates.tsx
-#: src/views/ProOfferView.tsx
 msgid "Estimated average"
 msgstr "推定アベレージ"
 
@@ -2142,6 +2141,7 @@ msgstr "ゲームごと"
 
 #: src/components/HomeProfile.tsx
 #: src/views/GamePlanView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SearchView.tsx
 msgid "Game plan"
 msgstr "ゲームプラン"
@@ -2410,8 +2410,8 @@ msgid "In the Dynamic Island"
 msgstr "ダイナミックアイランドで"
 
 #: src/views/ProOfferView.tsx
-msgid "In the iPhone app, the score follows you as you bowl: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
-msgstr "iPhoneアプリでは、投げている間もスコアがついてきます。ロック画面、ダイナミックアイランド、Apple Watchに表示されます。"
+msgid "In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
+msgstr "iPhoneアプリでは、投げている間もスコアがついてきて、1球ごとに更新されます。ロック画面、ダイナミックアイランド、Apple Watchに表示されます。"
 
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
@@ -2761,6 +2761,7 @@ msgid "Linked to catalog"
 msgstr "カタログにリンク済み"
 
 #: src/views/LiveActivityView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "Live Activity"
 msgstr "ライブアクティビティ"
@@ -4385,9 +4386,7 @@ msgid "Strike"
 msgstr "ストライク"
 
 #. Bowling term. Spoken name of the strike rate column, then its percentage.
-#. Bowling term. Spoken name of the strike rate column, then its percentage.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 msgid "strike {value}"
 msgstr "ストライク {value}"
 
@@ -5159,16 +5158,12 @@ msgid "Your earlier games are under All."
 msgstr "以前のゲームは「すべて」にあります。"
 
 #: src/views/ProOfferView.tsx
-msgid "Your estimated average with each ball, by alley, lane pair and pattern."
-msgstr "ボールごとの予想アベレージを、ボウリング場、レーンペア、パターン別に表示します。"
+msgid "Your estimated average with each ball, by alley, lane pair and pattern. Open a ball to see its rates against your others and the leaves it costs you most."
+msgstr "ボールごとの予想アベレージを、ボウリング場、レーンペア、パターン別に表示します。ボールを開くと、ほかのボールと比べた各率と、損失の大きい残りピンが見られます。"
 
 #: src/views/LiveActivityView.tsx
 msgid "Your game follows you off the screen. From the first ball, the score is on your Lock Screen, in the Dynamic Island and on your Apple Watch, and it changes with every ball you enter."
 msgstr "アプリを閉じてもゲームを追えます。最初の投球から、スコアがロック画面、ダイナミックアイランド、Apple Watchに表示され、投球を入力するたびに更新されます。"
-
-#: src/views/ProOfferView.tsx
-msgid "Your game on the Lock Screen"
-msgstr "ロック画面にゲームを表示"
 
 #: src/components/MoveGamesDialog.tsx
 msgid "Your games stay in this browser. Bring them along:"

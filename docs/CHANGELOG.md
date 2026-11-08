@@ -17,6 +17,7 @@ had all shipped.
 - With the calendar on, it stays pinned at the top and only the sessions below it scroll. Tapping a day brings that day's first session to just under the calendar (ADR-255).
 - The calendar's arrows and month picker stop at the months of your first and last sessions.
 - On the Live Activity page, the switch now reads "Enable Live Activity", and the note at the bottom is gone.
+- On the Headpin Pro page, each feature's name and description now sit above its picture. "Estimated average" is now "Game plan", showing the whole Game plan screen and one ball opened on its details. "Your game on the Lock Screen" is now "Live Activity", showing the Lock Screen, the Dynamic Island and the Apple Watch. The Deeper stats column headings no longer run together.
 
 ### Added
 

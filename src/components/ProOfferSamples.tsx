@@ -5,8 +5,10 @@ import { PALETTES } from "../lib/palette";
 import { DEFAULT_ASYMMETRIC, DEFAULT_PAP, readMotion } from "../lib/ballLayout";
 import { defaultOrientationFor } from "../lib/ballProjection";
 import { oilBands, oilZones, peakUnits } from "../lib/oilPattern";
-import type { OilPass } from "../types/bowling";
+import type { BallEstimate, BallEstimates as Estimates, Counted } from "../lib/scoreModel";
+import type { Ball, OilPass, PinNumber } from "../types/bowling";
 import type { Manufacturer } from "../types/catalog";
+import { AlleySummary, BallEstimateDetail, BallEstimates } from "./BallEstimates";
 import { BallLayoutDiagram } from "./BallLayoutDiagram";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { LaneSurface, type OilOverlay } from "./LaneSurface";
@@ -96,17 +98,19 @@ export function BallsSample() {
   return (
     <Sample>
       <div className="rounded-xl border border-edge bg-surface p-2.5 shadow-sm">
-        <div className="flex gap-1 pb-1 text-caption-2 font-semibold uppercase leading-tight text-ink-tertiary">
+        {/* Sentence case and a wider column than the numbers need: in
+            capitals at w-10, "POCKET" ran into "CARRY" with no gap. */}
+        <div className="flex gap-2 pb-1 text-caption-2 font-semibold leading-tight text-ink-tertiary">
           <span className="min-w-0 flex-1" />
           {headings.map((h) => (
-            <span key={h} className="w-10 shrink-0 text-right">
+            <span key={h} className="w-11 shrink-0 text-right">
               {h}
             </span>
           ))}
         </div>
         {BALLS.slice(0, 2).map((ball, n) => (
           <div key={ball.name} className="border-t border-edge py-1.5">
-            <div className="flex items-center gap-1 text-footnote">
+            <div className="flex items-center gap-2 text-footnote">
               <span className="flex min-w-0 flex-1 items-center gap-1.5">
                 <span className="h-7 w-7 shrink-0">
                   <CatalogBallImage src={ball.thumb} alt="" brand={ball.brand} size="thumb" />
@@ -117,7 +121,7 @@ export function BallsSample() {
                 </span>
               </span>
               {ball.rates.map((rate, i) => (
-                <span key={i} className="w-10 shrink-0 text-right font-semibold tabular-nums text-ink">
+                <span key={i} className="w-11 shrink-0 text-right font-semibold tabular-nums text-ink">
                   {rate}
                 </span>
               ))}
@@ -194,71 +198,129 @@ export function FirstBallSample() {
   );
 }
 
-const ALLEY_BALLS: Array<{
-  name: string;
-  brand: Manufacturer;
-  thumb: string;
-  rates: string[];
-  est: number;
-  diff: number;
-}> = [
+/** Counted rates for the Game plan samples: first balls and strikes, after a
+ *  strike, leaves and splits, spares tried and made. */
+function counted(
+  firstBalls: number,
+  strikes: number,
+  afterStrike: number,
+  strikesAfterStrike: number,
+  leaves: number,
+  splits: number,
+  pickupChances: number,
+  pickups: number
+): Counted {
+  return { firstBalls, strikes, afterStrike, strikesAfterStrike, leaves, splits, pickupChances, pickups };
+}
+
+const PLAN_BALLS: Array<{ id: number; name: string; brand: Manufacturer; thumb: string; estimate: number; diff: number; counted: Counted }> = [
   {
+    id: 1,
     name: "Phaze II",
     brand: "Storm",
     thumb: "/catalog/img/storm-phaze-2-2019-p2-thumb.webp",
-    rates: ["58%", "55%", "9%", "71%"],
-    est: 211,
-    diff: 9
+    estimate: 211,
+    diff: 9,
+    counted: counted(214, 124, 110, 61, 90, 8, 88, 62)
   },
   {
+    id: 2,
     name: "Idol",
     brand: "Roto Grip",
     thumb: "/catalog/img/roto-grip-idol-2018-p2-thumb.webp",
-    rates: ["51%", "49%", "12%", "66%"],
-    est: 203,
-    diff: 1
+    estimate: 203,
+    diff: 1,
+    counted: counted(131, 67, 60, 29, 64, 8, 62, 41)
   },
   {
+    id: 3,
     name: "Purple Pearl Urethane 78D",
     brand: "Hammer",
     thumb: "/catalog/img/hammer-purple-pearl-urethane-78d-2026-p2-thumb.webp",
-    rates: ["40%", "36%", "15%", "78%"],
-    est: 194,
-    diff: -8
+    estimate: 194,
+    diff: -8,
+    counted: counted(88, 35, 30, 11, 53, 8, 52, 41)
   }
 ];
 
-/** What you would average with each ball at one alley, on one pair of lanes,
- *  ranked as the Alley report lists it (ADR-243). */
-export function AlleySample() {
+const leave = (pins: PinNumber[], left: number, chances: number, made: number) => ({
+  pins,
+  left,
+  chances,
+  made,
+  thin: false,
+  misses: left * (1 - made / chances)
+});
+
+/** The sample report: the bowler's 202 at Sea Bowl, and each ball read
+ *  against it, as `estimateBalls` hands it to the Game plan screen. */
+function planReport(): { report: Estimates; balls: Ball[] } {
+  const balls = PLAN_BALLS.map(
+    (b) =>
+      ({
+        id: b.id,
+        name: b.name,
+        catalog_snapshot: { imageThumb: b.thumb, brand: b.brand }
+      }) as unknown as Ball
+  );
+  const estimates = PLAN_BALLS.map(
+    (b, i) =>
+      ({
+        ballId: b.id,
+        difference: b.diff,
+        estimate: b.estimate,
+        firstBalls: b.counted.firstBalls,
+        thin: false,
+        counted: b.counted,
+        costliest:
+          i === 0
+            ? [leave([10], 18, 40, 34), leave([7], 12, 30, 26), leave([6, 10], 7, 15, 9)]
+            : [leave([10], 9, 20, 15)]
+      }) as unknown as BallEstimate
+  );
+  const report = {
+    actual: 202,
+    counted: counted(433, 226, 200, 101, 207, 24, 202, 144),
+    balls: estimates
+  } as unknown as Estimates;
+  return { report, balls };
+}
+
+/** The Game plan screen as a bowler lands on it: where it reads from, the
+ *  average there, and each ball ranked by what it would average there
+ *  (ADR-243). The screen's own components, with sample numbers. */
+export function GamePlanSample() {
+  const { report, balls } = planReport();
   const lanes = "11-12";
   return (
-    <Sample>
-      <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+    <Sample className="space-y-3">
+      <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
         <span className="rounded-full bg-accent-fill px-3 py-1 text-accent-on-fill">Sea Bowl</span>
-        <span className="rounded-full border border-edge-strong bg-surface px-3 py-1 text-ink-strong">{plural(2, { one: `Lane ${lanes}`, other: `Lanes ${lanes}` })}</span>
+        <span className="rounded-full border border-edge-strong bg-surface px-3 py-1 text-ink-strong">
+          {plural(2, { one: `Lane ${lanes}`, other: `Lanes ${lanes}` })}
+        </span>
       </div>
-      <div className="overflow-hidden rounded-[22px] bg-surface">
-        {ALLEY_BALLS.map((ball) => {
-          const value = ball.rates[0];
-          return (
-            <div key={ball.name} className="flex items-center gap-2.5 border-t border-edge px-3 py-2 first:border-t-0">
-              <span className="h-6 w-6 shrink-0">
-                <CatalogBallImage src={ball.thumb} alt="" brand={ball.brand} size="thumb" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-footnote font-semibold text-ink">{ball.name}</span>
-                <span className="block text-caption-2 text-ink-secondary">{t({ message: `strike ${value}`, comment: "Bowling term. Spoken name of the strike rate column, then its percentage." })}</span>
-              </span>
-              <span className="shrink-0 font-bold tabular-nums text-ink">~{ball.est}</span>
-              <span
-                className={`shrink-0 rounded-full px-1.5 py-px text-caption-2 font-bold tabular-nums ${ball.diff > 0 ? "bg-success-50 text-success-700" : ball.diff < 0 ? "bg-danger-50 text-danger-700" : "bg-surface-muted text-ink-tertiary"}`}
-              >
-                {ball.diff > 0 ? `+${ball.diff}` : ball.diff < 0 ? `−${Math.abs(ball.diff)}` : "0"}
-              </span>
-            </div>
-          );
-        })}
+      <AlleySummary report={report} shots={433} sessions={14} />
+      <BallEstimates report={report} balls={balls} />
+    </Sample>
+  );
+}
+
+/** One ball opened from that list: its estimate, its rates against every
+ *  ball's, and the leaves it costs most. */
+export function BallDetailSample() {
+  const { report } = planReport();
+  const ball = PLAN_BALLS[0];
+  return (
+    <Sample>
+      <div className="rounded-[22px] bg-surface pt-3">
+        <p className="flex items-center gap-2 px-4 pb-2 text-headline font-semibold text-ink">
+          <span className="h-7 w-7 shrink-0">
+            <CatalogBallImage src={ball.thumb} alt="" brand={ball.brand} size="thumb" />
+          </span>
+          {ball.name}
+        </p>
+        <BallEstimateDetail estimate={report.balls[0]} report={report} />
       </div>
     </Sample>
   );

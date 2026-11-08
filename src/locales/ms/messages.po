@@ -1795,7 +1795,6 @@ msgid "Enter whole numbers for both lanes."
 msgstr "Masukkan nombor bulat untuk kedua-dua lorong."
 
 #: src/components/BallEstimates.tsx
-#: src/views/ProOfferView.tsx
 msgid "Estimated average"
 msgstr "Anggaran purata"
 
@@ -2142,6 +2141,7 @@ msgstr "Permainan demi permainan"
 
 #: src/components/HomeProfile.tsx
 #: src/views/GamePlanView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SearchView.tsx
 msgid "Game plan"
 msgstr "Pelan main"
@@ -2410,8 +2410,8 @@ msgid "In the Dynamic Island"
 msgstr "Dalam Dynamic Island"
 
 #: src/views/ProOfferView.tsx
-msgid "In the iPhone app, the score follows you as you bowl: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
-msgstr "Dalam aplikasi iPhone, skor mengikut anda semasa bermain: pada Skrin Kunci, dalam Dynamic Island dan pada Apple Watch anda."
+msgid "In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
+msgstr "Dalam aplikasi iPhone, skor anda mengikut anda semasa bermain dan dikemas kini dengan setiap bola: pada Skrin Kunci, dalam Dynamic Island dan pada Apple Watch anda."
 
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
@@ -2761,6 +2761,7 @@ msgid "Linked to catalog"
 msgstr "Dipautkan ke katalog"
 
 #: src/views/LiveActivityView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "Live Activity"
 msgstr "Aktiviti Langsung"
@@ -4385,9 +4386,7 @@ msgid "Strike"
 msgstr "Strike"
 
 #. Bowling term. Spoken name of the strike rate column, then its percentage.
-#. Bowling term. Spoken name of the strike rate column, then its percentage.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 msgid "strike {value}"
 msgstr "strike {value}"
 
@@ -5159,16 +5158,12 @@ msgid "Your earlier games are under All."
 msgstr "Permainan anda yang terdahulu berada di bawah Semua."
 
 #: src/views/ProOfferView.tsx
-msgid "Your estimated average with each ball, by alley, lane pair and pattern."
-msgstr "Anggaran purata anda dengan setiap bola, mengikut pusat boling, pasangan lorong dan corak."
+msgid "Your estimated average with each ball, by alley, lane pair and pattern. Open a ball to see its rates against your others and the leaves it costs you most."
+msgstr "Anggaran purata anda dengan setiap bola, mengikut pusat boling, pasangan lorong dan corak. Buka sebuah bola untuk melihat kadarnya berbanding bola lain dan baki pin yang paling merugikan anda."
 
 #: src/views/LiveActivityView.tsx
 msgid "Your game follows you off the screen. From the first ball, the score is on your Lock Screen, in the Dynamic Island and on your Apple Watch, and it changes with every ball you enter."
 msgstr "Permainan anda mengikut anda di luar skrin. Dari bola pertama, skor ada pada Skrin Kunci, dalam Dynamic Island dan pada Apple Watch anda, dan ia berubah dengan setiap bola yang anda masukkan."
-
-#: src/views/ProOfferView.tsx
-msgid "Your game on the Lock Screen"
-msgstr "Permainan anda pada Skrin Kunci"
 
 #: src/components/MoveGamesDialog.tsx
 msgid "Your games stay in this browser. Bring them along:"

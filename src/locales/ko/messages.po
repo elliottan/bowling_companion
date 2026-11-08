@@ -1795,7 +1795,6 @@ msgid "Enter whole numbers for both lanes."
 msgstr "두 레인 모두 정수로 입력하세요."
 
 #: src/components/BallEstimates.tsx
-#: src/views/ProOfferView.tsx
 msgid "Estimated average"
 msgstr "예상 에버리지"
 
@@ -2142,6 +2141,7 @@ msgstr "게임별"
 
 #: src/components/HomeProfile.tsx
 #: src/views/GamePlanView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SearchView.tsx
 msgid "Game plan"
 msgstr "게임 플랜"
@@ -2410,8 +2410,8 @@ msgid "In the Dynamic Island"
 msgstr "Dynamic Island에서"
 
 #: src/views/ProOfferView.tsx
-msgid "In the iPhone app, the score follows you as you bowl: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
-msgstr "iPhone 앱에서는 볼링하는 동안 점수가 따라와요. 잠금 화면, Dynamic Island, Apple Watch에서 볼 수 있어요."
+msgid "In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
+msgstr "iPhone 앱에서는 볼링하는 동안 점수가 따라오고, 공을 던질 때마다 바뀌어요. 잠금 화면, Dynamic Island, Apple Watch에서 볼 수 있어요."
 
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
@@ -2761,6 +2761,7 @@ msgid "Linked to catalog"
 msgstr "카탈로그에 연결됨"
 
 #: src/views/LiveActivityView.tsx
+#: src/views/ProOfferView.tsx
 #: src/views/SettingsView.tsx
 msgid "Live Activity"
 msgstr "실시간 현황"
@@ -4385,9 +4386,7 @@ msgid "Strike"
 msgstr "스트라이크"
 
 #. Bowling term. Spoken name of the strike rate column, then its percentage.
-#. Bowling term. Spoken name of the strike rate column, then its percentage.
 #: src/components/BallEstimates.tsx
-#: src/components/ProOfferSamples.tsx
 msgid "strike {value}"
 msgstr "스트라이크 {value}"
 
@@ -5159,16 +5158,12 @@ msgid "Your earlier games are under All."
 msgstr "이전 게임은 전체에 있어요."
 
 #: src/views/ProOfferView.tsx
-msgid "Your estimated average with each ball, by alley, lane pair and pattern."
-msgstr "볼링장, 레인 페어, 패턴별로 본 볼마다의 예상 에버리지예요."
+msgid "Your estimated average with each ball, by alley, lane pair and pattern. Open a ball to see its rates against your others and the leaves it costs you most."
+msgstr "볼링장, 레인 페어, 패턴별로 본 볼마다의 예상 에버리지예요. 볼을 열면 다른 볼과 비교한 비율과 손실이 가장 큰 남은 핀을 볼 수 있어요."
 
 #: src/views/LiveActivityView.tsx
 msgid "Your game follows you off the screen. From the first ball, the score is on your Lock Screen, in the Dynamic Island and on your Apple Watch, and it changes with every ball you enter."
 msgstr "앱 밖에서도 게임을 확인할 수 있어요. 첫 투구부터 점수가 잠금 화면, Dynamic Island, Apple Watch에 표시되고, 투구를 입력할 때마다 바뀌어요."
-
-#: src/views/ProOfferView.tsx
-msgid "Your game on the Lock Screen"
-msgstr "잠금 화면에 게임 표시"
 
 #: src/components/MoveGamesDialog.tsx
 msgid "Your games stay in this browser. Bring them along:"

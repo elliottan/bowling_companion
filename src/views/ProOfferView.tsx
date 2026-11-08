@@ -7,14 +7,15 @@ import { PushScreen } from "../components/PushScreen";
 import { Button } from "../components/ui/Button";
 import { useProAction } from "../components/ui/useProAction";
 import {
-  AlleySample,
+  BallDetailSample,
   BallsSample,
   FirstBallSample,
+  GamePlanSample,
   LayoutSample,
   LineSample,
   ThemesSample
 } from "../components/ProOfferSamples";
-import { LockScreenPreview } from "../components/LiveActivityPreviews";
+import { IslandPreview, LockScreenPreview, WatchPreview } from "../components/LiveActivityPreviews";
 import { sampleLiveActivityState } from "../lib/liveActivitySample";
 import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAccess";
 
@@ -54,13 +55,18 @@ const FEATURES: Array<{ title: MessageDescriptor; why: MessageDescriptor; sample
     )
   },
   {
-    title: msg`Estimated average`,
-    why: msg`Your estimated average with each ball, by alley, lane pair and pattern.`,
-    sample: <AlleySample />
+    title: msg`Game plan`,
+    why: msg`Your estimated average with each ball, by alley, lane pair and pattern. Open a ball to see its rates against your others and the leaves it costs you most.`,
+    sample: (
+      <div className="space-y-2">
+        <GamePlanSample />
+        <BallDetailSample />
+      </div>
+    )
   },
   {
-    title: msg`Your game on the Lock Screen`,
-    why: msg`In the iPhone app, the score follows you as you bowl: on the Lock Screen, in the Dynamic Island and on your Apple Watch.`,
+    title: msg`Live Activity`,
+    why: msg`In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch.`,
     sample: <LiveActivitySample />
   },
   {
@@ -96,9 +102,11 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
         <ul className="mt-5 space-y-3">
           {FEATURES.map((f) => (
             <li key={f.title.id} className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
-              {f.sample}
-              <h3 className="mt-3 text-base font-bold text-ink">{i18n._(f.title)}</h3>
+              {/* The words lead, as a heading over the picture, so a bowler
+                  reads what a feature is before looking at it. */}
+              <h3 className="text-base font-bold text-ink">{i18n._(f.title)}</h3>
               <p className="mt-0.5 text-sm text-ink-secondary">{i18n._(f.why)}</p>
+              <div className="mt-3">{f.sample}</div>
             </li>
           ))}
         </ul>
@@ -185,8 +193,16 @@ function Owned() {
   );
 }
 
-/** The Lock Screen with a sample game, built in render so it is in the
- *  bowler's language and colors. */
+/** The sample game in all three places it is drawn, as the Live Activity
+ *  page shows them: the Lock Screen, the Dynamic Island and the Apple Watch.
+ *  Built in render so it is in the bowler's language and colors. */
 function LiveActivitySample() {
-  return <LockScreenPreview state={sampleLiveActivityState()} />;
+  const state = sampleLiveActivityState();
+  return (
+    <div className="space-y-2">
+      <LockScreenPreview state={state} />
+      <IslandPreview state={state} />
+      <WatchPreview state={state} />
+    </div>
+  );
 }
