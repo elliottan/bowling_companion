@@ -1,7 +1,7 @@
 import type { CatalogBall } from "../types/catalog";
 
 /**
- * Which catalog balls share a core or a cover with another (ADR-252).
+ * Which catalog balls share a core or a cover with another (ADR-253).
  *
  * The sources spell one name several ways ("Torsion A.I. Core" and "Torsion
  * AI", "HK22" and "HK-22"), so a name is compared by a key: lower case, the

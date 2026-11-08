@@ -96,7 +96,9 @@ msgstr "{0, plural, other {#セッション、新しい順}}"
 
 #. placeholder {0}: pending.incoming.sessions
 #. placeholder {0}: stats.totalSessions
+#. placeholder {0}: totals.sessions
 #: src/components/FirstRun.tsx
+#: src/components/HistoryCalendar.tsx
 #: src/lib/shareCard.ts
 msgid "{0, plural, one {# session} other {# sessions}}"
 msgstr "{0, plural, other {#セッション}}"
@@ -271,6 +273,10 @@ msgstr "{count}色"
 #: src/components/SessionTrendChart.tsx
 msgid "{date}, {alley}, average {average}"
 msgstr "{date}、{alley}、アベレージ {average}"
+
+#: src/components/HistoryCalendar.tsx
+msgid "{date}, average {average}"
+msgstr "{date}、アベレージ {average}"
 
 #: src/components/SessionTrendChart.tsx
 msgid "{date}: {average}"
@@ -979,6 +985,8 @@ msgid "Average by session, oldest first. {sessions}. Overall average {average}."
 msgstr "セッションごとのアベレージ、古い順。{sessions}。全体のアベレージ {average}。"
 
 #. Short for average, beside a session's average score.
+#. Short for average, beside a session's average score.
+#: src/components/HistoryCalendar.tsx
 #: src/components/SessionHistory.tsx
 msgid "avg"
 msgstr "アベ"
@@ -1205,6 +1213,10 @@ msgstr "ゲーム別"
 msgid "By session"
 msgstr "セッション別"
 
+#: src/views/HistoryView.tsx
+msgid "Calendar"
+msgstr "カレンダー"
+
 #: src/components/ConfirmDialog.tsx
 #: src/components/ui/SearchField.tsx
 msgid "Cancel"
@@ -1300,6 +1312,10 @@ msgstr "セッション別グラフ"
 #: src/views/BackupRestoreView.tsx
 msgid "Choose a backup file"
 msgstr "バックアップファイルを選択"
+
+#: src/components/HistoryCalendar.tsx
+msgid "Choose month"
+msgstr "月を選択"
 
 #: src/views/SpareLinesView.tsx
 msgid "Choose one"
@@ -3013,6 +3029,10 @@ msgstr "次へ"
 msgid "Next ({nextOutcome})"
 msgstr "次へ ({nextOutcome})"
 
+#: src/components/HistoryCalendar.tsx
+msgid "Next month"
+msgstr "次の月"
+
 #. Heading on Home over setup suggestions
 #: src/components/NextSteps.tsx
 msgid "Next steps"
@@ -3569,6 +3589,10 @@ msgstr "プリセット"
 #: src/views/LayoutLabView.tsx
 msgid "Presets, {preset}"
 msgstr "プリセット、{preset}"
+
+#: src/components/HistoryCalendar.tsx
+msgid "Previous month"
+msgstr "前の月"
 
 #: src/views/LegalView.tsx
 #: src/views/SettingsView.tsx

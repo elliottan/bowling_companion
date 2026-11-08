@@ -96,7 +96,9 @@ msgstr "{0, plural, other {# sesi, terbaru dahulu}}"
 
 #. placeholder {0}: pending.incoming.sessions
 #. placeholder {0}: stats.totalSessions
+#. placeholder {0}: totals.sessions
 #: src/components/FirstRun.tsx
+#: src/components/HistoryCalendar.tsx
 #: src/lib/shareCard.ts
 msgid "{0, plural, one {# session} other {# sessions}}"
 msgstr "{0, plural, other {# sesi}}"
@@ -271,6 +273,10 @@ msgstr "{count} warna"
 #: src/components/SessionTrendChart.tsx
 msgid "{date}, {alley}, average {average}"
 msgstr "{date}, {alley}, purata {average}"
+
+#: src/components/HistoryCalendar.tsx
+msgid "{date}, average {average}"
+msgstr "{date}, purata {average}"
 
 #: src/components/SessionTrendChart.tsx
 msgid "{date}: {average}"
@@ -979,6 +985,8 @@ msgid "Average by session, oldest first. {sessions}. Overall average {average}."
 msgstr "Purata mengikut sesi, yang paling lama dahulu. {sessions}. Purata keseluruhan {average}."
 
 #. Short for average, beside a session's average score.
+#. Short for average, beside a session's average score.
+#: src/components/HistoryCalendar.tsx
 #: src/components/SessionHistory.tsx
 msgid "avg"
 msgstr "purata"
@@ -1205,6 +1213,10 @@ msgstr "Mengikut permainan"
 msgid "By session"
 msgstr "Mengikut sesi"
 
+#: src/views/HistoryView.tsx
+msgid "Calendar"
+msgstr "Kalendar"
+
 #: src/components/ConfirmDialog.tsx
 #: src/components/ui/SearchField.tsx
 msgid "Cancel"
@@ -1300,6 +1312,10 @@ msgstr "Carta mengikut sesi"
 #: src/views/BackupRestoreView.tsx
 msgid "Choose a backup file"
 msgstr "Pilih fail sandaran"
+
+#: src/components/HistoryCalendar.tsx
+msgid "Choose month"
+msgstr "Pilih bulan"
 
 #: src/views/SpareLinesView.tsx
 msgid "Choose one"
@@ -3013,6 +3029,10 @@ msgstr "Seterusnya"
 msgid "Next ({nextOutcome})"
 msgstr "Seterusnya ({nextOutcome})"
 
+#: src/components/HistoryCalendar.tsx
+msgid "Next month"
+msgstr "Bulan seterusnya"
+
 #. Heading on Home over setup suggestions
 #: src/components/NextSteps.tsx
 msgid "Next steps"
@@ -3569,6 +3589,10 @@ msgstr "Pratetap"
 #: src/views/LayoutLabView.tsx
 msgid "Presets, {preset}"
 msgstr "Pratetap, {preset}"
+
+#: src/components/HistoryCalendar.tsx
+msgid "Previous month"
+msgstr "Bulan sebelumnya"
 
 #: src/views/LegalView.tsx
 #: src/views/SettingsView.tsx

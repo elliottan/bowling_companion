@@ -90,7 +90,10 @@ test("the list passes under the header rather than stopping at its edge", async 
   await page.waitForTimeout(150);
   const { headerBottom, firstCardTop } = await page.evaluate((sel) => {
     const header = document.querySelector("[data-floating-header]") as HTMLElement;
-    const card = (document.querySelector(sel) as HTMLElement).querySelector("ul > li") as HTMLElement;
+    // The first thing in the list, whatever it is: History's calendar
+    // when it shows (ADR-252), else the first day's sessions. After the spacer
+    // the header's height is held by.
+    const card = (document.querySelector(sel) as HTMLElement).children[1].firstElementChild as HTMLElement;
     return {
       headerBottom: header.getBoundingClientRect().bottom,
       firstCardTop: card.getBoundingClientRect().top
@@ -109,7 +112,10 @@ test("the wash is always on, and at the top of the list it frosts nothing", asyn
   // At rest the first card sits below the wash in full, not behind its blur.
   const { groundBottom, firstCardTop } = await page.evaluate((sel) => {
     const g = document.querySelector("[data-floating-header] .floating-header-ground") as HTMLElement;
-    const card = (document.querySelector(sel) as HTMLElement).querySelector("ul > li") as HTMLElement;
+    // The first thing in the list, whatever it is: History's calendar
+    // when it shows (ADR-252), else the first day's sessions. After the spacer
+    // the header's height is held by.
+    const card = (document.querySelector(sel) as HTMLElement).children[1].firstElementChild as HTMLElement;
     return { groundBottom: g.getBoundingClientRect().bottom, firstCardTop: card.getBoundingClientRect().top };
   }, SCROLLER);
   expect(firstCardTop).toBeGreaterThanOrEqual(groundBottom - 0.5);

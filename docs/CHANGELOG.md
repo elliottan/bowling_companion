@@ -9,11 +9,11 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.95.0: Balls that share a core or a cover, and ball photos without a tile (2026-11-08)
+## 0.96.0: Balls that share a core or a cover, and ball photos without a tile (2026-11-08)
 
 - A ball's page shows the balls built on the same core and in the same
   cover, three of each with View all for the rest, which opens the catalog
-  filtered to that core or cover (ADR-252).
+  filtered to that core or cover (ADR-253).
 - The catalog filters by one core or one cover by name, and Clear all now
   sits at the top of the filters, where it used to be Reset all filters at
   the foot.
@@ -25,7 +25,7 @@ had all shipped.
   now "Drill angle", which wraps as two words where it has to; in the few
   boxes too narrow for one long word at the largest text size (the scorer's
   line fields, Home's tiles) the word is drawn a little smaller instead of
-  being split (ADR-253).
+  being split (ADR-254).
 - The stats filters no longer say "Pick an alley to filter by lane." The
   lanes appear once an alley is chosen, which says as much.
 - A ball's page keeps its brand in sight: over the name in the bar once you
@@ -34,6 +34,16 @@ had all shipped.
   catalog's rows and a ball's own page, the arsenal, the ball pickers, Stats,
   search and the session. A ball with no photo is a round placeholder to
   match.
+
+## 0.95.0: A calendar on History (2026-11-08)
+
+- History opens on a calendar of the month. Each day you bowled shows its
+  average, shaded deeper the better the night was against the other days on
+  screen, and it follows your filters. Tap a day to jump the list to it, tap
+  the month's name to pick any month and year, or use the arrows. The
+  calendar button at the top left hides it, and History remembers.
+- History's sessions now sit under a heading for each day, and a card no
+  longer repeats the date.
 
 ## 0.94.1: A taller range on Stats (2026-11-08)
 

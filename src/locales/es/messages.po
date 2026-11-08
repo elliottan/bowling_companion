@@ -96,7 +96,9 @@ msgstr "{0, plural, one {# sesión, la más reciente primero} other {# sesiones,
 
 #. placeholder {0}: pending.incoming.sessions
 #. placeholder {0}: stats.totalSessions
+#. placeholder {0}: totals.sessions
 #: src/components/FirstRun.tsx
+#: src/components/HistoryCalendar.tsx
 #: src/lib/shareCard.ts
 msgid "{0, plural, one {# session} other {# sessions}}"
 msgstr "{0, plural, one {# sesión} other {# sesiones}}"
@@ -271,6 +273,10 @@ msgstr "{count} colores"
 #: src/components/SessionTrendChart.tsx
 msgid "{date}, {alley}, average {average}"
 msgstr "{date}, {alley}, promedio {average}"
+
+#: src/components/HistoryCalendar.tsx
+msgid "{date}, average {average}"
+msgstr "{date}, promedio {average}"
 
 #: src/components/SessionTrendChart.tsx
 msgid "{date}: {average}"
@@ -979,6 +985,8 @@ msgid "Average by session, oldest first. {sessions}. Overall average {average}."
 msgstr "Promedio por sesión, de la más antigua a la más reciente. {sessions}. Promedio general {average}."
 
 #. Short for average, beside a session's average score.
+#. Short for average, beside a session's average score.
+#: src/components/HistoryCalendar.tsx
 #: src/components/SessionHistory.tsx
 msgid "avg"
 msgstr "prom."
@@ -1205,6 +1213,10 @@ msgstr "Por juego"
 msgid "By session"
 msgstr "Por sesión"
 
+#: src/views/HistoryView.tsx
+msgid "Calendar"
+msgstr "Calendario"
+
 #: src/components/ConfirmDialog.tsx
 #: src/components/ui/SearchField.tsx
 msgid "Cancel"
@@ -1300,6 +1312,10 @@ msgstr "Gráfica por sesión"
 #: src/views/BackupRestoreView.tsx
 msgid "Choose a backup file"
 msgstr "Elegir un archivo de respaldo"
+
+#: src/components/HistoryCalendar.tsx
+msgid "Choose month"
+msgstr "Elegir mes"
 
 #: src/views/SpareLinesView.tsx
 msgid "Choose one"
@@ -3013,6 +3029,10 @@ msgstr "Siguiente"
 msgid "Next ({nextOutcome})"
 msgstr "Siguiente ({nextOutcome})"
 
+#: src/components/HistoryCalendar.tsx
+msgid "Next month"
+msgstr "Mes siguiente"
+
 #. Heading on Home over setup suggestions
 #: src/components/NextSteps.tsx
 msgid "Next steps"
@@ -3569,6 +3589,10 @@ msgstr "Predefinidos"
 #: src/views/LayoutLabView.tsx
 msgid "Presets, {preset}"
 msgstr "Predefinidos, {preset}"
+
+#: src/components/HistoryCalendar.tsx
+msgid "Previous month"
+msgstr "Mes anterior"
 
 #: src/views/LegalView.tsx
 #: src/views/SettingsView.tsx

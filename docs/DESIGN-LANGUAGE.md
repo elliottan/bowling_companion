@@ -65,6 +65,18 @@ A **tab** has no nav bar: its title leads the page, in `TAB_TITLE` inside a
 `TAB_TITLE_ROW` (`ui/typography`), a row as tall as the round controls that may
 sit beside it, so every tab's title lands on the same line whether it has any.
 Home is the exception, since it opens on the bowler (§4a).
+History is the one tab with a control before its title: the round calendar
+switch, which shows or hides the month over the list (ADR-252). The glyph is
+the accent while the calendar shows, ink while it is hidden.
+
+**History reads by day** (ADR-252). Its sessions sit under a `GROUP_HEADING`
+per day ("Thu, Nov 5"), so a row no longer repeats its date. Over them, on
+until hidden, a month: each day bowled shaded by its average, ranked against
+the other days shown rather than against fixed scores, so the month's best
+night is the deepest and there is no legend to read. It follows the filters
+as the list does. A tap on a bowled day takes the list to that day; the
+month's name opens the phone's own month and year picker, and the arrows step
+a month.
 
 ## 1a. Sheet or dialog: you type in a sheet, you answer a dialog
 
@@ -86,7 +98,7 @@ keyboard, not the size of the job:
   so an X would be a lie about what leaving does. Those carry a tick trailing
   instead (`dismissAs="done"`), which reads as keeping what is on screen, and
   where the X would be, a glass "Clear all" capsule (`leading`) that undoes
-  every choice in the sheet and is dimmed while there is none (ADR-252).
+  every choice in the sheet and is dimmed while there is none (ADR-253).
 - **`ConfirmDialog`** settles in the middle and scales back out. Questions with
   buttons, including a confirm that has to be earned by typing a phrase, because
   typing `ERASE` is answering rather than entering. In the iPhone app a confirm
@@ -99,7 +111,7 @@ keyboard, not the size of the job:
   list shows the narrowing while the sheet is up. The catalog's list carries
   no chips of its own: its Filters button is lit, with how many are on, the
   sheet is where a filter comes off, and the count ("10 results") is the large
-  title's subtitle rather than a row over the list (ADR-252). Opened inline they
+  title's subtitle rather than a row over the list (ADR-253). Opened inline they
   pushed every ball down the screen each time a chip was chosen; dropped down
   as a card over the list, the catalog's read as a web page's menu beside the
   sheets everywhere else.
@@ -839,7 +851,7 @@ sentence or two, with a small drawing where the word names something seen
 on the lane, and a search at the top of the page. A word is shown, not
 described, wherever it can be.
 
-**A word is never broken across two lines** (ADR-253). Text wraps between
+**A word is never broken across two lines** (ADR-254). Text wraps between
 words, never inside one, with a hyphen or without: "DRILLING AN-" over "GLE"
 is a word read in two pieces. Nothing hyphenates (`hyphens-auto`) or breaks
 anywhere (`overflow-wrap: anywhere`). A label in a narrow box is short enough

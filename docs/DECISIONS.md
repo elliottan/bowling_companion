@@ -10522,7 +10522,47 @@ it. Everywhere else, in forms, sheets and cards, the control stays 32pt.
 feet line up. The hit region is 44pt either way, so nothing changes for the
 finger.
 
-## ADR-252: A catalog ball shows the balls on its core and in its cover, and the catalog filters by either
+## ADR-252: History opens on a month, and reads by day
+
+**Status.** Accepted, 2026-11-08, at the owner's request, picked from five
+directions mocked up for it.
+
+**Context.** History was one long list of session cards, each carrying its
+date. Finding a night meant scrolling and reading dates, and nothing showed
+how often or how well the bowler had bowled across a month.
+
+**Decision.**
+
+- A month sits over the list, in a card that scrolls away with it
+  (`components/HistoryCalendar`, the logic in `lib/historyCalendar`). It is on
+  by default; a round calendar switch leading the title row hides or shows it,
+  remembered on the device. The title row's other control, the filter, keeps
+  the trailing edge.
+- Each day bowled carries its average (every finished game that day, across
+  its sessions) and is shaded in four steps of the accent fill. The steps are
+  ranked among the days shown in that month, after the filters, not against
+  fixed scores: a 180 bowler's best night and a 220 bowler's both read as the
+  deepest, a filter that narrows the month re-ranks what is left, and so there
+  is no legend. A month with one average shows it a step under the deepest. A
+  day bowled with no finished game shows a dot.
+- Tapping a bowled day rings it and scrolls the list to that day's heading,
+  loading further down first if the day has not loaded yet.
+- The month's name opens the platform's month and year picker (an invisible
+  `<input type="month">`, as `DateButton` does for a day). Where the browser
+  has none (desktop Safari, Firefox) the name is plain text and the arrows
+  alone move the month.
+- The list is grouped under a heading per day, and a row drops its date.
+- Weeks start on the day the device's region starts them, Sunday where the
+  browser cannot say.
+- The pushed History (from search or a pattern) keeps the day headings but has
+  no calendar: it answers one question, and its bar's one trailing action is
+  the filter.
+
+**Consequences.** The title row breaks the rule that a tab's title leads it;
+History is the one exception, and DESIGN-LANGUAGE says so. The calendar
+reads the same filtered list as the rows, so the two can never disagree.
+
+## ADR-253: A catalog ball shows the balls on its core and in its cover, and the catalog filters by either
 
 **Status.** Accepted, 2026-11-08, at the owner's request. Follows ADR-196.
 
@@ -10578,7 +10618,7 @@ it was drawn only over the large title.
   differently ("Gas Mask" and "Gas Mask Core 2.0") are two cores here, which is
   usually right: a revised core is a different block.
 
-## ADR-253: A word is never broken across two lines
+## ADR-254: A word is never broken across two lines
 
 **Status.** Accepted, 2026-11-08, at the owner's request.
 

@@ -310,7 +310,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
 const KIN_SHOWN = 3;
 
 /**
- * Other balls on the same core or in the same cover (ADR-252): one row of
+ * Other balls on the same core or in the same cover (ADR-253): one row of
  * three that does not scroll, and the rest under View all, as a card holds
  * what it shows (ADR-196). View all is the catalog filtered to the same name.
  */
@@ -651,7 +651,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
       title={t`Catalog`}
       // Under the title rather than over the list: the title's block scrolls
       // away, and the bar carries the same line once it has, so the count
-      // costs the pinned search and filters no height (ADR-252).
+      // costs the pinned search and filters no height (ADR-253).
       subtitle={
         allBalls.length > 0
           ? plural(displayed.length, {
