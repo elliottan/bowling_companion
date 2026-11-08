@@ -1,6 +1,8 @@
 import { plural, t } from "@lingui/core/macro";
-import { ChevronRight, Plus, type LucideIcon } from "lucide-react";
-import { BowlingBallIcon, GamePlanIcon, LanePairIcon, SpareLineIcon } from "./icons";
+import { ChevronRight, Plus } from "lucide-react";
+import type { ReactNode } from "react";
+import { BowlingBallIcon } from "./icons";
+import { GamePlanArt, LaneNotesArt, SpareLinesArt } from "./ProfileTileArt";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { formatNumber } from "../lib/format";
 import type { HomeSummary } from "../lib/homeSummary";
@@ -148,12 +150,12 @@ export function HomeHero({ summary, onStart, disabled }: { summary: HomeSummary;
 }
 
 function Tile({
-  icon: Icon,
+  art,
   label,
   detail,
   onClick
 }: {
-  icon: LucideIcon;
+  art: ReactNode;
   label: string;
   detail?: string;
   onClick: () => void;
@@ -163,23 +165,30 @@ function Tile({
       type="button"
       onClick={onClick}
       aria-label={label}
-      // A square button, drawn as iOS draws one (ADR-191): everything on one
-      // centre line, the icon bare above the name, deep corners, no outline.
-      // Raised and pressable (`.card-button`), so it reads as a way somewhere
-      // rather than a card of numbers. No chevron: the raise says it.
-      className="card-button flex min-w-0 flex-col items-center gap-1.5 rounded-[22px] px-2 pb-3 pt-4 text-center"
+      // A picture card: the drawing fills the top of the tile edge to edge
+      // and fades into it just above the name, so the tile reads as a place
+      // rather than an icon with a caption, and the name still sits on the
+      // plain card in either theme. Raised and pressable (`.card-button`),
+      // with no chevron: the raise says it can be tapped.
+      className="card-button flex min-w-0 flex-col overflow-hidden rounded-[22px] text-left"
     >
-      <Icon size={24} aria-hidden="true" className="text-accent" />
-      <span className="block w-full min-w-0">
+      <span
+        aria-hidden="true"
+        className="block h-[5.5rem] w-full [mask-image:linear-gradient(to_bottom,black_70%,transparent)]"
+      >
+        {art}
+      </span>
+      <span className="block w-full min-w-0 px-3 pb-3 pt-1">
         {/* One line at the standard size; at a large text size a name
             wider than its third of the row takes a second line rather than
-            running into the next tile. */}
-        <span className="block text-balance text-subhead font-semibold leading-tight tracking-tight text-ink">
+            running into the next tile. Hyphenated and free to break, as the
+            tool cards' names are. */}
+        <span className="block hyphens-auto text-subhead font-semibold leading-tight tracking-tight text-ink [overflow-wrap:anywhere]">
           {label}
         </span>
         {/* Two lines, not one: an empty tile says what it is for, and that
             is a short sentence rather than a count. */}
-        <span className="line-clamp-2 block text-xs text-ink-secondary">{detail ?? " "}</span>
+        <span className="line-clamp-2 block text-xs text-ink-secondary">{detail ?? " "}</span>
       </span>
     </button>
   );
@@ -223,7 +232,7 @@ export function ProfileTiles({
   return (
     <div className="grid grid-cols-3 gap-2">
       <Tile
-        icon={SpareLineIcon}
+        art={<SpareLinesArt />}
         label={t`Spare lines`}
         detail={counted(
           spareLines,
@@ -233,7 +242,7 @@ export function ProfileTiles({
         onClick={onOpenSpareLines}
       />
       <Tile
-        icon={LanePairIcon}
+        art={<LaneNotesArt />}
         label={t`Lane notes`}
         detail={counted(
           laneNotes,
@@ -243,7 +252,7 @@ export function ProfileTiles({
         onClick={onOpenLaneNotes}
       />
       <Tile
-        icon={GamePlanIcon}
+        art={<GamePlanArt />}
         label={t`Game plan`}
         detail={counted(
           alleys,

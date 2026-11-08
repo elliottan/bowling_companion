@@ -27,6 +27,9 @@ had all shipped.
   sit in a V with the middle one furthest down the lane, Layouts shows a real
   Benchmark layout (45 x 4 1/2 x 45) with a proper grip, and Oil patterns
   draws a real house shot's load, board by board.
+- Home's Spare lines, Lane notes and Game plan tiles are picture cards now,
+  each with a drawing across its top, and Lane notes and Game plan have new
+  icons throughout the app: a notebook and a clipboard.
 
 ## 0.93.1: Fixes from a pass over the tests (2026-11-08)
 
