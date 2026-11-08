@@ -17,9 +17,10 @@ had all shipped.
 - The catalog filters by one core or one cover by name, and Clear all now
   sits at the top of the filters, where it used to be Reset all filters at
   the foot.
-- The catalog list starts higher: the ball count and the row of filter
-  chips under the search are gone. The Filters button lights up with how
-  many filters are on, and they come off in the sheet.
+- The catalog list starts higher: the row of filter chips under the search
+  is gone, and the count is now "10 results" under the Catalog title, where
+  it takes no room from the list. The Filters button lights up with how many
+  filters are on, and they come off in the sheet.
 - A ball's page keeps its brand in sight: over the name in the bar once you
   scroll, and as a Brand row in its specs.
 - Every ball photo stands on its own, with no grey square behind it: in the

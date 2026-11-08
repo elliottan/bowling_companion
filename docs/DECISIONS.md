@@ -10540,11 +10540,13 @@ it was drawn only over the large title.
   capsule, dimmed while nothing is chosen. It replaces "Reset all filters" at
   the foot of the catalog's sheet, which had to be scrolled to. It leaves the
   search, which is not a choice in the sheet.
-- **The list keeps its height for balls.** The count over the list ("10 balls
-  of 848") and the chips under the search, one per filter, are gone: three
-  filters took a second row and the count a third, before the first ball. The
-  Filters button is lit while any filter is on and says how many, and the
-  sheet is where one comes off.
+- **The list keeps its height for balls.** The chips under the search, one
+  per filter, are gone, and so is the count's own row over the list ("10 balls
+  of 848"): three filters took a second row and the count a third, before the
+  first ball. The Filters button is lit while any filter is on and says how
+  many, and the sheet is where one comes off. The count is "10 results" under
+  the large title, which scrolls away with it and comes up into the bar with
+  the name, so it costs the pinned search and filters nothing.
 - **The brand stays with the name.** A pushed screen's eyebrow comes up into
   the bar with its title, and the ball's specs carry a Brand row.
 

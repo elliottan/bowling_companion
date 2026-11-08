@@ -1,4 +1,4 @@
-import { t } from "@lingui/core/macro";
+import { plural, t } from "@lingui/core/macro";
 import { Select } from "../components/ui/Select";
 import { Trans } from "@lingui/react/macro";
 import { BookOpen, ExternalLink, Loader2, Palette } from "lucide-react";
@@ -649,6 +649,17 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
   return (
     <PushScreen
       title={t`Catalog`}
+      // Under the title rather than over the list: the title's block scrolls
+      // away, and the bar carries the same line once it has, so the count
+      // costs the pinned search and filters no height (ADR-251).
+      subtitle={
+        allBalls.length > 0
+          ? plural(displayed.length, {
+              one: "# result",
+              other: "# results"
+            })
+          : undefined
+      }
       onBack={onBack}
       active={selectedBallId === null && addingBall === null && !showFilters}
     >

@@ -84,6 +84,11 @@ msgstr "{0, plural, other {# lorong}}"
 msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, other {# corak}}"
 
+#. placeholder {0}: displayed.length
+#: src/views/CatalogView.tsx
+msgid "{0, plural, one {# result} other {# results}}"
+msgstr "{0, plural, other {# hasil}}"
+
 #. placeholder {0}: sessions.length
 #: src/components/GameSlotSessionsDialog.tsx
 msgid "{0, plural, one {# session, newest first} other {# sessions, newest first}}"

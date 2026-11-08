@@ -97,8 +97,9 @@ keyboard, not the size of the job:
   (History, Stats, the catalog, Oil patterns) rise from the bottom edge in a
   `FormSheet` with `dismissAs="done"`, and apply as each choice is made, so the
   list shows the narrowing while the sheet is up. The catalog's list carries
-  no chips and no count of its own: its Filters button is lit, with how many
-  are on, and the sheet is where a filter comes off (ADR-251). Opened inline they
+  no chips of its own: its Filters button is lit, with how many are on, the
+  sheet is where a filter comes off, and the count ("10 results") is the large
+  title's subtitle rather than a row over the list (ADR-251). Opened inline they
   pushed every ball down the screen each time a chip was chosen; dropped down
   as a card over the list, the catalog's read as a web page's menu beside the
   sheets everywhere else.

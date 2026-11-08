@@ -169,6 +169,7 @@ describe("CatalogView", () => {
     renderCatalog();
     await screen.findByText("Ball 0");
 
+    expect(screen.getAllByText("3 results")).toHaveLength(2); // under the title, and the bar's copy
     fireEvent.click(screen.getByRole("button", { name: /^Filters/ }));
     // A sheet from the bottom edge, as every other filter sheet in the app is,
     // not a card dropped down over the list.
@@ -182,6 +183,8 @@ describe("CatalogView", () => {
 
     fireEvent.click(within(sheet).getByRole("button", { name: "Done" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Filters" })).not.toBeInTheDocument());
+    // The count under the title follows the list.
+    expect(screen.getAllByText("3 results")).toHaveLength(2); // under the title, and the bar's copy
     // What was chosen stays, on the button alone: no chips under the search.
     expect(filtersButton()).toHaveAttribute("aria-pressed", "true");
     expect(screen.queryByRole("button", { name: /^Remove filter/ })).not.toBeInTheDocument();
@@ -276,6 +279,7 @@ describe("CatalogView", () => {
 
       // Every spelling of the core, and nothing else.
       await waitFor(() => expect(screen.getByRole("button", { name: /^Filters/ })).toHaveAttribute("aria-pressed", "true"));
+      expect(screen.getAllByText("5 results")).toHaveLength(2);
       const names = screen.getAllByRole("listitem").map((li) => li.textContent ?? "");
       expect(names.filter((text) => /Alpha|Bravo|Charlie|Delta|Echo|Foxtrot/.test(text))).toHaveLength(5);
       expect(names.some((text) => text.includes("Foxtrot"))).toBe(false);
