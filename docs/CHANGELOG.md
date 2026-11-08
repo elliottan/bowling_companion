@@ -23,6 +23,10 @@ had all shipped.
   the 10, which is not how a messenger travels.
 - Bowling terms now explains Dead wood, and Sleeper says it is the back pin
   of a double wood.
+- Home's tool pictures are truer to life: the Line visualizer's seven arrows
+  sit in a V with the middle one furthest down the lane, Layouts shows a real
+  Benchmark layout (45 x 4 1/2 x 45) with a proper grip, and Oil patterns
+  draws a real house shot's load, board by board.
 
 ## 0.93.1: Fixes from a pass over the tests (2026-11-08)
 
