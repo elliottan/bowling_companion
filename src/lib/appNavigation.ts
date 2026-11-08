@@ -147,6 +147,9 @@ export interface NavState {
   openArsenalBallId: number | null;
   /** What the pushed catalog opens already searched for, from a search. */
   catalogSearch: string | null;
+  /** The pushed catalog opens straight on the comparison's map, from the
+   *  arsenal (ADR-261). Content beside the overlay, like `catalogSearch`. */
+  catalogMap: boolean;
 }
 
 export type NavAction =
@@ -176,6 +179,8 @@ export type NavAction =
   | { type: "openArsenalBall"; ballId: number }
   /** The catalog, pushed, already searched for `query`. */
   | { type: "openCatalogSearch"; query: string }
+  /** The catalog, pushed, open on the comparison's map (ADR-261). */
+  | { type: "openBallMap" }
   | { type: "openReportLine"; lineId: string }
   /** Open the layout lab, optionally on a layout something else chose. */
   | { type: "openLayoutLab"; seed?: LayoutSeed }
@@ -234,7 +239,8 @@ export const INITIAL_NAV: NavState = {
   lineSandboxPatternId: null,
   openPatternId: null,
   openArsenalBallId: null,
-  catalogSearch: null
+  catalogSearch: null,
+  catalogMap: false
 };
 
 export function navReducer(state: NavState, action: NavAction): NavState {
@@ -337,7 +343,8 @@ function reduce(state: NavState, action: NavAction): NavState {
         layoutSeed: null,
         openPatternId: null,
         openArsenalBallId: null,
-        catalogSearch: null
+        catalogSearch: null,
+        catalogMap: false
       };
 
     case "pushOverlay":
@@ -354,7 +361,8 @@ function reduce(state: NavState, action: NavAction): NavState {
             layoutSeed: action.overlay === "layout-lab" ? null : state.layoutSeed,
             openPatternId: action.overlay === "oil-patterns" ? null : state.openPatternId,
             openArsenalBallId: action.overlay === "arsenal" ? null : state.openArsenalBallId,
-            catalogSearch: action.overlay === "catalog" ? null : state.catalogSearch
+            catalogSearch: action.overlay === "catalog" ? null : state.catalogSearch,
+            catalogMap: action.overlay === "catalog" ? false : state.catalogMap
           };
 
     case "popOverlay": {
@@ -386,7 +394,8 @@ function reduce(state: NavState, action: NavAction): NavState {
       const seeds = {
         openPatternId: overlays.includes("oil-patterns") ? state.openPatternId : null,
         openArsenalBallId: overlays.includes("arsenal") ? state.openArsenalBallId : null,
-        catalogSearch: overlays.includes("catalog") ? state.catalogSearch : null
+        catalogSearch: overlays.includes("catalog") ? state.catalogSearch : null,
+        catalogMap: overlays.includes("catalog") ? state.catalogMap : false
       };
       return overlays.includes("session")
         ? { ...state, ...seeds, overlays, layoutSeed: next, lineSandboxPatternId: pattern }
@@ -395,7 +404,7 @@ function reduce(state: NavState, action: NavAction): NavState {
 
     case "openCatalogBall":
       return action.push && state.overlays[state.overlays.length - 1] !== "catalog"
-        ? { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: null, catalogBallId: action.ballId, catalogBallTrail: [] }
+        ? { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: null, catalogMap: false, catalogBallId: action.ballId, catalogBallTrail: [] }
         : {
             ...state,
             catalogBallId: action.ballId,
@@ -428,7 +437,10 @@ function reduce(state: NavState, action: NavAction): NavState {
       return { ...state, overlays: [...state.overlays, "arsenal"], openArsenalBallId: action.ballId };
 
     case "openCatalogSearch":
-      return { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: action.query, catalogBallId: null };
+      return { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: action.query, catalogMap: false, catalogBallId: null };
+
+    case "openBallMap":
+      return { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: null, catalogMap: true, catalogBallId: null, catalogBallTrail: [] };
 
     case "openReportLine":
       return { ...state, reportLineId: action.lineId };
@@ -528,7 +540,8 @@ function reduce(state: NavState, action: NavAction): NavState {
         // that leaves the list standing, gone with it otherwise.
         openPatternId: route.overlays.includes("oil-patterns") ? state.openPatternId : null,
         openArsenalBallId: route.overlays.includes("arsenal") ? state.openArsenalBallId : null,
-        catalogSearch: route.overlays.includes("catalog") ? state.catalogSearch : null
+        catalogSearch: route.overlays.includes("catalog") ? state.catalogSearch : null,
+        catalogMap: route.overlays.includes("catalog") ? state.catalogMap : false
       };
     }
 

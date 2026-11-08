@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CatalogBall } from "../types/catalog";
-import { closeToOwned, marked, specsAt, weightsOf } from "./ballCompare";
+import { specsAt, weightsOf } from "./ballCompare";
 
 function ball(id: string, over: Partial<CatalogBall> = {}): CatalogBall {
   return {
@@ -43,32 +43,5 @@ describe("weightsOf", () => {
     const b = ball("b", { weights: [{ weight: 16, rg: 2.5, diff: 0.05, mbDiff: null }] });
     expect(weightsOf([a, b])).toEqual([16, 15, 14]);
     expect(weightsOf([])).toEqual([15]);
-  });
-});
-
-describe("marked", () => {
-  it("marks the lowest or the highest, and ties alike", () => {
-    expect(marked([2.47, 2.5, 2.47], "low")).toEqual([true, false, true]);
-    expect(marked([0.05, null, 0.058], "high")).toEqual([false, false, true]);
-  });
-
-  it("marks nothing when there is one number, or all are the same", () => {
-    expect(marked([0.05, null], "high")).toEqual([false, false]);
-    expect(marked([2.5, 2.5], "low")).toEqual([false, false]);
-  });
-});
-
-describe("closeToOwned", () => {
-  const owned = [ball("widow", { rg: 2.5, diff: 0.058 }), ball("pearl", { rg: 2.5, diff: 0.058, coverstockCategory: "Pearl" })];
-
-  it("names the owned ball a new one would do the same job as", () => {
-    const near = closeToOwned([ball("ignition", { rg: 2.49, diff: 0.055 })], owned, 15);
-    expect(near.map((n) => [n.ball.id, n.owned.id])).toEqual([["ignition", "widow"]]);
-  });
-
-  it("names none across cover types, far apart, or for a ball already owned", () => {
-    expect(closeToOwned([ball("p", { rg: 2.5, diff: 0.058, coverstockCategory: "Hybrid" })], owned, 15)).toEqual([]);
-    expect(closeToOwned([ball("far", { rg: 2.56, diff: 0.04 })], owned, 15)).toEqual([]);
-    expect(closeToOwned([owned[0]], owned, 15)).toEqual([]);
   });
 });

@@ -201,11 +201,6 @@ msgstr "{age}. Holds {sessions}, {games}, {balls}."
 msgid "{avg} avg"
 msgstr "{avg} avg"
 
-#. Two bowling balls with nearly the same specs and the same cover type: a compared ball, and one the bowler owns
-#: src/components/BallCompareView.tsx
-msgid "{ball} rolls much like {owned} in your bag."
-msgstr "{ball} rolls much like {owned} in your bag."
-
 #. A ball's name, then the boards it was thrown on
 #: src/components/alleyHistoryCopy.ts
 msgid "{ballName}, {boards}"
@@ -1121,6 +1116,11 @@ msgstr "Ball catalog"
 msgid "Ball columns"
 msgstr "Ball columns"
 
+#. Opens a chart placing the bowler's balls by RG and differential
+#: src/views/ArsenalView.tsx
+msgid "Ball map"
+msgstr "Ball map"
+
 #: src/components/BallFormDialog.tsx
 msgid "Ball name is required."
 msgstr "Ball name is required."
@@ -1455,15 +1455,15 @@ msgstr "Compare"
 msgid "Compare {count}"
 msgstr "Compare {count}"
 
+#. A menu item: starts picking bowling balls in the catalog to compare them
+#: src/views/CatalogView.tsx
+msgid "Compare balls"
+msgstr "Compare balls"
+
 #. The spoken name of the switch between a table of specs and a map
 #: src/components/BallCompareView.tsx
 msgid "Compare by"
 msgstr "Compare by"
-
-#. Beside a bowling ball's name in a chart key: it is one of the balls being compared
-#: src/components/BallMap.tsx
-msgid "comparing"
-msgstr "comparing"
 
 #: src/views/CatalogView.tsx
 msgid "Connect once to load the catalog"
@@ -1643,9 +1643,11 @@ msgstr "Diff"
 msgid "Diff {0}"
 msgstr "Diff {0}"
 
+#. Bowling term: a ball's differential, short, with its value
 #. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
 #. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
 #. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
+#: src/components/BallPeek.tsx
 #: src/views/ArsenalView.tsx
 #: src/views/CatalogView.tsx
 #: src/views/LayoutLabView.tsx
@@ -1786,11 +1788,6 @@ msgstr "Dual angle or Storm VLS, on sliders. Opens on the benchmark."
 #: src/components/BallFormDialog.tsx
 msgid "e.g. Storm Phaze II"
 msgstr "e.g. Storm Phaze II"
-
-#. Explains a chart of bowling balls by RG and differential
-#: src/components/BallCompareView.tsx
-msgid "Each dot is a catalog ball, colored by its cover type. Two balls close together roll much alike."
-msgstr "Each dot is a catalog ball, colored by its cover type. Two balls close together roll much alike."
 
 #. Length reading: the ball turns early
 #: src/lib/ballLayout.ts
@@ -2506,11 +2503,6 @@ msgstr "In the Dynamic Island"
 msgid "In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
 msgstr "In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
 
-#. Beside a bowling ball's name in a chart key: the bowler owns it
-#: src/components/BallMap.tsx
-msgid "in your bag"
-msgstr "in your bag"
-
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
 msgstr "Increase {label}"
@@ -2981,11 +2973,6 @@ msgstr "Manage oil patterns"
 msgid "Map"
 msgstr "Map"
 
-#. Bowling terms: RG, diff and MB diff are ball specs. Explains the highlighted cells of a comparison table.
-#: src/components/BallCompareView.tsx
-msgid "Marked: the lowest RG revs up soonest, the highest diff and MB diff flare most."
-msgstr "Marked: the lowest RG revs up soonest, the highest diff and MB diff flare most."
-
 #. On the Live Activity: the highest score the game can still finish on
 #: src/components/LiveActivityPreviews.tsx
 msgid "Max {max}"
@@ -3028,6 +3015,7 @@ msgstr "Middle"
 
 #: src/components/ActiveGameScorer.tsx
 #: src/components/BallFormDialog.tsx
+#: src/views/CatalogView.tsx
 #: src/views/LayoutLabView.tsx
 msgid "More"
 msgstr "More"
@@ -3148,6 +3136,10 @@ msgstr "Next month"
 #: src/components/NextSteps.tsx
 msgid "Next steps"
 msgstr "Next steps"
+
+#: src/components/HistoryCalendar.tsx
+msgid "Next year"
+msgstr "Next year"
 
 #: src/views/ActiveSessionView.tsx
 msgid "No active game selected."
@@ -3434,6 +3426,7 @@ msgstr "Only these pins"
 msgid "Open {leave}"
 msgstr "Open {leave}"
 
+#: src/components/BallPeek.tsx
 #: src/components/Stats.tsx
 msgid "Open {name}"
 msgstr "Open {name}"
@@ -3519,7 +3512,7 @@ msgstr "over your last {sessions} sessions, {against}"
 
 #. A badge on a ball you already have in your arsenal
 #. A badge on a ball you already have in your arsenal
-#: src/components/BallCompareView.tsx
+#: src/components/BallTag.tsx
 #: src/views/CatalogView.tsx
 msgid "Owned"
 msgstr "Owned"
@@ -3566,14 +3559,10 @@ msgid "Pick another"
 msgstr "Pick another"
 
 #. Shown when no balls have been picked to compare
+#. Shown when no balls have been picked to compare
 #: src/components/BallCompareView.tsx
 msgid "Pick balls in the catalog to compare them here."
 msgstr "Pick balls in the catalog to compare them here."
-
-#. Enters a mode where tapping balls in the catalog picks them to compare
-#: src/views/CatalogView.tsx
-msgid "Pick balls to compare"
-msgstr "Pick balls to compare"
 
 #. Step 3 of moving games from the web to the app. Files is the phone's Files app
 #: src/lib/moveGames.ts
@@ -3717,6 +3706,10 @@ msgstr "Presets, {preset}"
 msgid "Previous month"
 msgstr "Previous month"
 
+#: src/components/HistoryCalendar.tsx
+msgid "Previous year"
+msgstr "Previous year"
+
 #: src/views/LegalView.tsx
 #: src/views/SettingsView.tsx
 msgid "Privacy and terms"
@@ -3857,6 +3850,7 @@ msgid "Replacing"
 msgstr "Replacing"
 
 #: src/components/CatalogRequest.tsx
+#: src/views/CatalogView.tsx
 msgid "Request a ball"
 msgstr "Request a ball"
 
@@ -3949,6 +3943,8 @@ msgstr "RG {0}"
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
+#. Bowling term: a ball's radius of gyration, short, with its value
+#: src/components/BallPeek.tsx
 #: src/views/ArsenalView.tsx
 #: src/views/CatalogView.tsx
 #: src/views/LayoutLabView.tsx
@@ -3986,11 +3982,6 @@ msgstr "Right hand, 2H"
 #: src/views/SettingsView.tsx
 msgid "Right-handed"
 msgstr "Right-handed"
-
-#. A chart legend entry: the balls being compared are drawn with a ring
-#: src/components/BallMap.tsx
-msgid "Ringed: comparing"
-msgstr "Ringed: comparing"
 
 #. Accent color name: a pink-red
 #: src/lib/palette.ts
@@ -4153,6 +4144,11 @@ msgstr "See what Pro adds"
 #: src/components/SpareLineFormDialog.tsx
 msgid "Select at least one pin for this leave."
 msgstr "Select at least one pin for this leave."
+
+#. A badge on a bowling ball picked to compare with others
+#: src/components/BallTag.tsx
+msgid "Selected"
+msgstr "Selected"
 
 #: src/views/SettingsView.tsx
 msgid "Send feedback"
@@ -5294,6 +5290,11 @@ msgstr "Your average"
 #: src/components/BallEstimates.tsx
 msgid "Your average here"
 msgstr "Your average here"
+
+#. Bowling terms: RG and diff (differential) are ball specs. Under the Ball map row.
+#: src/views/ArsenalView.tsx
+msgid "Your bag by RG and diff"
+msgstr "Your bag by RG and diff"
 
 #: src/views/SettingsView.tsx
 msgid "Your balls and their layouts"

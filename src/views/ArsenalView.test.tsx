@@ -56,6 +56,14 @@ describe("ArsenalView", () => {
     expect(await screen.findByText("15 lb")).toBeInTheDocument();
   });
 
+  it("opens the ball map from under the bag (ADR-261)", async () => {
+    await addBall({ name: "Phaze II", is_spare_ball: false });
+    const onOpenBallMap = vi.fn();
+    render(<ArsenalView onBack={vi.fn()} onOpenBallMap={onOpenBallMap} />);
+    fireEvent.click(await screen.findByRole("button", { name: /Ball map/ }));
+    expect(onOpenBallMap).toHaveBeenCalled();
+  });
+
   it("still shows what was typed on a ball entered before layouts were numbers", async () => {
     await addBall({ name: "Old ball", is_spare_ball: false, layout: "45 x 4-1/2 x 35" });
 

@@ -10843,3 +10843,60 @@ bowler is reading down the days it chose.
 which is what hiding it is for. An installed web app still has no status-bar
 tap: Safari gives a page no signal for it, and making the document scrollable
 to catch one would undo the VIEWPORT-BUG fix.
+
+## ADR-261: The month picker holds to the history, the calendar opens downward, and the ball map is the bag's
+
+**Status.** Accepted, 2026-11-08, at the owner's request. Amends ADR-252,
+ADR-258 and ADR-260.
+
+**Context.** ADR-260 held the calendar's month picker to the bowler's history
+with `min` and `max` on a month input, but an iPhone's wheels show every month
+whatever those say: a bowler could scroll to a month before the first session,
+pick it, and see another month instead. The calendar switch made the list jump
+a calendar's height on a frame. On the comparison, the owner found the marked
+cells, the "rolls much like" notes, the faint whole catalog behind the map and
+its cover-type colours and legend more noise than help; the weight switch took
+a row for a choice seldom changed; and there was no way to the map from the
+bag itself. The catalog's compare glyph alone in the bar did not say what it
+did.
+
+**Decision.**
+
+- **The month picker is ours.** The month's name lays the twelve months of a
+  year over the days, with the arrows stepping the year. Months outside the
+  first and last sessions' cannot be tapped, the year arrows stop at those
+  years, a month bowled carries a dot, and picking one brings the days back.
+- **Whole weeks.** The month's first and last weeks are filled with the days
+  of the months either side, dimmed. A night bowled there is shaded on the
+  month's own scale, clamped to its lightest and deepest steps, so it never
+  re-ranks the month, and a tap takes the list to it as any day does. The
+  month's totals stay its own.
+- **The calendar opens downward.** `ui/Expand` eases a grid row between `0fr`
+  and `1fr`, so showing the calendar pushes the list down and hiding it draws
+  the list back up, symmetric as section 7 asks. Closed, it stays mounted but
+  inert. Off under reduced motion.
+- **The comparison marks nothing and names no look-alikes.** `marked` and
+  `closeToOwned` are gone, with the note that explained the marks.
+- **The map draws only the balls being compared and the bowler's own**, each
+  as its photo with its number on a badge, edged in the accent when Selected
+  and in a quiet ring when only Owned. No catalog cloud, no cover colours, no
+  legend: the cover tokens left `index.css`. The key under it tags each ball
+  Selected or Owned (`BallTag`), the words used everywhere else.
+- **The bag's switch sits over the chart, and the weight is a `Select`** in
+  the same row, since it is set once and seldom moved.
+- **A tap on a ball, on the map or in the key, opens a small card** hung off
+  it (`BallPeek`): photo, brand, name, RG, diff and cover at the weight shown,
+  and a chevron. The card opens the ball's page, which goes over the
+  comparison, so back returns to the map.
+- **The arsenal opens the map.** A Ball map row under the bag pushes the
+  catalog open on the comparison's map (`openBallMap`, `catalogMap` beside
+  the overlay as `catalogSearch` is). The map is then the screen, with no list
+  drawn under it, and back from it returns to the arsenal. View all on a ball
+  opened from it brings the list in.
+- **The catalog's bar carries a More menu** with Compare balls, which starts
+  picking, and Request a ball, the same request as the row at the list's foot.
+
+**Consequences.** An owned ball that was never matched to the catalog has no
+specs and is not on the map, as before. The year view adds two words to
+translate ("Previous year", "Next year") and loses the platform picker's
+locale handling, which the month names from `formatDate` replace.

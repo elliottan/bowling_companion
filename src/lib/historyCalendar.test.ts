@@ -10,10 +10,11 @@ import {
   groupByDay,
   heatLevel,
   monthGrid,
-  monthInputValue,
+  monthKey,
+  bowledMonths,
+  inBounds,
   monthOfDate,
   monthTotals,
-  parseMonthInput,
   readCalendarShown,
   shiftMonth,
   weekStartFor,
@@ -72,15 +73,27 @@ describe("monthGrid", () => {
   // October 2026 starts on a Thursday.
   const october = { year: 2026, month: 9 };
 
-  it("leads with a blank per weekday before the first", () => {
+  it("fills its first and last weeks with the months either side", () => {
     const sunday = monthGrid(october, new Map(), 0);
-    expect(sunday.slice(0, 4)).toEqual([null, null, null, null]);
-    expect(sunday[4]?.day).toBe(1);
-    expect(sunday.filter(Boolean)).toHaveLength(31);
+    expect(sunday.slice(0, 4).map((c) => c.key)).toEqual(["2026-09-27", "2026-09-28", "2026-09-29", "2026-09-30"]);
+    expect(sunday.slice(0, 4).every((c) => c.outside)).toBe(true);
+    expect(sunday[4]).toMatchObject({ day: 1, outside: false });
+    expect(sunday.filter((c) => !c.outside)).toHaveLength(31);
+    // Whole weeks: October 31 is a Saturday, so nothing trails it.
+    expect(sunday).toHaveLength(35);
 
     const monday = monthGrid(october, new Map(), 1);
-    expect(monday.slice(0, 3)).toEqual([null, null, null]);
     expect(monday[3]?.key).toBe("2026-10-01");
+    expect(monday.slice(-1)[0]).toMatchObject({ key: "2026-11-01", outside: true });
+    expect(monday).toHaveLength(35);
+  });
+
+  it("shades a night over the month's edge on the month's own scale", () => {
+    const days = bowledDays([summary("2026-10-03", [160]), summary("2026-10-21", [240]), summary("2026-11-01", [300]), summary("2026-09-28", [100])]);
+    const cells = monthGrid(october, days, 1);
+    expect(cells.find((c) => c.key === "2026-11-01")).toMatchObject({ outside: true, level: 4 });
+    expect(cells.find((c) => c.key === "2026-09-28")).toMatchObject({ outside: true, level: 1 });
+    expect(cells.find((c) => c.key === "2026-10-21")?.level).toBe(4);
   });
 
   it("shades only the bowled days, ranked within the month", () => {
@@ -91,7 +104,7 @@ describe("monthGrid", () => {
       // Another month's nights never move this month's scale.
       summary("2026-11-02", [300])
     ]);
-    const cells = monthGrid(october, days, 0).filter((c) => c !== null);
+    const cells = monthGrid(october, days, 0).filter((c) => !c.outside);
     const at = (d: number) => cells.find((c) => c.day === d)!;
     expect(at(3).level).toBe(1);
     expect(at(21).level).toBe(4);
@@ -107,11 +120,9 @@ describe("months", () => {
     expect(shiftMonth({ year: 2026, month: 5 }, -18)).toEqual({ year: 2024, month: 11 });
   });
 
-  it("reads and writes the month input's value", () => {
-    expect(monthInputValue({ year: 2026, month: 9 })).toBe("2026-10");
-    expect(parseMonthInput("2026-10")).toEqual({ year: 2026, month: 9 });
-    expect(parseMonthInput("")).toBeNull();
-    expect(parseMonthInput("2026-13")).toBeNull();
+  it("keys a month, and lists the months bowled", () => {
+    expect(monthKey({ year: 2026, month: 0 })).toBe("2026-01");
+    expect([...bowledMonths([summary("2026-10-21", [200]), summary("2026-10-02", []), summary("2025-03-01", [])])]).toEqual(["2026-10", "2025-03"]);
   });
 
   it("keys a day as a session stores it", () => {
@@ -184,6 +195,10 @@ describe("monthBounds and clampMonth", () => {
     expect(clampMonth({ year: 2026, month: 10 }, bounds)).toEqual({ year: 2026, month: 2 });
     expect(clampMonth({ year: 2026, month: 0 }, bounds)).toEqual({ year: 2026, month: 0 });
     expect(clampMonth({ year: 2020, month: 0 }, null)).toEqual({ year: 2020, month: 0 });
+    expect(inBounds({ year: 2025, month: 10 }, bounds)).toBe(true);
+    expect(inBounds({ year: 2025, month: 9 }, bounds)).toBe(false);
+    expect(inBounds({ year: 2026, month: 3 }, bounds)).toBe(false);
+    expect(inBounds({ year: 1999, month: 0 }, null)).toBe(true);
   });
 
   it("compares months", () => {
