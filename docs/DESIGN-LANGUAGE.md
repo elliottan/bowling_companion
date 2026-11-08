@@ -178,8 +178,11 @@ blur, fading out just below the bar, so its title, which never fades, is never
 words over words. A light haze across the whole bar was tried before and
 removed, because it read as a dirty surface; the ground is the page's own
 color, so over the page's empty top it is not there at all. A
-sticky row inside a push or a sheet stops beneath the bar by the bar's
-published height (`--push-bar-h`, `--sheet-bar-h`). In a sheet an opaque one
+sticky row inside a push or a sheet stops beneath the bar: the scroll area is
+padded by the bar's published height (`--push-bar-h`, `--sheet-bar-h`) and a
+sticky row at `top: 0` stops at that padding, so a push's row never adds the
+height again (that counted the bar twice, and the list showed through between
+the bar and the Bowling terms search). In a sheet an opaque one
 reaches up behind the bar so the list passes under both as one band; in a
 push it does not, because the large title sits above it and reaching up
 covered it (ADR-226).
@@ -303,8 +306,7 @@ full-bleed rule under a leading icon cuts the icon column in half.
 It is drawn as iOS draws an inset grouped list (ADR-191): 26px corners and no
 outline, rows at least 52pt tall and 16pt in, the label at 17px in the body
 weight, a 30px icon tile, the divider stopping 16pt short of the trailing edge,
-and the heading in line with the rows' text. A square button (Home's tiles)
-centres its icon, name and count.
+and the heading in line with the rows' text.
 
 **A card that is a button looks like one** (`.card-button`): Home's tiles and
 its recent sessions are raised off the page, a step lighter at the top with a
@@ -343,7 +345,12 @@ its balls overlapping, its name, its count and a chevron. It was a grid of
 balls beside the greeting with no name on it, and read as decoration rather
 than a way in. Then the spare lines, lane notes and Game plan as three
 equal tiles, each with its count under its name, or while it holds nothing,
-what it is for. Recent sessions are not on Home: History is one tap away, and
+what it is for. Each tile is a picture card, like the tools below it: a
+drawing in its own colours fills the top of the tile edge to edge
+(`ProfileTileArt`: a spare line to a standing 10 pin, a spiral notebook, a
+clipboard with the plan ticked off) and fades out just above the name, so the
+name sits on the plain card in either theme. A bare icon over a caption read
+as a settings row, not a place to go. Recent sessions are not on Home: History is one tap away, and
 the hero already carries the last one.
 
 The **tools are cards with a picture** of what each does, two by two: a line

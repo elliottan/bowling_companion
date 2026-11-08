@@ -55,13 +55,17 @@ export const LaneViewIcon = createIcon(
   </>
 );
 
-/** A marker planted on the lane: the plan is a thing you decide before you
- *  throw, not a direction you follow. */
+/** A clipboard with a plan on it: what to throw where, decided before the
+ *  first ball. */
 export const GamePlanIcon = createIcon(
   "GamePlanIcon",
   <>
-    <path d="M6 22V3" />
-    <path d="M6 3h11l-2.6 4.2L17 11.5H6" />
+    <rect x="4.5" y="4" width="15" height="18" rx="2" />
+    <path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" />
+    <path d="m8 11 1.5 1.5L12 10" />
+    <path d="M14 11.5h2" />
+    <path d="m8 17 1.5 1.5L12 16" />
+    <path d="M14 17.5h2" />
   </>
 );
 
@@ -90,12 +94,18 @@ export const FoulLineIcon = createIcon(
   </>
 );
 
-/** The physical pair, which is how lane notes are kept. */
+/** A spiral notebook, which is where lane notes used to be kept: the rings
+ *  across the top and ruled lines down the page. */
 export const LanePairIcon = createIcon(
   "LanePairIcon",
   <>
-    <rect x="2.5" y="3" width="8" height="18" rx="1.5" />
-    <rect x="13.5" y="3" width="8" height="18" rx="1.5" />
+    <rect x="4" y="4" width="16" height="18" rx="2" />
+    <path d="M8 2v4" />
+    <path d="M12 2v4" />
+    <path d="M16 2v4" />
+    <path d="M8 11h8" />
+    <path d="M8 15h8" />
+    <path d="M8 19h5" />
   </>
 );
 

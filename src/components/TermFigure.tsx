@@ -21,16 +21,14 @@ export function TermFigure({ figure, term }: { figure: Figure; term: string }) {
         <Deck label={term} standing={figure.standing} mark={figure.mark} />
       );
     case "pin-move":
-      return figure.motion === "messenger" ? (
-        <Deck label={term} standing={[10]} mark={[1]} faint path={MOVES.messenger} />
-      ) : (
+      return (
         <BothHands
           right={<Deck label={term} standing={[10]} mark={[6]} faint path={MOVES[figure.motion]} />}
           left={<Deck label={term} standing={[7]} mark={[4]} faint path={MOVES[figure.motion]} mirror />}
         />
       );
     case "ball":
-      return figure.hit === "pocket" || figure.hit === "brooklyn" ? (
+      return figure.hit === "pocket" || figure.hit === "flush" || figure.hit === "brooklyn" ? (
         <BothHands
           right={<Deck label={term} standing={ALL} ball={BALLS[figure.hit]} />}
           left={<Deck label={term} standing={ALL} ball={BALLS[figure.hit]} mirror />}
@@ -70,18 +68,22 @@ const MOVES = {
   // The 6 flies around the outside of the 10 and away behind it.
   ring: "M 12 -20.78 C 21 -21 25.5 -28 23.6 -35.4 S 18 -40.5 14.5 -40",
   // The 6 lies down in the gutter, short of the 10.
-  flat: "M 12 -20.78 Q 19 -21 23.6 -25.4",
-  // The headpin skids across the deck to take out the 10.
-  messenger: "M 0 0 Q 15 -4 16.2 -27.2"
+  flat: "M 12 -20.78 Q 19 -21 23.6 -25.4"
 } as const;
 
 /** Where the ball meets the rack, and the line it came in on, for a
  *  right-hander. */
 const BALLS = {
   pocket: { at: [5.8, 2.6], from: "M 15.5 12 Q 14.5 6.2 10.2 4.4" },
-  brooklyn: { at: [-5.8, 2.6], from: "M 15.5 12 Q 6 9.5 -1.4 4.6" },
+  // The pocket's own curve, come in further left: the same hook, carried
+  // across the nose to the other side.
+  brooklyn: { at: [-5.8, 2.6], from: "M 3.9 12 Q 2.9 6.2 -1.4 4.4" },
   high: { at: [2.8, 4.4], from: "M 13 13 Q 11.5 7.5 7.1 5.8" },
-  light: { at: [8.8, 1.4], from: "M 17 11 Q 16.5 5.5 13.1 2.6" }
+  // Just right of the pocket, the ball clear of the headpin's middle: the
+  // angle that sends all ten into the pit.
+  flush: { at: [8.8, 1.4], from: "M 17 11 Q 16.5 5.5 13.1 2.6" },
+  // Further right again, onto the 3 with barely any of the 1.
+  light: { at: [11.6, -1], from: "M 19.8 8.6 Q 19.3 3.1 15.9 0.2" }
 } as const;
 
 function Deck({

@@ -279,9 +279,10 @@ export function PushScreen({
         </header>
 
         {/* Starts a bar's height down, so the top of the screen is clear of
-            the bar until it is scrolled under. `--push-bar-h` is that height,
-            for a sticky row inside to stop beneath the bar rather than under
-            it. */}
+            the bar until it is scrolled under. `--push-bar-h` is that height.
+            A sticky row at `top: 0` already stops beneath the bar, because
+            sticky rows stop at the scroll area's padding; offsetting it by
+            `--push-bar-h` as well counts the bar twice. */}
         <div
           className={`ios-bounce min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[var(--push-bar-h)] ${
             // Inline, a Settings section, runs under the tab bar like its tab.
