@@ -174,13 +174,17 @@ describe("CatalogView", () => {
     // not a card dropped down over the list.
     const sheet = screen.getByRole("dialog", { name: "Filters" });
     fireEvent.click(within(sheet).getByRole("button", { name: "Storm" }));
-    // Applied at once: the chip under the search says so while the sheet is up.
-    expect(screen.getByRole("button", { name: "Remove filter: Storm" })).toBeInTheDocument();
+    // Applied at once: the Filters button lights up with the count while the
+    // sheet is still up.
+    const filtersButton = () => screen.getByRole("button", { name: /^Filters/ });
+    expect(filtersButton()).toHaveAttribute("aria-pressed", "true");
+    expect(filtersButton()).toHaveTextContent("1");
 
     fireEvent.click(within(sheet).getByRole("button", { name: "Done" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Filters" })).not.toBeInTheDocument());
-    // What was chosen stays, as a chip that can be removed.
-    expect(screen.getByRole("button", { name: "Remove filter: Storm" })).toBeInTheDocument();
+    // What was chosen stays, on the button alone: no chips under the search.
+    expect(filtersButton()).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByRole("button", { name: /^Remove filter/ })).not.toBeInTheDocument();
   });
 
   it("clears every filter from the sheet's leading corner, and keeps the search", async () => {
@@ -196,7 +200,7 @@ describe("CatalogView", () => {
 
     fireEvent.click(within(sheet).getByRole("button", { name: "Storm" }));
     fireEvent.click(within(sheet).getByRole("button", { name: "Clear all" }));
-    expect(screen.queryByRole("button", { name: "Remove filter: Storm" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Filters/ })).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByPlaceholderText("Search name, brand, coverstock…")).toHaveValue("Ball");
   });
 
@@ -271,7 +275,7 @@ describe("CatalogView", () => {
       rerender(<CatalogView onBack={onBack} selectedBallId={null} onSelectBall={vi.fn()} />);
 
       // Every spelling of the core, and nothing else.
-      expect(await screen.findByRole("button", { name: "Remove filter: Core: Velocity Core" })).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByRole("button", { name: /^Filters/ })).toHaveAttribute("aria-pressed", "true"));
       const names = screen.getAllByRole("listitem").map((li) => li.textContent ?? "");
       expect(names.filter((text) => /Alpha|Bravo|Charlie|Delta|Echo|Foxtrot/.test(text))).toHaveLength(5);
       expect(names.some((text) => text.includes("Foxtrot"))).toBe(false);

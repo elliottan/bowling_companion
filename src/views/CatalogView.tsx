@@ -1,7 +1,7 @@
-import { plural, t } from "@lingui/core/macro";
+import { t } from "@lingui/core/macro";
 import { Select } from "../components/ui/Select";
 import { Trans } from "@lingui/react/macro";
-import { BookOpen, ExternalLink, Loader2, Palette, X } from "lucide-react";
+import { BookOpen, ExternalLink, Loader2, Palette } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -26,7 +26,7 @@ import { addBall, getBalls } from "../services/ballRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD, FIELD_LABEL } from "../components/ui/field";
 import { formatReleaseDate } from "../lib/dates";
-import { formatDate, formatFixed, formatNumber } from "../lib/format";
+import { formatDate, formatFixed } from "../lib/format";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
 import { kinKey, kinNames, sameCore, sameCover } from "../lib/catalogKin";
 
@@ -423,24 +423,6 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
   );
 }
 
-/** Removable active-filter chip shown under the search bar while the filter panel is closed. */
-/** Removes an active filter. Deliberately NOT a `Chip`, this is an action,
- *  not a toggle, so it must not claim `aria-pressed`. It borrows Chip's
- *  tap-target expansion to stay compact while still clearing 44pt. */
-function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onRemove}
-      aria-label={t`Remove filter: ${{ label }}`}
-      className={`relative inline-flex h-9 items-center gap-1 rounded-md bg-accent-soft px-3 text-xs font-semibold text-accent ${TAP_TARGET_44}`}
-    >
-      {label}
-      <X size={12} aria-hidden="true" />
-    </button>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Main CatalogView, renders as fixed full-screen overlay (covers bottom nav)
 // ---------------------------------------------------------------------------
@@ -596,7 +578,6 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
   }, [displayed.length]);
 
   const shown = displayed.slice(0, visibleCount);
-  const totalBalls = formatNumber(allBalls.length);
 
   function toggleSetValue<T>(set: Set<T>, value: T): Set<T> {
     const next = new Set(set);
@@ -706,7 +687,10 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
 
         {/* Filter toggle + sort row */}
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <Chip selected={showFilters} onClick={() => setShowFilters(true)}>
+          {/* Lit while any filter is on, with how many: the list carries no
+              chips or count of its own, so this is the one place that says
+              it is narrowed, and the sheet is where a filter comes off. */}
+          <Chip selected={activeFilterCount > 0} onClick={() => setShowFilters(true)}>
             {t`Filters`}
             {activeFilterCount > 0 ? (
               <span className="ml-1 rounded-full bg-accent-on-fill/25 px-1.5 py-0.5 text-xs font-bold leading-none">{activeFilterCount}</span>
@@ -738,72 +722,6 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
             </div>
           </label>
         </div>
-
-        {/* Active-filter chips: the narrowing state stays legible once the
-            sheet is put away; tap a chip to remove that filter. */}
-        {activeFilterCount > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
-            {[...filters.brands].map((brand) => (
-              <FilterChip
-                key={`b-${brand}`}
-                label={brand}
-                onRemove={() => setFilters((f) => ({ ...f, brands: toggleSetValue(f.brands, brand) }))}
-              />
-            ))}
-            {[...filters.coverstockCategories].map((cs) => (
-              <FilterChip
-                key={`c-${cs}`}
-                label={coverstockLabel(cs)}
-                onRemove={() =>
-                  setFilters((f) => ({
-                    ...f,
-                    coverstockCategories: toggleSetValue(f.coverstockCategories, cs)
-                  }))
-                }
-              />
-            ))}
-            {filters.coreType && (
-              <FilterChip
-                label={coreTypeLabel(filters.coreType)}
-                onRemove={() => setFilters((f) => ({ ...f, coreType: null }))}
-              />
-            )}
-            {filters.core && (
-              <FilterChip
-                label={t({ message: `Core: ${{ core: filters.core }}`, comment: "Bowling term: an active filter on one core (weight block) by name" })}
-                onRemove={() => setFilters((f) => ({ ...f, core: null }))}
-              />
-            )}
-            {filters.cover && (
-              <FilterChip
-                label={t({ message: `Cover: ${{ cover: filters.cover }}`, comment: "Bowling term: an active filter on one coverstock by name" })}
-                onRemove={() => setFilters((f) => ({ ...f, cover: null }))}
-              />
-            )}
-            {(filters.rgMin > RG_MIN || filters.rgMax < RG_MAX) && (
-              <FilterChip
-                label={t({ message: `RG ${{ min: formatFixed(filters.rgMin, 2) }} to ${{ max: formatFixed(filters.rgMax, 2) }}`, comment: "Bowling term: RG is the radius of gyration, a ball spec. A range of values." })}
-                onRemove={() => setFilters((f) => ({ ...f, rgMin: RG_MIN, rgMax: RG_MAX }))}
-              />
-            )}
-            {(filters.diffMin > DIFF_MIN || filters.diffMax < DIFF_MAX) && (
-              <FilterChip
-                label={t({ message: `Diff ${{ min: formatFixed(filters.diffMin, 3) }} to ${{ max: formatFixed(filters.diffMax, 3) }}`, comment: "Bowling term: Diff is the differential, a ball spec. A range of values." })}
-                onRemove={() => setFilters((f) => ({ ...f, diffMin: DIFF_MIN, diffMax: DIFF_MAX }))}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Results count */}
-        <p className="mb-3 text-xs text-ink-secondary">
-          {allBalls.length !== displayed.length
-            ? plural(displayed.length, {
-                one: `# ball of ${totalBalls}`,
-                other: `# balls of ${totalBalls}`
-              })
-            : plural(displayed.length, { one: "# ball", other: "# balls" })}
-        </p>
       </div>
 
       <div className="mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6">

@@ -30,21 +30,14 @@ msgstr "{0, plural, other {\"{name}\" masih digunakan oleh # sesi. Diarkibkan da
 msgid "{0, plural, one {# alley} other {# alleys}}"
 msgstr "{0, plural, other {# pusat boling}}"
 
-#. placeholder {0}: displayed.length
-#: src/views/CatalogView.tsx
-msgid "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}}"
-msgstr "{0, plural, other {# daripada {totalBalls} bola}}"
-
 #. A count of shots thrown (first balls) with a ball, too few to trust the estimate
 #. placeholder {0}: estimate.firstBalls
 #: src/components/BallEstimates.tsx
 msgid "{0, plural, one {# ball, too few} other {# balls, too few}}"
 msgstr "{0, plural, other {# balingan, terlalu sedikit}}"
 
-#. placeholder {0}: displayed.length
 #. placeholder {0}: pending.incoming.balls
 #: src/components/FirstRun.tsx
-#: src/views/CatalogView.tsx
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, other {# bola}}"
 
@@ -1419,11 +1412,6 @@ msgstr "Teras"
 msgid "Core type"
 msgstr "Jenis teras"
 
-#. Bowling term: an active filter on one core (weight block) by name
-#: src/views/CatalogView.tsx
-msgid "Core: {core}"
-msgstr "Teras: {core}"
-
 #. Bowling term: one coverstock by name, a filter field
 #: src/views/CatalogView.tsx
 msgid "Cover"
@@ -1433,11 +1421,6 @@ msgstr "Coverstock"
 #: src/views/CatalogView.tsx
 msgid "Cover type"
 msgstr "Jenis coverstock"
-
-#. Bowling term: an active filter on one coverstock by name
-#: src/views/CatalogView.tsx
-msgid "Cover: {cover}"
-msgstr "Coverstock: {cover}"
 
 #. Bowling term: the outer shell material of a ball
 #: src/views/CatalogView.tsx
@@ -1576,11 +1559,6 @@ msgstr "Diff {0}"
 #: src/views/LayoutLabView.tsx
 msgid "Diff {diff}"
 msgstr "Diff {diff}"
-
-#. Bowling term: Diff is the differential, a ball spec. A range of values.
-#: src/views/CatalogView.tsx
-msgid "Diff {min} to {max}"
-msgstr "Diff {min} hingga {max}"
 
 #. Bowling term: Diff is the differential, a ball spec. A sort order.
 #: src/views/CatalogView.tsx
@@ -3685,10 +3663,6 @@ msgstr "Buang {name}?"
 msgid "Remove filter {filter}"
 msgstr "Buang penapis {filter}"
 
-#: src/views/CatalogView.tsx
-msgid "Remove filter: {label}"
-msgstr "Buang penapis: {label}"
-
 #: src/components/BallFormDialog.tsx
 msgid "Remove layout"
 msgstr "Buang layout"
@@ -3808,11 +3782,6 @@ msgstr "RG"
 #: src/components/BallFormDialog.tsx
 msgid "RG {0}"
 msgstr "RG {0}"
-
-#. Bowling term: RG is the radius of gyration, a ball spec. A range of values.
-#: src/views/CatalogView.tsx
-msgid "RG {min} to {max}"
-msgstr "RG {min} hingga {max}"
 
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value

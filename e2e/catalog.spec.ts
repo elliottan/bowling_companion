@@ -22,24 +22,22 @@ test("searches the catalog and narrows it by brand", async ({ page }) => {
   await page.getByRole("button", { name: "Clear search" }).click();
   await expect(search).toHaveValue("");
 
-  // The count is paginated ("50 balls"), so it says "N of M" once filtered.
-  await expect(page.getByText(/^\d+ balls$/)).toBeVisible();
-
   await page.getByRole("button", { name: /^Filters/ }).click();
   // The brand chips live in the filters sheet; the card headers say "STORM" too.
   const sheet = page.getByRole("dialog", { name: "Filters" });
   await sheet.getByRole("button", { name: "Roto Grip", exact: true }).click();
-  // The sheet applies as it goes, so it is left with Done, and the
-  // active-filter chips show the narrowing.
+  // The sheet applies as it goes, so it is left with Done, and the Filters
+  // button lit with its count is what shows the narrowing.
   await sheet.getByRole("button", { name: "Done" }).click();
   await expect(sheet).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Remove filter: Roto Grip" })).toBeVisible();
+  const filters = page.getByRole("button", { name: /^Filters/ });
+  await expect(filters).toHaveAttribute("aria-pressed", "true");
+  await expect(filters).toContainText("1");
 
-  const count = page.getByText(/^\d+ balls? of \d+$/);
-  await expect(count).toBeVisible();
-  const [shown, total] = (await count.innerText()).match(/\d+/g)!.map(Number);
-  expect(shown).toBeGreaterThan(0);
-  expect(shown).toBeLessThan(total);
+  // Every ball left in the list is a Roto Grip.
+  const rows = page.locator("ul > li > button");
+  await expect(rows.first()).toBeVisible();
+  for (const text of await rows.allTextContents()) expect(text).toContain("Roto Grip");
 });
 
 /**
