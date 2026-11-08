@@ -11,7 +11,6 @@ import { RangeSlider } from "../components/ui/RangeSlider";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
 import { SearchField } from "../components/ui/SearchField";
 import { ChoiceInput } from "../components/ui/SuggestInput";
-import { ViewAll } from "../components/ui/ViewAll";
 import { EmptyState } from "../components/ui/EmptyState";
 import { CatalogRequestEmpty, CatalogRequestRow } from "../components/CatalogRequest";
 import { FormSheet } from "../components/ui/FormSheet";
@@ -312,8 +311,8 @@ const KIN_SHOWN = 3;
 
 /**
  * Other balls on the same core or in the same cover (ADR-253): one row of
- * three that does not scroll, and the rest under View all, as a card holds
- * what it shows (ADR-196). View all is the catalog filtered to the same name.
+ * three that does not scroll, and the rest under View all, beside the heading
+ * (ADR-257). View all is the catalog filtered to the same name.
  */
 function KinRow({
   heading,
@@ -326,16 +325,39 @@ function KinRow({
   onSelect: (ballId: string) => void;
   onViewAll: () => void;
 }) {
+  // What View all opens counts this ball too.
+  const count = balls.length + 1;
   return (
     <section className="mt-7" aria-label={heading}>
-      <h2 className={`mb-2 ${GROUP_HEADING}`}>{heading}</h2>
+      {/* View all on the heading's line, as iOS puts See All beside a
+          section's title: a pill under the row cost a row's height and read
+          as a second primary button under Add to arsenal (ADR-257). */}
+      <div className="mb-2 flex items-baseline justify-between gap-3">
+        <h2 className={`min-w-0 ${GROUP_HEADING}`}>{heading}</h2>
+        {balls.length > KIN_SHOWN && (
+          <button
+            type="button"
+            onClick={onViewAll}
+            // Counts the list it opens, which has this ball in it too.
+            aria-label={plural(count, { one: "View all # ball", other: "View all # balls" })}
+            className={`relative shrink-0 text-footnote font-semibold text-accent active:opacity-50 ${TAP_TARGET_44}`}
+          >
+            {t`View all ${{ count }}`}
+          </button>
+        )}
+      </div>
       <ul className="grid grid-cols-3 gap-2">
         {balls.slice(0, KIN_SHOWN).map((kin) => (
           <li key={kin.id} className="min-w-0">
             <button
               type="button"
               onClick={() => onSelect(kin.id)}
-              className="flex w-full flex-col items-center gap-1.5 rounded-xl p-1.5 text-center transition-colors hover:bg-surface-muted"
+              // A touch listener on the element is what makes iOS Safari
+              // apply :active to it at all.
+              onTouchStart={() => {}}
+              // Answers the finger as a native tile does: it sinks and dims
+              // while held, and springs back (`.tile-press`).
+              className="tile-press flex w-full flex-col items-center gap-1.5 rounded-xl p-1.5 text-center"
             >
               <span className="block w-16">
                 <CatalogBallImage src={kin.imageThumb} alt="" brand={kin.brand} size="thumb" />
@@ -350,8 +372,6 @@ function KinRow({
           </li>
         ))}
       </ul>
-      {/* Counts the list it opens, which has this ball in it too. */}
-      {balls.length > KIN_SHOWN && <ViewAll count={balls.length + 1} noun="balls" onClick={onViewAll} />}
     </section>
   );
 }
@@ -437,6 +457,11 @@ interface CatalogViewProps {
    *  the detail is a real history entry. */
   selectedBallId: string | null;
   onSelectBall: (ballId: string) => void;
+  /** Balls opened under the open one, oldest first: each stays drawn beneath
+   *  the ball opened from its page, so back slides to it (ADR-257). */
+  ballTrail?: readonly string[];
+  /** Back to the list past every open ball, for View all. */
+  onShowList?: () => void;
   /** What the list opens already searched for, from the app's search. */
   initialSearch?: string;
 }
@@ -450,7 +475,7 @@ function scrollParent(el: HTMLElement): HTMLElement | null {
   return null;
 }
 
-export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearch }: CatalogViewProps) {
+export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = [], onShowList, initialSearch }: CatalogViewProps) {
   const [syncState, setSyncState] = useState<SyncState>({ status: "idle" });
   // The catalog is the one thing in the app that needs the network once. An
   // offline empty state that says "Refresh" offers a button that cannot work,
@@ -627,11 +652,6 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
 
   // Catalog version info from done state.
   const doneState = syncState.status === "done" ? syncState : null;
-
-  // Active filter count badge (no year filter any more)
-  const selectedBall = selectedBallId
-    ? (allBalls.find((b) => b.id === selectedBallId) ?? null)
-    : null;
 
   const syncMessage = syncState.status === "error" ? syncState.message : "";
 
@@ -831,28 +851,36 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, initialSearc
       </div>
 
       {/* Detail panel, a self-contained fixed modal (see DetailPanel) */}
-      {selectedBall && (
-        <DetailPanel
-          key={selectedBall.id}
-          ball={selectedBall}
-          owned={isOwned(selectedBall)}
-          onBack={onBack}
-          onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
-          addDialogOpen={addingBall != null}
-          allBalls={allBalls}
-          onSelectBall={onSelectBall}
-          onViewAll={(filter) => {
-            // A fresh list of just those balls: the search and every other
-            // filter would only hide some of what the row counted.
-            setFilters({ ...EMPTY_FILTERS, ...filter });
-            // From the top: the list was left wherever the ball was tapped,
-            // and a few balls at the foot of a long scroll read as none.
-            const bar = filterBarRef.current;
-            (bar && scrollParent(bar))?.scrollTo({ top: 0 });
-            onBack();
-          }}
-        />
-      )}
+      {/* The open ball over the balls it was reached through, each drawn
+          where it was left, so a ball opened from another's row slides in
+          over that ball, and back (or the drag) uncovers it (ADR-257). */}
+      {[...ballTrail, selectedBallId].map((id, i, stack) => {
+        const ball = id ? allBalls.find((b) => b.id === id) : undefined;
+        if (!ball) return null;
+        const top = i === stack.length - 1;
+        return (
+          <DetailPanel
+            key={ball.id}
+            ball={ball}
+            owned={isOwned(ball)}
+            onBack={onBack}
+            onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
+            addDialogOpen={!top || addingBall != null}
+            allBalls={allBalls}
+            onSelectBall={onSelectBall}
+            onViewAll={(filter) => {
+              // A fresh list of just those balls: the search and every other
+              // filter would only hide some of what the row counted.
+              setFilters({ ...EMPTY_FILTERS, ...filter });
+              // From the top: the list was left wherever the ball was tapped,
+              // and a few balls at the foot of a long scroll read as none.
+              const bar = filterBarRef.current;
+              (bar && scrollParent(bar))?.scrollTo({ top: 0 });
+              (onShowList ?? onBack)();
+            }}
+          />
+        );
+      })}
 
       {/* Add-to-arsenal dialog, always rendered at top level so it's reachable from detail view */}
       {/* The filters rise from the bottom edge, as every other filter sheet

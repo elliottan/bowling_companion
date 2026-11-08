@@ -852,7 +852,10 @@ function App() {
                 key={`catalog-${i}`}
                 onBack={popOverlay}
                 selectedBallId={nav.catalogBallId}
+                ballTrail={nav.catalogBallTrail}
                 onSelectBall={(ballId) => dispatch({ type: "openCatalogBall", ballId })}
+                // Past every open ball, however many were stacked, in one jump.
+                onShowList={() => goBack({ type: "closeCatalogBalls" }, nav.catalogBallTrail.length + 1)}
                 initialSearch={nav.catalogSearch ?? undefined}
               />
             );

@@ -10714,3 +10714,37 @@ the way out of a list that filtered to nothing, not a control of the sheet.
 **Consequences.** Clearing reads the same everywhere, and History and Stats can
 be cleared from their sheet in one tap where it took one chip at a time.
 
+## ADR-257: A ball opened from another's page stacks on it, and View all sits beside its heading
+
+**Status.** Accepted, 2026-11-08, at the owner's request, from the iPhone app.
+Amends ADR-253 on where View all goes.
+
+**Context.** A ball opened from another ball's Same core or Same cover row
+replaced that ball rather than going over it: one id held the open ball, so
+the first ball's page left the screen and the second slid in over the list.
+Dragged back, the second ball uncovered the catalog list, and the first ball
+snapped in only once the drag let go. The rows' View all was a full-width
+glass pill under each row, a row's height each and a second primary-looking
+button under Add to arsenal. A ball in the rows answered a press with
+nothing.
+
+**Decision.**
+
+- **The open ball sits on a trail** (`catalogBallTrail` beside
+  `catalogBallId`, oldest first). A ball opened from another's page goes on
+  top; back, the drag and the platform's back pop one; a restored route walks
+  the trail back or forward to the ball it names; anything that closes the
+  ball closes the trail. The catalog draws every ball on the trail, each
+  where it was left, so what the drag uncovers is the ball underneath. The
+  URL still names only the top ball: a reload starts a fresh trail.
+- **View all leaves past every ball** in one history jump (`goBack` takes a
+  step count), so the list it filters is what shows, not the ball beneath.
+- **View all is accent text on the heading's line**, at its right, as iOS
+  puts See All beside a section's title, still counting the list it opens.
+- **A ball in a row presses like a native tile** (`.tile-press`): it sinks
+  and dims under the finger and springs back.
+
+**Consequences.** A chain of balls opened one from another is a chain of
+screens, each a back away. Each stays mounted while it is under another,
+which costs a few photos' memory for a chain few will make long.
+

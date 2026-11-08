@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.98.0: A ball opened from another's page goes over it (2026-11-08)
+
+- A ball opened from another ball's Same core or Same cover row now slides
+  in over that ball, and going back (the back button, or dragging the page
+  away) returns to it. It used to replace it, so the drag showed the catalog
+  list underneath before the first ball snapped back (ADR-257).
+- View all for those rows is now a small link on the heading's line, at its
+  right, rather than a full-width button under the row.
+- The balls in those rows answer a press: they sink and dim under your
+  finger, and spring back.
+
 ## 0.97.0: Clear all in every filter sheet's corner, and fields above the keyboard on the web (2026-11-08)
 
 - Every filter sheet clears from its top left corner with Clear all, dimmed

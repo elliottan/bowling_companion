@@ -470,3 +470,44 @@ describe("what a search result opens (ADR-247)", () => {
     expect(state.openArsenalBallId).toBeNull();
   });
 });
+
+describe("a catalog ball opened from another's page (ADR-257)", () => {
+  const onA = run([
+    { type: "pushOverlay", overlay: "catalog" },
+    { type: "openCatalogBall", ballId: "a" }
+  ]);
+
+  it("goes over that ball, which stays underneath", () => {
+    const onB = run([{ type: "openCatalogBall", ballId: "b" }], onA);
+    expect(onB.catalogBallId).toBe("b");
+    expect(onB.catalogBallTrail).toEqual(["a"]);
+    expect(run([{ type: "openCatalogBall", ballId: "c" }], onB).catalogBallTrail).toEqual(["a", "b"]);
+  });
+
+  it("back returns to the ball beneath, then to the list", () => {
+    const onB = run([{ type: "openCatalogBall", ballId: "b" }], onA);
+    const back = run([{ type: "popOverlay" }], onB);
+    expect(back.catalogBallId).toBe("a");
+    expect(back.catalogBallTrail).toEqual([]);
+    expect(run([{ type: "popOverlay" }], back).catalogBallId).toBeNull();
+  });
+
+  it("follows the platform's back and forward through the stack", () => {
+    const onC = run([{ type: "openCatalogBall", ballId: "b" }, { type: "openCatalogBall", ballId: "c" }], onA);
+    const backToA = run([{ type: "restore", route: parseRoute("#/home/catalog/ball/a") }], onC);
+    expect(backToA.catalogBallId).toBe("a");
+    expect(backToA.catalogBallTrail).toEqual([]);
+    const forward = run([{ type: "restore", route: parseRoute("#/home/catalog/ball/b") }], backToA);
+    expect(forward.catalogBallTrail).toEqual(["a"]);
+    const toList = run([{ type: "restore", route: parseRoute("#/home/catalog") }], onC);
+    expect(toList.catalogBallId).toBeNull();
+    expect(toList.catalogBallTrail).toEqual([]);
+  });
+
+  it("opening the same ball again stacks nothing, and closing the catalog drops the trail", () => {
+    expect(run([{ type: "openCatalogBall", ballId: "a" }], onA).catalogBallTrail).toEqual([]);
+    const onB = run([{ type: "openCatalogBall", ballId: "b" }], onA);
+    const settings = run([{ type: "goToSettingsSection", section: "lanes" }], onB);
+    expect(settings.catalogBallTrail).toEqual([]);
+  });
+});

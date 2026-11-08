@@ -78,3 +78,31 @@ test("renders the catalog a page at a time, and grows as you scroll", async ({ p
   await rows.last().scrollIntoViewIfNeeded();
   await expect.poll(async () => rows.count()).toBeGreaterThan(first);
 });
+
+/**
+ * A ball opened from another's Same core row goes over that ball (ADR-257):
+ * the first ball stays drawn beneath while the second slides in, and back
+ * returns to it, never through the list.
+ */
+test("a ball opened from another's row stacks on it, and back returns to it", async ({ page }) => {
+  await page.getByRole("button", { name: "Catalog" }).click();
+  await page.getByPlaceholder("Search name, brand, coverstock…").fill("PhysiX Ignition");
+  await page.getByRole("button", { name: /PhysiX Ignition/ }).first().click();
+  const first = page.getByRole("dialog", { name: "PhysiX Ignition" });
+  await expect(first).toBeVisible();
+
+  const core = first.getByRole("region", { name: /^Same core/ });
+  const next = core.getByRole("listitem").first();
+  const nextName = (await next.locator("span span").last().innerText()).trim();
+  await next.getByRole("button").click();
+
+  const second = page.getByRole("dialog", { name: nextName });
+  await expect(second).toBeVisible();
+  // The first ball is still there underneath, so a drag back uncovers it.
+  await expect(first).toHaveCount(1);
+
+  await page.goBack();
+  await expect(second).toHaveCount(0);
+  await expect(first).toBeVisible();
+  await expect(first.getByRole("region", { name: /^Same core/ })).toBeVisible();
+});
