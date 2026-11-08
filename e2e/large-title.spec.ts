@@ -38,13 +38,21 @@ test("a section pushed from a scrolled Settings has its own bar and back, not Se
   // Nothing of Settings' is painted over the section's back button. Its
   // compact bar lets taps through, which hid it from a hit test, so the probe
   // makes it hittable first: what is hit is then what is painted on top.
-  const onTop = await back.evaluate((el) => {
-    document.querySelectorAll<HTMLElement>("[data-compact-title]").forEach((b) => (b.style.pointerEvents = "auto"));
-    const r = el.getBoundingClientRect();
-    const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
-    return hit !== null && (el === hit || el.contains(hit));
-  });
-  expect(onTop).toBe(true);
+  // Polled, because the section is still sliding in when its button first
+  // shows, and mid-slide WebKit hits what the slide has yet to cover.
+  await page.evaluate(() =>
+    document.querySelectorAll<HTMLElement>("[data-compact-title]").forEach((b) => (b.style.pointerEvents = "auto"))
+  );
+  await expect
+    .poll(() =>
+      back.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+        if (hit !== null && (el === hit || el.contains(hit))) return "the back button";
+        return hit ? `${hit.tagName.toLowerCase()} ${hit.getAttribute("data-compact-title") !== null ? "(Settings' bar)" : hit.className}` : "nothing";
+      })
+    )
+    .toBe("the back button");
   await page.evaluate(() =>
     document.querySelectorAll<HTMLElement>("[data-compact-title]").forEach((b) => (b.style.pointerEvents = ""))
   );
