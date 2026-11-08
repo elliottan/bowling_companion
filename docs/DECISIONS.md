@@ -10577,3 +10577,42 @@ it was drawn only over the large title.
 - Matching is by name only. Two balls on one core that the sources name
   differently ("Gas Mask" and "Gas Mask Core 2.0") are two cores here, which is
   usually right: a revised core is a different block.
+
+## ADR-253: A word is never broken across two lines
+
+**Status.** Accepted, 2026-11-08, at the owner's request.
+
+**Context.** The layout lab's first slider read "DRILLING AN-" over "GLE": its
+label sits in a fixed column, and the column hyphenated what did not fit.
+Seven places in the app set `hyphens-auto`, and two `overflow-wrap: anywhere`,
+so that a long translation at the largest text size broke rather than ran
+over its neighbour. That kept the layout and lost the word.
+
+**Decision.**
+
+- **Nothing hyphenates or breaks anywhere.** Every `hyphens-auto` and
+  `overflow-wrap: anywhere` is gone; lines break between words.
+- **The slider is "Drill angle"**, which wraps as "Drill" over "angle" where
+  it must, in every language's own short form. The guide's drawing keeps
+  "Drilling angle": it teaches the term, and has the room.
+- **A word wider than its box shrinks rather than breaks** (`WholeWords`):
+  the box is a size container, and the type is the smaller of its own size
+  and the box's width over the longest word's estimated width
+  (`longestWordEm`, from the same estimate the stats tables size their
+  columns by, and 6% over). Where the word fits, which is nearly always, the
+  type is its usual size. The scorer's four line fields ("Deslizamiento",
+  "Gelongsor") and Home's three tiles ("Rencana", a Korean tile's sentence)
+  use it. A row whose label was squeezed by its neighbours (Open frames)
+  wraps instead.
+- **`text-fit.spec.ts` reports `split-word`**: any word drawn across two
+  lines, in every language and screen it walks. A break at a hyphen or slash
+  the word already has is a line break, and runs of Chinese or Japanese are
+  left to the browser, since they have no spaces to find a word by.
+
+**Consequences.**
+
+- A long word at the largest text size is drawn a little smaller in the few
+  boxes that cannot hold it, which reads better than half a word.
+- Home's tile description is clamped to its two lines again: a `block` beside
+  `line-clamp-2` had won the display, so the clamp never held.
+

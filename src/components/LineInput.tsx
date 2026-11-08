@@ -5,6 +5,7 @@ import { t } from "@lingui/core/macro";
  * ActiveGameScorer, which hosts it twice through ShotDetailBar: once for the
  * Intended line, once for the Actual one.
  */
+import { WholeWords } from "./ui/WholeWords";
 import { formatNumber } from "../lib/format";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
@@ -352,12 +353,12 @@ export function LineInput({
         {focused && adjusterPanel()}
         {fields.map((field) => (
           // A column whose input sits at the bottom, so the four boxes stay
-          // level when one name takes two lines: "Deslizamiento" is wider
-          // than a quarter of a phone at a large text size, and breaks
-          // (hyphenated where the language allows) rather than running into
-          // the name beside it.
+          // level when one name takes two lines. "Deslizamiento" is wider
+          // than a quarter of a phone at a large text size: its type shrinks
+          // to fit the word whole rather than break it, or run into the name
+          // beside it.
           <label key={field} className="flex min-w-0 flex-1 flex-col justify-end">
-            <span className={`${floatLabel} hyphens-auto break-words pb-0.5 leading-tight`}>{fieldLabel(field)}</span>
+            <WholeWords text={fieldLabel(field)} upper className={`${floatLabel} pb-0.5 leading-tight`} />
             <input
               type="text"
               inputMode="decimal"

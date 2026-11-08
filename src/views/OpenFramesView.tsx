@@ -55,11 +55,14 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
               onClick={() => setNote((n) => !n)}
               className="w-full rounded-xl border border-edge bg-surface p-4 text-left shadow-sm"
             >
-              <span className="flex items-baseline gap-2">
+              {/* Wraps rather than squeezing: the label is never narrower
+                  than its longest word ("permainan" at the largest text
+                  size), so the games count drops to a line of its own. */}
+              <span className="flex flex-wrap items-baseline gap-x-2">
                 <span className="text-4xl font-bold tabular-nums leading-none text-ink">
                   {oneDecimal(report.openFramesPerGame)}
                 </span>
-                <span className="min-w-0 break-words text-sm font-semibold text-ink-secondary">
+                <span className="break-words text-sm font-semibold text-ink-secondary">
                   {t({ message: "open frames a game", comment: "Bowling term: an open frame is one with pins left standing after both balls. Lowercase label next to a number." })}
                 </span>
                 <span className="ml-auto shrink-0 text-xs tabular-nums text-ink-tertiary">

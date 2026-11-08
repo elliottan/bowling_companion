@@ -30,6 +30,12 @@ import { clearDatabase } from "./helpers";
  *                    button of fixed height whose label took two lines
  *   spills-card      a control or text inside a bordered box (a card) drawn
  *                    past that box's edge, over whatever sits beside it
+ *   split-word       a word drawn across two lines ("AN-" / "GLE"): a box
+ *                    narrower than one of its words breaks it in two, with
+ *                    a hyphen or without, and a word is read whole. Breaking
+ *                    at a hyphen or slash the word already has is a line
+ *                    break, not a split. Runs of Chinese or Japanese, which
+ *                    have no spaces between words, are left to the browser.
  *
  * The three spills are measured from where the text and controls are drawn,
  * never from scrollWidth or scrollHeight, which also count the invisible
@@ -444,6 +450,29 @@ function detectOverflow(): Array<{ text: string; path: string; kind: string; wid
       }
       if (!isClipping(cs.overflowY) && (top < rect.top - slackY || bottom > rect.bottom + slackY)) {
         record(el, "spills-y", `text ${Math.round(top)}..${Math.round(bottom)} outside its box ${Math.round(rect.top)}..${Math.round(rect.bottom)}`);
+      }
+    }
+
+    // A word broken across two lines. Each word's own boxes, from a range
+    // over just that word: two lines are two rects at different heights.
+    if (!inScroller && right > left) {
+      for (const n of Array.from(el.childNodes)) {
+        if (n.nodeType !== Node.TEXT_NODE) continue;
+        const text = n.textContent ?? "";
+        for (const m of text.matchAll(/[^\s\-\u2010/]+/g)) {
+          if (m[0].length < 2 || /[\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff]/.test(m[0])) continue;
+          range.setStart(n, m.index!);
+          range.setEnd(n, m.index! + m[0].length);
+          const tops = new Set(
+            Array.from(range.getClientRects())
+              .filter((r) => r.width > 0)
+              .map((r) => Math.round(r.top))
+          );
+          if (tops.size > 1) {
+            record(el, "split-word", `"${m[0]}" across ${tops.size} lines in a box ${Math.round(rect.width)} wide`);
+            break;
+          }
+        }
       }
     }
 

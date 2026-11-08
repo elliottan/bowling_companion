@@ -467,7 +467,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
                     className="type-cap-fixed flex w-full flex-wrap items-center justify-center gap-1 py-1 text-center text-xs font-semibold leading-tight text-accent active:opacity-80"
                   >
                     <LayoutGrid size={13} aria-hidden="true" className="shrink-0" />
-                    <span className="min-w-0 max-w-full hyphens-auto break-words">{t`Presets`}</span>
+                    <span className="min-w-0 max-w-full break-words">{t`Presets`}</span>
                   </button>
                 )}
               </div>

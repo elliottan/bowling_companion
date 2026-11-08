@@ -21,6 +21,12 @@ had all shipped.
   is gone, and the count is now "10 results" under the Catalog title, where
   it takes no room from the list. The Filters button lights up with how many
   filters are on, and they come off in the sheet.
+- No word is ever broken across two lines. The layout lab's first slider is
+  now "Drill angle", which wraps as two words where it has to; in the few
+  boxes too narrow for one long word at the largest text size (the scorer's
+  line fields, Home's tiles) the word is drawn a little smaller instead of
+  being split (ADR-253).
+- Home's tiles hold their description to two lines again.
 - A ball's page keeps its brand in sight: over the name in the bar once you
   scroll, and as a Brand row in its specs.
 - Every ball photo stands on its own, with no grey square behind it: in the

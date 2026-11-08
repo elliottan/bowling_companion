@@ -839,6 +839,18 @@ sentence or two, with a small drawing where the word names something seen
 on the lane, and a search at the top of the page. A word is shown, not
 described, wherever it can be.
 
+**A word is never broken across two lines** (ADR-253). Text wraps between
+words, never inside one, with a hyphen or without: "DRILLING AN-" over "GLE"
+is a word read in two pieces. Nothing hyphenates (`hyphens-auto`) or breaks
+anywhere (`overflow-wrap: anywhere`). A label in a narrow box is short enough
+to wrap between its words in every language; where even one word is wider than
+its box at the largest text size (a quarter of a phone, a third of Home), it
+is a `WholeWords`, whose type shrinks just enough to hold that word whole.
+`break-words` stays as the last resort for a string nobody can shorten, a
+bowler's own name. Korean keeps its words whole and Japanese breaks at
+phrases (`src/index.css`); Chinese, which has no words to keep, breaks
+between characters.
+
 Sentence case everywhere except the small uppercase group headings, which take
 their classes from `GROUP_HEADING` (`src/components/ui/typography.ts`). Second
 person, active voice, and say what happens rather than what the app does:

@@ -49,7 +49,7 @@ describe("BallFormDialog layout", () => {
     render(<BallFormDialog ball={null} onClose={vi.fn()} onSaved={vi.fn()} />);
     fireEvent.change(screen.getByLabelText(/Display name/), { target: { value: "Phaze II" } });
     fireEvent.click(screen.getByRole("button", { name: /Add layout/ }));
-    fireEvent.change(screen.getByRole("slider", { name: "Drilling angle" }), {
+    fireEvent.change(screen.getByRole("slider", { name: "Drill angle" }), {
       target: { value: "60" }
     });
     save();
@@ -304,7 +304,7 @@ describe("BallFormDialog without Pro (ADR-193)", () => {
     );
     fireEvent.change(screen.getByLabelText(/Display name/), { target: { value: "Phaze II" } });
     fireEvent.click(screen.getByRole("button", { name: /Add layout/ }));
-    fireEvent.change(screen.getByRole("slider", { name: "Drilling angle" }), { target: { value: "60" } });
+    fireEvent.change(screen.getByRole("slider", { name: "Drill angle" }), { target: { value: "60" } });
     save();
 
     await waitFor(async () => expect((await saved("Phaze II"))?.layout_spec?.drillingAngle).toBe(60));

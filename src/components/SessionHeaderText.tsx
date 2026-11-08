@@ -30,7 +30,7 @@ export function SessionHeaderText({
   const meta = sessionMetaLine(session);
   const name =
     variant === "page"
-      ? "text-title-2 font-bold leading-tight text-ink hyphens-auto break-words"
+      ? "text-title-2 font-bold leading-tight text-ink break-words"
       : variant === "bar"
         ? "truncate text-body font-semibold leading-tight text-ink"
         : "break-words text-body font-semibold leading-tight text-ink";

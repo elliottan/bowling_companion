@@ -1666,10 +1666,13 @@ msgstr "Anjakan"
 msgid "DRILL"
 msgstr "GERUDI"
 
-#. Bowling term: the angle at the pin between the bowler's PAP and the ball's CG or PSA
+#. Bowling term: the drilling angle, the angle at the pin between the bowler's PAP and the ball's CG or PSA. A short slider label in a narrow column: keep it short, and never a word that only fits by splitting.
+#: src/components/LayoutEditor.tsx
+msgid "Drill angle"
+msgstr "Sudut gerudi"
+
 #. Bowling term: the angle from the grip midline to the pin line at the PAP. A label on a ball diagram, wrapped onto lines at its spaces.
 #: src/components/GuideFigure.tsx
-#: src/components/LayoutEditor.tsx
 msgid "Drilling angle"
 msgstr "Sudut gerudi"
 

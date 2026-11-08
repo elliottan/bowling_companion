@@ -310,7 +310,7 @@ export function PushScreen({
                 {eyebrow && (
                   <p className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{eyebrow}</p>
                 )}
-                <h1 data-title-name="" className={`${LARGE_TITLE} hyphens-auto break-words`}>{title}</h1>
+                <h1 data-title-name="" className={`${LARGE_TITLE} break-words`}>{title}</h1>
                 {subtitle && <p className="mt-0.5 text-sm text-ink-secondary">{subtitle}</p>}
               </div>
             ))}

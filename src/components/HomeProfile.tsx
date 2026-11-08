@@ -1,4 +1,5 @@
 import { plural, t } from "@lingui/core/macro";
+import { WholeWords } from "./ui/WholeWords";
 import { ChevronRight, Plus } from "lucide-react";
 import type { ReactNode } from "react";
 import { BowlingBallIcon } from "./icons";
@@ -179,15 +180,15 @@ function Tile({
       </span>
       <span className="block w-full min-w-0 px-3 pb-3 pt-1">
         {/* One line at the standard size; at a large text size a name
-            wider than its third of the row takes a second line rather than
-            running into the next tile. Hyphenated and free to break, as the
-            tool cards' names are. */}
-        <span className="block hyphens-auto text-subhead font-semibold leading-tight tracking-tight text-ink [overflow-wrap:anywhere]">
-          {label}
-        </span>
+            wider than its third of the row takes a second line, between
+            words, and a word wider than the whole tile ("Rencana") is drawn
+            a little smaller rather than broken. */}
+        <WholeWords text={label} className="block text-subhead font-semibold leading-tight tracking-tight text-ink" />
         {/* Two lines, not one: an empty tile says what it is for, and that
             is a short sentence rather than a count. */}
-        <span className="line-clamp-2 block text-xs text-ink-secondary">{detail ?? " "}</span>
+        <WholeWords text={detail ?? ""} className="line-clamp-2 text-xs text-ink-secondary">
+          {detail ?? " "}
+        </WholeWords>
       </span>
     </button>
   );
