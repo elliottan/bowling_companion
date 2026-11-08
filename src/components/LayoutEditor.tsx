@@ -121,7 +121,7 @@ export function LayoutEditor({
           <Slider
             idPrefix={idPrefix}
             locked={frozen}
-            label={t({ message: "Drilling angle", comment: "Bowling term: the angle at the pin between the bowler's PAP and the ball's CG or PSA" })}
+            label={t({ message: "Drill angle", comment: "Bowling term: the drilling angle, the angle at the pin between the bowler's PAP and the ball's CG or PSA. A short slider label in a narrow column: keep it short, and never a word that only fits by splitting." })}
             hint={t({ message: "Angle at the pin between your PAP and the CG or PSA. A low angle rolls early; a high one rolls later.", comment: "Bowling terms: PAP is the positive axis point, CG the center of gravity, PSA the preferred spin axis" })}
             value={layout.drillingAngle}
             min={0}
@@ -307,7 +307,7 @@ export function Slider({
         onClick={() => setHintOpen((v) => !v)}
         aria-expanded={hintOpen}
         aria-controls={`${id}-hint`}
-        className={`${FIELD_MICRO_LABEL} mb-0 inline-flex w-[calc(6.75rem*var(--type-scale))] shrink-0 items-center gap-1 hyphens-auto break-words text-left leading-tight`}
+        className={`${FIELD_MICRO_LABEL} mb-0 inline-flex w-[calc(6.75rem*var(--type-scale))] shrink-0 items-center gap-1 break-words text-left leading-tight`}
       >
         {label}
         <Info size={11} aria-hidden="true" className="shrink-0 opacity-60" />

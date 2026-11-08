@@ -95,9 +95,10 @@ keyboard, not the size of the job:
   options float the same way. The one
   exception to the leading close is a sheet that has already applied everything
   as you went, the filter sheets being the only ones: there is nothing to cancel,
-  so an X would be a lie about what leaving does. Those carry no leading control
-  and a tick trailing instead (`dismissAs="done"`), which reads as keeping what
-  is on screen.
+  so an X would be a lie about what leaving does. Those carry a tick trailing
+  instead (`dismissAs="done"`), which reads as keeping what is on screen, and
+  where the X would be, a glass "Clear all" capsule (`leading`) that undoes
+  every choice in the sheet and is dimmed while there is none (ADR-253).
 - **`ConfirmDialog`** settles in the middle and scales back out. Questions with
   buttons, including a confirm that has to be earned by typing a phrase, because
   typing `ERASE` is answering rather than entering. In the iPhone app a confirm
@@ -107,7 +108,10 @@ keyboard, not the size of the job:
 - **Filters are a sheet, never a popover or a block.** Every list's filters
   (History, Stats, the catalog, Oil patterns) rise from the bottom edge in a
   `FormSheet` with `dismissAs="done"`, and apply as each choice is made, so the
-  list's own chips show the narrowing while the sheet is up. Opened inline they
+  list shows the narrowing while the sheet is up. The catalog's list carries
+  no chips of its own: its Filters button is lit, with how many are on, the
+  sheet is where a filter comes off, and the count ("10 results") is the large
+  title's subtitle rather than a row over the list (ADR-253). Opened inline they
   pushed every ball down the screen each time a chip was chosen; dropped down
   as a card over the list, the catalog's read as a web page's menu beside the
   sheets everywhere else.
@@ -846,6 +850,18 @@ guide's title, summary and a card, then hands the visitor to the app.
 sentence or two, with a small drawing where the word names something seen
 on the lane, and a search at the top of the page. A word is shown, not
 described, wherever it can be.
+
+**A word is never broken across two lines** (ADR-254). Text wraps between
+words, never inside one, with a hyphen or without: "DRILLING AN-" over "GLE"
+is a word read in two pieces. Nothing hyphenates (`hyphens-auto`) or breaks
+anywhere (`overflow-wrap: anywhere`). A label in a narrow box is short enough
+to wrap between its words in every language; where even one word is wider than
+its box at the largest text size (a quarter of a phone, a third of Home), it
+is a `WholeWords`, whose type shrinks just enough to hold that word whole.
+`break-words` stays as the last resort for a string nobody can shorten, a
+bowler's own name. Korean keeps its words whole and Japanese breaks at
+phrases (`src/index.css`); Chinese, which has no words to keep, breaks
+between characters.
 
 Sentence case everywhere except the small uppercase group headings, which take
 their classes from `GROUP_HEADING` (`src/components/ui/typography.ts`). Second

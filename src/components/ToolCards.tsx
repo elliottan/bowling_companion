@@ -151,7 +151,7 @@ function CatalogArt() {
           key={ball.src}
           className={`shrink-0 rounded-full shadow-md ${i === 1 ? "z-10 h-16 w-16" : "h-12 w-12"} ${i > 0 ? "-ml-3" : ""}`}
         >
-          <CatalogBallImage src={ball.src} alt="" brand={ball.brand} size="thumb" bare />
+          <CatalogBallImage src={ball.src} alt="" brand={ball.brand} size="thumb" />
         </span>
       ))}
     </div>
@@ -176,7 +176,7 @@ function ToolCard({
       <span className="block aspect-[2/1] w-full overflow-hidden">{art}</span>
       {/* Hyphenated and free to break: at the largest text size a long word
           ("Especificaciones") is wider than half the screen. */}
-      <span className="block w-full hyphens-auto px-3 pb-3 pt-2 [overflow-wrap:anywhere]">
+      <span className="block w-full break-words px-3 pb-3 pt-2">
         <span className="block text-subhead font-semibold leading-tight text-ink">{label}</span>
       </span>
     </button>

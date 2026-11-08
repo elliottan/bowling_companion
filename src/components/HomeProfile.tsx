@@ -1,4 +1,5 @@
 import { plural, t } from "@lingui/core/macro";
+import { WholeWords } from "./ui/WholeWords";
 import { ChevronRight, Plus } from "lucide-react";
 import type { ReactNode } from "react";
 import { BowlingBallIcon } from "./icons";
@@ -50,7 +51,6 @@ export function ArsenalRow({ balls, onOpenArsenal }: { balls: Ball[] | undefined
                   alt=""
                   brand={ball.catalog_snapshot.brand as Manufacturer}
                   size="thumb"
-                  bare
                 />
               ) : (
                 <span className="flex h-full w-full items-center justify-center rounded-full bg-surface-muted text-ink-tertiary">
@@ -180,15 +180,16 @@ function Tile({
       </span>
       <span className="block w-full min-w-0 px-3 pb-3 pt-1">
         {/* One line at the standard size; at a large text size a name
-            wider than its third of the row takes a second line rather than
-            running into the next tile. Hyphenated and free to break, as the
-            tool cards' names are. */}
-        <span className="block hyphens-auto text-subhead font-semibold leading-tight tracking-tight text-ink [overflow-wrap:anywhere]">
-          {label}
-        </span>
-        {/* Two lines, not one: an empty tile says what it is for, and that
-            is a short sentence rather than a count. */}
-        <span className="line-clamp-2 block text-xs text-ink-secondary">{detail ?? " "}</span>
+            wider than its third of the row takes a second line, between
+            words, and a word wider than the whole tile ("Rencana") is drawn
+            a little smaller rather than broken. */}
+        <WholeWords text={label} className="block text-subhead font-semibold leading-tight tracking-tight text-ink" />
+        {/* A short sentence rather than a count: an empty tile says what it
+            is for. Wrapped in full, not clamped: at the largest text size it
+            takes three or four lines, and a clamp hid the end of it. */}
+        <WholeWords text={detail ?? ""} className="block text-xs text-ink-secondary">
+          {detail ?? " "}
+        </WholeWords>
       </span>
     </button>
   );

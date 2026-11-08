@@ -169,17 +169,120 @@ describe("CatalogView", () => {
     renderCatalog();
     await screen.findByText("Ball 0");
 
+    expect(screen.getAllByText("3 results")).toHaveLength(2); // under the title, and the bar's copy
     fireEvent.click(screen.getByRole("button", { name: /^Filters/ }));
     // A sheet from the bottom edge, as every other filter sheet in the app is,
     // not a card dropped down over the list.
     const sheet = screen.getByRole("dialog", { name: "Filters" });
     fireEvent.click(within(sheet).getByRole("button", { name: "Storm" }));
-    // Applied at once: the chip under the search says so while the sheet is up.
-    expect(screen.getByRole("button", { name: "Remove filter: Storm" })).toBeInTheDocument();
+    // Applied at once: the Filters button lights up with the count while the
+    // sheet is still up.
+    const filtersButton = () => screen.getByRole("button", { name: /^Filters/ });
+    expect(filtersButton()).toHaveAttribute("aria-pressed", "true");
+    expect(filtersButton()).toHaveTextContent("1");
 
     fireEvent.click(within(sheet).getByRole("button", { name: "Done" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Filters" })).not.toBeInTheDocument());
-    // What was chosen stays, as a chip that can be removed.
-    expect(screen.getByRole("button", { name: "Remove filter: Storm" })).toBeInTheDocument();
+    // The count under the title follows the list.
+    expect(screen.getAllByText("3 results")).toHaveLength(2); // under the title, and the bar's copy
+    // What was chosen stays, on the button alone: no chips under the search.
+    expect(filtersButton()).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByRole("button", { name: /^Remove filter/ })).not.toBeInTheDocument();
+  });
+
+  it("clears every filter from the sheet's leading corner, and keeps the search", async () => {
+    await seedCatalog(3);
+    renderCatalog();
+    await screen.findByText("Ball 0");
+
+    fireEvent.change(screen.getByPlaceholderText("Search name, brand, coverstock…"), { target: { value: "Ball" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Filters/ }));
+    const sheet = screen.getByRole("dialog", { name: "Filters" });
+    // Nothing to clear yet, so it is there but cannot be pressed.
+    expect(within(sheet).getByRole("button", { name: "Clear all" })).toBeDisabled();
+
+    fireEvent.click(within(sheet).getByRole("button", { name: "Storm" }));
+    fireEvent.click(within(sheet).getByRole("button", { name: "Clear all" }));
+    expect(screen.getByRole("button", { name: /^Filters/ })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByPlaceholderText("Search name, brand, coverstock…")).toHaveValue("Ball");
+  });
+
+  describe("a ball's page", () => {
+    /** Five on one core, two of them in one cover, and one on a core of its own. */
+    async function seedKin() {
+      const base = {
+        brand: "Storm",
+        coverstockCategory: "Pearl",
+        coreType: "Symmetric",
+        rg: 2.5,
+        diff: 0.05,
+        mbDiff: null,
+        releaseYear: 2025,
+        imageThumb: null,
+        imageFull: null,
+        productUrl: null,
+        weights: [],
+        colorways: []
+      };
+      const balls = [
+        { id: "a", name: "Alpha", coreName: "Velocity Core", coverstockRaw: "R2S Pearl", releaseDate: "2025-05" },
+        { id: "b", name: "Bravo", coreName: "Velocity", coverstockRaw: "R2S Pearl", releaseDate: "2025-04" },
+        { id: "c", name: "Charlie", coreName: "Velocity", coverstockRaw: "TX-16 Solid", releaseDate: "2025-03" },
+        { id: "d", name: "Delta", coreName: "Velocity", coverstockRaw: "TX-16 Solid", releaseDate: "2025-02" },
+        { id: "e", name: "Echo", coreName: "Velocity", coverstockRaw: "Pearl Reactive", releaseDate: "2025-01" },
+        { id: "f", name: "Foxtrot", coreName: "Gear", coverstockRaw: "Pearl Reactive", releaseDate: "2024-01" }
+      ].map((b) => ({ ...base, ...b })) as unknown as CatalogBall[];
+      await db.ball_catalog.bulkPut(balls);
+    }
+
+    it("names the brand among the specs, and offers the balls on its core and in its cover", async () => {
+      await seedKin();
+      const onSelectBall = vi.fn();
+      render(<CatalogView onBack={vi.fn()} selectedBallId="a" onSelectBall={onSelectBall} />);
+
+      const core = await screen.findByRole("region", { name: "Same core: Velocity Core" });
+      expect(screen.getByText("Brand").nextSibling).toHaveTextContent("Storm");
+      // Newest first, three to a row, and the rest under View all.
+      expect(within(core).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+        "StormBravo",
+        "StormCharlie",
+        "StormDelta"
+      ]);
+      expect(within(core).getByRole("button", { name: "View all 5 balls" })).toBeInTheDocument();
+
+      const cover = screen.getByRole("region", { name: "Same cover: R2S Pearl" });
+      expect(within(cover).getAllByRole("listitem")).toHaveLength(1);
+      // Everything it holds is shown, so there is nothing to view all of.
+      expect(within(cover).queryByRole("button", { name: /View all/ })).not.toBeInTheDocument();
+
+      fireEvent.click(within(cover).getByRole("button", { name: /Bravo/ }));
+      expect(onSelectBall).toHaveBeenCalledWith("b");
+    });
+
+    it("starts no cover row for a cover that names only a kind", async () => {
+      await seedKin();
+      render(<CatalogView onBack={vi.fn()} selectedBallId="e" onSelectBall={vi.fn()} />);
+
+      await screen.findByRole("region", { name: "Same core: Velocity" });
+      expect(screen.queryByRole("region", { name: /Same cover/ })).not.toBeInTheDocument();
+    });
+
+    it("goes back to the list filtered to the core from View all", async () => {
+      await seedKin();
+      const onBack = vi.fn();
+      const { rerender } = render(<CatalogView onBack={onBack} selectedBallId="a" onSelectBall={vi.fn()} />);
+
+      const core = await screen.findByRole("region", { name: "Same core: Velocity Core" });
+      fireEvent.click(within(core).getByRole("button", { name: "View all 5 balls" }));
+      expect(onBack).toHaveBeenCalled();
+      rerender(<CatalogView onBack={onBack} selectedBallId={null} onSelectBall={vi.fn()} />);
+
+      // Every spelling of the core, and nothing else.
+      await waitFor(() => expect(screen.getByRole("button", { name: /^Filters/ })).toHaveAttribute("aria-pressed", "true"));
+      expect(screen.getAllByText("5 results")).toHaveLength(2);
+      const names = screen.getAllByRole("listitem").map((li) => li.textContent ?? "");
+      expect(names.filter((text) => /Alpha|Bravo|Charlie|Delta|Echo|Foxtrot/.test(text))).toHaveLength(5);
+      expect(names.some((text) => text.includes("Foxtrot"))).toBe(false);
+    });
   });
 });

@@ -10562,3 +10562,98 @@ how often or how well the bowler had bowled across a month.
 History is the one exception, and DESIGN-LANGUAGE says so. The calendar
 reads the same filtered list as the rows, so the two can never disagree.
 
+## ADR-253: A catalog ball shows the balls on its core and in its cover, and the catalog filters by either
+
+**Status.** Accepted, 2026-11-08, at the owner's request. Follows ADR-196.
+
+**Context.** A ball's page said what it was made of and stopped there. The
+question a bowler brings to it is often the next one: what else is built on
+this core, or wears this cover? The catalog could not answer it either: its
+filters took a cover type and a core type, never one cover or one core by
+name. The brand also left the page as the name scrolled under the bar, since
+it was drawn only over the large title.
+
+**Decision.**
+
+- **Two rows under Add to arsenal**, "Same core: Velocity" and "Same cover:
+  R2S Pearl Reactive". Each holds three balls, newest first, and does not
+  scroll; the rest is under a View all pill at its foot, as a card holds what
+  it shows (ADR-196). The pill counts the list it opens, the ball itself
+  included. A tap on a ball opens its page. View all goes back to
+  the list filtered to that core or that cover alone, with the search and
+  every other filter cleared, since they would only hide some of what the row
+  counted.
+- **One name, one key** (`src/lib/catalogKin.ts`). The sources spell one core
+  several ways ("Torsion A.I. Core", "Torsion AI"), so a name is compared
+  lower case with "core", spaces and punctuation dropped. The rows and the
+  filters use the same key, so View all lands on exactly the balls its row
+  counted.
+- **A name that is only a kind starts no row.** "Solid Reactive", "Polyester"
+  or "Pancake" is shared by balls that have nothing in common but the kind, so
+  a ball whose cover or core is named only that way shows no row for it. The
+  filter still takes such a name, since there it is asked for.
+- **Core and Cover are filters**, each a `ChoiceInput` (there are hundreds),
+  beside Core type and the cover chips, now headed Cover type so the two read
+  apart. The filter offers one spelling per key, the one most balls use.
+- **Clear all sits where the X would be** on a `"done"` sheet, a glass
+  capsule, dimmed while nothing is chosen. It replaces "Reset all filters" at
+  the foot of the catalog's sheet, which had to be scrolled to. It leaves the
+  search, which is not a choice in the sheet.
+- **The list keeps its height for balls.** The chips under the search, one
+  per filter, are gone, and so is the count's own row over the list ("10 balls
+  of 848"): three filters took a second row and the count a third, before the
+  first ball. The Filters button is lit while any filter is on and says how
+  many, and the sheet is where one comes off. The count is "10 results" under
+  the large title, which scrolls away with it and comes up into the bar with
+  the name, so it costs the pinned search and filters nothing.
+- **The brand stays with the name.** A pushed screen's eyebrow comes up into
+  the bar with its title, and the ball's specs carry a Brand row.
+
+**Consequences.**
+
+- A ball opened from a row is a navigation of its own (`shouldPushHistory`),
+  so the platform's back returns to the ball it was opened from; the screen's
+  back still returns to the list.
+- Matching is by name only. Two balls on one core that the sources name
+  differently ("Gas Mask" and "Gas Mask Core 2.0") are two cores here, which is
+  usually right: a revised core is a different block.
+
+## ADR-254: A word is never broken across two lines
+
+**Status.** Accepted, 2026-11-08, at the owner's request.
+
+**Context.** The layout lab's first slider read "DRILLING AN-" over "GLE": its
+label sits in a fixed column, and the column hyphenated what did not fit.
+Seven places in the app set `hyphens-auto`, and two `overflow-wrap: anywhere`,
+so that a long translation at the largest text size broke rather than ran
+over its neighbour. That kept the layout and lost the word.
+
+**Decision.**
+
+- **Nothing hyphenates or breaks anywhere.** Every `hyphens-auto` and
+  `overflow-wrap: anywhere` is gone; lines break between words.
+- **The slider is "Drill angle"**, which wraps as "Drill" over "angle" where
+  it must, in every language's own short form. The guide's drawing keeps
+  "Drilling angle": it teaches the term, and has the room.
+- **A word wider than its box shrinks rather than breaks** (`WholeWords`):
+  the box is a size container, and the type is the smaller of its own size
+  and the box's width over the longest word's estimated width
+  (`longestWordEm`, from the same estimate the stats tables size their
+  columns by, and 6% over). Where the word fits, which is nearly always, the
+  type is its usual size. The scorer's four line fields ("Deslizamiento",
+  "Gelongsor") and Home's three tiles ("Rencana", a Korean tile's sentence)
+  use it. A row whose label was squeezed by its neighbours (Open frames)
+  wraps instead.
+- **`text-fit.spec.ts` reports `split-word`**: any word drawn across two
+  lines, in every language and screen it walks. A break at a hyphen or slash
+  the word already has is a line break, and runs of Chinese or Japanese are
+  left to the browser, since they have no spaces to find a word by.
+
+**Consequences.**
+
+- A long word at the largest text size is drawn a little smaller in the few
+  boxes that cannot hold it, which reads better than half a word.
+- Home's tile description is no longer marked as clamped to two lines. A
+  `block` beside `line-clamp-2` had always won the display, so the clamp never
+  held, and holding it hid the end of the sentence at the largest text size.
+

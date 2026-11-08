@@ -25,9 +25,6 @@ interface CatalogBallImageProps {
   alt: string;
   brand: Manufacturer;
   size: "thumb" | "full";
-  /** Drop the tile behind the ball, for a strip of balls on the page itself
-   *  where a square behind each round cut-out reads as a frame. */
-  bare?: boolean;
   /** Defer the download until the tile nears the screen. Only for the catalog
    *  grid, a couple of hundred balls deep. Everywhere else it is a handful of
    *  small, usually cached photos, and lazy loading only made them wait for
@@ -74,7 +71,7 @@ function BallPlaceholder({ brand, size }: { brand: Manufacturer; size: "thumb" |
 // covers a reload served from the HTTP cache.
 const decodedSrcs = new Set<string>();
 
-export function CatalogBallImage({ src: path, alt, brand, size, bare = false, lazy = false }: CatalogBallImageProps) {
+export function CatalogBallImage({ src: path, alt, brand, size, lazy = false }: CatalogBallImageProps) {
   // Every ball photo on every screen comes through here, so this is the one
   // place the store app is pointed at headpin.app for it (ADR-155).
   const src = siteUrl(path) ?? null;
@@ -135,11 +132,11 @@ export function CatalogBallImage({ src: path, alt, brand, size, bare = false, la
   return (
     // Reserved aspect-ratio box, prevents layout shift regardless of load state.
     // The SVG silhouette is always rendered underneath; the img fades in on load.
-    // The tile colour is a token, not slate-100: the product shots are cut-outs
-    // with transparent surrounds, so a hardcoded light grey was a white card
-    // glowing behind every ball in dark mode.
+    // No tile behind the ball: every photo is cut to a circle that fills its
+    // canvas (ADR-169), so a square behind it only showed as four corners, a
+    // frame around each ball in a row and on the ball's own page.
     <div
-      className={`relative w-full overflow-hidden ${bare ? "rounded-full" : "rounded-lg bg-surface-muted"}`}
+      className="relative w-full overflow-hidden rounded-full"
       style={{ aspectRatio: "1 / 1" }}
     >
       {/* Cross-fades out as the photo fades in, it has to leave, or the brand

@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, ChevronRight, Lock, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowRight, BarChart3, Lock, TrendingDown, TrendingUp } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { plural, t } from "@lingui/core/macro";
@@ -17,7 +17,7 @@ import { formatLeave, SPARE_GROUP_LABEL, SPARE_GROUPS, spareGroup } from "../lib
 import { SpareDetailsSheet } from "./SpareDetailsSheet";
 import { FormSheet } from "./ui/FormSheet";
 import { Chip, TAP_TARGET_44 } from "./ui/Chip";
-import { Button } from "./ui/Button";
+import { ViewAll } from "./ui/ViewAll";
 import { SegmentedControl } from "./ui/SegmentedControl";
 import {
   pinsPerBall,
@@ -754,33 +754,6 @@ const CARD_LEAVES = 6;
 
 /** Balls on the Balls card; every one is under All balls. */
 const CARD_BALLS = 6;
-
-/**
- * The way from a card to its whole list: a glass pill the card's width, at its
- * foot, where the thumb is once the card has been read (ADR-196). It used to
- * be a line of accent text in the card's top corner, "View all 78 leaves",
- * which read as a link in a heading and was a small target. The count stays,
- * so the bowler knows the size of what is behind it; the noun is for a screen
- * reader, since the card's heading already says what is counted.
- */
-function ViewAll({ count, noun, onClick }: { count: number; noun: "leaves" | "balls"; onClick: () => void }) {
-  const spoken =
-    noun === "leaves"
-      ? plural(count, {
-          one: "View all # leave",
-          other: "View all # leaves"
-        })
-      : plural(count, {
-          one: "View all # ball",
-          other: "View all # balls"
-        });
-  return (
-    <Button variant="glass" onClick={onClick} className="mt-3 w-full" aria-label={spoken}>
-      {t`View all ${{ count }}`}
-      <ChevronRight size={16} aria-hidden="true" className="-mr-1" />
-    </Button>
-  )
-}
 
 /** The leaves left most, of every shape, most often first (ADR-129), however
  *  few times each was left (ADR-139): a single session's card is still worth

@@ -25,13 +25,26 @@ const LATIN_EM = 0.72;
 const GAP_REM = 0.25;
 
 export function headingWidthRem(label: string): number {
+  return longestWordEm(label, true) * HEADING_EM + GAP_REM;
+}
+
+/** A lowercase or mixed-case Latin letter in a semibold face, in em. */
+const LATIN_MIXED_EM = 0.6;
+
+/**
+ * The width of a label's longest word, in em of its own type: an estimate,
+ * generous on purpose. Words are what a line may break between, so a hyphen
+ * or slash ends one too. `upper` for type drawn in capitals.
+ */
+export function longestWordEm(label: string, upper = false): number {
+  const latin = upper ? LATIN_EM : LATIN_MIXED_EM;
   let longest = 0;
-  for (const word of label.split(/\s+/)) {
+  for (const word of label.split(/[\s\-\u2010/]+/)) {
     let em = 0;
-    for (const ch of word) em += WIDE.test(ch) ? 1 : LATIN_EM;
+    for (const ch of word) em += WIDE.test(ch) ? 1 : latin;
     longest = Math.max(longest, em);
   }
-  return longest * HEADING_EM + GAP_REM;
+  return longest;
 }
 
 /**

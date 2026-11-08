@@ -30,21 +30,14 @@ msgstr "{0, plural, other {“{name}”仍被 # 个场次使用，已改为归�
 msgid "{0, plural, one {# alley} other {# alleys}}"
 msgstr "{0, plural, other {# 家球馆}}"
 
-#. placeholder {0}: displayed.length
-#: src/views/CatalogView.tsx
-msgid "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}}"
-msgstr "{0, plural, other {# / {totalBalls} 颗球}}"
-
 #. A count of shots thrown (first balls) with a ball, too few to trust the estimate
 #. placeholder {0}: estimate.firstBalls
 #: src/components/BallEstimates.tsx
 msgid "{0, plural, one {# ball, too few} other {# balls, too few}}"
 msgstr "{0, plural, other {# 次投球，样本太少}}"
 
-#. placeholder {0}: displayed.length
 #. placeholder {0}: pending.incoming.balls
 #: src/components/FirstRun.tsx
-#: src/views/CatalogView.tsx
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, other {# 颗球}}"
 
@@ -90,6 +83,11 @@ msgstr "{0, plural, other {# 条球道}}"
 #: src/lib/lineReport.ts
 msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, other {# 个油型}}"
+
+#. placeholder {0}: displayed.length
+#: src/views/CatalogView.tsx
+msgid "{0, plural, one {# result} other {# results}}"
+msgstr "{0, plural, other {# 个结果}}"
 
 #. placeholder {0}: sessions.length
 #: src/components/GameSlotSessionsDialog.tsx
@@ -255,11 +253,11 @@ msgstr "{count, plural, other {# 个场次}}"
 msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, other {球道 {lanes}}}"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "{count, plural, one {View all # ball} other {View all # balls}}"
 msgstr "{count, plural, other {查看全部 # 颗球}}"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "{count, plural, one {View all # leave} other {View all # leaves}}"
 msgstr "{count, plural, other {查看全部 # 种残瓶}}"
 
@@ -852,6 +850,16 @@ msgstr "全部"
 msgid "All alleys"
 msgstr "所有球馆"
 
+#. Bowling term: shown in the core filter while no core is chosen
+#: src/views/CatalogView.tsx
+msgid "All cores"
+msgstr "所有球芯"
+
+#. Bowling term: shown in the cover filter while no cover is chosen
+#: src/views/CatalogView.tsx
+msgid "All covers"
+msgstr "所有球皮"
+
 #: src/components/SessionFilterBar.tsx
 msgid "All events"
 msgstr "所有赛事"
@@ -1319,6 +1327,19 @@ msgstr "选择一个"
 msgid "Clear"
 msgstr "清除"
 
+#. A button that removes every filter at once
+#: src/views/CatalogView.tsx
+msgid "Clear all"
+msgstr "全部清除"
+
+#: src/views/CatalogView.tsx
+msgid "Clear core filter"
+msgstr "清除球芯筛选"
+
+#: src/views/CatalogView.tsx
+msgid "Clear cover filter"
+msgstr "清除球皮筛选"
+
 #: src/components/OilPatternManager.tsx
 #: src/components/PatternFilterSheet.tsx
 #: src/components/Stats.tsx
@@ -1397,6 +1418,7 @@ msgid "Copy a saved spare line onto this leave"
 msgstr "将已保存的补中路线应用到此残瓶"
 
 #. Bowling term: the weight block inside a ball
+#. Bowling term: the weight block inside a ball
 #: src/views/CatalogView.tsx
 msgid "Core"
 msgstr "球芯"
@@ -1411,7 +1433,16 @@ msgstr "球芯"
 msgid "Core type"
 msgstr "球芯类型"
 
-#. Bowling term: the outer shell material of a ball
+#. Bowling term: one coverstock by name, a filter field
+#: src/views/CatalogView.tsx
+msgid "Cover"
+msgstr "球皮"
+
+#. Bowling term: the kind of coverstock (solid, pearl or hybrid), as opposed to one cover by name
+#: src/views/CatalogView.tsx
+msgid "Cover type"
+msgstr "球皮类型"
+
 #. Bowling term: the outer shell material of a ball
 #: src/views/CatalogView.tsx
 msgid "Coverstock"
@@ -1550,11 +1581,6 @@ msgstr "Diff {0}"
 msgid "Diff {diff}"
 msgstr "Diff {diff}"
 
-#. Bowling term: Diff is the differential, a ball spec. A range of values.
-#: src/views/CatalogView.tsx
-msgid "Diff {min} to {max}"
-msgstr "Diff {min} 至 {max}"
-
 #. Bowling term: Diff is the differential, a ball spec. A sort order.
 #: src/views/CatalogView.tsx
 msgid "Diff, high to low"
@@ -1656,10 +1682,13 @@ msgstr "偏移"
 msgid "DRILL"
 msgstr "打孔角"
 
-#. Bowling term: the angle at the pin between the bowler's PAP and the ball's CG or PSA
+#. Bowling term: the drilling angle, the angle at the pin between the bowler's PAP and the ball's CG or PSA. A short slider label in a narrow column: keep it short, and never a word that only fits by splitting.
+#: src/components/LayoutEditor.tsx
+msgid "Drill angle"
+msgstr "打孔角度"
+
 #. Bowling term: the angle from the grip midline to the pin line at the PAP. A label on a ball diagram, wrapped onto lines at its spaces.
 #: src/components/GuideFigure.tsx
-#: src/components/LayoutEditor.tsx
 msgid "Drilling angle"
 msgstr "打孔角度"
 
@@ -3419,10 +3448,6 @@ msgstr "一次付费即永久拥有，日后添加的所有 Pro 功能也都包�
 msgid "Pearl"
 msgstr "珍珠"
 
-#: src/components/SessionFilterBar.tsx
-msgid "Pick an alley to filter by lane."
-msgstr "请先选择球馆，才能按球道筛选。"
-
 #: src/components/FirstRun.tsx
 msgid "Pick another"
 msgstr "换一个"
@@ -3666,10 +3691,6 @@ msgstr "要移除 {name} 吗？"
 msgid "Remove filter {filter}"
 msgstr "移除筛选条件 {filter}"
 
-#: src/views/CatalogView.tsx
-msgid "Remove filter: {label}"
-msgstr "移除筛选条件：{label}"
-
 #: src/components/BallFormDialog.tsx
 msgid "Remove layout"
 msgstr "移除打孔布局"
@@ -3717,10 +3738,6 @@ msgstr "申请添加这颗球"
 #: src/components/CatalogRequest.tsx
 msgid "Request this pattern"
 msgstr "申请添加这个油型"
-
-#: src/views/CatalogView.tsx
-msgid "Reset all filters"
-msgstr "重置所有筛选条件"
 
 #: src/views/LayoutLabView.tsx
 msgid "Reset to your saved settings"
@@ -3794,11 +3811,6 @@ msgstr "RG"
 msgid "RG {0}"
 msgstr "RG {0}"
 
-#. Bowling term: RG is the radius of gyration, a ball spec. A range of values.
-#: src/views/CatalogView.tsx
-msgid "RG {min} to {max}"
-msgstr "RG {min} 至 {max}"
-
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
@@ -3844,6 +3856,16 @@ msgstr "玫瑰"
 #: src/components/BallEstimates.tsx
 msgid "same as all balls"
 msgstr "与所有球相同"
+
+#. Bowling term: a heading over other balls built on the same core (weight block), followed by the core's name
+#: src/views/CatalogView.tsx
+msgid "Same core: {core}"
+msgstr "相同球芯：{core}"
+
+#. Bowling term: a heading over other balls with the same coverstock, followed by the coverstock's name
+#: src/views/CatalogView.tsx
+msgid "Same cover: {cover}"
+msgstr "相同球皮：{cover}"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
@@ -4966,7 +4988,7 @@ msgstr "查看实际路线"
 msgid "View actual line on the lane"
 msgstr "在球道上查看实际路线"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "View all {count}"
 msgstr "查看全部 {count} 条"
 

@@ -30,21 +30,14 @@ msgstr "{0, plural, one {\"{name}\" todavía se usa en # sesión. Se archivó en
 msgid "{0, plural, one {# alley} other {# alleys}}"
 msgstr "{0, plural, one {# boliche} other {# boliches}}"
 
-#. placeholder {0}: displayed.length
-#: src/views/CatalogView.tsx
-msgid "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}}"
-msgstr "{0, plural, one {# bola de {totalBalls}} other {# bolas de {totalBalls}}}"
-
 #. A count of shots thrown (first balls) with a ball, too few to trust the estimate
 #. placeholder {0}: estimate.firstBalls
 #: src/components/BallEstimates.tsx
 msgid "{0, plural, one {# ball, too few} other {# balls, too few}}"
 msgstr "{0, plural, one {# tiro, muy pocos} other {# tiros, muy pocos}}"
 
-#. placeholder {0}: displayed.length
 #. placeholder {0}: pending.incoming.balls
 #: src/components/FirstRun.tsx
-#: src/views/CatalogView.tsx
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, one {# bola} other {# bolas}}"
 
@@ -90,6 +83,11 @@ msgstr "{0, plural, one {# pista} other {# pistas}}"
 #: src/lib/lineReport.ts
 msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, one {# patrón} other {# patrones}}"
+
+#. placeholder {0}: displayed.length
+#: src/views/CatalogView.tsx
+msgid "{0, plural, one {# result} other {# results}}"
+msgstr "{0, plural, one {# resultado} other {# resultados}}"
 
 #. placeholder {0}: sessions.length
 #: src/components/GameSlotSessionsDialog.tsx
@@ -255,11 +253,11 @@ msgstr "{count, plural, one {# sesión} other {# sesiones}}"
 msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, one {Pista {lanes}} other {Pistas {lanes}}}"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "{count, plural, one {View all # ball} other {View all # balls}}"
 msgstr "{count, plural, one {Ver # bola} other {Ver las # bolas}}"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "{count, plural, one {View all # leave} other {View all # leaves}}"
 msgstr "{count, plural, one {Ver # dejada} other {Ver las # dejadas}}"
 
@@ -852,6 +850,16 @@ msgstr "Todo"
 msgid "All alleys"
 msgstr "Todos los boliches"
 
+#. Bowling term: shown in the core filter while no core is chosen
+#: src/views/CatalogView.tsx
+msgid "All cores"
+msgstr "Todos los núcleos"
+
+#. Bowling term: shown in the cover filter while no cover is chosen
+#: src/views/CatalogView.tsx
+msgid "All covers"
+msgstr "Todas las cubiertas"
+
 #: src/components/SessionFilterBar.tsx
 msgid "All events"
 msgstr "Todos los eventos"
@@ -1319,6 +1327,19 @@ msgstr "Elige uno"
 msgid "Clear"
 msgstr "Borrar"
 
+#. A button that removes every filter at once
+#: src/views/CatalogView.tsx
+msgid "Clear all"
+msgstr "Borrar todo"
+
+#: src/views/CatalogView.tsx
+msgid "Clear core filter"
+msgstr "Borrar filtro de núcleo"
+
+#: src/views/CatalogView.tsx
+msgid "Clear cover filter"
+msgstr "Borrar filtro de cubierta"
+
 #: src/components/OilPatternManager.tsx
 #: src/components/PatternFilterSheet.tsx
 #: src/components/Stats.tsx
@@ -1397,6 +1418,7 @@ msgid "Copy a saved spare line onto this leave"
 msgstr "Copiar una línea de spare guardada a esta dejada"
 
 #. Bowling term: the weight block inside a ball
+#. Bowling term: the weight block inside a ball
 #: src/views/CatalogView.tsx
 msgid "Core"
 msgstr "Núcleo"
@@ -1411,7 +1433,16 @@ msgstr "Núcleo"
 msgid "Core type"
 msgstr "Tipo de núcleo"
 
-#. Bowling term: the outer shell material of a ball
+#. Bowling term: one coverstock by name, a filter field
+#: src/views/CatalogView.tsx
+msgid "Cover"
+msgstr "Cubierta"
+
+#. Bowling term: the kind of coverstock (solid, pearl or hybrid), as opposed to one cover by name
+#: src/views/CatalogView.tsx
+msgid "Cover type"
+msgstr "Tipo de cubierta"
+
 #. Bowling term: the outer shell material of a ball
 #: src/views/CatalogView.tsx
 msgid "Coverstock"
@@ -1550,11 +1581,6 @@ msgstr "Diff {0}"
 msgid "Diff {diff}"
 msgstr "Diff {diff}"
 
-#. Bowling term: Diff is the differential, a ball spec. A range of values.
-#: src/views/CatalogView.tsx
-msgid "Diff {min} to {max}"
-msgstr "Diff de {min} a {max}"
-
 #. Bowling term: Diff is the differential, a ball spec. A sort order.
 #: src/views/CatalogView.tsx
 msgid "Diff, high to low"
@@ -1656,10 +1682,13 @@ msgstr "Deriva"
 msgid "DRILL"
 msgstr "PERF."
 
-#. Bowling term: the angle at the pin between the bowler's PAP and the ball's CG or PSA
+#. Bowling term: the drilling angle, the angle at the pin between the bowler's PAP and the ball's CG or PSA. A short slider label in a narrow column: keep it short, and never a word that only fits by splitting.
+#: src/components/LayoutEditor.tsx
+msgid "Drill angle"
+msgstr "Ángulo de taladro"
+
 #. Bowling term: the angle from the grip midline to the pin line at the PAP. A label on a ball diagram, wrapped onto lines at its spaces.
 #: src/components/GuideFigure.tsx
-#: src/components/LayoutEditor.tsx
 msgid "Drilling angle"
 msgstr "Ángulo de perforación"
 
@@ -3419,10 +3448,6 @@ msgstr "Paga una vez y es tuyo, con todas las funciones Pro que se agreguen desp
 msgid "Pearl"
 msgstr "Perlada"
 
-#: src/components/SessionFilterBar.tsx
-msgid "Pick an alley to filter by lane."
-msgstr "Elige un boliche para filtrar por pista."
-
 #: src/components/FirstRun.tsx
 msgid "Pick another"
 msgstr "Elegir otra"
@@ -3666,10 +3691,6 @@ msgstr "¿Quitar {name}?"
 msgid "Remove filter {filter}"
 msgstr "Quitar filtro {filter}"
 
-#: src/views/CatalogView.tsx
-msgid "Remove filter: {label}"
-msgstr "Quitar filtro: {label}"
-
 #: src/components/BallFormDialog.tsx
 msgid "Remove layout"
 msgstr "Quitar layout"
@@ -3717,10 +3738,6 @@ msgstr "Pedir esta bola"
 #: src/components/CatalogRequest.tsx
 msgid "Request this pattern"
 msgstr "Pedir este patrón"
-
-#: src/views/CatalogView.tsx
-msgid "Reset all filters"
-msgstr "Restablecer todos los filtros"
 
 #: src/views/LayoutLabView.tsx
 msgid "Reset to your saved settings"
@@ -3794,11 +3811,6 @@ msgstr "RG"
 msgid "RG {0}"
 msgstr "RG {0}"
 
-#. Bowling term: RG is the radius of gyration, a ball spec. A range of values.
-#: src/views/CatalogView.tsx
-msgid "RG {min} to {max}"
-msgstr "RG de {min} a {max}"
-
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
@@ -3844,6 +3856,16 @@ msgstr "Rosa"
 #: src/components/BallEstimates.tsx
 msgid "same as all balls"
 msgstr "igual que todas las bolas"
+
+#. Bowling term: a heading over other balls built on the same core (weight block), followed by the core's name
+#: src/views/CatalogView.tsx
+msgid "Same core: {core}"
+msgstr "Mismo núcleo: {core}"
+
+#. Bowling term: a heading over other balls with the same coverstock, followed by the coverstock's name
+#: src/views/CatalogView.tsx
+msgid "Same cover: {cover}"
+msgstr "Misma cubierta: {cover}"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
@@ -4966,7 +4988,7 @@ msgstr "Ver línea real"
 msgid "View actual line on the lane"
 msgstr "Ver línea real en la pista"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "View all {count}"
 msgstr "Ver los {count}"
 

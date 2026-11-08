@@ -30,21 +30,14 @@ msgstr "{0, plural, other {「{name}」はまだ#セッションで使われて�
 msgid "{0, plural, one {# alley} other {# alleys}}"
 msgstr "{0, plural, other {#ボウリング場}}"
 
-#. placeholder {0}: displayed.length
-#: src/views/CatalogView.tsx
-msgid "{0, plural, one {# ball of {totalBalls}} other {# balls of {totalBalls}}}"
-msgstr "{0, plural, other {{totalBalls}個中#個のボール}}"
-
 #. A count of shots thrown (first balls) with a ball, too few to trust the estimate
 #. placeholder {0}: estimate.firstBalls
 #: src/components/BallEstimates.tsx
 msgid "{0, plural, one {# ball, too few} other {# balls, too few}}"
 msgstr "{0, plural, other {#投、データ不足}}"
 
-#. placeholder {0}: displayed.length
 #. placeholder {0}: pending.incoming.balls
 #: src/components/FirstRun.tsx
-#: src/views/CatalogView.tsx
 msgid "{0, plural, one {# ball} other {# balls}}"
 msgstr "{0, plural, other {#個のボール}}"
 
@@ -90,6 +83,11 @@ msgstr "{0, plural, other {#レーン}}"
 #: src/lib/lineReport.ts
 msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, other {#パターン}}"
+
+#. placeholder {0}: displayed.length
+#: src/views/CatalogView.tsx
+msgid "{0, plural, one {# result} other {# results}}"
+msgstr "{0, plural, other {#件}}"
 
 #. placeholder {0}: sessions.length
 #: src/components/GameSlotSessionsDialog.tsx
@@ -255,11 +253,11 @@ msgstr "{count, plural, other {#セッション}}"
 msgid "{count, plural, one {Lane {lanes}} other {Lanes {lanes}}}"
 msgstr "{count, plural, other {レーン{lanes}}}"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "{count, plural, one {View all # ball} other {View all # balls}}"
 msgstr "{count, plural, other {#個のボールをすべて表示}}"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "{count, plural, one {View all # leave} other {View all # leaves}}"
 msgstr "{count, plural, other {#種類の残りピンをすべて表示}}"
 
@@ -852,6 +850,16 @@ msgstr "すべて"
 msgid "All alleys"
 msgstr "すべてのボウリング場"
 
+#. Bowling term: shown in the core filter while no core is chosen
+#: src/views/CatalogView.tsx
+msgid "All cores"
+msgstr "すべてのコア"
+
+#. Bowling term: shown in the cover filter while no cover is chosen
+#: src/views/CatalogView.tsx
+msgid "All covers"
+msgstr "すべてのカバーストック"
+
 #: src/components/SessionFilterBar.tsx
 msgid "All events"
 msgstr "すべてのイベント"
@@ -1319,6 +1327,19 @@ msgstr "選択してください"
 msgid "Clear"
 msgstr "クリア"
 
+#. A button that removes every filter at once
+#: src/views/CatalogView.tsx
+msgid "Clear all"
+msgstr "すべてクリア"
+
+#: src/views/CatalogView.tsx
+msgid "Clear core filter"
+msgstr "コアフィルターをクリア"
+
+#: src/views/CatalogView.tsx
+msgid "Clear cover filter"
+msgstr "カバーストックフィルターをクリア"
+
 #: src/components/OilPatternManager.tsx
 #: src/components/PatternFilterSheet.tsx
 #: src/components/Stats.tsx
@@ -1397,6 +1418,7 @@ msgid "Copy a saved spare line onto this leave"
 msgstr "保存済みのスペアラインをこの残りピンにコピー"
 
 #. Bowling term: the weight block inside a ball
+#. Bowling term: the weight block inside a ball
 #: src/views/CatalogView.tsx
 msgid "Core"
 msgstr "コア"
@@ -1411,7 +1433,16 @@ msgstr "コア"
 msgid "Core type"
 msgstr "コアタイプ"
 
-#. Bowling term: the outer shell material of a ball
+#. Bowling term: one coverstock by name, a filter field
+#: src/views/CatalogView.tsx
+msgid "Cover"
+msgstr "カバーストック"
+
+#. Bowling term: the kind of coverstock (solid, pearl or hybrid), as opposed to one cover by name
+#: src/views/CatalogView.tsx
+msgid "Cover type"
+msgstr "カバーストックの種類"
+
 #. Bowling term: the outer shell material of a ball
 #: src/views/CatalogView.tsx
 msgid "Coverstock"
@@ -1550,11 +1581,6 @@ msgstr "Diff {0}"
 msgid "Diff {diff}"
 msgstr "Diff {diff}"
 
-#. Bowling term: Diff is the differential, a ball spec. A range of values.
-#: src/views/CatalogView.tsx
-msgid "Diff {min} to {max}"
-msgstr "Diff {min}〜{max}"
-
 #. Bowling term: Diff is the differential, a ball spec. A sort order.
 #: src/views/CatalogView.tsx
 msgid "Diff, high to low"
@@ -1656,10 +1682,13 @@ msgstr "ドリフト"
 msgid "DRILL"
 msgstr "ドリル"
 
-#. Bowling term: the angle at the pin between the bowler's PAP and the ball's CG or PSA
+#. Bowling term: the drilling angle, the angle at the pin between the bowler's PAP and the ball's CG or PSA. A short slider label in a narrow column: keep it short, and never a word that only fits by splitting.
+#: src/components/LayoutEditor.tsx
+msgid "Drill angle"
+msgstr "ドリル角度"
+
 #. Bowling term: the angle from the grip midline to the pin line at the PAP. A label on a ball diagram, wrapped onto lines at its spaces.
 #: src/components/GuideFigure.tsx
-#: src/components/LayoutEditor.tsx
 msgid "Drilling angle"
 msgstr "ドリリングアングル"
 
@@ -3419,10 +3448,6 @@ msgstr "一度の購入でずっとご利用いただけ、今後追加される
 msgid "Pearl"
 msgstr "パール"
 
-#: src/components/SessionFilterBar.tsx
-msgid "Pick an alley to filter by lane."
-msgstr "レーンで絞り込むには、ボウリング場を選んでください。"
-
 #: src/components/FirstRun.tsx
 msgid "Pick another"
 msgstr "別のものを選ぶ"
@@ -3666,10 +3691,6 @@ msgstr "{name}を削除しますか？"
 msgid "Remove filter {filter}"
 msgstr "フィルター{filter}を解除"
 
-#: src/views/CatalogView.tsx
-msgid "Remove filter: {label}"
-msgstr "フィルターを解除: {label}"
-
 #: src/components/BallFormDialog.tsx
 msgid "Remove layout"
 msgstr "レイアウトを削除"
@@ -3717,10 +3738,6 @@ msgstr "このボールをリクエスト"
 #: src/components/CatalogRequest.tsx
 msgid "Request this pattern"
 msgstr "このパターンをリクエスト"
-
-#: src/views/CatalogView.tsx
-msgid "Reset all filters"
-msgstr "すべてのフィルターをリセット"
 
 #: src/views/LayoutLabView.tsx
 msgid "Reset to your saved settings"
@@ -3794,11 +3811,6 @@ msgstr "RG"
 msgid "RG {0}"
 msgstr "RG {0}"
 
-#. Bowling term: RG is the radius of gyration, a ball spec. A range of values.
-#: src/views/CatalogView.tsx
-msgid "RG {min} to {max}"
-msgstr "RG {min}から{max}"
-
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
@@ -3844,6 +3856,16 @@ msgstr "ローズ"
 #: src/components/BallEstimates.tsx
 msgid "same as all balls"
 msgstr "全ボールと同じ"
+
+#. Bowling term: a heading over other balls built on the same core (weight block), followed by the core's name
+#: src/views/CatalogView.tsx
+msgid "Same core: {core}"
+msgstr "同じコア: {core}"
+
+#. Bowling term: a heading over other balls with the same coverstock, followed by the coverstock's name
+#: src/views/CatalogView.tsx
+msgid "Same cover: {cover}"
+msgstr "同じカバーストック: {cover}"
 
 #: src/components/BallFormDialog.tsx
 #: src/components/LaneNoteFormDialog.tsx
@@ -4966,7 +4988,7 @@ msgstr "実際のラインを見る"
 msgid "View actual line on the lane"
 msgstr "レーン上で実際のラインを見る"
 
-#: src/components/Stats.tsx
+#: src/components/ui/ViewAll.tsx
 msgid "View all {count}"
 msgstr "{count}件すべて表示"
 
