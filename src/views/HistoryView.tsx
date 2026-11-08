@@ -1,6 +1,7 @@
 import { plural, t } from "@lingui/core/macro";
 import { TAB_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CalendarDays } from "lucide-react";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { alleyLabel } from "../lib/sessionLabels";
@@ -12,6 +13,15 @@ import {
   SessionFilterSheet
 } from "../components/SessionFilterBar";
 import { FloatingHeader } from "../components/FloatingHeader";
+import { HistoryCalendar } from "../components/HistoryCalendar";
+import { IconButton } from "../components/ui/IconButton";
+import {
+  monthOfDate,
+  readCalendarShown,
+  weekStartFor,
+  writeCalendarShown,
+  type CalendarMonth
+} from "../lib/historyCalendar";
 import { PushScreen } from "../components/PushScreen";
 import { rememberScroll, restoreScroll, useRememberedState } from "../lib/viewMemory";
 import { useSessionFilters } from "./useSessionFilters";
@@ -54,6 +64,21 @@ export function HistoryView({
   // render later, after painting a short list scrolled to the wrong place.
   const [windowedList, setWindowedList] = useState<SessionSummary[] | null>(null);
 
+  // The calendar over the list (ADR-252): on until hidden, remembered on this
+  // device. The month is the tab's while the app is open, so leaving History
+  // and coming back keeps the month being read.
+  const [calendarShown, setCalendarShown] = useState(readCalendarShown);
+  const [month, setMonth] = useRememberedState<CalendarMonth>(`${memory}:month`, monthOfDate(new Date()));
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  // A day tapped whose heading the list has yet to scroll to: set on the tap,
+  // taken once the heading is rendered, which may be after a longer window.
+  const [jumpTo, setJumpTo] = useState<string | null>(null);
+  const weekStart = useMemo(
+    () => weekStartFor(typeof navigator === "undefined" ? undefined : navigator.language),
+    []
+  );
+  const showCalendar = mode === "tab" && calendarShown && filters.history.length > 0;
+
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
@@ -90,6 +115,34 @@ export function HistoryView({
     // the linter cannot see that it is a `useState` setter and stable.
   }, [sessionList.length, setVisibleCount]);
 
+  // Takes the list to the day tapped on the calendar, its heading just under
+  // the floating header. The window grows first when the day is further down
+  // than has loaded, so this runs again once its rows are there.
+  useEffect(() => {
+    if (!jumpTo) return;
+    const scroller = scrollerRef.current;
+    const heading = scroller?.querySelector<HTMLElement>(`[data-day="${CSS.escape(jumpTo)}"]`);
+    if (!scroller || !heading) return;
+    const header = scroller.parentElement?.querySelector<HTMLElement>("[data-floating-header]");
+    const top =
+      heading.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top +
+      scroller.scrollTop -
+      (header?.offsetHeight ?? 0) -
+      8;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    scroller.scrollTo?.({ top: Math.max(0, top), behavior: reduce ? "auto" : "smooth" });
+    setJumpTo(null);
+  }, [jumpTo, visibleCount]);
+
+  const selectDay = (key: string) => {
+    setSelectedDay(key);
+    const index = sessionList.findIndex((s) => s.session.date === key);
+    if (index < 0) return;
+    if (index >= visibleCount) setVisibleCount(index + PAGE);
+    setJumpTo(key);
+  };
+
   const body = (
     <section className="mx-auto flex h-full w-full max-w-3xl flex-col px-3 pt-3 sm:px-6 sm:pt-5">
       <FloatingHeader
@@ -100,7 +153,24 @@ export function HistoryView({
                 trailing action, so there is no title row to leave empty. */}
             {mode === "tab" && (
             <div className={`${TAB_TITLE_ROW} mb-3 justify-between gap-3`}>
-              <h1 className={TAB_TITLE}>{t`History`}</h1>
+              {/* The calendar's switch leads the title (ADR-252), at the
+                  owner's ask: the filter keeps the trailing edge, as on
+                  Stats. Absent, like the filter, before the first session. */}
+              {filters.history.length > 0 && (
+                <IconButton
+                  variant="round"
+                  label={t`Calendar`}
+                  aria-pressed={calendarShown}
+                  onClick={() => {
+                    const next = !calendarShown;
+                    setCalendarShown(next);
+                    writeCalendarShown(next);
+                  }}
+                >
+                  <CalendarDays size={20} aria-hidden="true" className={calendarShown ? "text-accent" : undefined} />
+                </IconButton>
+              )}
+              <h1 className={`${TAB_TITLE} min-w-0 flex-1`}>{t`History`}</h1>
               {/* Nothing to narrow before the first session, and a control
                   that can only ever filter an empty list is noise on the
                   screen a new bowler is deciding about. */}
@@ -121,6 +191,16 @@ export function HistoryView({
         onScroll={(e) => rememberScroll(`${memory}:sessions`, e.currentTarget.scrollTop)}
       >
         <div className="px-3 pb-5 sm:px-6 sm:pb-8">
+          {showCalendar && !isLoading && (
+            <HistoryCalendar
+              sessions={sessionList}
+              month={month}
+              onMonthChange={setMonth}
+              selectedDay={selectedDay}
+              onSelectDay={selectDay}
+              weekStart={weekStart}
+            />
+          )}
           <SessionHistory
             sessions={sessionList.slice(0, visibleCount)}
             isLoading={isLoading}

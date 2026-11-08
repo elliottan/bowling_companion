@@ -43,6 +43,19 @@ export function formatShortDate(value: string, now: Date = new Date()): string {
   });
 }
 
+/** A day's heading over its sessions in History (ADR-252): "Wed, Oct 21",
+ *  with the year only when it is not this one. */
+export function formatDayHeading(value: string, now: Date = new Date()): string {
+  const parsed = parseStoredDate(value);
+  if (!parsed) return value;
+  return formatDate(parsed, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    ...(parsed.getFullYear() !== now.getFullYear() && { year: "numeric" })
+  });
+}
+
 /**
  * A catalog ball's release: "Mar 2024", or "2024" when the source only gave
  * the year. A release date is stored to the precision it was read at, `yyyy`,

@@ -98,7 +98,9 @@ msgstr "{0, plural, other {# 個場次，最新的在前}}"
 
 #. placeholder {0}: pending.incoming.sessions
 #. placeholder {0}: stats.totalSessions
+#. placeholder {0}: totals.sessions
 #: src/components/FirstRun.tsx
+#: src/components/HistoryCalendar.tsx
 #: src/lib/shareCard.ts
 msgid "{0, plural, one {# session} other {# sessions}}"
 msgstr "{0, plural, other {# 個場次}}"
@@ -273,6 +275,10 @@ msgstr "{count} 種顏色"
 #: src/components/SessionTrendChart.tsx
 msgid "{date}, {alley}, average {average}"
 msgstr "{date}，{alley}，平均分 {average}"
+
+#: src/components/HistoryCalendar.tsx
+msgid "{date}, average {average}"
+msgstr "{date}，平均分 {average}"
 
 #: src/components/SessionTrendChart.tsx
 msgid "{date}: {average}"
@@ -971,6 +977,8 @@ msgid "Average by session, oldest first. {sessions}. Overall average {average}."
 msgstr "各場次平均分，由舊到新。{sessions}。整體平均分 {average}。"
 
 #. Short for average, beside a session's average score.
+#. Short for average, beside a session's average score.
+#: src/components/HistoryCalendar.tsx
 #: src/components/SessionHistory.tsx
 msgid "avg"
 msgstr "平均"
@@ -1197,6 +1205,10 @@ msgstr "依局"
 msgid "By session"
 msgstr "依場次"
 
+#: src/views/HistoryView.tsx
+msgid "Calendar"
+msgstr "行事曆"
+
 #: src/components/ConfirmDialog.tsx
 #: src/components/ui/SearchField.tsx
 msgid "Cancel"
@@ -1292,6 +1304,10 @@ msgstr "依場次顯示圖表"
 #: src/views/BackupRestoreView.tsx
 msgid "Choose a backup file"
 msgstr "選擇備份檔案"
+
+#: src/components/HistoryCalendar.tsx
+msgid "Choose month"
+msgstr "選擇月份"
 
 #: src/views/SpareLinesView.tsx
 msgid "Choose one"
@@ -2984,6 +3000,10 @@ msgstr "下一步"
 msgid "Next ({nextOutcome})"
 msgstr "下一步（{nextOutcome}）"
 
+#: src/components/HistoryCalendar.tsx
+msgid "Next month"
+msgstr "下個月"
+
 #. Heading on Home over setup suggestions
 #: src/components/NextSteps.tsx
 msgid "Next steps"
@@ -3544,6 +3564,10 @@ msgstr "預設"
 #: src/views/LayoutLabView.tsx
 msgid "Presets, {preset}"
 msgstr "預設，{preset}"
+
+#: src/components/HistoryCalendar.tsx
+msgid "Previous month"
+msgstr "上個月"
 
 #: src/views/LegalView.tsx
 #: src/views/SettingsView.tsx
