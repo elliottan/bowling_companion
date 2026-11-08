@@ -221,8 +221,11 @@ N segments and exactly one selected: a theme, a handedness, a range. It is
 drawn to UIKit's own metrics (ADR-228): a 32pt capsule in the system's flat
 grey fill, with no blur, edge or shadow, and the answer an opaque raised thumb
 inset 2pt that slides to the segment picked, labels at 13pt, the chosen one
-semibold. There is one size, as UIKit has one, and its hit region is still
-44pt, so two stacked need 12px between them. It ticks in the store apps as the
+semibold. Its hit region is still 44pt, so two stacked need 12px between
+them. One exception to the 32pt: in a header row beside the round glass
+controls (Stats' range) it is drawn 44pt, their height (`size="bar"`,
+ADR-251), since a shorter capsule between a title and two 44pt circles read as
+sunk below the line. It ticks in the store apps as the
 choice moves (ADR-168). An accent-filled segment (ADR-182) read as a button
 held down, and the tab bar's frosted capsule (ADR-189) floated over the page
 at 48px as a web widget would, where the phone's control is set into it.
