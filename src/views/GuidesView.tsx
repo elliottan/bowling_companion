@@ -209,7 +209,11 @@ function Glossary({ guide, focusTerm }: { guide: Guide; focusTerm?: string }) {
 
   return (
     <div className="mt-3">
-      <div className="sticky top-[var(--push-bar-h,0px)] z-10 -mx-1 bg-surface-sunken px-1 py-2">
+      {/* Top 0: the push's scroll area is padded by its bar's height, and a
+          sticky row already stops at that padding. Adding --push-bar-h again
+          held the field a bar's height too low, with the list showing
+          through above it. */}
+      <div className="sticky top-0 z-10 -mx-1 bg-surface-sunken px-1 py-2">
         <SearchField
           value={query}
           onChange={setQuery}

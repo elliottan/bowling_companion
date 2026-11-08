@@ -178,8 +178,11 @@ blur, fading out just below the bar, so its title, which never fades, is never
 words over words. A light haze across the whole bar was tried before and
 removed, because it read as a dirty surface; the ground is the page's own
 color, so over the page's empty top it is not there at all. A
-sticky row inside a push or a sheet stops beneath the bar by the bar's
-published height (`--push-bar-h`, `--sheet-bar-h`). In a sheet an opaque one
+sticky row inside a push or a sheet stops beneath the bar: the scroll area is
+padded by the bar's published height (`--push-bar-h`, `--sheet-bar-h`) and a
+sticky row at `top: 0` stops at that padding, so a push's row never adds the
+height again (that counted the bar twice, and the list showed through between
+the bar and the Bowling terms search). In a sheet an opaque one
 reaches up behind the bar so the list passes under both as one band; in a
 push it does not, because the large title sits above it and reaching up
 covered it (ADR-226).

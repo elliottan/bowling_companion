@@ -33,4 +33,14 @@ test("answers a bowling word with what it means", async ({ page }) => {
   await row.tap();
   await expect(page.getByRole("heading", { name: "Bowling terms", level: 1 })).toBeVisible();
   await expect(page.locator("#term-brooklyn")).toBeInViewport();
+
+  // Scrolled down to the term, the page's own search stays right under the
+  // bar, not a bar's height below it with the terms showing through between.
+  const terms = page.getByRole("dialog", { name: "Bowling terms" });
+  const barBottom = await terms.locator("header").evaluate((el) => el.getBoundingClientRect().bottom);
+  const fieldTop = await terms
+    .getByRole("searchbox", { name: "Search terms" })
+    .evaluate((el) => el.getBoundingClientRect().top);
+  expect(fieldTop - barBottom).toBeGreaterThanOrEqual(0);
+  expect(fieldTop - barBottom).toBeLessThan(16);
 });
