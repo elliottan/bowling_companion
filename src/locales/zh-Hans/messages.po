@@ -1328,7 +1328,7 @@ msgid "Clear"
 msgstr "清除"
 
 #. A button that removes every filter at once
-#: src/views/CatalogView.tsx
+#: src/components/ui/ClearAllButton.tsx
 msgid "Clear all"
 msgstr "全部清除"
 
@@ -1341,7 +1341,6 @@ msgid "Clear cover filter"
 msgstr "清除球皮筛选"
 
 #: src/components/OilPatternManager.tsx
-#: src/components/PatternFilterSheet.tsx
 #: src/components/Stats.tsx
 #: src/views/CatalogView.tsx
 #: src/views/SpareLinesView.tsx
@@ -1360,10 +1359,6 @@ msgstr "清除油型"
 #: src/components/SessionFilterBar.tsx
 msgid "Clear pattern filter"
 msgstr "清除油型筛选"
-
-#: src/components/SpareFilterBar.tsx
-msgid "Clear pins"
-msgstr "清除球瓶"
 
 #: src/components/ui/SearchField.tsx
 msgid "Clear search"

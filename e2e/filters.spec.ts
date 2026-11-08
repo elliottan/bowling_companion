@@ -92,3 +92,18 @@ test("a sheet on its way out does not swallow the next tap", async ({ page }) =>
   });
   expect(blocking).toBe("reaches the chip");
 });
+
+test("Clear all in the filter sheet's corner takes every filter off", async ({ page }) => {
+  await twoNights(page);
+  await page.getByRole("button", { name: /^Filters/ }).tap();
+  const sheet = page.getByRole("dialog", { name: "Filters" });
+  const clear = sheet.getByRole("button", { name: "Clear all" });
+  // Nothing to clear yet.
+  await expect(clear).toBeDisabled();
+
+  await page.getByLabel("Alley").selectOption("Alpha Lanes");
+  await expect(clear).toBeEnabled();
+  await clear.tap();
+  await expect(page.getByLabel("Alley")).toHaveValue("");
+  await expect(clear).toBeDisabled();
+});

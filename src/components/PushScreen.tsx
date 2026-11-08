@@ -292,7 +292,7 @@ export function PushScreen({
           className={`ios-bounce min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[var(--push-bar-h)] ${
             // Inline, a Settings section, runs under the tab bar like its tab.
             // A footer pays the bottom inset in place of the scroll area.
-            footer ? "" : overlay ? "pb-[env(safe-area-inset-bottom)]" : "pb-[var(--tab-clear,0px)]"
+            footer ? "" : overlay ? "pb-[max(env(safe-area-inset-bottom),var(--keyboard-inset,0px))]" : "pb-[var(--tab-clear,0px)]"
           }`}
           style={{ "--push-bar-h": overlay ? "calc(env(safe-area-inset-top) + 3rem)" : "3rem" } as CSSProperties}
           onScroll={largeTitle ? onScroll : undefined}

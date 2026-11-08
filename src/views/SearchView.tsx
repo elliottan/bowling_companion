@@ -200,7 +200,7 @@ export function SearchView({ onClose, onOpen, onSearchCatalog, active = true }: 
         <div
           onTouchMove={releaseKeyboard}
           onWheel={releaseKeyboard}
-          className="animate-fade-in min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-[max(env(safe-area-inset-bottom),1.5rem)] pt-2 sm:px-6"
+          className="animate-fade-in min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-[max(env(safe-area-inset-bottom),1.5rem,var(--keyboard-inset,0px))] pt-2 sm:px-6"
         >
           <div className="mx-auto w-full max-w-xl space-y-5">
             {trimmed === "" ? (

@@ -1328,7 +1328,7 @@ msgid "Clear"
 msgstr "지우기"
 
 #. A button that removes every filter at once
-#: src/views/CatalogView.tsx
+#: src/components/ui/ClearAllButton.tsx
 msgid "Clear all"
 msgstr "모두 지우기"
 
@@ -1341,7 +1341,6 @@ msgid "Clear cover filter"
 msgstr "커버스톡 필터 지우기"
 
 #: src/components/OilPatternManager.tsx
-#: src/components/PatternFilterSheet.tsx
 #: src/components/Stats.tsx
 #: src/views/CatalogView.tsx
 #: src/views/SpareLinesView.tsx
@@ -1360,10 +1359,6 @@ msgstr "패턴 지우기"
 #: src/components/SessionFilterBar.tsx
 msgid "Clear pattern filter"
 msgstr "패턴 필터 지우기"
-
-#: src/components/SpareFilterBar.tsx
-msgid "Clear pins"
-msgstr "핀 지우기"
 
 #: src/components/ui/SearchField.tsx
 msgid "Clear search"

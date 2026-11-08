@@ -10657,3 +10657,60 @@ over its neighbour. That kept the layout and lost the word.
   `block` beside `line-clamp-2` had always won the display, so the clamp never
   held, and holding it hid the end of the sentence at the largest text size.
 
+## ADR-255: The web app moves what floats over the page clear of the keyboard
+
+**Status.** Accepted, 2026-11-08, at the owner's request. Leaves
+`docs/VIEWPORT-BUG.md`'s rule standing: the shell is never sized by a
+measurement.
+
+**Context.** On an iPhone in Safari, a field in a sheet (History's Oil
+pattern filter) went behind the keyboard when tapped. Safari draws the keyboard
+over the page and shrinks only the visual viewport, so the sheet, fixed to the
+screen's foot, stayed put; the focus handler then scrolled the field inside the
+sheet, which was behind the keys as well, and measured "hidden" against the
+wrong edge besides. The iPhone and Android apps shrink their web view for the
+keyboard, so there it was already right.
+
+**Decision.**
+
+- **`--keyboard-inset` and `--keyboard-top`** (`src/lib/keyboardInset.ts`):
+  how much of the screen the keyboard covers at the foot, and what iOS panned
+  off the top to reach the field, from the visual viewport against the layout
+  one. Read only while a field that brings up a keyboard has focus, zero
+  otherwise and in the apps.
+- **What floats over the page moves up by it:** every `FormSheet`, the
+  centred `ConfirmDialog` (a confirm can be earned by typing a phrase), and
+  the session's lane panel. **What scrolls gets the room at its end:** the
+  tab's `--tab-clear` becomes the keyboard's height while the tab bar is
+  hidden for typing, and a pushed screen and Search pad by it.
+- **Then the field is brought into the strip that shows**, by as little as it
+  takes and only if it is hidden, measured against the visual viewport's top
+  and bottom rather than the page's.
+
+**Consequences.**
+
+- A sheet rises with the keyboard and settles back when the field is left,
+  as a native sheet does.
+- `e2e/keyboard.spec.ts` stands in a visual viewport, since no test browser
+  raises a keyboard; a phone in Safari is still the real check.
+
+## ADR-256: Every filter sheet clears from its leading corner
+
+**Status.** Accepted, 2026-11-08, at the owner's request. Follows ADR-253.
+
+**Context.** ADR-253 put the catalog's Clear all where the X would be. The
+other filter sheets kept theirs at the foot, as accent text ("Clear pins" on
+the Leaves pin deck) or a ghost button (the oil patterns' "Clear filters"),
+and History's and Stats' filters had none at all.
+
+**Decision.** `ClearAllButton` (`src/components/ui/ClearAllButton.tsx`) is the
+one control, a glass capsule in `FormSheet`'s `leading` slot, labelled "Clear
+all" and dimmed while nothing is chosen. The catalog, the pin deck, the oil
+pattern filters and the History and Stats filters all carry it there, and none
+at the foot. A lane list's own "Clear" beside its heading stays: it clears
+that list, not the sheet. "Clear filters" in an empty list stays as well: it is
+the way out of a list that filtered to nothing, not a control of the sheet.
+
+**Consequences.** Clearing reads the same everywhere, and History and Stats can
+be cleared from their sheet in one tap where it took one chip at a time.
+

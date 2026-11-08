@@ -1,4 +1,5 @@
 import { i18n } from "@lingui/core";
+import { watchKeyboardInsets } from "./lib/keyboardInset";
 import type { MessageDescriptor } from "@lingui/core";
 import { msg, t } from "@lingui/core/macro";
 import {
@@ -452,26 +453,15 @@ function App() {
   // so the only jump straight to a Settings section is Settings' own menu.
   const goToBackup = () => pushOverlay("backup");
 
-  // Keyboard overlays the nav (viewport interactive-widget=overlays-content).
-  // Only nudge a focused field into view when it's actually hidden, off the top
-  // or below the keyboard-shrunk visual viewport, and then by the minimum amount
-  // (block: "nearest"). Scrolling already-visible fields caused a jarring jump.
-  useEffect(() => {
-    function onFocusIn(e: FocusEvent) {
-      const t = e.target as HTMLElement | null;
-      if (t && t.matches("input, textarea, select")) {
-        setTimeout(() => {
-          const rect = t.getBoundingClientRect();
-          const bottomLimit = window.visualViewport?.height ?? window.innerHeight;
-          if (rect.top < 0 || rect.bottom > bottomLimit - 8) {
-            t.scrollIntoView({ block: "nearest", behavior: "smooth" });
-          }
-        }, 250);
-      }
-    }
-    document.addEventListener("focusin", onFocusIn);
-    return () => document.removeEventListener("focusin", onFocusIn);
-  }, []);
+  // The web app's keyboard is drawn over the page (Safari does so whatever
+  // the viewport's interactive-widget asks), so a sheet fixed to the bottom
+  // stayed behind it with the field that was tapped. `--keyboard-inset` is how
+  // much it covers while a field has focus, and what floats over the shell
+  // (sheets, the lane panel, a dialog) moves up by it; the field is then
+  // scrolled into the strip that shows, by as little as it takes (ADR-255).
+  // In the apps the web view shrinks for the keyboard instead, and the inset
+  // is zero.
+  useEffect(() => watchKeyboardInsets(), []);
 
   async function handleStartSession(values: NewSessionFormValues, { askLanes = true } = {}) {
     setIsStartingSession(true);
@@ -684,7 +674,14 @@ function App() {
         // tab that scrolls itself (History, Stats, Settings) pads its own
         // scroller: padding here as well shortened that scroller by the bar's
         // height, and the list stopped at a hard edge above it (ADR-171).
-        className={`min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[env(safe-area-inset-top)] [--tab-clear:var(--tab-bar-h)] sm:[--tab-clear:0px] ${
+        className={`min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[env(safe-area-inset-top)] ${
+          // While a field has focus the tab bar is hidden and the keyboard
+          // covers the foot instead, so the room kept for the bar is the
+          // keyboard's: the last field can still be scrolled above it.
+          keyboardOpen
+            ? "[--tab-clear:var(--keyboard-inset,0px)]"
+            : "[--tab-clear:var(--tab-bar-h)] sm:[--tab-clear:0px]"
+        } ${
           // A tab that scrolls itself bounces in its own scroller instead.
           SELF_SCROLLING_VIEWS.includes(view) ? "" : "ios-bounce pb-[var(--tab-clear)]"
         }`}

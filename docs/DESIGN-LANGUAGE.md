@@ -92,13 +92,19 @@ keyboard, not the size of the job:
   phone it floats as an iOS 26 sheet does (ADR-186): 8px in from the sides and
   the foot, every corner 38px so it follows the phone's own, its round
   controls set in clear of the curve. The session sheet and the lane view's
-  options float the same way. The one
+  options float the same way. In the web app a sheet rides up on the
+  keyboard while a field in it has focus, since the browser draws the
+  keyboard over the page rather than making room (ADR-255). The one
   exception to the leading close is a sheet that has already applied everything
   as you went, the filter sheets being the only ones: there is nothing to cancel,
   so an X would be a lie about what leaving does. Those carry a tick trailing
   instead (`dismissAs="done"`), which reads as keeping what is on screen, and
-  where the X would be, a glass "Clear all" capsule (`leading`) that undoes
-  every choice in the sheet and is dimmed while there is none (ADR-253).
+  where the X would be, a glass "Clear all" capsule (`ClearAllButton` as
+  `leading`) that undoes every choice in the sheet and is dimmed while there
+  is none (ADR-253, ADR-256). Every filter sheet has it there and nowhere
+  else: never a line of accent text at the foot. A sheet that only reads
+  your own saved values back (the layout lab's "Reset to your saved
+  settings") is a different action and keeps its button by the values.
 - **`ConfirmDialog`** settles in the middle and scales back out. Questions with
   buttons, including a confirm that has to be earned by typing a phrase, because
   typing `ERASE` is answering rather than entering. In the iPhone app a confirm
