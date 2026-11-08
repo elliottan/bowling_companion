@@ -8,7 +8,8 @@ import { GROUP_HEADING } from "./ui/typography";
 import { LoadingCard } from "./ui/LoadingCard";
 import { EmptyState } from "./ui/EmptyState";
 import { SwipeRow } from "./ui/SwipeRow";
-import { formatSessionDate } from "../lib/dates";
+import { formatDayHeading, formatSessionDate } from "../lib/dates";
+import { groupByDay } from "../lib/historyCalendar";
 import { formatNumber } from "../lib/format";
 
 interface SessionHistoryProps {
@@ -37,27 +38,36 @@ export function SessionHistory({
     );
   }
 
+  // Under a heading per day (ADR-252), so a row no longer repeats its date.
+  // The heading carries the day's key, which the calendar scrolls to.
   return (
-    <ul className="space-y-2">
-      {sessions.map((summary) => (
-        <li key={summary.session.id}>
-          {/* The session being scored is open in the Score tab, so it is
-              deleted from there, not from under it. */}
-          <SwipeRow
-            className="rounded-lg"
-            actionLabel={t`Delete`}
-            disabled={!onDeleteSession || (summary.session.id != null && summary.session.id === activeSessionId)}
-            onAction={() => onDeleteSession?.(summary)}
-          >
-            <SessionRow
-              summary={summary}
-              isActive={summary.session.id != null && summary.session.id === activeSessionId}
-              onOpen={onOpenSession}
-            />
-          </SwipeRow>
-        </li>
+    <div className="space-y-4">
+      {groupByDay(sessions).map(({ date, sessions: day }) => (
+        <section key={date} data-day={date} aria-label={formatSessionDate(date)}>
+          <h2 className={`${GROUP_HEADING} mb-1.5 px-1`}>{formatDayHeading(date)}</h2>
+          <ul className="space-y-2">
+            {day.map((summary) => (
+              <li key={summary.session.id}>
+                {/* The session being scored is open in the Score tab, so it is
+                    deleted from there, not from under it. */}
+                <SwipeRow
+                  className="rounded-lg"
+                  actionLabel={t`Delete`}
+                  disabled={!onDeleteSession || (summary.session.id != null && summary.session.id === activeSessionId)}
+                  onAction={() => onDeleteSession?.(summary)}
+                >
+                  <SessionRow
+                    summary={summary}
+                    isActive={summary.session.id != null && summary.session.id === activeSessionId}
+                    onOpen={onOpenSession}
+                  />
+                </SwipeRow>
+              </li>
+            ))}
+          </ul>
+        </section>
       ))}
-    </ul>
+    </div>
   );
 }
 
@@ -115,9 +125,8 @@ function SessionRow({ summary, isActive, onOpen }: SessionRowProps) {
           {session.description && (
             <p className="break-words text-xs font-medium text-ink-secondary">{session.description}</p>
           )}
-          <p className="text-xs text-ink-secondary">
-            {[formatSessionDate(session.date), laneSummary(games)].filter(Boolean).join(" · ")}
-          </p>
+          {/* The day is the heading above; the lanes stay. */}
+          {laneSummary(games) && <p className="text-xs text-ink-secondary">{laneSummary(games)}</p>}
           {session.oil_pattern && (
             <p className="text-xs font-medium text-ink-secondary">{session.oil_pattern}</p>
           )}

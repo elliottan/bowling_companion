@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.95.0: A calendar on History (2026-11-08)
+
+- History opens on a calendar of the month. Each day you bowled shows its
+  average, shaded deeper the better the night was against the other days on
+  screen, and it follows your filters. Tap a day to jump the list to it, tap
+  the month's name to pick any month and year, or use the arrows. The
+  calendar button at the top left hides it, and History remembers.
+- History's sessions now sit under a heading for each day, and a card no
+  longer repeats the date.
+
 ## 0.94.1: A taller range on Stats (2026-11-08)
 
 - Stats' Last 10 / 3 mo / All switch is now as tall as the filter and share
