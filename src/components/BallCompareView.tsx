@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import { entryKey, graphPoints, MAX_COMPARE, specsAt, weightsFor, type GraphPoint, type WeighedBall } from "../lib/ballCompare";
 import { formatReleaseDate } from "../lib/dates";
 import { formatFixed, formatNumber } from "../lib/format";
-import { BallGraph } from "./BallGraph";
+import { BallGraph, GraphTermNote, type GraphTerm } from "./BallGraph";
 import { BallPeek } from "./BallPeek";
 import { BallTag } from "./BallTag";
 import { CatalogBallImage } from "./CatalogBallImage";
@@ -63,15 +63,38 @@ export function BallCompareView({
   active?: boolean;
 }) {
   const [tab, setTab] = useState<CompareTab>(initialTab);
-  // The bag is part of what the graph is for, so it is on until hidden.
-  const [showOwned, setShowOwned] = useState(true);
+  // The bag's balls hidden from the graph, one by one (ADR-263). The bag is
+  // part of what the graph is for, so every ball is on until hidden.
+  const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
   const [peek, setPeek] = useState<{ point: GraphPoint; anchor: DOMRect } | null>(null);
   const keyOf = (b: WeighedBall) => entryKey({ id: b.ball.id, weight: b.weight });
   // A ball owned at the weight it is compared at is the bowler's own, so its
   // weight is not the comparison's to move.
   const ownedKeys = new Set(owned.map(keyOf));
   const ownedCount = owned.length;
-  const points = graphPoints(compared, owned, showOwned);
+  // Every ball keeps its number whether it is drawn or not, so the key does
+  // not renumber under the finger. A compared ball is always drawn.
+  const keyPoints = graphPoints(compared, owned, true);
+  const isOn = (p: GraphPoint) => p.selected || !hidden.has(p.key);
+  const points = keyPoints.filter(isOn);
+  const bagKeys = keyPoints.filter((p) => !p.selected).map((p) => p.key);
+  const bagShown = bagKeys.filter((k) => !hidden.has(k)).length;
+  const toggleBall = (p: GraphPoint) => {
+    // Off, a compared ball leaves the comparison; a bag ball leaves the graph.
+    if (p.selected) {
+      onRemove(p.key);
+      return;
+    }
+    setHidden((h) => {
+      const next = new Set(h);
+      if (next.has(p.key)) next.delete(p.key);
+      else next.add(p.key);
+      return next;
+    });
+  };
+  // All on, the bag's switch takes them all off; otherwise it puts them all on.
+  const toggleBag = () => setHidden(bagShown === bagKeys.length ? new Set(bagKeys) : new Set());
+  const [term, setTerm] = useState<{ term: GraphTerm; anchor: DOMRect } | null>(null);
 
   const specs = compared.map((b) => specsAt(b.ball, b.weight));
   const standIns = specs.some((s) => !s.exact);
@@ -94,7 +117,7 @@ export function BallCompareView({
   );
 
   return (
-    <PushScreen title={t({ message: "Compare", comment: "The title of the screen that compares bowling balls side by side" })} onBack={onBack} active={active && peek === null} backCloses={backCloses}>
+    <PushScreen title={t({ message: "Compare", comment: "The title of the screen that compares bowling balls side by side" })} onBack={onBack} active={active && peek === null && term === null} backCloses={backCloses}>
       <div className="mx-auto w-full max-w-3xl space-y-3 px-3 pb-6 pt-2 sm:px-6">
         <SegmentedControl<CompareTab>
           label={t({ message: "Compare by", comment: "The spoken name of the switch between a table of specs and a graph" })}
@@ -105,17 +128,6 @@ export function BallCompareView({
           value={tab}
           onChange={setTab}
         />
-        {/* The bag's switch over the graph. */}
-        {tab === "graph" && owned.length > 0 && (
-          <div className="flex min-h-11 flex-wrap items-center gap-2">
-            <Chip selected={showOwned} onClick={() => setShowOwned((v) => !v)}>
-              {plural(ownedCount, {
-                one: "Your bag, # ball",
-                other: "Your bag, # balls"
-              })}
-            </Chip>
-          </div>
-        )}
 
         {tab === "specs" ? (
           compared.length === 0 ? (
@@ -234,34 +246,73 @@ export function BallCompareView({
           )
         ) : (
           <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
-            <BallGraph points={points} activeKey={peek?.point.key ?? null} onPick={openPeek} />
-            {points.length > 0 ? (
-              <ol className="mt-3 grid grid-cols-1 gap-x-3 gap-y-1 min-[380px]:grid-cols-2">
-                {points.map((p) => (
-                  <li key={p.key} className="min-w-0">
-                    <button
-                      type="button"
-                      onClick={(e) => openPeek(p, e.currentTarget.getBoundingClientRect())}
-                      className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-lg px-1 text-left text-footnote active:bg-ink/10"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className={`relative block h-8 w-8 shrink-0 rounded-full ${
-                          p.selected ? "ring-[3px] ring-accent" : "ring-[1.5px] ring-ink-secondary"
-                        }`}
+            <BallGraph
+              points={points}
+              activeKey={peek?.point.key ?? null}
+              onPick={openPeek}
+              onTerm={(which, anchor) => setTerm({ term: which, anchor })}
+            />
+            {/* The bag's switch over the key it switches (ADR-263): all on, it
+                takes them off; some or none, it puts them all on. */}
+            {bagKeys.length > 0 && (
+              <div className="mt-3 flex min-h-11 flex-wrap items-center gap-2">
+                <Chip
+                  selected={bagShown === bagKeys.length}
+                  aria-pressed={bagShown === bagKeys.length ? true : bagShown === 0 ? false : "mixed"}
+                  onClick={toggleBag}
+                >
+                  {bagShown > 0 && bagShown < bagKeys.length
+                    ? t({ message: `Your bag, ${{ shown: bagShown }} of ${{ total: bagKeys.length }}`, comment: "A switch over the graph's key: how many of the bowler's own balls are shown, out of all of them" })
+                    : plural(ownedCount, {
+                        one: "Your bag, # ball",
+                        other: "Your bag, # balls"
+                      })}
+                </Chip>
+              </div>
+            )}
+            {keyPoints.length > 0 ? (
+              <ol className={`${bagKeys.length > 0 ? "mt-1" : "mt-3"} grid grid-cols-1 gap-x-3 gap-y-1 min-[380px]:grid-cols-2`}>
+                {keyPoints.map((p) => {
+                  const on = isOn(p);
+                  const name = `${p.ball.name}, ${lb(p.weight)}`;
+                  return (
+                    <li key={p.key} className="flex min-w-0 items-center gap-1">
+                      {/* The photo switches the ball on and off the graph;
+                          the words beside it open its card (ADR-263). */}
+                      <button
+                        type="button"
+                        onClick={() => toggleBall(p)}
+                        aria-pressed={on}
+                        aria-label={
+                          p.selected
+                            ? t({ message: `Remove ${{ ball: p.ball.name }}, ${{ weight: lb(p.weight) }}`, comment: "Takes one bowling ball, at one weight, out of the comparison" })
+                            : t({ message: `Show ${{ ball: name }} on the graph`, comment: "A switch in a graph's key: draws one of the bowler's own balls on the graph, or hides it" })
+                        }
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full active:opacity-60"
                       >
-                        <span className="block h-8 w-8 overflow-hidden rounded-full">
-                          <CatalogBallImage src={p.ball.imageThumb} alt="" brand={p.ball.brand} size="thumb" />
-                        </span>
                         <span
-                          className={`absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-caption-2 font-bold leading-none ring-1 ring-surface ${
-                            p.selected ? "bg-accent-fill text-accent-on-fill" : "bg-ink-strong text-surface"
+                          aria-hidden="true"
+                          className={`relative block h-8 w-8 rounded-full ${
+                            !on ? "opacity-40" : p.selected ? "ring-[3px] ring-accent" : "ring-[1.5px] ring-ink-secondary"
                           }`}
                         >
-                          {formatNumber(p.n)}
+                          <span className="block h-8 w-8 overflow-hidden rounded-full">
+                            <CatalogBallImage src={p.ball.imageThumb} alt="" brand={p.ball.brand} size="thumb" />
+                          </span>
+                          <span
+                            className={`absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-caption-2 font-bold leading-none ring-1 ring-surface ${
+                              p.selected ? "bg-accent-fill text-accent-on-fill" : "bg-ink-strong text-surface"
+                            }`}
+                          >
+                            {formatNumber(p.n)}
+                          </span>
                         </span>
-                      </span>
-                      <span className="min-w-0 flex-1">
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => openPeek(p, e.currentTarget.getBoundingClientRect())}
+                        className={`flex min-h-11 min-w-0 flex-1 flex-col justify-center rounded-lg px-1 text-left text-footnote active:bg-ink/10 ${on ? "" : "opacity-50"}`}
+                      >
                         <span className="block break-words font-semibold leading-tight text-ink">{p.ball.name}</span>
                         {/* Its weight beside its tags: the same ball can be on
                             the graph twice, and the bag's sit at their own. */}
@@ -270,10 +321,10 @@ export function BallCompareView({
                           {p.selected && <BallTag kind="selected" />}
                           {p.owned && <BallTag kind="owned" />}
                         </span>
-                      </span>
-                    </button>
-                  </li>
-                ))}
+                      </button>
+                    </li>
+                  );
+                })}
               </ol>
             ) : (
               <p className="mt-3 text-center text-footnote text-ink-secondary">{empty}</p>
@@ -282,6 +333,7 @@ export function BallCompareView({
         )}
         {addButton}
       </div>
+      {term && <GraphTermNote term={term.term} anchor={term.anchor} onClose={() => setTerm(null)} />}
       {peek && (
         <BallPeek
           ball={peek.point.ball}

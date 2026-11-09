@@ -293,6 +293,27 @@ describe("CatalogView", () => {
     expect(screen.getByText("2 of 4")).toBeInTheDocument();
   });
 
+  it("shows the bowler's copies of a ball over its specs, one at a time, and still offers another (ADR-263)", async () => {
+    await seedCatalog(2);
+    await db.ball_catalog.update("ball-1", { weights: [{ weight: 14, rg: 2.53, diff: 0.046, mbDiff: null }] });
+    await db.balls.bulkAdd([
+      { name: "Comp ball", is_spare_ball: false, catalog_ref_id: "ball-1", weight: 15 },
+      { name: "Spare night", is_spare_ball: false, catalog_ref_id: "ball-1", weight: 14 },
+      { name: "Old one", is_spare_ball: false, catalog_ref_id: "ball-1", weight: 16, retired: true }
+    ]);
+    render(<CatalogView onBack={vi.fn()} selectedBallId="ball-1" onSelectBall={vi.fn()} />);
+    const mine = await screen.findByRole("region", { name: "In your arsenal" });
+    // Its own weight's numbers; a retired copy is out of the bag.
+    expect(within(mine).getByText("Comp ball")).toBeInTheDocument();
+    expect(within(mine).getByText("14 lb · RG 2.53 · Diff 0.046")).toBeInTheDocument();
+    expect(within(mine).queryByText("Old one")).toBeNull();
+    expect(within(mine).getByRole("button", { name: "Spare night, 14 lb" })).toBeInTheDocument();
+    // Over the specs, and owning it never stops another.
+    expect(mine.compareDocumentPosition(screen.getByText("Coverstock")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByText("Already in your arsenal")).toBeNull();
+    expect(screen.getByRole("button", { name: "Add another to arsenal" })).toBeEnabled();
+  });
+
   it("opens the ball graph from the bar's corner (ADR-262)", async () => {
     await seedCatalog(2);
     renderCatalog();

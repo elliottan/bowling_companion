@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.103.0: Your copies on a ball's page, and the graph's key switches balls (2026-11-09)
+
+### Changed
+
+- A catalog ball you own now shows your copies near the top of its page, each with its weight and its RG and diff at that weight; swipe between them when you own more than one (ADR-263).
+- You can always add a catalog ball to your arsenal, even one you already own.
+- On the ball graph, tap a ball's photo in the list under it to show or hide it on the graph; tap its name for its details. Hiding a ball you are comparing takes it out of Compare.
+- Your bag's button now sits above that list: with every ball shown it hides them all, otherwise it shows them all.
+- The graph's axes now just say RG and Diff; tap either to see what it means.
+
 ## 0.102.0: The ball graph, every ball at its own weight, and a default ball weight (2026-11-09)
 
 ### Changed

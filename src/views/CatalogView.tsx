@@ -141,9 +141,18 @@ function applyFilters(balls: CatalogBall[], filters: Filters, sort: SortKey, wei
 // Detail panel
 // ---------------------------------------------------------------------------
 
+/** One of the bowler's own copies of a catalog ball, for its page. */
+interface OwnedCopy {
+  id: number;
+  name: string;
+  weight: number;
+  imageThumb: string | null;
+}
+
 interface DetailPanelProps {
   ball: CatalogBall;
-  owned: boolean;
+  /** The bowler's copies of this ball still in the bag, in arsenal order. */
+  owned: readonly OwnedCopy[];
   onBack: () => void;
   onAddToArsenal: (ball: CatalogBall) => void;
   /** True while AddFromCatalogDialog is stacked on top, disables this
@@ -249,6 +258,9 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
             <p className="mt-3 text-sm text-ink-secondary">{t`Released ${{ date: releaseDate }}`}</p>
           )}
 
+          {/* The bowler's own, over the catalog's specs (ADR-263). */}
+          {owned.length > 0 && <OwnedCopies ball={ball} copies={owned} />}
+
           <dl className="mt-4 space-y-2">
             {/* The brand rides over the name only until the name scrolls
                 under the bar, so the specs carry it too. */}
@@ -287,15 +299,13 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
             </a>
           )}
 
-          {owned ? (
-            <div className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-accent-fill/30 bg-accent-soft px-4 py-3.5 text-sm font-semibold text-accent">
-              {t`Already in your arsenal`}
-            </div>
-          ) : (
-            <Button variant="primary" size="lg" onClick={() => onAddToArsenal(ball)} className="mt-5 w-full">
-              {t`Add to arsenal`}
-            </Button>
-          )}
+          {/* Always offered: a bowler can own the same ball twice, in one
+              weight or two (ADR-263). */}
+          <Button variant={owned.length > 0 ? "secondary" : "primary"} size="lg" onClick={() => onAddToArsenal(ball)} className="mt-5 w-full">
+            {owned.length > 0
+              ? t({ message: "Add another to arsenal", comment: "Adds a second copy of a bowling ball the bowler already owns to their arsenal" })
+              : t`Add to arsenal`}
+          </Button>
 
           {/* Into the comparison from the ball itself, beside the list's own
               picking (ADR-258); once in, again at another weight (ADR-262);
@@ -345,6 +355,74 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
         </div>
       </div>
     </PushScreen>
+  );
+}
+
+/**
+ * The bowler's own copies of a ball, on its page (ADR-263): one card at a
+ * time, its name, weight and the numbers at that weight, swiped sideways with
+ * dots under it when there are several, so a bag with three of one ball still
+ * takes one card's height.
+ */
+function OwnedCopies({ ball, copies }: { ball: CatalogBall; copies: readonly OwnedCopy[] }) {
+  const [index, setIndex] = useState(0);
+  const track = useRef<HTMLDivElement | null>(null);
+  const go = (i: number) => {
+    const el = track.current;
+    el?.scrollTo?.({ left: i * el.clientWidth, behavior: "smooth" });
+    setIndex(i);
+  };
+  return (
+    <section className="mt-4" aria-label={t({ message: "In your arsenal", comment: "A heading on a catalog ball's page over the bowler's own copies of it" })}>
+      <h2 className={`mb-2 ${GROUP_HEADING}`}>
+        {t({ message: "In your arsenal", comment: "A heading on a catalog ball's page over the bowler's own copies of it" })}
+      </h2>
+      <div
+        ref={track}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          if (el.clientWidth > 0) setIndex(Math.round(el.scrollLeft / el.clientWidth));
+        }}
+        className="flex snap-x snap-mandatory overflow-x-auto rounded-xl border border-accent-fill/30 bg-accent-soft [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {copies.map((c) => {
+          const s = specsAt(ball, c.weight);
+          return (
+            <div key={c.id} className="flex w-full shrink-0 snap-start items-center gap-3 px-3 py-2.5">
+              <span className="block h-10 w-10 shrink-0">
+                <CatalogBallImage src={c.imageThumb ?? ball.imageThumb} alt="" brand={ball.brand} size="thumb" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block break-words text-sm font-semibold text-ink">{c.name}</span>
+                <span className="block text-xs tabular-nums text-ink-secondary">
+                  {[
+                    lb(c.weight),
+                    s.rg !== null ? t({ message: `RG ${{ rg: formatFixed(s.rg, 2) }}`, comment: "Bowling term: RG is the radius of gyration, a ball spec, followed by its value" }) : null,
+                    s.diff !== null ? t({ message: `Diff ${{ diff: formatFixed(s.diff, 3) }}`, comment: "Bowling term: the differential, a ball spec (short for differential RG), followed by its value" }) : null
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      {copies.length > 1 && (
+        <div className="mt-1 flex min-h-11 items-center justify-center gap-3">
+          {copies.map((c, i) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => go(i)}
+              aria-label={t({ message: `${{ name: c.name }}, ${{ weight: lb(c.weight) }}`, comment: "One of the bowler's own copies of a ball: its name and weight, on a dot that shows it" })}
+              aria-current={i === index}
+              className={`relative h-2 rounded-full transition-all ${TAP_TARGET_44} ${i === index ? "w-5 bg-accent-fill" : "w-2 bg-edge-strong"}`}
+            />
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -726,6 +804,19 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
     });
   }, [arsenal, byId, byName]);
 
+  /** The bowler's copies of a catalog ball still in the bag (ADR-263). */
+  const ownedCopies = (ball: CatalogBall): OwnedCopy[] =>
+    arsenal.flatMap((b) => {
+      if (b.retired || b.id === undefined) return [];
+      const snap = b.catalog_snapshot;
+      const match = b.catalog_ref_id
+        ? b.catalog_ref_id === ball.id
+        : snap !== undefined && `${snap.brand} ${snap.name}`.toLowerCase() === `${ball.brand} ${ball.name}`.toLowerCase();
+      if (!match) return [];
+      const colorway = ball.colorways?.find((c) => c.sku === b.colorway_sku);
+      return [{ id: b.id, name: b.name, weight: b.weight ?? DEFAULT_WEIGHT, imageThumb: colorway?.imageThumb ?? snap?.imageThumb ?? null }];
+    });
+
   /** The weights a ball is compared at, in the order they were added. */
   const comparedAt = (id: string) => compared.filter((e) => e.id === id).map((e) => e.weight);
   /** The weight a ball would come into the comparison at, or null when it is
@@ -816,7 +907,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
       <DetailPanel
         key={ball.id}
         ball={ball}
-        owned={isOwned(ball)}
+        owned={ownedCopies(ball)}
         onBack={onBack}
         onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
         addDialogOpen={!top || addingBall != null || (compareOpen && i < compareAt) || menuAt !== null}

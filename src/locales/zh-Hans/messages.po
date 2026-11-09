@@ -485,6 +485,11 @@ msgstr "{name} 现在显示 {pattern}。"
 msgid "{name}, {color}"
 msgstr "{name}，{color}"
 
+#. One of the bowler's own copies of a ball: its name and weight, on a dot that shows it
+#: src/views/CatalogView.tsx
+msgid "{name}, {weight}"
+msgstr "{name}，{weight}"
+
 #: src/views/AppearanceView.tsx
 msgid "{name}, needs Headpin Pro"
 msgstr "{name}，需要 Headpin Pro"
@@ -794,6 +799,11 @@ msgstr "添加球道备注"
 msgid "Add a pattern"
 msgstr "添加油型"
 
+#. Adds a second copy of a bowling ball the bowler already owns to their arsenal
+#: src/views/CatalogView.tsx
+msgid "Add another to arsenal"
+msgstr "再添加一颗到球库"
+
 #. Adds this bowling ball to the comparison again, at another weight
 #: src/views/CatalogView.tsx
 msgid "Add another weight"
@@ -931,10 +941,6 @@ msgstr "球馆"
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Alley and lane are required."
 msgstr "必须填写球馆和球道。"
-
-#: src/views/CatalogView.tsx
-msgid "Already in your arsenal"
-msgstr "已在你的球库中"
 
 #. An open frame is a bowling term: a frame with pins left standing after both balls
 #: src/views/OpenFramesView.tsx
@@ -1652,7 +1658,9 @@ msgstr "说明"
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
+#. Bowling term: the differential, a ball spec (short for differential RG)
 #: src/components/BallCompareView.tsx
+#: src/components/BallGraph.tsx
 #: src/views/CatalogView.tsx
 msgid "Diff"
 msgstr "Diff"
@@ -1664,6 +1672,7 @@ msgid "Diff {0}"
 msgstr "Diff {0}"
 
 #. Bowling term: a ball's differential, short, with its value
+#. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
 #. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
 #. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
 #. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
@@ -2527,6 +2536,12 @@ msgstr "在灵动岛"
 #: src/views/ProOfferView.tsx
 msgid "In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
 msgstr "在 iPhone app 中，打球时分数会跟着你，每一球都会更新：在锁定屏幕、灵动岛和 Apple Watch 上。"
+
+#. A heading on a catalog ball's page over the bowler's own copies of it
+#. A heading on a catalog ball's page over the bowler's own copies of it
+#: src/views/CatalogView.tsx
+msgid "In your arsenal"
+msgstr "在你的球库中"
 
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
@@ -3824,6 +3839,7 @@ msgid "Remove"
 msgstr "移除"
 
 #. Takes one bowling ball, at one weight, out of the comparison
+#. Takes one bowling ball, at one weight, out of the comparison
 #: src/components/BallCompareView.tsx
 msgid "Remove {ball}, {weight}"
 msgstr "移除 {ball}，{weight}"
@@ -3946,7 +3962,9 @@ msgstr "反向趟数"
 #. Bowling term: radius of gyration, a ball spec
 #. Bowling term: radius of gyration, a ball spec
 #. Bowling term: radius of gyration, a ball spec
+#. Bowling term: radius of gyration, a ball spec
 #: src/components/BallCompareView.tsx
+#: src/components/BallGraph.tsx
 #: src/views/CatalogView.tsx
 msgid "RG"
 msgstr "RG"
@@ -3959,6 +3977,7 @@ msgstr "RG"
 msgid "RG {0}"
 msgstr "RG {0}"
 
+#. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
@@ -4300,6 +4319,11 @@ msgstr "短定位销"
 #: src/views/ArsenalView.tsx
 msgid "Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
 msgstr "已用这颗球记录的投球会保留分数，但会失去球名。若想在记录中保留它，请改为退役。"
+
+#. A switch in a graph's key: draws one of the bowler's own balls on the graph, or hides it
+#: src/components/BallCompareView.tsx
+msgid "Show {ball} on the graph"
+msgstr "在图表上显示 {ball}"
 
 #. Expands a group of search results to every one it found
 #: src/views/SearchView.tsx
@@ -5320,6 +5344,11 @@ msgstr "你的平均分"
 #: src/components/BallEstimates.tsx
 msgid "Your average here"
 msgstr "你在这里的平均分"
+
+#. A switch over the graph's key: how many of the bowler's own balls are shown, out of all of them
+#: src/components/BallCompareView.tsx
+msgid "Your bag, {shown} of {total}"
+msgstr "你的球袋，{total} 颗中的 {shown} 颗"
 
 #: src/views/SettingsView.tsx
 msgid "Your balls and their layouts"

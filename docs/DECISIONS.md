@@ -10957,3 +10957,42 @@ comparison picked before this build is forgotten on update, as picks only
 live while the app runs. A ball the bowler owns at every weight it is made in
 cannot come into the comparison at any other, which is the point: past the
 owned weights it comes in as a catalog ball, with a menu.
+
+## ADR-263: The bag on a ball's page, the graph's key switches balls, and the axes say their names
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-261 and
+ADR-262.
+
+**Context.** A catalog ball the bowler owned showed "Already in your arsenal"
+at the foot of its page in place of Add to arsenal, though a bowler may own
+two of one ball, in one weight or two, and the banner said nothing about the
+ball they own. On the graph, the bag was one switch for all of it, a tap on a
+ball in the key could only open its card, and the axes carried a sentence
+each.
+
+**Decision.**
+
+- **In your arsenal** sits on a ball's page under its photo and release date,
+  over the specs: one card a copy, with its name, its weight and the RG and
+  diff at that weight, in a row that swipes sideways with dots under it when
+  there are several. One card's height however many are owned. A retired copy
+  is out of the bag and not shown.
+- **Add to arsenal is always there.** Owned, it reads "Add another to arsenal"
+  and steps back to a secondary button.
+- **The key under the graph switches each ball.** A ball's photo turns it on
+  and off the graph (`aria-pressed`, the ring gone and the photo dimmed while
+  off); the words beside it open its card, as before. A ball off the graph
+  stays in the key, numbered as it was, so the key never renumbers under the
+  finger.
+- **A compared ball is always on the graph.** Switched off, it leaves the
+  comparison.
+- **Your bag sits over the key it switches**, under the chart. All on, it takes
+  the bag off; some or none on, it puts the whole bag on, and with some on it
+  reads "Your bag, 5 of 8" (`aria-pressed="mixed"`). The bag starts all on.
+- **The axes say RG and Diff**, nothing more. A tap on either opens a small
+  note with what it means, the words the axes used to carry ("RG: lower revs up
+  sooner"); a tap anywhere closes it.
+
+**Consequences.** Which bag balls are off is the comparison's own state and is
+forgotten when it closes. Balls with near-identical specs still draw on top of
+each other; how to part them is open, with options put to the owner.

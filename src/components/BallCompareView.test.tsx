@@ -86,9 +86,6 @@ describe("BallCompareView (ADR-258, ADR-262)", () => {
     // Only the compared and the bag: no catalog behind, no cover legend.
     expect(chart.querySelectorAll("[data-ball]")).toHaveLength(3);
     expect(screen.queryByText("Pearl")).toBeNull();
-    // The bag's switch sits over the chart.
-    const bag = screen.getByRole("button", { name: "Your bag, 2 balls" });
-    expect(bag.compareDocumentPosition(chart) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
     // Each with its weight; the bag's at the weight it is owned in.
     const key = screen.getByRole("list");
@@ -104,10 +101,41 @@ describe("BallCompareView (ADR-258, ADR-262)", () => {
     // Ignition reads its 14 lb numbers: the bag does not follow any menu.
     fireEvent.click(within(chart).getByRole("button", { name: "Storm Ignition, 14 lb" }));
     expect(screen.getByRole("dialog", { name: "Ignition" })).toHaveTextContent("RG 2.52");
-    fireEvent.keyDown(document, { key: "Escape" });
+  });
 
-    // Hiding the bag leaves the compared alone.
-    fireEvent.click(bag);
+  it("switches the bag's balls on the graph one by one from their photos, and all at once from Your bag (ADR-263)", () => {
+    const onRemove = vi.fn();
+    render(<BallCompareView compared={[at(widow)]} owned={[at(ignition, 14), at(ignition)]} onRemove={onRemove} onBack={vi.fn()} initialTab="graph" />);
+    const chart = screen.getByRole("img", { name: "Balls by RG and differential" });
+    const bag = screen.getByRole("button", { name: "Your bag, 2 balls" });
+    // Over the key it switches, under the chart.
+    expect(chart.compareDocumentPosition(bag) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(bag).toHaveAttribute("aria-pressed", "true");
+
+    // One off: still in the key, to switch back on, and the switch says some.
+    const one = screen.getByRole("button", { name: "Show Ignition, 14 lb on the graph" });
+    fireEvent.click(one);
+    expect(one).toHaveAttribute("aria-pressed", "false");
     expect(chart.querySelectorAll("[data-ball]")).toHaveLength(2);
+    expect(screen.getAllByRole("listitem")).toHaveLength(3);
+    const some = screen.getByRole("button", { name: "Your bag, 1 of 2" });
+    expect(some).toHaveAttribute("aria-pressed", "mixed");
+
+    // Some on, the switch puts them all on; all on, it takes them all off.
+    fireEvent.click(some);
+    expect(chart.querySelectorAll("[data-ball]")).toHaveLength(3);
+    fireEvent.click(screen.getByRole("button", { name: "Your bag, 2 balls" }));
+    expect(chart.querySelectorAll("[data-ball]")).toHaveLength(1);
+
+    // A compared ball is always drawn; switched off, it leaves the comparison.
+    fireEvent.click(screen.getByRole("button", { name: "Remove Widow, 15 lb" }));
+    expect(onRemove).toHaveBeenCalledWith("Widow@15");
+  });
+
+  it("names the axes alone, and says what each means on a tap (ADR-263)", () => {
+    render(<BallCompareView compared={[at(widow)]} owned={[]} onRemove={vi.fn()} onBack={vi.fn()} initialTab="graph" />);
+    expect(screen.queryByText("RG: lower revs up sooner")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "RG: lower revs up sooner" }));
+    expect(screen.getByRole("dialog", { name: "RG: lower revs up sooner" })).toHaveTextContent("RG: lower revs up sooner");
   });
 });

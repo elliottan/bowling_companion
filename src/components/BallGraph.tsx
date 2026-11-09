@@ -1,5 +1,7 @@
 import { t } from "@lingui/core/macro";
 import { useId } from "react";
+import { createPortal } from "react-dom";
+import { useOverlay } from "../lib/useOverlay";
 import { specsAt, type GraphPoint } from "../lib/ballCompare";
 import { formatFixed, formatNumber } from "../lib/format";
 import { siteUrl } from "../lib/platform";
@@ -29,12 +31,15 @@ const y = (diff: number) => PAD.top + (1 - (Math.min(Math.max(diff, DIFF[0]), DI
 export function BallGraph({
   points,
   activeKey,
-  onPick
+  onPick,
+  onTerm
 }: {
   points: readonly GraphPoint[];
   /** The point whose card is open, drawn on top. */
   activeKey?: string | null;
   onPick?: (point: GraphPoint, anchor: DOMRect) => void;
+  /** An axis's name was tapped, for what it means (ADR-263). */
+  onTerm?: (term: GraphTerm, anchor: DOMRect) => void;
 }) {
   const clip = useId();
   const placed = points.flatMap((p) => {
@@ -72,19 +77,10 @@ export function BallGraph({
           </text>
         </g>
       ))}
-      <text x={(PAD.left + W - PAD.right) / 2} y={H - 4} textAnchor="middle" fontSize={9.5} fill="rgb(var(--color-ink-secondary))">
-        {t({ message: "RG: lower revs up sooner", comment: "Bowling term: RG is the radius of gyration. A chart's horizontal axis title." })}
-      </text>
-      <text
-        x={10}
-        y={(PAD.top + H - PAD.bottom) / 2}
-        textAnchor="middle"
-        fontSize={9.5}
-        fill="rgb(var(--color-ink-secondary))"
-        transform={`rotate(-90 10 ${(PAD.top + H - PAD.bottom) / 2})`}
-      >
-        {t({ message: "Diff: higher flares more", comment: "Bowling term: diff is the differential. A chart's vertical axis title." })}
-      </text>
+      {/* Each axis by its name alone; a tap says what it means (ADR-263),
+          so the chart carries no sentence of its own. */}
+      <AxisName term="rg" x={(PAD.left + W - PAD.right) / 2} y={H - 4} onTerm={onTerm} />
+      <AxisName term="diff" x={10} y={(PAD.top + H - PAD.bottom) / 2} rotate onTerm={onTerm} />
 
       {drawn.map((p) => {
         const src = siteUrl(p.ball.imageThumb);
@@ -153,5 +149,87 @@ export function BallGraph({
         );
       })}
     </svg>
+  );
+}
+
+export type GraphTerm = "rg" | "diff";
+
+/** What an axis means, in the words the chart used to print under it. */
+function termText(term: GraphTerm): string {
+  return term === "rg"
+    ? t({ message: "RG: lower revs up sooner", comment: "Bowling term: RG is the radius of gyration. A chart's horizontal axis title." })
+    : t({ message: "Diff: higher flares more", comment: "Bowling term: diff is the differential. A chart's vertical axis title." });
+}
+
+function AxisName({
+  term,
+  x: ax,
+  y: ay,
+  rotate = false,
+  onTerm
+}: {
+  term: GraphTerm;
+  x: number;
+  y: number;
+  rotate?: boolean;
+  onTerm?: (term: GraphTerm, anchor: DOMRect) => void;
+}) {
+  const label =
+    term === "rg"
+      ? t({ message: "RG", comment: "Bowling term: radius of gyration, a ball spec" })
+      : t({ message: "Diff", comment: "Bowling term: the differential, a ball spec (short for differential RG)" });
+  const open = (el: Element) => onTerm?.(term, el.getBoundingClientRect());
+  return (
+    <g
+      role={onTerm ? "button" : undefined}
+      tabIndex={onTerm ? 0 : undefined}
+      aria-label={onTerm ? termText(term) : undefined}
+      className={onTerm ? "cursor-pointer outline-none" : undefined}
+      transform={rotate ? `rotate(-90 ${ax} ${ay})` : undefined}
+      onClick={(e) => open(e.currentTarget)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          open(e.currentTarget);
+        }
+      }}
+    >
+      {/* A finger's reach around a short word, unseen. */}
+      <rect x={ax - 22} y={ay - 14} width={44} height={20} fill="transparent" />
+      <text x={ax} y={ay} textAnchor="middle" fontSize={10} fontWeight={600} fill="rgb(var(--color-ink-secondary))">
+        {label}
+      </text>
+    </g>
+  );
+}
+
+const NOTE_WIDTH = 240;
+const GUTTER = 16;
+
+/**
+ * What a graph's axis means, in a small note hung off its name: the words the
+ * chart used to print along its axes. A tap anywhere, Escape or back closes it.
+ */
+export function GraphTermNote({ term, anchor, onClose }: { term: GraphTerm; anchor: DOMRect; onClose: () => void }) {
+  const ref = useOverlay<HTMLDivElement>(onClose);
+  const vw = window.innerWidth;
+  const width = Math.min(NOTE_WIDTH, vw - GUTTER * 2);
+  const left = Math.max(GUTTER, Math.min(anchor.left + anchor.width / 2 - width / 2, vw - width - GUTTER));
+  return createPortal(
+    <>
+      <div className="fixed inset-0 z-[76]" onClick={onClose} />
+      <div
+        ref={ref}
+        role="dialog"
+        aria-label={termText(term)}
+        tabIndex={-1}
+        onClick={onClose}
+        className="anchored-menu fixed z-[77] animate-menu-in origin-bottom rounded-[18px] px-3.5 py-2.5 text-footnote font-medium text-ink outline-none"
+        style={{ width, left, bottom: window.innerHeight - anchor.top + 8 }}
+      >
+        {termText(term)}
+      </div>
+    </>,
+    document.body
   );
 }

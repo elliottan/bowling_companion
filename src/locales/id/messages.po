@@ -485,6 +485,11 @@ msgstr "{name} sekarang memakai {pattern}."
 msgid "{name}, {color}"
 msgstr "{name}, {color}"
 
+#. One of the bowler's own copies of a ball: its name and weight, on a dot that shows it
+#: src/views/CatalogView.tsx
+msgid "{name}, {weight}"
+msgstr "{name}, {weight}"
+
 #: src/views/AppearanceView.tsx
 msgid "{name}, needs Headpin Pro"
 msgstr "{name}, perlu Headpin Pro"
@@ -794,6 +799,11 @@ msgstr "Tambah catatan lintasan"
 msgid "Add a pattern"
 msgstr "Tambah pola"
 
+#. Adds a second copy of a bowling ball the bowler already owns to their arsenal
+#: src/views/CatalogView.tsx
+msgid "Add another to arsenal"
+msgstr "Tambah satu lagi ke arsenal"
+
 #. Adds this bowling ball to the comparison again, at another weight
 #: src/views/CatalogView.tsx
 msgid "Add another weight"
@@ -931,10 +941,6 @@ msgstr "Arena boling"
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Alley and lane are required."
 msgstr "Arena boling dan lintasan wajib diisi."
-
-#: src/views/CatalogView.tsx
-msgid "Already in your arsenal"
-msgstr "Sudah ada di arsenalmu"
 
 #. An open frame is a bowling term: a frame with pins left standing after both balls
 #: src/views/OpenFramesView.tsx
@@ -1652,7 +1658,9 @@ msgstr "Deskripsi"
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
+#. Bowling term: the differential, a ball spec (short for differential RG)
 #: src/components/BallCompareView.tsx
+#: src/components/BallGraph.tsx
 #: src/views/CatalogView.tsx
 msgid "Diff"
 msgstr "Diff"
@@ -1664,6 +1672,7 @@ msgid "Diff {0}"
 msgstr "Diff {0}"
 
 #. Bowling term: a ball's differential, short, with its value
+#. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
 #. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
 #. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
 #. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
@@ -2527,6 +2536,12 @@ msgstr "Di Dynamic Island"
 #: src/views/ProOfferView.tsx
 msgid "In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
 msgstr "Di aplikasi iPhone, skormu mengikutimu saat bowling dan diperbarui tiap bola: di Layar Terkunci, di Dynamic Island, dan di Apple Watch-mu."
+
+#. A heading on a catalog ball's page over the bowler's own copies of it
+#. A heading on a catalog ball's page over the bowler's own copies of it
+#: src/views/CatalogView.tsx
+msgid "In your arsenal"
+msgstr "Di arsenalmu"
 
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
@@ -3824,6 +3839,7 @@ msgid "Remove"
 msgstr "Hapus"
 
 #. Takes one bowling ball, at one weight, out of the comparison
+#. Takes one bowling ball, at one weight, out of the comparison
 #: src/components/BallCompareView.tsx
 msgid "Remove {ball}, {weight}"
 msgstr "Hapus {ball}, {weight}"
@@ -3946,7 +3962,9 @@ msgstr "Pass mundur"
 #. Bowling term: radius of gyration, a ball spec
 #. Bowling term: radius of gyration, a ball spec
 #. Bowling term: radius of gyration, a ball spec
+#. Bowling term: radius of gyration, a ball spec
 #: src/components/BallCompareView.tsx
+#: src/components/BallGraph.tsx
 #: src/views/CatalogView.tsx
 msgid "RG"
 msgstr "RG"
@@ -3959,6 +3977,7 @@ msgstr "RG"
 msgid "RG {0}"
 msgstr "RG {0}"
 
+#. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
@@ -4300,6 +4319,11 @@ msgstr "Pin pendek"
 #: src/views/ArsenalView.tsx
 msgid "Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
 msgstr "Lemparan yang sudah dicatat dengan bola ini tetap memiliki skornya, tetapi kehilangan nama bola. Untuk menjaganya di riwayatmu, pensiunkan saja bola ini."
+
+#. A switch in a graph's key: draws one of the bowler's own balls on the graph, or hides it
+#: src/components/BallCompareView.tsx
+msgid "Show {ball} on the graph"
+msgstr "Tampilkan {ball} di grafik"
 
 #. Expands a group of search results to every one it found
 #: src/views/SearchView.tsx
@@ -5320,6 +5344,11 @@ msgstr "Rata-ratamu"
 #: src/components/BallEstimates.tsx
 msgid "Your average here"
 msgstr "Rata-ratamu di sini"
+
+#. A switch over the graph's key: how many of the bowler's own balls are shown, out of all of them
+#: src/components/BallCompareView.tsx
+msgid "Your bag, {shown} of {total}"
+msgstr "Tasmu, {shown} dari {total}"
 
 #: src/views/SettingsView.tsx
 msgid "Your balls and their layouts"
