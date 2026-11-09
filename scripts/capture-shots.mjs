@@ -145,8 +145,8 @@ async function addCatalogBall(page, query) {
   // Both carry the same name, which is the point: one label per action.
   await page.getByRole("button", { name: "Add to arsenal" }).first().click();
   await page
-    .getByRole("dialog", { name: "Add to arsenal" })
-    .getByRole("button", { name: "Add to arsenal" })
+    .getByRole("dialog", { name: "Add ball to arsenal" })
+    .getByRole("button", { name: "Add", exact: true })
     .click();
   await settle(page);
   // The ball's own header and the catalog's both carry a Back; the ball is the

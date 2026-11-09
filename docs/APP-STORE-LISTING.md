@@ -132,6 +132,31 @@ Score every shot, keep the ball and your line with it, and see what's working. E
 If you've bowled with Headpin on the web, export a backup there and import it here from Settings, Backup & restore.
 ```
 
+## What's new in 1.1 (draft, under 4,000)
+
+For the build after 1.0, made from 0.104.0 or later. Every line is in that
+build and not in 1.0; recheck against the commit the build is made from.
+
+```
+A bigger Headpin, in eight languages.
+
+- Compare up to eight balls side by side at the weight you throw, and on a map beside your own bag.
+- A calendar on History, so you can find any night by its date.
+- Search everything from Home: balls, patterns, alleys and your own nights.
+- Every bowling term on one page, with pictures.
+- A new Home, and controls that look and feel like your phone's own.
+- Headpin in Spanish, Japanese, Korean, Chinese, Bahasa Indonesia and Bahasa Melayu.
+- Text that follows your phone's text size, at every size.
+- With Headpin Pro, your game in progress on the Lock Screen and in the Dynamic Island.
+```
+
+For 1.1, the description's Headpin Pro paragraph and review note 7 also name
+the Live Activity, which is Pro since 0.88.0 (ADR-244) and is not in 1.0: add
+"follow your game on the Lock Screen and in the Dynamic Island" to the
+paragraph, and "the game in progress on the Lock Screen and in the Dynamic
+Island (a Live Activity)" to note 7's list. Leave both as they are while 1.0 is
+the version in review.
+
 ## Support and privacy URLs
 
 - Support: `mailto:hello@headpin.app` is the contact the app uses
@@ -197,15 +222,17 @@ Apple takes up to 10 per size. App Store Connect asks for the 6.3 inch iPhone
 (1206 by 2622) as well as the 6.9 inch (1320 by 2868), so the script writes both. Headpin is portrait only, so every shot is
 portrait.
 
-The sets are built, one per language: `marketing/app-store/2026-11-02/<locale>/`
-(`en`, `es`, `ja`, `ko`, `zh-Hans`, `zh-Hant`, `id`, `ms`), made by
+The sets are built, one per language: `marketing/app-store/2026-11-09/<locale>/`
+(`en`, `es`, `ja`, `ko`, `zh-Hans`, `zh-Hant`, `id`, `ms`), as of 0.104.0, made by
 `scripts/app-store/screenshots.mjs` from the real app running in that
 language. In each, `captioned/` (6.9 inch) and `captioned-6.3/` are the sets
 to upload to that language's localization (which localization takes which set
 is the table in APP-STORE-LISTING-TRANSLATED.md); a localization left without
-its own shows the English ones. `marketing/app-store/2026-10-27/` is the
-English set as of 0.69.1, kept for its `plain/` shots (the same screens with no
-caption, for a press kit).
+its own shows the English ones. They are for the build after 1.0, not for 1.0
+itself: see "Which set goes with which build" below. `marketing/app-store/2026-11-02/`
+is the set as of 0.78.0, and `marketing/app-store/2026-10-27/` the English set
+as of 0.69.1, the build 1.0 was submitted with, kept for its `plain/` shots (the
+same screens with no caption, for a press kit).
 
 To take them again, with the dev server running and the saved bowler from
 `npm run shots` (SHOTS_STATE), once per language:
@@ -276,16 +303,49 @@ Rules for the set:
   set on a simulator before submission if either difference matters; the
   captioned pass (`frame.html`) takes any 1320 by 2868 screenshot.
 
+## Which set goes with which build
+
+App Review checks the screenshots against the build it is reviewing, and a
+bowler checks them against the app they download. The store app carries the
+web build it was made from and lags the web app (ADR-154), so a set taken from
+`main` can show what the build in the store does not have. The rule: **a set
+goes up with the build it was taken from, never ahead of it.**
+
+1.0 went to review on 2026-10-27, built from about 0.69. By 0.104.0 the app has
+a new Home, the phone's own controls, a calendar on History, search, Game plan,
+Compare and the Live Activity, none of which 1.0 has. So:
+
+- **The version in review keeps the screenshots it was submitted with.** App
+  Store Connect locks them while it is in review anyway, and changing them
+  means pulling the build from review.
+- **The Promotional text** is the one field that changes without a build. Keep
+  it to what 1.0 does until the next build is live.
+- **The next build (1.1) takes the 0.104.0 set** (`2026-11-09/`), in every
+  language, with the in-app purchase's new review screenshot
+  (`2026-11-09/headpin-pro-review.png`, the Pro page as it reads since 0.100.0).
+  Before it goes up, retake the set from the commit that build is made from if
+  `main` has moved on a screen in the set. Submit it as soon as 1.0 is
+  approved; with 1.0 set to release manually, the two can go live close
+  together.
+- **Turning `APP_STORE_URL` on** (`src/lib/appStore.ts`) points the landing
+  page at the store. Do it once the store holds a build at least as new as the
+  landing page's pictures, so a visitor who taps through finds what the page
+  showed.
+- **The reel** says "Free on the App Store", so it runs only once the app is
+  listed, and only a cut taken from the build in the store: render it again
+  from that commit if the store build lags `main`.
+
 ## Before submission
 
-- **The screenshots are current as of 0.78.0** (`marketing/app-store/2026-11-02/`),
+- **The screenshots are current as of 0.104.0** (`marketing/app-store/2026-11-09/`),
   in every language. Retake them when a screen in the set changes:
   `node scripts/app-store/screenshots.mjs` per language, from the state
   `npm run shots` saves, so the landing page and the store show the same
-  bowler.
+  bowler. `STORE_ONLY=review` takes the in-app purchase's review screenshot
+  instead.
 
-- "Over 800" balls was checked against `public/catalog/catalog.json` (832) on
-  2026-10-27. Recheck it before each submission.
+- "Over 800" balls was checked against `public/catalog/catalog.json` (848) on
+  2026-11-09. Recheck it before each submission.
 - Age rating: no objectionable content, no web access beyond headpin.app, no
   user-generated content shared with others.
 - Privacy "nutrition label": the app collects nothing it links to the bowler.

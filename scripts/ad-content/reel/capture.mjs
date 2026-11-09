@@ -211,7 +211,7 @@ async function spareSystem(app) {
   await app.getByPlaceholder("Search name, brand, coverstock…").fill("TZone");
   await click(app.getByRole("button", { name: /TZone/i }).first());
   await click(app.getByRole("button", { name: "Add to arsenal" }).first());
-  await click(app.getByRole("dialog", { name: "Add to arsenal" }).getByRole("button", { name: "Add to arsenal" }));
+  await click(app.getByRole("dialog", { name: "Add ball to arsenal" }).getByRole("button", { name: "Add", exact: true }));
   await wait(400);
   await back(app, 2);
   await click(app.getByRole("button", { name: "Spare lines", exact: true }));
@@ -323,7 +323,9 @@ await take("game", {
     await mark("card", app.locator('button[aria-label="Go to live entry frame 8"]').first().locator("xpath=ancestor::div[contains(@class,'overflow-hidden')][1]"));
     await mark("deck", app.locator('button[aria-label="Pin 1, down"]').first().locator("xpath=ancestor::div[contains(@class,'space-y-2')][1]"));
     await mark("panel", stance.locator("xpath=ancestor::div[contains(@class,'divide-y')][1]"));
-    await mark("intended", stance.locator("xpath=ancestor::div[contains(@class,'py-1')][1]"));
+    // The Intended line box: LineInput's root, the div that holds its heading
+    // row and its four fields.
+    await mark("intended", stance.locator("xpath=ancestor::div[./div[contains(@class,'mb-1.5')]][1]"));
     // Frame 8, half done, held long enough to be seen whole before the camera
     // goes in on the Ball button.
     await wait(1800);
@@ -505,7 +507,7 @@ await take("arsenal", {
       await wait(700);
       await click(app.getByRole("dialog", { name: "Catalog" }).getByRole("button", { name }).first());
       await click(app.getByRole("button", { name: "Add to arsenal" }).first());
-      await click(app.getByRole("dialog", { name: "Add to arsenal" }).getByRole("button", { name: "Add to arsenal" }));
+      await click(app.getByRole("dialog", { name: "Add ball to arsenal" }).getByRole("button", { name: "Add", exact: true }));
       await wait(400);
       await back(app, 2);
     }

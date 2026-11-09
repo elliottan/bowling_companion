@@ -62,8 +62,8 @@ if (STATE) {
   await app.getByRole("button", { name: /TZone/i }).first().click();
   await app.getByRole("button", { name: "Add to arsenal" }).first().click();
   await app
-    .getByRole("dialog", { name: "Add to arsenal" })
-    .getByRole("button", { name: "Add to arsenal" })
+    .getByRole("dialog", { name: "Add ball to arsenal" })
+    .getByRole("button", { name: "Add", exact: true })
     .click();
   // Back from the ball, then from the catalog. A fresh load would reopen the
   // ball, since the route is kept.
@@ -89,7 +89,7 @@ if (STATE) {
     await app.waitForTimeout(700);
     await app.getByRole("dialog", { name: "Catalog" }).getByRole("button", { name }).first().click();
     await app.getByRole("button", { name: "Add to arsenal" }).first().click();
-    await app.getByRole("dialog", { name: "Add to arsenal" }).getByRole("button", { name: "Add to arsenal" }).click();
+    await app.getByRole("dialog", { name: "Add ball to arsenal" }).getByRole("button", { name: "Add", exact: true }).click();
     await app.waitForTimeout(300);
   }
   await home();
