@@ -1449,10 +1449,6 @@ msgstr "Tutup statistik sesi"
 msgid "Color"
 msgstr "Warna"
 
-#: src/views/CatalogView.tsx
-msgid "Colorway"
-msgstr "Colorway"
-
 #: src/views/GameTrendView.tsx
 msgid "Columns"
 msgstr "Kolom"
@@ -1984,7 +1980,6 @@ msgid "Failed to delete."
 msgstr "Gagal menghapus."
 
 #: src/components/BallFormDialog.tsx
-#: src/views/CatalogView.tsx
 msgid "Failed to save ball."
 msgstr "Gagal menyimpan bola."
 
@@ -3122,7 +3117,6 @@ msgid "Moving the line"
 msgstr "Menggeser jalur"
 
 #: src/components/OilPatternFormDialog.tsx
-#: src/views/CatalogView.tsx
 msgid "Name"
 msgstr "Nama"
 
@@ -4872,10 +4866,6 @@ msgstr "Gambar untuk dibagikan tidak bisa dibuat."
 #: src/lib/ballLayout.ts
 msgid "The smoothest shape the chart describes. Controls the breakpoint when the back ends are too clean."
 msgstr "Bentuk paling halus yang dijelaskan bagan. Mengendalikan titik belok saat bagian akhir lintasan terlalu bersih."
-
-#: src/views/CatalogView.tsx
-msgid "The specs come across with it. Change the name now if you call it something else."
-msgstr "Spesifikasinya ikut terbawa. Ubah namanya sekarang jika kamu menyebutnya dengan nama lain."
 
 #: src/components/SpareDetailsSheet.tsx
 msgid "The stance and target you saved for this leave are gone. Your shots keep their scores."

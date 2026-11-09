@@ -6,7 +6,6 @@ import { BookOpen, ChartScatter, Check, Columns3, ExternalLink, Loader2, MailPlu
 import { useLiveQuery } from "dexie-react-hooks";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
-import { ErrorBanner } from "../components/ErrorBanner";
 import { Button } from "../components/ui/Button";
 import { RangeSlider } from "../components/ui/RangeSlider";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
@@ -21,7 +20,7 @@ import { IconButton } from "../components/ui/IconButton";
 import { ANCHORED_MENU_WIDTH, AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import { anchorUnder, type MenuAnchor } from "../lib/menuAnchor";
 import { catalogRequestMailto, openMail } from "../lib/links";
-import { BALL_WEIGHTS, entryKey, MAX_COMPARE, nextWeight, specsAt, type CompareEntry, type WeighedBall } from "../lib/ballCompare";
+import { entryKey, MAX_COMPARE, nextWeight, specsAt, type CompareEntry, type WeighedBall } from "../lib/ballCompare";
 import { useRememberedState } from "../lib/viewMemory";
 import {
   getAllCatalog,
@@ -30,10 +29,10 @@ import {
 } from "../services/ballCatalogRepository";
 import { DEFAULT_WEIGHT, MANUFACTURERS, type CatalogBall, type CoverstockCategory, type Manufacturer } from "../types/catalog";
 import type { Ball } from "../types/bowling";
-import { addBall, getBalls } from "../services/ballRepository";
+import { getBalls } from "../services/ballRepository";
+import { BallFormDialog } from "../components/BallFormDialog";
 import { getDefaultBallWeight } from "../services/bowlingRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
-import { FIELD, FIELD_LABEL } from "../components/ui/field";
 import { formatReleaseDate } from "../lib/dates";
 import { formatDate, formatFixed, formatNumber } from "../lib/format";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
@@ -156,7 +155,7 @@ interface DetailPanelProps {
   owned: readonly OwnedCopy[];
   onBack: () => void;
   onAddToArsenal: (ball: CatalogBall) => void;
-  /** True while AddFromCatalogDialog is stacked on top, disables this
+  /** True while the ball form is stacked on top, disables this
    *  panel's own Escape/focus-trap so only the topmost overlay responds. */
   addDialogOpen: boolean;
   /** The whole catalog, for the balls that share this one's core or cover. */
@@ -632,80 +631,6 @@ function SpecItem({ label, value }: { label: string; value: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Add-to-arsenal confirm dialog
-// ---------------------------------------------------------------------------
-
-interface AddFromCatalogDialogProps {
-  ball: CatalogBall;
-  onConfirm: (name: string, weight: number, colorwaySku?: string) => void;
-  onCancel: () => void;
-  isSaving: boolean;
-  error: string;
-  /** What the weight opens on: the bowler's default (ADR-262). */
-  defaultWeight: number;
-}
-
-function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error, defaultWeight }: AddFromCatalogDialogProps) {
-  const [name, setName] = useState(`${ball.brand} ${ball.name}`);
-  const [weight, setWeight] = useState(defaultWeight);
-  const colorways = ball.colorways ?? [];
-  const [colorwaySku, setColorwaySku] = useState<string | undefined>(colorways[0]?.sku);
-
-  return (
-    <FormSheet
-      title={t`Add to arsenal`}
-      onClose={onCancel}
-      onConfirm={() => onConfirm(name.trim(), weight, colorwaySku)}
-      confirmLabel={t`Add to arsenal`}
-      confirmDisabled={isSaving || !name.trim()}
-      banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
-    >
-      <p className="mb-3 text-sm text-ink-secondary">
-        {t`The specs come across with it. Change the name now if you call it something else.`}
-      </p>
-      <label className={FIELD_LABEL} htmlFor="catalog-ball-name">
-        {t`Name`}
-      </label>
-      <input
-        id="catalog-ball-name"
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className={FIELD}
-      />
-      <div className="mt-3">
-        <label className={FIELD_LABEL} htmlFor="catalog-ball-weight">
-          {t`Weight`}
-        </label>
-        <Select id="catalog-ball-weight" value={String(weight)} onChange={(e) => setWeight(Number(e.target.value))}>
-          {BALL_WEIGHTS.map((w) => (
-            <option key={w} value={String(w)}>
-              {lb(w)}
-            </option>
-          ))}
-        </Select>
-      </div>
-      {colorways.length > 1 && (
-        <div className="mt-3">
-          <p className={FIELD_LABEL}>{t`Colorway`}</p>
-          <div className="flex flex-wrap gap-2">
-            {colorways.map((cw) => (
-              <Chip
-                key={cw.sku}
-                selected={colorwaySku === cw.sku}
-                onClick={() => setColorwaySku(cw.sku)}
-              >
-                {cw.color ?? cw.sku}
-              </Chip>
-            ))}
-          </div>
-        </div>
-      )}
-    </FormSheet>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Main CatalogView, renders as fixed full-screen overlay (covers bottom nav)
 // ---------------------------------------------------------------------------
 
@@ -764,8 +689,6 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   );
   const [sort, setSort] = useState<SortKey>("releaseDate");
   const [addingBall, setAddingBall] = useState<CatalogBall | null>(null);
-  const [addSaving, setAddSaving] = useState(false);
-  const [addError, setAddError] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   // The balls picked to compare, each at its own weight, kept while the
   // catalog is closed and opened again (ADR-258, ADR-262). Picking is a mode
@@ -957,41 +880,6 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
     if (weight !== null) setCompared((entries) => [...entries, { id: ball.id, weight }]);
   };
 
-  async function handleAddToArsenal(catalogBall: CatalogBall, name: string, weight: number, colorwaySku?: string) {
-    setAddSaving(true);
-    setAddError("");
-    try {
-      const colorway = catalogBall.colorways?.find((c) => c.sku === colorwaySku);
-      // The numbers at the weight it is bought in, as the ball form stores them.
-      const specs = specsAt(catalogBall, weight);
-      const payload: Omit<Ball, "id"> = {
-        name,
-        is_spare_ball: false,
-        weight,
-        catalog_ref_id: catalogBall.id,
-        ...(colorwaySku ? { colorway_sku: colorwaySku } : {}),
-        catalog_snapshot: {
-          brand: catalogBall.brand,
-          name: catalogBall.name,
-          coverstockCategory: catalogBall.coverstockCategory,
-          coreName: catalogBall.coreName,
-          rg: specs.rg,
-          diff: specs.diff,
-          mbDiff: specs.mbDiff,
-          imageThumb: colorway?.imageThumb ?? catalogBall.imageThumb,
-        },
-      };
-      await addBall(payload);
-      setAddingBall(null);
-      // Refresh owned set after adding
-      await loadOwned();
-    } catch (err) {
-      setAddError(err instanceof Error ? err.message : t`Failed to save ball.`);
-    } finally {
-      setAddSaving(false);
-    }
-  }
-
   // Catalog version info from done state.
   const doneState = syncState.status === "done" ? syncState : null;
 
@@ -1052,7 +940,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
         ball={ball}
         owned={ownedCopies(ball)}
         onBack={onBack}
-        onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
+        onAddToArsenal={setAddingBall}
         addDialogOpen={!top || addingBall != null || (compareOpen && i < compareAt) || menuAt !== null}
         comparedAt={comparedAt(ball.id)}
         compareCount={compared.length}
@@ -1235,13 +1123,17 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
         </FormSheet>
       )}
       {addingBall && (
-        <AddFromCatalogDialog
-          ball={addingBall}
-          onConfirm={(name, weight, colorwaySku) => void handleAddToArsenal(addingBall, name, weight, colorwaySku)}
-          defaultWeight={defaultWeight}
-          onCancel={() => { setAddingBall(null); setAddError(""); }}
-          isSaving={addSaving}
-          error={addError}
+        // The arsenal's own ball form, already linked to this ball, so a
+        // ball from the catalog gets its weight and layout as any other
+        // does (ADR-265).
+        <BallFormDialog
+          ball={null}
+          catalogBall={addingBall}
+          onClose={() => setAddingBall(null)}
+          onSaved={() => {
+            setAddingBall(null);
+            void loadOwned();
+          }}
         />
       )}
       {menuAt && (

@@ -1449,10 +1449,6 @@ msgstr "關閉場次統計"
 msgid "Color"
 msgstr "顏色"
 
-#: src/views/CatalogView.tsx
-msgid "Colorway"
-msgstr "配色"
-
 #: src/views/GameTrendView.tsx
 msgid "Columns"
 msgstr "欄位"
@@ -1984,7 +1980,6 @@ msgid "Failed to delete."
 msgstr "無法刪除。"
 
 #: src/components/BallFormDialog.tsx
-#: src/views/CatalogView.tsx
 msgid "Failed to save ball."
 msgstr "無法儲存球。"
 
@@ -3122,7 +3117,6 @@ msgid "Moving the line"
 msgstr "移動路線"
 
 #: src/components/OilPatternFormDialog.tsx
-#: src/views/CatalogView.tsx
 msgid "Name"
 msgstr "名稱"
 
@@ -4872,10 +4866,6 @@ msgstr "無法建立分享圖片。"
 #: src/lib/ballLayout.ts
 msgid "The smoothest shape the chart describes. Controls the breakpoint when the back ends are too clean."
 msgstr "圖表所描述最平順的球路。當後段太乾淨時，用來控制轉折點。"
-
-#: src/views/CatalogView.tsx
-msgid "The specs come across with it. Change the name now if you call it something else."
-msgstr "規格會一併帶入。若你有其他稱呼，現在可以更改名稱。"
 
 #: src/components/SpareDetailsSheet.tsx
 msgid "The stance and target you saved for this leave are gone. Your shots keep their scores."

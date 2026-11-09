@@ -1449,10 +1449,6 @@ msgstr "Cerrar estadísticas de la sesión"
 msgid "Color"
 msgstr "Color"
 
-#: src/views/CatalogView.tsx
-msgid "Colorway"
-msgstr "Combinación de colores"
-
 #: src/views/GameTrendView.tsx
 msgid "Columns"
 msgstr "Columnas"
@@ -1984,7 +1980,6 @@ msgid "Failed to delete."
 msgstr "No se pudo eliminar."
 
 #: src/components/BallFormDialog.tsx
-#: src/views/CatalogView.tsx
 msgid "Failed to save ball."
 msgstr "No se pudo guardar la bola."
 
@@ -3122,7 +3117,6 @@ msgid "Moving the line"
 msgstr "Mover la línea"
 
 #: src/components/OilPatternFormDialog.tsx
-#: src/views/CatalogView.tsx
 msgid "Name"
 msgstr "Nombre"
 
@@ -4872,10 +4866,6 @@ msgstr "No se pudo crear la imagen para compartir."
 #: src/lib/ballLayout.ts
 msgid "The smoothest shape the chart describes. Controls the breakpoint when the back ends are too clean."
 msgstr "La forma más suave que describe la tabla. Controla el punto de quiebre cuando la parte final está demasiado limpia."
-
-#: src/views/CatalogView.tsx
-msgid "The specs come across with it. Change the name now if you call it something else."
-msgstr "Las especificaciones se pasan con ella. Cambia el nombre ahora si le dices de otra forma."
 
 #: src/components/SpareDetailsSheet.tsx
 msgid "The stance and target you saved for this leave are gone. Your shots keep their scores."

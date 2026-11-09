@@ -11024,3 +11024,23 @@ balls under it, were gone.
 
 **Consequences.** The catalog list's filters are no longer how View all is
 shown, so a core or cover filter set from a ball no longer outlives it.
+
+## ADR-265: A catalog ball is added through the arsenal's own form
+
+**Status.** Accepted, 2026-11-09, at the owner's request.
+
+**Context.** Add to arsenal on a catalog ball's page opened a sheet of its
+own: a sentence about the specs coming across, a name, and, since ADR-262, a
+weight. It took no layout, so a drilled ball added from the catalog needed a
+second trip to the arsenal, and it was a second form for one job beside the
+arsenal's.
+
+**Decision.** The catalog's sheet is gone. Add to arsenal opens the arsenal's
+own ball form (`BallFormDialog`, with `catalogBall`), already linked to the
+ball and named after it, at the bowler's default weight, with its layout field,
+as adding a ball in the arsenal does. Saved, the catalog page's In your arsenal
+card picks the new copy up.
+
+**Consequences.** The sheet's colourway chips go with it: the arsenal form has
+never chosen a colourway, so a ball added from the catalog shows the catalog's
+first photo, as one linked from the arsenal always has.

@@ -14,7 +14,7 @@ had all shipped.
 ### Changed
 
 - A catalog ball you own now shows your copies near the top of its page, each with its weight and its RG and diff at that weight; swipe between them when you own more than one (ADR-263).
-- You can always add a catalog ball to your arsenal, even one you already own.
+- You can always add a catalog ball to your arsenal, even one you already own. Adding one now opens the same form as adding a ball in your arsenal, already linked to the catalog ball, with its weight and layout (ADR-265).
 - On the ball graph, tap a ball's photo in the list under it to show or hide it on the graph; tap its name for its details. Hiding a ball you are comparing takes it out of Compare.
 - Your bag's button now sits above that list: with every ball shown it hides them all, otherwise it shows them all.
 - The graph's axes now just say RG and Diff; tap either to see what it means.

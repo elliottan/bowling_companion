@@ -314,6 +314,25 @@ describe("CatalogView", () => {
     expect(screen.getByRole("button", { name: "Add another to arsenal" })).toBeEnabled();
   });
 
+  it("adds to the arsenal through the arsenal's own form, linked to the ball, at the default weight (ADR-265)", async () => {
+    await seedCatalog(2);
+    await setDefaultBallWeight(14);
+    render(<CatalogView onBack={vi.fn()} selectedBallId="ball-1" onSelectBall={vi.fn()} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add to arsenal" }));
+
+    const form = await screen.findByRole("dialog", { name: "Add ball" });
+    expect(within(form).getByLabelText("Display name")).toHaveValue("Storm Ball 1");
+    await waitFor(() => expect(within(form).getByLabelText(/Weight/)).toHaveValue("14"));
+    expect(within(form).getByText("Linked to catalog")).toBeInTheDocument();
+    // No sentence explaining the specs.
+    expect(screen.queryByText(/The specs come across with it/)).toBeNull();
+
+    fireEvent.click(within(form).getByRole("button", { name: "Add" }));
+    await waitFor(async () => expect(await db.balls.toArray()).toHaveLength(1));
+    const [saved] = await db.balls.toArray();
+    expect(saved).toMatchObject({ name: "Storm Ball 1", weight: 14, catalog_ref_id: "ball-1" });
+  });
+
   it("opens the ball graph from the bar's corner (ADR-262)", async () => {
     await seedCatalog(2);
     renderCatalog();

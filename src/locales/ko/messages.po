@@ -1449,10 +1449,6 @@ msgstr "세션 통계 닫기"
 msgid "Color"
 msgstr "색상"
 
-#: src/views/CatalogView.tsx
-msgid "Colorway"
-msgstr "컬러웨이"
-
 #: src/views/GameTrendView.tsx
 msgid "Columns"
 msgstr "열"
@@ -1984,7 +1980,6 @@ msgid "Failed to delete."
 msgstr "삭제하지 못했어요."
 
 #: src/components/BallFormDialog.tsx
-#: src/views/CatalogView.tsx
 msgid "Failed to save ball."
 msgstr "볼을 저장하지 못했어요."
 
@@ -3122,7 +3117,6 @@ msgid "Moving the line"
 msgstr "라인 이동"
 
 #: src/components/OilPatternFormDialog.tsx
-#: src/views/CatalogView.tsx
 msgid "Name"
 msgstr "이름"
 
@@ -4872,10 +4866,6 @@ msgstr "공유 이미지를 만들 수 없어요."
 #: src/lib/ballLayout.ts
 msgid "The smoothest shape the chart describes. Controls the breakpoint when the back ends are too clean."
 msgstr "차트가 설명하는 가장 부드러운 형태예요. 레인 끝부분이 너무 깨끗할 때 브레이크 포인트를 조절해요."
-
-#: src/views/CatalogView.tsx
-msgid "The specs come across with it. Change the name now if you call it something else."
-msgstr "사양도 함께 가져와요. 다르게 부르는 이름이 있다면 지금 바꾸세요."
 
 #: src/components/SpareDetailsSheet.tsx
 msgid "The stance and target you saved for this leave are gone. Your shots keep their scores."
