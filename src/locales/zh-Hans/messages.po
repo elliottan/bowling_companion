@@ -2051,6 +2051,12 @@ msgstr "筛选，已应用 {count} 项"
 msgid "Final"
 msgstr "终点"
 
+#. On the Apple Watch's Live Activity, where space is tight: the game is over
+#: src/components/LiveActivityPreviews.tsx
+msgctxt "live-activity"
+msgid "Final"
+msgstr "终局"
+
 #. Bowling term: the board where the ball ends at the pins, followed by the board number. A small label drawn on the lane
 #: src/components/LaneSurface.tsx
 msgid "Final {board}"

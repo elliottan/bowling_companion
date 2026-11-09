@@ -9,6 +9,12 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.104.1: The Apple Watch's Live Activity is no longer cut off (2026-11-09)
+
+### Fixed
+
+- The game in progress on an Apple Watch's Smart Stack was cut off at the top and bottom. It now fits: your total, with the game, the frame and the max beside it, over the last three frames (ADR-271).
+
 ## 0.104.0: Pick several balls to compare at once, colorways, and back from Add a ball returns to Compare (2026-11-09)
 
 ### Changed
