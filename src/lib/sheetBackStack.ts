@@ -22,6 +22,10 @@
 export interface OpenSheet {
   /** Close this layer the same way Escape would (through the exit animation). */
   close: () => void;
+  /** The layer's own box. A pushed screen that is not a route registers here
+   *  too, and the edge swipe finds it by this box, so it follows the finger
+   *  exactly as a route does (see `backGesture`). */
+  el?: () => Element | null;
 }
 
 let sheets: readonly OpenSheet[] = [];

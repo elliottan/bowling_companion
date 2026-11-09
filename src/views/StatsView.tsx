@@ -282,7 +282,7 @@ export function StatsView({
 
   if (mode === "tab") return body;
   return (
-    <PushScreen title={t`Stats`} onBack={onBack ?? (() => {})} active={!filtersOpen && !shareOpen}>
+    <PushScreen history="route" title={t`Stats`} onBack={onBack ?? (() => {})} active={!filtersOpen && !shareOpen}>
       {body}
     </PushScreen>
   );

@@ -127,7 +127,7 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
           <AppearanceView onBack={back} />
         ) : section === "tools" ? (
           // The same list as Home's, so a tool is found from either door.
-          <PushScreen mode="inline" title={t`Tools and reference`} onBack={back}>
+          <PushScreen history="route" mode="inline" title={t`Tools and reference`} onBack={back}>
             <div className="mx-auto w-full max-w-3xl px-3 py-3 sm:px-6">
               <ToolsList
                 onOpenLayoutLab={onOpenLayoutLab}

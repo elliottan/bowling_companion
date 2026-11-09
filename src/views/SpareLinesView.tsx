@@ -232,6 +232,7 @@ export function SpareLinesView({ onBack }: { onBack: () => void }) {
     // add action moves with it: a push has a nav bar, and that bar carries the
     // one trailing action instead of a Fab (DESIGN-LANGUAGE §7b).
     <PushScreen
+      history="route"
       title={t({ message: "Spare lines", comment: "Bowling term: your saved line (where you stand and aim) for each spare leave" })}
       onBack={onBack}
       active={opened === null && bulk === null && !pickingBall && !pinFilterOpen}

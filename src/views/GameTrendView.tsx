@@ -70,7 +70,7 @@ export function GameTrendView({ onBack }: GameTrendViewProps) {
   const scored = trend.filter((p) => p.stats.averageScore !== null);
 
   return (
-    <PushScreen title={t`Game by game`} onBack={onBack}>
+    <PushScreen history="route" title={t`Game by game`} onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
         {error ? (
           <ErrorBanner>{t`Your sessions could not be read. Reload the app, then try again.`}</ErrorBanner>

@@ -113,7 +113,7 @@ export function useOverlay<T extends HTMLElement = HTMLDivElement>(
     // The entry is stable for the registration and reads the latest onClose,
     // so back and Escape always close the same thing.
     const unregister = backCloses
-      ? registerSheet({ close: () => onCloseRef.current() })
+      ? registerSheet({ close: () => onCloseRef.current(), el: () => ref.current })
       : undefined;
     return () => {
       const at = activeOverlays.indexOf(token);

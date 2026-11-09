@@ -42,7 +42,7 @@ export function BallCompareView({
   onBack,
   onOpenBall,
   initialTab = "specs",
-  backCloses = true,
+  history,
   active = true
 }: {
   /** The compared balls, each at its weight, in the order they were picked. */
@@ -58,9 +58,9 @@ export function BallCompareView({
   /** Opens a ball's own page, from its card on the graph. */
   onOpenBall?: (id: string) => void;
   initialTab?: CompareTab;
-  /** False when the comparison is the route itself, opened straight from the
-   *  arsenal, so history closes it rather than the sheet back stack. */
-  backCloses?: boolean;
+  /** `route` when the comparison is the catalog route itself, opened straight
+   *  from the arsenal; `layer` when the catalog opened it (see PushScreen). */
+  history: "route" | "layer";
   active?: boolean;
 }) {
   const [tab, setTab] = useState<CompareTab>(initialTab);
@@ -125,7 +125,7 @@ export function BallCompareView({
   );
 
   return (
-    <PushScreen title={t({ message: "Compare", comment: "The title of the screen that compares bowling balls side by side" })} onBack={onBack} active={active && peek === null && term === null && removing === null} backCloses={backCloses}>
+    <PushScreen title={t({ message: "Compare", comment: "The title of the screen that compares bowling balls side by side" })} onBack={onBack} active={active && peek === null && term === null && removing === null} history={history}>
       <div className="mx-auto w-full max-w-3xl space-y-3 px-3 pb-6 pt-2 sm:px-6">
         <SegmentedControl<CompareTab>
           label={t({ message: "Compare by", comment: "The spoken name of the switch between a table of specs and a graph" })}

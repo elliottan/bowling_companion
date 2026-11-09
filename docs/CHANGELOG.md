@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.104.3: The landing page shows today's app, and the store pictures are ready for the next build (2026-11-09)
+## 0.104.4: The landing page shows today's app, and the store pictures are ready for the next build (2026-11-09)
 
 - The pictures on headpin.app are taken again from the app as it is now: the
   new Home, the phone's own controls, History's calendar and the bigger bag.
@@ -23,6 +23,15 @@ had all shipped.
 - The screenshot and reel scripts follow the app again: the Add ball to
   arsenal form, Home's tool cards, and the First ball card on the Pro
   screenshot clear of Stats' bar.
+
+## 0.104.3: Back never skips a screen (2026-11-09)
+
+### Fixed
+
+- Back while the lane view is still loading closes the loading screen, rather than the sheet or screen under it (ADR-272).
+- Back from a screen opened over a guide returns to the guide (ADR-272).
+- On iPhone, the edge swipe follows your finger on Compare and on the catalog opened from Add a ball, as it does on every other screen (ADR-272).
+
 ## 0.104.2: The Apple Watch's Live Activity is no longer cut off (2026-11-09)
 
 ### Fixed
