@@ -55,13 +55,22 @@ interface PushScreenProps {
    */
   mode?: "overlay" | "inline";
   /**
-   * Put this screen on the sheet back stack, so the platform's back closes it
-   * before whatever is underneath. Off by default because a push is normally a
-   * route, and history already closes those (ADR-041). On for a push that is
-   * *not* a route: one opened from inside a sheet, where back would otherwise
-   * pop the sheet's own history entry and close the sheet under it.
+   * How back closes this screen, and required so that every screen says (ADR-271).
+   *
+   * `route`: the navigation state opens it (an overlay, a Settings section, a
+   * catalog ball or a guide in `NavState`), so it has a history entry of its
+   * own and back pops that entry (ADR-041).
+   *
+   * `layer`: the screen's own component state opens it (a `useState` flag, a
+   * prop a parent holds), so history knows nothing of it. It goes on the sheet
+   * back stack, and back closes it before whatever is under it. A layer that
+   * said `route` was the bug where back from Compare's Add a ball went Home:
+   * the gesture popped the route underneath and took the layer with it.
+   *
+   * The rule of thumb: if closing it is a `dispatch`, it is a route; if it is
+   * a `setState`, it is a layer.
    */
-  backCloses?: boolean;
+  history: "route" | "layer";
   /** Called as the screen starts its exit, before `onBack`. For a layer the
    *  screen owns that lives outside it (a portalled sheet) to leave with it,
    *  rather than sitting on until the route change unmounts it. */
@@ -113,7 +122,7 @@ export function PushScreen({
   bar,
   active = true,
   mode = "overlay",
-  backCloses = false,
+  history,
   onLeave,
   layer = "shell",
   footer,
@@ -175,7 +184,7 @@ export function PushScreen({
 
   // Inline pushes are not modal, the tab bar behind them stays live, so they
   // must not trap focus or swallow Escape.
-  const overlayRef = useOverlay<HTMLDivElement>(dismiss, active && mode === "overlay", backCloses);
+  const overlayRef = useOverlay<HTMLDivElement>(dismiss, active && mode === "overlay", history === "layer");
 
   // The iPhone app's edge swipe moves the screen with the finger, then leaves
   // through the same slide as the chevron.

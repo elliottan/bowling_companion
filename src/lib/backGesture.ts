@@ -42,8 +42,16 @@ export function registerPushExit(exit: () => void, panel?: () => HTMLElement | n
   };
 }
 
+/** The pushed screen in front, if nothing is in front of it. A push that is
+ *  not a route (`history="layer"`) is itself the top sheet: it still answers
+ *  the swipe as a push, with the finger and its own slide, and its exit closes
+ *  it through the back stack. Any other sheet in front leaves it alone. */
 function topPush(): PushExit | undefined {
-  return getOpenSheets().length === 0 ? pushes[pushes.length - 1] : undefined;
+  const push = pushes[pushes.length - 1];
+  const sheets = getOpenSheets();
+  if (sheets.length === 0) return push;
+  const panel = push?.panel?.();
+  return panel && sheets[sheets.length - 1].el?.() === panel ? push : undefined;
 }
 
 /** The panel the finger is holding, and the inline styles it had before. */

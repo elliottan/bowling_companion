@@ -82,6 +82,7 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
     // Above every sheet: a lock inside one opens this page, and closing it goes
     // back to that sheet as it was (ADR-175).
     <PushScreen
+      history="route"
       title={t`Headpin Pro`}
       onBack={onBack}
       layer="top"

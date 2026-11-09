@@ -43,6 +43,28 @@ describe("swipeBack", () => {
     offSheet();
     offPush();
   });
+
+  it("asks a push that is not a route to leave itself, as its own top sheet", () => {
+    const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
+    const el = document.createElement("div");
+    const push = vi.fn();
+    const offPush = registerPushExit(push, () => el);
+    const offSheet = registerSheet({ close: vi.fn(), el: () => el });
+
+    swipeBack();
+    expect(push).toHaveBeenCalledTimes(1);
+    expect(back).not.toHaveBeenCalled();
+
+    // Another sheet over it still takes the swipe first.
+    const offOver = registerSheet({ close: vi.fn(), el: () => document.createElement("div") });
+    swipeBack();
+    expect(push).toHaveBeenCalledTimes(1);
+    expect(back).toHaveBeenCalledTimes(1);
+
+    offOver();
+    offSheet();
+    offPush();
+  });
 });
 
 describe("dragBack", () => {

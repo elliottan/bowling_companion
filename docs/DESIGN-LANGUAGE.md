@@ -28,6 +28,13 @@ navigate *into* your arsenal, you do not perform it on top of something else.
 - `inline` fills the current tab's scroll area, tab bar stays live. For a push
   *within* a tab (every Settings section).
 
+And every push says how back closes it, in its required `history` prop
+(ADR-271). `route` when the navigation state opens it (closing it is a
+`dispatch`), so its history entry is what back pops. `layer` when the screen's
+own component state opens it (closing it is a `setState`), so it goes on the
+sheet back stack and back closes it before the route underneath. A layer
+declared as a route is how back once skipped Compare and went Home.
+
 Every push gets, without exception:
 
 - a leading back control: the chevron alone, in a round button, labeled

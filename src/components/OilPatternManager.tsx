@@ -462,6 +462,7 @@ export function OilPatternManager({
 
   return (
     <PushScreen
+      history="route"
       mode={mode}
       title={t`Oil patterns`}
       onBack={onBack}

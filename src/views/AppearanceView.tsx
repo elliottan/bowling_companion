@@ -113,7 +113,7 @@ export function AppearanceView({ onBack, reload = () => window.location.reload()
   if (!onBack) return body;
 
   return (
-    <PushScreen mode="inline" title={t`Appearance`} onBack={onBack}>
+    <PushScreen history="route" mode="inline" title={t`Appearance`} onBack={onBack}>
       {body}
     </PushScreen>
   );

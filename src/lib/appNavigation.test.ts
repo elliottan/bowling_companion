@@ -267,6 +267,13 @@ describe("navReducer", () => {
       expect(popped.overlays).toEqual(["guides"]);
       expect(navReducer(popped, { type: "popOverlay" }).overlays).toEqual([]);
     });
+
+    it("stays open under a screen it opened, which comes off first (ADR-271)", () => {
+      const over = navReducer(reading, { type: "openLineSandbox" });
+      const popped = navReducer(over, { type: "popOverlay" });
+      expect(popped.overlays).toEqual(["guides"]);
+      expect(popped.openGuideId).toBe("dual-angle-layouts");
+    });
   });
 
   describe("an open line in the alley report", () => {

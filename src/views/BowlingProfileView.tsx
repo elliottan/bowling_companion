@@ -307,6 +307,7 @@ export function BowlingProfileView({
 
   return (
     <PushScreen
+      history="route"
       mode="inline"
       title={t`Bowling profile`}
       onBack={onBack}

@@ -36,7 +36,7 @@ export function OpenFramesView({ onBack }: { onBack: () => void }) {
   const [note, setNote] = useState(false);
 
   return (
-    <PushScreen title={t({ message: "Open frames", comment: "Bowling term: a frame that ended with pins still standing, neither a strike nor a spare" })} onBack={onBack}>
+    <PushScreen history="route" title={t({ message: "Open frames", comment: "Bowling term: a frame that ended with pins still standing, neither a strike nor a spare" })} onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-6">
         {error ? (
           <ErrorBanner>{t`Your sessions could not be read. Reload the app, then try again.`}</ErrorBanner>

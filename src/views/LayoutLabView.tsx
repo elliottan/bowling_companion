@@ -365,6 +365,7 @@ export function LayoutLabView({ onBack, seed }: LayoutLabViewProps) {
 
   return (
     <PushScreen
+      history="route"
       // The ball leads the page, not its name: the screen is one picture and
       // the numbers under it, and a large title pushed the ball half a screen
       // down (ADR-226).

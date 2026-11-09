@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.104.1: Back never skips a screen (2026-11-09)
+
+### Fixed
+
+- Back while the lane view is still loading closes the loading screen, rather than the sheet or screen under it (ADR-271).
+- Back from a screen opened over a guide returns to the guide (ADR-271).
+- On iPhone, the edge swipe follows your finger on Compare and on the catalog opened from Add a ball, as it does on every other screen (ADR-271).
+
 ## 0.104.0: Pick several balls to compare at once, colorways, and back from Add a ball returns to Compare (2026-11-09)
 
 ### Changed

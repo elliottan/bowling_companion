@@ -3,6 +3,7 @@ import { Suspense, lazy } from "react";
 import { X } from "lucide-react";
 import type { ComponentProps } from "react";
 import type { LaneVisualizer as LaneVisualizerType } from "./LaneVisualizer";
+import { useOverlay } from "../lib/useOverlay";
 
 const LaneVisualizer = lazy(() =>
   import("./LaneVisualizer").then((m) => ({ default: m.LaneVisualizer }))
@@ -26,10 +27,15 @@ export function LaneVisualizerLazy(props: ComponentProps<typeof LaneVisualizerTy
   );
 }
 
-/** The lane view's night sky and a close control, until the lane has loaded. */
+/** The lane view's night sky and a close control, until the lane has loaded.
+ *  On the back stack like the lane it stands in for, so back while it loads
+ *  closes it rather than the sheet or screen under it. Pushed, it is the `line`
+ *  route, and history closes it already. */
 function LaneLoading({ onClose, pushed }: { onClose: () => void; pushed: boolean }) {
+  const ref = useOverlay<HTMLDivElement>(onClose, true, !pushed);
   return (
     <div
+      ref={ref}
       role="dialog"
       aria-modal="true"
       aria-label={t`Loading the lane view`}

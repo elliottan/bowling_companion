@@ -1037,6 +1037,7 @@ export function ActiveSessionView({
   // empty bar.
   return (
     <PushScreen
+      history="route"
       title={sessionDetails ? alleyLabel(sessionDetails.session.alley_name) : t`Session`}
       heading={sessionHeading}
       bar={sessionBar}

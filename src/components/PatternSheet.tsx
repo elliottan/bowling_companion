@@ -79,9 +79,9 @@ export function PatternSheet({
 
   return (
     <PushScreen
+      history="layer"
       title={pattern.name}
       onBack={onClose}
-      backCloses
       active={active}
       trailing={
         onOpenInLineVisualizer && stats.length > 0 ? (
@@ -350,9 +350,9 @@ function SheetViewer({ title, sheet, onClose }: { title: string; sheet: KeptShee
   const zoomed = scale > 1;
   return (
     <PushScreen
+      history="layer"
       title={title}
       onBack={onClose}
-      backCloses
       // The original sheet is the page, and it zooms: it starts at the top,
       // with its name in the bar (ADR-226).
       largeTitle={false}

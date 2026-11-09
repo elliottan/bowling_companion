@@ -50,7 +50,7 @@ export function GuidesView({ onBack, openGuideId, onOpenGuide, focusTerm }: Guid
 
   return (
     <>
-      <PushScreen title={t`Guides`} onBack={onBack} active={!open}>
+      <PushScreen history="route" title={t`Guides`} onBack={onBack} active={!open}>
         <div className="mx-auto w-full max-w-xl space-y-5 px-3 py-4 sm:px-6">
           {guidesByTopic().map(({ topic, guides }) => (
             <ListGroup key={topic} heading={topic}>
@@ -105,6 +105,7 @@ function GuideArticle({ guide, onBack, focusTerm }: { guide: Guide; onBack: () =
 
   return (
     <PushScreen
+      history="route"
       title={guide.title}
       onBack={onBack}
       trailing={

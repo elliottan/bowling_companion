@@ -11212,3 +11212,56 @@ an empty comparison has no graph from there; the arsenal's button still opens
 the bag's. The list over the comparison shares the catalog's search, filters
 and sort with the list under it.
 
+## ADR-271: Every pushed screen declares how back closes it
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-041 and
+ADR-042 (the `backCloses` opt-in).
+
+**Context.** Back has two mechanisms (ADR-041, ADR-042). A
+route, a screen the navigation state opens, has a history entry, and back pops
+it. A layer, a screen a component's own state opens, has none, so it must
+register with the sheet back stack or back walks straight past it and pops the
+route underneath. `PushScreen` defaulted to "route" (`backCloses = false`), so
+a new layer that forgot the flag looked right, closed right with its chevron,
+and only went wrong on the platform's back: Home, Catalog, Compare, Add a ball,
+swipe, and the bowler was Home (ADR-270). The default was the bug, and nothing
+would stop the next screen repeating it.
+
+An audit of every pushed screen and modal layer after ADR-270 found:
+
+- every other local `PushScreen` already registered, and no route registered
+  twice;
+- the lane view's loading screen, which stands in while the lane's code
+  arrives, was on no stack, so back while it loaded closed the sheet under it;
+- the reducer's fallback pop (a deep link with none of our history under it)
+  took an open guide off before a screen the guide had opened over it, the
+  same ordering slip ADR-270 fixed for a ball's page under the arsenal;
+- the iPhone's edge swipe only followed the finger on routes: any sheet open
+  made it fall back to a plain `history.back()`, and a layer push is itself
+  on the sheet stack, so the compare and catalog layers jumped instead of
+  sliding.
+
+**Decision.**
+
+- **`PushScreen` takes a required `history: "route" | "layer"`**, with no
+  default, and `BallCompareView` passes its own through. TypeScript refuses a
+  pushed screen that does not say which it is, so the choice is made by whoever
+  writes the screen, at the moment they know the answer. The rule of thumb is
+  in the prop's comment: closing it is a `dispatch`, it is a route; a
+  `setState`, it is a layer.
+- **Sub-layers in the reducer only pop while their parent is on top.** A ball
+  on the catalog, a guide on the guides list and a line on the report are
+  fields beside `overlays`, and `popOverlay` takes one off only while its
+  overlay is the screen in front; otherwise the overlay above it goes first.
+- **The lane's loading screen registers** with the back stack whenever the
+  lane it stands in for would (not when pushed, where it is the `line` route).
+- **The edge swipe recognises a layer push**: when the top sheet is a pushed
+  screen's own box, the swipe drives that screen as it drives a route, finger
+  and slide, and its exit closes it through the back stack.
+
+**Consequences.** A new pushed screen cannot compile without the decision.
+Modal layers that are not pushes (sheets, dialogs, menus) were already safe by
+default: `useOverlay` registers unless told not to, and only routes and the
+first-run gate opt out. What stays on the author is telling a route from a
+layer; a layer wrongly declared a route is the one mistake left, and the
+prop's comment and this ADR name it.
