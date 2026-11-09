@@ -388,6 +388,25 @@ describe("BallFormDialog colorway (ADR-270)", () => {
     expect(ball?.catalog_snapshot?.imageThumb).toBe("/blue.webp");
   });
 
+  it("keeps the strip of colorways from widening the form, and pictures one with no photo as the placeholder", async () => {
+    const path = {
+      ...nova,
+      id: "path",
+      colorways: [nova.colorways![0], { sku: "OR", color: "Orange/Black" }]
+    } as CatalogBall;
+    render(<BallFormDialog ball={null} catalogBall={path} onClose={vi.fn()} onSaved={vi.fn()} />);
+    // A fieldset is as wide as its content unless told otherwise, and the
+    // sheet scrolled sideways with the strip.
+    expect(screen.getByRole("group", { name: "Colorway" })).toHaveClass("min-w-0");
+    fireEvent.click(screen.getByRole("button", { name: "Orange/Black" }));
+    save();
+    await waitFor(async () => expect(await saved("Storm Nova")).toBeTruthy());
+    const ball = await saved("Storm Nova");
+    expect(ball?.colorway_sku).toBe("OR");
+    // Not the first colorway's pink: no photo at all.
+    expect(ball?.catalog_snapshot?.imageThumb).toBeNull();
+  });
+
   it("offers no colorways for a ball that comes in one, or none", async () => {
     const plain = { ...nova, id: "plain", colorways: [nova.colorways![0]] } as CatalogBall;
     render(<BallFormDialog ball={null} catalogBall={plain} onClose={vi.fn()} onSaved={vi.fn()} />);

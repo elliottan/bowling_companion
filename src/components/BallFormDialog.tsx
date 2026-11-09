@@ -37,6 +37,7 @@ import { matchesCatalogSearch } from "../lib/catalogSearch";
 import { SearchField } from "./ui/SearchField";
 import { IconButton } from "./ui/IconButton";
 import { formatFixed } from "../lib/format";
+import { colorwayImage } from "../lib/ballImages";
 
 /** Heaviest first: most bowlers throw 14 to 16, so the list opens near the
  *  answer, and it runs down to the 8 lb balls juniors and seniors throw. */
@@ -95,7 +96,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
   const [colorwaySku, setColorwaySku] = useState<string | null>(ball?.colorway_sku ?? null);
   const colorways = catalogRef?.colorways ?? [];
   const colorway = colorways.find((c) => c.sku === colorwaySku) ?? null;
-  const photo = colorway?.imageThumb ?? catalogRef?.imageThumb ?? null;
+  const photo = catalogRef ? colorwayImage(catalogRef, colorway, "thumb") : null;
   // The specs last read for the linked ball, and nothing once it is unlinked.
   const [fetchedSpecs, setWeightSpecs] = useState<WeightSpecs | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -769,7 +770,9 @@ function LayoutField({
 function ColorwayPicker({ ball, selected, onSelect }: { ball: CatalogBall; selected: string; onSelect: (sku: string) => void }) {
   const colorways = ball.colorways ?? [];
   return (
-    <fieldset>
+    // min-w-0: a fieldset is as wide as its content by default, so the strip
+    // of tiles widened the whole form and the sheet scrolled sideways under it.
+    <fieldset className="min-w-0">
       <legend className="mb-2 block text-sm font-medium text-ink-strong">
         {t({ message: "Colorway", comment: "Which color version of a bowling ball model the bowler has" })}
       </legend>
@@ -789,7 +792,7 @@ function ColorwayPicker({ ball, selected, onSelect }: { ball: CatalogBall; selec
               }`}
             >
               <span className="block h-12 w-12">
-                <CatalogBallImage src={c.imageThumb ?? ball.imageThumb} alt="" brand={ball.brand} size="thumb" lazy />
+                <CatalogBallImage src={colorwayImage(ball, c, "thumb")} alt="" brand={ball.brand} size="thumb" lazy />
               </span>
               <span className={`line-clamp-2 w-full break-words text-caption-2 leading-tight ${on ? "font-semibold text-accent" : "text-ink-secondary"}`}>
                 {/* A break after each slash, so a two-color name wraps

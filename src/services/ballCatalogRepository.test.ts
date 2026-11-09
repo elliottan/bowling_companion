@@ -297,6 +297,21 @@ describe("refreshArsenalPhotos (ADR-143)", () => {
     expect((await db.balls.get(gone))?.catalog_snapshot?.imageThumb).toBe("/red.webp");
   });
 
+  it("takes the first colorway's photo off a ball added in another colorway with none of its own", async () => {
+    await db.ball_catalog.put({
+      ...makeBall("pyramid-path-2011"),
+      imageThumb: "/pink.webp",
+      colorways: [
+        { sku: "PK", color: "Pink/Black" },
+        { sku: "OR", color: "Orange/Black" }
+      ]
+    });
+    // Saved before the fix, with the pink photo under its orange name.
+    const id = await db.balls.add({ name: "Path", is_spare_ball: false, catalog_ref_id: "pyramid-path-2011", colorway_sku: "OR", catalog_snapshot: snap("/pink.webp") });
+    expect(await refreshArsenalPhotos()).toBe(1);
+    expect((await db.balls.get(id))?.catalog_snapshot?.imageThumb).toBeNull();
+  });
+
   it("takes a ball's photo down when its catalog entry's photo was taken down", async () => {
     await db.ball_catalog.put({ ...makeBall("storm-nova-2024"), imageThumb: null });
     const id = await db.balls.add({

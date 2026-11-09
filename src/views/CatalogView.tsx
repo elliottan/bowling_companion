@@ -40,6 +40,7 @@ import { formatDate, formatFixed, formatNumber } from "../lib/format";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
 import { kinKey, kinNames, sameCore, sameCover } from "../lib/catalogKin";
 import { DRAWN_PAGES, kinListPage, parseKinListPage, type KinList } from "../lib/catalogPages";
+import { colorwayImage } from "../lib/ballImages";
 import { coreTypeLabel, coverstockLabel } from "../components/catalogLabels";
 
 // ---------------------------------------------------------------------------
@@ -178,18 +179,20 @@ interface DetailPanelProps {
   weight: number;
 }
 
-// Swipeable colorway image carousel with pagination dots. Falls back to a
-// single image when the ball has 0–1 colorways.
+// The colorways, a carousel: a sideways strip of full-width photos that the
+// finger drags and that snaps to one, with a dot for each. A tap on a dot
+// slides to it (instantly under reduced motion). A single colorway, or none,
+// is just the photo. A colorway with no photo of its own draws the
+// placeholder rather than the first colorway's (`colorwayImage`).
 function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
   const colorways = ball.colorways ?? [];
   const [idx, setIdx] = useState(0);
-  const touchX = useRef<number | null>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
 
   if (colorways.length <= 1) {
-    const cw = colorways[0];
     return (
       <CatalogBallImage
-        src={cw?.imageFull ?? ball.imageFull}
+        src={colorwayImage(ball, colorways[0], "full")}
         alt={ball.name}
         brand={ball.brand}
         size="full"
@@ -197,26 +200,40 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
     );
   }
 
-  const current = colorways[idx];
-  const go = (next: number) => setIdx((next + colorways.length) % colorways.length);
+  const current = colorways[Math.min(idx, colorways.length - 1)];
+
+  function goTo(i: number) {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    strip.scrollTo?.({ left: i * strip.clientWidth, behavior: reduce ? "auto" : "smooth" });
+    setIdx(i);
+  }
 
   return (
     <div>
       <div
-        onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
-        onTouchEnd={(e) => {
-          if (touchX.current === null) return;
-          const dx = e.changedTouches[0].clientX - touchX.current;
-          if (Math.abs(dx) > 40) go(dx < 0 ? idx + 1 : idx - 1);
-          touchX.current = null;
+        ref={stripRef}
+        data-testid="colorway-strip"
+        onScroll={(e) => {
+          const strip = e.currentTarget;
+          if (strip.clientWidth === 0) return;
+          const i = Math.round(strip.scrollLeft / strip.clientWidth);
+          if (i !== idx && i >= 0 && i < colorways.length) setIdx(i);
         }}
+        className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-none scrollbar-none"
       >
-        <CatalogBallImage
-          src={current.imageFull ?? ball.imageFull}
-          alt={current.color ? t`${{ name: ball.name }}, ${{ color: current.color }}` : ball.name}
-          brand={ball.brand}
-          size="full"
-        />
+        {colorways.map((cw, i) => (
+          <div key={cw.sku} className="w-full shrink-0 snap-center snap-always" aria-hidden={i !== idx}>
+            <CatalogBallImage
+              src={colorwayImage(ball, cw, "full")}
+              alt={cw.color ? t`${{ name: ball.name }}, ${{ color: cw.color }}` : ball.name}
+              brand={ball.brand}
+              size="full"
+              lazy={i !== 0}
+            />
+          </div>
+        ))}
       </div>
       {current.color && (
         <p className="mt-2 text-center text-sm font-medium text-ink-secondary">{current.color}</p>
@@ -230,7 +247,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
           <button
             key={cw.sku}
             type="button"
-            onClick={() => setIdx(i)}
+            onClick={() => goTo(i)}
             aria-label={cw.color ? t`View colorway ${{ number: i + 1 }}: ${{ color: cw.color }}` : t`View colorway ${{ number: i + 1 }}`}
             aria-current={i === idx}
             className={`relative h-2 rounded-full transition-all ${TAP_TARGET_44} ${
@@ -295,7 +312,8 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
     >
       <div>
         <div className="mx-auto w-full max-w-xl px-3 py-4 sm:px-6">
-          <ColorwayCarousel ball={ball} />
+          {/* Keyed, so another ball starts on its first colorway. */}
+          <ColorwayCarousel key={ball.id} ball={ball} />
 
           {releaseDate && (
             <p className="mt-3 text-sm text-ink-secondary">{t`Released ${{ date: releaseDate }}`}</p>
@@ -997,7 +1015,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
         : snap !== undefined && `${snap.brand} ${snap.name}`.toLowerCase() === `${ball.brand} ${ball.name}`.toLowerCase();
       if (!match) return [];
       const colorway = ball.colorways?.find((c) => c.sku === b.colorway_sku);
-      return [{ id: b.id, name: b.name, weight: b.weight ?? DEFAULT_WEIGHT, imageThumb: colorway?.imageThumb ?? snap?.imageThumb ?? null }];
+      return [{ id: b.id, name: b.name, weight: b.weight ?? DEFAULT_WEIGHT, imageThumb: colorway ? colorwayImage(ball, colorway, "thumb") : snap?.imageThumb ?? null }];
     });
 
   /** The weights a ball is compared at, in the order they were added. */
