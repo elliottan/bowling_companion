@@ -201,7 +201,7 @@ describe("SettingsView", () => {
     renderMenu(onSectionChange);
     expect(screen.queryByRole("group", { name: "Handedness" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Two-handed" })).not.toBeInTheDocument();
-    const row = await screen.findByRole("button", { name: /Bowling profile.*Right-handed · One-handed/ });
+    const row = await screen.findByRole("button", { name: /Bowling profile.*Right-handed · One-handed · 15 lb/ });
     fireEvent.click(row);
     expect(onSectionChange).toHaveBeenCalledWith("profile");
   });

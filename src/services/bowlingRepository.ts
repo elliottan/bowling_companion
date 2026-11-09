@@ -35,6 +35,7 @@ const SESSIONS_AT_LAST_BACKUP_KEY = "sessions_at_last_backup";
 const BACKUP_NUDGE_SNOOZED_UNTIL_KEY = "backup_nudge_snoozed_until";
 const PAP_KEY = "pap";
 const GRIP_STYLE_KEY = "grip_style";
+const DEFAULT_BALL_WEIGHT_KEY = "default_ball_weight";
 const LAYOUT_SYSTEM_KEY = "layout_system";
 const BOWLER_NAME_KEY = "bowler_name";
 const LIVE_ACTIVITY_KEY = "live_activity";
@@ -225,6 +226,26 @@ export async function getGripStyle(): Promise<GripStyle | null> {
 
 export async function setGripStyle(value: GripStyle): Promise<void> {
   await setSetting(GRIP_STYLE_KEY, value);
+}
+
+/**
+ * The weight the bowler throws (ADR-262): the catalog reads its specs at it, a
+ * ball comes into a comparison at it, and a ball added to the arsenal starts
+ * at it. Null when never chosen, which callers show as 15 lb, the weight
+ * every catalog ball's top-level numbers are for.
+ */
+export async function getDefaultBallWeight(): Promise<number | null> {
+  return parseBallWeight(await getSetting(DEFAULT_BALL_WEIGHT_KEY));
+}
+
+export async function setDefaultBallWeight(value: number): Promise<void> {
+  await setSetting(DEFAULT_BALL_WEIGHT_KEY, String(value));
+}
+
+/** Exported for its tests: a stored string is user data and can be anything. */
+export function parseBallWeight(raw: string | undefined): number | null {
+  const n = Number(raw);
+  return raw && Number.isInteger(n) && n >= 6 && n <= 16 ? n : null;
 }
 
 /**

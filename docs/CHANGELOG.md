@@ -9,6 +9,24 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.102.0: The ball graph, every ball at its own weight, and a default ball weight (2026-11-09)
+
+### Changed
+
+- The ball map is now the ball graph, everywhere it appears (ADR-262).
+- The Ball graph button now sits at the top right of the catalog and of your arsenal; the row under your bag is gone.
+- Each ball in Compare now has its own weight, set from a menu in its column, in place of one weight for every ball. A ball you own stays at the weight you own it in.
+- On the graph, your own balls always sit at the weights you own them in, and the list under the graph shows each ball's weight.
+- While picking balls in the catalog, a tap adds the ball; tap it again to add it at another weight.
+- The catalog shows its specs at your default ball weight, and says which weight under its title.
+
+### Added
+
+- A Default ball weight on the Bowling profile page. The catalog's specs, balls added to Compare and balls added to your arsenal start at it.
+- Compare can hold the same ball twice, at two weights.
+- An Add a ball button in Compare, while a slot is free, takes you to the catalog to pick another.
+- Adding a ball to your arsenal from the catalog now asks its weight.
+
 ## 0.101.0: A month picker that stays in your history, a calendar that slides open, and the ball map from your arsenal (2026-11-08)
 
 ### Changed

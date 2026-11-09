@@ -28,7 +28,7 @@ import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { IconButton } from "../components/ui/IconButton";
 import { Measure } from "../components/ui/Measure";
-import { LIST_DIVIDER_BASE, ListGroup, ListRow } from "../components/ui/ListGroup";
+import { LIST_DIVIDER_BASE, ListGroup } from "../components/ui/ListGroup";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { activeBalls } from "../lib/arsenal";
 import { deleteBall, getBalls, reorderBalls, setBallRetired } from "../services/ballRepository";
@@ -233,11 +233,11 @@ interface ArsenalViewProps {
   /** A ball whose sheet opens over the list as it arrives, from the app's
    *  search. Back from the sheet leaves the arsenal standing under it. */
   initialBallId?: number;
-  /** Push the comparison's map, the bag on it (ADR-261). */
-  onOpenBallMap?: () => void;
+  /** Push the comparison's graph, the bag on it (ADR-261, ADR-262). */
+  onOpenBallGraph?: () => void;
 }
 
-export function ArsenalView({ onBack, onViewLayout, initialBallId, onOpenBallMap }: ArsenalViewProps) {
+export function ArsenalView({ onBack, onViewLayout, initialBallId, onOpenBallGraph }: ArsenalViewProps) {
   // Live: Dexie re-runs this whenever the table changes, so saving, deleting
   // and reordering do not each have to remember to refresh the list.
   const live = useLiveQuery(() => getBalls());
@@ -347,9 +347,23 @@ export function ArsenalView({ onBack, onViewLayout, initialBallId, onOpenBallMap
         onBack={onBack}
         active={form === null && pendingDelete === null}
         trailing={
-          <IconButton onClick={() => setForm({ ball: null })} label={t`Add ball`} variant="round">
-            <Plus size={24} aria-hidden="true" />
-          </IconButton>
+          <>
+            {/* The bag on the ball graph, where each ball sits by RG and
+                diff at its own weight, in the corner beside Add (ADR-262). */}
+            {onOpenBallGraph && balls.length > 0 && (
+              <IconButton
+                onClick={onOpenBallGraph}
+                label={t({ message: "Ball graph", comment: "Opens a graph placing bowling balls by RG and differential" })}
+                variant="round"
+                className="mr-1"
+              >
+                <ChartScatter size={20} aria-hidden="true" />
+              </IconButton>
+            )}
+            <IconButton onClick={() => setForm({ ball: null })} label={t`Add ball`} variant="round">
+              <Plus size={24} aria-hidden="true" />
+            </IconButton>
+          </>
         }
       >
         <div className="mx-auto w-full max-w-3xl px-3 py-4 sm:px-6">
@@ -394,21 +408,6 @@ export function ArsenalView({ onBack, onViewLayout, initialBallId, onOpenBallMap
                 <p className="px-1 text-sm text-ink-secondary">
                   {t`Every ball you have is retired. Add one, or bring one back.`}
                 </p>
-              )}
-
-              {/* Straight to the bag on the ball map (ADR-261), where each
-                  ball sits by RG and diff beside any picked in the catalog. */}
-              {onOpenBallMap && balls.length > 0 && (
-                <div className="mt-5">
-                  <ListGroup>
-                    <ListRow
-                      icon={ChartScatter}
-                      label={t({ message: "Ball map", comment: "Opens a chart placing the bowler's balls by RG and differential" })}
-                      description={t({ message: "Your bag by RG and diff", comment: "Bowling terms: RG and diff (differential) are ball specs. Under the Ball map row." })}
-                      onClick={onOpenBallMap}
-                    />
-                  </ListGroup>
-                </div>
               )}
 
               {retired.length > 0 && (

@@ -3,7 +3,7 @@ import { t } from "@lingui/core/macro";
 /**
  * The small capsule beside a ball's name: Owned, as the catalog's rows wear
  * it, and Selected, for a ball picked to compare (ADR-261). Selected is the
- * accent filled, Owned its soft tint, the same pair of edges the map draws.
+ * accent filled, Owned its soft tint, the same pair of edges the graph draws.
  */
 export function BallTag({ kind }: { kind: "owned" | "selected" }) {
   return (

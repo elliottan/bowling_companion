@@ -17,6 +17,8 @@ import {
   getSessionHistory,
   getSessionList,
   getLayoutSystem,
+  getDefaultBallWeight,
+  setDefaultBallWeight,
   getSetting,
   saveFrame,
   setBackupNudgeSnoozedUntil,
@@ -273,6 +275,26 @@ describe("layout system preference", () => {
   it("reads a stored value that is not a notation as no choice at all", async () => {
     await setSetting("layout_system", "storm");
     expect(await getLayoutSystem()).toBeNull();
+  });
+});
+
+describe("default ball weight (ADR-262)", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+  });
+
+  it("is null until chosen, and round-trips a weight", async () => {
+    expect(await getDefaultBallWeight()).toBeNull();
+    await setDefaultBallWeight(14);
+    expect(await getDefaultBallWeight()).toBe(14);
+  });
+
+  it("reads a stored value that is not a ball weight as no choice", async () => {
+    for (const raw of ["", "heavy", "14.5", "40"]) {
+      await setSetting("default_ball_weight", raw);
+      expect(await getDefaultBallWeight()).toBeNull();
+    }
   });
 });
 

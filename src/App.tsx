@@ -848,7 +848,7 @@ function App() {
                 // Pushed over the arsenal rather than replacing it, so back
                 // returns to the list of balls the layout was opened from.
                 onViewLayout={(seed) => dispatch({ type: "openLayoutLab", seed })}
-                onOpenBallMap={() => dispatch({ type: "openBallMap" })}
+                onOpenBallGraph={() => dispatch({ type: "openBallGraph" })}
               />
             );
           case "catalog":
@@ -862,7 +862,7 @@ function App() {
                 // Past every open ball, however many were stacked, in one jump.
                 onShowList={() => goBack({ type: "closeCatalogBalls" }, nav.catalogBallTrail.length + 1)}
                 initialSearch={nav.catalogSearch ?? undefined}
-                openMap={nav.catalogMap}
+                openGraph={nav.catalogGraph}
               />
             );
           // Settings sections, pushed over the tab that opened them.
