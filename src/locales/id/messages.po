@@ -84,6 +84,7 @@ msgstr "{0, plural, other {# lintasan}}"
 msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, other {# pola}}"
 
+#. placeholder {0}: balls.length
 #. placeholder {0}: displayed.length
 #: src/views/CatalogView.tsx
 msgid "{0, plural, one {# result} other {# results}}"
@@ -4031,10 +4032,20 @@ msgstr "Mawar"
 msgid "same as all balls"
 msgstr "sama dengan semua bola"
 
+#. Bowling term: over a list of balls built on one core (weight block), named under it
+#: src/views/CatalogView.tsx
+msgid "Same core"
+msgstr "Inti yang sama"
+
 #. Bowling term: a heading over other balls built on the same core (weight block), followed by the core's name
 #: src/views/CatalogView.tsx
 msgid "Same core: {core}"
 msgstr "Inti yang sama: {core}"
+
+#. Bowling term: over a list of balls with one coverstock, named under it
+#: src/views/CatalogView.tsx
+msgid "Same cover"
+msgstr "Coverstock yang sama"
 
 #. Bowling term: a heading over other balls with the same coverstock, followed by the coverstock's name
 #: src/views/CatalogView.tsx

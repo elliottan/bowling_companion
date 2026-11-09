@@ -441,6 +441,23 @@ describe("what a search result opens (ADR-247)", () => {
     expect(state.catalogBallId).toBeNull();
   });
 
+  it("backs out of a View all list to the ball it was opened over (ADR-264)", () => {
+    const deep = run([
+      { type: "pushOverlay", overlay: "catalog" },
+      { type: "openCatalogBall", ballId: "a" },
+      { type: "openCatalogBall", ballId: "~core:Hadron" },
+      { type: "openCatalogBall", ballId: "b" }
+    ]);
+    expect([...deep.catalogBallTrail, deep.catalogBallId]).toEqual(["a", "~core:Hadron", "b"]);
+    const list = run([{ type: "popOverlay" }], deep);
+    expect(list.catalogBallId).toBe("~core:Hadron");
+    const ball = run([{ type: "popOverlay" }], list);
+    expect(ball.catalogBallId).toBe("a");
+    const catalog = run([{ type: "popOverlay" }], ball);
+    expect(catalog.catalogBallId).toBeNull();
+    expect(catalog.overlays).toEqual(["catalog"]);
+  });
+
   it("pushes the catalog open on the graph, and a later push opens it on the list (ADR-261)", () => {
     const graph = run([{ type: "pushOverlay", overlay: "arsenal" }, { type: "openBallGraph" }]);
     expect(graph.overlays).toEqual(["arsenal", "catalog"]);

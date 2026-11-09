@@ -10996,3 +10996,31 @@ each.
 **Consequences.** Which bag balls are off is the comparison's own state and is
 forgotten when it closes. Balls with near-identical specs still draw on top of
 each other; how to part them is open, with options put to the owner.
+
+## ADR-264: View all pushes a list over the ball
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-257.
+
+**Context.** View all on a ball's Same core or Same cover row went back past
+every open ball to the catalog's list, filtered to that core or cover. Back
+from there left the catalog: the ball the bowler had been reading, and any
+balls under it, were gone.
+
+**Decision.**
+
+- **View all pushes a page** over the ball it was tapped on: the balls on that
+  core or in that cover, newest first, titled with the name under a "Same core"
+  or "Same cover" eyebrow. A row opens its ball over the list in turn. Back pops
+  one page at a time: the ball, the list, the ball under it, and only then the
+  catalog's own list, whose search and filters are left as they were.
+- **One stack.** A list rides in the same trail as the balls
+  (`catalogBallId`, `catalogBallTrail`), written `~core:<name>` or
+  `~cover:<name>` (`lib/catalogPages.ts`), so the route, the platform's back
+  and a reload treat it as any other page.
+- **No limit on depth, a limit on what is drawn.** A bowler can wander ball to
+  list to ball as deep as they like, and back unwinds every step. Only the top
+  three pages are mounted (`DRAWN_PAGES`): the top one, and two under it for
+  the drag back to uncover; deeper ones mount again as back reaches them.
+
+**Consequences.** The catalog list's filters are no longer how View all is
+shown, so a core or cover filter set from a ball no longer outlives it.

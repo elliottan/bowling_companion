@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.103.0: Your copies on a ball's page, and the graph's key switches balls (2026-11-09)
+## 0.103.0: Your copies on a ball's page, the graph's key switches balls, and View all keeps your place (2026-11-09)
 
 ### Changed
 
@@ -18,6 +18,7 @@ had all shipped.
 - On the ball graph, tap a ball's photo in the list under it to show or hide it on the graph; tap its name for its details. Hiding a ball you are comparing takes it out of Compare.
 - Your bag's button now sits above that list: with every ball shown it hides them all, otherwise it shows them all.
 - The graph's axes now just say RG and Diff; tap either to see what it means.
+- View all on a ball's Same core or Same cover row now opens the list over that ball, so back returns to the ball instead of leaving the catalog (ADR-264).
 
 ## 0.102.0: The ball graph, every ball at its own weight, and a default ball weight (2026-11-09)
 

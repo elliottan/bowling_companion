@@ -422,22 +422,32 @@ describe("CatalogView", () => {
       expect(screen.queryByRole("region", { name: /Same cover/ })).not.toBeInTheDocument();
     });
 
-    it("goes back to the list filtered to the core from View all", async () => {
+    it("pushes the core's balls over the ball from View all, so back returns to it (ADR-264)", async () => {
       await seedKin();
+      const onSelectBall = vi.fn();
       const onBack = vi.fn();
-      const { rerender } = render(<CatalogView onBack={onBack} selectedBallId="a" onSelectBall={vi.fn()} />);
+      const { rerender } = render(<CatalogView onBack={onBack} selectedBallId="a" onSelectBall={onSelectBall} />);
 
       const core = await screen.findByRole("region", { name: "Same core: Velocity Core" });
       fireEvent.click(within(core).getByRole("button", { name: "View all 5 balls" }));
-      expect(onBack).toHaveBeenCalled();
-      rerender(<CatalogView onBack={onBack} selectedBallId={null} onSelectBall={vi.fn()} />);
+      // A page on the catalog's stack, not back out to its list.
+      expect(onBack).not.toHaveBeenCalled();
+      expect(onSelectBall).toHaveBeenCalledWith("~core:Velocity Core");
 
+      rerender(<CatalogView onBack={onBack} selectedBallId="~core:Velocity Core" ballTrail={["a"]} onSelectBall={onSelectBall} />);
+      const pages = await screen.findAllByRole("dialog", { hidden: true });
+      const list = pages[pages.length - 1];
+      expect(list).toHaveAccessibleName("Velocity Core");
       // Every spelling of the core, and nothing else.
-      await waitFor(() => expect(screen.getByRole("button", { name: /^Filters/ })).toHaveAttribute("aria-pressed", "true"));
-      expect(screen.getAllByText(/^5 results ·/)).toHaveLength(2);
-      const names = screen.getAllByRole("listitem").map((li) => li.textContent ?? "");
-      expect(names.filter((text) => /Alpha|Bravo|Charlie|Delta|Echo|Foxtrot/.test(text))).toHaveLength(5);
+      const names = within(list).getAllByRole("listitem").map((li) => li.textContent ?? "");
+      expect(names).toHaveLength(5);
       expect(names.some((text) => text.includes("Foxtrot"))).toBe(false);
+      // The ball it came from stays drawn under it, for back.
+      expect(screen.getByRole("dialog", { name: "Alpha", hidden: true })).toBeInTheDocument();
+
+      // A row opens its ball over the list in turn.
+      fireEvent.click(within(list).getByRole("button", { name: /Bravo/ }));
+      expect(onSelectBall).toHaveBeenLastCalledWith("b");
     });
 
     it("keeps the ball it was opened from drawn beneath (ADR-257)", async () => {
@@ -451,18 +461,20 @@ describe("CatalogView", () => {
       expect(pages.map((p) => p.getAttribute("aria-label"))).toEqual(["Catalog", "Alpha", "Bravo"]);
     });
 
-    it("puts View all on the heading's line, and leaves through onShowList past every ball", async () => {
+    it("puts View all on the heading's line, and pushes over every ball rather than leaving them (ADR-264)", async () => {
       await seedKin();
       const onShowList = vi.fn();
       const onBack = vi.fn();
-      render(<CatalogView onBack={onBack} selectedBallId="b" ballTrail={["a"]} onSelectBall={vi.fn()} onShowList={onShowList} />);
+      const onSelectBall = vi.fn();
+      render(<CatalogView onBack={onBack} selectedBallId="b" ballTrail={["a"]} onSelectBall={onSelectBall} onShowList={onShowList} />);
 
       const core = await screen.findByRole("region", { name: "Same core: Velocity" });
       const viewAll = within(core).getByRole("button", { name: "View all 5 balls" });
       // Beside the heading, before the row of balls.
       expect(viewAll.compareDocumentPosition(within(core).getByRole("list")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       fireEvent.click(viewAll);
-      expect(onShowList).toHaveBeenCalled();
+      expect(onSelectBall).toHaveBeenCalledWith("~core:Velocity");
+      expect(onShowList).not.toHaveBeenCalled();
       expect(onBack).not.toHaveBeenCalled();
     });
   });

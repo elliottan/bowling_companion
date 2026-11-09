@@ -38,6 +38,7 @@ import { formatReleaseDate } from "../lib/dates";
 import { formatDate, formatFixed, formatNumber } from "../lib/format";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
 import { kinKey, kinNames, sameCore, sameCover } from "../lib/catalogKin";
+import { DRAWN_PAGES, kinListPage, parseKinListPage, type KinList } from "../lib/catalogPages";
 import { coreTypeLabel, coverstockLabel } from "../components/catalogLabels";
 
 // ---------------------------------------------------------------------------
@@ -161,8 +162,8 @@ interface DetailPanelProps {
   /** The whole catalog, for the balls that share this one's core or cover. */
   allBalls: readonly CatalogBall[];
   onSelectBall: (ballId: string) => void;
-  /** Back to the list, filtered to one core or one cover. */
-  onViewAll: (filter: { core: string } | { cover: string }) => void;
+  /** Pushes the balls on one core or in one cover over this page (ADR-264). */
+  onViewAll: (list: KinList) => void;
   /** The weights this ball is compared at, and how many balls are. */
   comparedAt: readonly number[];
   compareCount: number;
@@ -340,7 +341,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
               heading={t({ message: `Same core: ${{ core: ball.coreName }}`, comment: "Bowling term: a heading over other balls built on the same core (weight block), followed by the core's name" })}
               balls={coreKin}
               onSelect={onSelectBall}
-              onViewAll={() => onViewAll({ core: ball.coreName! })}
+              onViewAll={() => onViewAll({ kind: "core", name: ball.coreName! })}
             />
           )}
           {coverKin.length > 0 && (
@@ -348,7 +349,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
               heading={t({ message: `Same cover: ${{ cover: ball.coverstockRaw }}`, comment: "Bowling term: a heading over other balls with the same coverstock, followed by the coverstock's name" })}
               balls={coverKin}
               onSelect={onSelectBall}
-              onViewAll={() => onViewAll({ cover: ball.coverstockRaw })}
+              onViewAll={() => onViewAll({ kind: "cover", name: ball.coverstockRaw })}
             />
           )}
 
@@ -383,7 +384,7 @@ function OwnedCopies({ ball, copies }: { ball: CatalogBall; copies: readonly Own
           const el = e.currentTarget;
           if (el.clientWidth > 0) setIndex(Math.round(el.scrollLeft / el.clientWidth));
         }}
-        className="flex snap-x snap-mandatory overflow-x-auto rounded-xl border border-accent-fill/30 bg-accent-soft [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-none scrollbar-none rounded-xl border border-accent-fill/30 bg-accent-soft"
       >
         {copies.map((c) => {
           const s = specsAt(ball, c.weight);
@@ -423,6 +424,131 @@ function OwnedCopies({ ball, copies }: { ball: CatalogBall; copies: readonly Own
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * One ball in a list of the catalog: its photo, brand, Owned and colours,
+ * name, and its numbers at the bowler's default weight (ADR-262). `picked` is
+ * how many times it is in the comparison while picking, null when not.
+ */
+function CatalogRow({
+  ball,
+  owned,
+  weight,
+  picked = null,
+  disabled = false,
+  onClick
+}: {
+  ball: CatalogBall;
+  owned: boolean;
+  weight: number;
+  picked?: number | null;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  const specs = specsAt(ball, weight);
+  return (
+                <button
+                  type="button"
+                  onClick={onClick}
+                  aria-pressed={picked !== null ? picked > 0 : undefined}
+                  disabled={disabled}
+                  className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-surface-muted disabled:opacity-50"
+                >
+                  {picked !== null && (
+                    <span
+                      aria-hidden="true"
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-caption-2 font-bold tabular-nums ${
+                        picked > 0 ? "border-transparent bg-accent-fill text-accent-on-fill" : "border-edge-strong"
+                      }`}
+                    >
+                      {/* A tick, or how many times once it is in at two weights. */}
+                      {picked === 1 && <Check size={14} strokeWidth={3} />}
+                      {picked > 1 && formatNumber(picked)}
+                    </span>
+                  )}
+                  <div className="h-10 w-10 shrink-0">
+                    <CatalogBallImage src={ball.imageThumb} alt={ball.name} brand={ball.brand} size="thumb" lazy />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</span>
+                      {/* B8: Owned badge */}
+                      {owned && (
+                        <span className="rounded-full bg-accent-soft px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-accent">
+                          {t({ message: "Owned", comment: "A badge on a ball you already have in your arsenal" })}
+                        </span>
+                      )}
+                      {/* Multi-colorway badge */}
+                      {(ball.colorways?.length ?? 0) > 1 && (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-surface-muted px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
+                          <Palette size={9} aria-hidden="true" />
+                          {t`${{ count: ball.colorways!.length }} colors`}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm font-semibold text-ink">{ball.name}</p>
+                    {/* Always-visible compact specs (mobile-first) */}
+                    <p className="mt-0.5 text-xs text-ink-secondary">
+                      {[
+                        formatReleaseDate(ball.releaseDate),
+                        ball.coverstockCategory ? coverstockLabel(ball.coverstockCategory) : null,
+                        ball.coreType ? coreTypeLabel(ball.coreType) : null,
+                        specs.rg !== null ? t({ message: `RG ${{ rg: formatFixed(specs.rg, 2) }}`, comment: "Bowling term: RG is the radius of gyration, a ball spec, followed by its value" }) : null,
+                        specs.diff !== null ? t({ message: `Diff ${{ diff: formatFixed(specs.diff, 3) }}`, comment: "Bowling term: the differential, a ball spec (short for differential RG), followed by its value" }) : null,
+                      ].filter(Boolean).join(" · ") || "-"}
+                    </p>
+                  </div>
+                </button>
+  );
+}
+
+/**
+ * Every ball on one core or in one cover, pushed over the ball whose View all
+ * asked for it (ADR-264), so back returns to that ball rather than to the
+ * catalog's own list, whose search and filters it leaves as they were. A row
+ * opens its ball over this page in turn.
+ */
+function KinListPage({
+  list,
+  balls,
+  isOwned,
+  weight,
+  active,
+  onBack,
+  onSelectBall
+}: {
+  list: KinList;
+  balls: readonly CatalogBall[];
+  isOwned: (ball: CatalogBall) => boolean;
+  weight: number;
+  active: boolean;
+  onBack: () => void;
+  onSelectBall: (id: string) => void;
+}) {
+  return (
+    <PushScreen
+      title={list.name}
+      eyebrow={
+        list.kind === "core"
+          ? t({ message: "Same core", comment: "Bowling term: over a list of balls built on one core (weight block), named under it" })
+          : t({ message: "Same cover", comment: "Bowling term: over a list of balls with one coverstock, named under it" })
+      }
+      subtitle={plural(balls.length, { one: "# result", other: "# results" })}
+      onBack={onBack}
+      active={active}
+    >
+      <div className="mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6">
+        <ul className="divide-y divide-edge rounded-xl border border-edge bg-surface shadow-sm">
+          {balls.map((ball) => (
+            <li key={ball.id} style={ROW_PAINT}>
+              <CatalogRow ball={ball} owned={isOwned(ball)} weight={weight} onClick={() => onSelectBall(ball.id)} />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </PushScreen>
   );
 }
 
@@ -900,9 +1026,26 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   const coveredCompare = compareAt < stack.length;
 
   const detailFor = (id: string, i: number) => {
+    const top = i === stack.length - 1;
+    const list = parseKinListPage(id);
+    if (list) {
+      return (
+        <KinListPage
+          key={id}
+          list={list}
+          // Every spelling of the core or cover, newest first, whatever the
+          // list under it is searched or filtered to.
+          balls={applyFilters(allBalls, { ...EMPTY_FILTERS, [list.kind]: list.name }, "releaseDate", defaultWeight)}
+          isOwned={isOwned}
+          weight={defaultWeight}
+          active={top && addingBall === null && !(compareOpen && i < compareAt) && menuAt === null}
+          onBack={onBack}
+          onSelectBall={onSelectBall}
+        />
+      );
+    }
     const ball = allBalls.find((b) => b.id === id);
     if (!ball) return null;
-    const top = i === stack.length - 1;
     return (
       <DetailPanel
         key={ball.id}
@@ -918,19 +1061,9 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
         weight={defaultWeight}
         allBalls={allBalls}
         onSelectBall={onSelectBall}
-        onViewAll={(filter) => {
-          // A fresh list of just those balls: the search and every other
-          // filter would only hide some of what the row counted.
-          setFilters({ ...EMPTY_FILTERS, ...filter });
-          // From the top: the list was left wherever the ball was tapped,
-          // and a few balls at the foot of a long scroll read as none.
-          const bar = filterBarRef.current;
-          (bar && scrollParent(bar))?.scrollTo({ top: 0 });
-          // The comparison goes with the balls: the list is what was asked for.
-          setCompareOpen(false);
-          setGraphOnly(false);
-          (onShowList ?? onBack)();
-        }}
+        // Over this ball, on the catalog's own stack, so back comes back
+        // here (ADR-264).
+        onViewAll={(list) => onSelectBall(kinListPage(list))}
       />
     );
   };
@@ -966,10 +1099,12 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
       {/* The open ball over the balls it was reached through, each drawn
           where it was left, so a ball opened from another's row slides in
           over that ball, and back (or the drag) uncovers it (ADR-257). */}
+      {/* Only the top few are drawn (DRAWN_PAGES): the rest come back as
+          back reaches them (ADR-264). */}
       {stack.map((id, i) => (
-        <Fragment key={id}>
+        <Fragment key={`${i}:${id}`}>
           {i === compareAt && compareScreen}
-          {detailFor(id, i)}
+          {i >= stack.length - DRAWN_PAGES && detailFor(id, i)}
         </Fragment>
       ))}
       {compareAt >= stack.length && compareScreen}
@@ -1322,69 +1457,21 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           )
         ) : (
           <ul className="divide-y divide-edge rounded-xl border border-edge bg-surface shadow-sm">
-            {shown.map((ball) => {
-              const picked = picking ? comparedAt(ball.id).length : 0;
-              const specs = specsAt(ball, defaultWeight);
-              return (
+            {shown.map((ball) => (
               <li key={ball.id} style={ROW_PAINT}>
-                <button
-                  type="button"
+                <CatalogRow
+                  ball={ball}
+                  owned={isOwned(ball)}
+                  weight={defaultWeight}
+                  picked={picking ? comparedAt(ball.id).length : null}
+                  disabled={picking && weightToAdd(ball) === null}
                   // Picking, a tap adds the ball to the comparison at the
                   // bowler's default weight, and again at another (ADR-262);
                   // else it opens the ball (ADR-258).
                   onClick={() => (picking ? addToCompare(ball) : onSelectBall(ball.id))}
-                  aria-pressed={picking ? picked > 0 : undefined}
-                  disabled={picking && weightToAdd(ball) === null}
-                  className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-surface-muted disabled:opacity-50"
-                >
-                  {picking && (
-                    <span
-                      aria-hidden="true"
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-caption-2 font-bold tabular-nums ${
-                        picked > 0 ? "border-transparent bg-accent-fill text-accent-on-fill" : "border-edge-strong"
-                      }`}
-                    >
-                      {/* A tick, or how many times once it is in at two weights. */}
-                      {picked === 1 && <Check size={14} strokeWidth={3} />}
-                      {picked > 1 && formatNumber(picked)}
-                    </span>
-                  )}
-                  <div className="h-10 w-10 shrink-0">
-                    <CatalogBallImage src={ball.imageThumb} alt={ball.name} brand={ball.brand} size="thumb" lazy />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{ball.brand}</span>
-                      {/* B8: Owned badge */}
-                      {isOwned(ball) && (
-                        <span className="rounded-full bg-accent-soft px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-accent">
-                          {t({ message: "Owned", comment: "A badge on a ball you already have in your arsenal" })}
-                        </span>
-                      )}
-                      {/* Multi-colorway badge */}
-                      {(ball.colorways?.length ?? 0) > 1 && (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-surface-muted px-1.5 py-0.5 text-caption-2 font-bold uppercase tracking-wide text-ink-secondary">
-                          <Palette size={9} aria-hidden="true" />
-                          {t`${{ count: ball.colorways!.length }} colors`}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm font-semibold text-ink">{ball.name}</p>
-                    {/* Always-visible compact specs (mobile-first) */}
-                    <p className="mt-0.5 text-xs text-ink-secondary">
-                      {[
-                        formatReleaseDate(ball.releaseDate),
-                        ball.coverstockCategory ? coverstockLabel(ball.coverstockCategory) : null,
-                        ball.coreType ? coreTypeLabel(ball.coreType) : null,
-                        specs.rg !== null ? t({ message: `RG ${{ rg: formatFixed(specs.rg, 2) }}`, comment: "Bowling term: RG is the radius of gyration, a ball spec, followed by its value" }) : null,
-                        specs.diff !== null ? t({ message: `Diff ${{ diff: formatFixed(specs.diff, 3) }}`, comment: "Bowling term: the differential, a ball spec (short for differential RG), followed by its value" }) : null,
-                      ].filter(Boolean).join(" · ") || "-"}
-                    </p>
-                  </div>
-                </button>
+                />
               </li>
-              );
-            })}
+            ))}
           </ul>
         )}
         {/* Grows the window when it scrolls into view. Rendered only while
