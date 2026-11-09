@@ -9,6 +9,21 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.104.4: The landing page shows today's app, and the store pictures are ready for the next build (2026-11-09)
+
+- The pictures on headpin.app are taken again from the app as it is now: the
+  new Home, the phone's own controls, History's calendar and the bigger bag.
+  They had been taken at 0.70.0.
+- No change to the app. The App Store screenshots in every language and the
+  Headpin Pro review screenshot are taken from 0.104.0, for the build after
+  1.0, and `docs/APP-STORE-LISTING.md` says which set goes with which build,
+  so nothing in the store shows what the version in review does not have.
+- The feature reel is rendered again from 0.104.0
+  (`marketing/ads/2026-11-09/`), to run once the store holds that build.
+- The screenshot and reel scripts follow the app again: the Add ball to
+  arsenal form, Home's tool cards, and the First ball card on the Pro
+  screenshot clear of Stats' bar.
+
 ## 0.104.3: Back never skips a screen (2026-11-09)
 
 ### Fixed

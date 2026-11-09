@@ -225,7 +225,7 @@ async function addFromCatalog(query, name) {
   await wait(700);
   await page.getByRole("dialog", { name: tr("Catalog") }).getByRole("button", { name }).first().click();
   await page.getByRole("button", { name: tr("Add to arsenal") }).first().click();
-  await page.getByRole("dialog", { name: tr("Add to arsenal") }).getByRole("button", { name: tr("Add to arsenal") }).click();
+  await page.getByRole("dialog", { name: tr("Add ball to arsenal") }).getByRole("button", { name: tr("Add"), exact: true }).click();
   await wait(400);
   await back(2);
 }
@@ -327,9 +327,9 @@ if (wanted("score") || wanted("home")) {
 if (wanted("line") || wanted("pattern")) {
   await home(true);
   await setTheme("dark");
-  // The Tools row, by its title and the line under it: in Chinese the title
-  // alone (油型) is in half the buttons on Home.
-  await page.getByRole("button", { name: new RegExp(`${escape(tr("Oil patterns"))}.*${escape(tr("Look up a pattern's length and oil"))}`) }).first().click();
+  // Home's tool card, which is its title alone (ToolCards), matched whole: in
+  // Chinese the title (油型) is part of other buttons' names on Home.
+  await page.getByRole("button", { name: new RegExp(`^${escape(tr("Oil patterns"))}$`) }).first().click();
   await page.getByRole("searchbox").or(page.getByPlaceholder(tr("Search patterns"))).first().fill("Shark");
   // Home's session tiles name their pattern too, under the pushed screen.
   await page.getByRole("dialog", { name: tr("Oil patterns") }).getByText("2019 PBA Shark 48").first().click();
@@ -389,11 +389,20 @@ if (wanted("stats") || wanted("pro")) {
     await setTheme("dark");
     await nav.getByRole("button", { name: tr("Stats") }).click();
     await wait(900);
-    await page.getByText(tr("First ball"), { exact: true }).first().evaluate((el) => (el.closest("section") ?? el).scrollIntoView({ block: "start" }));
-    await page.evaluate(() => {
-      // A little room above the card, under the status bar.
-      const el = [...document.querySelectorAll("*")].find((n) => n.scrollTop > 0 && n.scrollHeight > n.clientHeight);
-      if (el) el.scrollTop -= 12;
+    // The First ball card at the top, just under Stats' own bar, which floats
+    // over the scrolled content: scrolled flush to the top, the card slid
+    // under the bar and the shot opened on Spares, which is free.
+    // By its heading: in some languages a chart chip carries the same words.
+    await page.getByRole("heading", { name: tr("First ball"), exact: true }).first().evaluate((label) => {
+      let card = label;
+      while (card.parentElement && card.parentElement.getBoundingClientRect().height < 400) card = card.parentElement;
+      let scroller = card.parentElement;
+      while (scroller && !(scroller.scrollHeight > scroller.clientHeight && /auto|scroll/.test(getComputedStyle(scroller).overflowY))) scroller = scroller.parentElement;
+      const first = card.parentElement?.firstElementChild;
+      if (!scroller || !first) return;
+      // Where the first card sits unscrolled is the line under the bar.
+      const under = first.getBoundingClientRect().top + scroller.scrollTop;
+      scroller.scrollTop += card.getBoundingClientRect().top - under;
     });
     await wait(500);
     await shoot(shot("pro"));
@@ -408,6 +417,25 @@ if (wanted("history")) {
   await wait(800);
   await shoot(shot("history"));
   await home();
+}
+
+// The in-app purchase's Review Information screenshot: the Headpin Pro page as
+// a free download sees it, with Get Headpin Pro and Restore purchase. It is for
+// App Review only, never on the store, so it is not in the set and is taken
+// only when asked for by name (STORE_ONLY=review), plain, at the 6.9 inch size.
+if (ONLY?.includes("review")) {
+  await home(false);
+  await setTheme("dark");
+  await page.getByRole("navigation").getByRole("button", { name: tr("Settings") }).click();
+  await wait(700);
+  await page.getByRole("button", { name: trPattern("Get Headpin Pro", {}, { start: true }) }).first().click();
+  await wait(1200);
+  await drawStatusBar(page, "#fff");
+  await wait(150);
+  const file = join(OUT, "headpin-pro-review.png");
+  await writeFile(file, await page.screenshot({ type: "png" }));
+  await removeStatusBar(page);
+  console.log("wrote", file);
 }
 
 await context.close();

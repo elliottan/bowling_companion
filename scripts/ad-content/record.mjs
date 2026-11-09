@@ -243,7 +243,7 @@ await record("05-spares", {
     await tap(app.getByRole("button", { name: /TZone/i }).first());
     await tap(app.getByRole("button", { name: "Add to arsenal" }).first());
     await tap(
-      app.getByRole("dialog", { name: "Add to arsenal" }).getByRole("button", { name: "Add to arsenal" })
+      app.getByRole("dialog", { name: "Add ball to arsenal" }).getByRole("button", { name: "Add", exact: true })
     );
     // Back from the ball, then from the catalog, to Home.
     await tap(app.getByRole("banner").getByRole("button", { name: "Back", exact: true }).last());
