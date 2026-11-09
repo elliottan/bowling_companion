@@ -253,6 +253,7 @@ export function HistoryView({
   if (mode === "tab") return body;
   return (
     <PushScreen
+      history="route"
       title={t`History`}
       onBack={onBack ?? (() => {})}
       active={!filtersOpen && pendingDelete === null}

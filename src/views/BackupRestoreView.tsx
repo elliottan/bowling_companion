@@ -194,7 +194,7 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
   if (!onBack) return body;
 
   return (
-    <PushScreen mode={mode} title={t`Backup & restore`} onBack={onBack}>
+    <PushScreen history="route" mode={mode} title={t`Backup & restore`} onBack={onBack}>
       {body}
     </PushScreen>
   );

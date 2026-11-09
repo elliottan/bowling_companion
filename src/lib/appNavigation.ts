@@ -377,7 +377,11 @@ function reduce(state: NavState, action: NavAction): NavState {
           ? { ...state, catalogBallId: trail[trail.length - 1], catalogBallTrail: trail.slice(0, -1) }
           : { ...state, catalogBallId: null };
       }
-      if (state.openGuideId !== null) return { ...state, openGuideId: null, openGuideTerm: null };
+      // The same for an open guide: a screen it opened (the line sandbox, a
+      // ball) sits over it and comes off first.
+      if (state.openGuideId !== null && state.overlays[state.overlays.length - 1] === "guides") {
+        return { ...state, openGuideId: null, openGuideTerm: null };
+      }
       // Only while the report is the screen on top: a game opened from a shot
       // sits over the line, and back has to take the game off first.
       if (

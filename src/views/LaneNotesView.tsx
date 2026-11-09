@@ -175,6 +175,7 @@ export function LaneNotesView({ onBack, mode = "inline" }: LaneNotesViewProps = 
   return (
     <>
       <PushScreen
+        history="route"
         mode={mode}
         title={t`Lane notes`}
         onBack={onBack}

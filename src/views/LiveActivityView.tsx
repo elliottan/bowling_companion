@@ -26,7 +26,7 @@ export function LiveActivityView({ status, onBack }: { status: LiveActivityStatu
   const sample = useMemo(() => sampleLiveActivityState(), []);
 
   return (
-    <PushScreen mode="inline" title={t`Live Activity`} onBack={onBack}>
+    <PushScreen history="route" mode="inline" title={t`Live Activity`} onBack={onBack}>
       <section className="mx-auto w-full max-w-3xl space-y-5 px-3 py-4 sm:px-6">
         <p className="px-1 text-subhead text-ink-secondary">
           {t`Your game follows you off the screen. From the first ball, the score is on your Lock Screen, in the Dynamic Island and on your Apple Watch, and it changes with every ball you enter.`}

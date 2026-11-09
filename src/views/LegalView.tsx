@@ -37,7 +37,7 @@ export function LegalView({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <PushScreen mode="inline" title={t`Privacy and terms`} onBack={onBack}>
+    <PushScreen history="route" mode="inline" title={t`Privacy and terms`} onBack={onBack}>
       <div
         onClick={onClick}
         className={[

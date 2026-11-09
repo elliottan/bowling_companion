@@ -275,6 +275,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
     //, same nav bar, same back gesture, opened at the top regardless of where
     // the list was scrolled to.
     <PushScreen
+      history="route"
       title={ball.name}
       eyebrow={ball.brand}
       onBack={onBack}
@@ -614,6 +615,7 @@ function KinListPage({
 }) {
   return (
     <PushScreen
+      history="route"
       title={list.name}
       eyebrow={
         list.kind === "core"
@@ -1146,7 +1148,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
       }}
       // From the arsenal, the graph is the screen, so back leaves the catalog.
       onBack={graphOnly ? onBack : () => setCompareOpen(false)}
-      backCloses={!graphOnly}
+      history={graphOnly ? "route" : "layer"}
       initialTab={compareTab}
       onOpenBall={onSelectBall}
       active={addingBall === null && !coveredCompare && !pickerOpen}
@@ -1337,10 +1339,10 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   // (ADR-270): back, the drag and the tray's Compare all come back to it.
   const pickerScreen = pickerOpen ? (
     <PushScreen
+      history="layer"
       title={t`Catalog`}
       subtitle={listSubtitle}
       onBack={() => setPickerOpen(false)}
-      backCloses
       active={addingBall === null && !coveredCompare && !showFilters && menuAt === null}
       trailing={listTrailing(pickerSelecting, setPickerSelecting)}
       footer={
@@ -1541,6 +1543,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
 
   return (
     <PushScreen
+      history="route"
       title={t`Catalog`}
       // Under the title rather than over the list: the title's block scrolls
       // away, and the bar carries the same line once it has, so the count

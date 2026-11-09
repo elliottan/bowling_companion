@@ -343,6 +343,7 @@ export function ArsenalView({ onBack, onViewLayout, initialBallId, onOpenBallGra
   return (
     <>
       <PushScreen
+        history="route"
         title={t`Arsenal`}
         onBack={onBack}
         active={form === null && pendingDelete === null}
