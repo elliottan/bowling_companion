@@ -2,11 +2,11 @@ import { plural, t } from "@lingui/core/macro";
 import { ClearAllButton } from "../components/ui/ClearAllButton";
 import { Select } from "../components/ui/Select";
 import { Trans } from "@lingui/react/macro";
-import { BookOpen, ChartScatter, ExternalLink, Loader2, MailPlus, MoreHorizontal, Palette, Plus, X, type LucideIcon } from "lucide-react";
+import { BookOpen, ChartScatter, ChevronRight, ExternalLink, Loader2, MailPlus, MoreHorizontal, Palette, Plus, X, type LucideIcon } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
-import { BowlingBallIcon } from "../components/icons";
+import { BowlingBagIcon } from "../components/icons";
 import { Button } from "../components/ui/Button";
 import { RangeSlider } from "../components/ui/RangeSlider";
 import { Chip, TAP_TARGET_44 } from "../components/ui/Chip";
@@ -155,6 +155,8 @@ interface DetailPanelProps {
   ball: CatalogBall;
   /** The bowler's copies of this ball still in the bag, in arsenal order. */
   owned: readonly OwnedCopy[];
+  /** Opens one of the bowler's copies in the arsenal (ADR-270). */
+  onOpenOwned?: (id: number) => void;
   onBack: () => void;
   onAddToArsenal: (ball: CatalogBall) => void;
   /** True while the ball form is stacked on top, disables this
@@ -241,7 +243,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
   );
 }
 
-function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBalls, onSelectBall, onViewAll, comparedAt, tray, onAddToCompare, weight }: DetailPanelProps) {
+function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBalls, onSelectBall, onViewAll, comparedAt, tray, onAddToCompare, weight, onOpenOwned }: DetailPanelProps) {
   const releaseDate = formatReleaseDate(ball.releaseDate);
   // The menus the compare row opens: the weights to add it at, and which of
   // the weights it is in at to take out (ADR-267).
@@ -272,7 +274,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
             onClick={() => onAddToArsenal(ball)}
             className="mr-1"
           >
-            <PlusOn icon={BowlingBallIcon} />
+            <PlusOn icon={BowlingBagIcon} />
           </IconButton>
           <IconButton
             variant={comparing ? "confirm" : "round"}
@@ -299,7 +301,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
           )}
 
           {/* The bowler's own, over the catalog's specs (ADR-263). */}
-          {owned.length > 0 && <OwnedCopies ball={ball} copies={owned} />}
+          {owned.length > 0 && <OwnedCopies ball={ball} copies={owned} onOpen={onOpenOwned} />}
 
           <dl className="mt-4 space-y-2">
             {/* The brand rides over the name only until the name scrolls
@@ -397,7 +399,7 @@ function PlusOn({ icon: Icon }: { icon: LucideIcon }) {
  * dots under it when there are several, so a bag with three of one ball still
  * takes one card's height.
  */
-function OwnedCopies({ ball, copies }: { ball: CatalogBall; copies: readonly OwnedCopy[] }) {
+function OwnedCopies({ ball, copies, onOpen }: { ball: CatalogBall; copies: readonly OwnedCopy[]; onOpen?: (id: number) => void }) {
   const [index, setIndex] = useState(0);
   const track = useRef<HTMLDivElement | null>(null);
   const go = (i: number) => {
@@ -420,8 +422,20 @@ function OwnedCopies({ ball, copies }: { ball: CatalogBall; copies: readonly Own
       >
         {copies.map((c) => {
           const s = specsAt(ball, c.weight);
+          // A tap opens the copy in the arsenal, with its layout (ADR-270).
+          const Card = onOpen ? "button" : "div";
           return (
-            <div key={c.id} className="flex w-full shrink-0 snap-start items-center gap-3 px-3 py-2.5">
+            <Card
+              key={c.id}
+              {...(onOpen
+                ? {
+                    type: "button" as const,
+                    onClick: () => onOpen(c.id),
+                    "aria-label": t({ message: `Open ${{ name: c.name }}, ${{ weight: lb(c.weight) }}, in your arsenal`, comment: "A card on a catalog ball's page for one of the bowler's own copies of it: opens that copy in their arsenal" })
+                  }
+                : {})}
+              className={`flex w-full shrink-0 snap-start items-center gap-3 px-3 py-2.5 text-left ${onOpen ? "active:opacity-60" : ""}`}
+            >
               <span className="block h-10 w-10 shrink-0">
                 <CatalogBallImage src={c.imageThumb ?? ball.imageThumb} alt="" brand={ball.brand} size="thumb" />
               </span>
@@ -437,7 +451,8 @@ function OwnedCopies({ ball, copies }: { ball: CatalogBall; copies: readonly Own
                     .join(" · ")}
                 </span>
               </span>
-            </div>
+              {onOpen && <ChevronRight size={18} className="shrink-0 text-ink-tertiary" aria-hidden="true" />}
+            </Card>
           );
         })}
       </div>
@@ -468,7 +483,8 @@ function CatalogRow({
   owned,
   weight,
   inCompare = false,
-  onClick
+  onClick,
+  onToggleCompare
 }: {
   ball: CatalogBall;
   owned: boolean;
@@ -476,15 +492,19 @@ function CatalogRow({
   inCompare?: boolean;
   weight: number;
   onClick: () => void;
+  /** Multi-select is on (ADR-270): a toggle at the row's right end puts the
+   *  ball in the comparison or takes it out, and null when it is off. The
+   *  toggle is off while the comparison is full and the ball is not in it. */
+  onToggleCompare?: { onToggle: () => void; disabled: boolean } | null;
 }) {
   const specs = specsAt(ball, weight);
-  return (
+  const row = (
                 <button
                   type="button"
                   onClick={onClick}
-                  className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors disabled:opacity-50 ${
-                    inCompare ? "bg-accent-soft" : "hover:bg-surface-muted"
-                  }`}
+                  className={`flex w-full min-w-0 items-center gap-3 py-2.5 pl-3 text-left transition-colors disabled:opacity-50 ${
+                    onToggleCompare ? "flex-1 pr-1" : "pr-3"
+                  } ${inCompare ? "bg-accent-soft" : "hover:bg-surface-muted"}`}
                 >
                   <div className="h-10 w-10 shrink-0">
                     <CatalogBallImage src={ball.imageThumb} alt={ball.name} brand={ball.brand} size="thumb" lazy />
@@ -519,6 +539,31 @@ function CatalogRow({
                     </p>
                   </div>
                 </button>
+  );
+  if (!onToggleCompare) return row;
+  return (
+    <div className={`flex items-stretch ${inCompare ? "bg-accent-soft" : ""}`}>
+      {row}
+      {/* Empty while the ball is out of the comparison, the graph glyph on
+          the accent once it is in (ADR-270). */}
+      <button
+        type="button"
+        onClick={onToggleCompare.onToggle}
+        disabled={onToggleCompare.disabled && !inCompare}
+        aria-pressed={inCompare}
+        aria-label={t({ message: `Compare ${{ ball: ball.name }}`, comment: "A toggle at the end of a catalog row: puts this bowling ball in the comparison, or takes it out" })}
+        className="flex w-12 shrink-0 items-center justify-center pr-1 disabled:opacity-40 active:opacity-60"
+      >
+        <span
+          aria-hidden="true"
+          className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${
+            inCompare ? "bg-accent-fill text-accent-on-fill" : "border-2 border-edge-strong"
+          }`}
+        >
+          {inCompare && <ChartScatter size={15} strokeWidth={2.5} />}
+        </span>
+      </button>
+    </div>
   );
 }
 
@@ -744,8 +789,9 @@ interface CatalogViewProps {
   /** Balls opened under the open one, oldest first: each stays drawn beneath
    *  the ball opened from its page, so back slides to it (ADR-257). */
   ballTrail?: readonly string[];
-  /** Back to the list past every open ball, for View all. */
-  onShowList?: () => void;
+  /** Opens one of the bowler's own copies of a ball in the arsenal, from the
+   *  ball's page (ADR-270). */
+  onOpenArsenalBall?: (id: number) => void;
   /** What the list opens already searched for, from the app's search. */
   initialSearch?: string;
   /** Opens straight on the comparison's graph, from the arsenal (ADR-261):
@@ -762,7 +808,7 @@ function scrollParent(el: HTMLElement): HTMLElement | null {
   return null;
 }
 
-export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = [], onShowList, initialSearch, openGraph = false }: CatalogViewProps) {
+export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = [], onOpenArsenalBall, initialSearch, openGraph = false }: CatalogViewProps) {
   // The weight the catalog reads its specs at and adds balls at (ADR-262).
   const defaultWeight = useLiveQuery(getDefaultBallWeight, [], null) ?? DEFAULT_WEIGHT;
   const [syncState, setSyncState] = useState<SyncState>({ status: "idle" });
@@ -789,12 +835,19 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   const [addingBall, setAddingBall] = useState<CatalogBall | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   // The balls picked to compare, each at its own weight, kept while the
-  // catalog is closed and opened again (ADR-258, ADR-262). Picking is a mode
-  // of the list: on, a tap on a row adds the ball rather than opening it.
+  // catalog is closed and opened again (ADR-258, ADR-262).
   const [compared, setCompared] = useRememberedState<CompareEntry[]>("catalog:compared", []);
+  // Multi-select (ADR-270): on, each row carries a toggle at its right end
+  // that puts the ball in the comparison or takes it out, and a tap on the
+  // row still opens the ball. The bar's graph button turns it on and off.
+  const [selecting, setSelecting] = useState(false);
+  // The list pushed over the comparison by its Add a ball, multi-select on,
+  // so back comes back to the comparison rather than leaving the catalog.
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerSelecting, setPickerSelecting] = useState(true);
   // Opened from the arsenal, the graph is the screen and the list is not
-  // drawn under it, until View all on a ball or Add a ball asks for the list.
-  const [graphOnly, setGraphOnly] = useState(openGraph);
+  // drawn under it. Add a ball pushes the list over it (ADR-270).
+  const [graphOnly] = useState(openGraph);
   const [compareOpen, setCompareOpen] = useState(openGraph);
   const [compareTab, setCompareTab] = useState<CompareTab>(openGraph ? "graph" : "specs");
   // The ball the comparison was opened over, null for the list: a ball opened
@@ -811,7 +864,6 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   // The bag itself, for the weights its balls are in.
   const [arsenal, setArsenal] = useState<Ball[]>([]);
   const syncStarted = useRef(false);
-  const filterBarRef = useRef<HTMLDivElement | null>(null);
 
   // Load balls from DB into state.
   async function loadBalls() {
@@ -883,7 +935,6 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   // in the DOM whether or not it had been scrolled to. Windowed the way History
   // pages its sessions: a page at a time, grown by a sentinel below the list.
   const [visibleCount, setVisibleCount] = useState(CATALOG_PAGE);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   // A filter change is a new list, so the window starts again. Adjusted during
   // render rather than in an effect, which would paint the old window first.
@@ -893,23 +944,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
     if (windowedList !== null) setVisibleCount(CATALOG_PAGE);
   }
 
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    // Watched from the scroller itself, a screenful early: against the page
-    // the sentinel only counted once it was on screen, so the list stalled at
-    // its end while the next forty rows rendered, and the scroll jumped.
-    const obs = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount((c) => (c < displayed.length ? c + CATALOG_PAGE : c));
-        }
-      },
-      { root: scrollParent(el), rootMargin: "0px 0px 100% 0px" }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [displayed.length]);
+  const growList = () => setVisibleCount((c) => (c < displayed.length ? c + CATALOG_PAGE : c));
 
   const shown = displayed.slice(0, visibleCount);
 
@@ -976,6 +1011,12 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
     const weight = at !== undefined && compared.length < MAX_COMPARE && !comparedAt(ball.id).includes(at) ? at : weightToAdd(ball);
     if (weight !== null) setCompared((entries) => [...entries, { id: ball.id, weight }]);
   };
+  /** A row's multi-select toggle (ADR-270): in at the weight it would come in
+   *  at from its page, or out at every weight it is in at. */
+  const toggleCompare = (ball: CatalogBall) => {
+    if (compared.some((e) => e.id === ball.id)) setCompared((entries) => entries.filter((e) => e.id !== ball.id));
+    else addToCompare(ball);
+  };
 
   // Catalog version info from done state.
   const doneState = syncState.status === "done" ? syncState : null;
@@ -1007,6 +1048,8 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
     setCompareOpen(false);
     setCompareOver(null);
   }
+  // The list over the comparison goes with it.
+  if (!compareOpen && pickerOpen) setPickerOpen(false);
   const compareAt = compareOpen ? overAt + 1 : Infinity;
   const coveredCompare = compareAt < stack.length;
 
@@ -1057,6 +1100,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
         comparedAt={comparedAt(ball.id)}
         tray={tray}
         onAddToCompare={compared.length >= MAX_COMPARE ? null : (w) => addToCompare(ball, w)}
+        onOpenOwned={onOpenArsenalBall}
         weight={defaultWeight}
         allBalls={allBalls}
         onSelectBall={onSelectBall}
@@ -1075,22 +1119,233 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
       onWeightChange={(key, weight) =>
         setCompared((entries) => entries.map((e) => (entryKey(e) === key ? { ...e, weight } : e)))
       }
-      // Back to the list for another ball, which goes in from its own page
-      // (ADR-268). Any ball the comparison was opened over goes with it: the
-      // list is what was asked for.
+      // The list, pushed over the comparison with multi-select on, so back
+      // comes back here (ADR-270). It used to close the comparison onto the
+      // list underneath, and back from there left the catalog.
       onAddBall={() => {
-        setCompareOpen(false);
-        if (graphOnly) setGraphOnly(false);
-        else if (selectedBallId !== null) (onShowList ?? onBack)();
+        setPickerSelecting(true);
+        setPickerOpen(true);
       }}
       // From the arsenal, the graph is the screen, so back leaves the catalog.
       onBack={graphOnly ? onBack : () => setCompareOpen(false)}
       backCloses={!graphOnly}
       initialTab={compareTab}
       onOpenBall={onSelectBall}
-      active={addingBall === null && !coveredCompare}
+      active={addingBall === null && !coveredCompare && !pickerOpen}
     />
   ) : null;
+
+  /** The list under the search and filters, as the catalog shows it and as
+   *  the list pushed over the comparison shows it, multi-select on or off. */
+  const listBody = (select: boolean) => (
+    <>
+      {/* Search + filters stay pinned above the list they narrow, stopping
+          under the nav bar. They used to reach up behind the bar so the list
+          passed under the two as one opaque band, but that block now sits
+          below the large title and reaching up covered it (ADR-226). The
+          bar's own ground is the page's colour nearly solid, so the list
+          passing under it between the two is a soft shape, as on every other
+          pushed screen. */}
+      <div className="sticky top-0 z-10 mx-auto w-full max-w-3xl border-b border-edge bg-surface-sunken px-3 pt-3 sm:px-6">
+        {/* Sync state banner */}
+        {syncState.status === "syncing" && (
+          <div className="mb-3 flex items-center gap-2 rounded-lg border border-edge bg-surface-muted px-3 py-2 text-sm text-ink-secondary">
+            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+            {t`Syncing catalog…`}
+          </div>
+        )}
+        {syncState.status === "error" && (
+          <div className="mb-3 rounded-lg border border-warning-200 bg-warning-50 px-3 py-2 text-sm text-warning-700">
+            <Trans>
+              <span className="font-semibold">Could not update the catalog:</span> {syncMessage}.
+              Showing last saved data.
+            </Trans>
+          </div>
+        )}
+
+        {/* Search */}
+        <SearchField
+          className="mb-3"
+          label={t`Search the catalog`}
+          placeholder={t`Search name, brand, coverstock…`}
+          value={filters.search}
+          onChange={(search) => setFilters((f) => ({ ...f, search }))}
+        />
+
+        {/* Filter toggle + sort row */}
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {/* Lit while any filter is on, with how many: the list carries no
+              chips or count of its own, so this is the one place that says
+              it is narrowed, and the sheet is where a filter comes off. */}
+          <Chip selected={activeFilterCount > 0} onClick={() => setShowFilters(true)}>
+            {t`Filters`}
+            {activeFilterCount > 0 ? (
+              <span className="ml-1 rounded-full bg-accent-on-fill/25 px-1.5 py-0.5 text-xs font-bold leading-none">{activeFilterCount}</span>
+            ) : null}
+          </Chip>
+
+          {/* Not shrinkable: the select is as wide as its longest option in
+              this language, and where that does not fit beside Filters the
+              sort takes the next line rather than clipping its value. Where
+              even a line of its own is too narrow for the word and the select
+              together (Spanish at the largest size), the select drops under
+              the word. */}
+          <label className="ml-auto flex max-w-full shrink-0 flex-wrap items-center gap-1.5 text-sm text-ink-strong">
+            <span className="font-medium">{t`Sort:`}</span>
+            {/* Sized by its wrapper, which is as wide as the longest option:
+                the select chrome carries `w-full`, and on a wrapping row a
+                full-width item always takes a line of its own. */}
+            <div className="max-w-full shrink-0">
+            <Select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              variant="menu"
+            >
+              <option value="releaseDate">{t`Newest first`}</option>
+              <option value="rg">{t({ message: "RG, low to high", comment: "Bowling term: RG is the radius of gyration, a ball spec. A sort order." })}</option>
+              <option value="diff">{t({ message: "Diff, high to low", comment: "Bowling term: Diff is the differential, a ball spec. A sort order." })}</option>
+              <option value="name">{t`Name, A to Z`}</option>
+            </Select>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div className="mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6">
+        {/* B2: Row list instead of card grid */}
+        {allBalls.length === 0 && syncState.status !== "syncing" ? (
+          <EmptyState
+            icon={BookOpen}
+            title={online ? t`The catalog has not loaded` : t`Connect once to load the catalog`}
+            description={t`It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in.`}
+          >
+            <Button variant="primary" onClick={handleRefresh} disabled={!online}>
+              {online ? t`Load the catalog` : t`Waiting for a connection`}
+            </Button>
+          </EmptyState>
+        ) : displayed.length === 0 ? (
+          // A typed search that found nothing means the catalog may be missing
+          // the ball. Filters alone emptying the list mean it is only hidden.
+          filters.search.trim() ? (
+            <CatalogRequestEmpty kind="ball" query={filters.search}>
+              {activeFilterCount > 0 && (
+                <Button variant="ghost" onClick={() => setFilters({ ...EMPTY_FILTERS, search: filters.search })}>
+                  {t`Clear filters`}
+                </Button>
+              )}
+            </CatalogRequestEmpty>
+          ) : (
+            <EmptyState
+              icon={BookOpen}
+              title={t`No balls match these filters`}
+              description={t`Loosen a filter to see more of the catalog.`}
+            >
+              <Button variant="primary" onClick={() => setFilters(EMPTY_FILTERS)}>
+                {t`Clear filters`}
+              </Button>
+            </EmptyState>
+          )
+        ) : (
+          <ul className="divide-y divide-edge overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
+            {shown.map((ball) => (
+              <li key={ball.id} style={ROW_PAINT}>
+                <CatalogRow
+                  ball={ball}
+                  owned={isOwned(ball)}
+                  inCompare={inCompare(ball.id)}
+                  weight={defaultWeight}
+                  // A tap on the row opens the ball; with multi-select on,
+                  // the toggle at its end puts it in the comparison (ADR-270).
+                  onClick={() => onSelectBall(ball.id)}
+                  onToggleCompare={
+                    select
+                      ? { onToggle: () => toggleCompare(ball), disabled: weightToAdd(ball) === null }
+                      : null
+                  }
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+        {/* Grows the window when it scrolls into view. Rendered only while
+            there is more, so it cannot fire against a finished list. */}
+        {shown.length < displayed.length && <GrowSentinel key={displayed.length} onGrow={growList} />}
+
+        {displayed.length > 0 && shown.length >= displayed.length && <CatalogRequestRow kind="ball" query={filters.search} />}
+
+        {/* Footer */}
+        {doneState && (
+          <p className="mt-6 text-center text-xs text-ink-secondary">
+            {t`Catalog v${{ version: doneState.version }} · Updated ${{ date: formatDate(new Date(doneState.generatedAt), { dateStyle: "medium" }) }}`}
+          </p>
+        )}
+      </div>
+
+    </>
+  );
+
+  // The bar's graph button turns multi-select on and off (ADR-270), beside
+  // the More menu.
+  const listTrailing = (on: boolean, setOn: (on: boolean) => void) => (
+    <>
+      <IconButton
+        variant={on ? "confirm" : "round"}
+        label={t({ message: "Select to compare", comment: "Turns on a toggle at the end of each catalog row that puts the ball in the comparison" })}
+        aria-pressed={on}
+        onClick={() => setOn(!on)}
+      >
+        <ChartScatter size={20} aria-hidden="true" />
+      </IconButton>
+      <IconButton
+        variant="round"
+        label={t`More`}
+        className="ml-1"
+        onClick={(e) => setMenuAt(anchorUnder(e.currentTarget, ANCHORED_MENU_WIDTH))}
+      >
+        <MoreHorizontal size={20} aria-hidden="true" />
+      </IconButton>
+    </>
+  );
+
+  const listSubtitle =
+    allBalls.length > 0
+      ? `${plural(displayed.length, {
+          one: "# result",
+          other: "# results"
+        })} · ${t({ message: `Specs at ${{ weight: lb(defaultWeight) }}`, comment: "Under the catalog's title: the ball weight the listed specs are for, such as 15 lb" })}`
+      : undefined;
+
+  // Add a ball in the comparison pushes the list over it, multi-select on
+  // (ADR-270): back, the drag and the tray's Compare all come back to it.
+  const pickerScreen = pickerOpen ? (
+    <PushScreen
+      title={t`Catalog`}
+      subtitle={listSubtitle}
+      onBack={() => setPickerOpen(false)}
+      backCloses
+      active={addingBall === null && !coveredCompare && !showFilters && menuAt === null}
+      trailing={listTrailing(pickerSelecting, setPickerSelecting)}
+      footer={
+        compared.length > 0 ? (
+          <CompareTray
+            balls={compareBalls}
+            onRemove={(key) => setCompared((entries) => entries.filter((e) => entryKey(e) !== key))}
+            onOpen={onSelectBall}
+            onCompare={() => setPickerOpen(false)}
+          />
+        ) : undefined
+      }
+      hideScrollbar
+    >
+      {listBody(pickerSelecting)}
+    </PushScreen>
+  ) : null;
+  const compareLayer = (
+    <>
+      {compareScreen}
+      {pickerScreen}
+    </>
+  );
 
   const layers = (
     <>
@@ -1102,11 +1357,11 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           back reaches them (ADR-264). */}
       {stack.map((id, i) => (
         <Fragment key={`${i}:${id}`}>
-          {i === compareAt && compareScreen}
+          {i === compareAt && compareLayer}
           {i >= stack.length - DRAWN_PAGES && detailFor(id, i)}
         </Fragment>
       ))}
-      {compareAt >= stack.length && compareScreen}
+      {compareAt >= stack.length && compareLayer}
 
       {/* Add-to-arsenal dialog, always rendered at top level so it's reachable from detail view */}
       {/* The filters rise from the bottom edge, as every other filter sheet
@@ -1274,182 +1529,43 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
       // costs the pinned search and filters no height (ADR-253).
       // With the weight the rows' numbers are at, the bowler's default
       // (ADR-262).
-      subtitle={
-        allBalls.length > 0
-          ? `${plural(displayed.length, {
-              one: "# result",
-              other: "# results"
-            })} · ${t({ message: `Specs at ${{ weight: lb(defaultWeight) }}`, comment: "Under the catalog's title: the ball weight the listed specs are for, such as 15 lb" })}`
-          : undefined
-      }
+      subtitle={listSubtitle}
       onBack={onBack}
       active={selectedBallId === null && addingBall === null && !showFilters && !compareOpen && menuAt === null}
-      trailing={
-          <>
-            {/* Straight to the graph of the bag and any balls picked
-                (ADR-262), beside the menu. */}
-            <IconButton
-              variant="round"
-              label={t({ message: "Ball graph", comment: "Opens a graph placing bowling balls by RG and differential" })}
-              onClick={() => openCompare("graph")}
-            >
-              <ChartScatter size={20} aria-hidden="true" />
-            </IconButton>
-            {/* Comparing and asking for a ball, in one menu (ADR-261): a
-                compare glyph alone in the bar did not say what it did. */}
-            <IconButton
-              variant="round"
-              label={t`More`}
-              className="ml-1"
-              onClick={(e) => setMenuAt(anchorUnder(e.currentTarget, ANCHORED_MENU_WIDTH))}
-            >
-              <MoreHorizontal size={20} aria-hidden="true" />
-            </IconButton>
-          </>
-      }
+      trailing={listTrailing(selecting, setSelecting)}
       footer={tray}
       // The list grows as it scrolls, so a scroll bar only ever says "more"
       // (ADR-266).
       hideScrollbar
     >
-      {/* Search + filters stay pinned above the list they narrow, stopping
-          under the nav bar. They used to reach up behind the bar so the list
-          passed under the two as one opaque band, but that block now sits
-          below the large title and reaching up covered it (ADR-226). The
-          bar's own ground is the page's colour nearly solid, so the list
-          passing under it between the two is a soft shape, as on every other
-          pushed screen. */}
-      <div ref={filterBarRef} className="sticky top-0 z-10 mx-auto w-full max-w-3xl border-b border-edge bg-surface-sunken px-3 pt-3 sm:px-6">
-        {/* Sync state banner */}
-        {syncState.status === "syncing" && (
-          <div className="mb-3 flex items-center gap-2 rounded-lg border border-edge bg-surface-muted px-3 py-2 text-sm text-ink-secondary">
-            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-            {t`Syncing catalog…`}
-          </div>
-        )}
-        {syncState.status === "error" && (
-          <div className="mb-3 rounded-lg border border-warning-200 bg-warning-50 px-3 py-2 text-sm text-warning-700">
-            <Trans>
-              <span className="font-semibold">Could not update the catalog:</span> {syncMessage}.
-              Showing last saved data.
-            </Trans>
-          </div>
-        )}
-
-        {/* Search */}
-        <SearchField
-          className="mb-3"
-          label={t`Search the catalog`}
-          placeholder={t`Search name, brand, coverstock…`}
-          value={filters.search}
-          onChange={(search) => setFilters((f) => ({ ...f, search }))}
-        />
-
-        {/* Filter toggle + sort row */}
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          {/* Lit while any filter is on, with how many: the list carries no
-              chips or count of its own, so this is the one place that says
-              it is narrowed, and the sheet is where a filter comes off. */}
-          <Chip selected={activeFilterCount > 0} onClick={() => setShowFilters(true)}>
-            {t`Filters`}
-            {activeFilterCount > 0 ? (
-              <span className="ml-1 rounded-full bg-accent-on-fill/25 px-1.5 py-0.5 text-xs font-bold leading-none">{activeFilterCount}</span>
-            ) : null}
-          </Chip>
-
-          {/* Not shrinkable: the select is as wide as its longest option in
-              this language, and where that does not fit beside Filters the
-              sort takes the next line rather than clipping its value. Where
-              even a line of its own is too narrow for the word and the select
-              together (Spanish at the largest size), the select drops under
-              the word. */}
-          <label className="ml-auto flex max-w-full shrink-0 flex-wrap items-center gap-1.5 text-sm text-ink-strong">
-            <span className="font-medium">{t`Sort:`}</span>
-            {/* Sized by its wrapper, which is as wide as the longest option:
-                the select chrome carries `w-full`, and on a wrapping row a
-                full-width item always takes a line of its own. */}
-            <div className="max-w-full shrink-0">
-            <Select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as SortKey)}
-              variant="menu"
-            >
-              <option value="releaseDate">{t`Newest first`}</option>
-              <option value="rg">{t({ message: "RG, low to high", comment: "Bowling term: RG is the radius of gyration, a ball spec. A sort order." })}</option>
-              <option value="diff">{t({ message: "Diff, high to low", comment: "Bowling term: Diff is the differential, a ball spec. A sort order." })}</option>
-              <option value="name">{t`Name, A to Z`}</option>
-            </Select>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <div className="mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6">
-        {/* B2: Row list instead of card grid */}
-        {allBalls.length === 0 && syncState.status !== "syncing" ? (
-          <EmptyState
-            icon={BookOpen}
-            title={online ? t`The catalog has not loaded` : t`Connect once to load the catalog`}
-            description={t`It downloads once and then works offline. Each ball comes with its core, coverstock, RG and diff filled in.`}
-          >
-            <Button variant="primary" onClick={handleRefresh} disabled={!online}>
-              {online ? t`Load the catalog` : t`Waiting for a connection`}
-            </Button>
-          </EmptyState>
-        ) : displayed.length === 0 ? (
-          // A typed search that found nothing means the catalog may be missing
-          // the ball. Filters alone emptying the list mean it is only hidden.
-          filters.search.trim() ? (
-            <CatalogRequestEmpty kind="ball" query={filters.search}>
-              {activeFilterCount > 0 && (
-                <Button variant="ghost" onClick={() => setFilters({ ...EMPTY_FILTERS, search: filters.search })}>
-                  {t`Clear filters`}
-                </Button>
-              )}
-            </CatalogRequestEmpty>
-          ) : (
-            <EmptyState
-              icon={BookOpen}
-              title={t`No balls match these filters`}
-              description={t`Loosen a filter to see more of the catalog.`}
-            >
-              <Button variant="primary" onClick={() => setFilters(EMPTY_FILTERS)}>
-                {t`Clear filters`}
-              </Button>
-            </EmptyState>
-          )
-        ) : (
-          <ul className="divide-y divide-edge overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
-            {shown.map((ball) => (
-              <li key={ball.id} style={ROW_PAINT}>
-                <CatalogRow
-                  ball={ball}
-                  owned={isOwned(ball)}
-                  inCompare={inCompare(ball.id)}
-                  weight={defaultWeight}
-                  // A ball goes into the comparison from its own page
-                  // (ADR-268), so a row only ever opens it.
-                  onClick={() => onSelectBall(ball.id)}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-        {/* Grows the window when it scrolls into view. Rendered only while
-            there is more, so it cannot fire against a finished list. */}
-        {shown.length < displayed.length && <div ref={sentinelRef} className="h-8" />}
-
-        {displayed.length > 0 && shown.length >= displayed.length && <CatalogRequestRow kind="ball" query={filters.search} />}
-
-        {/* Footer */}
-        {doneState && (
-          <p className="mt-6 text-center text-xs text-ink-secondary">
-            {t`Catalog v${{ version: doneState.version }} · Updated ${{ date: formatDate(new Date(doneState.generatedAt), { dateStyle: "medium" }) }}`}
-          </p>
-        )}
-      </div>
+      {listBody(selecting)}
 
       {layers}
     </PushScreen>
   );
+}
+
+/** Grows the list's window when it nears the end of the scroller, a
+ *  screenful early: against the page it only counted once it was on screen,
+ *  so the list stalled at its end while the next rows rendered, and the
+ *  scroll jumped. Its own observer, so each list drawing it has one. */
+function GrowSentinel({ onGrow }: { onGrow: () => void }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const grow = useRef(onGrow);
+  useEffect(() => {
+    grow.current = onGrow;
+  });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) grow.current();
+      },
+      { root: scrollParent(el), rootMargin: "0px 0px 100% 0px" }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return <div ref={ref} className="h-8" />;
 }

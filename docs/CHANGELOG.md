@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.104.0: Pick several balls to compare at once, colorways, and back from Add a ball returns to Compare (2026-11-09)
+
+### Changed
+
+- Add a ball in Compare now opens the catalog over the comparison, with multi-select on, and back returns to Compare instead of leaving the catalog for Home (ADR-270).
+- Multi-select in the catalog: the graph button at the top right turns it on and off. Each row then has a circle at its right end; tap it to put the ball in Compare (it shows the graph icon) or take it out. Tapping the rest of the row still opens the ball.
+- Add to arsenal on a ball's page is now a bag icon, and the form it opens is titled Add ball to arsenal.
+- Adding or editing a ball linked to the catalog lets you pick its colorway, when it comes in more than one, so your arsenal shows the ball you actually have.
+- Tap one of your copies under In your arsenal on a ball's page to open it in your arsenal.
+
 ## 0.103.0: Compare up to 8 balls, your copies on a ball's page, and View all keeps your place (2026-11-09)
 
 ### Changed

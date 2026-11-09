@@ -806,10 +806,14 @@ msgstr "再添加一颗到球库"
 msgid "Add at {weight}"
 msgstr "以 {weight} 加入"
 
-#: src/components/BallFormDialog.tsx
 #: src/views/ArsenalView.tsx
 msgid "Add ball"
 msgstr "添加球"
+
+#. The title of the form that adds a bowling ball to the bowler's own set of balls
+#: src/components/BallFormDialog.tsx
+msgid "Add ball to arsenal"
+msgstr "将球添加到球库"
 
 #: src/components/HomeProfile.tsx
 #: src/components/NextSteps.tsx
@@ -1138,9 +1142,7 @@ msgid "Ball columns"
 msgstr "球的列"
 
 #. Opens a graph placing bowling balls by RG and differential
-#. Opens a graph placing bowling balls by RG and differential
 #: src/views/ArsenalView.tsx
-#: src/views/CatalogView.tsx
 msgid "Ball graph"
 msgstr "球图表"
 
@@ -1443,6 +1445,16 @@ msgstr "关闭场次统计"
 msgid "Color"
 msgstr "颜色"
 
+#. Which color version of a bowling ball model the bowler has
+#: src/components/BallFormDialog.tsx
+msgid "Colorway"
+msgstr "配色"
+
+#. A color version of a bowling ball that has no color name, numbered
+#: src/components/BallFormDialog.tsx
+msgid "Colorway {number}"
+msgstr "配色 {number}"
+
 #: src/views/GameTrendView.tsx
 msgid "Columns"
 msgstr "列"
@@ -1461,6 +1473,11 @@ msgstr "即将上架 App Store"
 #: src/views/CatalogView.tsx
 msgid "Compare"
 msgstr "比较"
+
+#. A toggle at the end of a catalog row: puts this bowling ball in the comparison, or takes it out
+#: src/views/CatalogView.tsx
+msgid "Compare {ball}"
+msgstr "比较{ball}"
 
 #. The spoken name of the switch between a table of specs and a graph
 #: src/components/BallCompareView.tsx
@@ -3441,6 +3458,11 @@ msgstr "打开 {leave}"
 msgid "Open {name}"
 msgstr "打开 {name}"
 
+#. A card on a catalog ball's page for one of the bowler's own copies of it: opens that copy in their arsenal
+#: src/views/CatalogView.tsx
+msgid "Open {name}, {weight}, in your arsenal"
+msgstr "在你的球库中打开{name}（{weight}）"
+
 #. Bowling term: frames left open. Two-line label, followed by a line reading a game
 #: src/views/OpenFramesView.tsx
 msgid "open frames"
@@ -4174,6 +4196,11 @@ msgstr "看看 Pro 有什么"
 #: src/components/SpareLineFormDialog.tsx
 msgid "Select at least one pin for this leave."
 msgstr "请至少为这个残瓶选一支球瓶。"
+
+#. Turns on a toggle at the end of each catalog row that puts the ball in the comparison
+#: src/views/CatalogView.tsx
+msgid "Select to compare"
+msgstr "选择以比较"
 
 #. A badge on a bowling ball picked to compare with others
 #: src/components/BallTag.tsx

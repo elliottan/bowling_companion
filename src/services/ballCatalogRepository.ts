@@ -67,7 +67,8 @@ export async function syncCatalogForArsenal(): Promise<boolean> {
  * were read for the ball's own weight and are the bowler's record of it.
  *
  * A catalog entry that has gone leaves the ball as it is; one whose photo was
- * taken down takes the ball's photo down with it.
+ * taken down takes the ball's photo down with it. A ball with a colorway
+ * follows that colorway's photo.
  */
 export async function refreshArsenalPhotos(): Promise<number> {
   const balls = await db.balls.toArray();
@@ -76,8 +77,13 @@ export async function refreshArsenalPhotos(): Promise<number> {
     const snap = ball.catalog_snapshot;
     if (ball.id == null || !ball.catalog_ref_id || !snap) continue;
     const entry = await db.ball_catalog.get(ball.catalog_ref_id);
-    if (!entry || entry.imageThumb === snap.imageThumb) continue;
-    await db.balls.update(ball.id, { catalog_snapshot: { ...snap, imageThumb: entry.imageThumb } });
+    if (!entry) continue;
+    // The colorway the bowler picked has its own photo (ADR-270); a SKU the
+    // catalog no longer lists falls back to the ball's first.
+    const colorway = ball.colorway_sku ? entry.colorways?.find((c) => c.sku === ball.colorway_sku) : undefined;
+    const thumb = colorway?.imageThumb ?? entry.imageThumb;
+    if (thumb === snap.imageThumb) continue;
+    await db.balls.update(ball.id, { catalog_snapshot: { ...snap, imageThumb: thumb } });
     changed++;
   }
   return changed;

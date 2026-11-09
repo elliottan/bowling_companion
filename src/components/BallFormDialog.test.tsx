@@ -344,3 +344,64 @@ describe("BallFormDialog weight", () => {
     await db.open();
   });
 });
+
+describe("BallFormDialog colorway (ADR-270)", () => {
+  const nova = {
+    id: "nova",
+    brand: "Storm",
+    name: "Nova",
+    coverstockCategory: "Pearl",
+    coreType: "Symmetric",
+    rg: 2.5,
+    diff: 0.05,
+    mbDiff: null,
+    releaseYear: 2026,
+    imageThumb: "/red.webp",
+    imageFull: null,
+    productUrl: null,
+    weights: [],
+    colorways: [
+      { sku: "RED", color: "Red/Black", imageThumb: "/red.webp" },
+      { sku: "BLU", color: "Blue", imageThumb: "/blue.webp" }
+    ]
+  } as unknown as CatalogBall;
+
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+    await db.ball_catalog.put(nova);
+  });
+
+  it("titles the form Add ball to arsenal, and saves the colorway picked with its photo", async () => {
+    render(<BallFormDialog ball={null} catalogBall={nova} onClose={vi.fn()} onSaved={vi.fn()} />);
+    expect(screen.getByRole("dialog", { name: "Add ball to arsenal" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Colorway" })).toBeInTheDocument();
+    // The catalog's first, until another is picked.
+    expect(screen.getByRole("button", { name: "Red/Black" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Blue" }));
+    expect(screen.getByRole("button", { name: "Blue" })).toHaveAttribute("aria-pressed", "true");
+    save();
+
+    await waitFor(async () => expect(await saved("Storm Nova")).toBeTruthy());
+    const ball = await saved("Storm Nova");
+    expect(ball?.colorway_sku).toBe("BLU");
+    expect(ball?.catalog_snapshot?.imageThumb).toBe("/blue.webp");
+  });
+
+  it("offers no colorways for a ball that comes in one, or none", async () => {
+    const plain = { ...nova, id: "plain", colorways: [nova.colorways![0]] } as CatalogBall;
+    render(<BallFormDialog ball={null} catalogBall={plain} onClose={vi.fn()} onSaved={vi.fn()} />);
+    expect(screen.queryByRole("group", { name: "Colorway" })).toBeNull();
+  });
+
+  it("opens an owned ball on its own colorway once unlocked", async () => {
+    const id = await addBall({ name: "Mine", is_spare_ball: false, weight: 15, catalog_ref_id: "nova", colorway_sku: "BLU" });
+    const ball = (await getBalls()).find((b) => b.id === id)!;
+    render(<BallFormDialog ball={ball} onClose={vi.fn()} onSaved={vi.fn()} />);
+    await screen.findByText("Linked to catalog");
+    // Read first: no picker until the pencil.
+    expect(screen.queryByRole("group", { name: "Colorway" })).toBeNull();
+    unlock();
+    expect(await screen.findByRole("button", { name: "Blue" })).toHaveAttribute("aria-pressed", "true");
+  });
+});

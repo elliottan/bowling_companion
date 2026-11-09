@@ -806,10 +806,14 @@ msgstr "Agregar otra al arsenal"
 msgid "Add at {weight}"
 msgstr "Añadir a {weight}"
 
-#: src/components/BallFormDialog.tsx
 #: src/views/ArsenalView.tsx
 msgid "Add ball"
 msgstr "Agregar bola"
+
+#. The title of the form that adds a bowling ball to the bowler's own set of balls
+#: src/components/BallFormDialog.tsx
+msgid "Add ball to arsenal"
+msgstr "Agregar bola al arsenal"
 
 #: src/components/HomeProfile.tsx
 #: src/components/NextSteps.tsx
@@ -1138,9 +1142,7 @@ msgid "Ball columns"
 msgstr "Columnas de bolas"
 
 #. Opens a graph placing bowling balls by RG and differential
-#. Opens a graph placing bowling balls by RG and differential
 #: src/views/ArsenalView.tsx
-#: src/views/CatalogView.tsx
 msgid "Ball graph"
 msgstr "Gráfico de bolas"
 
@@ -1443,6 +1445,16 @@ msgstr "Cerrar estadísticas de la sesión"
 msgid "Color"
 msgstr "Color"
 
+#. Which color version of a bowling ball model the bowler has
+#: src/components/BallFormDialog.tsx
+msgid "Colorway"
+msgstr "Combinación de colores"
+
+#. A color version of a bowling ball that has no color name, numbered
+#: src/components/BallFormDialog.tsx
+msgid "Colorway {number}"
+msgstr "Color {number}"
+
 #: src/views/GameTrendView.tsx
 msgid "Columns"
 msgstr "Columnas"
@@ -1461,6 +1473,11 @@ msgstr "Próximamente en la App Store"
 #: src/views/CatalogView.tsx
 msgid "Compare"
 msgstr "Comparar"
+
+#. A toggle at the end of a catalog row: puts this bowling ball in the comparison, or takes it out
+#: src/views/CatalogView.tsx
+msgid "Compare {ball}"
+msgstr "Comparar {ball}"
 
 #. The spoken name of the switch between a table of specs and a graph
 #: src/components/BallCompareView.tsx
@@ -3441,6 +3458,11 @@ msgstr "Abrir {leave}"
 msgid "Open {name}"
 msgstr "Abrir {name}"
 
+#. A card on a catalog ball's page for one of the bowler's own copies of it: opens that copy in their arsenal
+#: src/views/CatalogView.tsx
+msgid "Open {name}, {weight}, in your arsenal"
+msgstr "Abrir {name}, {weight}, en tu arsenal"
+
 #. Bowling term: frames left open. Two-line label, followed by a line reading a game
 #: src/views/OpenFramesView.tsx
 msgid "open frames"
@@ -4174,6 +4196,11 @@ msgstr "Ver qué agrega Pro"
 #: src/components/SpareLineFormDialog.tsx
 msgid "Select at least one pin for this leave."
 msgstr "Selecciona al menos un pino para esta dejada."
+
+#. Turns on a toggle at the end of each catalog row that puts the ball in the comparison
+#: src/views/CatalogView.tsx
+msgid "Select to compare"
+msgstr "Elegir para comparar"
 
 #. A badge on a bowling ball picked to compare with others
 #: src/components/BallTag.tsx

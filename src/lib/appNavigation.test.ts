@@ -537,4 +537,15 @@ describe("a catalog ball opened from another's page (ADR-257)", () => {
     const settings = run([{ type: "goToSettingsSection", section: "lanes" }], onB);
     expect(settings.catalogBallTrail).toEqual([]);
   });
+  it("takes the arsenal a ball's page opened off before the ball under it (ADR-270)", () => {
+    const opened = run([
+      { type: "pushOverlay", overlay: "catalog" },
+      { type: "openCatalogBall", ballId: "storm-nova" },
+      { type: "openArsenalBall", ballId: 4 }
+    ]);
+    expect(opened.overlays).toEqual(["catalog", "arsenal"]);
+    const back = run([{ type: "popOverlay" }], opened);
+    expect(back.overlays).toEqual(["catalog"]);
+    expect(back.catalogBallId).toBe("storm-nova");
+  });
 });

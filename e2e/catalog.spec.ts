@@ -106,3 +106,48 @@ test("a ball opened from another's row stacks on it, and back returns to it", as
   await expect(first).toBeVisible();
   await expect(first.getByRole("region", { name: /^Same core/ })).toBeVisible();
 });
+
+/**
+ * Add a ball in the comparison pushes the catalog over it, multi-select on
+ * (ADR-270). It used to close the comparison onto the list under it, so back
+ * from there, the browser's or the iPhone's edge swipe, left the catalog for
+ * Home. Back from the list now comes back to the comparison, then the list,
+ * then Home, one layer a step.
+ */
+test("back from the list Add a ball opened returns to the comparison, not Home", async ({ page }) => {
+  await page.getByRole("button", { name: "Catalog" }).click();
+  const catalog = page.getByRole("dialog", { name: "Catalog" });
+  await expect(catalog.getByPlaceholder("Search name, brand, coverstock…")).toBeVisible();
+
+  // Multi-select from the bar's graph button: a toggle at each row's end.
+  await catalog.getByRole("button", { name: "Select to compare" }).click();
+  await catalog.getByRole("button", { name: /^Compare / }).first().click();
+  await catalog.getByRole("button", { name: "Compare", exact: true }).click();
+  const compare = page.getByRole("dialog", { name: "Compare" });
+  await expect(compare).toBeVisible();
+
+  await compare.getByRole("button", { name: "Add a ball" }).click();
+  const picker = page.getByRole("dialog", { name: "Catalog" }).last();
+  await expect(page.getByRole("dialog", { name: "Catalog" })).toHaveCount(2);
+  await expect(picker.getByRole("button", { name: "Select to compare" })).toHaveAttribute("aria-pressed", "true");
+  await picker.getByRole("button", { name: /^Compare /, pressed: false }).first().click();
+  await expect(picker.getByRole("list", { name: "In compare" }).getByRole("button", { name: /^Remove / })).toHaveCount(2);
+
+  // The platform's back closes the list and leaves the comparison.
+  await page.goBack();
+  await expect(page.getByRole("dialog", { name: "Catalog" })).toHaveCount(1);
+  await expect(compare).toBeVisible();
+
+  // Again, through the iPhone's edge swipe this time.
+  await compare.getByRole("button", { name: "Add a ball" }).click();
+  await expect(page.getByRole("dialog", { name: "Catalog" })).toHaveCount(2);
+  await page.evaluate(() => window.dispatchEvent(new Event("headpin:back")));
+  await expect(page.getByRole("dialog", { name: "Catalog" })).toHaveCount(1);
+  await expect(compare).toBeVisible();
+
+  await page.goBack();
+  await expect(compare).toHaveCount(0);
+  await expect(catalog).toBeVisible();
+  await page.goBack();
+  await expect(catalog).toHaveCount(0);
+});
