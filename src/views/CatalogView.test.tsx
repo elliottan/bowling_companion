@@ -53,7 +53,7 @@ vi.mock("../lib/links", async (importOriginal) => {
 
 /** The balls in the compare tray at the foot (ADR-266). */
 function trayBalls() {
-  return within(screen.getAllByRole("list", { name: "In compare" })[0]).getAllByRole("button");
+  return within(screen.getAllByRole("list", { name: "In compare" })[0]).getAllByRole("button", { name: /^Remove / });
 }
 
 /** Opens ball `id`'s page and adds it to the comparison from its bar, as the
@@ -349,14 +349,15 @@ describe("CatalogView", () => {
     expect(saved).toMatchObject({ name: "Storm Ball 1", weight: 14, catalog_ref_id: "ball-1" });
   });
 
-  it("keeps the tray over a ball's page with each ball's weight, tints compared rows, and asks before a ball leaves (ADR-266, ADR-268)", async () => {
+  it("keeps the tray over a ball's page with each ball's weight, tints compared rows, and takes one out from its X (ADR-266, ADR-269)", async () => {
     await seedCatalog(3);
     const { rerender } = render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
     await screen.findByText("Ball 0");
     const page = await addFromPage(rerender, "ball-1", "Ball 1");
     // Over the ball's page, each ball with its weight on a badge.
     const tray = within(page).getByRole("list", { name: "In compare" });
-    expect(within(tray).getByRole("button", { name: "Remove Ball 1, 15 lb" })).toHaveTextContent("15");
+    expect(within(tray).getByRole("button", { name: "Ball 1, 15 lb" })).toHaveTextContent("15");
+    expect(within(tray).getByRole("button", { name: "Remove Ball 1, 15 lb" })).toBeInTheDocument();
     // No count and no Clear.
     expect(screen.queryByText(/of 8/)).toBeNull();
     expect(screen.queryByRole("button", { name: "Clear" })).toBeNull();
@@ -364,10 +365,9 @@ describe("CatalogView", () => {
     rerender(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
     // Tinted in the list.
     expect((await screen.findByRole("button", { name: /^Storm.*Ball 1/ })).className).toContain("bg-accent-soft");
-    // Kept until the menu's row is tapped.
+    // Its X takes it out at once, with no question (ADR-269).
     fireEvent.click(trayBalls()[0]);
-    expect(trayBalls()).toHaveLength(1);
-    fireEvent.click(screen.getByRole("button", { name: "Remove from compare" }));
+    expect(screen.queryByRole("button", { name: "Remove from compare" })).toBeNull();
     await waitFor(() => expect(screen.queryAllByRole("list", { name: "In compare" })).toHaveLength(0));
   });
 

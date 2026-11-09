@@ -11145,3 +11145,19 @@ and the graph spent a row and a column on its axis names.
 
 **Consequences.** Several balls take a visit to each one's page. Emptying the
 comparison is still a tap per ball, in the tray.
+
+## ADR-269: The tray's X takes a ball out at once
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-266.
+
+**Context.** A tap on a ball in the tray opened a Remove from compare menu, so
+emptying it was two taps a ball, and the owner did not like the menu's look.
+
+**Decision.** Each ball in the tray carries a small X at its top right that
+takes it out at once, with no question. The rest slide along, so a row of
+them is cleared by tapping the same place. A tap on the ball's photo opens its
+page. The X is small, which is what keeps it from being hit by accident; the
+photo is the bigger target.
+
+**Consequences.** The comparison's own table and the graph's key still ask
+before a ball leaves, as ADR-266 has it: neither sits under a thumb in a row.

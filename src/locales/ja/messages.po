@@ -482,6 +482,7 @@ msgid "{name}, {color}"
 msgstr "{name}、{color}"
 
 #. One of the bowler's own copies of a ball: its name and weight, on a dot that shows it
+#. One of the bowler's own copies of a ball: its name and weight, on a dot that shows it
 #: src/views/CatalogView.tsx
 msgid "{name}, {weight}"
 msgstr "{name}、{weight}"

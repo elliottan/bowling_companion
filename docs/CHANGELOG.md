@@ -21,7 +21,7 @@ had all shipped.
 - In Compare's specs table, each ball's weight now sits on its own Weight row, so the weights line up however long the names above them are.
 - Compare now holds up to 8 balls. The specs table scrolls sideways with the row names held at the left, and tapping a ball's photo or name in it opens the ball (ADR-266).
 - The compare tray now stays at the bottom of the catalog, a ball's page and View all lists while any ball is in it. Each ball sits on its own with its weight on a small badge, empty slots show as faint rings, and the count and Clear button are gone.
-- Removing a ball from Compare, from the tray, the table or the graph's list, now asks first.
+- Each ball in the compare tray has a small X that removes it at once; tap the ball itself to open its page. Removing a ball from the comparison's table or the graph's list asks first (ADR-269).
 - Balls now go into Compare from their own page only: the catalog's Compare balls mode is gone. On a ball's page, the graph button with a plus at the top right adds it at your default weight; tap it again to pick another weight. Add to arsenal is the button beside it, and the big buttons under the specs are gone (ADR-268).
 - Balls in Compare are tinted in the catalog's list.
 - The graph labels diff to three places (0.050) with lines at every 0.010, adds dotted lines halfway between the RG marks, and puts the Diff and RG names together in its bottom-left corner.

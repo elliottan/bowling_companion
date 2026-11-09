@@ -2,7 +2,7 @@ import { plural, t } from "@lingui/core/macro";
 import { ClearAllButton } from "../components/ui/ClearAllButton";
 import { Select } from "../components/ui/Select";
 import { Trans } from "@lingui/react/macro";
-import { BookOpen, ChartScatter, ExternalLink, Loader2, MailPlus, MoreHorizontal, Palette, Plus, type LucideIcon } from "lucide-react";
+import { BookOpen, ChartScatter, ExternalLink, Loader2, MailPlus, MoreHorizontal, Palette, Plus, X, type LucideIcon } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
@@ -32,7 +32,7 @@ import { DEFAULT_WEIGHT, MANUFACTURERS, type CatalogBall, type CoverstockCategor
 import type { Ball } from "../types/bowling";
 import { getBalls } from "../services/ballRepository";
 import { BallFormDialog } from "../components/BallFormDialog";
-import { MenuOff, RemoveFromCompare } from "../components/RemoveFromCompare";
+import { MenuOff } from "../components/RemoveFromCompare";
 import { getDefaultBallWeight } from "../services/bowlingRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { formatReleaseDate } from "../lib/dates";
@@ -584,28 +584,34 @@ function KinListPage({
  */
 function CompareTray({
   balls,
-  onAskRemove,
+  onRemove,
+  onOpen,
   onCompare
 }: {
   balls: readonly WeighedBall[];
-  onAskRemove: (key: string, el: Element) => void;
+  /** Takes one ball at one weight out at once, by its `entryKey`: the X on
+   *  each is small and deliberate, and a row of them is cleared by tapping
+   *  the same place as the rest slide along under it (ADR-269). */
+  onRemove: (key: string) => void;
+  /** Opens a ball's page from its photo. */
+  onOpen: (id: string) => void;
   onCompare: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2 border-t border-edge bg-surface pb-[max(env(safe-area-inset-bottom),0.75rem)] pl-1 pr-3 pt-2 sm:pr-6">
+    <div className="flex items-center gap-2 border-t border-edge bg-surface pb-[max(env(safe-area-inset-bottom),0.75rem)] pl-1 pr-3 pt-1.5 sm:pr-6">
       <ul
         aria-label={t({ message: "In compare", comment: "Before the weights a bowling ball is being compared at, each a button that takes it out" })}
-        className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto overscroll-x-none scrollbar-none px-2"
+        className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto overscroll-x-none scrollbar-none px-2"
       >
         {balls.map((b) => {
           const key = entryKey({ id: b.ball.id, weight: b.weight });
           return (
-            <li key={key} className="shrink-0">
+            <li key={key} className="relative h-12 w-12 shrink-0">
               <button
                 type="button"
-                onClick={(e) => onAskRemove(key, e.currentTarget)}
-                aria-label={t({ message: `Remove ${{ ball: b.ball.name }}, ${{ weight: lb(b.weight) }}`, comment: "Takes one bowling ball, at one weight, out of the comparison" })}
-                className="flex h-11 w-11 items-center justify-center rounded-full active:opacity-60"
+                onClick={() => onOpen(b.ball.id)}
+                aria-label={t({ message: `${{ name: b.ball.name }}, ${{ weight: lb(b.weight) }}`, comment: "One of the bowler's own copies of a ball: its name and weight, on a dot that shows it" })}
+                className="absolute bottom-0 left-0 flex h-11 w-11 items-center justify-center rounded-full active:opacity-60"
               >
                 <span className="relative block h-9 w-9">
                   <CatalogBallImage src={b.ball.imageThumb} alt="" brand={b.ball.brand} size="thumb" />
@@ -616,12 +622,23 @@ function CompareTray({
                   </span>
                 </span>
               </button>
+              {/* Out at once, no question (ADR-269). */}
+              <button
+                type="button"
+                onClick={() => onRemove(key)}
+                aria-label={t({ message: `Remove ${{ ball: b.ball.name }}, ${{ weight: lb(b.weight) }}`, comment: "Takes one bowling ball, at one weight, out of the comparison" })}
+                className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full active:opacity-60"
+              >
+                <span aria-hidden="true" className="flex h-4 w-4 items-center justify-center rounded-full bg-surface-muted text-ink-secondary ring-1 ring-edge-strong">
+                  <X size={10} strokeWidth={3} />
+                </span>
+              </button>
             </li>
           );
         })}
         {Array.from({ length: Math.max(0, MAX_COMPARE - balls.length) }, (_, i) => (
-          <li key={`free-${i}`} aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center">
-            <span className="block h-9 w-9 rounded-full border border-dashed border-edge-strong/60" />
+          <li key={`free-${i}`} aria-hidden="true" className="relative h-12 w-12 shrink-0">
+            <span className="absolute bottom-1 left-1 block h-9 w-9 rounded-full border border-dashed border-edge-strong/60" />
           </li>
         ))}
       </ul>
@@ -789,9 +806,6 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
     setCompareOpen(true);
   };
   const [menuAt, setMenuAt] = useState<MenuAnchor | null>(null);
-  // A compared ball asks before it leaves (ADR-266).
-  const [removing, setRemoving] = useState<{ key: string; anchor: DOMRect } | null>(null);
-  const askRemove = (key: string, el: Element) => setRemoving({ key, anchor: el.getBoundingClientRect() });
   // Set of catalog IDs the user already owns
   const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set());
   // The bag itself, for the weights its balls are in.
@@ -1000,7 +1014,12 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   // (ADR-266), while any ball is in the comparison.
   const tray =
     compared.length > 0 ? (
-      <CompareTray balls={compareBalls} onAskRemove={askRemove} onCompare={() => openCompare()} />
+      <CompareTray
+        balls={compareBalls}
+        onRemove={(key) => setCompared((entries) => entries.filter((e) => entryKey(e) !== key))}
+        onOpen={onSelectBall}
+        onCompare={() => openCompare()}
+      />
     ) : undefined;
   const inCompare = (id: string) => compared.some((e) => e.id === id);
 
@@ -1017,7 +1036,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           balls={applyFilters(allBalls, { ...EMPTY_FILTERS, [list.kind]: list.name }, "releaseDate", defaultWeight)}
           isOwned={isOwned}
           weight={defaultWeight}
-          active={top && addingBall === null && !(compareOpen && i < compareAt) && menuAt === null && removing === null}
+          active={top && addingBall === null && !(compareOpen && i < compareAt) && menuAt === null}
           onBack={onBack}
           onSelectBall={onSelectBall}
           inCompare={inCompare}
@@ -1034,7 +1053,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
         owned={ownedCopies(ball)}
         onBack={onBack}
         onAddToArsenal={setAddingBall}
-        addDialogOpen={!top || addingBall != null || (compareOpen && i < compareAt) || menuAt !== null || removing !== null}
+        addDialogOpen={!top || addingBall != null || (compareOpen && i < compareAt) || menuAt !== null}
         comparedAt={comparedAt(ball.id)}
         tray={tray}
         onAddToCompare={compared.length >= MAX_COMPARE ? null : (w) => addToCompare(ball, w)}
@@ -1228,13 +1247,6 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           }}
         />
       )}
-      {removing && (
-        <RemoveFromCompare
-          anchor={removing.anchor}
-          onRemove={() => setCompared((entries) => entries.filter((e) => entryKey(e) !== removing.key))}
-          onClose={() => setRemoving(null)}
-        />
-      )}
       {menuAt && (
         <AnchoredMenu left={menuAt.left} top={menuAt.top} align="end" onClose={() => setMenuAt(null)}>
           <AnchoredMenuItem
@@ -1271,7 +1283,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           : undefined
       }
       onBack={onBack}
-      active={selectedBallId === null && addingBall === null && !showFilters && !compareOpen && menuAt === null && removing === null}
+      active={selectedBallId === null && addingBall === null && !showFilters && !compareOpen && menuAt === null}
       trailing={
           <>
             {/* Straight to the graph of the bag and any balls picked
