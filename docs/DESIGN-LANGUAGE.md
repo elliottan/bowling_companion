@@ -48,10 +48,11 @@ Every push gets, without exception:
   carry two. The layout lab: a share, which is what the screen is for once
   the numbers are right, beside a More that holds the bowler's PAP, hand and
   grip, set once and then read against, so the page is the ball and the
-  numbers. The catalog and the arsenal: the Ball graph glyph beside the More
-  or the Add, the one door to the graph from either (ADR-262). A catalog
-  ball's page: Add to arsenal, then Add to compare right-most, each glyph
-  wearing a plus (ADR-268). Two is the ceiling;
+  numbers. The arsenal: the Ball graph glyph beside the Add, its door to the
+  graph (ADR-262). The catalog: the same glyph beside the More, a toggle
+  there that turns multi-select on and off (ADR-270). A catalog ball's page:
+  Add to arsenal (the bag), then Add to compare right-most, each glyph
+  wearing a plus (ADR-268, ADR-270). Two is the ceiling;
 - in overlay mode, Escape + a focus trap (`useOverlay`).
 
 Back out of a push with the chevron or with the platform's own back gesture

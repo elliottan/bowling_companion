@@ -11161,3 +11161,54 @@ photo is the bigger target.
 
 **Consequences.** The comparison's own table and the graph's key still ask
 before a ball leaves, as ADR-266 has it: neither sits under a thumb in a row.
+
+## ADR-270: Add a ball pushes the list over the comparison, with multi-select
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-262,
+ADR-263, ADR-265 and ADR-268.
+
+**Context.** Add a ball in the comparison closed it onto the catalog's list
+underneath. Home, Catalog, Compare, Add a ball, then back (the iPhone's edge
+swipe, the browser's back or Android's) left the catalog for Home: the list
+was the screen under the comparison, so back from it went past it. Adding
+several balls meant a visit to each one's page (ADR-268). Add to arsenal on a
+ball's page wore the ball glyph, which says a ball rather than where it goes;
+the form it opened was titled Add ball; the form had no colorway choice, so
+a ball added from the catalog showed the catalog's first photo whatever its
+colour; and the "In your arsenal" card on a ball's page did nothing when
+tapped.
+
+**Decision.**
+
+- **Add a ball pushes the list over the comparison** rather than closing the
+  comparison. It is a layer the catalog view owns, like the comparison
+  itself, so it registers with the sheet back stack: the platform's back, the
+  edge swipe and the chevron close it and leave the comparison standing. So
+  does the tray's Compare at its foot. The arsenal's graph does the same. The
+  rule, everywhere: a control that sends the bowler on to a screen pushes it;
+  it never closes what is open to reveal something under it, because back
+  then has nothing to return to.
+- **Multi-select.** With it on, each catalog row carries a toggle at its right
+  end: an empty ring while the ball is out of the comparison, the graph glyph
+  on the accent once it is in. The toggle puts the ball in at the weight its
+  page's Add to compare would, or takes it out at every weight it is in at.
+  A tap on the rest of the row still opens the ball. The list Add a ball
+  pushes opens with it on. **The catalog bar's graph button turns it on and
+  off**, in place of opening the graph: the graph is a tab of the
+  comparison, and the arsenal's Ball graph still opens the bag's graph alone.
+- **Add to arsenal wears a bowling bag** with a plus (`BowlingBagIcon`), and
+  the form it opens, and every add, is titled **Add ball to arsenal**.
+- **A colorway picker** in the ball form, for a ball linked to the catalog
+  that comes in more than one: each colorway's photo and name, the catalog's
+  first until another is picked. The pick is saved as `colorway_sku` with its
+  photo in the snapshot, and the photo refresh (ADR-143) follows that
+  colorway's photo, falling back to the ball's first when the catalog no
+  longer lists the SKU.
+- **A copy on a ball's page opens it in the arsenal**, with its layout,
+  pushed over the catalog, so back returns to the ball.
+
+**Consequences.** From the catalog, the graph is reached through Compare, so
+an empty comparison has no graph from there; the arsenal's button still opens
+the bag's. The list over the comparison shares the catalog's search, filters
+and sort with the list under it.
+

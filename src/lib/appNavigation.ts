@@ -368,8 +368,10 @@ function reduce(state: NavState, action: NavAction): NavState {
     case "popOverlay": {
       // A ball detail is on top of the catalog, so back takes it first and
       // leaves the catalog standing. An open guide is the same layer over the
-      // guides list.
-      if (state.catalogBallId !== null) {
+      // guides list. Only while the catalog is the screen on top: the arsenal
+      // a ball's page opens one of the bowler's copies in sits over the ball
+      // (ADR-270), and back takes the arsenal off first.
+      if (state.catalogBallId !== null && state.overlays[state.overlays.length - 1] === "catalog") {
         const trail = state.catalogBallTrail;
         return trail.length > 0
           ? { ...state, catalogBallId: trail[trail.length - 1], catalogBallTrail: trail.slice(0, -1) }

@@ -806,10 +806,14 @@ msgstr "아스널에 하나 더 추가"
 msgid "Add at {weight}"
 msgstr "{weight}로 추가"
 
-#: src/components/BallFormDialog.tsx
 #: src/views/ArsenalView.tsx
 msgid "Add ball"
 msgstr "볼 추가"
+
+#. The title of the form that adds a bowling ball to the bowler's own set of balls
+#: src/components/BallFormDialog.tsx
+msgid "Add ball to arsenal"
+msgstr "볼을 아스널에 추가"
 
 #: src/components/HomeProfile.tsx
 #: src/components/NextSteps.tsx
@@ -1138,9 +1142,7 @@ msgid "Ball columns"
 msgstr "볼 열"
 
 #. Opens a graph placing bowling balls by RG and differential
-#. Opens a graph placing bowling balls by RG and differential
 #: src/views/ArsenalView.tsx
-#: src/views/CatalogView.tsx
 msgid "Ball graph"
 msgstr "볼 그래프"
 
@@ -1443,6 +1445,16 @@ msgstr "세션 통계 닫기"
 msgid "Color"
 msgstr "색상"
 
+#. Which color version of a bowling ball model the bowler has
+#: src/components/BallFormDialog.tsx
+msgid "Colorway"
+msgstr "컬러"
+
+#. A color version of a bowling ball that has no color name, numbered
+#: src/components/BallFormDialog.tsx
+msgid "Colorway {number}"
+msgstr "컬러 {number}"
+
 #: src/views/GameTrendView.tsx
 msgid "Columns"
 msgstr "열"
@@ -1461,6 +1473,11 @@ msgstr "App Store 출시 예정"
 #: src/views/CatalogView.tsx
 msgid "Compare"
 msgstr "비교"
+
+#. A toggle at the end of a catalog row: puts this bowling ball in the comparison, or takes it out
+#: src/views/CatalogView.tsx
+msgid "Compare {ball}"
+msgstr "{ball} 비교"
 
 #. The spoken name of the switch between a table of specs and a graph
 #: src/components/BallCompareView.tsx
@@ -3441,6 +3458,11 @@ msgstr "{leave} 열기"
 msgid "Open {name}"
 msgstr "{name} 열기"
 
+#. A card on a catalog ball's page for one of the bowler's own copies of it: opens that copy in their arsenal
+#: src/views/CatalogView.tsx
+msgid "Open {name}, {weight}, in your arsenal"
+msgstr "내 아스널에서 {name}, {weight} 열기"
+
 #. Bowling term: frames left open. Two-line label, followed by a line reading a game
 #: src/views/OpenFramesView.tsx
 msgid "open frames"
@@ -4174,6 +4196,11 @@ msgstr "Pro로 추가되는 기능 보기"
 #: src/components/SpareLineFormDialog.tsx
 msgid "Select at least one pin for this leave."
 msgstr "남은 핀을 하나 이상 선택하세요."
+
+#. Turns on a toggle at the end of each catalog row that puts the ball in the comparison
+#: src/views/CatalogView.tsx
+msgid "Select to compare"
+msgstr "선택해서 비교"
 
 #. A badge on a bowling ball picked to compare with others
 #: src/components/BallTag.tsx

@@ -120,3 +120,17 @@ export const ShareIosIcon = createIcon(
     <path d="M7 10H5.5A1.5 1.5 0 0 0 4 11.5v8A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 18.5 10H17" />
   </>
 );
+
+/** A bowling bag: the rounded body a ball sits in, its handle over the top
+ *  and the seam the zip runs along. Not a padlock: the body is wider than
+ *  tall and the handle is square-shouldered. It stands for the arsenal, where the
+ *  ball glyph stands for a ball, so adding a ball to the arsenal reads as
+ *  putting it in the bag. */
+export const BowlingBagIcon = createIcon(
+  "BowlingBagIcon",
+  <>
+    <rect x="3" y="9" width="18" height="12" rx="5" />
+    <path d="M8.5 9V6a1.5 1.5 0 0 1 1.5-1.5h4A1.5 1.5 0 0 1 15.5 6v3" />
+    <path d="M3.5 13h17" />
+  </>
+);

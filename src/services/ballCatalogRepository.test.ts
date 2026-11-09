@@ -274,6 +274,29 @@ describe("refreshArsenalPhotos (ADR-143)", () => {
     expect(gone?.catalog_snapshot?.imageThumb).toBe("/old.webp");
   });
 
+  it("follows the photo of the colorway the ball was added in (ADR-270)", async () => {
+    await db.ball_catalog.put({
+      ...makeBall("storm-nova-2024"),
+      imageThumb: "/red.webp",
+      colorways: [
+        { sku: "RED", color: "Red", imageThumb: "/red.webp" },
+        { sku: "BLU", color: "Blue", imageThumb: "/blue-new.webp" }
+      ]
+    });
+    const [blue, gone] = await db.balls.bulkAdd(
+      [
+        { name: "Nova", is_spare_ball: false, catalog_ref_id: "storm-nova-2024", colorway_sku: "BLU", catalog_snapshot: snap("/blue.webp") },
+        { name: "Old", is_spare_ball: false, catalog_ref_id: "storm-nova-2024", colorway_sku: "GONE", catalog_snapshot: snap("/x.webp") }
+      ],
+      { allKeys: true }
+    );
+
+    expect(await refreshArsenalPhotos()).toBe(2);
+    expect((await db.balls.get(blue))?.catalog_snapshot?.imageThumb).toBe("/blue-new.webp");
+    // A colorway the catalog no longer lists falls back to the ball's first.
+    expect((await db.balls.get(gone))?.catalog_snapshot?.imageThumb).toBe("/red.webp");
+  });
+
   it("takes a ball's photo down when its catalog entry's photo was taken down", async () => {
     await db.ball_catalog.put({ ...makeBall("storm-nova-2024"), imageThumb: null });
     const id = await db.balls.add({

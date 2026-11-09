@@ -859,8 +859,9 @@ function App() {
                 selectedBallId={nav.catalogBallId}
                 ballTrail={nav.catalogBallTrail}
                 onSelectBall={(ballId) => dispatch({ type: "openCatalogBall", ballId })}
-                // Past every open ball, however many were stacked, in one jump.
-                onShowList={() => goBack({ type: "closeCatalogBalls" }, nav.catalogBallTrail.length + 1)}
+                // A copy on a ball's page opens in the arsenal, pushed over
+                // the catalog, so back returns to the ball (ADR-270).
+                onOpenArsenalBall={(ballId) => dispatch({ type: "openArsenalBall", ballId })}
                 initialSearch={nav.catalogSearch ?? undefined}
                 openGraph={nav.catalogGraph}
               />

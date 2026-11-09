@@ -90,6 +90,12 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
   const [layoutSpec, setLayoutSpec] = useState<BallLayoutSpec | null>(ball?.layout_spec ?? null);
   const legacyLayout = ball?.layout_spec ? undefined : ball?.layout;
   const [catalogRef, setCatalogRef] = useState<CatalogBall | null>(ball ? null : catalogBall);
+  // Which of the linked ball's colorways this one is, by SKU. Unset is the
+  // catalog's first, the one its list shows (ADR-270).
+  const [colorwaySku, setColorwaySku] = useState<string | null>(ball?.colorway_sku ?? null);
+  const colorways = catalogRef?.colorways ?? [];
+  const colorway = colorways.find((c) => c.sku === colorwaySku) ?? null;
+  const photo = colorway?.imageThumb ?? catalogRef?.imageThumb ?? null;
   // The specs last read for the linked ball, and nothing once it is unlinked.
   const [fetchedSpecs, setWeightSpecs] = useState<WeightSpecs | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -126,6 +132,8 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
   const weightSpecs = catalogRef ? fetchedSpecs : null;
 
   function linkCatalog(picked: CatalogBall | null) {
+    // Another ball's colorways are not this one's.
+    if (picked?.id !== catalogRef?.id) setColorwaySku(null);
     setCatalogRef(picked);
     setPickerOpen(false);
     // Picking the ball that is already linked again takes the link off. Nothing
@@ -170,12 +178,13 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
                 rg: weightSpecs?.rg ?? catalogRef.rg,
                 diff: weightSpecs?.diff ?? catalogRef.diff,
                 mbDiff: weightSpecs?.mbDiff ?? catalogRef.mbDiff,
-                imageThumb: catalogRef.imageThumb,
+                imageThumb: photo,
               },
+              colorway_sku: colorway?.sku,
             }
           : // Named, not left out: an update merges, so a ball that let go of its
             // catalog link would otherwise keep the old one on disk.
-            { catalog_ref_id: undefined, catalog_snapshot: undefined }),
+            { catalog_ref_id: undefined, catalog_snapshot: undefined, colorway_sku: undefined }),
       };
       if (editing && ball.id != null) {
         await updateBall(ball.id, payload);
@@ -229,7 +238,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
     <>
       <FormSheet
         // Reading, the sheet is about the ball, so it carries its name.
-        title={unlocked ? (editing ? t`Edit ball` : t`Add ball`) : ball?.name ?? t`Ball`}
+        title={unlocked ? (editing ? t`Edit ball` : t({ message: "Add ball to arsenal", comment: "The title of the form that adds a bowling ball to the bowler's own set of balls" })) : ball?.name ?? t`Ball`}
         onClose={onClose}
         trailing={trailing}
         banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
@@ -248,7 +257,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
               {catalogRef ? (
                 <>
                   <div className="h-12 w-12 shrink-0">
-                    <CatalogBallImage src={catalogRef.imageThumb} alt={catalogRef.name} brand={catalogRef.brand} size="thumb" />
+                    <CatalogBallImage src={photo} alt={catalogRef.name} brand={catalogRef.brand} size="thumb" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-caption-2 font-semibold uppercase tracking-wide text-accent">{t`Linked to catalog`}</p>
@@ -285,6 +294,16 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
                 </>
               )}
             </CatalogCard>
+
+            {/* The colorway, where the linked ball comes in more than one,
+                so the arsenal shows the ball the bowler actually has. */}
+            {unlocked && catalogRef && colorways.length > 1 && (
+              <ColorwayPicker
+                ball={catalogRef}
+                selected={colorway?.sku ?? colorways[0].sku}
+                onSelect={setColorwaySku}
+              />
+            )}
 
             {!unlocked ? (
               <BallReadout
@@ -741,4 +760,54 @@ function LayoutField({
       )}
     </section>
   );
+}
+
+/**
+ * The linked ball's colorways, each a photo with its color under it, picked
+ * like a chip (ADR-270). A ball with one colorway shows none.
+ */
+function ColorwayPicker({ ball, selected, onSelect }: { ball: CatalogBall; selected: string; onSelect: (sku: string) => void }) {
+  const colorways = ball.colorways ?? [];
+  return (
+    <fieldset>
+      <legend className="mb-2 block text-sm font-medium text-ink-strong">
+        {t({ message: "Colorway", comment: "Which color version of a bowling ball model the bowler has" })}
+      </legend>
+      <div className="-mx-1 flex gap-2 overflow-x-auto overscroll-x-none scrollbar-none px-1 pb-1">
+        {colorways.map((c, i) => {
+          const on = c.sku === selected;
+          const label = colorName(c.color) ?? t({ message: `Colorway ${{ number: i + 1 }}`, comment: "A color version of a bowling ball that has no color name, numbered" });
+          return (
+            <button
+              key={c.sku}
+              type="button"
+              onClick={() => onSelect(c.sku)}
+              aria-pressed={on}
+              aria-label={label}
+              className={`flex w-24 shrink-0 flex-col items-center gap-1 rounded-xl border p-2 text-center transition-colors ${
+                on ? "border-accent-fill bg-accent-soft" : "border-edge bg-surface hover:border-edge-strong"
+              }`}
+            >
+              <span className="block h-12 w-12">
+                <CatalogBallImage src={c.imageThumb ?? ball.imageThumb} alt="" brand={ball.brand} size="thumb" lazy />
+              </span>
+              <span className={`line-clamp-2 w-full break-words text-caption-2 leading-tight ${on ? "font-semibold text-accent" : "text-ink-secondary"}`}>
+                {/* A break after each slash, so a two-color name wraps
+                    where it reads rather than running out of the tile. */}
+                {label.replace(/\//g, "/\u200B")}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+/** A colorway's name as the catalog has it, softened out of capitals:
+ *  "EMERALD/CHARCOAL" reads as "Emerald/Charcoal". Mixed case is left alone. */
+function colorName(color: string | null): string | null {
+  if (!color) return null;
+  if (color !== color.toUpperCase()) return color;
+  return color.toLowerCase().replace(/(^|[\s/-])(\p{L})/gu, (_, sep: string, ch: string) => sep + ch.toUpperCase());
 }

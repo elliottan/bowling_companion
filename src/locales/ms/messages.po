@@ -806,10 +806,14 @@ msgstr "Tambah satu lagi ke arsenal"
 msgid "Add at {weight}"
 msgstr "Tambah pada {weight}"
 
-#: src/components/BallFormDialog.tsx
 #: src/views/ArsenalView.tsx
 msgid "Add ball"
 msgstr "Tambah bola"
+
+#. The title of the form that adds a bowling ball to the bowler's own set of balls
+#: src/components/BallFormDialog.tsx
+msgid "Add ball to arsenal"
+msgstr "Tambah bola ke arsenal"
 
 #: src/components/HomeProfile.tsx
 #: src/components/NextSteps.tsx
@@ -1138,9 +1142,7 @@ msgid "Ball columns"
 msgstr "Lajur bola"
 
 #. Opens a graph placing bowling balls by RG and differential
-#. Opens a graph placing bowling balls by RG and differential
 #: src/views/ArsenalView.tsx
-#: src/views/CatalogView.tsx
 msgid "Ball graph"
 msgstr "Graf bola"
 
@@ -1443,6 +1445,16 @@ msgstr "Tutup statistik sesi"
 msgid "Color"
 msgstr "Warna"
 
+#. Which color version of a bowling ball model the bowler has
+#: src/components/BallFormDialog.tsx
+msgid "Colorway"
+msgstr "Varian warna"
+
+#. A color version of a bowling ball that has no color name, numbered
+#: src/components/BallFormDialog.tsx
+msgid "Colorway {number}"
+msgstr "Warna {number}"
+
 #: src/views/GameTrendView.tsx
 msgid "Columns"
 msgstr "Lajur"
@@ -1461,6 +1473,11 @@ msgstr "Akan datang ke App Store"
 #: src/views/CatalogView.tsx
 msgid "Compare"
 msgstr "Banding"
+
+#. A toggle at the end of a catalog row: puts this bowling ball in the comparison, or takes it out
+#: src/views/CatalogView.tsx
+msgid "Compare {ball}"
+msgstr "Banding {ball}"
 
 #. The spoken name of the switch between a table of specs and a graph
 #: src/components/BallCompareView.tsx
@@ -3441,6 +3458,11 @@ msgstr "Buka {leave}"
 msgid "Open {name}"
 msgstr "Buka {name}"
 
+#. A card on a catalog ball's page for one of the bowler's own copies of it: opens that copy in their arsenal
+#: src/views/CatalogView.tsx
+msgid "Open {name}, {weight}, in your arsenal"
+msgstr "Buka {name}, {weight}, dalam arsenal anda"
+
 #. Bowling term: frames left open. Two-line label, followed by a line reading a game
 #: src/views/OpenFramesView.tsx
 msgid "open frames"
@@ -4174,6 +4196,11 @@ msgstr "Lihat tambahan dalam Pro"
 #: src/components/SpareLineFormDialog.tsx
 msgid "Select at least one pin for this leave."
 msgstr "Pilih sekurang-kurangnya satu pin untuk baki pin ini."
+
+#. Turns on a toggle at the end of each catalog row that puts the ball in the comparison
+#: src/views/CatalogView.tsx
+msgid "Select to compare"
+msgstr "Pilih untuk dibanding"
 
 #. A badge on a bowling ball picked to compare with others
 #: src/components/BallTag.tsx
