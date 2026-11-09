@@ -10900,3 +10900,60 @@ did.
 specs and is not on the map, as before. The year view adds two words to
 translate ("Previous year", "Next year") and loses the platform picker's
 locale handling, which the month names from `formatDate` replace.
+
+## ADR-262: The ball graph, every ball at its own weight, and a default ball weight
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-258 and
+ADR-261.
+
+**Context.** ADR-261's comparison read every ball at one weight from a menu,
+the bowler's own bag included, so a bowler with a 15 lb ball and a 14 lb one
+saw both move to whatever the menu said, and the key never said which weight
+a ball was drawn at. A ball could be picked once, so the same ball at two
+weights could not be compared. Picking only happened in the catalog's list,
+with no way back to it from the comparison. The catalog read every ball at
+15 lb whatever the bowler throws, and the way to the chart was a row at the
+foot of the arsenal. The chart was called a map, which the owner found the
+wrong word.
+
+**Decision.**
+
+- **It is a graph.** "Map" leaves the app: the Graph tab, the Ball graph
+  button, `BallGraph`, `graphPoints`, `openBallGraph` and `catalogGraph`.
+- **The Ball graph button sits in the bar's top right** of the catalog,
+  beside More, and of the arsenal, beside Add, and opens the comparison on
+  its graph. The arsenal's Ball map row at the foot of the bag is gone.
+  DESIGN-LANGUAGE's two-action ceiling gains these two screens.
+- **Every compared ball has its own weight** (`CompareEntry`, an id and a
+  weight). The one weight menu is gone; each column carries its own, listing
+  the weights the ball has specs for, less those the same ball is compared at
+  in another column. A ball with no specs at its weight shows its 15 lb
+  numbers, starred, as before.
+- **The same ball can be in twice, at two weights**, never twice at one
+  (`entryKey`). In picking, a tap adds the ball rather than toggling it, and
+  the tick shows a count once it is in twice. A ball's page reads "Add another
+  weight" once the ball is in, with the weights it is in at under it.
+- **A ball comes in at a weight** (`nextWeight`): one the bowler owns it in
+  first, then the default ball weight, then the listed weights nearest it.
+- **The bowler's own stays at the weight they own it in.** A compared ball
+  at a weight the bowler owns it in is theirs, tagged Owned, with no menu.
+  On the graph the bag is drawn at the weights its balls are in (a ball with
+  none written counts as 15 lb, the weight its stored specs were read at),
+  never at a menu's, and a retired ball is not drawn.
+- **The graph's key gives each ball's weight** beside its tags, and the card
+  a tap opens names it too.
+- **Add a ball.** While a column is free, the comparison carries Add a ball
+  under either tab, which closes it onto the catalog's list, picking.
+- **A default ball weight** is a setting (`default_ball_weight`, 15 lb until
+  set), on the Bowling profile page and in its Settings row's summary. The
+  catalog reads its rows, its filters, its sort and a ball's page at it, and
+  says so under its title ("Specs at 14 lb"); a ball's page names the weight
+  and says when its 15 lb specs stand in. Adding to the arsenal from the
+  catalog now asks the weight, opening at the default, and stores it with the
+  specs at that weight; the ball form opens a ball with no weight at it.
+
+**Consequences.** The setting rides in a backup as every setting does. A
+comparison picked before this build is forgotten on update, as picks only
+live while the app runs. A ball the bowler owns at every weight it is made in
+cannot come into the comparison at any other, which is the point: past the
+owned weights it comes in as a catalog ball, with a menu.

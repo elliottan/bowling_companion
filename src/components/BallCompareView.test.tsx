@@ -27,39 +27,59 @@ function ball(id: string, over: Partial<CatalogBall> = {}): CatalogBall {
 
 const ignition = ball("Ignition", { rg: 2.47, diff: 0.055, mbDiff: 0.018, coreType: "Asymmetric", weights: [{ weight: 14, rg: 2.52, diff: 0.054, mbDiff: 0.016 }] });
 const widow = ball("Widow", { brand: "Hammer", rg: 2.5, diff: 0.058, mbDiff: 0.016, coreType: "Asymmetric" });
+const at = (b: CatalogBall, weight = 15) => ({ ball: b, weight });
 
-describe("BallCompareView (ADR-258)", () => {
+describe("BallCompareView (ADR-258, ADR-262)", () => {
   it("lays the balls side by side, marking none (ADR-261)", () => {
-    render(<BallCompareView compared={[ignition, widow]} owned={[]} onRemove={vi.fn()} onBack={vi.fn()} />);
+    render(<BallCompareView compared={[at(ignition), at(widow)]} owned={[]} onRemove={vi.fn()} onBack={vi.fn()} />);
 
     const rg = screen.getByRole("row", { name: /^RG/ });
     expect(within(rg).getByText("2.47").className).not.toContain("bg-accent-soft");
     expect(screen.queryByText(/^Marked/)).toBeNull();
   });
 
-  it("reads each ball at the weight picked, and says when one has no numbers for it", () => {
-    render(<BallCompareView compared={[ignition, widow]} owned={[]} onRemove={vi.fn()} onBack={vi.fn()} />);
+  it("reads each ball at its own weight, and says when one has no numbers for it", () => {
+    render(<BallCompareView compared={[at(ignition, 14), at(widow, 14)]} owned={[]} onRemove={vi.fn()} onWeightChange={vi.fn()} onBack={vi.fn()} />);
 
-    // The weight is a menu (ADR-261).
-    fireEvent.change(screen.getByRole("combobox", { name: "Ball weight" }), { target: { value: "14" } });
+    // No one weight for every ball.
+    expect(screen.queryByRole("combobox", { name: "Ball weight" })).toBeNull();
     const rg = screen.getByRole("row", { name: /^RG/ });
     expect(within(rg).getByText("2.52")).toBeInTheDocument();
     // Widow lists no 14 lb specs: its 15 lb numbers stand in, starred.
     expect(within(rg).getByText(/2\.50/).textContent).toBe("2.50*");
-    expect(screen.getByText(/No specs listed at 14 lb/)).toBeInTheDocument();
+    expect(screen.getByText(/No specs listed at that weight/)).toBeInTheDocument();
+  });
+
+  it("moves one ball's weight from its column, but not one the bowler owns at it", () => {
+    const onWeightChange = vi.fn();
+    render(<BallCompareView compared={[at(ignition), at(widow)]} owned={[at(widow)]} onRemove={vi.fn()} onWeightChange={onWeightChange} onBack={vi.fn()} />);
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Weight of Ignition" }), { target: { value: "14" } });
+    expect(onWeightChange).toHaveBeenCalledWith("Ignition@15", 14);
+    expect(screen.queryByRole("combobox", { name: "Weight of Widow" })).toBeNull();
   });
 
   it("takes a ball out from its column", () => {
     const onRemove = vi.fn();
-    render(<BallCompareView compared={[ignition, widow]} owned={[]} onRemove={onRemove} onBack={vi.fn()} />);
-    fireEvent.click(screen.getByRole("button", { name: "Remove Widow" }));
-    expect(onRemove).toHaveBeenCalledWith("Widow");
+    render(<BallCompareView compared={[at(ignition), at(widow)]} owned={[]} onRemove={onRemove} onBack={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Remove Widow, 15 lb" }));
+    expect(onRemove).toHaveBeenCalledWith("Widow@15");
   });
 
-  it("maps the compared and the bag with a key that tags them, and a card that opens a ball (ADR-261)", () => {
+  it("offers Add a ball only while a column is free", () => {
+    const onAddBall = vi.fn();
+    const { rerender } = render(<BallCompareView compared={[at(ignition)]} owned={[]} onRemove={vi.fn()} onAddBall={onAddBall} onBack={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Add a ball" }));
+    expect(onAddBall).toHaveBeenCalled();
+
+    rerender(<BallCompareView compared={[at(ignition), at(ignition, 14), at(widow), at(widow, 14)]} owned={[]} onRemove={vi.fn()} onAddBall={onAddBall} onBack={vi.fn()} />);
+    expect(screen.queryByRole("button", { name: "Add a ball" })).toBeNull();
+  });
+
+  it("graphs the compared and the bag, each at its own weight, with a key that tags them and a card that opens a ball (ADR-261)", () => {
     const twin = ball("Twin", { rg: 2.49, diff: 0.057, mbDiff: 0.016 });
     const onOpenBall = vi.fn();
-    render(<BallCompareView compared={[twin, widow]} owned={[widow, ignition]} onRemove={vi.fn()} onBack={vi.fn()} onOpenBall={onOpenBall} initialTab="map" />);
+    render(<BallCompareView compared={[at(twin), at(widow)]} owned={[at(widow), at(ignition, 14)]} onRemove={vi.fn()} onBack={vi.fn()} onOpenBall={onOpenBall} initialTab="graph" />);
 
     expect(screen.queryByText(/rolls much like/)).toBeNull();
     const chart = screen.getByRole("img", { name: "Balls by RG and differential" });
@@ -70,15 +90,21 @@ describe("BallCompareView (ADR-258)", () => {
     const bag = screen.getByRole("button", { name: "Your bag, 2 balls" });
     expect(bag.compareDocumentPosition(chart) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
+    // Each with its weight; the bag's at the weight it is owned in.
     const key = screen.getByRole("list");
-    expect(within(key).getAllByRole("listitem").map((li) => li.textContent)).toEqual(["1TwinSelected", "2WidowSelectedOwned", "3IgnitionOwned"]);
+    expect(within(key).getAllByRole("listitem").map((li) => li.textContent)).toEqual(["1Twin15 lbSelected", "2Widow15 lbSelectedOwned", "3Ignition14 lbOwned"]);
 
-    fireEvent.click(within(chart).getByRole("button", { name: "Hammer Widow" }));
+    fireEvent.click(within(chart).getByRole("button", { name: "Hammer Widow, 15 lb" }));
     const card = screen.getByRole("dialog", { name: "Widow" });
     expect(card).toHaveTextContent("RG 2.50");
     fireEvent.click(within(card).getByRole("button", { name: "Open Widow" }));
     expect(onOpenBall).toHaveBeenCalledWith("Widow");
     expect(screen.queryByRole("dialog", { name: "Widow" })).toBeNull();
+
+    // Ignition reads its 14 lb numbers: the bag does not follow any menu.
+    fireEvent.click(within(chart).getByRole("button", { name: "Storm Ignition, 14 lb" }));
+    expect(screen.getByRole("dialog", { name: "Ignition" })).toHaveTextContent("RG 2.52");
+    fireEvent.keyDown(document, { key: "Escape" });
 
     // Hiding the bag leaves the compared alone.
     fireEvent.click(bag);

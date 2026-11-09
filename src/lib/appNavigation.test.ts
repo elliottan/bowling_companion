@@ -441,14 +441,14 @@ describe("what a search result opens (ADR-247)", () => {
     expect(state.catalogBallId).toBeNull();
   });
 
-  it("pushes the catalog open on the map, and a later push opens it on the list (ADR-261)", () => {
-    const map = run([{ type: "pushOverlay", overlay: "arsenal" }, { type: "openBallMap" }]);
-    expect(map.overlays).toEqual(["arsenal", "catalog"]);
-    expect(map.catalogMap).toBe(true);
-    const back = run([{ type: "popOverlay" }], map);
+  it("pushes the catalog open on the graph, and a later push opens it on the list (ADR-261)", () => {
+    const graph = run([{ type: "pushOverlay", overlay: "arsenal" }, { type: "openBallGraph" }]);
+    expect(graph.overlays).toEqual(["arsenal", "catalog"]);
+    expect(graph.catalogGraph).toBe(true);
+    const back = run([{ type: "popOverlay" }], graph);
     expect(back.overlays).toEqual(["arsenal"]);
-    expect(back.catalogMap).toBe(false);
-    expect(run([{ type: "pushOverlay", overlay: "catalog" }], back).catalogMap).toBe(false);
+    expect(back.catalogGraph).toBe(false);
+    expect(run([{ type: "pushOverlay", overlay: "catalog" }], back).catalogGraph).toBe(false);
   });
 
   it("pushes the catalog under a ball it opens, and only when it is not on top already", () => {

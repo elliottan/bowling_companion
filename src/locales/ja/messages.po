@@ -616,17 +616,33 @@ msgid "{weeks, plural, one {Last backup # week ago} other {Last backup # weeks a
 msgstr "{weeks, plural, other {最後のバックアップ: #週間前}}"
 
 #. A ball weight in pounds, short
+#. A ball weight in pounds, short
+#. A ball weight in pounds, short
+#. A ball weight in pounds, short
+#. A ball weight in pounds, short
+#. A ball weight in pounds, short
+#. A ball weight in pounds, short
 #: src/components/BallCompareView.tsx
 #: src/components/BallFormDialog.tsx
+#: src/components/BallGraph.tsx
+#: src/components/BallPeek.tsx
 #: src/views/ArsenalView.tsx
+#: src/views/BowlingProfileView.tsx
+#: src/views/CatalogView.tsx
 #: src/views/LayoutLabView.tsx
+#: src/views/SettingsView.tsx
 msgid "{weight} lb"
 msgstr "{weight} lb"
 
-#. A footnote under a comparison table: one ball lists no specs at the chosen weight
+#. A ball's weight on its catalog page, where the catalog lists no specs at that weight so the 15 lb ones are shown
+#: src/views/CatalogView.tsx
+msgid "{weight}, 15 lb specs shown"
+msgstr "{weight}、15 lbのスペックを表示"
+
+#. A footnote under a comparison table: one ball lists no specs at the weight it is compared at
 #: src/components/BallCompareView.tsx
-msgid "* No specs listed at {weight} lb, so its 15 lb numbers are shown."
-msgstr "* {weight} lbのスペックがないため、15 lbの数値を表示しています。"
+msgid "* No specs listed at that weight, so its 15 lb numbers are shown."
+msgstr "* その重さのスペックがないため、15 lbの数値を表示しています。"
 
 #: src/components/SessionTrendChart.tsx
 msgid "<0>{average}</0> avg"
@@ -756,6 +772,8 @@ msgstr "実際のライン"
 msgid "Add"
 msgstr "追加"
 
+#. Goes to the catalog to pick another bowling ball to compare
+#: src/components/BallCompareView.tsx
 #: src/components/NextSteps.tsx
 #: src/components/ShotDetailBar.tsx
 #: src/views/ArsenalView.tsx
@@ -776,10 +794,10 @@ msgstr "レーンメモを追加"
 msgid "Add a pattern"
 msgstr "パターンを追加"
 
-#. Shown under a comparison holding a single ball
-#: src/components/BallCompareView.tsx
-msgid "Add another ball from the catalog to compare."
-msgstr "カタログからもう1つボールを追加して比較しましょう。"
+#. Adds this bowling ball to the comparison again, at another weight
+#: src/views/CatalogView.tsx
+msgid "Add another weight"
+msgstr "別の重さで追加"
 
 #: src/components/BallFormDialog.tsx
 #: src/views/ArsenalView.tsx
@@ -1116,19 +1134,16 @@ msgstr "ボールカタログ"
 msgid "Ball columns"
 msgstr "ボールの列"
 
-#. Opens a chart placing the bowler's balls by RG and differential
+#. Opens a graph placing bowling balls by RG and differential
+#. Opens a graph placing bowling balls by RG and differential
 #: src/views/ArsenalView.tsx
-msgid "Ball map"
-msgstr "ボールマップ"
+#: src/views/CatalogView.tsx
+msgid "Ball graph"
+msgstr "ボールグラフ"
 
 #: src/components/BallFormDialog.tsx
 msgid "Ball name is required."
 msgstr "ボール名は必須です。"
-
-#. The spoken name of the switch between ball weights in pounds
-#: src/components/BallCompareView.tsx
-msgid "Ball weight"
-msgstr "ボールの重さ"
 
 #: src/components/ShotDetailBar.tsx
 msgid "Ball: {name}. Tap to change"
@@ -1143,7 +1158,7 @@ msgid "Balls"
 msgstr "ボール"
 
 #. Bowling terms: RG is the radius of gyration, differential a ball spec. The spoken name of a chart.
-#: src/components/BallMap.tsx
+#: src/components/BallGraph.tsx
 msgid "Balls by RG and differential"
 msgstr "RGとディファレンシャル別のボール"
 
@@ -1460,7 +1475,7 @@ msgstr "{count}個を比較"
 msgid "Compare balls"
 msgstr "ボールを比較"
 
-#. The spoken name of the switch between a table of specs and a map
+#. The spoken name of the switch between a table of specs and a graph
 #: src/components/BallCompareView.tsx
 msgid "Compare by"
 msgstr "比較方法"
@@ -1555,6 +1570,11 @@ msgstr "詳細な統計、ライン・レイアウトツール"
 #: src/lib/textScale.ts
 msgid "Default"
 msgstr "標準"
+
+#. The ball weight the bowler throws, which the catalog's specs and new balls start at
+#: src/views/BowlingProfileView.tsx
+msgid "Default ball weight"
+msgstr "標準のボール重量"
 
 #. Backend reading: a defined turn
 #: src/lib/ballLayout.ts
@@ -1660,7 +1680,7 @@ msgid "Diff, high to low"
 msgstr "Diff 高い順"
 
 #. Bowling term: diff is the differential. A chart's vertical axis title.
-#: src/components/BallMap.tsx
+#: src/components/BallGraph.tsx
 msgid "Diff: higher flares more"
 msgstr "Diff:高いほどフレアが大きい"
 
@@ -2286,6 +2306,11 @@ msgstr "わかりました"
 msgid "Grape"
 msgstr "グレープ"
 
+#. A tab: bowling balls placed on a graph of RG and differential
+#: src/components/BallCompareView.tsx
+msgid "Graph"
+msgstr "グラフ"
+
 #. How the bowler holds the ball: one-handed or two-handed
 #: src/views/BowlingProfileView.tsx
 msgid "Grip"
@@ -2477,10 +2502,10 @@ msgstr "読み込みに失敗しました。"
 msgid "In"
 msgstr "イン"
 
-#. A button showing this ball is picked to compare; tapping it takes the ball out
+#. Under the compare buttons: the weights this bowling ball is being compared at, such as 15 lb, 14 lb
 #: src/views/CatalogView.tsx
-msgid "In compare"
-msgstr "比較に追加済み"
+msgid "In compare at {weights}"
+msgstr "比較中: {weights}"
 
 #: src/components/MetricTrendChart.tsx
 msgid "In order. {points}."
@@ -2967,11 +2992,6 @@ msgstr "アーセナルを管理"
 #: src/components/SessionForm.tsx
 msgid "Manage oil patterns"
 msgstr "オイルパターンを管理"
-
-#. A tab: bowling balls placed on a chart of RG and differential
-#: src/components/BallCompareView.tsx
-msgid "Map"
-msgstr "マップ"
 
 #. On the Live Activity: the highest score the game can still finish on
 #: src/components/LiveActivityPreviews.tsx
@@ -3559,7 +3579,6 @@ msgid "Pick another"
 msgstr "別のものを選ぶ"
 
 #. Shown when no balls have been picked to compare
-#. Shown when no balls have been picked to compare
 #: src/components/BallCompareView.tsx
 msgid "Pick balls in the catalog to compare them here."
 msgstr "カタログでボールを選ぶと、ここで比較できます。"
@@ -3804,10 +3823,10 @@ msgstr "再読み込み"
 msgid "Remove"
 msgstr "削除"
 
-#. Takes one bowling ball out of the comparison
+#. Takes one bowling ball, at one weight, out of the comparison
 #: src/components/BallCompareView.tsx
-msgid "Remove {ball}"
-msgstr "{ball}を外す"
+msgid "Remove {ball}, {weight}"
+msgstr "{ball}（{weight}）を削除"
 
 #: src/components/OilPatternManager.tsx
 msgid "Remove {name}?"
@@ -3957,7 +3976,7 @@ msgid "RG, low to high"
 msgstr "RG 低い順"
 
 #. Bowling term: RG is the radius of gyration. A chart's horizontal axis title.
-#: src/components/BallMap.tsx
+#: src/components/BallGraph.tsx
 msgid "RG: lower revs up sooner"
 msgstr "RG:低いほど早く回転"
 
@@ -4415,6 +4434,11 @@ msgstr "スペック"
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
 msgstr "現行ボールのスペックと写真"
+
+#. Under the catalog's title: the ball weight the listed specs are for, such as 15 lb
+#: src/views/CatalogView.tsx
+msgid "Specs at {weight}"
+msgstr "{weight}のスペック"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins
@@ -5196,8 +5220,14 @@ msgid "Weak"
 msgstr "弱い"
 
 #: src/components/BallFormDialog.tsx
+#: src/views/CatalogView.tsx
 msgid "Weight"
 msgstr "重さ"
+
+#. The spoken name of the menu that picks one compared bowling ball's weight in pounds
+#: src/components/BallCompareView.tsx
+msgid "Weight of {ball}"
+msgstr "{ball}の重さ"
 
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
@@ -5290,11 +5320,6 @@ msgstr "あなたのアベレージ"
 #: src/components/BallEstimates.tsx
 msgid "Your average here"
 msgstr "ここでのアベレージ"
-
-#. Bowling terms: RG and diff (differential) are ball specs. Under the Ball map row.
-#: src/views/ArsenalView.tsx
-msgid "Your bag by RG and diff"
-msgstr "マイバッグをRGとDiffで表示"
 
 #: src/views/SettingsView.tsx
 msgid "Your balls and their layouts"

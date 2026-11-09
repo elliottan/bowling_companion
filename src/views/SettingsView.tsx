@@ -6,7 +6,8 @@ import { ToolsList } from "../components/ToolsList";
 import { PushScreen } from "../components/PushScreen";
 import { AppearanceView } from "./AppearanceView";
 import { BowlingProfileView } from "./BowlingProfileView";
-import { getBowlerName, getGripStyle, getLiveActivityEnabled, getSetting } from "../services/bowlingRepository";
+import { getBowlerName, getDefaultBallWeight, getGripStyle, getLiveActivityEnabled, getSetting } from "../services/bowlingRepository";
+import { DEFAULT_WEIGHT } from "../types/catalog";
 import { readLiveActivityStatus, type LiveActivityStatus } from "../lib/nativeLiveActivity";
 import { BowlerNameSheet } from "../components/BowlerNameSheet";
 import type { GripStyle } from "../types/bowling";
@@ -205,6 +206,7 @@ function SettingsMenu({
         ? describeLastBackup(lastBackupAt, new Date())
         : t`Never backed up`;
   const grip: GripStyle = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
+  const ballWeight = useLiveQuery(getDefaultBallWeight, [], null) ?? DEFAULT_WEIGHT;
 
   // A link that leaves the app says so with the outward arrow, rather than the
   // chevron that means "deeper into this app" on every other row.
@@ -265,7 +267,7 @@ function SettingsMenu({
           label={t`Bowling profile`}
           description={`${handedness === "right" ? t`Right-handed` : t`Left-handed`} · ${
             grip === "2h" ? t`Two-handed` : t`One-handed`
-          }`}
+          } · ${t({ message: `${{ weight: ballWeight }} lb`, comment: "A ball weight in pounds, short" })}`}
           onClick={() => onSectionChange("profile")}
         />
         <ListRow

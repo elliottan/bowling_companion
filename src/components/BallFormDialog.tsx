@@ -6,7 +6,8 @@ import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { getAllCatalog, getCatalogBall, syncCatalog } from "../services/ballCatalogRepository";
 import { addBall, updateBall } from "../services/ballRepository";
-import { getLayoutSystem } from "../services/bowlingRepository";
+import { getDefaultBallWeight, getLayoutSystem } from "../services/bowlingRepository";
+import { BALL_WEIGHTS } from "../lib/ballCompare";
 import {
   DEFAULT_ASYMMETRIC,
   DEFAULT_SYMMETRIC,
@@ -39,7 +40,6 @@ import { formatFixed } from "../lib/format";
 
 /** Heaviest first: most bowlers throw 14 to 16, so the list opens near the
  *  answer, and it runs down to the 8 lb balls juniors and seniors throw. */
-const WEIGHT_OPTIONS = [16, 15, 14, 13, 12, 11, 10, 9, 8];
 
 /** What a fresh layout opens on: the benchmark every chart is read against,
  *  and the same one the layout lab starts from. */
@@ -75,7 +75,11 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
   // fields, there is nothing to read yet.
   const [unlocked, setUnlocked] = useState(!editing);
   const [name, setName] = useState(ball?.name ?? "");
-  const [weight, setWeight] = useState<number>(ball?.weight ?? DEFAULT_WEIGHT);
+  // A ball with no weight of its own, a new one included, opens at the
+  // bowler's default weight (ADR-262) until one is picked.
+  const [weightChoice, setWeight] = useState<number | null>(ball?.weight ?? null);
+  const defaultWeight = useLiveQuery(getDefaultBallWeight, [], null);
+  const weight = weightChoice ?? defaultWeight ?? DEFAULT_WEIGHT;
   // The drilling as numbers, and the free text the field used to take. The old
   // text is never written again and never thrown away: a ball entered before
   // this screen could hold numbers still has to show what was typed on it
@@ -310,7 +314,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
                   {t`Weight`} <span className="font-normal text-ink-secondary">{t({ message: "(lb)", comment: "Abbreviation for pounds, the unit a bowling ball is weighed in" })}</span>
                 </label>
                 <Select id="ball-weight" value={weight} onChange={(e) => setWeight(Number(e.target.value))}>
-                  {WEIGHT_OPTIONS.map((w) => (
+                  {BALL_WEIGHTS.map((w) => (
                     <option key={w} value={w}>
                       {w}
                     </option>

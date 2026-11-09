@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BowlingProfileView } from "./BowlingProfileView";
 import { db } from "../db/bowlingDb";
 import { DEFAULT_DRIFT_MODEL, type DriftModel } from "../lib/driftModel";
-import { getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
+import { getDefaultBallWeight, getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
 
 const renderPrefs = () => {
   render(
@@ -143,6 +143,17 @@ describe("BowlingProfileView", () => {
     expect(await screen.findByText("Two-handed")).toBeInTheDocument();
     edit();
     expect(screen.getByRole("button", { name: "Two-handed" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("keeps the default ball weight, 15 lb until set, and saves it with the tick (ADR-262)", async () => {
+    renderPage();
+    expect(screen.getByText("15 lb")).toBeInTheDocument();
+    edit();
+    fireEvent.change(screen.getByLabelText("Default ball weight"), { target: { value: "14" } });
+    expect(await getDefaultBallWeight()).toBeNull();
+    save();
+    await waitFor(async () => expect(await getDefaultBallWeight()).toBe(14));
+    expect(await screen.findByText("14 lb")).toBeInTheDocument();
   });
 
   it("has no guide behind it, and no sentence under its headings", () => {

@@ -616,17 +616,33 @@ msgid "{weeks, plural, one {Last backup # week ago} other {Last backup # weeks a
 msgstr "{weeks, plural, other {上次备份：# 周前}}"
 
 #. A ball weight in pounds, short
+#. A ball weight in pounds, short
+#. A ball weight in pounds, short
+#. A ball weight in pounds, short
+#. A ball weight in pounds, short
+#. A ball weight in pounds, short
+#. A ball weight in pounds, short
 #: src/components/BallCompareView.tsx
 #: src/components/BallFormDialog.tsx
+#: src/components/BallGraph.tsx
+#: src/components/BallPeek.tsx
 #: src/views/ArsenalView.tsx
+#: src/views/BowlingProfileView.tsx
+#: src/views/CatalogView.tsx
 #: src/views/LayoutLabView.tsx
+#: src/views/SettingsView.tsx
 msgid "{weight} lb"
 msgstr "{weight} lb"
 
-#. A footnote under a comparison table: one ball lists no specs at the chosen weight
+#. A ball's weight on its catalog page, where the catalog lists no specs at that weight so the 15 lb ones are shown
+#: src/views/CatalogView.tsx
+msgid "{weight}, 15 lb specs shown"
+msgstr "{weight}，显示 15 lb 规格"
+
+#. A footnote under a comparison table: one ball lists no specs at the weight it is compared at
 #: src/components/BallCompareView.tsx
-msgid "* No specs listed at {weight} lb, so its 15 lb numbers are shown."
-msgstr "* 没有 {weight} lb 的规格，因此显示 15 lb 的数值。"
+msgid "* No specs listed at that weight, so its 15 lb numbers are shown."
+msgstr "* 没有该重量的规格，因此显示其 15 lb 数值。"
 
 #: src/components/SessionTrendChart.tsx
 msgid "<0>{average}</0> avg"
@@ -756,6 +772,8 @@ msgstr "实际路线"
 msgid "Add"
 msgstr "添加"
 
+#. Goes to the catalog to pick another bowling ball to compare
+#: src/components/BallCompareView.tsx
 #: src/components/NextSteps.tsx
 #: src/components/ShotDetailBar.tsx
 #: src/views/ArsenalView.tsx
@@ -776,10 +794,10 @@ msgstr "添加球道备注"
 msgid "Add a pattern"
 msgstr "添加油型"
 
-#. Shown under a comparison holding a single ball
-#: src/components/BallCompareView.tsx
-msgid "Add another ball from the catalog to compare."
-msgstr "从目录再添加一颗球来比较。"
+#. Adds this bowling ball to the comparison again, at another weight
+#: src/views/CatalogView.tsx
+msgid "Add another weight"
+msgstr "以其他重量加入"
 
 #: src/components/BallFormDialog.tsx
 #: src/views/ArsenalView.tsx
@@ -1116,19 +1134,16 @@ msgstr "球款目录"
 msgid "Ball columns"
 msgstr "球的列"
 
-#. Opens a chart placing the bowler's balls by RG and differential
+#. Opens a graph placing bowling balls by RG and differential
+#. Opens a graph placing bowling balls by RG and differential
 #: src/views/ArsenalView.tsx
-msgid "Ball map"
-msgstr "球款分布图"
+#: src/views/CatalogView.tsx
+msgid "Ball graph"
+msgstr "球图表"
 
 #: src/components/BallFormDialog.tsx
 msgid "Ball name is required."
 msgstr "必须填写球名。"
-
-#. The spoken name of the switch between ball weights in pounds
-#: src/components/BallCompareView.tsx
-msgid "Ball weight"
-msgstr "球重"
 
 #: src/components/ShotDetailBar.tsx
 msgid "Ball: {name}. Tap to change"
@@ -1143,7 +1158,7 @@ msgid "Balls"
 msgstr "球"
 
 #. Bowling terms: RG is the radius of gyration, differential a ball spec. The spoken name of a chart.
-#: src/components/BallMap.tsx
+#: src/components/BallGraph.tsx
 msgid "Balls by RG and differential"
 msgstr "按 RG 与差值显示的球"
 
@@ -1460,7 +1475,7 @@ msgstr "比较 {count} 颗"
 msgid "Compare balls"
 msgstr "比较球款"
 
-#. The spoken name of the switch between a table of specs and a map
+#. The spoken name of the switch between a table of specs and a graph
 #: src/components/BallCompareView.tsx
 msgid "Compare by"
 msgstr "比较方式"
@@ -1555,6 +1570,11 @@ msgstr "深入统计、路线与打孔布局工具"
 #: src/lib/textScale.ts
 msgid "Default"
 msgstr "默认"
+
+#. The ball weight the bowler throws, which the catalog's specs and new balls start at
+#: src/views/BowlingProfileView.tsx
+msgid "Default ball weight"
+msgstr "默认球重"
 
 #. Backend reading: a defined turn
 #: src/lib/ballLayout.ts
@@ -1660,7 +1680,7 @@ msgid "Diff, high to low"
 msgstr "Diff，由高到低"
 
 #. Bowling term: diff is the differential. A chart's vertical axis title.
-#: src/components/BallMap.tsx
+#: src/components/BallGraph.tsx
 msgid "Diff: higher flares more"
 msgstr "Diff：越高，flare 越大"
 
@@ -2286,6 +2306,11 @@ msgstr "知道了"
 msgid "Grape"
 msgstr "葡萄紫"
 
+#. A tab: bowling balls placed on a graph of RG and differential
+#: src/components/BallCompareView.tsx
+msgid "Graph"
+msgstr "图表"
+
 #. How the bowler holds the ball: one-handed or two-handed
 #: src/views/BowlingProfileView.tsx
 msgid "Grip"
@@ -2477,10 +2502,10 @@ msgstr "导入失败。"
 msgid "In"
 msgstr "内"
 
-#. A button showing this ball is picked to compare; tapping it takes the ball out
+#. Under the compare buttons: the weights this bowling ball is being compared at, such as 15 lb, 14 lb
 #: src/views/CatalogView.tsx
-msgid "In compare"
-msgstr "已加入比较"
+msgid "In compare at {weights}"
+msgstr "比较中：{weights}"
 
 #: src/components/MetricTrendChart.tsx
 msgid "In order. {points}."
@@ -2967,11 +2992,6 @@ msgstr "管理球库"
 #: src/components/SessionForm.tsx
 msgid "Manage oil patterns"
 msgstr "管理油型"
-
-#. A tab: bowling balls placed on a chart of RG and differential
-#: src/components/BallCompareView.tsx
-msgid "Map"
-msgstr "分布图"
 
 #. On the Live Activity: the highest score the game can still finish on
 #: src/components/LiveActivityPreviews.tsx
@@ -3559,7 +3579,6 @@ msgid "Pick another"
 msgstr "换一个"
 
 #. Shown when no balls have been picked to compare
-#. Shown when no balls have been picked to compare
 #: src/components/BallCompareView.tsx
 msgid "Pick balls in the catalog to compare them here."
 msgstr "在目录中选球，即可在这里比较。"
@@ -3804,10 +3823,10 @@ msgstr "重新加载"
 msgid "Remove"
 msgstr "移除"
 
-#. Takes one bowling ball out of the comparison
+#. Takes one bowling ball, at one weight, out of the comparison
 #: src/components/BallCompareView.tsx
-msgid "Remove {ball}"
-msgstr "移除 {ball}"
+msgid "Remove {ball}, {weight}"
+msgstr "移除 {ball}，{weight}"
 
 #: src/components/OilPatternManager.tsx
 msgid "Remove {name}?"
@@ -3957,7 +3976,7 @@ msgid "RG, low to high"
 msgstr "RG，由低到高"
 
 #. Bowling term: RG is the radius of gyration. A chart's horizontal axis title.
-#: src/components/BallMap.tsx
+#: src/components/BallGraph.tsx
 msgid "RG: lower revs up sooner"
 msgstr "RG：越低，越早起转"
 
@@ -4415,6 +4434,11 @@ msgstr "规格"
 #: src/components/ToolsList.tsx
 msgid "Specs and pictures of current balls"
 msgstr "现行球款的规格与图片"
+
+#. Under the catalog's title: the ball weight the listed specs are for, such as 15 lb
+#: src/views/CatalogView.tsx
+msgid "Specs at {weight}"
+msgstr "{weight} 规格"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins
@@ -5196,8 +5220,14 @@ msgid "Weak"
 msgstr "弱"
 
 #: src/components/BallFormDialog.tsx
+#: src/views/CatalogView.tsx
 msgid "Weight"
 msgstr "重量"
+
+#. The spoken name of the menu that picks one compared bowling ball's weight in pounds
+#: src/components/BallCompareView.tsx
+msgid "Weight of {ball}"
+msgstr "{ball} 的重量"
 
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
@@ -5290,11 +5320,6 @@ msgstr "你的平均分"
 #: src/components/BallEstimates.tsx
 msgid "Your average here"
 msgstr "你在这里的平均分"
-
-#. Bowling terms: RG and diff (differential) are ball specs. Under the Ball map row.
-#: src/views/ArsenalView.tsx
-msgid "Your bag by RG and diff"
-msgstr "按 RG 和 Diff 看你的球袋"
 
 #: src/views/SettingsView.tsx
 msgid "Your balls and their layouts"

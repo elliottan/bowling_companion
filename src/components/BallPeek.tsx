@@ -16,8 +16,8 @@ const GUTTER = 16;
 const HEIGHT = 92;
 
 /**
- * A ball tapped on the map or in its key, in a small card hung off what was
- * tapped (ADR-261): its photo, name and numbers at the weight shown, and a
+ * A ball tapped on the graph or in its key, in a small card hung off what was
+ * tapped (ADR-261, ADR-262): its photo, name, weight and numbers at it, and a
  * chevron, since the whole card opens the ball's own page. It hangs under the
  * tap, or over it when there is no room below, and stays inside the screen.
  * Drawn as an anchored menu is, with the same clear scrim: a tap anywhere
@@ -50,6 +50,7 @@ export function BallPeek({
   const place = below ? { top: anchor.bottom + 8 } : { bottom: vh - anchor.top + 8 };
 
   const numbers = [
+    t({ message: `${{ weight }} lb`, comment: "A ball weight in pounds, short" }),
     s.rg != null ? t({ message: `RG ${{ rg: formatFixed(s.rg, 2) }}`, comment: "Bowling term: a ball's radius of gyration, short, with its value" }) : null,
     s.diff != null ? t({ message: `Diff ${{ diff: formatFixed(s.diff, 3) }}`, comment: "Bowling term: a ball's differential, short, with its value" }) : null,
     ball.coverstockCategory ? coverstockLabel(ball.coverstockCategory) : null

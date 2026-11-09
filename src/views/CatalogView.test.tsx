@@ -4,6 +4,8 @@ import { CatalogView } from "./CatalogView";
 import { formatReleaseDate } from "../lib/dates";
 import { db } from "../db/bowlingDb";
 import type { CatalogBall } from "../types/catalog";
+import { clearViewMemory } from "../lib/viewMemory";
+import { setDefaultBallWeight } from "../services/bowlingRepository";
 
 vi.mock("../services/ballCatalogRepository", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/ballCatalogRepository")>();
@@ -57,6 +59,8 @@ describe("CatalogView", () => {
   beforeEach(async () => {
     await db.delete();
     await db.open();
+    // The picks to compare outlive the view, by design; not one test.
+    clearViewMemory();
   });
 
   afterEach(() => {
@@ -169,7 +173,7 @@ describe("CatalogView", () => {
     renderCatalog();
     await screen.findByText("Ball 0");
 
-    expect(screen.getAllByText("3 results")).toHaveLength(2); // under the title, and the bar's copy
+    expect(screen.getAllByText(/^3 results ·/)).toHaveLength(2); // under the title, and the bar's copy
     fireEvent.click(screen.getByRole("button", { name: /^Filters/ }));
     // A sheet from the bottom edge, as every other filter sheet in the app is,
     // not a card dropped down over the list.
@@ -184,7 +188,7 @@ describe("CatalogView", () => {
     fireEvent.click(within(sheet).getByRole("button", { name: "Done" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Filters" })).not.toBeInTheDocument());
     // The count under the title follows the list.
-    expect(screen.getAllByText("3 results")).toHaveLength(2); // under the title, and the bar's copy
+    expect(screen.getAllByText(/^3 results ·/)).toHaveLength(2); // under the title, and the bar's copy
     // What was chosen stays, on the button alone: no chips under the search.
     expect(filtersButton()).toHaveAttribute("aria-pressed", "true");
     expect(screen.queryByRole("button", { name: /^Remove filter/ })).not.toBeInTheDocument();
@@ -223,8 +227,79 @@ describe("CatalogView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Compare" }));
     const compare = await screen.findByRole("dialog", { name: "Compare" });
-    expect(within(compare).getByRole("button", { name: "Remove Ball 1" })).toBeInTheDocument();
-    expect(within(compare).getByRole("button", { name: "Remove Ball 3" })).toBeInTheDocument();
+    expect(within(compare).getByRole("button", { name: "Remove Ball 1, 15 lb" })).toBeInTheDocument();
+    expect(within(compare).getByRole("button", { name: "Remove Ball 3, 15 lb" })).toBeInTheDocument();
+  });
+
+  it("adds at the default weight, the same ball again at another, and moves each on its own (ADR-262)", async () => {
+    await seedCatalog(2);
+    await db.ball_catalog.update("ball-1", { weights: [14, 13].map((weight) => ({ weight, rg: 2.5, diff: 0.05, mbDiff: null })) });
+    await setDefaultBallWeight(14);
+    renderCatalog();
+    // The rows say which weight their numbers are for.
+    expect(await screen.findAllByText(/Specs at 14 lb/)).not.toHaveLength(0);
+
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
+    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
+    expect(screen.getByText("2 of 4")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+    const compare = await screen.findByRole("dialog", { name: "Compare" });
+    // No one weight for all: a menu in each column, the second at the next weight.
+    expect(within(compare).queryByRole("combobox", { name: "Ball weight" })).toBeNull();
+    const menus = within(compare).getAllByRole("combobox", { name: "Weight of Ball 1" });
+    expect(menus.map((m) => (m as HTMLSelectElement).value)).toEqual(["14", "15"]);
+    // A column cannot take a weight the same ball holds in another.
+    expect([...(menus[0] as HTMLSelectElement).options].map((o) => o.value)).not.toContain("15");
+    fireEvent.change(menus[0], { target: { value: "13" } });
+    expect(within(compare).getByRole("button", { name: "Remove Ball 1, 13 lb" })).toBeInTheDocument();
+    expect(within(compare).getByRole("button", { name: "Remove Ball 1, 15 lb" })).toBeInTheDocument();
+  });
+
+  it("holds a ball the bowler owns at the weight they own it in (ADR-262)", async () => {
+    await seedCatalog(2);
+    await db.balls.add({ name: "Mine", is_spare_ball: false, catalog_ref_id: "ball-0", weight: 13 });
+    renderCatalog();
+    await screen.findByText("Ball 0");
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
+    fireEvent.click(await screen.findByRole("button", { name: /Ball 0/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+    const compare = await screen.findByRole("dialog", { name: "Compare" });
+    // Theirs, at 13 lb and no menu; the catalog's ball has one.
+    expect(within(compare).queryByRole("combobox", { name: "Weight of Ball 0" })).toBeNull();
+    expect(within(compare).getByRole("button", { name: "Remove Ball 0, 13 lb" })).toBeInTheDocument();
+    expect(within(compare).getByRole("combobox", { name: "Weight of Ball 1" })).toBeInTheDocument();
+  });
+
+  it("goes back to the list, picking, from Add a ball while a column is free (ADR-262)", async () => {
+    await seedCatalog(3);
+    renderCatalog();
+    await screen.findByText("Ball 0");
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
+    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Done picking" }));
+    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+    const compare = await screen.findByRole("dialog", { name: "Compare" });
+
+    fireEvent.click(within(compare).getByRole("button", { name: "Add a ball" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Compare" })).toBeNull());
+    // Picking again: a tap adds the ball rather than opening it.
+    fireEvent.click(screen.getByRole("button", { name: /Ball 2/ }));
+    expect(screen.getByText("2 of 4")).toBeInTheDocument();
+  });
+
+  it("opens the ball graph from the bar's corner (ADR-262)", async () => {
+    await seedCatalog(2);
+    renderCatalog();
+    await screen.findByText("Ball 0");
+    fireEvent.click(screen.getByRole("button", { name: "Ball graph" }));
+    const compare = await screen.findByRole("dialog", { name: "Compare" });
+    expect(within(compare).getByRole("img", { name: "Balls by RG and differential" })).toBeInTheDocument();
   });
 
   it("asks for a ball from the bar's menu (ADR-261)", async () => {
@@ -241,24 +316,26 @@ describe("CatalogView", () => {
     expect(screen.queryByRole("button", { name: "Compare balls" })).toBeNull();
   });
 
-  it("opens straight on the map from the arsenal, and a ball's card there opens its page over it (ADR-261)", async () => {
+  it("opens straight on the graph from the arsenal, and a ball's card there opens its page over it (ADR-261)", async () => {
     await seedCatalog(3);
-    await db.balls.add({ name: "Ball 2", brand: "Storm", catalog_ref_id: "ball-2" } as never);
+    await db.balls.add({ name: "Ball 2", brand: "Storm", catalog_ref_id: "ball-2", weight: 14 } as never);
     const onSelectBall = vi.fn();
     const onBack = vi.fn();
-    const { rerender } = render(<CatalogView onBack={onBack} selectedBallId={null} onSelectBall={onSelectBall} openMap />);
+    const { rerender } = render(<CatalogView onBack={onBack} selectedBallId={null} onSelectBall={onSelectBall} openGraph />);
     const compare = await screen.findByRole("dialog", { name: "Compare" });
-    // The map is the screen: no list under it.
+    // The graph is the screen: no list under it.
     expect(screen.queryByPlaceholderText("Search name, brand, coverstock…")).toBeNull();
     const key = await within(compare).findByRole("button", { name: /^Ball 2/ });
     expect(key).toHaveTextContent("Owned");
+    // At the weight it is owned in (ADR-262).
+    expect(key).toHaveTextContent("14 lb");
     fireEvent.click(key);
     const card = screen.getByRole("dialog", { name: "Ball 2" });
     fireEvent.click(within(card).getByRole("button", { name: "Open Ball 2" }));
     expect(onSelectBall).toHaveBeenCalledWith("ball-2");
 
-    rerender(<CatalogView onBack={onBack} selectedBallId="ball-2" onSelectBall={onSelectBall} openMap />);
-    // The ball goes over the map, which stays under it for back.
+    rerender(<CatalogView onBack={onBack} selectedBallId="ball-2" onSelectBall={onSelectBall} openGraph />);
+    // The ball goes over the graph, which stays under it for back.
     const dialogs = await screen.findAllByRole("dialog");
     expect(dialogs[dialogs.length - 1]).toHaveAccessibleName("Ball 2");
     expect(screen.getByRole("dialog", { name: "Compare", hidden: true })).toBeInTheDocument();
@@ -336,7 +413,7 @@ describe("CatalogView", () => {
 
       // Every spelling of the core, and nothing else.
       await waitFor(() => expect(screen.getByRole("button", { name: /^Filters/ })).toHaveAttribute("aria-pressed", "true"));
-      expect(screen.getAllByText("5 results")).toHaveLength(2);
+      expect(screen.getAllByText(/^5 results ·/)).toHaveLength(2);
       const names = screen.getAllByRole("listitem").map((li) => li.textContent ?? "");
       expect(names.filter((text) => /Alpha|Bravo|Charlie|Delta|Echo|Foxtrot/.test(text))).toHaveLength(5);
       expect(names.some((text) => text.includes("Foxtrot"))).toBe(false);

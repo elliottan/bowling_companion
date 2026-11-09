@@ -1,9 +1,8 @@
 import { t } from "@lingui/core/macro";
 import { useId } from "react";
-import { specsAt, type MapPoint } from "../lib/ballCompare";
+import { specsAt, type GraphPoint } from "../lib/ballCompare";
 import { formatFixed, formatNumber } from "../lib/format";
 import { siteUrl } from "../lib/platform";
-import type { CatalogBall } from "../types/catalog";
 
 const W = 340;
 const H = 300;
@@ -19,33 +18,31 @@ const x = (rg: number) => PAD.left + ((Math.min(Math.max(rg, RG[0]), RG[1]) - RG
 const y = (diff: number) => PAD.top + (1 - (Math.min(Math.max(diff, DIFF[0]), DIFF[1]) - DIFF[0]) / (DIFF[1] - DIFF[0])) * (H - PAD.top - PAD.bottom);
 
 /**
- * Where balls sit by RG and differential (ADR-258, ADR-261): lower RG to the
- * left revs up sooner, higher diff up the chart flares more. Each ball is its
- * own photo, numbered as the key names it, edged in the accent when picked to
- * compare and in a quiet ring when only owned. Only the balls being compared
- * and the bowler's own are drawn: the whole catalog behind them said nothing
- * a bowler used. A tap on a ball asks for it (`onPick`), with where it was
- * tapped, so the screen can hang its card off it.
+ * Where balls sit by RG and differential (ADR-258, ADR-261, ADR-262): lower
+ * RG to the left revs up sooner, higher diff up the chart flares more. Each
+ * ball is its own photo at its own weight, numbered as the key names it, edged
+ * in the accent when picked to compare and in a quiet ring when only owned.
+ * Only the balls being compared and the bowler's own are drawn: the whole
+ * catalog behind them said nothing a bowler used. A tap on a ball asks for it
+ * (`onPick`), with where it was tapped, so the screen can hang its card off it.
  */
-export function BallMap({
+export function BallGraph({
   points,
-  weight,
-  activeId,
+  activeKey,
   onPick
 }: {
-  points: readonly MapPoint[];
-  weight: number;
-  /** The ball whose card is open, drawn on top. */
-  activeId?: string | null;
-  onPick?: (ball: CatalogBall, anchor: DOMRect) => void;
+  points: readonly GraphPoint[];
+  /** The point whose card is open, drawn on top. */
+  activeKey?: string | null;
+  onPick?: (point: GraphPoint, anchor: DOMRect) => void;
 }) {
   const clip = useId();
   const placed = points.flatMap((p) => {
-    const s = specsAt(p.ball, weight);
+    const s = specsAt(p.ball, p.weight);
     return s.rg != null && s.diff != null ? [{ ...p, cx: x(s.rg), cy: y(s.diff), rg: s.rg, diff: s.diff }] : [];
   });
   // The first numbered on top, and the ball whose card is open over them all.
-  const drawn = [...placed].reverse().sort((a, b) => Number(a.ball.id === activeId) - Number(b.ball.id === activeId));
+  const drawn = [...placed].reverse().sort((a, b) => Number(a.key === activeKey) - Number(b.key === activeKey));
 
   return (
     <svg
@@ -91,24 +88,25 @@ export function BallMap({
 
       {drawn.map((p) => {
         const src = siteUrl(p.ball.imageThumb);
-        const active = p.ball.id === activeId;
+        const active = p.key === activeKey;
+        const weight = t({ message: `${{ weight: p.weight }} lb`, comment: "A ball weight in pounds, short" });
         return (
           <g
-            key={p.ball.id}
-            data-ball={p.ball.id}
+            key={p.key}
+            data-ball={p.key}
             role={onPick ? "button" : undefined}
             tabIndex={onPick ? 0 : undefined}
-            aria-label={onPick ? `${p.ball.brand} ${p.ball.name}` : undefined}
+            aria-label={onPick ? `${p.ball.brand} ${p.ball.name}, ${weight}` : undefined}
             className={onPick ? "cursor-pointer outline-none" : undefined}
-            onClick={(e) => onPick?.(p.ball, e.currentTarget.getBoundingClientRect())}
+            onClick={(e) => onPick?.(p, e.currentTarget.getBoundingClientRect())}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                onPick?.(p.ball, e.currentTarget.getBoundingClientRect());
+                onPick?.(p, e.currentTarget.getBoundingClientRect());
               }
             }}
           >
-            <title>{`${p.ball.brand} ${p.ball.name}: RG ${formatFixed(p.rg, 2)}, ${formatFixed(p.diff, 3)}`}</title>
+            <title>{`${p.ball.brand} ${p.ball.name}, ${weight}: RG ${formatFixed(p.rg, 2)}, ${formatFixed(p.diff, 3)}`}</title>
             {/* A finger's reach around the photo, unseen. */}
             <circle cx={p.cx} cy={p.cy} r={R + 8} fill="transparent" />
             <circle cx={p.cx} cy={p.cy} r={R} fill="rgb(var(--color-surface-muted))" />

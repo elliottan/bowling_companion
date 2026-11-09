@@ -2,7 +2,8 @@ import { plural, t } from "@lingui/core/macro";
 import { ClearAllButton } from "../components/ui/ClearAllButton";
 import { Select } from "../components/ui/Select";
 import { Trans } from "@lingui/react/macro";
-import { BookOpen, Check, Columns3, ExternalLink, Loader2, MailPlus, MoreHorizontal, Palette } from "lucide-react";
+import { BookOpen, ChartScatter, Check, Columns3, ExternalLink, Loader2, MailPlus, MoreHorizontal, Palette } from "lucide-react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -15,25 +16,26 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { CatalogRequestEmpty, CatalogRequestRow } from "../components/CatalogRequest";
 import { FormSheet } from "../components/ui/FormSheet";
 import { PushScreen } from "../components/PushScreen";
-import { BallCompareView } from "../components/BallCompareView";
+import { BallCompareView, type CompareTab } from "../components/BallCompareView";
 import { IconButton } from "../components/ui/IconButton";
 import { ANCHORED_MENU_WIDTH, AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import { anchorUnder, type MenuAnchor } from "../lib/menuAnchor";
 import { catalogRequestMailto, openMail } from "../lib/links";
-import { MAX_COMPARE } from "../lib/ballCompare";
+import { BALL_WEIGHTS, entryKey, MAX_COMPARE, nextWeight, specsAt, type CompareEntry, type WeighedBall } from "../lib/ballCompare";
 import { useRememberedState } from "../lib/viewMemory";
 import {
   getAllCatalog,
   syncCatalog,
   type SyncState,
 } from "../services/ballCatalogRepository";
-import { MANUFACTURERS, type CatalogBall, type CoverstockCategory, type Manufacturer } from "../types/catalog";
+import { DEFAULT_WEIGHT, MANUFACTURERS, type CatalogBall, type CoverstockCategory, type Manufacturer } from "../types/catalog";
 import type { Ball } from "../types/bowling";
 import { addBall, getBalls } from "../services/ballRepository";
+import { getDefaultBallWeight } from "../services/bowlingRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { FIELD, FIELD_LABEL } from "../components/ui/field";
 import { formatReleaseDate } from "../lib/dates";
-import { formatDate, formatFixed } from "../lib/format";
+import { formatDate, formatFixed, formatNumber } from "../lib/format";
 import { matchesCatalogSearch } from "../lib/catalogSearch";
 import { kinKey, kinNames, sameCore, sameCover } from "../lib/catalogKin";
 import { coreTypeLabel, coverstockLabel } from "../components/catalogLabels";
@@ -59,6 +61,8 @@ interface Filters {
   diffMin: number;
   diffMax: number;
 }
+
+const lb = (weight: number) => t({ message: `${{ weight }} lb`, comment: "A ball weight in pounds, short" });
 
 const RG_MIN = 2.40;
 const RG_MAX = 2.95;
@@ -94,7 +98,12 @@ const CATALOG_PAGE = 40;
  *  and the length stands in for it until then. */
 const ROW_PAINT = { contentVisibility: "auto", containIntrinsicSize: "auto 4.25rem" } as const;
 
-function applyFilters(balls: CatalogBall[], filters: Filters, sort: SortKey): CatalogBall[] {
+/** Filters and sorts read each ball at the bowler's default weight
+ *  (ADR-262), as the rows show it. */
+function applyFilters(balls: CatalogBall[], filters: Filters, sort: SortKey, weight: number): CatalogBall[] {
+  const at = new Map(balls.map((b) => [b.id, specsAt(b, weight)]));
+  const rg = (b: CatalogBall) => at.get(b.id)!.rg;
+  const diff = (b: CatalogBall) => at.get(b.id)!.diff;
   const coreKey = kinKey(filters.core);
   const coverKey = kinKey(filters.cover);
   const filtered = balls.filter((b) => {
@@ -104,8 +113,10 @@ function applyFilters(balls: CatalogBall[], filters: Filters, sort: SortKey): Ca
     if (filters.coreType !== null && b.coreType !== filters.coreType) return false;
     if (coreKey !== null && kinKey(b.coreName) !== coreKey) return false;
     if (coverKey !== null && kinKey(b.coverstockRaw) !== coverKey) return false;
-    if (b.rg !== null && (b.rg < filters.rgMin || b.rg > filters.rgMax)) return false;
-    if (b.diff !== null && (b.diff < filters.diffMin || b.diff > filters.diffMax)) return false;
+    const r = rg(b);
+    const d = diff(b);
+    if (r !== null && (r < filters.rgMin || r > filters.rgMax)) return false;
+    if (d !== null && (d < filters.diffMin || d > filters.diffMax)) return false;
     return true;
   });
 
@@ -117,9 +128,9 @@ function applyFilters(balls: CatalogBall[], filters: Filters, sort: SortKey): Ca
         // dated ones. Undated balls go last.
         return (b.releaseDate ?? "").localeCompare(a.releaseDate ?? "");
       case "rg":
-        return (a.rg ?? 99) - (b.rg ?? 99);
+        return (rg(a) ?? 99) - (rg(b) ?? 99);
       case "diff":
-        return (b.diff ?? 0) - (a.diff ?? 0);
+        return (diff(b) ?? 0) - (diff(a) ?? 0);
       case "name":
         return a.name.localeCompare(b.name);
     }
@@ -143,10 +154,13 @@ interface DetailPanelProps {
   onSelectBall: (ballId: string) => void;
   /** Back to the list, filtered to one core or one cover. */
   onViewAll: (filter: { core: string } | { cover: string }) => void;
-  /** Whether the ball is picked to compare, and how many are. */
-  comparing: boolean;
+  /** The weights this ball is compared at, and how many balls are. */
+  comparedAt: readonly number[];
   compareCount: number;
-  onToggleCompare: () => void;
+  /** Null when the comparison is full or holds the ball at every weight. */
+  onAddToCompare: (() => void) | null;
+  /** The bowler's default weight, which the specs are read at (ADR-262). */
+  weight: number;
   /** Absent while the comparison is open under the ball, which back reaches. */
   onOpenCompare?: () => void;
 }
@@ -216,8 +230,10 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
   );
 }
 
-function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBalls, onSelectBall, onViewAll, comparing, compareCount, onToggleCompare, onOpenCompare }: DetailPanelProps) {
+function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBalls, onSelectBall, onViewAll, comparedAt, compareCount, onAddToCompare, onOpenCompare, weight }: DetailPanelProps) {
   const releaseDate = formatReleaseDate(ball.releaseDate);
+  const specs = specsAt(ball, weight);
+  const comparing = comparedAt.length > 0;
   const coreKin = useMemo(() => sameCore(allBalls, ball), [allBalls, ball]);
   const coverKin = useMemo(() => sameCover(allBalls, ball), [allBalls, ball]);
   return (
@@ -242,9 +258,19 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
             {ball.factoryFinish && <SpecItem label={t({ message: "Factory finish", comment: "Bowling term: the surface finish a ball ships with, such as polished or sanded" })} value={ball.factoryFinish} />}
             {ball.coreName && <SpecItem label={t({ message: "Core", comment: "Bowling term: the weight block inside a ball" })} value={ball.coreName} />}
             <SpecItem label={t({ message: "Core type", comment: "Bowling term: whether a ball has a symmetric or asymmetric core" })} value={ball.coreType ? coreTypeLabel(ball.coreType) : "-"} />
-            <SpecItem label={t({ message: "RG", comment: "Bowling term: radius of gyration, a ball spec" })} value={ball.rg !== null ? formatFixed(ball.rg, 2) : "-"} />
-            <SpecItem label={t({ message: "Diff", comment: "Bowling term: the differential, a ball spec (short for differential RG)" })} value={ball.diff !== null ? formatFixed(ball.diff, 3) : "-"} />
-            {ball.mbDiff !== null && <SpecItem label={t({ message: "MB diff", comment: "Bowling term: the mass bias differential, a ball spec" })} value={formatFixed(ball.mbDiff, 3)} />}
+            {/* The numbers under it are at the bowler's default weight, or
+                the ball's 15 lb ones where it lists none for it (ADR-262). */}
+            <SpecItem
+              label={t`Weight`}
+              value={
+                specs.exact
+                  ? lb(weight)
+                  : t({ message: `${{ weight: lb(weight) }}, 15 lb specs shown`, comment: "A ball's weight on its catalog page, where the catalog lists no specs at that weight so the 15 lb ones are shown" })
+              }
+            />
+            <SpecItem label={t({ message: "RG", comment: "Bowling term: radius of gyration, a ball spec" })} value={specs.rg !== null ? formatFixed(specs.rg, 2) : "-"} />
+            <SpecItem label={t({ message: "Diff", comment: "Bowling term: the differential, a ball spec (short for differential RG)" })} value={specs.diff !== null ? formatFixed(specs.diff, 3) : "-"} />
+            {specs.mbDiff !== null && <SpecItem label={t({ message: "MB diff", comment: "Bowling term: the mass bias differential, a ball spec" })} value={formatFixed(specs.mbDiff, 3)} />}
           </dl>
 
           {/* The manufacturer's own page for the ball, so the specs above can
@@ -272,18 +298,18 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
           )}
 
           {/* Into the comparison from the ball itself, beside the list's own
-              picking (ADR-258); once two are picked, straight to it. */}
+              picking (ADR-258); once in, again at another weight (ADR-262);
+              once two are picked, straight to it. */}
           <div className="mt-2 flex gap-2">
             <Button
               variant="secondary"
-              onClick={onToggleCompare}
-              disabled={!comparing && compareCount >= MAX_COMPARE}
+              onClick={onAddToCompare ?? undefined}
+              disabled={onAddToCompare === null}
               className="flex-1"
-              aria-pressed={comparing}
             >
               {comparing ? <Check size={16} aria-hidden="true" /> : <Columns3 size={16} aria-hidden="true" />}
               {comparing
-                ? t({ message: "In compare", comment: "A button showing this ball is picked to compare; tapping it takes the ball out" })
+                ? t({ message: "Add another weight", comment: "Adds this bowling ball to the comparison again, at another weight" })
                 : t({ message: "Add to compare", comment: "Picks this bowling ball to compare with others" })}
             </Button>
             {comparing && compareCount >= 2 && onOpenCompare && (
@@ -292,6 +318,12 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
               </Button>
             )}
           </div>
+
+          {comparing && (
+            <p className="mt-2 px-1 text-footnote text-ink-secondary">
+              {t({ message: `In compare at ${{ weights: comparedAt.map(lb).join(", ") }}`, comment: "Under the compare buttons: the weights this bowling ball is being compared at, such as 15 lb, 14 lb" })}
+            </p>
+          )}
 
           {ball.coreName && coreKin.length > 0 && (
             <KinRow
@@ -401,14 +433,17 @@ function SpecItem({ label, value }: { label: string; value: string }) {
 
 interface AddFromCatalogDialogProps {
   ball: CatalogBall;
-  onConfirm: (name: string, colorwaySku?: string) => void;
+  onConfirm: (name: string, weight: number, colorwaySku?: string) => void;
   onCancel: () => void;
   isSaving: boolean;
   error: string;
+  /** What the weight opens on: the bowler's default (ADR-262). */
+  defaultWeight: number;
 }
 
-function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: AddFromCatalogDialogProps) {
+function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error, defaultWeight }: AddFromCatalogDialogProps) {
   const [name, setName] = useState(`${ball.brand} ${ball.name}`);
+  const [weight, setWeight] = useState(defaultWeight);
   const colorways = ball.colorways ?? [];
   const [colorwaySku, setColorwaySku] = useState<string | undefined>(colorways[0]?.sku);
 
@@ -416,7 +451,7 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
     <FormSheet
       title={t`Add to arsenal`}
       onClose={onCancel}
-      onConfirm={() => onConfirm(name.trim(), colorwaySku)}
+      onConfirm={() => onConfirm(name.trim(), weight, colorwaySku)}
       confirmLabel={t`Add to arsenal`}
       confirmDisabled={isSaving || !name.trim()}
       banner={error ? <ErrorBanner>{error}</ErrorBanner> : undefined}
@@ -434,6 +469,18 @@ function AddFromCatalogDialog({ ball, onConfirm, onCancel, isSaving, error }: Ad
         onChange={(e) => setName(e.target.value)}
         className={FIELD}
       />
+      <div className="mt-3">
+        <label className={FIELD_LABEL} htmlFor="catalog-ball-weight">
+          {t`Weight`}
+        </label>
+        <Select id="catalog-ball-weight" value={String(weight)} onChange={(e) => setWeight(Number(e.target.value))}>
+          {BALL_WEIGHTS.map((w) => (
+            <option key={w} value={String(w)}>
+              {lb(w)}
+            </option>
+          ))}
+        </Select>
+      </div>
       {colorways.length > 1 && (
         <div className="mt-3">
           <p className={FIELD_LABEL}>{t`Colorway`}</p>
@@ -474,9 +521,9 @@ interface CatalogViewProps {
   onShowList?: () => void;
   /** What the list opens already searched for, from the app's search. */
   initialSearch?: string;
-  /** Opens straight on the comparison's map, from the arsenal (ADR-261):
-   *  the map is then the screen, and back from it leaves the catalog. */
-  openMap?: boolean;
+  /** Opens straight on the comparison's graph, from the arsenal (ADR-261):
+   *  the graph is then the screen, and back from it leaves the catalog. */
+  openGraph?: boolean;
 }
 
 /** The nearest ancestor that scrolls vertically, or null for the page. */
@@ -488,7 +535,9 @@ function scrollParent(el: HTMLElement): HTMLElement | null {
   return null;
 }
 
-export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = [], onShowList, initialSearch, openMap = false }: CatalogViewProps) {
+export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = [], onShowList, initialSearch, openGraph = false }: CatalogViewProps) {
+  // The weight the catalog reads its specs at and adds balls at (ADR-262).
+  const defaultWeight = useLiveQuery(getDefaultBallWeight, [], null) ?? DEFAULT_WEIGHT;
   const [syncState, setSyncState] = useState<SyncState>({ status: "idle" });
   // The catalog is the one thing in the app that needs the network once. An
   // offline empty state that says "Refresh" offers a button that cannot work,
@@ -514,27 +563,29 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   const [addSaving, setAddSaving] = useState(false);
   const [addError, setAddError] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  // The balls picked to compare, by catalog id, kept while the catalog is
-  // closed and opened again (ADR-258). Picking is a mode of the list: on, a
-  // tap on a row picks the ball rather than opening it.
-  const [compareIds, setCompareIds] = useRememberedState<string[]>("catalog:compare", []);
+  // The balls picked to compare, each at its own weight, kept while the
+  // catalog is closed and opened again (ADR-258, ADR-262). Picking is a mode
+  // of the list: on, a tap on a row adds the ball rather than opening it.
+  const [compared, setCompared] = useRememberedState<CompareEntry[]>("catalog:compared", []);
   const [picking, setPicking] = useState(false);
-  // Opened from the arsenal, the map is the screen and the list is not
-  // drawn under it, until View all on a ball asks for the list.
-  const [mapOnly, setMapOnly] = useState(openMap);
-  const [compareOpen, setCompareOpen] = useState(openMap);
+  // Opened from the arsenal, the graph is the screen and the list is not
+  // drawn under it, until View all on a ball or Add a ball asks for the list.
+  const [graphOnly, setGraphOnly] = useState(openGraph);
+  const [compareOpen, setCompareOpen] = useState(openGraph);
+  const [compareTab, setCompareTab] = useState<CompareTab>(openGraph ? "graph" : "specs");
   // The ball the comparison was opened over, null for the list: a ball opened
-  // from the comparison's map goes over it, and those under it stay under.
+  // from the comparison's graph goes over it, and those under it stay under.
   const [compareOver, setCompareOver] = useState<string | null>(null);
-  const openCompare = () => {
+  const openCompare = (tab: CompareTab = "specs") => {
+    setCompareTab(tab);
     setCompareOver(selectedBallId);
     setCompareOpen(true);
   };
   const [menuAt, setMenuAt] = useState<MenuAnchor | null>(null);
-  const toggleCompare = (id: string) =>
-    setCompareIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : ids.length >= MAX_COMPARE ? ids : [...ids, id]));
   // Set of catalog IDs the user already owns
   const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set());
+  // The bag itself, for the weights its balls are in.
+  const [arsenal, setArsenal] = useState<Ball[]>([]);
   const syncStarted = useRef(false);
   const filterBarRef = useRef<HTMLDivElement | null>(null);
 
@@ -547,6 +598,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   // Load arsenal to build owned-id set.
   async function loadOwned() {
     const arsenalBalls = await getBalls();
+    setArsenal(arsenalBalls);
     const ids = new Set<string>();
     for (const b of arsenalBalls) {
       if (b.catalog_ref_id) {
@@ -592,7 +644,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   }
 
   // Memoized filtered + sorted list.
-  const displayed = useMemo(() => applyFilters(allBalls, filters, sort), [allBalls, filters, sort]);
+  const displayed = useMemo(() => applyFilters(allBalls, filters, sort, defaultWeight), [allBalls, filters, sort, defaultWeight]);
   // Twelve brands is a lot of chips, and a brand the loaded catalog has no
   // ball for would only filter the list down to nothing.
   const brandsPresent = useMemo(() => {
@@ -650,21 +702,55 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
     return ownedIds.has(key);
   }
 
-  // The picked balls in the order they were picked, and the bowler's own
-  // catalog balls for the map (ADR-258).
-  const compareBalls = compareIds
-    .map((id) => allBalls.find((b) => b.id === id))
-    .filter((b): b is CatalogBall => b !== undefined);
-  const ownedBalls = allBalls.filter(isOwned);
+  // The picked balls in the order they were picked, each at its weight, and
+  // the bowler's own catalog balls at the weights they hold them in, for the
+  // graph (ADR-258, ADR-262). A ball out of the bag is not on it.
+  const byId = useMemo(() => new Map(allBalls.map((b) => [b.id, b])), [allBalls]);
+  const byName = useMemo(() => new Map(allBalls.map((b) => [`${b.brand} ${b.name}`.toLowerCase(), b])), [allBalls]);
+  const compareBalls: WeighedBall[] = compared.flatMap((e) => {
+    const ball = byId.get(e.id);
+    return ball ? [{ ball, weight: e.weight }] : [];
+  });
+  const ownedBalls = useMemo(() => {
+    const seen = new Set<string>();
+    return arsenal.flatMap((b): WeighedBall[] => {
+      if (b.retired) return [];
+      const snap = b.catalog_snapshot;
+      const ball = (b.catalog_ref_id ? byId.get(b.catalog_ref_id) : undefined) ?? (snap ? byName.get(`${snap.brand} ${snap.name}`.toLowerCase()) : undefined);
+      if (!ball) return [];
+      const weight = b.weight ?? DEFAULT_WEIGHT;
+      const key = entryKey({ id: ball.id, weight });
+      if (seen.has(key)) return [];
+      seen.add(key);
+      return [{ ball, weight }];
+    });
+  }, [arsenal, byId, byName]);
 
-  async function handleAddToArsenal(catalogBall: CatalogBall, name: string, colorwaySku?: string) {
+  /** The weights a ball is compared at, in the order they were added. */
+  const comparedAt = (id: string) => compared.filter((e) => e.id === id).map((e) => e.weight);
+  /** The weight a ball would come into the comparison at, or null when it is
+   *  full or already holds the ball at every weight. */
+  const weightToAdd = (ball: CatalogBall): number | null => {
+    if (compared.length >= MAX_COMPARE) return null;
+    const owns = ownedBalls.filter((o) => o.ball.id === ball.id).map((o) => o.weight);
+    return nextWeight(ball, comparedAt(ball.id), defaultWeight, owns);
+  };
+  const addToCompare = (ball: CatalogBall) => {
+    const weight = weightToAdd(ball);
+    if (weight !== null) setCompared((entries) => [...entries, { id: ball.id, weight }]);
+  };
+
+  async function handleAddToArsenal(catalogBall: CatalogBall, name: string, weight: number, colorwaySku?: string) {
     setAddSaving(true);
     setAddError("");
     try {
       const colorway = catalogBall.colorways?.find((c) => c.sku === colorwaySku);
+      // The numbers at the weight it is bought in, as the ball form stores them.
+      const specs = specsAt(catalogBall, weight);
       const payload: Omit<Ball, "id"> = {
         name,
         is_spare_ball: false,
+        weight,
         catalog_ref_id: catalogBall.id,
         ...(colorwaySku ? { colorway_sku: colorwaySku } : {}),
         catalog_snapshot: {
@@ -672,9 +758,9 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           name: catalogBall.name,
           coverstockCategory: catalogBall.coverstockCategory,
           coreName: catalogBall.coreName,
-          rg: catalogBall.rg,
-          diff: catalogBall.diff,
-          mbDiff: catalogBall.mbDiff,
+          rg: specs.rg,
+          diff: specs.diff,
+          mbDiff: specs.mbDiff,
           imageThumb: colorway?.imageThumb ?? catalogBall.imageThumb,
         },
       };
@@ -710,7 +796,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   // was left, so a ball opened from another's row slides in over that ball,
   // and back (or the drag) uncovers it (ADR-257). The comparison sits in
   // that stack where it was opened: over the ball it came from, or under
-  // every ball when it came from the list, so a ball opened from its map
+  // every ball when it came from the list, so a ball opened from its graph
   // goes over it and back comes back to it (ADR-261).
   const stack = [...ballTrail, selectedBallId].filter((id): id is string => id !== null);
   const overAt = compareOver === null ? -1 : stack.indexOf(compareOver);
@@ -734,10 +820,11 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
         onBack={onBack}
         onAddToArsenal={(b) => { setAddingBall(b); setAddError(""); }}
         addDialogOpen={!top || addingBall != null || (compareOpen && i < compareAt) || menuAt !== null}
-        comparing={compareIds.includes(ball.id)}
-        compareCount={compareIds.length}
-        onToggleCompare={() => toggleCompare(ball.id)}
-        onOpenCompare={compareOpen ? undefined : openCompare}
+        comparedAt={comparedAt(ball.id)}
+        compareCount={compared.length}
+        onAddToCompare={weightToAdd(ball) === null ? null : () => addToCompare(ball)}
+        onOpenCompare={compareOpen ? undefined : () => openCompare()}
+        weight={defaultWeight}
         allBalls={allBalls}
         onSelectBall={onSelectBall}
         onViewAll={(filter) => {
@@ -750,7 +837,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           (bar && scrollParent(bar))?.scrollTo({ top: 0 });
           // The comparison goes with the balls: the list is what was asked for.
           setCompareOpen(false);
-          setMapOnly(false);
+          setGraphOnly(false);
           (onShowList ?? onBack)();
         }}
       />
@@ -761,11 +848,22 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
     <BallCompareView
       compared={compareBalls}
       owned={ownedBalls}
-      onRemove={(id) => setCompareIds((ids) => ids.filter((x) => x !== id))}
-      // From the arsenal, the map is the screen, so back leaves the catalog.
-      onBack={mapOnly ? onBack : () => setCompareOpen(false)}
-      backCloses={!mapOnly}
-      initialTab={openMap ? "map" : "specs"}
+      onRemove={(key) => setCompared((entries) => entries.filter((e) => entryKey(e) !== key))}
+      onWeightChange={(key, weight) =>
+        setCompared((entries) => entries.map((e) => (entryKey(e) === key ? { ...e, weight } : e)))
+      }
+      // Back to the list, picking, for another ball (ADR-262). Any ball the
+      // comparison was opened over goes with it: the list is what was asked for.
+      onAddBall={() => {
+        setCompareOpen(false);
+        setPicking(true);
+        if (graphOnly) setGraphOnly(false);
+        else if (selectedBallId !== null) (onShowList ?? onBack)();
+      }}
+      // From the arsenal, the graph is the screen, so back leaves the catalog.
+      onBack={graphOnly ? onBack : () => setCompareOpen(false)}
+      backCloses={!graphOnly}
+      initialTab={compareTab}
       onOpenBall={onSelectBall}
       active={addingBall === null && !coveredCompare}
     />
@@ -913,7 +1011,8 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
       {addingBall && (
         <AddFromCatalogDialog
           ball={addingBall}
-          onConfirm={(name, colorwaySku) => void handleAddToArsenal(addingBall, name, colorwaySku)}
+          onConfirm={(name, weight, colorwaySku) => void handleAddToArsenal(addingBall, name, weight, colorwaySku)}
+          defaultWeight={defaultWeight}
           onCancel={() => { setAddingBall(null); setAddError(""); }}
           isSaving={addSaving}
           error={addError}
@@ -944,8 +1043,8 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
     </>
   );
 
-  // From the arsenal, the map alone: no list under it to show on its way out.
-  if (mapOnly) return layers;
+  // From the arsenal, the graph alone: no list under it to show on its way out.
+  if (graphOnly) return layers;
 
   return (
     <PushScreen
@@ -953,12 +1052,14 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
       // Under the title rather than over the list: the title's block scrolls
       // away, and the bar carries the same line once it has, so the count
       // costs the pinned search and filters no height (ADR-253).
+      // With the weight the rows' numbers are at, the bowler's default
+      // (ADR-262).
       subtitle={
         allBalls.length > 0
-          ? plural(displayed.length, {
+          ? `${plural(displayed.length, {
               one: "# result",
               other: "# results"
-            })
+            })} · ${t({ message: `Specs at ${{ weight: lb(defaultWeight) }}`, comment: "Under the catalog's title: the ball weight the listed specs are for, such as 15 lb" })}`
           : undefined
       }
       onBack={onBack}
@@ -974,36 +1075,48 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
             <Check size={20} aria-hidden="true" />
           </IconButton>
         ) : (
-          // Comparing and asking for a ball, in one menu (ADR-261): a
-          // compare glyph alone in the bar did not say what it did.
-          <IconButton
-            variant="round"
-            label={t`More`}
-            onClick={(e) => setMenuAt(anchorUnder(e.currentTarget, ANCHORED_MENU_WIDTH))}
-          >
-            <MoreHorizontal size={20} aria-hidden="true" />
-          </IconButton>
+          <>
+            {/* Straight to the graph of the bag and any balls picked
+                (ADR-262), beside the menu. */}
+            <IconButton
+              variant="round"
+              label={t({ message: "Ball graph", comment: "Opens a graph placing bowling balls by RG and differential" })}
+              onClick={() => openCompare("graph")}
+            >
+              <ChartScatter size={20} aria-hidden="true" />
+            </IconButton>
+            {/* Comparing and asking for a ball, in one menu (ADR-261): a
+                compare glyph alone in the bar did not say what it did. */}
+            <IconButton
+              variant="round"
+              label={t`More`}
+              className="ml-1"
+              onClick={(e) => setMenuAt(anchorUnder(e.currentTarget, ANCHORED_MENU_WIDTH))}
+            >
+              <MoreHorizontal size={20} aria-hidden="true" />
+            </IconButton>
+          </>
         )
       }
       footer={
-        compareIds.length > 0 && selectedBallId === null ? (
+        compared.length > 0 && selectedBallId === null ? (
           // The picked balls ride at the foot, in reach while the list
           // scrolls, with the way to compare them (ADR-258).
           <div className="flex items-center gap-2 border-t border-edge bg-surface px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2.5 sm:px-6">
             <span className="flex shrink-0">
               {compareBalls.map((b, i) => (
-                <span key={b.id} className={`block h-8 w-8 ${i ? "-ml-2" : ""}`}>
-                  <CatalogBallImage src={b.imageThumb} alt="" brand={b.brand} size="thumb" />
+                <span key={entryKey({ id: b.ball.id, weight: b.weight })} className={`block h-8 w-8 ${i ? "-ml-2" : ""}`}>
+                  <CatalogBallImage src={b.ball.imageThumb} alt="" brand={b.ball.brand} size="thumb" />
                 </span>
               ))}
             </span>
             <span className="min-w-0 flex-1 text-footnote font-semibold text-ink">
-              {t({ message: `${{ count: compareIds.length }} of ${{ max: MAX_COMPARE }}`, comment: "How many bowling balls are picked to compare, out of the most allowed" })}
+              {t({ message: `${{ count: compared.length }} of ${{ max: MAX_COMPARE }}`, comment: "How many bowling balls are picked to compare, out of the most allowed" })}
             </span>
-            <Button variant="ghost" onClick={() => setCompareIds([])} className="shrink-0">
+            <Button variant="ghost" onClick={() => setCompared([])} className="shrink-0">
               {t({ message: "Clear", comment: "Takes every ball out of the comparison" })}
             </Button>
-            <Button variant="primary" onClick={openCompare} className="shrink-0">
+            <Button variant="primary" onClick={() => openCompare()} className="shrink-0">
               {t({ message: "Compare", comment: "Opens the comparison of the picked bowling balls" })}
             </Button>
           </div>
@@ -1118,25 +1231,31 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           )
         ) : (
           <ul className="divide-y divide-edge rounded-xl border border-edge bg-surface shadow-sm">
-            {shown.map((ball) => (
+            {shown.map((ball) => {
+              const picked = picking ? comparedAt(ball.id).length : 0;
+              const specs = specsAt(ball, defaultWeight);
+              return (
               <li key={ball.id} style={ROW_PAINT}>
                 <button
                   type="button"
-                  // Picking, a tap picks the ball for the comparison; else it
-                  // opens the ball (ADR-258).
-                  onClick={() => (picking ? toggleCompare(ball.id) : onSelectBall(ball.id))}
-                  aria-pressed={picking ? compareIds.includes(ball.id) : undefined}
-                  disabled={picking && !compareIds.includes(ball.id) && compareIds.length >= MAX_COMPARE}
+                  // Picking, a tap adds the ball to the comparison at the
+                  // bowler's default weight, and again at another (ADR-262);
+                  // else it opens the ball (ADR-258).
+                  onClick={() => (picking ? addToCompare(ball) : onSelectBall(ball.id))}
+                  aria-pressed={picking ? picked > 0 : undefined}
+                  disabled={picking && weightToAdd(ball) === null}
                   className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-surface-muted disabled:opacity-50"
                 >
                   {picking && (
                     <span
                       aria-hidden="true"
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
-                        compareIds.includes(ball.id) ? "border-transparent bg-accent-fill text-accent-on-fill" : "border-edge-strong"
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-caption-2 font-bold tabular-nums ${
+                        picked > 0 ? "border-transparent bg-accent-fill text-accent-on-fill" : "border-edge-strong"
                       }`}
                     >
-                      {compareIds.includes(ball.id) && <Check size={14} strokeWidth={3} />}
+                      {/* A tick, or how many times once it is in at two weights. */}
+                      {picked === 1 && <Check size={14} strokeWidth={3} />}
+                      {picked > 1 && formatNumber(picked)}
                     </span>
                   )}
                   <div className="h-10 w-10 shrink-0">
@@ -1166,14 +1285,15 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
                         formatReleaseDate(ball.releaseDate),
                         ball.coverstockCategory ? coverstockLabel(ball.coverstockCategory) : null,
                         ball.coreType ? coreTypeLabel(ball.coreType) : null,
-                        ball.rg !== null ? t({ message: `RG ${{ rg: formatFixed(ball.rg, 2) }}`, comment: "Bowling term: RG is the radius of gyration, a ball spec, followed by its value" }) : null,
-                        ball.diff !== null ? t({ message: `Diff ${{ diff: formatFixed(ball.diff, 3) }}`, comment: "Bowling term: the differential, a ball spec (short for differential RG), followed by its value" }) : null,
+                        specs.rg !== null ? t({ message: `RG ${{ rg: formatFixed(specs.rg, 2) }}`, comment: "Bowling term: RG is the radius of gyration, a ball spec, followed by its value" }) : null,
+                        specs.diff !== null ? t({ message: `Diff ${{ diff: formatFixed(specs.diff, 3) }}`, comment: "Bowling term: the differential, a ball spec (short for differential RG), followed by its value" }) : null,
                       ].filter(Boolean).join(" · ") || "-"}
                     </p>
                   </div>
                 </button>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
         {/* Grows the window when it scrolls into view. Rendered only while

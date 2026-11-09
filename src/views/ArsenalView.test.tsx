@@ -56,12 +56,14 @@ describe("ArsenalView", () => {
     expect(await screen.findByText("15 lb")).toBeInTheDocument();
   });
 
-  it("opens the ball map from under the bag (ADR-261)", async () => {
+  it("opens the ball graph from the bar's corner, beside Add (ADR-262)", async () => {
     await addBall({ name: "Phaze II", is_spare_ball: false });
-    const onOpenBallMap = vi.fn();
-    render(<ArsenalView onBack={vi.fn()} onOpenBallMap={onOpenBallMap} />);
-    fireEvent.click(await screen.findByRole("button", { name: /Ball map/ }));
-    expect(onOpenBallMap).toHaveBeenCalled();
+    const onOpenBallGraph = vi.fn();
+    render(<ArsenalView onBack={vi.fn()} onOpenBallGraph={onOpenBallGraph} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Ball graph" }));
+    expect(onOpenBallGraph).toHaveBeenCalled();
+    // Not a row under the bag any more.
+    expect(screen.queryByText(/Your bag by RG and diff/)).toBeNull();
   });
 
   it("still shows what was typed on a ball entered before layouts were numbers", async () => {

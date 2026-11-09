@@ -8,7 +8,10 @@ import { IconButton } from "../components/ui/IconButton";
 import { DEFAULT_PAP, formatInches } from "../lib/ballLayout";
 import { formatNumber } from "../lib/format";
 import type { PapMeasurement } from "../lib/ballLayout";
-import { getGripStyle, getPap, setGripStyle, setPap } from "../services/bowlingRepository";
+import { getDefaultBallWeight, getGripStyle, getPap, setDefaultBallWeight, setGripStyle, setPap } from "../services/bowlingRepository";
+import { BALL_WEIGHTS } from "../lib/ballCompare";
+import { DEFAULT_WEIGHT } from "../types/catalog";
+import { Select } from "../components/ui/Select";
 import { PushScreen } from "../components/PushScreen";
 import { DriftZoneLane } from "../components/DriftZoneLane";
 import { ZONE_ACCENT } from "../components/driftZoneAccent";
@@ -74,6 +77,8 @@ function zoneDriftMove(zone: (typeof ZONES)[number], side: "left" | "right"): st
 interface Draft {
   hand: Handedness;
   grip: GripStyle;
+  /** The weight the catalog and the comparison read balls at (ADR-262). */
+  weight: number;
   pap: PapMeasurement;
   drift: DriftModel;
 }
@@ -90,6 +95,7 @@ export function BowlingProfileView({
   // a read taken once at mount would sit here stale behind the page that is
   // pushed over this very screen.
   const savedPap = useLiveQuery(getPap, [], undefined) ?? DEFAULT_PAP;
+  const savedWeight = useLiveQuery(getDefaultBallWeight, [], null) ?? DEFAULT_WEIGHT;
 
   // Read, not edited, until the pencil: the hand mirrors every board in the app,
   // and the zones and the drop-downs sit under a thumb that is only scrolling.
@@ -107,12 +113,13 @@ export function BowlingProfileView({
   }, []);
   const [infoOpen, setInfoOpen] = useState(false);
   const editing = draft !== null;
-  const saved: Draft = { hand: handedness, grip: savedGrip, pap: savedPap, drift: savedDrift };
+  const saved: Draft = { hand: handedness, grip: savedGrip, weight: savedWeight, pap: savedPap, drift: savedDrift };
   // Only what was changed is held, so a value that finishes loading after the
   // pencil is pressed still shows through.
   const shown: Draft = { ...saved, ...draft };
   const value = shown.hand;
   const grip = shown.grip;
+  const weight = shown.weight;
   const pap = shown.pap;
   const driftModel = shown.drift;
 
@@ -124,6 +131,7 @@ export function BowlingProfileView({
     const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
     if (draft.hand !== undefined && draft.hand !== saved.hand) onHandednessChange(draft.hand);
     if (draft.grip !== undefined && draft.grip !== saved.grip) await setGripStyle(draft.grip);
+    if (draft.weight !== undefined && draft.weight !== saved.weight) await setDefaultBallWeight(draft.weight);
     if (draft.pap !== undefined && !same(draft.pap, saved.pap)) await setPap(draft.pap);
     if (draft.drift !== undefined && !same(draft.drift, saved.drift)) onDriftModelChange(draft.drift);
     setDraft(null);
@@ -181,6 +189,25 @@ export function BowlingProfileView({
           />
         ) : (
           <ReadValue>{grip === "2h" ? t`Two-handed` : t`One-handed`}</ReadValue>
+        )}
+      </div>
+
+      {/* The weight the bowler throws: the catalog reads its specs at it,
+          and a ball comes into a comparison or the arsenal at it (ADR-262). */}
+      <div>
+        <h2 className={`mb-3 ${SETTING_HEADING}`}>
+          <label htmlFor="profile-ball-weight">{t({ message: "Default ball weight", comment: "The ball weight the bowler throws, which the catalog's specs and new balls start at" })}</label>
+        </h2>
+        {editing ? (
+          <Select id="profile-ball-weight" value={String(weight)} onChange={(e) => change({ weight: Number(e.target.value) })}>
+            {BALL_WEIGHTS.map((w) => (
+              <option key={w} value={String(w)}>
+                {t({ message: `${{ weight: w }} lb`, comment: "A ball weight in pounds, short" })}
+              </option>
+            ))}
+          </Select>
+        ) : (
+          <ReadValue>{t({ message: `${{ weight }} lb`, comment: "A ball weight in pounds, short" })}</ReadValue>
         )}
       </div>
 

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BallFormDialog } from "./BallFormDialog";
 import { db } from "../db/bowlingDb";
 import { addBall, getBalls } from "../services/ballRepository";
-import { setLayoutSystem } from "../services/bowlingRepository";
+import { setDefaultBallWeight, setLayoutSystem } from "../services/bowlingRepository";
 import type { BallLayoutSpec } from "../types/bowling";
 import type { CatalogBall } from "../types/catalog";
 import { ProAccessContext } from "../lib/useProAccess";
@@ -332,5 +332,15 @@ describe("BallFormDialog weight", () => {
     render(<BallFormDialog ball={null} onClose={vi.fn()} onSaved={vi.fn()} />);
     const options = Array.from((screen.getByLabelText(/Weight/) as HTMLSelectElement).options).map((o) => o.value);
     expect(options).toEqual(["16", "15", "14", "13", "12", "11", "10", "9", "8"]);
+  });
+
+  it("opens a new ball at the bowler's default weight (ADR-262)", async () => {
+    await db.delete();
+    await db.open();
+    await setDefaultBallWeight(14);
+    render(<BallFormDialog ball={null} onClose={vi.fn()} onSaved={vi.fn()} />);
+    await waitFor(() => expect(screen.getByLabelText(/Weight/)).toHaveValue("14"));
+    await db.delete();
+    await db.open();
   });
 });

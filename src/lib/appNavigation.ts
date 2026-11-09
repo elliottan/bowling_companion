@@ -147,9 +147,9 @@ export interface NavState {
   openArsenalBallId: number | null;
   /** What the pushed catalog opens already searched for, from a search. */
   catalogSearch: string | null;
-  /** The pushed catalog opens straight on the comparison's map, from the
+  /** The pushed catalog opens straight on the comparison's graph, from the
    *  arsenal (ADR-261). Content beside the overlay, like `catalogSearch`. */
-  catalogMap: boolean;
+  catalogGraph: boolean;
 }
 
 export type NavAction =
@@ -179,8 +179,8 @@ export type NavAction =
   | { type: "openArsenalBall"; ballId: number }
   /** The catalog, pushed, already searched for `query`. */
   | { type: "openCatalogSearch"; query: string }
-  /** The catalog, pushed, open on the comparison's map (ADR-261). */
-  | { type: "openBallMap" }
+  /** The catalog, pushed, open on the comparison's graph (ADR-261). */
+  | { type: "openBallGraph" }
   | { type: "openReportLine"; lineId: string }
   /** Open the layout lab, optionally on a layout something else chose. */
   | { type: "openLayoutLab"; seed?: LayoutSeed }
@@ -240,7 +240,7 @@ export const INITIAL_NAV: NavState = {
   openPatternId: null,
   openArsenalBallId: null,
   catalogSearch: null,
-  catalogMap: false
+  catalogGraph: false
 };
 
 export function navReducer(state: NavState, action: NavAction): NavState {
@@ -344,7 +344,7 @@ function reduce(state: NavState, action: NavAction): NavState {
         openPatternId: null,
         openArsenalBallId: null,
         catalogSearch: null,
-        catalogMap: false
+        catalogGraph: false
       };
 
     case "pushOverlay":
@@ -362,7 +362,7 @@ function reduce(state: NavState, action: NavAction): NavState {
             openPatternId: action.overlay === "oil-patterns" ? null : state.openPatternId,
             openArsenalBallId: action.overlay === "arsenal" ? null : state.openArsenalBallId,
             catalogSearch: action.overlay === "catalog" ? null : state.catalogSearch,
-            catalogMap: action.overlay === "catalog" ? false : state.catalogMap
+            catalogGraph: action.overlay === "catalog" ? false : state.catalogGraph
           };
 
     case "popOverlay": {
@@ -395,7 +395,7 @@ function reduce(state: NavState, action: NavAction): NavState {
         openPatternId: overlays.includes("oil-patterns") ? state.openPatternId : null,
         openArsenalBallId: overlays.includes("arsenal") ? state.openArsenalBallId : null,
         catalogSearch: overlays.includes("catalog") ? state.catalogSearch : null,
-        catalogMap: overlays.includes("catalog") ? state.catalogMap : false
+        catalogGraph: overlays.includes("catalog") ? state.catalogGraph : false
       };
       return overlays.includes("session")
         ? { ...state, ...seeds, overlays, layoutSeed: next, lineSandboxPatternId: pattern }
@@ -404,7 +404,7 @@ function reduce(state: NavState, action: NavAction): NavState {
 
     case "openCatalogBall":
       return action.push && state.overlays[state.overlays.length - 1] !== "catalog"
-        ? { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: null, catalogMap: false, catalogBallId: action.ballId, catalogBallTrail: [] }
+        ? { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: null, catalogGraph: false, catalogBallId: action.ballId, catalogBallTrail: [] }
         : {
             ...state,
             catalogBallId: action.ballId,
@@ -437,10 +437,10 @@ function reduce(state: NavState, action: NavAction): NavState {
       return { ...state, overlays: [...state.overlays, "arsenal"], openArsenalBallId: action.ballId };
 
     case "openCatalogSearch":
-      return { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: action.query, catalogMap: false, catalogBallId: null };
+      return { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: action.query, catalogGraph: false, catalogBallId: null };
 
-    case "openBallMap":
-      return { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: null, catalogMap: true, catalogBallId: null, catalogBallTrail: [] };
+    case "openBallGraph":
+      return { ...state, overlays: [...state.overlays, "catalog"], catalogSearch: null, catalogGraph: true, catalogBallId: null, catalogBallTrail: [] };
 
     case "openReportLine":
       return { ...state, reportLineId: action.lineId };
@@ -541,7 +541,7 @@ function reduce(state: NavState, action: NavAction): NavState {
         openPatternId: route.overlays.includes("oil-patterns") ? state.openPatternId : null,
         openArsenalBallId: route.overlays.includes("arsenal") ? state.openArsenalBallId : null,
         catalogSearch: route.overlays.includes("catalog") ? state.catalogSearch : null,
-        catalogMap: route.overlays.includes("catalog") ? state.catalogMap : false
+        catalogGraph: route.overlays.includes("catalog") ? state.catalogGraph : false
       };
     }
 
