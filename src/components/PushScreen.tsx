@@ -81,6 +81,9 @@ interface PushScreenProps {
    * the iPhone, and the page showed through the gap beneath it.
    */
   footer?: ReactNode;
+  /** No scroll bar on the scroll area, for a list that grows as it scrolls,
+   *  where the bar only ever says there is more (the catalog, ADR-266). */
+  hideScrollbar?: boolean;
   children: ReactNode;
 }
 
@@ -114,6 +117,7 @@ export function PushScreen({
   onLeave,
   layer = "shell",
   footer,
+  hideScrollbar = false,
   heading,
   largeTitle = !bar || heading !== undefined,
   eyebrow,
@@ -289,7 +293,7 @@ export function PushScreen({
             sticky rows stop at the scroll area's padding; offsetting it by
             `--push-bar-h` as well counts the bar twice. */}
         <div
-          className={`ios-bounce min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[var(--push-bar-h)] ${
+          className={`ios-bounce min-h-0 flex-1 overflow-y-auto overscroll-contain pt-[var(--push-bar-h)] ${hideScrollbar ? "scrollbar-none " : ""}${
             // Inline, a Settings section, runs under the tab bar like its tab.
             // A footer pays the bottom inset in place of the scroll area.
             footer ? "" : overlay ? "pb-[max(env(safe-area-inset-bottom),var(--keyboard-inset,0px))]" : "pb-[var(--tab-clear,0px)]"

@@ -63,7 +63,18 @@ describe("BallCompareView (ADR-258, ADR-262)", () => {
     const onRemove = vi.fn();
     render(<BallCompareView compared={[at(ignition), at(widow)]} owned={[]} onRemove={onRemove} onBack={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: "Remove Widow, 15 lb" }));
+    // It asks first (ADR-266).
+    expect(onRemove).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Remove from compare" }));
     expect(onRemove).toHaveBeenCalledWith("Widow@15");
+  });
+
+  it("opens a ball's page from its column, and scrolls sideways under the row names (ADR-266)", () => {
+    const onOpenBall = vi.fn();
+    render(<BallCompareView compared={[at(ignition), at(widow)]} owned={[]} onRemove={vi.fn()} onOpenBall={onOpenBall} onBack={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Open Widow" }));
+    expect(onOpenBall).toHaveBeenCalledWith("Widow");
+    expect(screen.getByRole("rowheader", { name: "RG" }).className).toContain("sticky");
   });
 
   it("offers Add a ball only while a column is free", () => {
@@ -72,7 +83,8 @@ describe("BallCompareView (ADR-258, ADR-262)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Add a ball" }));
     expect(onAddBall).toHaveBeenCalled();
 
-    rerender(<BallCompareView compared={[at(ignition), at(ignition, 14), at(widow), at(widow, 14)]} owned={[]} onRemove={vi.fn()} onAddBall={onAddBall} onBack={vi.fn()} />);
+    const full = [16, 15, 14, 13].flatMap((w) => [at(ignition, w), at(widow, w)]);
+    rerender(<BallCompareView compared={full} owned={[]} onRemove={vi.fn()} onAddBall={onAddBall} onBack={vi.fn()} />);
     expect(screen.queryByRole("button", { name: "Add a ball" })).toBeNull();
   });
 
@@ -127,8 +139,9 @@ describe("BallCompareView (ADR-258, ADR-262)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Your bag, 2 balls" }));
     expect(chart.querySelectorAll("[data-ball]")).toHaveLength(1);
 
-    // A compared ball is always drawn; switched off, it leaves the comparison.
+    // A compared ball is always drawn; switched off, it asks, then leaves.
     fireEvent.click(screen.getByRole("button", { name: "Remove Widow, 15 lb" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove from compare" }));
     expect(onRemove).toHaveBeenCalledWith("Widow@15");
   });
 

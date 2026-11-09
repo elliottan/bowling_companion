@@ -11044,3 +11044,39 @@ card picks the new copy up.
 **Consequences.** The sheet's colourway chips go with it: the arsenal form has
 never chosen a colourway, so a ball added from the catalog shows the catalog's
 first photo, as one linked from the arsenal always has.
+
+## ADR-266: Eight to compare, a tray on every catalog screen, and a ball leaves only when asked
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-258,
+ADR-262 and ADR-263.
+
+**Context.** The picked balls rode in a tray under the catalog's list only,
+overlapping, with a count ("2 of 4") and a Clear that emptied it in one tap.
+A ball's page had its own Compare N button. Nothing in the list showed which
+balls were in. Taking one out was a tap on an X in the comparison, with no
+second chance, and four was the most.
+
+**Decision.**
+
+- **Eight balls** (`MAX_COMPARE`). The specs table scrolls sideways with its
+  row names frozen at the left, and a tap on a column's ball opens its page.
+- **The tray sits at the foot of every catalog screen** while any ball is in:
+  the list, a ball's page and a View all list. Each ball is its own photo with
+  its weight under it, apart from the next; a faint dashed ring stands for each
+  slot still free; Compare sits at its end. No count, no Clear. Eight do not fit
+  a phone, so the row scrolls sideways, with nothing drawn to say so.
+- **A ball leaves only when asked.** A tap on it in the tray, its X in the
+  table, its photo in the graph's key, or its weight on its own page opens one
+  red row, Remove from compare (`RemoveFromCompare`); a tap anywhere else keeps
+  it. The ball's page lists the weights it is in at as chips under "In
+  compare", and its Compare N button is gone: the tray is the way there.
+- **A ball in the comparison is tinted in the list**, in the accent's soft
+  fill, in the catalog's list and in a View all list.
+- **The graph's grid.** Diff every 0.010, labelled to three places ("0.050"),
+  the odd ones dotted so 0.030 and 0.050 are there without crowding; RG every
+  0.05 with a dotted line halfway between.
+- **The catalog's list draws no scroll bar** (`PushScreen` `hideScrollbar`):
+  it grows as it scrolls, so a bar only ever said there was more.
+
+**Consequences.** Emptying the comparison is a tap per ball. A tray at the foot
+of a ball's page takes its height from the page while any ball is in.

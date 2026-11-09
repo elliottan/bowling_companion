@@ -51,6 +51,11 @@ vi.mock("../lib/links", async (importOriginal) => {
   };
 });
 
+/** The balls in the compare tray at the foot (ADR-266). */
+function trayBalls() {
+  return within(screen.getAllByRole("list", { name: "In compare" })[0]).getAllByRole("button");
+}
+
 function renderCatalog() {
   render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
 }
@@ -220,10 +225,10 @@ describe("CatalogView", () => {
     fireEvent.click(screen.getByRole("button", { name: "More" }));
     fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
     // Picking, a row picks rather than opens.
-    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Ball 3/ }));
-    expect(screen.getByRole("button", { name: /Ball 1/ })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText("2 of 4")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 1/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 3/ }));
+    expect(screen.getByRole("button", { name: /^Storm.*Ball 1/ })).toHaveAttribute("aria-pressed", "true");
+    expect(trayBalls()).toHaveLength(2);
 
     fireEvent.click(screen.getByRole("button", { name: "Compare" }));
     const compare = await screen.findByRole("dialog", { name: "Compare" });
@@ -241,9 +246,9 @@ describe("CatalogView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "More" }));
     fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
-    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
-    expect(screen.getByText("2 of 4")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 1/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 1/ }));
+    expect(trayBalls()).toHaveLength(2);
 
     fireEvent.click(screen.getByRole("button", { name: "Compare" }));
     const compare = await screen.findByRole("dialog", { name: "Compare" });
@@ -266,7 +271,7 @@ describe("CatalogView", () => {
     fireEvent.click(screen.getByRole("button", { name: "More" }));
     fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
     fireEvent.click(await screen.findByRole("button", { name: /Ball 0/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 1/ }));
     fireEvent.click(screen.getByRole("button", { name: "Compare" }));
     const compare = await screen.findByRole("dialog", { name: "Compare" });
     // Theirs, at 13 lb and no menu; the catalog's ball has one.
@@ -281,7 +286,7 @@ describe("CatalogView", () => {
     await screen.findByText("Ball 0");
     fireEvent.click(screen.getByRole("button", { name: "More" }));
     fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
-    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
+    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 1/ }));
     fireEvent.click(screen.getByRole("button", { name: "Done picking" }));
     fireEvent.click(screen.getByRole("button", { name: "Compare" }));
     const compare = await screen.findByRole("dialog", { name: "Compare" });
@@ -289,8 +294,8 @@ describe("CatalogView", () => {
     fireEvent.click(within(compare).getByRole("button", { name: "Add a ball" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Compare" })).toBeNull());
     // Picking again: a tap adds the ball rather than opening it.
-    fireEvent.click(screen.getByRole("button", { name: /Ball 2/ }));
-    expect(screen.getByText("2 of 4")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 2/ }));
+    expect(trayBalls()).toHaveLength(2);
   });
 
   it("shows the bowler's copies of a ball over its specs, one at a time, and still offers another (ADR-263)", async () => {
@@ -331,6 +336,31 @@ describe("CatalogView", () => {
     await waitFor(async () => expect(await db.balls.toArray()).toHaveLength(1));
     const [saved] = await db.balls.toArray();
     expect(saved).toMatchObject({ name: "Storm Ball 1", weight: 14, catalog_ref_id: "ball-1" });
+  });
+
+  it("keeps the tray over a ball's page, tints compared rows, and asks before a ball leaves (ADR-266)", async () => {
+    await seedCatalog(3);
+    const { rerender } = render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
+    await screen.findByText("Ball 0");
+    fireEvent.click(screen.getByRole("button", { name: "More" }));
+    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 1/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Done picking" }));
+    // Tinted in the list, no count and no Clear in the tray.
+    expect(screen.getByRole("button", { name: /^Storm.*Ball 1/ }).className).toContain("bg-accent-soft");
+    expect(screen.queryByText(/of 8/)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Clear" })).toBeNull();
+
+    // Over the ball's page too, where its weight is a chip that asks first.
+    rerender(<CatalogView onBack={vi.fn()} selectedBallId="ball-1" onSelectBall={vi.fn()} />);
+    const page = await screen.findByRole("dialog", { name: "Ball 1" });
+    expect(within(page).getByRole("list", { name: "In compare" })).toBeInTheDocument();
+    const chips = within(page).getAllByRole("button", { name: "Remove Ball 1, 15 lb" });
+    fireEvent.click(chips[0]);
+    // Kept until the menu's row is tapped.
+    expect(trayBalls()).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: "Remove from compare" }));
+    await waitFor(() => expect(screen.queryAllByRole("list", { name: "In compare" })).toHaveLength(0));
   });
 
   it("opens the ball graph from the bar's corner (ADR-262)", async () => {

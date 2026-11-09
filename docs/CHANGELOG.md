@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.103.0: Your copies on a ball's page, the graph's key switches balls, and View all keeps your place (2026-11-09)
+## 0.103.0: Compare up to 8 balls, your copies on a ball's page, and View all keeps your place (2026-11-09)
 
 ### Changed
 
@@ -18,6 +18,12 @@ had all shipped.
 - On the ball graph, tap a ball's photo in the list under it to show or hide it on the graph; tap its name for its details. Hiding a ball you are comparing takes it out of Compare.
 - Your bag's button now sits above that list: with every ball shown it hides them all, otherwise it shows them all.
 - The graph's axes now just say RG and Diff; tap either to see what it means.
+- Compare now holds up to 8 balls. The specs table scrolls sideways with the row names held at the left, and tapping a ball's photo or name in it opens the ball (ADR-266).
+- The compare tray now stays at the bottom of the catalog, a ball's page and View all lists while any ball is in it. Each ball sits on its own with its weight, empty slots show as faint rings, and the count and Clear button are gone.
+- Removing a ball from Compare, from the tray, the table, the graph's list or a ball's page, now asks first. A ball's page shows the weights it is in Compare at, each tappable to remove.
+- Balls in Compare are tinted in the catalog's list.
+- The graph labels diff to three places (0.050) with lines at every 0.010, and adds dotted lines halfway between the RG marks.
+- The catalog's list no longer shows a scroll bar.
 - View all on a ball's Same core or Same cover row now opens the list over that ball, so back returns to the ball instead of leaving the catalog (ADR-264).
 
 ## 0.102.0: The ball graph, every ball at its own weight, and a default ball weight (2026-11-09)

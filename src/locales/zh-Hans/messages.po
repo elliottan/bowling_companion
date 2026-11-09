@@ -272,11 +272,6 @@ msgstr "{count} · 全中 {strike}"
 msgid "{count} colors"
 msgstr "{count} 种颜色"
 
-#. How many bowling balls are picked to compare, out of the most allowed
-#: src/views/CatalogView.tsx
-msgid "{count} of {max}"
-msgstr "{count} / {max}"
-
 #: src/components/SessionTrendChart.tsx
 msgid "{date}, {alley}, average {average}"
 msgstr "{date}，{alley}，平均分 {average}"
@@ -1386,9 +1381,7 @@ msgid "Choose one"
 msgstr "选择一个"
 
 #. Removes every recent search
-#. Takes every ball out of the comparison
 #: src/components/SessionFilterBar.tsx
-#: src/views/CatalogView.tsx
 #: src/views/SearchView.tsx
 msgid "Clear"
 msgstr "清除"
@@ -1467,11 +1460,6 @@ msgstr "即将上架 App Store"
 #: src/views/CatalogView.tsx
 msgid "Compare"
 msgstr "比较"
-
-#. Opens the comparison of the picked bowling balls, with how many are picked
-#: src/views/CatalogView.tsx
-msgid "Compare {count}"
-msgstr "比较 {count} 颗"
 
 #. A menu item: starts picking bowling balls in the catalog to compare them
 #: src/views/CatalogView.tsx
@@ -2507,10 +2495,11 @@ msgstr "导入失败。"
 msgid "In"
 msgstr "内"
 
-#. Under the compare buttons: the weights this bowling ball is being compared at, such as 15 lb, 14 lb
+#. Before the weights a bowling ball is being compared at, each a button that takes it out
+#. Before the weights a bowling ball is being compared at, each a button that takes it out
 #: src/views/CatalogView.tsx
-msgid "In compare at {weights}"
-msgstr "比较中：{weights}"
+msgid "In compare"
+msgstr "比较中"
 
 #: src/components/MetricTrendChart.tsx
 msgid "In order. {points}."
@@ -3456,6 +3445,7 @@ msgstr "仅限这些球瓶"
 msgid "Open {leave}"
 msgstr "打开 {leave}"
 
+#: src/components/BallCompareView.tsx
 #: src/components/BallPeek.tsx
 #: src/components/Stats.tsx
 msgid "Open {name}"
@@ -3835,7 +3825,10 @@ msgstr "移除"
 
 #. Takes one bowling ball, at one weight, out of the comparison
 #. Takes one bowling ball, at one weight, out of the comparison
+#. Takes one bowling ball, at one weight, out of the comparison
+#. Takes one bowling ball, at one weight, out of the comparison
 #: src/components/BallCompareView.tsx
+#: src/views/CatalogView.tsx
 msgid "Remove {ball}, {weight}"
 msgstr "移除 {ball}，{weight}"
 
@@ -3846,6 +3839,11 @@ msgstr "要移除 {name} 吗？"
 #: src/components/SessionFilterBar.tsx
 msgid "Remove filter {filter}"
 msgstr "移除筛选条件 {filter}"
+
+#. Confirms taking one bowling ball out of the comparison
+#: src/components/RemoveFromCompare.tsx
+msgid "Remove from compare"
+msgstr "从比较中移除"
 
 #: src/components/BallFormDialog.tsx
 msgid "Remove layout"

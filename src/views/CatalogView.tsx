@@ -2,9 +2,9 @@ import { plural, t } from "@lingui/core/macro";
 import { ClearAllButton } from "../components/ui/ClearAllButton";
 import { Select } from "../components/ui/Select";
 import { Trans } from "@lingui/react/macro";
-import { BookOpen, ChartScatter, Check, Columns3, ExternalLink, Loader2, MailPlus, MoreHorizontal, Palette } from "lucide-react";
+import { BookOpen, ChartScatter, Check, Columns3, ExternalLink, Loader2, MailPlus, MoreHorizontal, Palette, X } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
 import { Button } from "../components/ui/Button";
 import { RangeSlider } from "../components/ui/RangeSlider";
@@ -31,6 +31,7 @@ import { DEFAULT_WEIGHT, MANUFACTURERS, type CatalogBall, type CoverstockCategor
 import type { Ball } from "../types/bowling";
 import { getBalls } from "../services/ballRepository";
 import { BallFormDialog } from "../components/BallFormDialog";
+import { RemoveFromCompare } from "../components/RemoveFromCompare";
 import { getDefaultBallWeight } from "../services/bowlingRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { formatReleaseDate } from "../lib/dates";
@@ -165,13 +166,14 @@ interface DetailPanelProps {
   onViewAll: (list: KinList) => void;
   /** The weights this ball is compared at, and how many balls are. */
   comparedAt: readonly number[];
-  compareCount: number;
+  /** Asks before one weight of this ball leaves the comparison (ADR-266). */
+  onAskRemove: (weight: number, el: Element) => void;
+  /** The compare tray, at the foot of this page too (ADR-266). */
+  tray?: ReactNode;
   /** Null when the comparison is full or holds the ball at every weight. */
   onAddToCompare: (() => void) | null;
   /** The bowler's default weight, which the specs are read at (ADR-262). */
   weight: number;
-  /** Absent while the comparison is open under the ball, which back reaches. */
-  onOpenCompare?: () => void;
 }
 
 // Swipeable colorway image carousel with pagination dots. Falls back to a
@@ -239,7 +241,7 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
   );
 }
 
-function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBalls, onSelectBall, onViewAll, comparedAt, compareCount, onAddToCompare, onOpenCompare, weight }: DetailPanelProps) {
+function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBalls, onSelectBall, onViewAll, comparedAt, onAskRemove, tray, onAddToCompare, weight }: DetailPanelProps) {
   const releaseDate = formatReleaseDate(ball.releaseDate);
   const specs = specsAt(ball, weight);
   const comparing = comparedAt.length > 0;
@@ -249,7 +251,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
     // A ball detail is one level deeper than the list, so it pushes like one
     //, same nav bar, same back gesture, opened at the top regardless of where
     // the list was scrolled to.
-    <PushScreen title={ball.name} eyebrow={ball.brand} onBack={onBack} active={!addDialogOpen}>
+    <PushScreen title={ball.name} eyebrow={ball.brand} onBack={onBack} active={!addDialogOpen} footer={tray}>
       <div>
         <div className="mx-auto w-full max-w-xl px-3 py-4 sm:px-6">
           <ColorwayCarousel ball={ball} />
@@ -308,8 +310,8 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
           </Button>
 
           {/* Into the comparison from the ball itself, beside the list's own
-              picking (ADR-258); once in, again at another weight (ADR-262);
-              once two are picked, straight to it. */}
+              picking (ADR-258); once in, again at another weight (ADR-262).
+              The comparison itself is the tray at the foot (ADR-266). */}
           <div className="mt-2 flex gap-2">
             <Button
               variant="secondary"
@@ -322,17 +324,27 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
                 ? t({ message: "Add another weight", comment: "Adds this bowling ball to the comparison again, at another weight" })
                 : t({ message: "Add to compare", comment: "Picks this bowling ball to compare with others" })}
             </Button>
-            {comparing && compareCount >= 2 && onOpenCompare && (
-              <Button variant="secondary" onClick={onOpenCompare} className="flex-1">
-                {t({ message: `Compare ${{ count: compareCount }}`, comment: "Opens the comparison of the picked bowling balls, with how many are picked" })}
-              </Button>
-            )}
           </div>
 
+          {/* Each weight it is in at, a tap away from leaving, which asks
+              first (ADR-266). */}
           {comparing && (
-            <p className="mt-2 px-1 text-footnote text-ink-secondary">
-              {t({ message: `In compare at ${{ weights: comparedAt.map(lb).join(", ") }}`, comment: "Under the compare buttons: the weights this bowling ball is being compared at, such as 15 lb, 14 lb" })}
-            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2 px-1">
+              <span className="text-footnote text-ink-secondary">
+                {t({ message: "In compare", comment: "Before the weights a bowling ball is being compared at, each a button that takes it out" })}
+              </span>
+              {comparedAt.map((w) => (
+                <Chip
+                  key={w}
+                  selected
+                  aria-label={t({ message: `Remove ${{ ball: ball.name }}, ${{ weight: lb(w) }}`, comment: "Takes one bowling ball, at one weight, out of the comparison" })}
+                  onClick={(e) => onAskRemove(w, e.currentTarget)}
+                >
+                  {lb(w)}
+                  <X size={14} aria-hidden="true" className="ml-1" />
+                </Chip>
+              ))}
+            </div>
           )}
 
           {ball.coreName && coreKin.length > 0 && (
@@ -437,10 +449,13 @@ function CatalogRow({
   weight,
   picked = null,
   disabled = false,
+  inCompare = false,
   onClick
 }: {
   ball: CatalogBall;
   owned: boolean;
+  /** In the comparison: the row is tinted, so it reads at a glance (ADR-266). */
+  inCompare?: boolean;
   weight: number;
   picked?: number | null;
   disabled?: boolean;
@@ -453,7 +468,9 @@ function CatalogRow({
                   onClick={onClick}
                   aria-pressed={picked !== null ? picked > 0 : undefined}
                   disabled={disabled}
-                  className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-surface-muted disabled:opacity-50"
+                  className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors disabled:opacity-50 ${
+                    inCompare ? "bg-accent-soft" : "hover:bg-surface-muted"
+                  }`}
                 >
                   {picked !== null && (
                     <span
@@ -516,8 +533,12 @@ function KinListPage({
   weight,
   active,
   onBack,
-  onSelectBall
+  onSelectBall,
+  inCompare,
+  tray
 }: {
+  inCompare: (id: string) => boolean;
+  tray?: ReactNode;
   list: KinList;
   balls: readonly CatalogBall[];
   isOwned: (ball: CatalogBall) => boolean;
@@ -537,17 +558,71 @@ function KinListPage({
       subtitle={plural(balls.length, { one: "# result", other: "# results" })}
       onBack={onBack}
       active={active}
+      footer={tray}
     >
       <div className="mx-auto w-full max-w-3xl px-3 pb-5 pt-3 sm:px-6">
-        <ul className="divide-y divide-edge rounded-xl border border-edge bg-surface shadow-sm">
+        <ul className="divide-y divide-edge overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
           {balls.map((ball) => (
             <li key={ball.id} style={ROW_PAINT}>
-              <CatalogRow ball={ball} owned={isOwned(ball)} weight={weight} onClick={() => onSelectBall(ball.id)} />
+              <CatalogRow ball={ball} owned={isOwned(ball)} inCompare={inCompare(ball.id)} weight={weight} onClick={() => onSelectBall(ball.id)} />
             </li>
           ))}
         </ul>
       </div>
     </PushScreen>
+  );
+}
+
+/**
+ * The balls in the comparison, at the foot of every catalog screen while any
+ * are (ADR-266): each its own photo and weight, apart so each is easy to tap,
+ * a tap asking before it leaves, and a faint ring for each slot still free,
+ * so how many more fit reads without counting. Eight do not fit a phone, so
+ * the row scrolls sideways; Compare stays put at its end.
+ */
+function CompareTray({
+  balls,
+  onAskRemove,
+  onCompare
+}: {
+  balls: readonly WeighedBall[];
+  onAskRemove: (key: string, el: Element) => void;
+  onCompare: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 border-t border-edge bg-surface pb-[max(env(safe-area-inset-bottom),0.75rem)] pl-1 pr-3 pt-2 sm:pr-6">
+      <ul
+        aria-label={t({ message: "In compare", comment: "Before the weights a bowling ball is being compared at, each a button that takes it out" })}
+        className="flex min-w-0 flex-1 items-start gap-1 overflow-x-auto overscroll-x-none scrollbar-none px-2"
+      >
+        {balls.map((b) => {
+          const key = entryKey({ id: b.ball.id, weight: b.weight });
+          return (
+            <li key={key} className="shrink-0">
+              <button
+                type="button"
+                onClick={(e) => onAskRemove(key, e.currentTarget)}
+                aria-label={t({ message: `Remove ${{ ball: b.ball.name }}, ${{ weight: lb(b.weight) }}`, comment: "Takes one bowling ball, at one weight, out of the comparison" })}
+                className="flex w-11 flex-col items-center gap-0.5 rounded-lg py-0.5 active:opacity-60"
+              >
+                <span className="block h-9 w-9">
+                  <CatalogBallImage src={b.ball.imageThumb} alt="" brand={b.ball.brand} size="thumb" />
+                </span>
+                <span className="text-caption-2 font-semibold tabular-nums text-ink-secondary">{lb(b.weight)}</span>
+              </button>
+            </li>
+          );
+        })}
+        {Array.from({ length: Math.max(0, MAX_COMPARE - balls.length) }, (_, i) => (
+          <li key={`free-${i}`} aria-hidden="true" className="flex w-11 shrink-0 justify-center py-0.5">
+            <span className="block h-9 w-9 rounded-full border border-dashed border-edge-strong/60" />
+          </li>
+        ))}
+      </ul>
+      <Button variant="primary" onClick={onCompare} className="shrink-0">
+        {t({ message: "Compare", comment: "Opens the comparison of the picked bowling balls" })}
+      </Button>
+    </div>
   );
 }
 
@@ -709,6 +784,9 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
     setCompareOpen(true);
   };
   const [menuAt, setMenuAt] = useState<MenuAnchor | null>(null);
+  // A compared ball asks before it leaves (ADR-266).
+  const [removing, setRemoving] = useState<{ key: string; anchor: DOMRect } | null>(null);
+  const askRemove = (key: string, el: Element) => setRemoving({ key, anchor: el.getBoundingClientRect() });
   // Set of catalog IDs the user already owns
   const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set());
   // The bag itself, for the weights its balls are in.
@@ -913,6 +991,14 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
   const compareAt = compareOpen ? overAt + 1 : Infinity;
   const coveredCompare = compareAt < stack.length;
 
+  // The tray at the foot of the list, a ball's page and a View all list alike
+  // (ADR-266), while any ball is in the comparison.
+  const tray =
+    compared.length > 0 ? (
+      <CompareTray balls={compareBalls} onAskRemove={askRemove} onCompare={() => openCompare()} />
+    ) : undefined;
+  const inCompare = (id: string) => compared.some((e) => e.id === id);
+
   const detailFor = (id: string, i: number) => {
     const top = i === stack.length - 1;
     const list = parseKinListPage(id);
@@ -926,9 +1012,11 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           balls={applyFilters(allBalls, { ...EMPTY_FILTERS, [list.kind]: list.name }, "releaseDate", defaultWeight)}
           isOwned={isOwned}
           weight={defaultWeight}
-          active={top && addingBall === null && !(compareOpen && i < compareAt) && menuAt === null}
+          active={top && addingBall === null && !(compareOpen && i < compareAt) && menuAt === null && removing === null}
           onBack={onBack}
           onSelectBall={onSelectBall}
+          inCompare={inCompare}
+          tray={tray}
         />
       );
     }
@@ -941,11 +1029,11 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
         owned={ownedCopies(ball)}
         onBack={onBack}
         onAddToArsenal={setAddingBall}
-        addDialogOpen={!top || addingBall != null || (compareOpen && i < compareAt) || menuAt !== null}
+        addDialogOpen={!top || addingBall != null || (compareOpen && i < compareAt) || menuAt !== null || removing !== null}
         comparedAt={comparedAt(ball.id)}
-        compareCount={compared.length}
+        onAskRemove={(w, el) => askRemove(entryKey({ id: ball.id, weight: w }), el)}
+        tray={tray}
         onAddToCompare={weightToAdd(ball) === null ? null : () => addToCompare(ball)}
-        onOpenCompare={compareOpen ? undefined : () => openCompare()}
         weight={defaultWeight}
         allBalls={allBalls}
         onSelectBall={onSelectBall}
@@ -1136,6 +1224,13 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           }}
         />
       )}
+      {removing && (
+        <RemoveFromCompare
+          anchor={removing.anchor}
+          onRemove={() => setCompared((entries) => entries.filter((e) => entryKey(e) !== removing.key))}
+          onClose={() => setRemoving(null)}
+        />
+      )}
       {menuAt && (
         <AnchoredMenu left={menuAt.left} top={menuAt.top} align="end" onClose={() => setMenuAt(null)}>
           <AnchoredMenuItem
@@ -1181,7 +1276,7 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           : undefined
       }
       onBack={onBack}
-      active={selectedBallId === null && addingBall === null && !showFilters && !compareOpen && menuAt === null}
+      active={selectedBallId === null && addingBall === null && !showFilters && !compareOpen && menuAt === null && removing === null}
       trailing={
         picking ? (
           <IconButton
@@ -1216,30 +1311,10 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
           </>
         )
       }
-      footer={
-        compared.length > 0 && selectedBallId === null ? (
-          // The picked balls ride at the foot, in reach while the list
-          // scrolls, with the way to compare them (ADR-258).
-          <div className="flex items-center gap-2 border-t border-edge bg-surface px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2.5 sm:px-6">
-            <span className="flex shrink-0">
-              {compareBalls.map((b, i) => (
-                <span key={entryKey({ id: b.ball.id, weight: b.weight })} className={`block h-8 w-8 ${i ? "-ml-2" : ""}`}>
-                  <CatalogBallImage src={b.ball.imageThumb} alt="" brand={b.ball.brand} size="thumb" />
-                </span>
-              ))}
-            </span>
-            <span className="min-w-0 flex-1 text-footnote font-semibold text-ink">
-              {t({ message: `${{ count: compared.length }} of ${{ max: MAX_COMPARE }}`, comment: "How many bowling balls are picked to compare, out of the most allowed" })}
-            </span>
-            <Button variant="ghost" onClick={() => setCompared([])} className="shrink-0">
-              {t({ message: "Clear", comment: "Takes every ball out of the comparison" })}
-            </Button>
-            <Button variant="primary" onClick={() => openCompare()} className="shrink-0">
-              {t({ message: "Compare", comment: "Opens the comparison of the picked bowling balls" })}
-            </Button>
-          </div>
-        ) : undefined
-      }
+      footer={tray}
+      // The list grows as it scrolls, so a scroll bar only ever says "more"
+      // (ADR-266).
+      hideScrollbar
     >
       {/* Search + filters stay pinned above the list they narrow, stopping
           under the nav bar. They used to reach up behind the bar so the list
@@ -1348,12 +1423,13 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
             </EmptyState>
           )
         ) : (
-          <ul className="divide-y divide-edge rounded-xl border border-edge bg-surface shadow-sm">
+          <ul className="divide-y divide-edge overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
             {shown.map((ball) => (
               <li key={ball.id} style={ROW_PAINT}>
                 <CatalogRow
                   ball={ball}
                   owned={isOwned(ball)}
+                  inCompare={inCompare(ball.id)}
                   weight={defaultWeight}
                   picked={picking ? comparedAt(ball.id).length : null}
                   disabled={picking && weightToAdd(ball) === null}

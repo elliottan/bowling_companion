@@ -8,7 +8,7 @@ import { siteUrl } from "../lib/platform";
 
 const W = 340;
 const H = 300;
-const PAD = { left: 34, right: 14, top: 16, bottom: 34 };
+const PAD = { left: 40, right: 14, top: 16, bottom: 34 };
 /** The window every reactive ball falls in; urethane and polyester sit at its
  *  edges or past them, and are drawn on its edge rather than dropped. */
 const RG = [2.44, 2.66] as const;
@@ -61,6 +61,10 @@ export function BallGraph({
           <circle cx={0.5} cy={0.5} r={0.5} />
         </clipPath>
       </defs>
+      {/* RG every 0.05, with a dotted line halfway between (ADR-266). */}
+      {[2.475, 2.525, 2.575, 2.625].map((rg) => (
+        <line key={rg} x1={x(rg)} x2={x(rg)} y1={PAD.top} y2={H - PAD.bottom} stroke="rgb(var(--color-edge))" strokeWidth={1} strokeDasharray="2 3" />
+      ))}
       {[2.45, 2.5, 2.55, 2.6, 2.65].map((rg) => (
         <g key={rg}>
           <line x1={x(rg)} x2={x(rg)} y1={PAD.top} y2={H - PAD.bottom} stroke="rgb(var(--color-edge))" strokeWidth={1} />
@@ -69,11 +73,21 @@ export function BallGraph({
           </text>
         </g>
       ))}
-      {[0.02, 0.04, 0.06].map((d) => (
+      {/* Diff every 0.010, read to three places as bowlers say it ("0.050");
+          the odd ones dotted, so 0.030 and 0.050 are there without crowding. */}
+      {[0.01, 0.02, 0.03, 0.04, 0.05, 0.06].map((d, i) => (
         <g key={d}>
-          <line x1={PAD.left} x2={W - PAD.right} y1={y(d)} y2={y(d)} stroke="rgb(var(--color-edge))" strokeWidth={1} />
+          <line
+            x1={PAD.left}
+            x2={W - PAD.right}
+            y1={y(d)}
+            y2={y(d)}
+            stroke="rgb(var(--color-edge))"
+            strokeWidth={1}
+            strokeDasharray={i % 2 === 0 ? "2 3" : undefined}
+          />
           <text x={PAD.left - 4} y={y(d) + 3} textAnchor="end" fontSize={9} fill="rgb(var(--color-ink-tertiary))">
-            {formatFixed(d, 2)}
+            {formatFixed(d, 3)}
           </text>
         </g>
       ))}
