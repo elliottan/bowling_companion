@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.104.1: The landing page shows today's app, and the store pictures are ready for the next build (2026-11-09)
+## 0.104.3: The landing page shows today's app, and the store pictures are ready for the next build (2026-11-09)
 
 - The pictures on headpin.app are taken again from the app as it is now: the
   new Home, the phone's own controls, History's calendar and the bigger bag.
@@ -23,6 +23,19 @@ had all shipped.
 - The screenshot and reel scripts follow the app again: the Add ball to
   arsenal form, Home's tool cards, and the First ball card on the Pro
   screenshot clear of Stats' bar.
+## 0.104.2: The Apple Watch's Live Activity is no longer cut off (2026-11-09)
+
+### Fixed
+
+- The game in progress on an Apple Watch's Smart Stack was cut off at the top and bottom. It now fits: your total, with the game, the frame and the max beside it, over the last three frames (ADR-271).
+
+## 0.104.1: Colorway fixes (2026-11-09)
+
+### Fixed
+
+- The colorway picker in Add ball to arsenal no longer scrolls the whole form sideways; only the row of colorways scrolls.
+- A colorway with no photo of its own now shows the placeholder ball instead of the first colorway's photo, so Pyramid Path's six colorways no longer all look pink. This applies in the picker, on a ball's page, under In your arsenal, and to balls already in your arsenal.
+- Swiping between colorways on a ball's page now slides the photos like a carousel, following your finger and snapping to each one; tapping a dot slides to it.
 
 ## 0.104.0: Pick several balls to compare at once, colorways, and back from Add a ball returns to Compare (2026-11-09)
 

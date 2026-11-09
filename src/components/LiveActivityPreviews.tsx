@@ -119,7 +119,8 @@ function FrameCell({
   current,
   tone,
   showsNumber = false,
-  markSize
+  markSize,
+  rowPadding = 6
 }: {
   number: number;
   frame: LiveActivityFrame;
@@ -127,8 +128,9 @@ function FrameCell({
   tone: Tone;
   showsNumber?: boolean;
   markSize: 11 | 12 | 13;
+  rowPadding?: number;
 }) {
-  const row = markSize + 6;
+  const row = markSize + rowPadding;
   return (
     <div
       className="min-w-0 flex-1 overflow-hidden tabular-nums"
@@ -166,7 +168,21 @@ function FrameCell({
 }
 
 /** The last few frames up to the one being bowled (`RecentFramesView`). */
-function RecentFrames({ state, tone, count, markSize }: { state: LiveActivityState; tone: Tone; count: number; markSize: 12 | 13 }) {
+function RecentFrames({
+  state,
+  tone,
+  count,
+  markSize,
+  showsNumbers = true,
+  rowPadding
+}: {
+  state: LiveActivityState;
+  tone: Tone;
+  count: number;
+  markSize: 11 | 12 | 13;
+  showsNumbers?: boolean;
+  rowPadding?: number;
+}) {
   const upTo = Math.min(state.frames.length, state.done ? 10 : Math.max(1, state.frame));
   const from = Math.max(0, upTo - count);
   return (
@@ -180,8 +196,9 @@ function RecentFrames({ state, tone, count, markSize }: { state: LiveActivitySta
             frame={cell}
             current={!state.done && number === state.frame}
             tone={tone}
-            showsNumber
+            showsNumber={showsNumbers}
             markSize={markSize}
+            rowPadding={rowPadding}
           />
         );
       })}
@@ -194,6 +211,13 @@ function frameLine(state: LiveActivityState): string {
   return state.done
     ? t({ message: "Final score", comment: "On the Live Activity: the game is over and this is its score" })
     : t({ message: `Frame ${frameNumber}`, comment: "On the Live Activity: the frame being bowled, 1 to 10" });
+}
+
+/** The watch's shorter frame line: "Final" in place of "Final score". */
+function watchFrameLine(state: LiveActivityState): string {
+  return state.done
+    ? t({ message: "Final", context: "live-activity", comment: "On the Apple Watch's Live Activity, where space is tight: the game is over" })
+    : frameLine(state);
 }
 
 function maxLine(max: number): string {
@@ -346,25 +370,23 @@ export function IslandPreview({ state }: { state: LiveActivityState }) {
 function WatchCard({ state, tone }: { state: LiveActivityState; tone: Tone }) {
   return (
     <div className="space-y-1 px-2.5 py-2" style={{ background: "rgb(255 255 255 / 0.1)", borderRadius: 18 }}>
-      <div className="flex items-baseline justify-between gap-1">
-        <span className="truncate text-footnote font-semibold" style={{ color: tone.accent }}>
-          {gameLine(state)}
-        </span>
-        <span className="truncate text-footnote font-medium" style={{ color: tone.secondary }}>
-          {frameLine(state)}
-        </span>
-      </div>
-      <div className="flex items-baseline justify-between gap-1">
-        <span className="text-title-1 font-bold leading-none tabular-nums" style={{ ...ROUNDED, color: tone.ink }}>
+      <div className="flex items-center justify-between gap-1.5">
+        <span className="text-title-2 font-bold leading-none tabular-nums" style={{ ...ROUNDED, color: tone.ink }}>
           {state.total}
         </span>
-        {state.max !== null && (
-          <span className="text-caption tabular-nums" style={{ color: tone.secondary }}>
-            {maxLine(state.max)}
-          </span>
-        )}
+        <div className="min-w-0 text-right text-caption-2 leading-tight">
+          <div className="flex justify-end gap-1 truncate font-semibold">
+            <span style={{ color: tone.accent }}>{gameLine(state)}</span>
+            <span style={{ color: tone.ink }}>{watchFrameLine(state)}</span>
+          </div>
+          {state.max !== null && (
+            <div className="tabular-nums" style={{ color: tone.secondary }}>
+              {maxLine(state.max)}
+            </div>
+          )}
+        </div>
       </div>
-      <RecentFrames state={state} tone={tone} count={3} markSize={12} />
+      <RecentFrames state={state} tone={tone} count={3} markSize={11} showsNumbers={false} rowPadding={4} />
     </div>
   );
 }

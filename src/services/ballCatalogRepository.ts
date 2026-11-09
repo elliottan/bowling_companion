@@ -1,6 +1,7 @@
 import { db } from "../db/bowlingDb";
 import { getSetting, setSetting } from "./bowlingRepository";
 import { catalogOrigins } from "../lib/platform";
+import { colorwayImage } from "../lib/ballImages";
 import type { CatalogBall, CatalogManifest } from "../types/catalog";
 
 const CATALOG_VERSION_KEY = "catalog_version";
@@ -79,9 +80,10 @@ export async function refreshArsenalPhotos(): Promise<number> {
     const entry = await db.ball_catalog.get(ball.catalog_ref_id);
     if (!entry) continue;
     // The colorway the bowler picked has its own photo (ADR-270); a SKU the
-    // catalog no longer lists falls back to the ball's first.
+    // catalog no longer lists falls back to the ball's first. One with no
+    // photo of its own has none, rather than the first colorway's.
     const colorway = ball.colorway_sku ? entry.colorways?.find((c) => c.sku === ball.colorway_sku) : undefined;
-    const thumb = colorway?.imageThumb ?? entry.imageThumb;
+    const thumb = colorwayImage(entry, colorway, "thumb");
     if (thumb === snap.imageThumb) continue;
     await db.balls.update(ball.id, { catalog_snapshot: { ...snap, imageThumb: thumb } });
     changed++;

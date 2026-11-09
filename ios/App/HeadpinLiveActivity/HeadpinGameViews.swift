@@ -11,6 +11,8 @@ struct FrameCellView: View {
     /// The frame's number above it, for the few frames the island shows.
     var showsNumber = false
     var markSize: CGFloat = 12
+    /// Space above and below the marks and the total, together, in each row.
+    var rowPadding: CGFloat = 6
 
     var body: some View {
         VStack(spacing: 0) {
@@ -33,7 +35,7 @@ struct FrameCellView: View {
                         .lineLimit(1)
                 }
             }
-            .frame(height: markSize + 6)
+            .frame(height: markSize + rowPadding)
             Rectangle().fill(palette.edge).frame(height: 0.5)
             Text(frame.score)
                 .font(.system(size: markSize, weight: .bold).monospacedDigit())
@@ -41,7 +43,7 @@ struct FrameCellView: View {
                 .frame(maxWidth: .infinity)
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
-                .frame(height: markSize + 6)
+                .frame(height: markSize + rowPadding)
         }
         .background(
             RoundedRectangle(cornerRadius: 5, style: .continuous)
@@ -140,6 +142,8 @@ struct RecentFramesView: View {
     let palette: HeadpinPalette
     var count = 4
     var markSize: CGFloat = 13
+    var showsNumbers = true
+    var rowPadding: CGFloat = 6
 
     var body: some View {
         let upTo = min(state.frames.count, state.done ? 10 : max(1, state.frame))
@@ -151,8 +155,9 @@ struct RecentFramesView: View {
                     frame: item.element,
                     isCurrent: !state.done && item.offset + 1 == state.frame,
                     palette: palette,
-                    showsNumber: true,
-                    markSize: markSize
+                    showsNumber: showsNumbers,
+                    markSize: markSize,
+                    rowPadding: rowPadding
                 )
                 .frame(maxWidth: .infinity)
             }
@@ -175,46 +180,56 @@ struct GameViewForFamily: View {
     }
 }
 
-/// The Apple Watch's Smart Stack: the game and frame, the total with the
-/// highest score still possible, and the last three frames. Ten frames do not
-/// fit the width; three show the marks just thrown and whether the spare
-/// before them has been filled in. Always dark, as the watch is, so it takes
-/// the island's palette.
+/// The Apple Watch's Smart Stack: the total with the game, the frame and the
+/// highest score still possible beside it, and the last three frames. The
+/// `.small` slot is about 70 points tall (ADR-271), so the layout is two rows
+/// and nothing more: the frames carry no numbers, since the one being bowled is
+/// marked and the frame is named above. Ten frames do not fit the width; three
+/// show the marks just thrown and whether the spare before them has been filled
+/// in. Always dark, as the watch is, so it takes the island's palette.
 struct WatchGameView: View {
     let state: HeadpinGameAttributes.ContentState
 
     private var palette: HeadpinPalette { HeadpinPalette.island(palette: state.palette) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text("Game \(state.game)")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(palette.accent)
-                    .lineLimit(1)
-                Spacer(minLength: 4)
-                Text(state.done ? "Final score" : "Frame \(state.frame)")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(palette.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            }
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .center, spacing: 6) {
                 Text("\(state.total)")
-                    .font(.system(size: 30, weight: .bold, design: .rounded).monospacedDigit())
+                    .font(.system(size: 24, weight: .bold, design: .rounded).monospacedDigit())
                     .foregroundColor(palette.ink)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
-                Spacer(minLength: 4)
-                if let max = state.max {
-                    Text("Max \(max)")
-                        .font(.system(size: 12).monospacedDigit())
-                        .foregroundColor(palette.secondary)
-                        .lineLimit(1)
+                    .layoutPriority(1)
+                Spacer(minLength: 2)
+                VStack(alignment: .trailing, spacing: 0) {
+                    HStack(spacing: 4) {
+                        Text("Game \(state.game)")
+                            .foregroundColor(palette.accent)
+                        Text(state.done ? "Final" : "Frame \(state.frame)")
+                            .foregroundColor(palette.ink)
+                    }
+                    .font(.system(size: 11, weight: .semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    if let max = state.max {
+                        Text("Max \(max)")
+                            .font(.system(size: 11).monospacedDigit())
+                            .foregroundColor(palette.secondary)
+                            .lineLimit(1)
+                    }
                 }
             }
-            RecentFramesView(state: state, palette: palette, count: 3, markSize: 12)
+            RecentFramesView(
+                state: state,
+                palette: palette,
+                count: 3,
+                markSize: 11,
+                showsNumbers: false,
+                rowPadding: 4
+            )
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .environment(\.colorScheme, .dark)
         .activityBackgroundTint(palette.background)
         .activitySystemActionForegroundColor(palette.accent)
