@@ -435,6 +435,43 @@ describe("CatalogView", () => {
     expect(onOpenArsenalBall).toHaveBeenCalledWith(id);
   });
 
+  it("pages a ball's colorways as a carousel that slides, with a placeholder for a colorway with no photo", async () => {
+    await seedCatalog(1);
+    await db.ball_catalog.update("ball-0", {
+      imageFull: "/pink-full.webp",
+      colorways: [
+        { sku: "PK", color: "Pink/Black" },
+        { sku: "OR", color: "Orange/Black" }
+      ]
+    });
+    const scrollTo = vi.fn();
+    const original = Element.prototype.scrollTo;
+    Element.prototype.scrollTo = scrollTo as unknown as typeof Element.prototype.scrollTo;
+    try {
+      render(<CatalogView onBack={vi.fn()} selectedBallId="ball-0" onSelectBall={vi.fn()} />);
+      const strip = await screen.findByTestId("colorway-strip");
+      // Every colorway is a slide in one strip the finger drags and snaps.
+      expect(strip).toHaveClass("snap-x", "snap-mandatory", "overflow-x-auto");
+      expect(strip.children).toHaveLength(2);
+      // The pink photo is the first colorway's only, not the orange one's.
+      expect(strip.children[0].querySelector('img[src$="/pink-full.webp"]')).not.toBeNull();
+      expect(strip.children[1].querySelector("img")).toBeNull();
+
+      // A dot slides the strip over rather than swapping the photo.
+      Object.defineProperty(strip, "clientWidth", { configurable: true, value: 300 });
+      fireEvent.click(screen.getByRole("button", { name: "View colorway 2: Orange/Black" }));
+      expect(scrollTo).toHaveBeenLastCalledWith({ left: 300, behavior: "smooth" });
+      expect(screen.getByText("Orange/Black")).toBeInTheDocument();
+
+      // A swipe that lands on a slide marks its dot.
+      Object.defineProperty(strip, "scrollLeft", { configurable: true, value: 0 });
+      fireEvent.scroll(strip);
+      expect(screen.getByRole("button", { name: "View colorway 1: Pink/Black" })).toHaveAttribute("aria-current", "true");
+    } finally {
+      Element.prototype.scrollTo = original;
+    }
+  });
+
   it("puts Add to arsenal in the bar as a bag (ADR-270)", async () => {
     await seedCatalog(2);
     render(<CatalogView onBack={vi.fn()} selectedBallId="ball-1" onSelectBall={vi.fn()} />);
