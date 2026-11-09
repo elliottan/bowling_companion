@@ -11212,3 +11212,32 @@ an empty comparison has no graph from there; the arsenal's button still opens
 the bag's. The list over the comparison shares the catalog's search, filters
 and sort with the list under it.
 
+
+## ADR-271: The watch's Live Activity fits the Smart Stack's slot
+
+**Status.** Accepted, 2026-11-09, at the owner's request ("the watch live
+activity doesn't display properly, it's cut off"). Amends ADR-227 on the
+watch's layout; the rest of it stands.
+
+**Context.** ADR-227's watch layout was drawn unseen. On a watch it was cut
+off at both ends: "Game 3" and "Frame 6" lost their top half, and the frames
+lost their totals under the marks. It stacked four rows, the game line, the
+total at 30 pt, the frame numbers and the frames' two rows, about 100 points
+tall, and the `.small` family is a slot about 70 points tall on every watch
+size, centred, so a third of it fell outside.
+
+**Decision.**
+
+- **Two rows, about 64 points.** The total at 24 pt on the left, and beside
+  it, right-aligned at 11 pt, "Game 3 Frame 6" (the game in the accent) over
+  "Max 276". Under them the last three frames, as before.
+- **The frames carry no numbers on the watch.** The one being bowled is
+  outlined and the frame is named above, so the number row (13 points) said
+  nothing new. Their marks are 11 pt with 4 points of room in each row,
+  rather than 12 pt with 6.
+- **"Final" in place of "Final score"** when the game is over, to fit beside
+  the game. The Lock Screen and the island keep "Final score".
+- The picture of the watch in Settings (`WatchPreview`) draws the same.
+
+**Consequences.** Still unseen on a 41mm and a 49mm watch; the sizes leave
+a few points of room on the smallest slot.
