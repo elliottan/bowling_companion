@@ -392,7 +392,8 @@ if (wanted("stats") || wanted("pro")) {
     // The First ball card at the top, just under Stats' own bar, which floats
     // over the scrolled content: scrolled flush to the top, the card slid
     // under the bar and the shot opened on Spares, which is free.
-    await page.getByText(tr("First ball"), { exact: true }).first().evaluate((label) => {
+    // By its heading: in some languages a chart chip carries the same words.
+    await page.getByRole("heading", { name: tr("First ball"), exact: true }).first().evaluate((label) => {
       let card = label;
       while (card.parentElement && card.parentElement.getBoundingClientRect().height < 400) card = card.parentElement;
       let scroller = card.parentElement;

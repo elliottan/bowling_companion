@@ -18,6 +18,8 @@ had all shipped.
   Headpin Pro review screenshot are taken from 0.104.0, for the build after
   1.0, and `docs/APP-STORE-LISTING.md` says which set goes with which build,
   so nothing in the store shows what the version in review does not have.
+- The feature reel is rendered again from 0.104.0
+  (`marketing/ads/2026-11-09/`), to run once the store holds that build.
 - The screenshot and reel scripts follow the app again: the Add ball to
   arsenal form, Home's tool cards, and the First ball card on the Pro
   screenshot clear of Stats' bar.
