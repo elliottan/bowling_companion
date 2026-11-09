@@ -57,8 +57,9 @@ function fieldLabel(field: BoardField): string {
       return t({ message: "Target", comment: "Bowling term: the board the ball crosses at the arrows." });
   }
 }
-// A filled-in "23" still has to say whether it's a slide or a target.
-const floatLabel = FIELD_MICRO_LABEL;
+// A filled-in "23" still has to say whether it's a slide or a target. The
+// names are in the accent, so the four boxes read by what they hold at a glance.
+const floatLabel = FIELD_MICRO_LABEL.replace("text-ink-secondary", "text-accent");
 // Section eyebrow (INTENDED / ACTUAL). Tight tracking, these are wide words.
 const eyebrow = "text-caption-2 font-semibold uppercase tracking-[0.01em] text-ink-secondary";
 

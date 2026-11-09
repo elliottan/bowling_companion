@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.104.5: The line boxes' names are small again, and in the accent (2026-11-09)
+
+- Stance, Slide and Target over the line boxes are drawn at their small
+  label size again. Since 0.96.0 they had been drawn at the body size: the
+  part that keeps a long name whole set its size on the same text as the
+  label's own, and overrode it. Home's profile card, which uses the same
+  part, keeps its sizes too.
+- The three names are in the accent colour, so the boxes read by what they
+  hold at a glance.
+
 ## 0.104.4: The landing page shows today's app, and the store pictures are ready for the next build (2026-11-09)
 
 - The pictures on headpin.app are taken again from the app as it is now: the
