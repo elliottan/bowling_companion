@@ -11104,5 +11104,9 @@ read as a second control.
   ball lists specs for that it is not in at yet ("Add at 14 lb"). It is off
   when the comparison is full or every listed weight is in.
 
+- **The comparison's weights have a row of their own**, Weight, first in the
+  table, with the Owned tag under a ball the bowler owns at it. In the column
+  headers the menus sat under names of one line or two, so they did not line up.
+
 **Consequences.** Adding at a weight the catalog lists no specs for is left to
 the comparison's own weight menu, as ADR-262 already has it.

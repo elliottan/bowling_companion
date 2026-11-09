@@ -154,7 +154,6 @@ export function BallCompareView({
                       <th className="sticky left-0 z-[1] w-[4.5rem] bg-surface" />
                       {compared.map((b) => {
                         const key = keyOf(b);
-                        const mine = ownedKeys.has(key);
                         return (
                           <th key={key} scope="col" className="relative px-1 pb-2 pt-3 align-top font-normal">
                             <span className="absolute right-0 top-0 z-[1]">
@@ -177,8 +176,24 @@ export function BallCompareView({
                                 <span className="block w-full break-words text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{b.ball.brand}</span>
                                 <span className="block w-full break-words text-footnote font-semibold leading-tight text-ink">{b.ball.name}</span>
                               </button>
-                              {/* The bowler's own stays at the weight they own
-                                  it in; any other moves with its menu. */}
+                            </span>
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody className="text-footnote">
+                    {/* Each ball's weight on a row of its own, so the
+                        weights line up however long the names above run
+                        (ADR-267). The bowler's own stays at the weight they
+                        own it in; any other moves with its menu. */}
+                    <Row label={t`Weight`} middle>
+                      {compared.map((b) => {
+                        const key = keyOf(b);
+                        const mine = ownedKeys.has(key);
+                        return (
+                          <td key={key} className="px-1 py-1 align-middle">
+                            <span className="flex flex-col items-center">
                               {mine || !onWeightChange ? (
                                 <span className="flex min-h-11 items-center text-subhead font-medium tabular-nums text-ink">{lb(b.weight)}</span>
                               ) : (
@@ -197,12 +212,10 @@ export function BallCompareView({
                               )}
                               {mine && <BallTag kind="owned" />}
                             </span>
-                          </th>
+                          </td>
                         );
                       })}
-                    </tr>
-                  </thead>
-                  <tbody className="text-footnote">
+                    </Row>
                     <Row label={t({ message: "Cover type", comment: "Bowling term: the kind of coverstock (solid, pearl or hybrid), as opposed to one cover by name" })}>
                       {compared.map((b) => (
                         <Cell key={keyOf(b)}>{b.ball.coverstockCategory ? coverstockLabel(b.ball.coverstockCategory) : "-"}</Cell>
@@ -377,10 +390,10 @@ export function BallCompareView({
   );
 }
 
-function Row({ label, children, last = false }: { label: string; children: ReactNode; last?: boolean }) {
+function Row({ label, children, last = false, middle = false }: { label: string; children: ReactNode; last?: boolean; middle?: boolean }) {
   return (
     <tr className={last ? "" : "border-b border-edge"}>
-      <th scope="row" className="sticky left-0 z-[1] bg-surface px-2 py-2 text-left align-top text-caption font-semibold text-ink-secondary">
+      <th scope="row" className={`sticky left-0 z-[1] bg-surface px-2 py-2 text-left ${middle ? "align-middle" : "align-top"} text-caption font-semibold text-ink-secondary`}>
         {label}
       </th>
       {children}

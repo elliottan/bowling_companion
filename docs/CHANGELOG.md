@@ -18,6 +18,7 @@ had all shipped.
 - On the ball graph, tap a ball's photo in the list under it to show or hide it on the graph; tap its name for its details. Hiding a ball you are comparing takes it out of Compare.
 - Your bag's button now sits above that list: with every ball shown it hides them all, otherwise it shows them all.
 - The graph's axes now just say RG and Diff; tap either to see what it means.
+- In Compare's specs table, each ball's weight now sits on its own Weight row, so the weights line up however long the names above them are.
 - Compare now holds up to 8 balls. The specs table scrolls sideways with the row names held at the left, and tapping a ball's photo or name in it opens the ball (ADR-266).
 - The compare tray now stays at the bottom of the catalog, a ball's page and View all lists while any ball is in it. Each ball sits on its own with its weight, empty slots show as faint rings, and the count and Clear button are gone.
 - Removing a ball from Compare, from the tray, the table, the graph's list or a ball's page, now asks first.

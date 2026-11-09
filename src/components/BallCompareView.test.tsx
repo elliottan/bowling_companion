@@ -54,6 +54,10 @@ describe("BallCompareView (ADR-258, ADR-262)", () => {
     const onWeightChange = vi.fn();
     render(<BallCompareView compared={[at(ignition), at(widow)]} owned={[at(widow)]} onRemove={vi.fn()} onWeightChange={onWeightChange} onBack={vi.fn()} />);
 
+    // On a row of their own, so they line up whatever the names above (ADR-267).
+    const row = screen.getByRole("row", { name: /^Weight/ });
+    expect(within(row).getByRole("combobox", { name: "Weight of Ignition" })).toBeInTheDocument();
+    expect(within(row).getByText("Owned")).toBeInTheDocument();
     fireEvent.change(screen.getByRole("combobox", { name: "Weight of Ignition" }), { target: { value: "14" } });
     expect(onWeightChange).toHaveBeenCalledWith("Ignition@15", 14);
     expect(screen.queryByRole("combobox", { name: "Weight of Widow" })).toBeNull();
