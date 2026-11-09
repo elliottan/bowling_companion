@@ -8,7 +8,9 @@ import { siteUrl } from "../lib/platform";
 
 const W = 340;
 const H = 300;
-const PAD = { left: 40, right: 14, top: 16, bottom: 34 };
+/** Room at the left for the diff labels and at the foot for the RG ones; the
+ *  axis names share the corner between them (ADR-268). */
+const PAD = { left: 34, right: 12, top: 12, bottom: 22 };
 /** The window every reactive ball falls in; urethane and polyester sit at its
  *  edges or past them, and are drawn on its edge rather than dropped. */
 const RG = [2.44, 2.66] as const;
@@ -93,8 +95,12 @@ export function BallGraph({
       ))}
       {/* Each axis by its name alone; a tap says what it means (ADR-263),
           so the chart carries no sentence of its own. */}
-      <AxisName term="rg" x={(PAD.left + W - PAD.right) / 2} y={H - 4} onTerm={onTerm} />
-      <AxisName term="diff" x={10} y={(PAD.top + H - PAD.bottom) / 2} rotate onTerm={onTerm} />
+      {/* Both names in the corner the axes meet at, either side of a dotted
+          diagonal: Diff over it, for the axis that rises, and RG under it,
+          for the one that runs along the foot (ADR-268). */}
+      <line x1={4} y1={H - 2} x2={PAD.left - 3} y2={H - PAD.bottom + 1} stroke="rgb(var(--color-edge-strong))" strokeWidth={1} strokeDasharray="2 2" />
+      <AxisName term="diff" x={2} y={H - PAD.bottom + 8} anchor="start" hit={{ x: 0, y: H - PAD.bottom - 4, w: PAD.left / 2 + 4, h: PAD.bottom / 2 + 4 }} onTerm={onTerm} />
+      <AxisName term="rg" x={PAD.left - 3} y={H - 2} anchor="end" hit={{ x: PAD.left / 2 - 4, y: H - PAD.bottom / 2, w: PAD.left / 2 + 4, h: PAD.bottom / 2 }} onTerm={onTerm} />
 
       {drawn.map((p) => {
         const src = siteUrl(p.ball.imageThumb);
@@ -179,13 +185,16 @@ function AxisName({
   term,
   x: ax,
   y: ay,
-  rotate = false,
+  anchor,
+  hit,
   onTerm
 }: {
   term: GraphTerm;
   x: number;
   y: number;
-  rotate?: boolean;
+  anchor: "start" | "end";
+  /** The tap area, a little past the word, within its half of the corner. */
+  hit: { x: number; y: number; w: number; h: number };
   onTerm?: (term: GraphTerm, anchor: DOMRect) => void;
 }) {
   const label =
@@ -199,7 +208,6 @@ function AxisName({
       tabIndex={onTerm ? 0 : undefined}
       aria-label={onTerm ? termText(term) : undefined}
       className={onTerm ? "cursor-pointer outline-none" : undefined}
-      transform={rotate ? `rotate(-90 ${ax} ${ay})` : undefined}
       onClick={(e) => open(e.currentTarget)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -208,9 +216,8 @@ function AxisName({
         }
       }}
     >
-      {/* A finger's reach around a short word, unseen. */}
-      <rect x={ax - 22} y={ay - 14} width={44} height={20} fill="transparent" />
-      <text x={ax} y={ay} textAnchor="middle" fontSize={10} fontWeight={600} fill="rgb(var(--color-ink-secondary))">
+      <rect x={hit.x} y={hit.y} width={hit.w} height={hit.h} fill="transparent" />
+      <text x={ax} y={ay} textAnchor={anchor} fontSize={9} fontWeight={600} fill="rgb(var(--color-ink-secondary))">
         {label}
       </text>
     </g>

@@ -800,11 +800,6 @@ msgstr "新增油型"
 msgid "Add another to arsenal"
 msgstr "再加入一顆到球庫"
 
-#. Opens a menu of weights to add this bowling ball to the comparison at again
-#: src/views/CatalogView.tsx
-msgid "Add another weight to compare"
-msgstr "以其他重量加入比較"
-
 #. A menu row: adds a bowling ball to the comparison at this weight, such as 14 lb
 #: src/views/CatalogView.tsx
 msgid "Add at {weight}"
@@ -1466,11 +1461,6 @@ msgstr "即將登陸 App Store"
 msgid "Compare"
 msgstr "比較"
 
-#. A menu item: starts picking bowling balls in the catalog to compare them
-#: src/views/CatalogView.tsx
-msgid "Compare balls"
-msgstr "比較球款"
-
 #. The spoken name of the switch between a table of specs and a graph
 #: src/components/BallCompareView.tsx
 msgid "Compare by"
@@ -1737,11 +1727,6 @@ msgstr "PSA 到你的 PAP 的距離。它決定球放掉側旋的速度，這在
 #: src/components/ui/FormSheet.tsx
 msgid "Done"
 msgstr "完成"
-
-#. Leaves the mode where tapping a ball picks it to compare
-#: src/views/CatalogView.tsx
-msgid "Done picking"
-msgstr "完成選擇"
 
 #. Bowling term: PAP, the axis point is below the ball's midline.
 #: src/components/PapEditor.tsx
@@ -2504,11 +2489,6 @@ msgstr "內"
 #: src/views/CatalogView.tsx
 msgid "In compare"
 msgstr "比較中"
-
-#. A button on a ball's page: the weights it is being compared at, such as 15 lb, 14 lb. A tap takes one out.
-#: src/views/CatalogView.tsx
-msgid "In compare: {weights}"
-msgstr "比較中：{weights}"
 
 #: src/components/MetricTrendChart.tsx
 msgid "In order. {points}."
@@ -3843,11 +3823,6 @@ msgstr "移除 {ball}，{weight}"
 #: src/components/OilPatternManager.tsx
 msgid "Remove {name}?"
 msgstr "要移除 {name} 嗎？"
-
-#. A menu row: takes this bowling ball, at this weight such as 14 lb, out of the comparison
-#: src/views/CatalogView.tsx
-msgid "Remove {weight} from compare"
-msgstr "從比較中移除 {weight}"
 
 #: src/components/SessionFilterBar.tsx
 msgid "Remove filter {filter}"
@@ -5255,6 +5230,7 @@ msgstr "洗出"
 msgid "Weak"
 msgstr "弱"
 
+#: src/components/BallCompareView.tsx
 #: src/components/BallFormDialog.tsx
 #: src/views/CatalogView.tsx
 msgid "Weight"

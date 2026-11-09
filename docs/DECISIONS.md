@@ -11110,3 +11110,38 @@ read as a second control.
 
 **Consequences.** Adding at a weight the catalog lists no specs for is left to
 the comparison's own weight menu, as ADR-262 already has it.
+
+## ADR-268: A ball goes into the comparison from its own page, by its bar
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-258,
+ADR-262, ADR-263, ADR-266 and ADR-267.
+
+**Context.** The catalog's More menu started a picking mode in which a row
+tap added the ball, and a second tap added it again at another weight rather
+than taking it out. The owner found the mode confusing. A ball's page carried
+two full-width buttons under its specs (Add to arsenal, and the compare row),
+and the graph spent a row and a column on its axis names.
+
+**Decision.**
+
+- **No picking mode.** Compare balls leaves the catalog's More menu, and a row
+  in the list only ever opens its ball. Add a ball in the comparison goes back
+  to the list, where a ball is opened and added from its page.
+- **A ball's page carries both actions in its bar**, top right: Add to arsenal
+  (the ball glyph with a plus), then Add to compare (the graph glyph with a
+  plus), the right-most. The full-width buttons under the specs are gone.
+  DESIGN-LANGUAGE's two-action ceiling gains the page.
+- **Add to compare** puts a ball that is not in yet in at the bowler's default
+  weight with no question. Once it is in, the button is filled in the accent,
+  and a tap opens a menu of the weights it lists that are not in yet. It is
+  off when the comparison is full or every listed weight is in. A ball comes
+  out from the tray, as ADR-266 has it.
+- **The tray badges each ball's weight** at its photo's corner, as the graph
+  numbers its balls, in place of the caption under it.
+- **The graph's axis names share its corner**, either side of a dotted
+  diagonal where the axes meet: Diff over it, RG under it, each still a tap
+  away from what it means. The chart takes back the row and the column they
+  had.
+
+**Consequences.** Several balls take a visit to each one's page. Emptying the
+comparison is still a tap per ball, in the tray.

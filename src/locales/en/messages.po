@@ -800,11 +800,6 @@ msgstr "Add a pattern"
 msgid "Add another to arsenal"
 msgstr "Add another to arsenal"
 
-#. Opens a menu of weights to add this bowling ball to the comparison at again
-#: src/views/CatalogView.tsx
-msgid "Add another weight to compare"
-msgstr "Add another weight to compare"
-
 #. A menu row: adds a bowling ball to the comparison at this weight, such as 14 lb
 #: src/views/CatalogView.tsx
 msgid "Add at {weight}"
@@ -1466,11 +1461,6 @@ msgstr "Coming to the App Store"
 msgid "Compare"
 msgstr "Compare"
 
-#. A menu item: starts picking bowling balls in the catalog to compare them
-#: src/views/CatalogView.tsx
-msgid "Compare balls"
-msgstr "Compare balls"
-
 #. The spoken name of the switch between a table of specs and a graph
 #: src/components/BallCompareView.tsx
 msgid "Compare by"
@@ -1737,11 +1727,6 @@ msgstr "Distance from the PSA to your PAP. It controls how quickly the ball give
 #: src/components/ui/FormSheet.tsx
 msgid "Done"
 msgstr "Done"
-
-#. Leaves the mode where tapping a ball picks it to compare
-#: src/views/CatalogView.tsx
-msgid "Done picking"
-msgstr "Done picking"
 
 #. Bowling term: PAP, the axis point is below the ball's midline.
 #: src/components/PapEditor.tsx
@@ -2504,11 +2489,6 @@ msgstr "In"
 #: src/views/CatalogView.tsx
 msgid "In compare"
 msgstr "In compare"
-
-#. A button on a ball's page: the weights it is being compared at, such as 15 lb, 14 lb. A tap takes one out.
-#: src/views/CatalogView.tsx
-msgid "In compare: {weights}"
-msgstr "In compare: {weights}"
 
 #: src/components/MetricTrendChart.tsx
 msgid "In order. {points}."
@@ -3843,11 +3823,6 @@ msgstr "Remove {ball}, {weight}"
 #: src/components/OilPatternManager.tsx
 msgid "Remove {name}?"
 msgstr "Remove {name}?"
-
-#. A menu row: takes this bowling ball, at this weight such as 14 lb, out of the comparison
-#: src/views/CatalogView.tsx
-msgid "Remove {weight} from compare"
-msgstr "Remove {weight} from compare"
 
 #: src/components/SessionFilterBar.tsx
 msgid "Remove filter {filter}"
@@ -5255,6 +5230,7 @@ msgstr "Washouts"
 msgid "Weak"
 msgstr "Weak"
 
+#: src/components/BallCompareView.tsx
 #: src/components/BallFormDialog.tsx
 #: src/views/CatalogView.tsx
 msgid "Weight"

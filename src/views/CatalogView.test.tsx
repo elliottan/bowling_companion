@@ -56,6 +56,16 @@ function trayBalls() {
   return within(screen.getAllByRole("list", { name: "In compare" })[0]).getAllByRole("button");
 }
 
+/** Opens ball `id`'s page and adds it to the comparison from its bar, as the
+ *  only way in is (ADR-268). The picks outlive the view, so a rerender keeps
+ *  them. Returns the page. */
+async function addFromPage(rerender: (ui: React.ReactElement) => void, id: string, name: string) {
+  rerender(<CatalogView onBack={vi.fn()} selectedBallId={id} onSelectBall={vi.fn()} />);
+  const page = await screen.findByRole("dialog", { name });
+  fireEvent.click(within(page).getByRole("button", { name: "Add to compare" }));
+  return page;
+}
+
 function renderCatalog() {
   render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
 }
@@ -216,19 +226,19 @@ describe("CatalogView", () => {
     expect(screen.getByPlaceholderText("Search name, brand, coverstock…")).toHaveValue("Ball");
   });
 
-  it("picks balls to compare from the list, and opens them side by side (ADR-258)", async () => {
+  it("adds balls to compare from their own pages only, and opens them side by side (ADR-258, ADR-268)", async () => {
     await seedCatalog(5);
-    renderCatalog();
+    const { rerender } = render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
     await screen.findByText("Ball 0");
-
-    // Comparing is in the bar's menu, beside asking for a ball (ADR-261).
+    // No picking in the list any more.
     fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
-    // Picking, a row picks rather than opens.
-    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 1/ }));
-    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 3/ }));
-    expect(screen.getByRole("button", { name: /^Storm.*Ball 1/ })).toHaveAttribute("aria-pressed", "true");
-    expect(trayBalls()).toHaveLength(2);
+    expect(screen.queryByRole("button", { name: "Compare balls" })).toBeNull();
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    await addFromPage(rerender, "ball-1", "Ball 1");
+    await addFromPage(rerender, "ball-3", "Ball 3");
+    rerender(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
+    await waitFor(() => expect(trayBalls()).toHaveLength(2));
 
     fireEvent.click(screen.getByRole("button", { name: "Compare" }));
     const compare = await screen.findByRole("dialog", { name: "Compare" });
@@ -236,23 +246,26 @@ describe("CatalogView", () => {
     expect(within(compare).getByRole("button", { name: "Remove Ball 3, 15 lb" })).toBeInTheDocument();
   });
 
-  it("adds at the default weight, the same ball again at another, and moves each on its own (ADR-262)", async () => {
+  it("adds at the default weight, then asks which weight for the same ball, and moves each on its own (ADR-262, ADR-268)", async () => {
     await seedCatalog(2);
     await db.ball_catalog.update("ball-1", { weights: [14, 13].map((weight) => ({ weight, rg: 2.5, diff: 0.05, mbDiff: null })) });
     await setDefaultBallWeight(14);
-    renderCatalog();
+    const { rerender } = render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
     // The rows say which weight their numbers are for.
     expect(await screen.findAllByText(/Specs at 14 lb/)).not.toHaveLength(0);
 
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
-    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 1/ }));
-    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 1/ }));
-    expect(trayBalls()).toHaveLength(2);
+    // First in, at the default weight with no question.
+    const page = await addFromPage(rerender, "ball-1", "Ball 1");
+    await waitFor(() => expect(trayBalls()).toHaveLength(1));
+    // Already in: the same button asks which weight, of those not in yet.
+    fireEvent.click(within(page).getByRole("button", { name: "Add to compare" }));
+    expect(screen.queryByRole("button", { name: "Add at 14 lb" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Add at 15 lb" }));
+    await waitFor(() => expect(trayBalls()).toHaveLength(2));
 
-    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+    fireEvent.click(within(page).getByRole("button", { name: "Compare" }));
     const compare = await screen.findByRole("dialog", { name: "Compare" });
-    // No one weight for all: a menu in each column, the second at the next weight.
+    // No one weight for all: a menu in each column.
     expect(within(compare).queryByRole("combobox", { name: "Ball weight" })).toBeNull();
     const menus = within(compare).getAllByRole("combobox", { name: "Weight of Ball 1" });
     expect(menus.map((m) => (m as HTMLSelectElement).value)).toEqual(["14", "15"]);
@@ -266,13 +279,12 @@ describe("CatalogView", () => {
   it("holds a ball the bowler owns at the weight they own it in (ADR-262)", async () => {
     await seedCatalog(2);
     await db.balls.add({ name: "Mine", is_spare_ball: false, catalog_ref_id: "ball-0", weight: 13 });
-    renderCatalog();
+    const { rerender } = render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
     await screen.findByText("Ball 0");
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
-    fireEvent.click(await screen.findByRole("button", { name: /Ball 0/ }));
-    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 1/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+    await addFromPage(rerender, "ball-0", "Ball 0");
+    const page = await addFromPage(rerender, "ball-1", "Ball 1");
+    await waitFor(() => expect(trayBalls()).toHaveLength(2));
+    fireEvent.click(within(page).getByRole("button", { name: "Compare" }));
     const compare = await screen.findByRole("dialog", { name: "Compare" });
     // Theirs, at 13 lb and no menu; the catalog's ball has one.
     expect(within(compare).queryByRole("combobox", { name: "Weight of Ball 0" })).toBeNull();
@@ -280,22 +292,21 @@ describe("CatalogView", () => {
     expect(within(compare).getByRole("combobox", { name: "Weight of Ball 1" })).toBeInTheDocument();
   });
 
-  it("goes back to the list, picking, from Add a ball while a column is free (ADR-262)", async () => {
+  it("goes back to the list from Add a ball while a column is free (ADR-262, ADR-268)", async () => {
     await seedCatalog(3);
-    renderCatalog();
+    const { rerender } = render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
     await screen.findByText("Ball 0");
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
-    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 1/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Done picking" }));
-    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+    await addFromPage(rerender, "ball-1", "Ball 1");
+    const onSelectBall = vi.fn();
+    rerender(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={onSelectBall} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Compare" }));
     const compare = await screen.findByRole("dialog", { name: "Compare" });
 
     fireEvent.click(within(compare).getByRole("button", { name: "Add a ball" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Compare" })).toBeNull());
-    // Picking again: a tap adds the ball rather than opening it.
+    // A row opens its ball, where it goes in from.
     fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 2/ }));
-    expect(trayBalls()).toHaveLength(2);
+    expect(onSelectBall).toHaveBeenCalledWith("ball-2");
   });
 
   it("shows the bowler's copies of a ball over its specs, one at a time, and still offers another (ADR-263)", async () => {
@@ -338,53 +349,38 @@ describe("CatalogView", () => {
     expect(saved).toMatchObject({ name: "Storm Ball 1", weight: 14, catalog_ref_id: "ball-1" });
   });
 
-  it("keeps the tray over a ball's page, tints compared rows, and asks before a ball leaves (ADR-266)", async () => {
+  it("keeps the tray over a ball's page with each ball's weight, tints compared rows, and asks before a ball leaves (ADR-266, ADR-268)", async () => {
     await seedCatalog(3);
     const { rerender } = render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
     await screen.findByText("Ball 0");
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
-    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 1/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Done picking" }));
-    // Tinted in the list, no count and no Clear in the tray.
-    expect(screen.getByRole("button", { name: /^Storm.*Ball 1/ }).className).toContain("bg-accent-soft");
+    const page = await addFromPage(rerender, "ball-1", "Ball 1");
+    // Over the ball's page, each ball with its weight on a badge.
+    const tray = within(page).getByRole("list", { name: "In compare" });
+    expect(within(tray).getByRole("button", { name: "Remove Ball 1, 15 lb" })).toHaveTextContent("15");
+    // No count and no Clear.
     expect(screen.queryByText(/of 8/)).toBeNull();
     expect(screen.queryByRole("button", { name: "Clear" })).toBeNull();
 
-    // Over the ball's page too, where In compare asks first.
-    rerender(<CatalogView onBack={vi.fn()} selectedBallId="ball-1" onSelectBall={vi.fn()} />);
-    const page = await screen.findByRole("dialog", { name: "Ball 1" });
-    expect(within(page).getByRole("list", { name: "In compare" })).toBeInTheDocument();
-    fireEvent.click(within(page).getByRole("button", { name: "In compare: 15 lb" }));
+    rerender(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
+    // Tinted in the list.
+    expect((await screen.findByRole("button", { name: /^Storm.*Ball 1/ })).className).toContain("bg-accent-soft");
     // Kept until the menu's row is tapped.
+    fireEvent.click(trayBalls()[0]);
     expect(trayBalls()).toHaveLength(1);
     fireEvent.click(screen.getByRole("button", { name: "Remove from compare" }));
     await waitFor(() => expect(screen.queryAllByRole("list", { name: "In compare" })).toHaveLength(0));
   });
 
-  it("adds from a ball's page at the default weight, another weight from the graph-and-plus, and takes one out from In compare (ADR-267)", async () => {
+  it("puts Add to arsenal and Add to compare in a ball page's bar, compare right-most, with no buttons on the page (ADR-268)", async () => {
     await seedCatalog(2);
-    await db.ball_catalog.update("ball-1", { weights: [14, 13].map((weight) => ({ weight, rg: 2.5, diff: 0.05, mbDiff: null })) });
     render(<CatalogView onBack={vi.fn()} selectedBallId="ball-1" onSelectBall={vi.fn()} />);
     const page = await screen.findByRole("dialog", { name: "Ball 1" });
-
-    // Out: one tap, at the default weight, and no menu.
-    fireEvent.click(await within(page).findByRole("button", { name: "Add to compare" }));
-    expect(within(page).getByRole("button", { name: "In compare: 15 lb" })).toBeInTheDocument();
-
-    // In: the graph-and-plus asks which weight, of those not in yet.
-    fireEvent.click(within(page).getByRole("button", { name: "Add another weight to compare" }));
-    expect(screen.queryByRole("button", { name: "Add at 15 lb" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Add at 13 lb" }));
-    expect(within(page).getByRole("button", { name: "In compare: 15 lb, 13 lb" })).toBeInTheDocument();
-
-    // Several in: In compare asks which to take out.
-    fireEvent.click(within(page).getByRole("button", { name: "In compare: 15 lb, 13 lb" }));
-    fireEvent.click(screen.getByRole("button", { name: "Remove 13 lb from compare" }));
-    // One in: it asks as everywhere else, then the ball is out.
-    fireEvent.click(within(page).getByRole("button", { name: "In compare: 15 lb" }));
-    fireEvent.click(screen.getByRole("button", { name: "Remove from compare" }));
-    expect(await within(page).findByRole("button", { name: "Add to compare" })).toBeInTheDocument();
+    const arsenal = within(page).getByRole("button", { name: "Add to arsenal" });
+    const compare = within(page).getByRole("button", { name: "Add to compare" });
+    expect(arsenal.compareDocumentPosition(compare) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // Up in the bar, over the specs, not a row of big buttons under them.
+    expect(compare.compareDocumentPosition(within(page).getByText("Coverstock")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(page).queryByText(/In compare:/)).toBeNull();
   });
 
   it("opens the ball graph from the bar's corner (ADR-262)", async () => {
