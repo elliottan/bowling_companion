@@ -2051,6 +2051,12 @@ msgstr "Filtros, {count} aplicados"
 msgid "Final"
 msgstr "Final"
 
+#. On the Apple Watch's Live Activity, where space is tight: the game is over
+#: src/components/LiveActivityPreviews.tsx
+msgctxt "live-activity"
+msgid "Final"
+msgstr "Final"
+
 #. Bowling term: the board where the ball ends at the pins, followed by the board number. A small label drawn on the lane
 #: src/components/LaneSurface.tsx
 msgid "Final {board}"

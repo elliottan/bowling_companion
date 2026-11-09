@@ -9,13 +9,19 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.104.2: Back never skips a screen (2026-11-09)
+## 0.104.3: Back never skips a screen (2026-11-09)
 
 ### Fixed
 
-- Back while the lane view is still loading closes the loading screen, rather than the sheet or screen under it (ADR-271).
-- Back from a screen opened over a guide returns to the guide (ADR-271).
-- On iPhone, the edge swipe follows your finger on Compare and on the catalog opened from Add a ball, as it does on every other screen (ADR-271).
+- Back while the lane view is still loading closes the loading screen, rather than the sheet or screen under it (ADR-272).
+- Back from a screen opened over a guide returns to the guide (ADR-272).
+- On iPhone, the edge swipe follows your finger on Compare and on the catalog opened from Add a ball, as it does on every other screen (ADR-272).
+## 0.104.2: The Apple Watch's Live Activity is no longer cut off (2026-11-09)
+
+### Fixed
+
+- The game in progress on an Apple Watch's Smart Stack was cut off at the top and bottom. It now fits: your total, with the game, the frame and the max beside it, over the last three frames (ADR-271).
+
 ## 0.104.1: Colorway fixes (2026-11-09)
 
 ### Fixed

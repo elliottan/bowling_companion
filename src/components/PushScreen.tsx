@@ -55,7 +55,7 @@ interface PushScreenProps {
    */
   mode?: "overlay" | "inline";
   /**
-   * How back closes this screen, and required so that every screen says (ADR-271).
+   * How back closes this screen, and required so that every screen says (ADR-272).
    *
    * `route`: the navigation state opens it (an overlay, a Settings section, a
    * catalog ball or a guide in `NavState`), so it has a history entry of its

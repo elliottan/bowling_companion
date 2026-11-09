@@ -113,7 +113,7 @@ describe("PushScreen large title (ADR-226)", () => {
   });
 });
 
-describe("PushScreen history (ADR-271)", () => {
+describe("PushScreen history (ADR-272)", () => {
   it("leaves a route to history: it is not on the sheet back stack", () => {
     const { unmount } = render(<PushScreen history="route" title="Arsenal" onBack={() => {}}>body</PushScreen>);
     expect(getOpenSheets()).toHaveLength(0);

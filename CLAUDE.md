@@ -19,7 +19,7 @@ shape to drift, by design.
 | Touch scoring | `src/lib/scoring.ts`, `src/lib/frameController.ts` and their tests; ADR-001, ADR-005, ADR-017 |
 | What a shot opens with, lines, or spare lines | `src/lib/shotSeeding.ts` + its tests; ADR-052 (the line follows the ball), ADR-053 (strike-ball moves), ADR-054 (capturing a line), ADR-113 (the ball follows the last throw), ADR-140 (a line shared by its row and the house) |
 | Any UI work: screens, nav, controls, motion, copy | `docs/DESIGN-LANGUAGE.md`. It is the whole rule set, and ADR-040 is the why |
-| Navigation, back, or routing | `src/lib/appNavigation.ts` + `appRoute.ts` + `useHistoryRoute.ts`; ADR-041 for why back goes through history, ADR-271 for `PushScreen`'s `history` (route or layer) |
+| Navigation, back, or routing | `src/lib/appNavigation.ts` + `appRoute.ts` + `useHistoryRoute.ts`; ADR-041 for why back goes through history, ADR-272 for `PushScreen`'s `history` (route or layer) |
 | Add or restructure a module | `docs/ARCHITECTURE.md` for the import layering |
 | User-facing text, numbers and dates, or adding a language | `docs/I18N.md`; ADR-220. New text is a `t` message, never a string literal, and numbers and dates go through `src/lib/format.ts` |
 | Add balls to the catalog | `scripts/sync-catalog/data/HANDOUT.md` (backlog and state), then `scripts/sync-catalog/pipeline/` (select, promote, images); ADR-043 for the trust rules, ADR-135 for web-search readings, ADR-039 for the image position, ADR-169 for how every photo is cut |

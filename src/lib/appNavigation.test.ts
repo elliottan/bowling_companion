@@ -268,7 +268,7 @@ describe("navReducer", () => {
       expect(navReducer(popped, { type: "popOverlay" }).overlays).toEqual([]);
     });
 
-    it("stays open under a screen it opened, which comes off first (ADR-271)", () => {
+    it("stays open under a screen it opened, which comes off first (ADR-272)", () => {
       const over = navReducer(reading, { type: "openLineSandbox" });
       const popped = navReducer(over, { type: "popOverlay" });
       expect(popped.overlays).toEqual(["guides"]);
