@@ -11080,3 +11080,29 @@ second chance, and four was the most.
 
 **Consequences.** Emptying the comparison is a tap per ball. A tray at the foot
 of a ball's page takes its height from the page while any ball is in.
+
+## ADR-267: A ball page's compare row is one button and a graph-and-plus
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-262 and
+ADR-266.
+
+**Context.** Once a ball was in the comparison, its page showed "Add another
+weight" as the button and the weights it was in at as chips under it. The
+owner found it unclear: the button did not say the ball was in, and the chips
+read as a second control.
+
+**Decision.**
+
+- **Out of the comparison**, the page has one full-width Add to compare,
+  marked with the graph glyph and a plus. A tap adds the ball at the bowler's
+  default weight, as before, with no menu.
+- **In it**, that button turns into "In compare: 15 lb, 14 lb", in the
+  accent's soft fill with a tick. A tap takes a weight out, asking first: one
+  weight asks as everywhere else (Remove from compare), several ask which
+  ("Remove 14 lb from compare").
+- **Beside it, the graph glyph with a plus** opens a menu of the weights the
+  ball lists specs for that it is not in at yet ("Add at 14 lb"). It is off
+  when the comparison is full or every listed weight is in.
+
+**Consequences.** Adding at a weight the catalog lists no specs for is left to
+the comparison's own weight menu, as ADR-262 already has it.

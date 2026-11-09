@@ -2,7 +2,7 @@ import { plural, t } from "@lingui/core/macro";
 import { ClearAllButton } from "../components/ui/ClearAllButton";
 import { Select } from "../components/ui/Select";
 import { Trans } from "@lingui/react/macro";
-import { BookOpen, ChartScatter, Check, Columns3, ExternalLink, Loader2, MailPlus, MoreHorizontal, Palette, X } from "lucide-react";
+import { BookOpen, ChartScatter, Check, Columns3, ExternalLink, Loader2, MailPlus, MoreHorizontal, Palette, Plus, X } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { CatalogBallImage } from "../components/CatalogBallImage";
@@ -20,7 +20,7 @@ import { IconButton } from "../components/ui/IconButton";
 import { ANCHORED_MENU_WIDTH, AnchoredMenu, AnchoredMenuItem } from "../components/ui/AnchoredMenu";
 import { anchorUnder, type MenuAnchor } from "../lib/menuAnchor";
 import { catalogRequestMailto, openMail } from "../lib/links";
-import { entryKey, MAX_COMPARE, nextWeight, specsAt, type CompareEntry, type WeighedBall } from "../lib/ballCompare";
+import { entryKey, MAX_COMPARE, nextWeight, specsAt, weightsFor, type CompareEntry, type WeighedBall } from "../lib/ballCompare";
 import { useRememberedState } from "../lib/viewMemory";
 import {
   getAllCatalog,
@@ -31,7 +31,7 @@ import { DEFAULT_WEIGHT, MANUFACTURERS, type CatalogBall, type CoverstockCategor
 import type { Ball } from "../types/bowling";
 import { getBalls } from "../services/ballRepository";
 import { BallFormDialog } from "../components/BallFormDialog";
-import { RemoveFromCompare } from "../components/RemoveFromCompare";
+import { MenuOff, RemoveFromCompare } from "../components/RemoveFromCompare";
 import { getDefaultBallWeight } from "../services/bowlingRepository";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { formatReleaseDate } from "../lib/dates";
@@ -168,10 +168,13 @@ interface DetailPanelProps {
   comparedAt: readonly number[];
   /** Asks before one weight of this ball leaves the comparison (ADR-266). */
   onAskRemove: (weight: number, el: Element) => void;
+  /** Takes one weight out, already asked (its menu is the asking). */
+  onRemoveWeight: (weight: number) => void;
   /** The compare tray, at the foot of this page too (ADR-266). */
   tray?: ReactNode;
-  /** Null when the comparison is full or holds the ball at every weight. */
-  onAddToCompare: (() => void) | null;
+  /** Adds the ball to the comparison, at `weight` or, unsaid, the bowler's
+   *  default (ADR-267). Null when the comparison is full. */
+  onAddToCompare: ((weight?: number) => void) | null;
   /** The bowler's default weight, which the specs are read at (ADR-262). */
   weight: number;
 }
@@ -241,8 +244,12 @@ function ColorwayCarousel({ ball }: { ball: CatalogBall }) {
   );
 }
 
-function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBalls, onSelectBall, onViewAll, comparedAt, onAskRemove, tray, onAddToCompare, weight }: DetailPanelProps) {
+function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBalls, onSelectBall, onViewAll, comparedAt, onAskRemove, onRemoveWeight, tray, onAddToCompare, weight }: DetailPanelProps) {
   const releaseDate = formatReleaseDate(ball.releaseDate);
+  // The menus the compare row opens: the weights to add it at, and which of
+  // the weights it is in at to take out (ADR-267).
+  const [compareMenu, setCompareMenu] = useState<{ kind: "add" | "remove"; anchor: DOMRect } | null>(null);
+  const addable = weightsFor(ball).filter((w) => !comparedAt.includes(w));
   const specs = specsAt(ball, weight);
   const comparing = comparedAt.length > 0;
   const coreKin = useMemo(() => sameCore(allBalls, ball), [allBalls, ball]);
@@ -251,7 +258,7 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
     // A ball detail is one level deeper than the list, so it pushes like one
     //, same nav bar, same back gesture, opened at the top regardless of where
     // the list was scrolled to.
-    <PushScreen title={ball.name} eyebrow={ball.brand} onBack={onBack} active={!addDialogOpen} footer={tray}>
+    <PushScreen title={ball.name} eyebrow={ball.brand} onBack={onBack} active={!addDialogOpen && compareMenu === null} footer={tray}>
       <div>
         <div className="mx-auto w-full max-w-xl px-3 py-4 sm:px-6">
           <ColorwayCarousel ball={ball} />
@@ -310,41 +317,84 @@ function DetailPanel({ ball, owned, onBack, onAddToArsenal, addDialogOpen, allBa
           </Button>
 
           {/* Into the comparison from the ball itself, beside the list's own
-              picking (ADR-258); once in, again at another weight (ADR-262).
-              The comparison itself is the tray at the foot (ADR-266). */}
-          <div className="mt-2 flex gap-2">
+              picking (ADR-258). Out, one tap adds it at the default weight.
+              In, the button says at which weights and takes one out, asking
+              first; the graph-and-plus beside it adds another (ADR-267). */}
+          {comparing ? (
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                onClick={(e) => {
+                  // One weight asks as everywhere else; several ask which.
+                  if (comparedAt.length === 1) onAskRemove(comparedAt[0], e.currentTarget);
+                  else setCompareMenu({ kind: "remove", anchor: e.currentTarget.getBoundingClientRect() });
+                }}
+                className="inline-flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full border border-accent-fill/30 bg-accent-soft px-4 py-2.5 text-sm font-semibold text-accent active:opacity-70"
+              >
+                <Check size={16} aria-hidden="true" className="shrink-0" />
+                <span className="min-w-0 break-words">
+                  {t({ message: `In compare: ${{ weights: comparedAt.map(lb).join(", ") }}`, comment: "A button on a ball's page: the weights it is being compared at, such as 15 lb, 14 lb. A tap takes one out." })}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={(e) => setCompareMenu({ kind: "add", anchor: e.currentTarget.getBoundingClientRect() })}
+                disabled={onAddToCompare === null || addable.length === 0}
+                aria-label={t({ message: "Add another weight to compare", comment: "Opens a menu of weights to add this bowling ball to the comparison at again" })}
+                className="relative inline-flex h-11 w-14 shrink-0 items-center justify-center rounded-full border border-edge-strong bg-surface text-ink-strong hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <ChartScatter size={18} aria-hidden="true" />
+                <span aria-hidden="true" className="absolute right-2.5 top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-accent-fill text-accent-on-fill">
+                  <Plus size={10} strokeWidth={3.5} />
+                </span>
+              </button>
+            </div>
+          ) : (
             <Button
               variant="secondary"
-              onClick={onAddToCompare ?? undefined}
+              onClick={() => onAddToCompare?.()}
               disabled={onAddToCompare === null}
-              className="flex-1"
+              className="mt-2 w-full"
             >
-              {comparing ? <Check size={16} aria-hidden="true" /> : <Columns3 size={16} aria-hidden="true" />}
-              {comparing
-                ? t({ message: "Add another weight", comment: "Adds this bowling ball to the comparison again, at another weight" })
-                : t({ message: "Add to compare", comment: "Picks this bowling ball to compare with others" })}
-            </Button>
-          </div>
-
-          {/* Each weight it is in at, a tap away from leaving, which asks
-              first (ADR-266). */}
-          {comparing && (
-            <div className="mt-2 flex flex-wrap items-center gap-2 px-1">
-              <span className="text-footnote text-ink-secondary">
-                {t({ message: "In compare", comment: "Before the weights a bowling ball is being compared at, each a button that takes it out" })}
+              <span className="relative inline-flex">
+                <ChartScatter size={16} aria-hidden="true" />
+                <Plus size={9} strokeWidth={3.5} aria-hidden="true" className="absolute -right-1.5 -top-1.5" />
               </span>
-              {comparedAt.map((w) => (
-                <Chip
+              {t({ message: "Add to compare", comment: "Picks this bowling ball to compare with others" })}
+            </Button>
+          )}
+          {compareMenu?.kind === "add" && (
+            <MenuOff anchor={compareMenu.anchor} rows={addable.length} onClose={() => setCompareMenu(null)}>
+              {addable.map((w) => (
+                <AnchoredMenuItem
                   key={w}
-                  selected
-                  aria-label={t({ message: `Remove ${{ ball: ball.name }}, ${{ weight: lb(w) }}`, comment: "Takes one bowling ball, at one weight, out of the comparison" })}
-                  onClick={(e) => onAskRemove(w, e.currentTarget)}
+                  icon={Plus}
+                  onClick={() => {
+                    setCompareMenu(null);
+                    onAddToCompare?.(w);
+                  }}
                 >
-                  {lb(w)}
-                  <X size={14} aria-hidden="true" className="ml-1" />
-                </Chip>
+                  {t({ message: `Add at ${{ weight: lb(w) }}`, comment: "A menu row: adds a bowling ball to the comparison at this weight, such as 14 lb" })}
+                </AnchoredMenuItem>
               ))}
-            </div>
+            </MenuOff>
+          )}
+          {compareMenu?.kind === "remove" && (
+            <MenuOff anchor={compareMenu.anchor} rows={comparedAt.length} onClose={() => setCompareMenu(null)}>
+              {comparedAt.map((w) => (
+                <AnchoredMenuItem
+                  key={w}
+                  icon={X}
+                  danger
+                  onClick={() => {
+                    setCompareMenu(null);
+                    onRemoveWeight(w);
+                  }}
+                >
+                  {t({ message: `Remove ${{ weight: lb(w) }} from compare`, comment: "A menu row: takes this bowling ball, at this weight such as 14 lb, out of the comparison" })}
+                </AnchoredMenuItem>
+              ))}
+            </MenuOff>
           )}
 
           {ball.coreName && coreKin.length > 0 && (
@@ -953,8 +1003,8 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
     const owns = ownedBalls.filter((o) => o.ball.id === ball.id).map((o) => o.weight);
     return nextWeight(ball, comparedAt(ball.id), defaultWeight, owns);
   };
-  const addToCompare = (ball: CatalogBall) => {
-    const weight = weightToAdd(ball);
+  const addToCompare = (ball: CatalogBall, at?: number) => {
+    const weight = at !== undefined && compared.length < MAX_COMPARE && !comparedAt(ball.id).includes(at) ? at : weightToAdd(ball);
     if (weight !== null) setCompared((entries) => [...entries, { id: ball.id, weight }]);
   };
 
@@ -1032,8 +1082,9 @@ export function CatalogView({ onBack, selectedBallId, onSelectBall, ballTrail = 
         addDialogOpen={!top || addingBall != null || (compareOpen && i < compareAt) || menuAt !== null || removing !== null}
         comparedAt={comparedAt(ball.id)}
         onAskRemove={(w, el) => askRemove(entryKey({ id: ball.id, weight: w }), el)}
+        onRemoveWeight={(w) => setCompared((entries) => entries.filter((e) => entryKey(e) !== entryKey({ id: ball.id, weight: w })))}
         tray={tray}
-        onAddToCompare={weightToAdd(ball) === null ? null : () => addToCompare(ball)}
+        onAddToCompare={compared.length >= MAX_COMPARE ? null : (w) => addToCompare(ball, w)}
         weight={defaultWeight}
         allBalls={allBalls}
         onSelectBall={onSelectBall}

@@ -800,10 +800,15 @@ msgstr "Agregar un patrón"
 msgid "Add another to arsenal"
 msgstr "Agregar otra al arsenal"
 
-#. Adds this bowling ball to the comparison again, at another weight
+#. Opens a menu of weights to add this bowling ball to the comparison at again
 #: src/views/CatalogView.tsx
-msgid "Add another weight"
-msgstr "Añadir otro peso"
+msgid "Add another weight to compare"
+msgstr "Añadir otro peso a comparar"
+
+#. A menu row: adds a bowling ball to the comparison at this weight, such as 14 lb
+#: src/views/CatalogView.tsx
+msgid "Add at {weight}"
+msgstr "Añadir a {weight}"
 
 #: src/components/BallFormDialog.tsx
 #: src/views/ArsenalView.tsx
@@ -2496,10 +2501,14 @@ msgid "In"
 msgstr "Dentro"
 
 #. Before the weights a bowling ball is being compared at, each a button that takes it out
-#. Before the weights a bowling ball is being compared at, each a button that takes it out
 #: src/views/CatalogView.tsx
 msgid "In compare"
 msgstr "En comparar"
+
+#. A button on a ball's page: the weights it is being compared at, such as 15 lb, 14 lb. A tap takes one out.
+#: src/views/CatalogView.tsx
+msgid "In compare: {weights}"
+msgstr "En comparar: {weights}"
 
 #: src/components/MetricTrendChart.tsx
 msgid "In order. {points}."
@@ -3826,7 +3835,6 @@ msgstr "Quitar"
 #. Takes one bowling ball, at one weight, out of the comparison
 #. Takes one bowling ball, at one weight, out of the comparison
 #. Takes one bowling ball, at one weight, out of the comparison
-#. Takes one bowling ball, at one weight, out of the comparison
 #: src/components/BallCompareView.tsx
 #: src/views/CatalogView.tsx
 msgid "Remove {ball}, {weight}"
@@ -3835,6 +3843,11 @@ msgstr "Quitar {ball}, {weight}"
 #: src/components/OilPatternManager.tsx
 msgid "Remove {name}?"
 msgstr "¿Quitar {name}?"
+
+#. A menu row: takes this bowling ball, at this weight such as 14 lb, out of the comparison
+#: src/views/CatalogView.tsx
+msgid "Remove {weight} from compare"
+msgstr "Quitar {weight} de comparar"
 
 #: src/components/SessionFilterBar.tsx
 msgid "Remove filter {filter}"

@@ -351,16 +351,40 @@ describe("CatalogView", () => {
     expect(screen.queryByText(/of 8/)).toBeNull();
     expect(screen.queryByRole("button", { name: "Clear" })).toBeNull();
 
-    // Over the ball's page too, where its weight is a chip that asks first.
+    // Over the ball's page too, where In compare asks first.
     rerender(<CatalogView onBack={vi.fn()} selectedBallId="ball-1" onSelectBall={vi.fn()} />);
     const page = await screen.findByRole("dialog", { name: "Ball 1" });
     expect(within(page).getByRole("list", { name: "In compare" })).toBeInTheDocument();
-    const chips = within(page).getAllByRole("button", { name: "Remove Ball 1, 15 lb" });
-    fireEvent.click(chips[0]);
+    fireEvent.click(within(page).getByRole("button", { name: "In compare: 15 lb" }));
     // Kept until the menu's row is tapped.
     expect(trayBalls()).toHaveLength(1);
     fireEvent.click(screen.getByRole("button", { name: "Remove from compare" }));
     await waitFor(() => expect(screen.queryAllByRole("list", { name: "In compare" })).toHaveLength(0));
+  });
+
+  it("adds from a ball's page at the default weight, another weight from the graph-and-plus, and takes one out from In compare (ADR-267)", async () => {
+    await seedCatalog(2);
+    await db.ball_catalog.update("ball-1", { weights: [14, 13].map((weight) => ({ weight, rg: 2.5, diff: 0.05, mbDiff: null })) });
+    render(<CatalogView onBack={vi.fn()} selectedBallId="ball-1" onSelectBall={vi.fn()} />);
+    const page = await screen.findByRole("dialog", { name: "Ball 1" });
+
+    // Out: one tap, at the default weight, and no menu.
+    fireEvent.click(await within(page).findByRole("button", { name: "Add to compare" }));
+    expect(within(page).getByRole("button", { name: "In compare: 15 lb" })).toBeInTheDocument();
+
+    // In: the graph-and-plus asks which weight, of those not in yet.
+    fireEvent.click(within(page).getByRole("button", { name: "Add another weight to compare" }));
+    expect(screen.queryByRole("button", { name: "Add at 15 lb" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Add at 13 lb" }));
+    expect(within(page).getByRole("button", { name: "In compare: 15 lb, 13 lb" })).toBeInTheDocument();
+
+    // Several in: In compare asks which to take out.
+    fireEvent.click(within(page).getByRole("button", { name: "In compare: 15 lb, 13 lb" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove 13 lb from compare" }));
+    // One in: it asks as everywhere else, then the ball is out.
+    fireEvent.click(within(page).getByRole("button", { name: "In compare: 15 lb" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove from compare" }));
+    expect(await within(page).findByRole("button", { name: "Add to compare" })).toBeInTheDocument();
   });
 
   it("opens the ball graph from the bar's corner (ADR-262)", async () => {
