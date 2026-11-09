@@ -35,8 +35,13 @@ export function WholeWords({
   const em = longestWordEm(text, upper) * 1.06;
   return (
     <span className="block w-full [container-type:inline-size]">
-      <span className={className} style={{ fontSize: em > 0 ? `min(1em, calc(100cqi / ${em.toFixed(2)}))` : undefined }}>
-        {children ?? text}
+      {/* The cap sits on a span inside the classed one, so its `1em` is the
+          size the classes set. On the classed span itself the inline size
+          would override them and fall back to the inherited body size. */}
+      <span className={className}>
+        <span style={{ fontSize: em > 0 ? `min(1em, calc(100cqi / ${em.toFixed(2)}))` : undefined }}>
+          {children ?? text}
+        </span>
       </span>
     </span>
   );
