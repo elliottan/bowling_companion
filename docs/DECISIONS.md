@@ -10957,3 +10957,207 @@ comparison picked before this build is forgotten on update, as picks only
 live while the app runs. A ball the bowler owns at every weight it is made in
 cannot come into the comparison at any other, which is the point: past the
 owned weights it comes in as a catalog ball, with a menu.
+
+## ADR-263: The bag on a ball's page, the graph's key switches balls, and the axes say their names
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-261 and
+ADR-262.
+
+**Context.** A catalog ball the bowler owned showed "Already in your arsenal"
+at the foot of its page in place of Add to arsenal, though a bowler may own
+two of one ball, in one weight or two, and the banner said nothing about the
+ball they own. On the graph, the bag was one switch for all of it, a tap on a
+ball in the key could only open its card, and the axes carried a sentence
+each.
+
+**Decision.**
+
+- **In your arsenal** sits on a ball's page under its photo and release date,
+  over the specs: one card a copy, with its name, its weight and the RG and
+  diff at that weight, in a row that swipes sideways with dots under it when
+  there are several. One card's height however many are owned. A retired copy
+  is out of the bag and not shown.
+- **Add to arsenal is always there.** Owned, it reads "Add another to arsenal"
+  and steps back to a secondary button.
+- **The key under the graph switches each ball.** A ball's photo turns it on
+  and off the graph (`aria-pressed`, the ring gone and the photo dimmed while
+  off); the words beside it open its card, as before. A ball off the graph
+  stays in the key, numbered as it was, so the key never renumbers under the
+  finger.
+- **A compared ball is always on the graph.** Switched off, it leaves the
+  comparison.
+- **Your bag sits over the key it switches**, under the chart. All on, it takes
+  the bag off; some or none on, it puts the whole bag on, and with some on it
+  reads "Your bag, 5 of 8" (`aria-pressed="mixed"`). The bag starts all on.
+- **The axes say RG and Diff**, nothing more. A tap on either opens a small
+  note with what it means, the words the axes used to carry ("RG: lower revs up
+  sooner"); a tap anywhere closes it.
+
+**Consequences.** Which bag balls are off is the comparison's own state and is
+forgotten when it closes. Balls with near-identical specs still draw on top of
+each other; how to part them is open, with options put to the owner.
+
+## ADR-264: View all pushes a list over the ball
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-257.
+
+**Context.** View all on a ball's Same core or Same cover row went back past
+every open ball to the catalog's list, filtered to that core or cover. Back
+from there left the catalog: the ball the bowler had been reading, and any
+balls under it, were gone.
+
+**Decision.**
+
+- **View all pushes a page** over the ball it was tapped on: the balls on that
+  core or in that cover, newest first, titled with the name under a "Same core"
+  or "Same cover" eyebrow. A row opens its ball over the list in turn. Back pops
+  one page at a time: the ball, the list, the ball under it, and only then the
+  catalog's own list, whose search and filters are left as they were.
+- **One stack.** A list rides in the same trail as the balls
+  (`catalogBallId`, `catalogBallTrail`), written `~core:<name>` or
+  `~cover:<name>` (`lib/catalogPages.ts`), so the route, the platform's back
+  and a reload treat it as any other page.
+- **No limit on depth, a limit on what is drawn.** A bowler can wander ball to
+  list to ball as deep as they like, and back unwinds every step. Only the top
+  three pages are mounted (`DRAWN_PAGES`): the top one, and two under it for
+  the drag back to uncover; deeper ones mount again as back reaches them.
+
+**Consequences.** The catalog list's filters are no longer how View all is
+shown, so a core or cover filter set from a ball no longer outlives it.
+
+## ADR-265: A catalog ball is added through the arsenal's own form
+
+**Status.** Accepted, 2026-11-09, at the owner's request.
+
+**Context.** Add to arsenal on a catalog ball's page opened a sheet of its
+own: a sentence about the specs coming across, a name, and, since ADR-262, a
+weight. It took no layout, so a drilled ball added from the catalog needed a
+second trip to the arsenal, and it was a second form for one job beside the
+arsenal's.
+
+**Decision.** The catalog's sheet is gone. Add to arsenal opens the arsenal's
+own ball form (`BallFormDialog`, with `catalogBall`), already linked to the
+ball and named after it, at the bowler's default weight, with its layout field,
+as adding a ball in the arsenal does. Saved, the catalog page's In your arsenal
+card picks the new copy up.
+
+**Consequences.** The sheet's colourway chips go with it: the arsenal form has
+never chosen a colourway, so a ball added from the catalog shows the catalog's
+first photo, as one linked from the arsenal always has.
+
+## ADR-266: Eight to compare, a tray on every catalog screen, and a ball leaves only when asked
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-258,
+ADR-262 and ADR-263.
+
+**Context.** The picked balls rode in a tray under the catalog's list only,
+overlapping, with a count ("2 of 4") and a Clear that emptied it in one tap.
+A ball's page had its own Compare N button. Nothing in the list showed which
+balls were in. Taking one out was a tap on an X in the comparison, with no
+second chance, and four was the most.
+
+**Decision.**
+
+- **Eight balls** (`MAX_COMPARE`). The specs table scrolls sideways with its
+  row names frozen at the left, and a tap on a column's ball opens its page.
+- **The tray sits at the foot of every catalog screen** while any ball is in:
+  the list, a ball's page and a View all list. Each ball is its own photo with
+  its weight under it, apart from the next; a faint dashed ring stands for each
+  slot still free; Compare sits at its end. No count, no Clear. Eight do not fit
+  a phone, so the row scrolls sideways, with nothing drawn to say so.
+- **A ball leaves only when asked.** A tap on it in the tray, its X in the
+  table, its photo in the graph's key, or its weight on its own page opens one
+  red row, Remove from compare (`RemoveFromCompare`); a tap anywhere else keeps
+  it. The ball's page lists the weights it is in at as chips under "In
+  compare", and its Compare N button is gone: the tray is the way there.
+- **A ball in the comparison is tinted in the list**, in the accent's soft
+  fill, in the catalog's list and in a View all list.
+- **The graph's grid.** Diff every 0.010, labelled to three places ("0.050"),
+  the odd ones dotted so 0.030 and 0.050 are there without crowding; RG every
+  0.05 with a dotted line halfway between.
+- **The catalog's list draws no scroll bar** (`PushScreen` `hideScrollbar`):
+  it grows as it scrolls, so a bar only ever said there was more.
+
+**Consequences.** Emptying the comparison is a tap per ball. A tray at the foot
+of a ball's page takes its height from the page while any ball is in.
+
+## ADR-267: A ball page's compare row is one button and a graph-and-plus
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-262 and
+ADR-266.
+
+**Context.** Once a ball was in the comparison, its page showed "Add another
+weight" as the button and the weights it was in at as chips under it. The
+owner found it unclear: the button did not say the ball was in, and the chips
+read as a second control.
+
+**Decision.**
+
+- **Out of the comparison**, the page has one full-width Add to compare,
+  marked with the graph glyph and a plus. A tap adds the ball at the bowler's
+  default weight, as before, with no menu.
+- **In it**, that button turns into "In compare: 15 lb, 14 lb", in the
+  accent's soft fill with a tick. A tap takes a weight out, asking first: one
+  weight asks as everywhere else (Remove from compare), several ask which
+  ("Remove 14 lb from compare").
+- **Beside it, the graph glyph with a plus** opens a menu of the weights the
+  ball lists specs for that it is not in at yet ("Add at 14 lb"). It is off
+  when the comparison is full or every listed weight is in.
+
+- **The comparison's weights have a row of their own**, Weight, first in the
+  table, with the Owned tag under a ball the bowler owns at it. In the column
+  headers the menus sat under names of one line or two, so they did not line up.
+
+**Consequences.** Adding at a weight the catalog lists no specs for is left to
+the comparison's own weight menu, as ADR-262 already has it.
+
+## ADR-268: A ball goes into the comparison from its own page, by its bar
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-258,
+ADR-262, ADR-263, ADR-266 and ADR-267.
+
+**Context.** The catalog's More menu started a picking mode in which a row
+tap added the ball, and a second tap added it again at another weight rather
+than taking it out. The owner found the mode confusing. A ball's page carried
+two full-width buttons under its specs (Add to arsenal, and the compare row),
+and the graph spent a row and a column on its axis names.
+
+**Decision.**
+
+- **No picking mode.** Compare balls leaves the catalog's More menu, and a row
+  in the list only ever opens its ball. Add a ball in the comparison goes back
+  to the list, where a ball is opened and added from its page.
+- **A ball's page carries both actions in its bar**, top right: Add to arsenal
+  (the ball glyph with a plus), then Add to compare (the graph glyph with a
+  plus), the right-most. The full-width buttons under the specs are gone.
+  DESIGN-LANGUAGE's two-action ceiling gains the page.
+- **Add to compare** puts a ball that is not in yet in at the bowler's default
+  weight with no question. Once it is in, the button is filled in the accent,
+  and a tap opens a menu of the weights it lists that are not in yet. It is
+  off when the comparison is full or every listed weight is in. A ball comes
+  out from the tray, as ADR-266 has it.
+- **The tray badges each ball's weight** at its photo's corner, as the graph
+  numbers its balls, in place of the caption under it.
+- **The graph's axis names share its corner**, either side of a dotted
+  diagonal where the axes meet: Diff over it, RG under it, each still a tap
+  away from what it means. The chart takes back the row and the column they
+  had.
+
+**Consequences.** Several balls take a visit to each one's page. Emptying the
+comparison is still a tap per ball, in the tray.
+
+## ADR-269: The tray's X takes a ball out at once
+
+**Status.** Accepted, 2026-11-09, at the owner's request. Amends ADR-266.
+
+**Context.** A tap on a ball in the tray opened a Remove from compare menu, so
+emptying it was two taps a ball, and the owner did not like the menu's look.
+
+**Decision.** Each ball in the tray carries a small X at its top right that
+takes it out at once, with no question. The rest slide along, so a row of
+them is cleared by tapping the same place. A tap on the ball's photo opens its
+page. The X is small, which is what keeps it from being hit by accident; the
+photo is the bigger target.
+
+**Consequences.** The comparison's own table and the graph's key still ask
+before a ball leaves, as ADR-266 has it: neither sits under a thumb in a row.

@@ -9,6 +9,25 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.103.0: Compare up to 8 balls, your copies on a ball's page, and View all keeps your place (2026-11-09)
+
+### Changed
+
+- A catalog ball you own now shows your copies near the top of its page, each with its weight and its RG and diff at that weight; swipe between them when you own more than one (ADR-263).
+- You can always add a catalog ball to your arsenal, even one you already own. Adding one opens the same form as adding a ball in your arsenal, already linked to the catalog ball, with its weight and layout (ADR-265).
+- On the ball graph, tap a ball's photo in the list under it to show or hide it on the graph; tap its name for its details. Hiding a ball you are comparing takes it out of Compare.
+- Your bag's button now sits above that list: with every ball shown it hides them all, otherwise it shows them all.
+- The graph's axes now just say RG and Diff; tap either to see what it means.
+- In Compare's specs table, each ball's weight now sits on its own Weight row, so the weights line up however long the names above them are.
+- Compare now holds up to 8 balls. The specs table scrolls sideways with the row names held at the left, and tapping a ball's photo or name in it opens the ball (ADR-266).
+- The compare tray now stays at the bottom of the catalog, a ball's page and View all lists while any ball is in it. Each ball sits on its own with its weight on a small badge, empty slots show as faint rings, and the count and Clear button are gone.
+- Each ball in the compare tray has a small X that removes it at once; tap the ball itself to open its page. Removing a ball from the comparison's table or the graph's list asks first (ADR-269).
+- Balls now go into Compare from their own page only: the catalog's Compare balls mode is gone. On a ball's page, the graph button with a plus at the top right adds it at your default weight; tap it again to pick another weight. Add to arsenal is the button beside it, and the big buttons under the specs are gone (ADR-268).
+- Balls in Compare are tinted in the catalog's list.
+- The graph labels diff to three places (0.050) with lines at every 0.010, adds dotted lines halfway between the RG marks, and puts the Diff and RG names together in its bottom-left corner.
+- The catalog's list no longer shows a scroll bar.
+- View all on a ball's Same core or Same cover row now opens the list over that ball, so back returns to the ball instead of leaving the catalog (ADR-264).
+
 ## 0.102.0: The ball graph, every ball at its own weight, and a default ball weight (2026-11-09)
 
 ### Changed

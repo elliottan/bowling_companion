@@ -4,12 +4,13 @@ import { useState, type ReactNode } from "react";
 import { entryKey, graphPoints, MAX_COMPARE, specsAt, weightsFor, type GraphPoint, type WeighedBall } from "../lib/ballCompare";
 import { formatReleaseDate } from "../lib/dates";
 import { formatFixed, formatNumber } from "../lib/format";
-import { BallGraph } from "./BallGraph";
+import { BallGraph, GraphTermNote, type GraphTerm } from "./BallGraph";
 import { BallPeek } from "./BallPeek";
 import { BallTag } from "./BallTag";
 import { CatalogBallImage } from "./CatalogBallImage";
 import { coreTypeLabel, coverstockLabel } from "./catalogLabels";
 import { PushScreen } from "./PushScreen";
+import { RemoveFromCompare } from "./RemoveFromCompare";
 import { Button } from "./ui/Button";
 import { Chip } from "./ui/Chip";
 import { IconButton } from "./ui/IconButton";
@@ -63,15 +64,45 @@ export function BallCompareView({
   active?: boolean;
 }) {
   const [tab, setTab] = useState<CompareTab>(initialTab);
-  // The bag is part of what the graph is for, so it is on until hidden.
-  const [showOwned, setShowOwned] = useState(true);
+  // The bag's balls hidden from the graph, one by one (ADR-263). The bag is
+  // part of what the graph is for, so every ball is on until hidden.
+  const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
   const [peek, setPeek] = useState<{ point: GraphPoint; anchor: DOMRect } | null>(null);
   const keyOf = (b: WeighedBall) => entryKey({ id: b.ball.id, weight: b.weight });
   // A ball owned at the weight it is compared at is the bowler's own, so its
   // weight is not the comparison's to move.
   const ownedKeys = new Set(owned.map(keyOf));
   const ownedCount = owned.length;
-  const points = graphPoints(compared, owned, showOwned);
+  // Every ball keeps its number whether it is drawn or not, so the key does
+  // not renumber under the finger. A compared ball is always drawn.
+  const keyPoints = graphPoints(compared, owned, true);
+  const isOn = (p: GraphPoint) => p.selected || !hidden.has(p.key);
+  const points = keyPoints.filter(isOn);
+  const bagKeys = keyPoints.filter((p) => !p.selected).map((p) => p.key);
+  const bagShown = bagKeys.filter((k) => !hidden.has(k)).length;
+  const toggleBall = (p: GraphPoint) => {
+    // A compared ball is always drawn; it leaves only through the comparison.
+    if (p.selected) return;
+    setHidden((h) => {
+      const next = new Set(h);
+      if (next.has(p.key)) next.delete(p.key);
+      else next.add(p.key);
+      return next;
+    });
+  };
+  const tapKeyPhoto = (p: GraphPoint, el: Element) => {
+    if (p.selected) {
+      askRemove(p.key, el);
+      return;
+    }
+    toggleBall(p);
+  };
+  // All on, the bag's switch takes them all off; otherwise it puts them all on.
+  const toggleBag = () => setHidden(bagShown === bagKeys.length ? new Set(bagKeys) : new Set());
+  const [term, setTerm] = useState<{ term: GraphTerm; anchor: DOMRect } | null>(null);
+  // A compared ball asks before it leaves (ADR-266).
+  const [removing, setRemoving] = useState<{ key: string; anchor: DOMRect } | null>(null);
+  const askRemove = (key: string, el: Element) => setRemoving({ key, anchor: el.getBoundingClientRect() });
 
   const specs = compared.map((b) => specsAt(b.ball, b.weight));
   const standIns = specs.some((s) => !s.exact);
@@ -94,7 +125,7 @@ export function BallCompareView({
   );
 
   return (
-    <PushScreen title={t({ message: "Compare", comment: "The title of the screen that compares bowling balls side by side" })} onBack={onBack} active={active && peek === null} backCloses={backCloses}>
+    <PushScreen title={t({ message: "Compare", comment: "The title of the screen that compares bowling balls side by side" })} onBack={onBack} active={active && peek === null && term === null && removing === null} backCloses={backCloses}>
       <div className="mx-auto w-full max-w-3xl space-y-3 px-3 pb-6 pt-2 sm:px-6">
         <SegmentedControl<CompareTab>
           label={t({ message: "Compare by", comment: "The spoken name of the switch between a table of specs and a graph" })}
@@ -105,46 +136,64 @@ export function BallCompareView({
           value={tab}
           onChange={setTab}
         />
-        {/* The bag's switch over the graph. */}
-        {tab === "graph" && owned.length > 0 && (
-          <div className="flex min-h-11 flex-wrap items-center gap-2">
-            <Chip selected={showOwned} onClick={() => setShowOwned((v) => !v)}>
-              {plural(ownedCount, {
-                one: "Your bag, # ball",
-                other: "Your bag, # balls"
-              })}
-            </Chip>
-          </div>
-        )}
 
         {tab === "specs" ? (
           compared.length === 0 ? (
             <p className="py-8 text-center text-sm text-ink-secondary">{empty}</p>
           ) : (
             <>
-              <div className="overflow-hidden rounded-xl border border-edge bg-surface shadow-sm">
-                <table className="w-full table-fixed border-collapse text-center">
+              {/* Up to eight columns: the table scrolls sideways under its
+                  row names, which stay put (ADR-266). */}
+              <div className="overflow-x-auto overscroll-x-none scrollbar-none rounded-xl border border-edge bg-surface shadow-sm">
+                <table
+                  className="table-fixed border-collapse text-center"
+                  style={{ width: `max(100%, ${4.5 + compared.length * 6}rem)` }}
+                >
                   <thead>
                     <tr>
-                      <th className="w-[4.5rem]" />
+                      <th className="sticky left-0 z-[1] w-[4.5rem] bg-surface" />
                       {compared.map((b) => {
                         const key = keyOf(b);
-                        const mine = ownedKeys.has(key);
                         return (
                           <th key={key} scope="col" className="relative px-1 pb-2 pt-3 align-top font-normal">
-                            <span className="absolute right-0 top-0">
-                              <IconButton compact label={t({ message: `Remove ${{ ball: b.ball.name }}, ${{ weight: lb(b.weight) }}`, comment: "Takes one bowling ball, at one weight, out of the comparison" })} onClick={() => onRemove(key)}>
+                            <span className="absolute right-0 top-0 z-[1]">
+                              <IconButton compact label={t({ message: `Remove ${{ ball: b.ball.name }}, ${{ weight: lb(b.weight) }}`, comment: "Takes one bowling ball, at one weight, out of the comparison" })} onClick={(e) => askRemove(key, e.currentTarget)}>
                                 <X size={14} aria-hidden="true" />
                               </IconButton>
                             </span>
                             <span className="flex w-full flex-col items-center gap-1 px-0.5 py-1">
-                              <span className="block w-12">
-                                <CatalogBallImage src={b.ball.imageThumb} alt="" brand={b.ball.brand} size="thumb" />
-                              </span>
-                              <span className="block w-full break-words text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{b.ball.brand}</span>
-                              <span className="block w-full break-words text-footnote font-semibold leading-tight text-ink">{b.ball.name}</span>
-                              {/* The bowler's own stays at the weight they own
-                                  it in; any other moves with its menu. */}
+                              {/* The ball itself opens its page (ADR-266). */}
+                              <button
+                                type="button"
+                                onClick={() => onOpenBall?.(b.ball.id)}
+                                disabled={!onOpenBall}
+                                aria-label={t`Open ${{ name: b.ball.name }}`}
+                                className="flex w-full flex-col items-center gap-1 rounded-lg active:opacity-60"
+                              >
+                                <span className="block w-12">
+                                  <CatalogBallImage src={b.ball.imageThumb} alt="" brand={b.ball.brand} size="thumb" />
+                                </span>
+                                <span className="block w-full break-words text-caption-2 font-semibold uppercase tracking-wide text-ink-secondary">{b.ball.brand}</span>
+                                <span className="block w-full break-words text-footnote font-semibold leading-tight text-ink">{b.ball.name}</span>
+                              </button>
+                            </span>
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody className="text-footnote">
+                    {/* Each ball's weight on a row of its own, so the
+                        weights line up however long the names above run
+                        (ADR-267). The bowler's own stays at the weight they
+                        own it in; any other moves with its menu. */}
+                    <Row label={t`Weight`} middle>
+                      {compared.map((b) => {
+                        const key = keyOf(b);
+                        const mine = ownedKeys.has(key);
+                        return (
+                          <td key={key} className="px-1 py-1 align-middle">
+                            <span className="flex flex-col items-center">
                               {mine || !onWeightChange ? (
                                 <span className="flex min-h-11 items-center text-subhead font-medium tabular-nums text-ink">{lb(b.weight)}</span>
                               ) : (
@@ -163,12 +212,10 @@ export function BallCompareView({
                               )}
                               {mine && <BallTag kind="owned" />}
                             </span>
-                          </th>
+                          </td>
                         );
                       })}
-                    </tr>
-                  </thead>
-                  <tbody className="text-footnote">
+                    </Row>
                     <Row label={t({ message: "Cover type", comment: "Bowling term: the kind of coverstock (solid, pearl or hybrid), as opposed to one cover by name" })}>
                       {compared.map((b) => (
                         <Cell key={keyOf(b)}>{b.ball.coverstockCategory ? coverstockLabel(b.ball.coverstockCategory) : "-"}</Cell>
@@ -234,34 +281,73 @@ export function BallCompareView({
           )
         ) : (
           <div className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
-            <BallGraph points={points} activeKey={peek?.point.key ?? null} onPick={openPeek} />
-            {points.length > 0 ? (
-              <ol className="mt-3 grid grid-cols-1 gap-x-3 gap-y-1 min-[380px]:grid-cols-2">
-                {points.map((p) => (
-                  <li key={p.key} className="min-w-0">
-                    <button
-                      type="button"
-                      onClick={(e) => openPeek(p, e.currentTarget.getBoundingClientRect())}
-                      className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-lg px-1 text-left text-footnote active:bg-ink/10"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className={`relative block h-8 w-8 shrink-0 rounded-full ${
-                          p.selected ? "ring-[3px] ring-accent" : "ring-[1.5px] ring-ink-secondary"
-                        }`}
+            <BallGraph
+              points={points}
+              activeKey={peek?.point.key ?? null}
+              onPick={openPeek}
+              onTerm={(which, anchor) => setTerm({ term: which, anchor })}
+            />
+            {/* The bag's switch over the key it switches (ADR-263): all on, it
+                takes them off; some or none, it puts them all on. */}
+            {bagKeys.length > 0 && (
+              <div className="mt-3 flex min-h-11 flex-wrap items-center gap-2">
+                <Chip
+                  selected={bagShown === bagKeys.length}
+                  aria-pressed={bagShown === bagKeys.length ? true : bagShown === 0 ? false : "mixed"}
+                  onClick={toggleBag}
+                >
+                  {bagShown > 0 && bagShown < bagKeys.length
+                    ? t({ message: `Your bag, ${{ shown: bagShown }} of ${{ total: bagKeys.length }}`, comment: "A switch over the graph's key: how many of the bowler's own balls are shown, out of all of them" })
+                    : plural(ownedCount, {
+                        one: "Your bag, # ball",
+                        other: "Your bag, # balls"
+                      })}
+                </Chip>
+              </div>
+            )}
+            {keyPoints.length > 0 ? (
+              <ol className={`${bagKeys.length > 0 ? "mt-1" : "mt-3"} grid grid-cols-1 gap-x-3 gap-y-1 min-[380px]:grid-cols-2`}>
+                {keyPoints.map((p) => {
+                  const on = isOn(p);
+                  const name = `${p.ball.name}, ${lb(p.weight)}`;
+                  return (
+                    <li key={p.key} className="flex min-w-0 items-center gap-1">
+                      {/* The photo switches the ball on and off the graph;
+                          the words beside it open its card (ADR-263). */}
+                      <button
+                        type="button"
+                        onClick={(e) => tapKeyPhoto(p, e.currentTarget)}
+                        aria-pressed={on}
+                        aria-label={
+                          p.selected
+                            ? t({ message: `Remove ${{ ball: p.ball.name }}, ${{ weight: lb(p.weight) }}`, comment: "Takes one bowling ball, at one weight, out of the comparison" })
+                            : t({ message: `Show ${{ ball: name }} on the graph`, comment: "A switch in a graph's key: draws one of the bowler's own balls on the graph, or hides it" })
+                        }
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full active:opacity-60"
                       >
-                        <span className="block h-8 w-8 overflow-hidden rounded-full">
-                          <CatalogBallImage src={p.ball.imageThumb} alt="" brand={p.ball.brand} size="thumb" />
-                        </span>
                         <span
-                          className={`absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-caption-2 font-bold leading-none ring-1 ring-surface ${
-                            p.selected ? "bg-accent-fill text-accent-on-fill" : "bg-ink-strong text-surface"
+                          aria-hidden="true"
+                          className={`relative block h-8 w-8 rounded-full ${
+                            !on ? "opacity-40" : p.selected ? "ring-[3px] ring-accent" : "ring-[1.5px] ring-ink-secondary"
                           }`}
                         >
-                          {formatNumber(p.n)}
+                          <span className="block h-8 w-8 overflow-hidden rounded-full">
+                            <CatalogBallImage src={p.ball.imageThumb} alt="" brand={p.ball.brand} size="thumb" />
+                          </span>
+                          <span
+                            className={`absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-caption-2 font-bold leading-none ring-1 ring-surface ${
+                              p.selected ? "bg-accent-fill text-accent-on-fill" : "bg-ink-strong text-surface"
+                            }`}
+                          >
+                            {formatNumber(p.n)}
+                          </span>
                         </span>
-                      </span>
-                      <span className="min-w-0 flex-1">
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => openPeek(p, e.currentTarget.getBoundingClientRect())}
+                        className={`flex min-h-11 min-w-0 flex-1 flex-col justify-center rounded-lg px-1 text-left text-footnote active:bg-ink/10 ${on ? "" : "opacity-50"}`}
+                      >
                         <span className="block break-words font-semibold leading-tight text-ink">{p.ball.name}</span>
                         {/* Its weight beside its tags: the same ball can be on
                             the graph twice, and the bag's sit at their own. */}
@@ -270,10 +356,10 @@ export function BallCompareView({
                           {p.selected && <BallTag kind="selected" />}
                           {p.owned && <BallTag kind="owned" />}
                         </span>
-                      </span>
-                    </button>
-                  </li>
-                ))}
+                      </button>
+                    </li>
+                  );
+                })}
               </ol>
             ) : (
               <p className="mt-3 text-center text-footnote text-ink-secondary">{empty}</p>
@@ -282,6 +368,10 @@ export function BallCompareView({
         )}
         {addButton}
       </div>
+      {removing && (
+        <RemoveFromCompare anchor={removing.anchor} onRemove={() => onRemove(removing.key)} onClose={() => setRemoving(null)} />
+      )}
+      {term && <GraphTermNote term={term.term} anchor={term.anchor} onClose={() => setTerm(null)} />}
       {peek && (
         <BallPeek
           ball={peek.point.ball}
@@ -300,10 +390,10 @@ export function BallCompareView({
   );
 }
 
-function Row({ label, children, last = false }: { label: string; children: ReactNode; last?: boolean }) {
+function Row({ label, children, last = false, middle = false }: { label: string; children: ReactNode; last?: boolean; middle?: boolean }) {
   return (
     <tr className={last ? "" : "border-b border-edge"}>
-      <th scope="row" className="px-2 py-2 text-left align-top text-caption font-semibold text-ink-secondary">
+      <th scope="row" className={`sticky left-0 z-[1] bg-surface px-2 py-2 text-left ${middle ? "align-middle" : "align-top"} text-caption font-semibold text-ink-secondary`}>
         {label}
       </th>
       {children}

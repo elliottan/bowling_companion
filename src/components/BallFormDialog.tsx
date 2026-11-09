@@ -60,6 +60,9 @@ interface BallFormDialogProps {
   /** See the ball's layout drawn in the layout lab, as the arsenal row's
    *  compass does (Pro, ADR-193). Absent when the ball has no layout. */
   onViewLayout?: () => void;
+  /** Adding from a catalog ball's page: the new ball opens linked to it and
+   *  named after it (ADR-265). */
+  catalogBall?: CatalogBall | null;
 }
 
 /**
@@ -67,14 +70,14 @@ interface BallFormDialogProps {
  * arsenal list: the inline version pushed the list down and left the catalog
  * link stranded below the fold, so nobody found it.
  */
-export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onViewLayout }: BallFormDialogProps) {
+export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onViewLayout, catalogBall = null }: BallFormDialogProps) {
   const editing = ball !== null;
   // A ball already in the bag opens read, with a pencil, like a spare line: the
   // sheet opens from a tap on the row, and a thumb that only meant to look was
   // a slider or a drop-down away from changing a drilling. Adding opens on the
   // fields, there is nothing to read yet.
   const [unlocked, setUnlocked] = useState(!editing);
-  const [name, setName] = useState(ball?.name ?? "");
+  const [name, setName] = useState(ball?.name ?? (catalogBall ? `${catalogBall.brand} ${catalogBall.name}` : ""));
   // A ball with no weight of its own, a new one included, opens at the
   // bowler's default weight (ADR-262) until one is picked.
   const [weightChoice, setWeight] = useState<number | null>(ball?.weight ?? null);
@@ -86,7 +89,7 @@ export function BallFormDialog({ ball, onClose, onSaved, onDelete, onRetire, onV
   // (ADR-095). Entering a layout is what retires it.
   const [layoutSpec, setLayoutSpec] = useState<BallLayoutSpec | null>(ball?.layout_spec ?? null);
   const legacyLayout = ball?.layout_spec ? undefined : ball?.layout;
-  const [catalogRef, setCatalogRef] = useState<CatalogBall | null>(null);
+  const [catalogRef, setCatalogRef] = useState<CatalogBall | null>(ball ? null : catalogBall);
   // The specs last read for the linked ball, and nothing once it is unlinked.
   const [fetchedSpecs, setWeightSpecs] = useState<WeightSpecs | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);

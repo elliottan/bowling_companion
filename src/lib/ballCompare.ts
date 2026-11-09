@@ -4,8 +4,9 @@ import { DEFAULT_WEIGHT, type CatalogBall } from "../types/catalog";
  * Comparing catalog balls (ADR-258, ADR-262): each at its own weight.
  */
 
-/** The most balls a comparison holds: four columns is what a phone fits. */
-export const MAX_COMPARE = 4;
+/** The most balls a comparison holds (ADR-266): the table and the tray scroll
+ *  sideways past what a phone shows at once. */
+export const MAX_COMPARE = 8;
 
 /** Every weight a ball is made in that the app offers, heaviest first. */
 export const BALL_WEIGHTS: readonly number[] = [16, 15, 14, 13, 12, 11, 10, 9, 8];

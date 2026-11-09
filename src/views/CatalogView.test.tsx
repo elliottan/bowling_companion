@@ -51,6 +51,21 @@ vi.mock("../lib/links", async (importOriginal) => {
   };
 });
 
+/** The balls in the compare tray at the foot (ADR-266). */
+function trayBalls() {
+  return within(screen.getAllByRole("list", { name: "In compare" })[0]).getAllByRole("button", { name: /^Remove / });
+}
+
+/** Opens ball `id`'s page and adds it to the comparison from its bar, as the
+ *  only way in is (ADR-268). The picks outlive the view, so a rerender keeps
+ *  them. Returns the page. */
+async function addFromPage(rerender: (ui: React.ReactElement) => void, id: string, name: string) {
+  rerender(<CatalogView onBack={vi.fn()} selectedBallId={id} onSelectBall={vi.fn()} />);
+  const page = await screen.findByRole("dialog", { name });
+  fireEvent.click(within(page).getByRole("button", { name: "Add to compare" }));
+  return page;
+}
+
 function renderCatalog() {
   render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
 }
@@ -211,19 +226,19 @@ describe("CatalogView", () => {
     expect(screen.getByPlaceholderText("Search name, brand, coverstock…")).toHaveValue("Ball");
   });
 
-  it("picks balls to compare from the list, and opens them side by side (ADR-258)", async () => {
+  it("adds balls to compare from their own pages only, and opens them side by side (ADR-258, ADR-268)", async () => {
     await seedCatalog(5);
-    renderCatalog();
+    const { rerender } = render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
     await screen.findByText("Ball 0");
-
-    // Comparing is in the bar's menu, beside asking for a ball (ADR-261).
+    // No picking in the list any more.
     fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
-    // Picking, a row picks rather than opens.
-    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Ball 3/ }));
-    expect(screen.getByRole("button", { name: /Ball 1/ })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText("2 of 4")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Compare balls" })).toBeNull();
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    await addFromPage(rerender, "ball-1", "Ball 1");
+    await addFromPage(rerender, "ball-3", "Ball 3");
+    rerender(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
+    await waitFor(() => expect(trayBalls()).toHaveLength(2));
 
     fireEvent.click(screen.getByRole("button", { name: "Compare" }));
     const compare = await screen.findByRole("dialog", { name: "Compare" });
@@ -231,23 +246,26 @@ describe("CatalogView", () => {
     expect(within(compare).getByRole("button", { name: "Remove Ball 3, 15 lb" })).toBeInTheDocument();
   });
 
-  it("adds at the default weight, the same ball again at another, and moves each on its own (ADR-262)", async () => {
+  it("adds at the default weight, then asks which weight for the same ball, and moves each on its own (ADR-262, ADR-268)", async () => {
     await seedCatalog(2);
     await db.ball_catalog.update("ball-1", { weights: [14, 13].map((weight) => ({ weight, rg: 2.5, diff: 0.05, mbDiff: null })) });
     await setDefaultBallWeight(14);
-    renderCatalog();
+    const { rerender } = render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
     // The rows say which weight their numbers are for.
     expect(await screen.findAllByText(/Specs at 14 lb/)).not.toHaveLength(0);
 
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
-    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
-    expect(screen.getByText("2 of 4")).toBeInTheDocument();
+    // First in, at the default weight with no question.
+    const page = await addFromPage(rerender, "ball-1", "Ball 1");
+    await waitFor(() => expect(trayBalls()).toHaveLength(1));
+    // Already in: the same button asks which weight, of those not in yet.
+    fireEvent.click(within(page).getByRole("button", { name: "Add to compare" }));
+    expect(screen.queryByRole("button", { name: "Add at 14 lb" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Add at 15 lb" }));
+    await waitFor(() => expect(trayBalls()).toHaveLength(2));
 
-    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+    fireEvent.click(within(page).getByRole("button", { name: "Compare" }));
     const compare = await screen.findByRole("dialog", { name: "Compare" });
-    // No one weight for all: a menu in each column, the second at the next weight.
+    // No one weight for all: a menu in each column.
     expect(within(compare).queryByRole("combobox", { name: "Ball weight" })).toBeNull();
     const menus = within(compare).getAllByRole("combobox", { name: "Weight of Ball 1" });
     expect(menus.map((m) => (m as HTMLSelectElement).value)).toEqual(["14", "15"]);
@@ -261,13 +279,12 @@ describe("CatalogView", () => {
   it("holds a ball the bowler owns at the weight they own it in (ADR-262)", async () => {
     await seedCatalog(2);
     await db.balls.add({ name: "Mine", is_spare_ball: false, catalog_ref_id: "ball-0", weight: 13 });
-    renderCatalog();
+    const { rerender } = render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
     await screen.findByText("Ball 0");
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
-    fireEvent.click(await screen.findByRole("button", { name: /Ball 0/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+    await addFromPage(rerender, "ball-0", "Ball 0");
+    const page = await addFromPage(rerender, "ball-1", "Ball 1");
+    await waitFor(() => expect(trayBalls()).toHaveLength(2));
+    fireEvent.click(within(page).getByRole("button", { name: "Compare" }));
     const compare = await screen.findByRole("dialog", { name: "Compare" });
     // Theirs, at 13 lb and no menu; the catalog's ball has one.
     expect(within(compare).queryByRole("combobox", { name: "Weight of Ball 0" })).toBeNull();
@@ -275,22 +292,95 @@ describe("CatalogView", () => {
     expect(within(compare).getByRole("combobox", { name: "Weight of Ball 1" })).toBeInTheDocument();
   });
 
-  it("goes back to the list, picking, from Add a ball while a column is free (ADR-262)", async () => {
+  it("goes back to the list from Add a ball while a column is free (ADR-262, ADR-268)", async () => {
     await seedCatalog(3);
-    renderCatalog();
+    const { rerender } = render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
     await screen.findByText("Ball 0");
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("button", { name: "Compare balls" }));
-    fireEvent.click(screen.getByRole("button", { name: /Ball 1/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Done picking" }));
-    fireEvent.click(screen.getByRole("button", { name: "Compare" }));
+    await addFromPage(rerender, "ball-1", "Ball 1");
+    const onSelectBall = vi.fn();
+    rerender(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={onSelectBall} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Compare" }));
     const compare = await screen.findByRole("dialog", { name: "Compare" });
 
     fireEvent.click(within(compare).getByRole("button", { name: "Add a ball" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Compare" })).toBeNull());
-    // Picking again: a tap adds the ball rather than opening it.
-    fireEvent.click(screen.getByRole("button", { name: /Ball 2/ }));
-    expect(screen.getByText("2 of 4")).toBeInTheDocument();
+    // A row opens its ball, where it goes in from.
+    fireEvent.click(screen.getByRole("button", { name: /^Storm.*Ball 2/ }));
+    expect(onSelectBall).toHaveBeenCalledWith("ball-2");
+  });
+
+  it("shows the bowler's copies of a ball over its specs, one at a time, and still offers another (ADR-263)", async () => {
+    await seedCatalog(2);
+    await db.ball_catalog.update("ball-1", { weights: [{ weight: 14, rg: 2.53, diff: 0.046, mbDiff: null }] });
+    await db.balls.bulkAdd([
+      { name: "Comp ball", is_spare_ball: false, catalog_ref_id: "ball-1", weight: 15 },
+      { name: "Spare night", is_spare_ball: false, catalog_ref_id: "ball-1", weight: 14 },
+      { name: "Old one", is_spare_ball: false, catalog_ref_id: "ball-1", weight: 16, retired: true }
+    ]);
+    render(<CatalogView onBack={vi.fn()} selectedBallId="ball-1" onSelectBall={vi.fn()} />);
+    const mine = await screen.findByRole("region", { name: "In your arsenal" });
+    // Its own weight's numbers; a retired copy is out of the bag.
+    expect(within(mine).getByText("Comp ball")).toBeInTheDocument();
+    expect(within(mine).getByText("14 lb · RG 2.53 · Diff 0.046")).toBeInTheDocument();
+    expect(within(mine).queryByText("Old one")).toBeNull();
+    expect(within(mine).getByRole("button", { name: "Spare night, 14 lb" })).toBeInTheDocument();
+    // Over the specs, and owning it never stops another.
+    expect(mine.compareDocumentPosition(screen.getByText("Coverstock")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByText("Already in your arsenal")).toBeNull();
+    expect(screen.getByRole("button", { name: "Add another to arsenal" })).toBeEnabled();
+  });
+
+  it("adds to the arsenal through the arsenal's own form, linked to the ball, at the default weight (ADR-265)", async () => {
+    await seedCatalog(2);
+    await setDefaultBallWeight(14);
+    render(<CatalogView onBack={vi.fn()} selectedBallId="ball-1" onSelectBall={vi.fn()} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add to arsenal" }));
+
+    const form = await screen.findByRole("dialog", { name: "Add ball" });
+    expect(within(form).getByLabelText("Display name")).toHaveValue("Storm Ball 1");
+    await waitFor(() => expect(within(form).getByLabelText(/Weight/)).toHaveValue("14"));
+    expect(within(form).getByText("Linked to catalog")).toBeInTheDocument();
+    // No sentence explaining the specs.
+    expect(screen.queryByText(/The specs come across with it/)).toBeNull();
+
+    fireEvent.click(within(form).getByRole("button", { name: "Add" }));
+    await waitFor(async () => expect(await db.balls.toArray()).toHaveLength(1));
+    const [saved] = await db.balls.toArray();
+    expect(saved).toMatchObject({ name: "Storm Ball 1", weight: 14, catalog_ref_id: "ball-1" });
+  });
+
+  it("keeps the tray over a ball's page with each ball's weight, tints compared rows, and takes one out from its X (ADR-266, ADR-269)", async () => {
+    await seedCatalog(3);
+    const { rerender } = render(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
+    await screen.findByText("Ball 0");
+    const page = await addFromPage(rerender, "ball-1", "Ball 1");
+    // Over the ball's page, each ball with its weight on a badge.
+    const tray = within(page).getByRole("list", { name: "In compare" });
+    expect(within(tray).getByRole("button", { name: "Ball 1, 15 lb" })).toHaveTextContent("15");
+    expect(within(tray).getByRole("button", { name: "Remove Ball 1, 15 lb" })).toBeInTheDocument();
+    // No count and no Clear.
+    expect(screen.queryByText(/of 8/)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Clear" })).toBeNull();
+
+    rerender(<CatalogView onBack={vi.fn()} selectedBallId={null} onSelectBall={vi.fn()} />);
+    // Tinted in the list.
+    expect((await screen.findByRole("button", { name: /^Storm.*Ball 1/ })).className).toContain("bg-accent-soft");
+    // Its X takes it out at once, with no question (ADR-269).
+    fireEvent.click(trayBalls()[0]);
+    expect(screen.queryByRole("button", { name: "Remove from compare" })).toBeNull();
+    await waitFor(() => expect(screen.queryAllByRole("list", { name: "In compare" })).toHaveLength(0));
+  });
+
+  it("puts Add to arsenal and Add to compare in a ball page's bar, compare right-most, with no buttons on the page (ADR-268)", async () => {
+    await seedCatalog(2);
+    render(<CatalogView onBack={vi.fn()} selectedBallId="ball-1" onSelectBall={vi.fn()} />);
+    const page = await screen.findByRole("dialog", { name: "Ball 1" });
+    const arsenal = within(page).getByRole("button", { name: "Add to arsenal" });
+    const compare = within(page).getByRole("button", { name: "Add to compare" });
+    expect(arsenal.compareDocumentPosition(compare) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // Up in the bar, over the specs, not a row of big buttons under them.
+    expect(compare.compareDocumentPosition(within(page).getByText("Coverstock")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(page).queryByText(/In compare:/)).toBeNull();
   });
 
   it("opens the ball graph from the bar's corner (ADR-262)", async () => {
@@ -401,22 +491,32 @@ describe("CatalogView", () => {
       expect(screen.queryByRole("region", { name: /Same cover/ })).not.toBeInTheDocument();
     });
 
-    it("goes back to the list filtered to the core from View all", async () => {
+    it("pushes the core's balls over the ball from View all, so back returns to it (ADR-264)", async () => {
       await seedKin();
+      const onSelectBall = vi.fn();
       const onBack = vi.fn();
-      const { rerender } = render(<CatalogView onBack={onBack} selectedBallId="a" onSelectBall={vi.fn()} />);
+      const { rerender } = render(<CatalogView onBack={onBack} selectedBallId="a" onSelectBall={onSelectBall} />);
 
       const core = await screen.findByRole("region", { name: "Same core: Velocity Core" });
       fireEvent.click(within(core).getByRole("button", { name: "View all 5 balls" }));
-      expect(onBack).toHaveBeenCalled();
-      rerender(<CatalogView onBack={onBack} selectedBallId={null} onSelectBall={vi.fn()} />);
+      // A page on the catalog's stack, not back out to its list.
+      expect(onBack).not.toHaveBeenCalled();
+      expect(onSelectBall).toHaveBeenCalledWith("~core:Velocity Core");
 
+      rerender(<CatalogView onBack={onBack} selectedBallId="~core:Velocity Core" ballTrail={["a"]} onSelectBall={onSelectBall} />);
+      const pages = await screen.findAllByRole("dialog", { hidden: true });
+      const list = pages[pages.length - 1];
+      expect(list).toHaveAccessibleName("Velocity Core");
       // Every spelling of the core, and nothing else.
-      await waitFor(() => expect(screen.getByRole("button", { name: /^Filters/ })).toHaveAttribute("aria-pressed", "true"));
-      expect(screen.getAllByText(/^5 results ·/)).toHaveLength(2);
-      const names = screen.getAllByRole("listitem").map((li) => li.textContent ?? "");
-      expect(names.filter((text) => /Alpha|Bravo|Charlie|Delta|Echo|Foxtrot/.test(text))).toHaveLength(5);
+      const names = within(list).getAllByRole("listitem").map((li) => li.textContent ?? "");
+      expect(names).toHaveLength(5);
       expect(names.some((text) => text.includes("Foxtrot"))).toBe(false);
+      // The ball it came from stays drawn under it, for back.
+      expect(screen.getByRole("dialog", { name: "Alpha", hidden: true })).toBeInTheDocument();
+
+      // A row opens its ball over the list in turn.
+      fireEvent.click(within(list).getByRole("button", { name: /Bravo/ }));
+      expect(onSelectBall).toHaveBeenLastCalledWith("b");
     });
 
     it("keeps the ball it was opened from drawn beneath (ADR-257)", async () => {
@@ -430,18 +530,20 @@ describe("CatalogView", () => {
       expect(pages.map((p) => p.getAttribute("aria-label"))).toEqual(["Catalog", "Alpha", "Bravo"]);
     });
 
-    it("puts View all on the heading's line, and leaves through onShowList past every ball", async () => {
+    it("puts View all on the heading's line, and pushes over every ball rather than leaving them (ADR-264)", async () => {
       await seedKin();
       const onShowList = vi.fn();
       const onBack = vi.fn();
-      render(<CatalogView onBack={onBack} selectedBallId="b" ballTrail={["a"]} onSelectBall={vi.fn()} onShowList={onShowList} />);
+      const onSelectBall = vi.fn();
+      render(<CatalogView onBack={onBack} selectedBallId="b" ballTrail={["a"]} onSelectBall={onSelectBall} onShowList={onShowList} />);
 
       const core = await screen.findByRole("region", { name: "Same core: Velocity" });
       const viewAll = within(core).getByRole("button", { name: "View all 5 balls" });
       // Beside the heading, before the row of balls.
       expect(viewAll.compareDocumentPosition(within(core).getByRole("list")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       fireEvent.click(viewAll);
-      expect(onShowList).toHaveBeenCalled();
+      expect(onSelectBall).toHaveBeenCalledWith("~core:Velocity");
+      expect(onShowList).not.toHaveBeenCalled();
       expect(onBack).not.toHaveBeenCalled();
     });
   });

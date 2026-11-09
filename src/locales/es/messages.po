@@ -84,6 +84,7 @@ msgstr "{0, plural, one {# pista} other {# pistas}}"
 msgid "{0, plural, one {# pattern} other {# patterns}}"
 msgstr "{0, plural, one {# patrón} other {# patrones}}"
 
+#. placeholder {0}: balls.length
 #. placeholder {0}: displayed.length
 #: src/views/CatalogView.tsx
 msgid "{0, plural, one {# result} other {# results}}"
@@ -270,11 +271,6 @@ msgstr "{count} · strike {strike}"
 #: src/views/CatalogView.tsx
 msgid "{count} colors"
 msgstr "{count} colores"
-
-#. How many bowling balls are picked to compare, out of the most allowed
-#: src/views/CatalogView.tsx
-msgid "{count} of {max}"
-msgstr "{count} de {max}"
 
 #: src/components/SessionTrendChart.tsx
 msgid "{date}, {alley}, average {average}"
@@ -484,6 +480,12 @@ msgstr "{name} ahora dibuja {pattern}."
 #: src/views/CatalogView.tsx
 msgid "{name}, {color}"
 msgstr "{name}, {color}"
+
+#. One of the bowler's own copies of a ball: its name and weight, on a dot that shows it
+#. One of the bowler's own copies of a ball: its name and weight, on a dot that shows it
+#: src/views/CatalogView.tsx
+msgid "{name}, {weight}"
+msgstr "{name}, {weight}"
 
 #: src/views/AppearanceView.tsx
 msgid "{name}, needs Headpin Pro"
@@ -794,10 +796,15 @@ msgstr "Agregar una nota de pista"
 msgid "Add a pattern"
 msgstr "Agregar un patrón"
 
-#. Adds this bowling ball to the comparison again, at another weight
+#. Adds a second copy of a bowling ball the bowler already owns to their arsenal
 #: src/views/CatalogView.tsx
-msgid "Add another weight"
-msgstr "Añadir otro peso"
+msgid "Add another to arsenal"
+msgstr "Agregar otra al arsenal"
+
+#. A menu row: adds a bowling ball to the comparison at this weight, such as 14 lb
+#: src/views/CatalogView.tsx
+msgid "Add at {weight}"
+msgstr "Añadir a {weight}"
 
 #: src/components/BallFormDialog.tsx
 #: src/views/ArsenalView.tsx
@@ -931,10 +938,6 @@ msgstr "Boliche"
 #: src/components/LaneNoteFormDialog.tsx
 msgid "Alley and lane are required."
 msgstr "El boliche y la pista son obligatorios."
-
-#: src/views/CatalogView.tsx
-msgid "Already in your arsenal"
-msgstr "Ya está en tu arsenal"
 
 #. An open frame is a bowling term: a frame with pins left standing after both balls
 #: src/views/OpenFramesView.tsx
@@ -1379,9 +1382,7 @@ msgid "Choose one"
 msgstr "Elige uno"
 
 #. Removes every recent search
-#. Takes every ball out of the comparison
 #: src/components/SessionFilterBar.tsx
-#: src/views/CatalogView.tsx
 #: src/views/SearchView.tsx
 msgid "Clear"
 msgstr "Borrar"
@@ -1442,10 +1443,6 @@ msgstr "Cerrar estadísticas de la sesión"
 msgid "Color"
 msgstr "Color"
 
-#: src/views/CatalogView.tsx
-msgid "Colorway"
-msgstr "Combinación de colores"
-
 #: src/views/GameTrendView.tsx
 msgid "Columns"
 msgstr "Columnas"
@@ -1464,16 +1461,6 @@ msgstr "Próximamente en la App Store"
 #: src/views/CatalogView.tsx
 msgid "Compare"
 msgstr "Comparar"
-
-#. Opens the comparison of the picked bowling balls, with how many are picked
-#: src/views/CatalogView.tsx
-msgid "Compare {count}"
-msgstr "Comparar {count}"
-
-#. A menu item: starts picking bowling balls in the catalog to compare them
-#: src/views/CatalogView.tsx
-msgid "Compare balls"
-msgstr "Comparar bolas"
 
 #. The spoken name of the switch between a table of specs and a graph
 #: src/components/BallCompareView.tsx
@@ -1652,7 +1639,9 @@ msgstr "Descripción"
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
+#. Bowling term: the differential, a ball spec (short for differential RG)
 #: src/components/BallCompareView.tsx
+#: src/components/BallGraph.tsx
 #: src/views/CatalogView.tsx
 msgid "Diff"
 msgstr "Diff"
@@ -1664,6 +1653,7 @@ msgid "Diff {0}"
 msgstr "Diff {0}"
 
 #. Bowling term: a ball's differential, short, with its value
+#. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
 #. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
 #. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
 #. Bowling term: the differential, a ball spec (short for differential RG), followed by its value
@@ -1737,11 +1727,6 @@ msgstr "Distancia del PSA a tu PAP. Controla qué tan rápido la bola pierde el 
 #: src/components/LaneVisualizer.tsx
 #: src/components/ui/FormSheet.tsx
 msgid "Done"
-msgstr "Listo"
-
-#. Leaves the mode where tapping a ball picks it to compare
-#: src/views/CatalogView.tsx
-msgid "Done picking"
 msgstr "Listo"
 
 #. Bowling term: PAP, the axis point is below the ball's midline.
@@ -1974,7 +1959,6 @@ msgid "Failed to delete."
 msgstr "No se pudo eliminar."
 
 #: src/components/BallFormDialog.tsx
-#: src/views/CatalogView.tsx
 msgid "Failed to save ball."
 msgstr "No se pudo guardar la bola."
 
@@ -2502,10 +2486,10 @@ msgstr "No se pudo importar."
 msgid "In"
 msgstr "Dentro"
 
-#. Under the compare buttons: the weights this bowling ball is being compared at, such as 15 lb, 14 lb
+#. Before the weights a bowling ball is being compared at, each a button that takes it out
 #: src/views/CatalogView.tsx
-msgid "In compare at {weights}"
-msgstr "En comparar a {weights}"
+msgid "In compare"
+msgstr "En comparar"
 
 #: src/components/MetricTrendChart.tsx
 msgid "In order. {points}."
@@ -2527,6 +2511,12 @@ msgstr "En la Dynamic Island"
 #: src/views/ProOfferView.tsx
 msgid "In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch."
 msgstr "En la app de iPhone, tu puntuación te sigue mientras juegas y se actualiza con cada bola: en la pantalla bloqueada, en la Dynamic Island y en tu Apple Watch."
+
+#. A heading on a catalog ball's page over the bowler's own copies of it
+#. A heading on a catalog ball's page over the bowler's own copies of it
+#: src/views/CatalogView.tsx
+msgid "In your arsenal"
+msgstr "En tu arsenal"
 
 #: src/components/ui/Stepper.tsx
 msgid "Increase {label}"
@@ -3106,7 +3096,6 @@ msgid "Moving the line"
 msgstr "Mover la línea"
 
 #: src/components/OilPatternFormDialog.tsx
-#: src/views/CatalogView.tsx
 msgid "Name"
 msgstr "Nombre"
 
@@ -3446,6 +3435,7 @@ msgstr "Solo estos pinos"
 msgid "Open {leave}"
 msgstr "Abrir {leave}"
 
+#: src/components/BallCompareView.tsx
 #: src/components/BallPeek.tsx
 #: src/components/Stats.tsx
 msgid "Open {name}"
@@ -3824,7 +3814,10 @@ msgid "Remove"
 msgstr "Quitar"
 
 #. Takes one bowling ball, at one weight, out of the comparison
+#. Takes one bowling ball, at one weight, out of the comparison
+#. Takes one bowling ball, at one weight, out of the comparison
 #: src/components/BallCompareView.tsx
+#: src/views/CatalogView.tsx
 msgid "Remove {ball}, {weight}"
 msgstr "Quitar {ball}, {weight}"
 
@@ -3835,6 +3828,11 @@ msgstr "¿Quitar {name}?"
 #: src/components/SessionFilterBar.tsx
 msgid "Remove filter {filter}"
 msgstr "Quitar filtro {filter}"
+
+#. Confirms taking one bowling ball out of the comparison
+#: src/components/RemoveFromCompare.tsx
+msgid "Remove from compare"
+msgstr "Quitar de comparar"
 
 #: src/components/BallFormDialog.tsx
 msgid "Remove layout"
@@ -3946,7 +3944,9 @@ msgstr "Pasadas de regreso"
 #. Bowling term: radius of gyration, a ball spec
 #. Bowling term: radius of gyration, a ball spec
 #. Bowling term: radius of gyration, a ball spec
+#. Bowling term: radius of gyration, a ball spec
 #: src/components/BallCompareView.tsx
+#: src/components/BallGraph.tsx
 #: src/views/CatalogView.tsx
 msgid "RG"
 msgstr "RG"
@@ -3959,6 +3959,7 @@ msgstr "RG"
 msgid "RG {0}"
 msgstr "RG {0}"
 
+#. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
 #. Bowling term: RG is the radius of gyration, a ball spec, followed by its value
@@ -4012,10 +4013,20 @@ msgstr "Rosa"
 msgid "same as all balls"
 msgstr "igual que todas las bolas"
 
+#. Bowling term: over a list of balls built on one core (weight block), named under it
+#: src/views/CatalogView.tsx
+msgid "Same core"
+msgstr "Mismo núcleo"
+
 #. Bowling term: a heading over other balls built on the same core (weight block), followed by the core's name
 #: src/views/CatalogView.tsx
 msgid "Same core: {core}"
 msgstr "Mismo núcleo: {core}"
+
+#. Bowling term: over a list of balls with one coverstock, named under it
+#: src/views/CatalogView.tsx
+msgid "Same cover"
+msgstr "Misma cubierta"
 
 #. Bowling term: a heading over other balls with the same coverstock, followed by the coverstock's name
 #: src/views/CatalogView.tsx
@@ -4300,6 +4311,11 @@ msgstr "Pin corto"
 #: src/views/ArsenalView.tsx
 msgid "Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
 msgstr "Los tiros ya registrados con esta bola conservan su puntaje, pero pierden el nombre de la bola. Para conservarla en tu historial, mejor retírala."
+
+#. A switch in a graph's key: draws one of the bowler's own balls on the graph, or hides it
+#: src/components/BallCompareView.tsx
+msgid "Show {ball} on the graph"
+msgstr "Mostrar {ball} en el gráfico"
 
 #. Expands a group of search results to every one it found
 #: src/views/SearchView.tsx
@@ -4838,10 +4854,6 @@ msgstr "No se pudo crear la imagen para compartir."
 msgid "The smoothest shape the chart describes. Controls the breakpoint when the back ends are too clean."
 msgstr "La forma más suave que describe la tabla. Controla el punto de quiebre cuando la parte final está demasiado limpia."
 
-#: src/views/CatalogView.tsx
-msgid "The specs come across with it. Change the name now if you call it something else."
-msgstr "Las especificaciones se pasan con ella. Cambia el nombre ahora si le dices de otra forma."
-
 #: src/components/SpareDetailsSheet.tsx
 msgid "The stance and target you saved for this leave are gone. Your shots keep their scores."
 msgstr "La posición y el objetivo que guardaste para esta dejada ya no están. Tus tiros conservan su puntaje."
@@ -5219,6 +5231,7 @@ msgstr "Washouts"
 msgid "Weak"
 msgstr "Débil"
 
+#: src/components/BallCompareView.tsx
 #: src/components/BallFormDialog.tsx
 #: src/views/CatalogView.tsx
 msgid "Weight"
@@ -5320,6 +5333,11 @@ msgstr "Tu promedio"
 #: src/components/BallEstimates.tsx
 msgid "Your average here"
 msgstr "Tu promedio aquí"
+
+#. A switch over the graph's key: how many of the bowler's own balls are shown, out of all of them
+#: src/components/BallCompareView.tsx
+msgid "Your bag, {shown} of {total}"
+msgstr "Tu arsenal, {shown} de {total}"
 
 #: src/views/SettingsView.tsx
 msgid "Your balls and their layouts"

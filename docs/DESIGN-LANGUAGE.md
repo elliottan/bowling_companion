@@ -44,13 +44,14 @@ Every push gets, without exception:
   it, its bar keeping the stats, share and series. What the name belongs to (a ball's
   brand) is the `eyebrow` over it, and the page never repeats the name as a
   heading of its own;
-- at most **one** trailing action, an `IconButton` (§1b). Three screens
+- at most **one** trailing action, an `IconButton` (§1b). Four screens
   carry two. The layout lab: a share, which is what the screen is for once
   the numbers are right, beside a More that holds the bowler's PAP, hand and
   grip, set once and then read against, so the page is the ball and the
   numbers. The catalog and the arsenal: the Ball graph glyph beside the More
-  or the Add, the one door to the graph from either (ADR-262). Two is the
-  ceiling;
+  or the Add, the one door to the graph from either (ADR-262). A catalog
+  ball's page: Add to arsenal, then Add to compare right-most, each glyph
+  wearing a plus (ADR-268). Two is the ceiling;
 - in overlay mode, Escape + a focus trap (`useOverlay`).
 
 Back out of a push with the chevron or with the platform's own back gesture
