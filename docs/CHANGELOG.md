@@ -16,6 +16,7 @@ had all shipped.
 - Back while the lane view is still loading closes the loading screen, rather than the sheet or screen under it (ADR-272).
 - Back from a screen opened over a guide returns to the guide (ADR-272).
 - On iPhone, the edge swipe follows your finger on Compare and on the catalog opened from Add a ball, as it does on every other screen (ADR-272).
+
 ## 0.104.2: The Apple Watch's Live Activity is no longer cut off (2026-11-09)
 
 ### Fixed
