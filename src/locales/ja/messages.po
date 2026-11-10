@@ -211,14 +211,6 @@ msgstr "{ballName}、{boards}"
 msgid "{board} at {feet} ft"
 msgstr "{feet} ftで{board}"
 
-#: src/components/alleyHistoryCopy.ts
-msgid "{boards, plural, one {# board left} other {# boards left}}"
-msgstr "{boards, plural, other {左に#枚}}"
-
-#: src/components/alleyHistoryCopy.ts
-msgid "{boards, plural, one {# board right} other {# boards right}}"
-msgstr "{boards, plural, other {右に#枚}}"
-
 #: src/components/DriftZoneLane.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "{boards} left"
@@ -1691,7 +1683,6 @@ msgstr "Diff 高い順"
 msgid "Diff: higher flares more"
 msgstr "Diff:高いほどフレアが大きい"
 
-#: src/components/ActiveGameScorer.tsx
 #: src/components/UpdateToast.tsx
 msgid "Dismiss"
 msgstr "閉じる"
@@ -1699,10 +1690,6 @@ msgstr "閉じる"
 #: src/components/SaveCopyPrompt.tsx
 msgid "Dismiss backup reminder"
 msgstr "バックアップのリマインダーを閉じる"
-
-#: src/views/ActiveSessionView.tsx
-msgid "Dismiss game hint"
-msgstr "ゲームのヒントを閉じる"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Dismiss share offer"
@@ -2211,21 +2198,6 @@ msgstr "ゲーム{gameNumber}（スコア{deleteGameScore}）とそのフレー�
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} and its frames will be permanently deleted."
 msgstr "ゲーム{gameNumber}とそのフレームは完全に削除されます。"
-
-#. Bowling terms: the stance is the board the bowler stands on, the target the board aimed at. Each move reads like 2 boards left
-#: src/components/alleyHistoryCopy.ts
-msgid "Game {gameNumber} here: you usually move {stanceMove} at the stance and {targetMove} at the target."
-msgstr "ここでのゲーム{gameNumber}では、いつも立ち位置を{stanceMove}、目標を{targetMove}移動しています。"
-
-#. Bowling term: the stance is the board the bowler stands on. The move reads like 2 boards left
-#: src/components/alleyHistoryCopy.ts
-msgid "Game {gameNumber} here: you usually move {stanceMove} at the stance."
-msgstr "ここでのゲーム{gameNumber}では、いつも立ち位置を{stanceMove}移動しています。"
-
-#. Bowling term: the target is the board aimed at. The move reads like 2 boards left
-#: src/components/alleyHistoryCopy.ts
-msgid "Game {gameNumber} here: you usually move {targetMove} at the target."
-msgstr "ここでのゲーム{gameNumber}では、いつも目標を{targetMove}移動しています。"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} is in the books. Share the session?"
@@ -4110,10 +4082,6 @@ msgstr "パターンをシートへのリンクと一緒に保存します。セ
 #: src/components/SpareLineFormDialog.tsx
 msgid "Save spare line"
 msgstr "スペアラインを保存"
-
-#: src/components/ActiveGameScorer.tsx
-msgid "Save this as your line for {leave}"
-msgstr "これを{leave}のラインとして保存"
 
 #: src/views/SpareLinesView.tsx
 msgid "Save where you stand and where you aim for a leave, and it is there the next time you face it."

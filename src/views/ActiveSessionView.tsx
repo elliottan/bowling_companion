@@ -9,9 +9,7 @@ import { ShareCardDialog } from "../components/ShareCardDialog";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { OilPatternContext } from "../lib/oilPatternContext";
-import { getBalls, getOilPattern } from "../services/ballRepository";
-import { movementAt } from "../lib/briefing";
-import { describeGameMove } from "../components/alleyHistoryCopy";
+import { getOilPattern } from "../services/ballRepository";
 import { SessionFormDialog } from "../components/SessionFormDialog";
 import { SessionHeaderText } from "../components/SessionHeaderText";
 import { laneSummary } from "../lib/sessionLabels";
@@ -106,9 +104,6 @@ const isPositiveInt = (s: string) => /^\d+$/.test(s.trim());
 // this view, does not lose a still-unanswered offer.
 let justFinishedGameId: number | null = null;
 
-// Games whose "you usually move" hint has been put away, this app run.
-const gameHintDismissed = new Set<number>();
-
 /** Space between the game chips and the top of the session sheet, in px. */
 const SHEET_GAP = 10;
 
@@ -185,25 +180,6 @@ export function ActiveSessionView({
   // Persisted, so a relaunch does not re-ask (lib/shareOffer.ts).
   const shareOfferRaw = useLiveQuery(async () => ({ raw: await getSetting(SHARE_OFFER_KEY) }));
   const shareOfferState = shareOfferRaw ? parseShareOffer(shareOfferRaw.raw) : null;
-  // As a new game starts at an alley with history, the move this bowler
-  // usually makes into it (ADR-115). Read only while the game has no ball in
-  // it: the query pulls every frame, and the hint is gone at the first ball.
-  const hintGame = sessionDetails?.games.find((g) => g.id === activeGameId);
-  const hintWanted =
-    mode === "tab" &&
-    !!hintGame?.id &&
-    hintGame.game_number >= 2 &&
-    !gameHintDismissed.has(hintGame.id) &&
-    (hintGame as Game & { frames: Frame[] }).frames.every((f) => f.shots.length === 0) &&
-    !!sessionDetails?.session.alley_name.trim();
-  const hintAlley = hintWanted ? sessionDetails!.session.alley_name : "";
-  const hintGameNumber = hintWanted ? hintGame!.game_number : 0;
-  const gameHint = useLiveQuery(async () => {
-    if (!hintAlley) return null;
-    const [history, balls] = await Promise.all([getSessionHistory(), getBalls()]);
-    return { alley: hintAlley, gameNumber: hintGameNumber, slots: movementAt(history, balls, hintAlley) };
-  }, [hintAlley, hintGameNumber]);
-  const [, setHintTick] = useState(0);
 
   // Mirrors the module-level id so finishing a game re-renders.
   const [finishedHere, setFinishedHere] = useState(justFinishedGameId);
@@ -564,11 +540,6 @@ export function ActiveSessionView({
       finishedHere != null && finishedHere === activeGame.id && activeGame.final_score !== undefined
     );
 
-  const gameHintText =
-    hintWanted && gameHint && gameHint.gameNumber === activeGame.game_number
-      ? describeGameMove(gameHint.slots, gameHint.gameNumber, handedness)
-      : null;
-
   function answerShare(answer: "share" | "dismiss") {
     justFinishedGameId = null;
     setFinishedHere(null);
@@ -796,22 +767,6 @@ export function ActiveSessionView({
             onLater={handleSaveCopyLater}
             onDismiss={() => setSaveCopyHidden(true)}
           />
-        )}
-
-        {gameHintText && (
-          <div className="mt-3 flex items-center gap-3 rounded-lg border border-edge bg-surface-muted p-3">
-            <p className="flex-1 text-sm text-ink-strong">{gameHintText}</p>
-            <IconButton
-              label={t`Dismiss game hint`}
-              onClick={() => {
-                gameHintDismissed.add(activeGame.id!);
-                setHintTick((t) => t + 1);
-              }}
-              className="shrink-0"
-            >
-              <X size={16} aria-hidden="true" />
-            </IconButton>
-          </div>
         )}
 
         {/* Not a warning: accent, not amber. Nothing is at risk here, the app

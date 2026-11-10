@@ -446,30 +446,6 @@ describe("a strike ball at a leave (B2, B3)", () => {
     await chooseBall("Gem");
     await waitFor(() => expect(stance()).toBe(""));
   });
-
-  it("does not offer to save a strike ball's attempt as the leave's spare line", async () => {
-    spareLines = [];
-    render(<ActiveGameScorer gameKey={1} mode="session" game={ONE_LANE} initialFrames={[]} />);
-    await leaveTheTenPin();
-    await waitFor(() => expect(ballLabel()).toContain("Plastic Spare"));
-    await chooseBall("Gem");
-    fireEvent.change(screen.getByLabelText("Stance"), { target: { value: "25" } });
-    fireEvent.click(screen.getByRole("button", { name: "Spare" }));
-
-    await waitFor(() => expect(screen.getByRole("button", { name: /^Ball: / })).toBeTruthy());
-    expect(screen.queryByText(/Save this as your line/)).toBeNull();
-  });
-
-  it("offers it after a spare ball attempt", async () => {
-    spareLines = [];
-    render(<ActiveGameScorer gameKey={1} mode="session" game={ONE_LANE} initialFrames={[]} />);
-    await leaveTheTenPin();
-    await waitFor(() => expect(ballLabel()).toContain("Plastic Spare"));
-    fireEvent.change(screen.getByLabelText("Stance"), { target: { value: "30" } });
-    fireEvent.click(screen.getByRole("button", { name: "Spare" }));
-
-    expect(await screen.findByText(/Save this as your line for 10-pin/)).toBeTruthy();
-  });
 });
 
 describe("a pocket leave (ADR-123)", () => {
@@ -492,20 +468,5 @@ describe("a pocket leave (ADR-123)", () => {
     await waitFor(() => expect(stance()).toBe("20"), { timeout: 5000 });
     expect(target()).toBe("15");
     expect(screen.queryByRole("button", { name: "Use another leave's line" })).toBeNull();
-  });
-
-  it("does not offer to save the attempt as a spare line, even off the spare ball", async () => {
-    spareLines = [];
-    render(<ActiveGameScorer gameKey={1} mode="session" game={ONE_LANE} initialFrames={pocketLeft} />);
-    await waitFor(() => expect(ballLabel()).toContain("Hammer"), { timeout: 5000 });
-    // A strike ball's attempt is never offered (ADR-113), so pick the spare ball.
-    fireEvent.click(screen.getByRole("button", { name: /^Ball: / }));
-    fireEvent.click(await screen.findByRole("button", { name: /Plastic Spare/ }));
-    await waitFor(() => expect(ballLabel()).toContain("Plastic Spare"));
-    fireEvent.change(screen.getByLabelText("Stance"), { target: { value: "30" } });
-    fireEvent.click(screen.getByRole("button", { name: "Spare" }));
-
-    await waitFor(() => expect(screen.getByRole("button", { name: /^Ball: / })).toBeTruthy());
-    expect(screen.queryByText(/Save this as your line/)).toBeNull();
   });
 });

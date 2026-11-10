@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildBriefing, lastTimeAt, movementAt } from "./briefing";
+import { buildBriefing, lastTimeAt } from "./briefing";
 import type { Ball, Frame, Game, PinNumber, SessionSummary, Shot } from "../types/bowling";
 
 const NONE: PinNumber[] = [];
@@ -404,7 +404,7 @@ describe("how the session moves here", () => {
     ]);
   });
 
-  it("is read per alley for the scorer's hint, and the last night for the start sheet", () => {
+  it("is read per alley for the start sheet's last night", () => {
     const sessions = [
       ...drifting(2, "Sea Bowl", [
         [20, 10, 1],
@@ -415,8 +415,6 @@ describe("how the session moves here", () => {
         [30, 15, 2]
       ])
     ];
-    expect(movementAt(sessions, balls, "sea bowl").map((m) => m.stance)).toEqual([20, 22]);
-    expect(movementAt(sessions, balls, " ")).toEqual([]);
     expect(lastTimeAt(sessions, balls, "Other Lanes")).toMatchObject({
       alley: "Other Lanes",
       ballName: "IQ Tour"

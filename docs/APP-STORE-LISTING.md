@@ -206,9 +206,12 @@ Contact: hello@headpin.app
 
 ## The Headpin Pro in-app purchase
 
-- Image (1024 by 1024, shown in offer code redemptions):
-  `marketing/app-store/headpin-pro-1024.png`, drawn by
-  `node scripts/app-store/pro-icon.mjs`.
+- Promotional image: none. Version 1.2 was turned down under Guideline 2.3.2
+  ("Your promotional image is a screenshot taken from the app") while the image
+  was the Pro mark tile, which the Pro page draws exactly, so it was deleted in
+  App Store Connect. It is only needed to promote the purchase on the product
+  page or for offer codes. If one is added again, it must be artwork made for
+  the store: nothing the app shows, no words to translate, no price.
 - Review Information screenshot (for App Review only, never on the store):
   `marketing/app-store/headpin-pro-review.png`, the Headpin Pro page as a free
   download sees it, with Get Headpin Pro and Restore purchase.

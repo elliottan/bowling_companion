@@ -11295,3 +11295,29 @@ default: `useOverlay` registers unless told not to, and only routes and the
 first-run gate opt out. What stays on the author is telling a route from a
 layer; a layer wrongly declared a route is the one mistake left, and the
 prop's comment and this ADR name it.
+
+## ADR-273: The scorer stops offering to save a spare line, and stops the game hint
+
+**Status.** Accepted, 2026-11-10. Withdraws ADR-054's capture prompt and the
+scorer's game hint from ADR-115. The borrow control and every other part of
+those ADRs stand.
+
+**Context.** Two lines appeared on the scorer between balls: "Save this as your
+line for ..." after a spare attempt with no saved line, and "Game N here: you
+usually move ..." as a new game started at an alley with history. Both asked
+for a tap in the middle of entering a game, which is the one place the scorer
+should stay quiet, and the owner chose to drop them ahead of resubmitting to
+the App Store.
+
+**Decision.**
+
+- **No capture prompt.** A spare line is saved from Spare lines on Home (and
+  the leave's own page), as it was before ADR-054. The line thrown at a leave is
+  still carried to the next time it comes up in the session (ADR-140), so the
+  scorer keeps the line without asking.
+- **No game hint.** The Start session sheet's last night at the alley and the
+  Alley report still say how the line moves there.
+
+**Consequences.** `describeGameMove`, `boardsMoved` and `movementAt` had no
+other caller and are removed. The getting-started guide no longer promises the
+offer.

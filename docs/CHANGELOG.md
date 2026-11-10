@@ -9,17 +9,29 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.104.6: The store pictures show the line boxes as they are now (2026-11-10)
+## 0.105.1: The store pictures show the line boxes as they are now (2026-11-10)
 
 - The App Store screenshots in every language and the Headpin Pro review
   screenshot are taken again from 0.104.5, so the scorer's line boxes carry
   their small accent names, as the build that goes to review will. They
-  replace the set taken from 0.104.0, which was never uploaded.
+  replace the set taken from 0.104.0, which was never uploaded. 0.105.0
+  changes no screen in the set, so they match it too.
 - The help pictures of the line panel are taken again for the same reason.
 - No other change to the app. The App Store description's Headpin Pro
   paragraph, in every language, and the review notes now name the game on
   the Lock Screen and in the Dynamic Island, for 1.1, and the review notes
   are back under Apple's 4,000 characters.
+
+## 0.105.0: A quieter scorer (2026-11-10)
+
+- The scorer no longer offers "Save this as your line" after a spare attempt.
+  Save a leave's line under Spare lines on Home; the line you threw at a leave
+  is still filled in the next time it comes up in the session.
+- The "Game 2 here: you usually move ..." line no longer appears as a new game
+  starts. The Start session sheet and the Alley report still show how your
+  line moves at an alley.
+- The Headpin Pro purchase has no promotional image in the App Store any more.
+  App Review turned down the Pro mark as one, because the Pro page shows it.
 
 ## 0.104.5: The line boxes' names are small again, and in the accent (2026-11-09)
 
