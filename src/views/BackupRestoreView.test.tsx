@@ -13,6 +13,13 @@ async function backupFileWith(alley: string): Promise<File> {
   return new File([JSON.stringify(backup)], "headpin.json", { type: "application/json" });
 }
 
+/** Past the copy step, once the copy it opens with has been saved. */
+async function continuePastCopy() {
+  const next = await screen.findByRole("button", { name: "Continue" });
+  await waitFor(() => expect(next).toBeEnabled());
+  fireEvent.click(next);
+}
+
 describe("BackupRestoreView", () => {
   beforeEach(async () => {
     URL.createObjectURL = () => "blob:stub";
@@ -33,26 +40,40 @@ describe("BackupRestoreView", () => {
 
   /**
    * Import destroys every local row and there is no server copy behind it, so
-   * the confirm has to be earned: the counts are shown and the word is typed.
+   * the popup opens by saving a copy and moves on only when Continue is
+   * pressed (ADR-274). The confirm is then one red button, with no typed word.
    */
-  it("holds the replace behind a typed word", async () => {
+  it("saves a copy as the popup opens, and confirms only after Continue", async () => {
+    const downloads: string[] = [];
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
+      this: HTMLAnchorElement
+    ) {
+      downloads.push(this.download);
+    });
     const file = await backupFileWith("Imported Lanes");
     await createSession({ date: "2026-05-27", alley_name: "Local Lanes" });
 
     render(<BackupRestoreView />);
     fireEvent.change(document.querySelector('input[type="file"]')!, { target: { files: [file] } });
 
+    expect(await screen.findByText("Save a copy first")).toBeInTheDocument();
+    expect(await screen.findByText("A copy is in your downloads.")).toBeInTheDocument();
+    expect(downloads).toHaveLength(1);
+    expect(downloads[0]).toMatch(/^pre-import-headpin-/);
+    expect(screen.queryByText("Replace all data?")).not.toBeInTheDocument();
+
+    // Saving again is the bowler's to ask for.
+    fireEvent.click(screen.getByRole("button", { name: "Save another copy" }));
+    await waitFor(() => expect(downloads).toHaveLength(2));
+
+    await continuePastCopy();
     const gate = (await screen.findByText("Replace all data?")).closest(
       "[role=dialog]"
     ) as HTMLElement;
-    const confirm = within(gate).getByRole("button", { name: /Replace everything/ });
-    expect(confirm).toBeDisabled();
-
-    fireEvent.change(within(gate).getByRole("textbox"), { target: { value: "replace" } });
-    expect(confirm).toBeDisabled();
-
-    fireEvent.change(within(gate).getByRole("textbox"), { target: { value: "REPLACE" } });
-    await waitFor(() => expect(confirm).toBeEnabled());
+    expect(within(gate).queryByRole("textbox")).toBeNull();
+    expect(within(gate).getByRole("button", { name: /Replace everything/ })).toBeEnabled();
+    expect(await db.sessions.count()).toBe(1);
+    click.mockRestore();
   });
 
   it("says what is about to be lost, in counts", async () => {
@@ -62,6 +83,7 @@ describe("BackupRestoreView", () => {
 
     render(<BackupRestoreView />);
     fireEvent.change(document.querySelector('input[type="file"]')!, { target: { files: [file] } });
+    await continuePastCopy();
 
     // Two on the device against one in the file: the shortfall is said out loud.
     expect(await screen.findByText(/You would lose/)).toHaveTextContent("1 session");
@@ -73,6 +95,7 @@ describe("BackupRestoreView", () => {
 
     render(<BackupRestoreView />);
     fireEvent.change(document.querySelector('input[type="file"]')!, { target: { files: [file] } });
+    await continuePastCopy();
 
     const gate = (await screen.findByText("Replace all data?")).closest(
       "[role=dialog]"

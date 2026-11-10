@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.106.0: Restoring asks for a copy instead of insisting on one (2026-11-10)
+
+- Restoring a backup over what is on the device opens "Save a copy first",
+  which saves a copy straight away and stays up until you choose Continue.
+  Close the share sheet or skip the copy and you can still go on; nothing is
+  replaced until you confirm.
+- The confirm no longer asks you to type REPLACE. It is one red Replace
+  everything button, and says so when no copy was saved.
+
 ## 0.105.1: The store pictures show the line boxes as they are now (2026-11-10)
 
 - The App Store screenshots in every language and the Headpin Pro review

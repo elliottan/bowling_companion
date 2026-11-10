@@ -691,8 +691,8 @@ msgid "3 months"
 msgstr "3 bulan"
 
 #: src/views/BackupRestoreView.tsx
-msgid "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. Your current data is saved off first."
-msgstr "Sandaran ialah satu fail, disimpan pada peranti ini atau di mana-mana tempat yang anda letakkan. Pemulihan akan <0>menggantikan</0> segala-galanya pada peranti ini dengan kandungan fail. Data semasa anda disimpan dahulu."
+msgid "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. You are asked to save a copy of your current data first."
+msgstr "Sandaran ialah satu fail, disimpan pada peranti ini atau di mana-mana tempat yang anda letakkan. Pemulihan akan <0>menggantikan</0> segala-galanya pada peranti ini dengan kandungan fail. Anda diminta menyimpan salinan data semasa anda dahulu."
 
 #: src/components/BallLayoutDiagram.tsx
 msgid "A bowling ball drilled with a thumb hole and two finger holes, showing a {drillingAngle} by {pinToPap} inch by {valAngle} dual angle layout."
@@ -709,6 +709,14 @@ msgstr "Bola boling yang digerudi dengan dua lubang jari tanpa lubang ibu jari, 
 #: src/components/BallLayoutDiagram.tsx
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "Bola boling yang digerudi dengan dua lubang jari tanpa lubang ibu jari, menunjukkan layout Storm VLS {pinToPap} x {core} x {buffer} inci."
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "A copy is in your downloads."
+msgstr "Salinan ada dalam muat turun anda."
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "A copy is saved."
+msgstr "Salinan disimpan."
 
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
@@ -1479,6 +1487,10 @@ msgstr "Banding mengikut"
 #: src/views/CatalogView.tsx
 msgid "Connect once to load the catalog"
 msgstr "Sambung sekali untuk memuatkan katalog"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Continue"
+msgstr "Teruskan"
 
 #. Bowling term: the share of spare chances for this leave that were made.
 #: src/components/SpareLineFormDialog.tsx
@@ -2339,10 +2351,6 @@ msgstr "Ada laluan"
 msgid "Headpin {version}"
 msgstr "Headpin {version}"
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Headpin downloads a copy of your current data first, so you can undo this."
-msgstr "Headpin memuat turun salinan data semasa anda dahulu, supaya anda boleh membuat asal tindakan ini."
-
 #: src/components/GetTheAppBanner.tsx
 msgid "Headpin for iPhone"
 msgstr "Headpin untuk iPhone"
@@ -3171,6 +3179,10 @@ msgstr "Belum ada bola untuk dibandingkan. Namakan bola pada balingan anda dan p
 msgid "No balls yet"
 msgstr "Belum ada bola"
 
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "No copy of this device was saved, so this cannot be undone."
+msgstr "Tiada salinan peranti ini disimpan, jadi ini tidak boleh dibuat asal."
+
 #. Under a zone of the approach diagram: this zone does not move the slide foot
 #: src/components/DriftZoneLane.tsx
 msgid "no drift"
@@ -3909,6 +3921,10 @@ msgstr "Pulihkan daripada sandaran"
 msgid "Restore purchase"
 msgstr "Pulihkan pembelian"
 
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Restoring replaces everything on this device. Keep a copy of what is here now, so you can undo it."
+msgstr "Pemulihan menggantikan segala-galanya pada peranti ini. Simpan salinan data yang ada sekarang supaya anda boleh membuat asal."
+
 #: src/components/FirstRun.tsx
 msgid "Restoring…"
 msgstr "Memulihkan…"
@@ -4045,10 +4061,15 @@ msgstr "Simpan"
 msgid "Save a backup"
 msgstr "Simpan sandaran"
 
+#: src/components/ReplaceConfirmDialog.tsx
 #: src/components/SaveCopyPrompt.tsx
 #: src/views/DashboardView.tsx
 msgid "Save a copy"
 msgstr "Simpan salinan"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Save a copy first"
+msgstr "Simpan salinan dahulu"
 
 #. Bowling terms: a leave is the pins left standing after the first ball; the intended line is where the bowler plans to stand and aim
 #: src/components/NextSteps.tsx
@@ -4058,6 +4079,10 @@ msgstr "Simpan laluan untuk sesuatu baki pin, dan laluan yang dirancang akan dii
 #: src/components/SpareLinePickerSheet.tsx
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "Simpan laluan untuk satu baki pin dan anda boleh meminjamnya untuk baki pin lain."
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Save another copy"
+msgstr "Simpan salinan lain"
 
 #: src/views/BowlingProfileView.tsx
 msgid "Save bowling profile"
@@ -4090,6 +4115,10 @@ msgstr "Simpan tempat anda berdiri dan tempat anda menyasar untuk sesuatu baki p
 #: src/components/SaveCopyPrompt.tsx
 msgid "Saved on this phone only. Save a copy before closing the tab."
 msgstr "Disimpan pada telefon ini sahaja. Simpan satu salinan sebelum menutup tab."
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Saving a copy"
+msgstr "Menyimpan salinan"
 
 #: src/components/ShareCardDialog.tsx
 msgid "Saving failed."
@@ -4811,9 +4840,13 @@ msgstr "Katalog belum dimuatkan"
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "Katalog belum dimuatkan lagi. Ia memerlukan satu sambungan, kemudian ia berfungsi di luar talian."
 
-#: src/services/backupRepository.ts
-msgid "The copy of what is on this phone was not saved, so nothing was replaced."
-msgstr "Salinan kandungan telefon ini tidak disimpan, jadi tiada apa yang digantikan."
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "The copy could not be saved."
+msgstr "Salinan tidak dapat disimpan."
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "The copy was not saved."
+msgstr "Salinan tidak disimpan."
 
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."
@@ -4996,10 +5029,6 @@ msgstr "Dua sesi sudah cukup untuk membandingkan permainan pertama anda dengan y
 #: src/views/SettingsView.tsx
 msgid "Two-handed"
 msgstr "Dua tangan"
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Type {word} to confirm"
-msgstr "Taip {word} untuk mengesahkan"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Unable to add game."

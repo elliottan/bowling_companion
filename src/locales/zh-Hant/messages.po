@@ -691,8 +691,8 @@ msgid "3 months"
 msgstr "3 個月"
 
 #: src/views/BackupRestoreView.tsx
-msgid "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. Your current data is saved off first."
-msgstr "備份是一個檔案，存放在這台裝置或你放置的任何位置。還原會以檔案內容<0>取代</0>這台裝置上的所有資料。目前的資料會先另行儲存。"
+msgid "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. You are asked to save a copy of your current data first."
+msgstr "備份是一個檔案，存放在這台裝置或你放置的任何位置。還原會以檔案內容<0>取代</0>這台裝置上的所有資料。系統會先請你儲存目前資料的副本。"
 
 #: src/components/BallLayoutDiagram.tsx
 msgid "A bowling ball drilled with a thumb hole and two finger holes, showing a {drillingAngle} by {pinToPap} inch by {valAngle} dual angle layout."
@@ -709,6 +709,14 @@ msgstr "一顆打了兩個手指孔、沒有拇指孔的保齡球，顯示 {dril
 #: src/components/BallLayoutDiagram.tsx
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "一顆打了兩個手指孔、沒有拇指孔的保齡球，顯示 {pinToPap} × {core} × {buffer} 英吋的 Storm VLS 打孔配置。"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "A copy is in your downloads."
+msgstr "副本已在你的下載項目中。"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "A copy is saved."
+msgstr "副本已儲存。"
 
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
@@ -1479,6 +1487,10 @@ msgstr "比較方式"
 #: src/views/CatalogView.tsx
 msgid "Connect once to load the catalog"
 msgstr "連線一次即可載入型錄"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Continue"
+msgstr "繼續"
 
 #. Bowling term: the share of spare chances for this leave that were made.
 #: src/components/SpareLineFormDialog.tsx
@@ -2339,10 +2351,6 @@ msgstr "已有路線"
 msgid "Headpin {version}"
 msgstr "Headpin {version}"
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Headpin downloads a copy of your current data first, so you can undo this."
-msgstr "Headpin 會先下載一份你目前資料的副本，讓你可以復原這次操作。"
-
 #: src/components/GetTheAppBanner.tsx
 msgid "Headpin for iPhone"
 msgstr "適用於 iPhone 的 Headpin"
@@ -3171,6 +3179,10 @@ msgstr "尚無可比較的球。在投球時填入球名，每顆球的平均分
 msgid "No balls yet"
 msgstr "尚無球"
 
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "No copy of this device was saved, so this cannot be undone."
+msgstr "這台裝置沒有儲存任何副本，因此無法復原。"
+
 #. Under a zone of the approach diagram: this zone does not move the slide foot
 #: src/components/DriftZoneLane.tsx
 msgid "no drift"
@@ -3909,6 +3921,10 @@ msgstr "從備份還原"
 msgid "Restore purchase"
 msgstr "回復購買項目"
 
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Restoring replaces everything on this device. Keep a copy of what is here now, so you can undo it."
+msgstr "還原會取代這台裝置上的所有資料。請先儲存目前資料的副本，以便日後復原。"
+
 #: src/components/FirstRun.tsx
 msgid "Restoring…"
 msgstr "還原中…"
@@ -4045,10 +4061,15 @@ msgstr "儲存"
 msgid "Save a backup"
 msgstr "儲存備份"
 
+#: src/components/ReplaceConfirmDialog.tsx
 #: src/components/SaveCopyPrompt.tsx
 #: src/views/DashboardView.tsx
 msgid "Save a copy"
 msgstr "儲存副本"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Save a copy first"
+msgstr "先儲存副本"
 
 #. Bowling terms: a leave is the pins left standing after the first ball; the intended line is where the bowler plans to stand and aim
 #: src/components/NextSteps.tsx
@@ -4058,6 +4079,10 @@ msgstr "為殘瓶儲存路線後，計分時再遇到這種殘瓶，就會自動
 #: src/components/SpareLinePickerSheet.tsx
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "為一種殘瓶儲存路線後，也能借用在另一種殘瓶上。"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Save another copy"
+msgstr "再儲存一份副本"
 
 #: src/views/BowlingProfileView.tsx
 msgid "Save bowling profile"
@@ -4090,6 +4115,10 @@ msgstr "為殘瓶儲存你的站位與瞄準點，下次遇到時就能直接使
 #: src/components/SaveCopyPrompt.tsx
 msgid "Saved on this phone only. Save a copy before closing the tab."
 msgstr "只儲存在這支手機上。關閉分頁前請先另存一份。"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Saving a copy"
+msgstr "正在儲存副本"
 
 #: src/components/ShareCardDialog.tsx
 msgid "Saving failed."
@@ -4811,9 +4840,13 @@ msgstr "型錄尚未載入"
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "型錄尚未載入。只需連線一次，之後即可離線使用。"
 
-#: src/services/backupRepository.ts
-msgid "The copy of what is on this phone was not saved, so nothing was replaced."
-msgstr "這支手機上資料的副本沒有儲存，所以沒有取代任何內容。"
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "The copy could not be saved."
+msgstr "無法儲存副本。"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "The copy was not saved."
+msgstr "副本未儲存。"
 
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."
@@ -4996,10 +5029,6 @@ msgstr "有兩個場次，就能把你的第一局和最近一局放在一起比
 #: src/views/SettingsView.tsx
 msgid "Two-handed"
 msgstr "雙手"
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Type {word} to confirm"
-msgstr "輸入 {word} 以確認"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Unable to add game."

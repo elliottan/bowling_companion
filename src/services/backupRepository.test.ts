@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "../db/bowlingDb";
 import {
   backupFilename,
@@ -7,6 +7,7 @@ import {
   exportBackup,
   prepareImport,
   replaceAllData,
+  saveSafetyCopy,
   shareBackup
 } from "./backupRepository";
 import type { BowlingBackup } from "../types/bowling";
@@ -21,7 +22,7 @@ async function importBackup(fileOrJson: unknown) {
 
 describe("backupRepository", () => {
   beforeEach(async () => {
-    // replaceAllData downloads a safety copy; jsdom has no Blob URL APIs.
+    // Exports download through a Blob URL, which jsdom does not implement.
     URL.createObjectURL = () => "blob:stub";
     URL.revokeObjectURL = () => {};
     await db.delete();
@@ -121,7 +122,7 @@ describe("backupRepository", () => {
     expect(history[0].session.alley_name).toBe("Imported Lanes");
   });
 
-  it("downloads a safety copy of the current data before wiping it", async () => {
+  it("saves a safety copy of the current data, under its own name", async () => {
     await createSession({ date: "2026-05-27", alley_name: "About To Be Deleted" });
 
     let downloadedBlob: Blob | null = null;
@@ -129,13 +130,16 @@ describe("backupRepository", () => {
       downloadedBlob = blob;
       return "blob:stub";
     };
-
-    await importBackup({
-      app: "bowling-companion" as const,
-      version: 3 as const,
-      exported_at: "2026-05-27T00:00:00.000Z",
-      tables: { sessions: [], games: [], frames: [] }
+    const names: string[] = [];
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
+      this: HTMLAnchorElement
+    ) {
+      names.push(this.download);
     });
+
+    expect(await saveSafetyCopy()).toBe("downloaded");
+    click.mockRestore();
+    expect(names[0]).toMatch(/^pre-import-headpin-/);
 
     // jsdom's Blob implements neither .text() nor the fetch Blob interface,
     // so read it the way jsdom does support.
@@ -145,7 +149,8 @@ describe("backupRepository", () => {
       reader.readAsText(downloadedBlob!);
     });
     expect(downloaded).toContain("About To Be Deleted");
-    expect(await db.sessions.count()).toBe(0);
+    // Saving a copy touches nothing.
+    expect(await db.sessions.count()).toBe(1);
   });
 
   it("imports a v1 backup with flat frame fields", async () => {

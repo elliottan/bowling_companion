@@ -1,44 +1,136 @@
 import { plural, t } from "@lingui/core/macro";
-import type { PreparedImport } from "../services/backupRepository";
+import { Download } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  saveSafetyCopy,
+  type BackupDestination,
+  type PreparedImport
+} from "../services/backupRepository";
 import { describeAge } from "../lib/backupNudge";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { FIELD, FIELD_LABEL } from "./ui/field";
+import { Button } from "./ui/Button";
 
-const REQUIRED_CONFIRMATION = "REPLACE";
+type CopyState = "saving" | BackupDestination | "failed";
 
 /**
  * Import destroys every local row, and there is no server copy behind it, so
- * the user has to read their own counts and type the word before it runs.
+ * it runs in two steps (ADR-274).
+ *
+ * First the copy: the popup opens by saving one, and stays up whatever the
+ * download or the share sheet did, with a button to save it again. Only
+ * Continue moves on, so a closed sheet never replaces anything and never
+ * blocks the bowler either. Then the confirm: their own counts, and one red
+ * button.
  */
 export function ReplaceConfirmDialog({
   pending,
-  confirmText,
-  onConfirmTextChange,
   isBusy,
   onConfirm,
   onCancel,
   safetyCopy = true
 }: {
   pending: PreparedImport | null;
-  confirmText: string;
-  onConfirmTextChange: (value: string) => void;
   isBusy: boolean;
   onConfirm: () => void;
   onCancel: () => void;
-  /** False when the device holds nothing, so no copy is written to hand back. */
+  /** False when the device holds nothing, so there is no copy to offer. */
   safetyCopy?: boolean;
 }) {
   if (!pending) return null;
+  // A fresh file starts again at the copy, with nothing carried over.
+  return (
+    <ReplaceSteps
+      key={pending.backup.exported_at}
+      pending={pending}
+      isBusy={isBusy}
+      onConfirm={onConfirm}
+      onCancel={onCancel}
+      safetyCopy={safetyCopy}
+    />
+  );
+}
+
+function ReplaceSteps({
+  pending,
+  isBusy,
+  onConfirm,
+  onCancel,
+  safetyCopy
+}: {
+  pending: PreparedImport;
+  isBusy: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  safetyCopy: boolean;
+}) {
+  const [step, setStep] = useState<"copy" | "confirm">(safetyCopy ? "copy" : "confirm");
+  const [copy, setCopy] = useState<CopyState>("saving");
+  const started = useRef(false);
+
+  async function save() {
+    setCopy("saving");
+    try {
+      setCopy(await saveSafetyCopy());
+    } catch {
+      setCopy("failed");
+    }
+  }
+
+  // The copy is the point of the popup, so opening it saves one. Once, even
+  // under StrictMode's double effect: two downloads of one copy is noise.
+  useEffect(() => {
+    if (step !== "copy" || started.current) return;
+    started.current = true;
+    void save();
+  }, [step]);
+
+  const saved = copy === "shared" || copy === "downloaded";
+
+  if (step === "copy") {
+    return (
+      <ConfirmDialog
+        key="copy"
+        open
+        title={t`Save a copy first`}
+        confirmVariant="primary"
+        confirmLabel={t`Continue`}
+        confirmDisabled={copy === "saving"}
+        // Continue opens the confirm rather than closing this, so the dialog
+        // that follows takes its place.
+        onConfirm={() => setStep("confirm")}
+        onCancel={onCancel}
+        message={
+          <>
+            <p>
+              {t`Restoring replaces everything on this device. Keep a copy of what is here now, so you can undo it.`}
+            </p>
+            <p role="status" className={saved ? "font-semibold text-success-700" : ""}>
+              {copy === "saving" && t`Saving a copy`}
+              {copy === "downloaded" && t`A copy is in your downloads.`}
+              {copy === "shared" && t`A copy is saved.`}
+              {copy === "cancelled" && t`The copy was not saved.`}
+              {copy === "failed" && t`The copy could not be saved.`}
+            </p>
+            <Button variant="secondary" onClick={() => void save()} disabled={copy === "saving"}>
+              <Download size={16} aria-hidden="true" />
+              {saved ? t`Save another copy` : t`Save a copy`}
+            </Button>
+          </>
+        }
+      />
+    );
+  }
 
   const { current, incoming, losingSessions } = pending;
   const age = describeAge(pending.backup.exported_at, new Date());
 
   return (
     <ConfirmDialog
+      key="confirm"
       open
       title={t`Replace all data?`}
       confirmLabel={isBusy ? t`Replacing` : t`Replace everything`}
-      confirmDisabled={isBusy || confirmText.trim() !== REQUIRED_CONFIRMATION}
+      confirmDisabled={isBusy}
       onConfirm={onConfirm}
       onCancel={onCancel}
       message={
@@ -65,20 +157,11 @@ export function ReplaceConfirmDialog({
               other: "# sessions"
             })}, ${plural(incoming.games, { one: "# game", other: "# games" })} instead, saved ${age}.`}
           </p>
-          {safetyCopy && (
-            <p>{t`Headpin downloads a copy of your current data first, so you can undo this.`}</p>
+          {safetyCopy && !saved && (
+            <p className="font-semibold text-danger-700">
+              {t`No copy of this device was saved, so this cannot be undone.`}
+            </p>
           )}
-          <label className="block pt-1">
-            <span className={FIELD_LABEL}>{t`Type ${{ word: REQUIRED_CONFIRMATION }} to confirm`}</span>
-            <input
-              autoFocus
-              value={confirmText}
-              onChange={(e) => onConfirmTextChange(e.target.value)}
-              className={FIELD}
-              placeholder={REQUIRED_CONFIRMATION}
-              autoComplete="off"
-            />
-          </label>
         </>
       }
     />

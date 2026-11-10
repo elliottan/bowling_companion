@@ -11321,3 +11321,36 @@ the App Store.
 **Consequences.** `describeGameMove`, `boardsMoved` and `movementAt` had no
 other caller and are removed. The getting-started guide no longer promises the
 offer.
+
+## ADR-274: A restore offers the safety copy and lets the bowler go on
+
+**Status.** Accepted, 2026-11-10, at the owner's request ("Why force people to
+save? ... Also please remove the typing of REPLACE"). Supersedes ADR-250, and
+the typed word of ADR-038's confirm. ADR-038's replace itself stands.
+
+**Context.** ADR-250 made a restore in the apps stop when the safety copy's
+share sheet was closed, with an error banner and the file to pick again. A
+bowler who did not want the copy, or closed the sheet by mistake, had no way
+forward but to save it. The confirm after it also asked for REPLACE typed out,
+a second gate on top of the counts it already shows.
+
+**Decision.**
+
+- **The copy is its own popup.** Picking a file over existing data opens "Save
+  a copy first", which starts the copy at once: a download on the web, the
+  share sheet in the apps. The popup stays up whatever the download or the
+  sheet did, says whether the copy was saved, and offers to save it again.
+- **Only Continue goes on.** Continue opens the replace confirm; Cancel, or
+  the backdrop, drops the restore with nothing written. A closed sheet no
+  longer replaces anything, and no longer blocks anything either.
+- **The confirm is one red button.** The counts and the "You would lose"
+  line stay. The typed word is gone. When no copy was saved the confirm says
+  that it cannot be undone.
+- `replaceAllData` no longer saves anything itself. `saveSafetyCopy` does,
+  and the gate calls it.
+
+**Consequences.**
+
+- A restore can run with no copy saved, by the bowler's choice and after
+  being told so twice. That is the trade the owner asked for.
+- A first run on an empty device opens no gate, as before.

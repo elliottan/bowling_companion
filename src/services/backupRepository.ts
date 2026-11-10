@@ -215,27 +215,24 @@ export async function prepareImport(fileOrJson: File | string | unknown): Promis
 }
 
 /**
- * Replace the entire database with the file's contents (ADR-038). Every local
- * row is destroyed first, so a safety copy of the current data is downloaded
- * before anything is cleared, that file is the only way back.
+ * Save a copy of what is on this device before a restore replaces it
+ * (ADR-038): the downloads folder on the web, the share sheet in the apps.
+ *
+ * The restore asks for this and then waits for the bowler, rather than
+ * refusing to go on when the sheet is closed (ADR-274): the copy is offered
+ * until they choose to continue, and choosing to is theirs.
  */
-export async function replaceAllData(
-  backup: BowlingBackup,
-  options: { safetyCopy?: boolean } = {}
-): Promise<ImportBackupResult> {
-  // On a device that holds nothing there is nothing to hand back, and a
-  // pre-import file of an empty database only confuses a first-time user.
-  if (options.safetyCopy !== false) {
-    const safetyCopy = await createBackup();
-    const saved = await downloadBackup(safetyCopy, `pre-import-${backupFilename(safetyCopy)}`);
-    // Closing the sheet in the apps means the copy is in the app's cache at
-    // most, which the bowler cannot reach and the platform may clear. Wiping
-    // now would leave the file being restored as the only copy (ADR-250).
-    if (saved === "cancelled") {
-      throw new Error(t`The copy of what is on this phone was not saved, so nothing was replaced.`);
-    }
-  }
+export async function saveSafetyCopy(): Promise<BackupDestination> {
+  const safetyCopy = await createBackup();
+  return downloadBackup(safetyCopy, `pre-import-${backupFilename(safetyCopy)}`);
+}
 
+/**
+ * Replace the entire database with the file's contents (ADR-038). Every local
+ * row is destroyed, so the caller offers `saveSafetyCopy` first, that file is
+ * the only way back.
+ */
+export async function replaceAllData(backup: BowlingBackup): Promise<ImportBackupResult> {
   await db.transaction(
     "rw",
     [db.sessions, db.games, db.frames, db.balls, db.oil_patterns, db.spare_lines, db.lane_notes, db.settings],

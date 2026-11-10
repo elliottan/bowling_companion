@@ -691,8 +691,8 @@ msgid "3 months"
 msgstr "3か月"
 
 #: src/views/BackupRestoreView.tsx
-msgid "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. Your current data is saved off first."
-msgstr "バックアップは1つのファイルで、この端末または保存先に保管されます。復元すると、この端末のすべてのデータがファイルの内容に<0>置き換わります</0>。現在のデータは事前に保存されます。"
+msgid "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. You are asked to save a copy of your current data first."
+msgstr "バックアップは1つのファイルで、この端末または保存先に保管されます。復元すると、この端末のすべてのデータがファイルの内容に<0>置き換わります</0>。先に現在のデータのコピーを保存するよう案内します。"
 
 #: src/components/BallLayoutDiagram.tsx
 msgid "A bowling ball drilled with a thumb hole and two finger holes, showing a {drillingAngle} by {pinToPap} inch by {valAngle} dual angle layout."
@@ -709,6 +709,14 @@ msgstr "フィンガーホール2つでサムホールのないボウリング�
 #: src/components/BallLayoutDiagram.tsx
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "フィンガーホール2つでサムホールのないボウリングボール。{pinToPap}×{core}×{buffer}インチのStorm VLSレイアウトを表示しています。"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "A copy is in your downloads."
+msgstr "コピーはダウンロードフォルダにあります。"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "A copy is saved."
+msgstr "コピーを保存しました。"
 
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
@@ -1479,6 +1487,10 @@ msgstr "比較方法"
 #: src/views/CatalogView.tsx
 msgid "Connect once to load the catalog"
 msgstr "カタログを読み込むには一度接続してください"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Continue"
+msgstr "続ける"
 
 #. Bowling term: the share of spare chances for this leave that were made.
 #: src/components/SpareLineFormDialog.tsx
@@ -2339,10 +2351,6 @@ msgstr "ラインあり"
 msgid "Headpin {version}"
 msgstr "Headpin {version}"
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Headpin downloads a copy of your current data first, so you can undo this."
-msgstr "先に現在のデータのコピーをダウンロードするので、元に戻せます。"
-
 #: src/components/GetTheAppBanner.tsx
 msgid "Headpin for iPhone"
 msgstr "Headpin for iPhone"
@@ -3171,6 +3179,10 @@ msgstr "比較するボールがまだありません。投球にボール名を
 msgid "No balls yet"
 msgstr "ボールがまだありません"
 
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "No copy of this device was saved, so this cannot be undone."
+msgstr "この端末のコピーは保存されていないため、元に戻せません。"
+
 #. Under a zone of the approach diagram: this zone does not move the slide foot
 #: src/components/DriftZoneLane.tsx
 msgid "no drift"
@@ -3909,6 +3921,10 @@ msgstr "バックアップから復元"
 msgid "Restore purchase"
 msgstr "購入を復元"
 
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Restoring replaces everything on this device. Keep a copy of what is here now, so you can undo it."
+msgstr "復元すると、この端末のすべてのデータが置き換わります。元に戻せるよう、今のデータのコピーを保存してください。"
+
 #: src/components/FirstRun.tsx
 msgid "Restoring…"
 msgstr "復元中…"
@@ -4045,10 +4061,15 @@ msgstr "保存"
 msgid "Save a backup"
 msgstr "バックアップを保存"
 
+#: src/components/ReplaceConfirmDialog.tsx
 #: src/components/SaveCopyPrompt.tsx
 #: src/views/DashboardView.tsx
 msgid "Save a copy"
 msgstr "コピーを保存"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Save a copy first"
+msgstr "先にコピーを保存"
 
 #. Bowling terms: a leave is the pins left standing after the first ball; the intended line is where the bowler plans to stand and aim
 #: src/components/NextSteps.tsx
@@ -4058,6 +4079,10 @@ msgstr "残りピンごとにラインを保存すると、スコア入力中に
 #: src/components/SpareLinePickerSheet.tsx
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "ある残りピンのラインを保存すると、別の残りピンにも流用できます。"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Save another copy"
+msgstr "もう1つコピーを保存"
 
 #: src/views/BowlingProfileView.tsx
 msgid "Save bowling profile"
@@ -4090,6 +4115,10 @@ msgstr "残りピンに対する立ち位置と狙いを保存すると、次に
 #: src/components/SaveCopyPrompt.tsx
 msgid "Saved on this phone only. Save a copy before closing the tab."
 msgstr "このスマートフォンにのみ保存されています。タブを閉じる前にコピーを保存してください。"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Saving a copy"
+msgstr "コピーを保存中"
 
 #: src/components/ShareCardDialog.tsx
 msgid "Saving failed."
@@ -4811,9 +4840,13 @@ msgstr "カタログが読み込まれていません"
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "カタログはまだ読み込まれていません。一度接続すれば、以降はオフラインで使えます。"
 
-#: src/services/backupRepository.ts
-msgid "The copy of what is on this phone was not saved, so nothing was replaced."
-msgstr "このスマートフォンのデータのコピーが保存されなかったため、何も置き換えていません。"
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "The copy could not be saved."
+msgstr "コピーを保存できませんでした。"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "The copy was not saved."
+msgstr "コピーは保存されませんでした。"
 
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."
@@ -4996,10 +5029,6 @@ msgstr "2セッションあれば、最初のゲームと直近のゲームを�
 #: src/views/SettingsView.tsx
 msgid "Two-handed"
 msgstr "両手投げ"
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Type {word} to confirm"
-msgstr "確認のため {word} と入力してください"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Unable to add game."
