@@ -29,7 +29,7 @@ A storefront shows the localization of its own language, then the next most
 relevant one, then the primary language (English (U.S.)), and it indexes the
 keywords of its default and its additional language (Apple's "App Store
 localizations" table). The screenshots for each are in
-`marketing/app-store/2026-11-02/<locale>/`, the column below.
+`marketing/app-store/2026-11-10/<locale>/`, the column below.
 
 | App Store Connect localization | Section | Screenshots | Storefronts where it is the default or indexed |
 |---|---|---|---|
@@ -100,7 +100,7 @@ Headpin: ボウリングスコア＆統計
 アベレージ,リーグ,ストライク,スペア,オイルパターン,アーセナル,レイアウト,PAP,USBC,PBA,レーン,残りピン,ケーゲル,カタログ,ハイゲーム,ボウラー,オフライン,メモ,トラッカー,投球
 ```
 
-### Description (1277 of 4000)
+### Description (1312 of 4000)
 
 ```
 スコアのつけ方から、ボールとラインの見直しまで。あなたのゲームを理解して、もっとうまくなるためのすべてを1つのアプリに。
@@ -166,7 +166,7 @@ Headpin: ボウリングスコア＆統計
 
 Headpin Pro
 
-買い切りで、サブスクリプションなしで、さらに深く。キャリー率とストライク率でストライクの裏側を見て、バッグにあるすべてのボールを比較し、ボウリング場ごとに最もアベレージが高いボールを見つけ、ラインとレイアウトを細かく調整して何が変わるかを確かめられます。記録した内容は、これからもずっと無料です。
+買い切りで、サブスクリプションなしで、さらに深く。キャリー率とストライク率でストライクの裏側を見て、バッグにあるすべてのボールを比較し、ボウリング場ごとに最もアベレージが高いボールを見つけ、ラインとレイアウトを細かく調整して何が変わるかを確かめられるほか、プレー中のゲームをロック画面とダイナミックアイランドで確認できます。記録した内容は、これからもずっと無料です。
 
 Headpinは独立したアプリであり、ボールメーカーおよびボウリング団体とは一切提携していません。ボールの名称と画像は、各権利者に帰属します。
 ```
@@ -219,7 +219,7 @@ Headpin: 볼링 점수 & 통계
 에버리지,리그,스트라이크,스페어,오일패턴,아스널,볼링공,스코어,핀,레인,기록,어플,트래커,레이아웃,남은핀,PAP,USBC,오프라인,대회,동호회,하이게임,드릴링,커버스톡,볼링장,에버
 ```
 
-### Description (1340 of 4000)
+### Description (1368 of 4000)
 
 ```
 볼링 실력을 이해하고 더 잘 치기 위한 모든 것을 앱 하나에 담았어요.
@@ -285,7 +285,7 @@ Headpin: 볼링 점수 & 통계
 
 Headpin Pro
 
-한 번의 구매로, 구독 없이 더 깊이 들여다보세요. 캐리와 스트라이크 비율로 스트라이크 뒤에 숨은 이유를 확인하고, 가방 속 모든 볼을 비교하고, 볼링장마다 가장 에버가 좋은 볼을 찾고, 라인과 레이아웃을 세밀하게 조절해 무엇이 달라지는지 확인해 보세요. 기록하는 모든 것은 앞으로도 계속 무료예요.
+한 번의 구매로, 구독 없이 더 깊이 들여다보세요. 캐리와 스트라이크 비율로 스트라이크 뒤에 숨은 이유를 확인하고, 가방 속 모든 볼을 비교하고, 볼링장마다 가장 에버가 좋은 볼을 찾고, 라인과 레이아웃을 세밀하게 조절해 무엇이 달라지는지 확인하고, 진행 중인 게임을 잠금 화면과 Dynamic Island에서 따라가 보세요. 기록하는 모든 것은 앞으로도 계속 무료예요.
 
 Headpin은 독립적으로 만든 앱이며 어떤 볼 제조사나 볼링 단체와도 제휴하지 않았어요. 볼 이름과 이미지의 권리는 각 소유자에게 있어요.
 ```
@@ -338,7 +338,7 @@ Headpin：保齡球計分與統計
 聯賽,聯盟賽,平均分,全倒,補中,球瓶,殘瓶,油型,球庫,球道,打孔,雙角度,PAP,USBC,筆記,記分,保齡球館,比賽,成績,分數,轉速,曲球,練球,離線,球皮,球速,洗溝,球友,保齡,手機,球路
 ```
 
-### Description (859 of 4000)
+### Description (882 of 4000)
 
 ```
 一個 App，讓你看懂自己的球路，打得更好：
@@ -404,7 +404,7 @@ Headpin：保齡球計分與統計
 
 Headpin Pro
 
-一次購買，不需訂閱，帶你更深入。透過帶倒率與全倒率看懂全倒背後的原因，比較球袋裡的每一顆球，找出在各個球館平均分最高的球，並微調路線與打孔配置，看看會有什麼改變。你記錄的一切永遠免費。
+一次購買，不需訂閱，帶你更深入。透過帶倒率與全倒率看懂全倒背後的原因，比較球袋裡的每一顆球，找出在各個球館平均分最高的球，並微調路線與打孔配置，看看會有什麼改變，還能在鎖定畫面和動態島上隨時掌握進行中的比賽。你記錄的一切永遠免費。
 
 Headpin 為獨立開發，與任何球廠或保齡球組織皆無關聯。球款名稱與圖片屬於各自的擁有者。
 ```
@@ -457,7 +457,7 @@ Headpin：保龄球计分与统计
 联赛,全中,补中,平均分,球道,油型,球库,残瓶,成绩,记录,比分,打孔,球芯,甜区,分瓶,球馆,PAP,USBC,PBA,离线,左手,赛季,球皮,转速,弧线,球包,目标,打法,站位,箭头,Kegel
 ```
 
-### Description (873 of 4,000)
+### Description (894 of 4,000)
 
 ```
 一个应用，帮你读懂自己的比赛，打得更好：
@@ -523,7 +523,7 @@ Headpin：保龄球计分与统计
 
 Headpin Pro
 
-一次购买，无需订阅，即可更进一步。通过带倒率和全中率，看清全中背后的原因；比较球包里的每一颗球，找出你在每家球馆平均分最高的那颗球；还可以微调路线和打孔布局，看看会有什么变化。你记录的一切，永远免费。
+一次购买，无需订阅，即可更进一步。通过带倒率和全中率，看清全中背后的原因；比较球包里的每一颗球，找出你在每家球馆平均分最高的那颗球；还可以微调路线和打孔布局，看看会有什么变化，并在锁定屏幕和灵动岛上随时掌握进行中的比赛。你记录的一切，永远免费。
 
 Headpin 是独立应用，与任何球品牌或保龄球组织均无关联。球的名称和图片归各自所有者所有。
 ```
@@ -576,7 +576,7 @@ Descubre dónde pierdes pinos. Registra cada bola, ve tu línea sobre el aceite 
 bolos,chuza,spare,promedio,liga,pista,aceite,arsenal,estadísticas,anotador,pinos,usbc,pap,pba,dejada
 ```
 
-### Description (2,564 of 4,000)
+### Description (2,637 of 4,000)
 
 ```
 Todo lo que necesitas para entender tu juego y jugar mejor, en una sola app:
@@ -642,7 +642,7 @@ Tus juegos se guardan en tu teléfono y la app funciona sin conexión en cualqui
 
 Headpin Pro
 
-Ve más a fondo con una sola compra y sin suscripción. Descubre qué hay detrás de tus strikes con los porcentajes de carry y de strike, compara todas las bolas de tu maleta, encuentra con qué bola tienes mejor promedio en cada boliche y ajusta líneas y layouts para ver qué cambia. Todo lo que registras es gratis, para siempre.
+Ve más a fondo con una sola compra y sin suscripción. Descubre qué hay detrás de tus strikes con los porcentajes de carry y de strike, compara todas las bolas de tu maleta, encuentra con qué bola tienes mejor promedio en cada boliche, ajusta líneas y layouts para ver qué cambia y sigue tu juego en curso en la pantalla bloqueada y en la Dynamic Island. Todo lo que registras es gratis, para siempre.
 
 Headpin es independiente y no está afiliada a ningún fabricante de bolas ni a ninguna organización de boliche. Los nombres e imágenes de las bolas pertenecen a sus dueños.
 ```
@@ -695,7 +695,7 @@ Pahami permainan bolingmu. Catat setiap bola, lihat jalurmu di atas pola minyak,
 bowling,liga,strike,spare,pola minyak,arsenal,rata-rata,lintasan,pin,layout,pap,usbc,pba,peboling
 ```
 
-### Description (2436 of 4000)
+### Description (2513 of 4000)
 
 ```
 Semua yang kamu perlukan untuk memahami permainanmu dan bermain boling lebih baik, dalam satu aplikasi:
@@ -761,7 +761,7 @@ Game-mu tersimpan di ponselmu dan bisa dipakai offline di arena boling mana pun,
 
 Headpin Pro
 
-Lebih dalam dengan sekali beli, tanpa langganan. Lihat apa di balik strike-mu lewat persentase carry dan strike, bandingkan setiap bola di tasmu, temukan bola dengan rata-rata terbaikmu di setiap arena boling, dan atur jalur serta layout untuk melihat apa yang berubah. Semua yang kamu catat tetap gratis, selamanya.
+Lebih dalam dengan sekali beli, tanpa langganan. Lihat apa di balik strike-mu lewat persentase carry dan strike, bandingkan setiap bola di tasmu, temukan bola dengan rata-rata terbaikmu di setiap arena boling, atur jalur serta layout untuk melihat apa yang berubah, dan pantau game-mu yang sedang berjalan di Layar Terkunci dan di Dynamic Island. Semua yang kamu catat tetap gratis, selamanya.
 
 Headpin adalah aplikasi independen dan tidak berafiliasi dengan produsen bola atau organisasi boling mana pun. Nama dan gambar bola adalah milik pemiliknya masing-masing.
 ```
@@ -814,7 +814,7 @@ Fahami permainan boling anda. Rekod setiap bola, lihat laluan anda di atas corak
 bowling,liga,strike,spare,corak minyak,arsenal,purata,lorong,pin,layout,pap,usbc,pba,tenpin,kegel
 ```
 
-### Description (2602 of 4000)
+### Description (2687 of 4000)
 
 ```
 Semua yang anda perlukan untuk memahami permainan anda dan bermain boling dengan lebih baik, dalam satu aplikasi:
@@ -880,7 +880,7 @@ Permainan anda disimpan dalam telefon dan boleh digunakan di luar talian di mana
 
 Headpin Pro
 
-Selami lebih mendalam dengan satu pembelian, tanpa langganan. Lihat apa di sebalik strike anda melalui kadar carry dan strike, bandingkan setiap bola dalam beg anda, cari bola dengan purata terbaik anda di setiap pusat boling, dan laraskan laluan serta layout untuk melihat apa yang berubah. Semua yang anda rekod kekal percuma, selama-lamanya.
+Selami lebih mendalam dengan satu pembelian, tanpa langganan. Lihat apa di sebalik strike anda melalui kadar carry dan strike, bandingkan setiap bola dalam beg anda, cari bola dengan purata terbaik anda di setiap pusat boling, laraskan laluan serta layout untuk melihat apa yang berubah, dan ikuti permainan anda yang sedang berjalan pada Skrin Kunci dan dalam Dynamic Island. Semua yang anda rekod kekal percuma, selama-lamanya.
 
 Headpin ialah aplikasi bebas dan tidak mempunyai sebarang kaitan dengan mana-mana pengeluar bola atau organisasi boling. Nama dan imej bola adalah milik pemiliknya masing-masing.
 ```
@@ -940,7 +940,7 @@ Descubre dónde pierdes bolos. Registra cada bola, mira tu línea sobre el aceit
 bolera,pleno,semipleno,strike,spare,media,liga,pista,aceite,arsenal,estadísticas,marcador,usbc,pba
 ```
 
-### Description (2548 of 4000)
+### Description (2621 of 4000)
 
 ```
 Todo lo que necesitas para entender tu juego y jugar mejor a los bolos, en una sola app:
@@ -1006,7 +1006,7 @@ Tus partidas se guardan en tu móvil y la app funciona sin conexión en cualquie
 
 Headpin Pro
 
-Profundiza más con una sola compra y sin suscripción. Descubre qué hay detrás de tus plenos con los porcentajes de carry y de strike, compara todas las bolas de tu bolsa, encuentra con qué bola tienes mejor media en cada bolera y ajusta líneas y layouts para ver qué cambia. Todo lo que registras es gratis, para siempre.
+Profundiza más con una sola compra y sin suscripción. Descubre qué hay detrás de tus plenos con los porcentajes de carry y de strike, compara todas las bolas de tu bolsa, encuentra con qué bola tienes mejor media en cada bolera, ajusta líneas y layouts para ver qué cambia y sigue tu juego en curso en la pantalla bloqueada y en la Dynamic Island. Todo lo que registras es gratis, para siempre.
 
 Headpin es independiente y no está afiliada a ningún fabricante de bolas ni a ninguna organización de bolos. Los nombres e imágenes de las bolas pertenecen a sus propietarios.
 ```
