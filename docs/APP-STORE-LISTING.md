@@ -51,7 +51,7 @@ are left out, and so is "Headpin".
 league,pins,strike,spare,oil pattern,arsenal,average,tracker,layout,pap,usbc,lane,notes,leave,keeper
 ```
 
-## Description (under 4,000)
+## Description (2,306 of 4,000)
 
 ```
 Everything you need to understand your game and bowl better, in one app:
@@ -117,7 +117,7 @@ Your games live on your phone and work offline at any alley, with no account to 
 
 Headpin Pro
 
-Go deeper with one purchase and no subscription. See what's behind your strikes with carry and strike rates, compare every ball in your bag, find the ball you average best with at each alley, and fine-tune lines and layouts to see what changes. Everything you record stays free, forever.
+Go deeper with one purchase and no subscription. See what's behind your strikes with carry and strike rates, compare every ball in your bag, find the ball you average best with at each alley, fine-tune lines and layouts to see what changes, and follow your game on the Lock Screen and in the Dynamic Island. Everything you record stays free, forever.
 
 Headpin is independent and isn't affiliated with any ball manufacturer or bowling organization. Ball names and images belong to their owners.
 ```
@@ -150,12 +150,9 @@ A bigger Headpin, in eight languages.
 - With Headpin Pro, your game in progress on the Lock Screen and in the Dynamic Island.
 ```
 
-For 1.1, the description's Headpin Pro paragraph and review note 7 also name
-the Live Activity, which is Pro since 0.88.0 (ADR-244) and is not in 1.0: add
-"follow your game on the Lock Screen and in the Dynamic Island" to the
-paragraph, and "the game in progress on the Lock Screen and in the Dynamic
-Island (a Live Activity)" to note 7's list. Leave both as they are while 1.0 is
-the version in review.
+The description's Headpin Pro paragraph, review note 1 and review note 7 name
+the Live Activity, which is Pro since 0.88.0 (ADR-244) and is not in 1.0, so
+the text here is for 1.1 and later. 1.0 went to review without those words.
 
 ## Support and privacy URLs
 
@@ -167,7 +164,7 @@ the version in review.
   the iPhone app's storage and purchase wording, drafted in the same pull
   request, and has to be reviewed before submission.
 
-## Review notes (under 4,000)
+## Review notes (3,959 of 4,000)
 
 Apple's guideline 2.1 request for the first submission asked for seven answers,
 in the Resolution Center and in the Notes field of App Review Information, for
@@ -179,18 +176,18 @@ is `localhost`, so the app sends none.
 
 ```
 1. Screen recording
-Attached, recorded on an iPhone running the latest iOS with the submitted build. It starts at launch and shows first run, scoring a game, the line drawn on the lane, the ball catalog and arsenal, oil patterns, stats, buying Headpin Pro with a sandbox account, the unlocked features, Restore purchase, and backup export.
-The app has no accounts, no registration and no login, so there is no account creation or deletion flow. It has no user-generated content shared between users: nothing one user creates is shown to another inside the app, so no reporting or blocking mechanism applies.
+Attached, recorded on an iPhone running the latest iOS with the submitted build. It starts at launch and shows first run, scoring a game, the line drawn on the lane, the ball catalog and arsenal, oil patterns, stats, buying Headpin Pro with a sandbox account, the unlocked features, the Live Activity, Restore purchase, and backup export.
+The app has no accounts, no registration and no login, so there is no account creation or deletion flow. It has no user-generated content: nothing one user creates is shown to another, so no reporting or blocking applies.
 
 2. Purpose and audience
 Headpin is a score keeper and game tracker for tenpin bowlers, mainly league and tournament bowlers who want to improve. Most score apps record only the score. Headpin records each shot: which ball was thrown, where it was played on the lane, and which pins were left. It then shows the bowler what is working: their line drawn over the oil pattern, pocket and spare percentages, the leaves that cost them most, and which ball scores best for them. It also includes a reference catalog of bowling balls and oil patterns, and a layout visualizer for planning a ball's drilling. It works fully offline, because bowling alleys often have no signal.
 
 3. Setup and access
-No login, credentials or sample files are needed. Launch the app, tap Start fresh, choose a hand (grip and name are optional), tap Next, and start a session from Home. Tap the pins left standing to score each ball. Stats, Arsenal (your balls and the ball catalog), oil patterns and the line sandbox are reached from the tab bar and Home. Settings has Backup & restore, which exports a file through the system share sheet and imports one. To see Pro: open Stats and tap any lock or "Get Headpin Pro", or use the Headpin Pro row in Settings. Use a sandbox tester account to purchase.
+No login, credentials or sample files are needed. Launch the app, tap Start fresh, choose a hand (grip and name are optional), tap Next, and start a session from Home. Tap the pins left standing to score each ball. Stats, Arsenal (your balls and the ball catalog), oil patterns and the line sandbox are reached from the tab bar and Home. Settings has Backup & restore, which exports a file through the system share sheet and imports one. Pro is reached as described in 7. Use a sandbox tester account to purchase.
 
 4. External services
 - Apple StoreKit / In-App Purchase, for the one Pro unlock and Restore purchase.
-- headpin.app (our own static website, hosted on Vercel), from which the app downloads ball photos, oil pattern sheets and catalog updates when online. These are kept on the device. No user data is sent.
+- headpin.app (our own static website, hosted on Vercel), from which the app downloads ball photos, oil pattern sheets and catalog updates when online, and keeps them on the device. No user data is sent.
 - The system share sheet and Mail, used only when the user chooses to export a backup or send feedback.
 There is no backend, no authentication service, no AI service, no advertising, and no analytics or tracking SDK in the app. All scores and records are stored only on the device.
 
@@ -198,11 +195,11 @@ There is no backend, no authentication service, no AI service, no advertising, a
 None. The app works the same in all regions. It is in English, Spanish, Japanese, Korean, Chinese (Simplified and Traditional), Indonesian and Malay, chosen from the device's language or in Settings, and the In-App Purchase uses App Store pricing for each storefront.
 
 6. Regulated industry and third-party material
-The app is not in a regulated industry. The ball catalog lists publicly published manufacturer specifications, with product photos used to identify each ball, and the oil patterns are the publicly published PBA and Kegel pattern specifications. The App Store description and the app state that Headpin is independent and not affiliated with any manufacturer or bowling organization, and that ball names and images belong to their owners.
+The app is not in a regulated industry. The ball catalog lists the manufacturers' published specifications, with product photos to identify each ball, and the oil patterns are the published PBA and Kegel specifications. The description and the app state that Headpin is independent and not affiliated with any manufacturer or bowling organization, and that ball names and images belong to their owners.
 
 7. In-App Purchase
-One non-consumable: "Headpin Pro", product ID app.headpin.pro, US$9.99. It is a one-time unlock with no subscription and no trial. Pro adds deeper analysis of what the bowler has already recorded: carry, strike and first-ball stats; rates for every ball in the arsenal; per-ball averages in Game plan; moving and shaping lines in the line sandbox; changing layouts in the layout lab; and extra accent colors. Recording, history, backup, the catalogs and the core stats are free.
-To reach it: tap any lock icon, "Get Headpin Pro" at the foot of Stats, the banner on Home, or Settings > Headpin Pro. Each opens the Headpin Pro page, whose button opens the App Store purchase sheet. Restore purchase is on that page and in Settings.
+One non-consumable: "Headpin Pro", product ID app.headpin.pro, US$9.99. It is a one-time unlock with no subscription and no trial. Pro adds deeper analysis of what the bowler records: carry, strike and first-ball stats; rates for every ball in the arsenal; per-ball averages in Game plan; moving and shaping lines in the line sandbox; changing layouts in the layout lab; the game in progress on the Lock Screen and in the Dynamic Island (a Live Activity); and extra accent colors. Recording, history, backup, the catalogs and the core stats are free.
+To reach it: tap any lock icon, "Get Headpin Pro" at the foot of Stats, the banner on Home, or Settings > Headpin Pro. Each opens the Headpin Pro page, whose button opens the purchase sheet. Restore purchase is on that page and in Settings.
 
 Contact: hello@headpin.app
 ```
@@ -222,8 +219,8 @@ Apple takes up to 10 per size. App Store Connect asks for the 6.3 inch iPhone
 (1206 by 2622) as well as the 6.9 inch (1320 by 2868), so the script writes both. Headpin is portrait only, so every shot is
 portrait.
 
-The sets are built, one per language: `marketing/app-store/2026-11-09/<locale>/`
-(`en`, `es`, `ja`, `ko`, `zh-Hans`, `zh-Hant`, `id`, `ms`), as of 0.104.0, made by
+The sets are built, one per language: `marketing/app-store/2026-11-10/<locale>/`
+(`en`, `es`, `ja`, `ko`, `zh-Hans`, `zh-Hant`, `id`, `ms`), as of 0.104.5, made by
 `scripts/app-store/screenshots.mjs` from the real app running in that
 language. In each, `captioned/` (6.9 inch) and `captioned-6.3/` are the sets
 to upload to that language's localization (which localization takes which set
@@ -320,9 +317,9 @@ Compare and the Live Activity, none of which 1.0 has. So:
   means pulling the build from review.
 - **The Promotional text** is the one field that changes without a build. Keep
   it to what 1.0 does until the next build is live.
-- **The next build (1.1) takes the 0.104.0 set** (`2026-11-09/`), in every
+- **The next build (1.1) takes the 0.104.5 set** (`2026-11-10/`), in every
   language, with the in-app purchase's new review screenshot
-  (`2026-11-09/headpin-pro-review.png`, the Pro page as it reads since 0.100.0).
+  (`2026-11-10/headpin-pro-review.png`, the Pro page as it reads since 0.100.0).
   Before it goes up, retake the set from the commit that build is made from if
   `main` has moved on a screen in the set. Submit it as soon as 1.0 is
   approved; with 1.0 set to release manually, the two can go live close
@@ -337,7 +334,7 @@ Compare and the Live Activity, none of which 1.0 has. So:
 
 ## Before submission
 
-- **The screenshots are current as of 0.104.0** (`marketing/app-store/2026-11-09/`),
+- **The screenshots are current as of 0.104.5** (`marketing/app-store/2026-11-10/`),
   in every language. Retake them when a screen in the set changes:
   `node scripts/app-store/screenshots.mjs` per language, from the state
   `npm run shots` saves, so the landing page and the store show the same
@@ -345,7 +342,7 @@ Compare and the Live Activity, none of which 1.0 has. So:
   instead.
 
 - "Over 800" balls was checked against `public/catalog/catalog.json` (848) on
-  2026-11-09. Recheck it before each submission.
+  2026-11-10. Recheck it before each submission.
 - Age rating: no objectionable content, no web access beyond headpin.app, no
   user-generated content shared with others.
 - Privacy "nutrition label": the app collects nothing it links to the bowler.
@@ -355,6 +352,7 @@ Compare and the Live Activity, none of which 1.0 has. So:
   a sandbox Apple Account. One take, from the Home Screen: launch, first run (Start fresh, a hand, Next),
   score a game, a shot's line on the lane, the catalog and arsenal, a pattern,
   Stats with its locks, the Pro page and the sandbox purchase, the same screens
-  unlocked, Restore purchase in Settings, and a backup export.
+  unlocked, a game in progress on the Lock Screen and in the Dynamic Island,
+  Restore purchase in Settings, and a backup export.
 - The Headpin Pro product is attached to the version under review, with its
   review screenshot, or review fails on guideline 3.1.1.

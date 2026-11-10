@@ -267,8 +267,8 @@ switch.
 In this order. Launch first, then being found, then other languages.
 
 - [ ] **1.1 straight after 1.0.** 1.0 was built from about 0.69, and the
-      landing page, the store set and the reel are taken from 0.104.0. Submit
-      the next build with the `2026-11-09/` set and its review screenshot, and
+      landing page and the reel are taken from 0.104.0, the store set from
+      0.104.5. Submit the next build with the `2026-11-10/` set and its review screenshot, and
       turn on `APP_STORE_URL` and run the reel only once the store holds that
       build ("Which set goes with which build" in `APP-STORE-LISTING.md`).
 - [x] **A rating prompt** (ADR-218). Ratings weigh heavily in store search, and a new
