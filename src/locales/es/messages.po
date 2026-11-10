@@ -211,14 +211,6 @@ msgstr "{ballName}, {boards}"
 msgid "{board} at {feet} ft"
 msgstr "{board} a {feet} ft"
 
-#: src/components/alleyHistoryCopy.ts
-msgid "{boards, plural, one {# board left} other {# boards left}}"
-msgstr "{boards, plural, one {# tabla a la izquierda} other {# tablas a la izquierda}}"
-
-#: src/components/alleyHistoryCopy.ts
-msgid "{boards, plural, one {# board right} other {# boards right}}"
-msgstr "{boards, plural, one {# tabla a la derecha} other {# tablas a la derecha}}"
-
 #: src/components/DriftZoneLane.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "{boards} left"
@@ -1691,7 +1683,6 @@ msgstr "Diff, de mayor a menor"
 msgid "Diff: higher flares more"
 msgstr "Diff: más alto, más flare"
 
-#: src/components/ActiveGameScorer.tsx
 #: src/components/UpdateToast.tsx
 msgid "Dismiss"
 msgstr "Descartar"
@@ -1699,10 +1690,6 @@ msgstr "Descartar"
 #: src/components/SaveCopyPrompt.tsx
 msgid "Dismiss backup reminder"
 msgstr "Descartar recordatorio de respaldo"
-
-#: src/views/ActiveSessionView.tsx
-msgid "Dismiss game hint"
-msgstr "Descartar sugerencia del juego"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Dismiss share offer"
@@ -2211,21 +2198,6 @@ msgstr "El juego {gameNumber} (puntaje {deleteGameScore}) y sus cuadros se elimi
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} and its frames will be permanently deleted."
 msgstr "El juego {gameNumber} y sus cuadros se eliminarán de forma permanente."
-
-#. Bowling terms: the stance is the board the bowler stands on, the target the board aimed at. Each move reads like 2 boards left
-#: src/components/alleyHistoryCopy.ts
-msgid "Game {gameNumber} here: you usually move {stanceMove} at the stance and {targetMove} at the target."
-msgstr "Juego {gameNumber} aquí: normalmente te mueves {stanceMove} en la posición de salida y {targetMove} en el objetivo."
-
-#. Bowling term: the stance is the board the bowler stands on. The move reads like 2 boards left
-#: src/components/alleyHistoryCopy.ts
-msgid "Game {gameNumber} here: you usually move {stanceMove} at the stance."
-msgstr "Juego {gameNumber} aquí: normalmente te mueves {stanceMove} en la posición de salida."
-
-#. Bowling term: the target is the board aimed at. The move reads like 2 boards left
-#: src/components/alleyHistoryCopy.ts
-msgid "Game {gameNumber} here: you usually move {targetMove} at the target."
-msgstr "Juego {gameNumber} aquí: normalmente te mueves {targetMove} en el objetivo."
 
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} is in the books. Share the session?"
@@ -4110,10 +4082,6 @@ msgstr "Guarda patrones con un enlace a su hoja. Aparecen al iniciar una sesión
 #: src/components/SpareLineFormDialog.tsx
 msgid "Save spare line"
 msgstr "Guardar línea de spare"
-
-#: src/components/ActiveGameScorer.tsx
-msgid "Save this as your line for {leave}"
-msgstr "Guardar como tu línea para {leave}"
 
 #: src/views/SpareLinesView.tsx
 msgid "Save where you stand and where you aim for a leave, and it is there the next time you face it."

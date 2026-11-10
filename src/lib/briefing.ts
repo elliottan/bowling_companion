@@ -840,17 +840,6 @@ export function lastTimeAt(
   return lastTimeHere(filterSessionsBy(sessions, { alleyName: alley }), balls);
 }
 
-/** How the line typically moves game by game at one alley, for the scorer's
- *  hint as a new game starts (ADR-115). */
-export function movementAt(
-  sessions: SessionSummary[],
-  balls: Ball[],
-  alley: string
-): MovementSlot[] {
-  if (!alley.trim()) return [];
-  return movementSlots(filterSessionsBy(sessions, { alleyName: alley }), balls);
-}
-
 // ---------------------------------------------------------------------------
 // How the session moves here
 // ---------------------------------------------------------------------------

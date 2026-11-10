@@ -9,13 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.104.6: A new store picture for Headpin Pro (2026-11-10)
+## 0.105.0: A quieter scorer (2026-11-10)
 
-- The Headpin Pro purchase has a promotional image of its own for the App
-  Store: a lane with the ball's line hooking into the pocket in Pro gold and
-  rising rates beside it. App Review turned down the old one, the Pro mark
-  tile, as a screenshot from the app, since the Pro page shows that tile.
-  Nothing in the app changes.
+- The scorer no longer offers "Save this as your line" after a spare attempt.
+  Save a leave's line under Spare lines on Home; the line you threw at a leave
+  is still filled in the next time it comes up in the session.
+- The "Game 2 here: you usually move ..." line no longer appears as a new game
+  starts. The Start session sheet and the Alley report still show how your
+  line moves at an alley.
+- The Headpin Pro purchase has no promotional image in the App Store any more.
+  App Review turned down the Pro mark as one, because the Pro page shows it.
 
 ## 0.104.5: The line boxes' names are small again, and in the accent (2026-11-09)
 

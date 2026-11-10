@@ -178,7 +178,7 @@ export const GUIDES: readonly Guide[] = [
       { kind: "heading", text: "Spare lines and lane notes" },
       {
         kind: "text",
-        text: "Shoot a spare with a line entered, and Headpin offers to save it as your line for that leave. The next time you leave it, the line is filled in for you. Lane notes hold how a lane plays at an alley, for the next time you're on it."
+        text: "Save your line for a leave under Spare lines on Home. The next time you leave it, the line is filled in for you. Lane notes hold how a lane plays at an alley, for the next time you're on it."
       },
       { kind: "heading", text: "Keep your scores safe" },
       {
