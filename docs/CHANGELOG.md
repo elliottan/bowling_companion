@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.106.0: Restoring asks for a copy instead of insisting on one (2026-11-10)
+## 0.106.0: Restoring asks for a copy, and Settings says if your backup is current (2026-11-10)
 
 - Restoring a backup over what is on the device opens "Save a copy first",
   which saves a copy straight away and stays up until you choose Continue.
@@ -17,6 +17,12 @@ had all shipped.
   replaced until you confirm.
 - The confirm no longer asks you to type REPLACE. It is one red Replace
   everything button, and says so when no copy was saved.
+- Settings says whether your last backup is still current: "No changes since
+  last backup (3 days ago)" with a tick when nothing has changed, or "Last
+  backup 3 days ago (2 new sessions)" when you have bowled since. After
+  updating, the tick appears from your next backup.
+- Restoring a backup now shows it as your last backup. It used to show the
+  backup before it.
 
 ## 0.105.1: The store pictures show the line boxes as they are now (2026-11-10)
 

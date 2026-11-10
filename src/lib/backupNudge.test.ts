@@ -3,6 +3,7 @@ import {
   protectionCard,
   backupUrgency,
   describeAge,
+  describeBackupStatus,
   nudgePolicy,
   shouldShowBackupNudge,
   snoozeMs,
@@ -240,5 +241,38 @@ describe("protectionCard (ADR-115)", () => {
     });
     const later = new Date(NOW.getTime() + 60_000).toISOString();
     expect(protectionCard(state({ totalSessions: 3, snoozedUntil: later }), false, false)).toBeNull();
+  });
+});
+
+describe("describeBackupStatus", () => {
+  const now = new Date("2026-11-10T12:00:00.000Z");
+  const threeDaysAgo = "2026-11-07T12:00:00.000Z";
+
+  it("says never for a device with no backup", () => {
+    expect(describeBackupStatus({ lastBackupAt: null, newSessions: 0, unchanged: false }, now)).toBe(
+      "Never backed up"
+    );
+  });
+
+  it("says nothing changed, with the age, when nothing was written since", () => {
+    expect(describeBackupStatus({ lastBackupAt: threeDaysAgo, newSessions: 0, unchanged: true }, now)).toBe(
+      "No changes since last backup (3 days ago)"
+    );
+  });
+
+  it("counts new sessions", () => {
+    expect(describeBackupStatus({ lastBackupAt: threeDaysAgo, newSessions: 1, unchanged: false }, now)).toBe(
+      "Last backup 3 days ago (1 new session)"
+    );
+    expect(describeBackupStatus({ lastBackupAt: threeDaysAgo, newSessions: 2, unchanged: false }, now)).toBe(
+      "Last backup 3 days ago (2 new sessions)"
+    );
+  });
+
+  // An edit with no new session, or a backup from before the counter.
+  it("says only when, for any other change", () => {
+    expect(describeBackupStatus({ lastBackupAt: threeDaysAgo, newSessions: 0, unchanged: false }, now)).toBe(
+      "Last backup 3 days ago"
+    );
   });
 });

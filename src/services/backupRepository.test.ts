@@ -14,6 +14,12 @@ import type { BowlingBackup } from "../types/bowling";
 import { addGameToSession, createSession, getSessionHistory, getSetting, saveFrame } from "./bowlingRepository";
 
 
+/** The recorded last backup's time (ADR-275), or undefined for none. */
+async function lastBackupAt(): Promise<string | undefined> {
+  const row = await db.backup_state.get("last_backup");
+  return row?.key === "last_backup" ? row.at : undefined;
+}
+
 /** The full import flow: validate, then replace everything (ADR-038). */
 async function importBackup(fileOrJson: unknown) {
   const prepared = await prepareImport(fileOrJson);
@@ -120,6 +126,41 @@ describe("backupRepository", () => {
     // Local Lanes is gone, the file is the whole truth after an import.
     expect(history).toHaveLength(1);
     expect(history[0].session.alley_name).toBe("Imported Lanes");
+  });
+
+  /**
+   * After a restore the device holds exactly the file, so the file is the
+   * last backup, as of when it was made, with nothing changed since. A file
+   * from before ADR-275 carries the old bookkeeping in its settings, which
+   * describes the backup before it and is not installed.
+   */
+  it("records the restored file as the last backup, unchanged since (ADR-275)", async () => {
+    await createSession({ date: "2026-05-27", alley_name: "Replaced Lanes" });
+
+    await importBackup({
+      app: "bowling-companion" as const,
+      version: 3 as const,
+      exported_at: "2026-09-01T12:00:00.000Z",
+      tables: {
+        sessions: [{ id: 1, date: "2026-08-30", alley_name: "Restored Lanes" }],
+        games: [],
+        frames: [],
+        settings: [
+          { key: "last_backup_at", value: "2026-01-01T00:00:00.000Z" },
+          { key: "sessions_at_last_backup", value: "9" },
+          { key: "theme", value: "dark" }
+        ]
+      }
+    });
+
+    const revision = await db.backup_state.get("revision");
+    expect(await db.backup_state.get("last_backup")).toEqual({
+      key: "last_backup",
+      at: "2026-09-01T12:00:00.000Z",
+      sessions: 1,
+      revision: revision?.key === "revision" ? revision.value : -1
+    });
+    expect((await db.settings.toArray()).map((s) => s.key)).toEqual(["theme"]);
   });
 
   it("saves a safety copy of the current data, under its own name", async () => {
@@ -250,7 +291,7 @@ describe("backupRepository", () => {
     expect(notes[0].notes).toBe("hooks early");
   });
 
-  it("stamps last_backup_at and sessions_at_last_backup after export", async () => {
+  it("records the backup, and what it held, after export (ADR-275)", async () => {
     // jsdom doesn't implement the Blob URL APIs the download link uses.
     URL.createObjectURL = () => "blob:stub";
     URL.revokeObjectURL = () => {};
@@ -259,8 +300,13 @@ describe("backupRepository", () => {
 
     await exportBackup();
 
-    expect(await getSetting("last_backup_at")).toEqual(expect.any(String));
-    expect(await getSetting("sessions_at_last_backup")).toBe("1");
+    expect(await db.backup_state.get("last_backup")).toMatchObject({
+      at: expect.any(String),
+      sessions: 1,
+      revision: (await db.backup_state.get("revision"))?.key === "revision" ? expect.any(Number) : null
+    });
+    // Kept out of settings, which every backup file carries.
+    expect(await getSetting("last_backup_at")).toBeUndefined();
   });
 });
 
@@ -355,7 +401,8 @@ describe("backup completeness", () => {
    * above instead of shipping.
    */
   const NOT_BACKED_UP: Record<string, string> = {
-    ball_catalog: "read-only reference data, re-synced from the shipped catalog"
+    ball_catalog: "read-only reference data, re-synced from the shipped catalog",
+    backup_state: "this device's own record of its backups, which a file must not carry (ADR-275)"
   };
 
   it("backs up every table in the schema, or names why not", async () => {
@@ -524,7 +571,7 @@ describe("shareBackup through the share sheet", () => {
     expect(shared[0][0].name).toMatch(/^headpin-.*\.json$/);
     expect(JSON.parse(await shared[0][0].text()).tables.sessions).toHaveLength(1);
     expect(clicks).toBe(0);
-    expect(await getSetting("last_backup_at")).toEqual(expect.any(String));
+    expect(await lastBackupAt()).toEqual(expect.any(String));
   });
 
   it("reads a closed sheet as cancelled, and records nothing", async () => {
@@ -535,7 +582,7 @@ describe("shareBackup through the share sheet", () => {
     expect(await shareBackup()).toBe("cancelled");
 
     // Nothing left the device, so the reminder has to keep asking.
-    expect(await getSetting("last_backup_at")).toBeUndefined();
+    expect(await lastBackupAt()).toBeUndefined();
     expect(clicks).toBe(0);
   });
 
@@ -547,7 +594,7 @@ describe("shareBackup through the share sheet", () => {
     expect(await shareBackup()).toBe("downloaded");
 
     expect(clicks).toBe(1);
-    expect(await getSetting("last_backup_at")).toEqual(expect.any(String));
+    expect(await lastBackupAt()).toEqual(expect.any(String));
   });
 
   it("downloads where the browser cannot share a file", async () => {

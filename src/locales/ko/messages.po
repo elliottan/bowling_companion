@@ -79,6 +79,11 @@ msgstr "{0, plural, other {#게임}}"
 msgid "{0, plural, one {# lane} other {# lanes}}"
 msgstr "{0, plural, other {레인 #개}}"
 
+#. placeholder {0}: status.newSessions
+#: src/lib/backupNudge.ts
+msgid "{0, plural, one {# new session} other {# new sessions}}"
+msgstr "{0, plural, other {새 세션 #개}}"
+
 #. placeholder {0}: patterns.length
 #: src/lib/lineReport.ts
 msgid "{0, plural, one {# pattern} other {# patterns}}"
@@ -418,6 +423,10 @@ msgstr "{leavePin}번 핀 스페어"
 #: src/lib/ballLayout.ts
 msgid "{lengthBand, select, early {Reads the lane early} mid {Picks up in the mid lane} other {Saves its energy for the back}} and {shapeBand, select, smooth {arcs smoothly through the breakpoint} defined {turns the corner with a defined shape} other {snaps hard at the breakpoint}}."
 msgstr "{lengthBand, select, early {레인 초반부터 반응하고} mid {레인 중반에 힘을 받고} other {힘을 뒤쪽에 아껴 두고}} {shapeBand, select, smooth {브레이크 포인트를 부드러운 곡선으로 지나가요} defined {뚜렷한 형태로 꺾여요} other {브레이크 포인트에서 강하게 꺾여요}}."
+
+#: src/lib/backupNudge.ts
+msgid "{line} ({added})"
+msgstr "{line} ({added})"
 
 #. The greeting on Home with the bowler's name on the end: a greeting, then the name
 #: src/lib/greeting.ts
@@ -3115,7 +3124,7 @@ msgstr "이름순 (가나다)"
 msgid "never"
 msgstr "없음"
 
-#: src/views/SettingsView.tsx
+#: src/lib/backupNudge.ts
 msgid "Never backed up"
 msgstr "백업한 적 없음"
 
@@ -3178,6 +3187,10 @@ msgstr "아직 비교할 볼이 없어요. 투구에 볼을 지정하면 볼별 
 #: src/views/ArsenalView.tsx
 msgid "No balls yet"
 msgstr "아직 볼이 없어요"
+
+#: src/lib/backupNudge.ts
+msgid "No changes since last backup ({age})"
+msgstr "마지막 백업 이후 변경 없음 ({age})"
 
 #: src/components/ReplaceConfirmDialog.tsx
 msgid "No copy of this device was saved, so this cannot be undone."

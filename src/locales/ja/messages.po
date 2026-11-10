@@ -79,6 +79,11 @@ msgstr "{0, plural, other {#ゲーム}}"
 msgid "{0, plural, one {# lane} other {# lanes}}"
 msgstr "{0, plural, other {#レーン}}"
 
+#. placeholder {0}: status.newSessions
+#: src/lib/backupNudge.ts
+msgid "{0, plural, one {# new session} other {# new sessions}}"
+msgstr "{0, plural, other {新しいセッション#件}}"
+
 #. placeholder {0}: patterns.length
 #: src/lib/lineReport.ts
 msgid "{0, plural, one {# pattern} other {# patterns}}"
@@ -418,6 +423,10 @@ msgstr "{leavePin}ピンスペア"
 #: src/lib/ballLayout.ts
 msgid "{lengthBand, select, early {Reads the lane early} mid {Picks up in the mid lane} other {Saves its energy for the back}} and {shapeBand, select, smooth {arcs smoothly through the breakpoint} defined {turns the corner with a defined shape} other {snaps hard at the breakpoint}}."
 msgstr "{lengthBand, select, early {早めにレーンを読み} mid {ミッドレーンでつかみ} other {力をバックエンドに温存し}}、ブレイクポイントで{shapeBand, select, smooth {なめらかな弧を描きます} defined {はっきりした形で曲がります} other {鋭く切れ込みます}}。"
+
+#: src/lib/backupNudge.ts
+msgid "{line} ({added})"
+msgstr "{line}（{added}）"
 
 #. The greeting on Home with the bowler's name on the end: a greeting, then the name
 #: src/lib/greeting.ts
@@ -3115,7 +3124,7 @@ msgstr "名前順 A→Z"
 msgid "never"
 msgstr "未実施"
 
-#: src/views/SettingsView.tsx
+#: src/lib/backupNudge.ts
 msgid "Never backed up"
 msgstr "バックアップ未実施"
 
@@ -3178,6 +3187,10 @@ msgstr "比較するボールがまだありません。投球にボール名を
 #: src/views/ArsenalView.tsx
 msgid "No balls yet"
 msgstr "ボールがまだありません"
+
+#: src/lib/backupNudge.ts
+msgid "No changes since last backup ({age})"
+msgstr "前回のバックアップから変更なし（{age}）"
 
 #: src/components/ReplaceConfirmDialog.tsx
 msgid "No copy of this device was saved, so this cannot be undone."

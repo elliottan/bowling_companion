@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SettingsView } from "./SettingsView";
 import { db } from "../db/bowlingDb";
 import { DEFAULT_DRIFT_MODEL } from "../lib/driftModel";
-import { getBowlerName, setBowlerName, setSetting } from "../services/bowlingRepository";
+import { createSession, getBowlerName, setBowlerName } from "../services/bowlingRepository";
+import { exportBackup } from "../services/backupRepository";
 import { ProAccessContext, ProStoreContext } from "../lib/useProAccess";
 import { ProOfferContext } from "../lib/proOffer";
 import type { ProAccess, ProStore } from "../lib/pro";
@@ -218,10 +219,44 @@ describe("SettingsView", () => {
       expect(screen.getByRole("button", { name: /Never backed up/ })).toBeInTheDocument()
     );
 
-    await setSetting("last_backup_at", new Date().toISOString());
+    await db.backup_state.put({ key: "last_backup", at: new Date().toISOString(), sessions: 0, revision: null });
 
     await waitFor(() =>
       expect(screen.getByRole("button", { name: /Last backup/ })).toBeInTheDocument()
+    );
+  });
+
+  /**
+   * One line, three cases (ADR-275): nothing written since the backup is said
+   * with a tick, new sessions are counted, and any other change says only
+   * when the backup was.
+   */
+  it("says whether anything changed since the backup", async () => {
+    // The export downloads through a Blob URL, which jsdom does not implement.
+    URL.createObjectURL = () => "blob:stub";
+    URL.revokeObjectURL = () => {};
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    await createSession({ date: "2026-11-01", alley_name: "Backed Lanes" });
+    await exportBackup();
+    renderMenu();
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /No changes since last backup \(today\)/ })
+      ).toBeInTheDocument()
+    );
+
+    await createSession({ date: "2026-11-02", alley_name: "New Lanes" });
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /Last backup today \(1 new session\)/ })
+      ).toBeInTheDocument()
+    );
+
+    await exportBackup();
+    await db.sessions.update(1, { alley_name: "Renamed Lanes" });
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /Last backup today$/ })).toBeInTheDocument()
     );
   });
 });

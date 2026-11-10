@@ -11354,3 +11354,50 @@ a second gate on top of the counts it already shows.
 - A restore can run with no copy saved, by the bowler's choice and after
   being told so twice. That is the trade the owner asked for.
 - A first run on an empty device opens no gate, as before.
+
+## ADR-275: The device keeps its backup record out of the backup, and counts its changes
+
+**Status.** Accepted, 2026-11-10, at the owner's request ("Storing the counter
+in settings doesnt sound great"). Changes the data model: Dexie v7.
+
+**Context.** The owner asked for the Settings row to say when nothing has
+changed since the last backup, as well as how many sessions are new. A count of
+sessions misses an edit to an old game, a new ball, a saved line; a hash of the
+whole database is right but costs most of a second at ten years of data (about
+29 MB measured), on every change while Settings is open. The record of the last
+backup also lived in `settings`, which every backup carries and every restore
+installs: the file is written before the backup is recorded, so restoring it
+brought back the record of the backup before it.
+
+**Decision.**
+
+- **A table no backup holds.** `backup_state` keeps two rows: `revision`, a
+  count of writes, and `last_backup`, when the last backup was made, how many
+  sessions it held and the revision it was read at. `last_backup_at` and
+  `sessions_at_last_backup` leave `settings` in the v7 upgrade.
+- **The database counts.** A DBCore middleware adds `backup_state` to every
+  read-write transaction over the bowler's data and bumps `revision` in it, so
+  the count commits and rolls back with the write and no write path can miss
+  it. Preferences (`settings`) and the catalog are not counted.
+- **A backup reads its revision with its rows,** in one read transaction, so a
+  write during the export is in neither. The pre-restore safety copy (ADR-274)
+  counts as a backup when it is saved.
+- **A restore records the file as the last backup,** as of its `exported_at`,
+  with nothing changed since, because the device now holds exactly the file. A
+  file's old bookkeeping settings are dropped rather than installed.
+- **The upgrade claims nothing about edits.** What was edited before the
+  counter existed is unknown, so a carried-over backup has a null revision and
+  the row shows no tick until the next backup.
+- **The Settings row, one line:** "No changes since last backup (3 days ago)"
+  with a tick when the revisions match; "Last backup 3 days ago (2 new
+  sessions)" when sessions were added; "Last backup 3 days ago" otherwise.
+
+**Consequences.**
+
+- Every write to the bowler's data costs one more small read and write, and all
+  such writes now share one store, so IndexedDB runs them one at a time. They
+  were already short and almost never concurrent.
+- The reminder reads `last_backup` alone, so the scorer's live query on it is
+  not woken by the counter on every ball.
+- A backup made by a build before this one and restored here still restores
+  everything but those two settings.

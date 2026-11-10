@@ -79,6 +79,11 @@ msgstr "{0, plural, one {# game} other {# games}}"
 msgid "{0, plural, one {# lane} other {# lanes}}"
 msgstr "{0, plural, one {# lane} other {# lanes}}"
 
+#. placeholder {0}: status.newSessions
+#: src/lib/backupNudge.ts
+msgid "{0, plural, one {# new session} other {# new sessions}}"
+msgstr "{0, plural, one {# new session} other {# new sessions}}"
+
 #. placeholder {0}: patterns.length
 #: src/lib/lineReport.ts
 msgid "{0, plural, one {# pattern} other {# patterns}}"
@@ -418,6 +423,10 @@ msgstr "{leavePin} pin spare"
 #: src/lib/ballLayout.ts
 msgid "{lengthBand, select, early {Reads the lane early} mid {Picks up in the mid lane} other {Saves its energy for the back}} and {shapeBand, select, smooth {arcs smoothly through the breakpoint} defined {turns the corner with a defined shape} other {snaps hard at the breakpoint}}."
 msgstr "{lengthBand, select, early {Reads the lane early} mid {Picks up in the mid lane} other {Saves its energy for the back}} and {shapeBand, select, smooth {arcs smoothly through the breakpoint} defined {turns the corner with a defined shape} other {snaps hard at the breakpoint}}."
+
+#: src/lib/backupNudge.ts
+msgid "{line} ({added})"
+msgstr "{line} ({added})"
 
 #. The greeting on Home with the bowler's name on the end: a greeting, then the name
 #: src/lib/greeting.ts
@@ -3115,7 +3124,7 @@ msgstr "Name, A to Z"
 msgid "never"
 msgstr "never"
 
-#: src/views/SettingsView.tsx
+#: src/lib/backupNudge.ts
 msgid "Never backed up"
 msgstr "Never backed up"
 
@@ -3178,6 +3187,10 @@ msgstr "No balls to compare yet. Name the ball on your shots and each one's aver
 #: src/views/ArsenalView.tsx
 msgid "No balls yet"
 msgstr "No balls yet"
+
+#: src/lib/backupNudge.ts
+msgid "No changes since last backup ({age})"
+msgstr "No changes since last backup ({age})"
 
 #: src/components/ReplaceConfirmDialog.tsx
 msgid "No copy of this device was saved, so this cannot be undone."

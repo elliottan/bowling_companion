@@ -6,7 +6,14 @@ vi.mock("../lib/nativeShare", () => ({ shareFileFromApp: (n: string, d: Blob | s
 
 const { db } = await import("../db/bowlingDb");
 const { createBackup, exportBackup, prepareImport, replaceAllData, saveSafetyCopy, shareBackup } = await import("./backupRepository");
-const { createSession, getSetting } = await import("./bowlingRepository");
+const { createSession } = await import("./bowlingRepository");
+
+/** The recorded last backup's time (ADR-275), or undefined for none. */
+async function lastBackupAt(): Promise<string | undefined> {
+  const row = await db.backup_state.get("last_backup");
+  return row?.key === "last_backup" ? row.at : undefined;
+}
+
 
 /** The store apps' web views neither download nor share (ADR-156). */
 describe("backups in the store apps", () => {
@@ -15,6 +22,7 @@ describe("backups in the store apps", () => {
   beforeEach(async () => {
     vi.stubGlobal("Capacitor", { isNativePlatform: () => true });
     await db.settings.clear();
+    await db.backup_state.clear();
     shareFileFromApp.mockClear();
     click.mockClear();
   });
@@ -28,13 +36,13 @@ describe("backups in the store apps", () => {
     expect(name).toMatch(/^headpin-\d{4}-\d{2}-\d{2}-\d{4}-\d+s\.json$/);
     expect(JSON.parse(data as string).tables).toBeDefined();
     expect(click).not.toHaveBeenCalled();
-    expect(await getSetting("last_backup_at")).toBeDefined();
+    expect(await lastBackupAt()).toBeDefined();
   });
 
   it("does not count a closed sheet as a backup, so the reminder keeps asking", async () => {
     shareFileFromApp.mockResolvedValueOnce("cancelled");
     expect(await shareBackup()).toBe("cancelled");
-    expect(await getSetting("last_backup_at")).toBeUndefined();
+    expect(await lastBackupAt()).toBeUndefined();
   });
 
   it("sends the safety copy through the sheet, and says when it was closed (ADR-274)", async () => {
@@ -43,7 +51,7 @@ describe("backups in the store apps", () => {
     expect(shareFileFromApp.mock.calls[0][0]).toMatch(/^pre-import-/);
     expect(click).not.toHaveBeenCalled();
     // A safety copy is not a backup the reminder counts.
-    expect(await getSetting("last_backup_at")).toBeUndefined();
+    expect(await lastBackupAt()).toBeUndefined();
   });
 
   it("replaces without opening a sheet of its own", async () => {
