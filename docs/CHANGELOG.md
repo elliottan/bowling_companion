@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.104.6: A new store picture for Headpin Pro (2026-11-10)
+
+- The Headpin Pro purchase has a promotional image of its own for the App
+  Store: a lane with the ball's line hooking into the pocket in Pro gold and
+  rising rates beside it. App Review turned down the old one, the Pro mark
+  tile, as a screenshot from the app, since the Pro page shows that tile.
+  Nothing in the app changes.
+
 ## 0.104.5: The line boxes' names are small again, and in the accent (2026-11-09)
 
 - Stance, Slide and Target over the line boxes are drawn at their small
