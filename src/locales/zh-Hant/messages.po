@@ -211,14 +211,6 @@ msgstr "{ballName}，{boards}"
 msgid "{board} at {feet} ft"
 msgstr "{feet} ft 處的 {board}"
 
-#: src/components/alleyHistoryCopy.ts
-msgid "{boards, plural, one {# board left} other {# boards left}}"
-msgstr "{boards, plural, other {向左 # 板}}"
-
-#: src/components/alleyHistoryCopy.ts
-msgid "{boards, plural, one {# board right} other {# boards right}}"
-msgstr "{boards, plural, other {向右 # 板}}"
-
 #: src/components/DriftZoneLane.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "{boards} left"
@@ -1691,7 +1683,6 @@ msgstr "Diff，由高到低"
 msgid "Diff: higher flares more"
 msgstr "Diff：越高，flare 越大"
 
-#: src/components/ActiveGameScorer.tsx
 #: src/components/UpdateToast.tsx
 msgid "Dismiss"
 msgstr "關閉"
@@ -1699,10 +1690,6 @@ msgstr "關閉"
 #: src/components/SaveCopyPrompt.tsx
 msgid "Dismiss backup reminder"
 msgstr "關閉備份提醒"
-
-#: src/views/ActiveSessionView.tsx
-msgid "Dismiss game hint"
-msgstr "關閉本局提示"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Dismiss share offer"
@@ -2211,21 +2198,6 @@ msgstr "第 {gameNumber} 局（分數 {deleteGameScore}）及其所有格將被�
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} and its frames will be permanently deleted."
 msgstr "第 {gameNumber} 局及其所有格將被永久刪除。"
-
-#. Bowling terms: the stance is the board the bowler stands on, the target the board aimed at. Each move reads like 2 boards left
-#: src/components/alleyHistoryCopy.ts
-msgid "Game {gameNumber} here: you usually move {stanceMove} at the stance and {targetMove} at the target."
-msgstr "這裡的第 {gameNumber} 局，你的站位通常{stanceMove}，目標{targetMove}。"
-
-#. Bowling term: the stance is the board the bowler stands on. The move reads like 2 boards left
-#: src/components/alleyHistoryCopy.ts
-msgid "Game {gameNumber} here: you usually move {stanceMove} at the stance."
-msgstr "這裡的第 {gameNumber} 局，你的站位通常{stanceMove}。"
-
-#. Bowling term: the target is the board aimed at. The move reads like 2 boards left
-#: src/components/alleyHistoryCopy.ts
-msgid "Game {gameNumber} here: you usually move {targetMove} at the target."
-msgstr "這裡的第 {gameNumber} 局，你的目標通常{targetMove}。"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} is in the books. Share the session?"
@@ -4110,10 +4082,6 @@ msgstr "儲存油型並附上油型表連結，開始場次時就會顯示。"
 #: src/components/SpareLineFormDialog.tsx
 msgid "Save spare line"
 msgstr "儲存補中路線"
-
-#: src/components/ActiveGameScorer.tsx
-msgid "Save this as your line for {leave}"
-msgstr "儲存為你的 {leave} 路線"
 
 #: src/views/SpareLinesView.tsx
 msgid "Save where you stand and where you aim for a leave, and it is there the next time you face it."

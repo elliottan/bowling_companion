@@ -211,14 +211,6 @@ msgstr "{ballName}, {boards}"
 msgid "{board} at {feet} ft"
 msgstr "{feet} ft 지점 {board}"
 
-#: src/components/alleyHistoryCopy.ts
-msgid "{boards, plural, one {# board left} other {# boards left}}"
-msgstr "{boards, plural, other {#보드 왼쪽으로}}"
-
-#: src/components/alleyHistoryCopy.ts
-msgid "{boards, plural, one {# board right} other {# boards right}}"
-msgstr "{boards, plural, other {#보드 오른쪽으로}}"
-
 #: src/components/DriftZoneLane.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "{boards} left"
@@ -1691,7 +1683,6 @@ msgstr "Diff 높은 순"
 msgid "Diff: higher flares more"
 msgstr "Diff: 높을수록 플레어가 큼"
 
-#: src/components/ActiveGameScorer.tsx
 #: src/components/UpdateToast.tsx
 msgid "Dismiss"
 msgstr "닫기"
@@ -1699,10 +1690,6 @@ msgstr "닫기"
 #: src/components/SaveCopyPrompt.tsx
 msgid "Dismiss backup reminder"
 msgstr "백업 알림 닫기"
-
-#: src/views/ActiveSessionView.tsx
-msgid "Dismiss game hint"
-msgstr "게임 힌트 닫기"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Dismiss share offer"
@@ -2211,21 +2198,6 @@ msgstr "게임 {gameNumber}(점수 {deleteGameScore})과(와) 해당 프레임�
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} and its frames will be permanently deleted."
 msgstr "게임 {gameNumber}과(와) 해당 프레임이 영구적으로 삭제돼요."
-
-#. Bowling terms: the stance is the board the bowler stands on, the target the board aimed at. Each move reads like 2 boards left
-#: src/components/alleyHistoryCopy.ts
-msgid "Game {gameNumber} here: you usually move {stanceMove} at the stance and {targetMove} at the target."
-msgstr "여기서 게임 {gameNumber}에는 보통 스탠스를 {stanceMove}, 타깃을 {targetMove} 이동해요."
-
-#. Bowling term: the stance is the board the bowler stands on. The move reads like 2 boards left
-#: src/components/alleyHistoryCopy.ts
-msgid "Game {gameNumber} here: you usually move {stanceMove} at the stance."
-msgstr "여기서 게임 {gameNumber}에는 보통 스탠스를 {stanceMove} 이동해요."
-
-#. Bowling term: the target is the board aimed at. The move reads like 2 boards left
-#: src/components/alleyHistoryCopy.ts
-msgid "Game {gameNumber} here: you usually move {targetMove} at the target."
-msgstr "여기서 게임 {gameNumber}에는 보통 타깃을 {targetMove} 이동해요."
 
 #: src/views/ActiveSessionView.tsx
 msgid "Game {gameNumber} is in the books. Share the session?"
@@ -4110,10 +4082,6 @@ msgstr "패턴을 시트 링크와 함께 저장하세요. 세션을 시작할 �
 #: src/components/SpareLineFormDialog.tsx
 msgid "Save spare line"
 msgstr "스페어 라인 저장"
-
-#: src/components/ActiveGameScorer.tsx
-msgid "Save this as your line for {leave}"
-msgstr "{leave}의 내 라인으로 저장"
 
 #: src/views/SpareLinesView.tsx
 msgid "Save where you stand and where you aim for a leave, and it is there the next time you face it."
