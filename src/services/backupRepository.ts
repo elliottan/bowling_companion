@@ -1,11 +1,10 @@
 import { t } from "@lingui/core/macro";
-import { db, linkLegacySessionOilPatterns, migrateFrameV1ToV2 } from "../db/bowlingDb";
+import { db, LEGACY_BACKUP_SETTINGS, linkLegacySessionOilPatterns, migrateFrameV1ToV2 } from "../db/bowlingDb";
 import { validateBackup } from "../lib/backupValidation";
 import { shareFileFromApp } from "../lib/nativeShare";
 import { liveActivity } from "../lib/nativeLiveActivity";
 import { isNativeApp } from "../lib/platform";
 import { isSpare, isStrike } from "../lib/scoring";
-import { setSetting } from "./bowlingRepository";
 import type { BowlingBackup, Frame } from "../types/bowling";
 
 export interface ImportBackupResult {
@@ -20,32 +19,40 @@ export interface ImportBackupResult {
 }
 
 export async function createBackup(): Promise<BowlingBackup> {
-  const [sessions, games, frames, balls, oil_patterns, spare_lines, lane_notes, settings] = await Promise.all([
-    db.sessions.toArray(),
-    db.games.toArray(),
-    db.frames.toArray(),
-    db.balls.toArray(),
-    db.oil_patterns.toArray(),
-    db.spare_lines.toArray(),
-    db.lane_notes.toArray(),
-    db.settings.toArray()
-  ]);
+  return (await snapshot()).backup;
+}
 
-  return {
+/**
+ * A backup, and the device's write count at the moment it was read (ADR-275).
+ * One read transaction, so the count describes exactly the rows in the file:
+ * a frame saved while the file is written is in neither, and the Settings row
+ * does not call the backup current over it.
+ */
+async function snapshot(): Promise<{ backup: BowlingBackup; revision: number }> {
+  const read = await db.transaction(
+    "r",
+    [db.sessions, db.games, db.frames, db.balls, db.oil_patterns, db.spare_lines, db.lane_notes, db.settings, db.backup_state],
+    () =>
+      Promise.all([
+        db.sessions.toArray(),
+        db.games.toArray(),
+        db.frames.toArray(),
+        db.balls.toArray(),
+        db.oil_patterns.toArray(),
+        db.spare_lines.toArray(),
+        db.lane_notes.toArray(),
+        db.settings.toArray(),
+        db.backup_state.get("revision")
+      ])
+  );
+  const [sessions, games, frames, balls, oil_patterns, spare_lines, lane_notes, settings, counter] = read;
+  const backup: BowlingBackup = {
     app: "bowling-companion",
     version: 3,
     exported_at: new Date().toISOString(),
-    tables: {
-      sessions,
-      games,
-      frames,
-      balls,
-      oil_patterns,
-      spare_lines,
-      lane_notes,
-      settings
-    }
+    tables: { sessions, games, frames, balls, oil_patterns, spare_lines, lane_notes, settings }
   };
+  return { backup, revision: counter?.key === "revision" ? counter.value : 0 };
 }
 
 /**
@@ -115,13 +122,13 @@ export type BackupDestination = "shared" | "downloaded" | "cancelled";
  * the file never left, so the nudge has to keep asking.
  */
 export async function shareBackup(): Promise<BackupDestination> {
-  const backup = await createBackup();
+  const { backup, revision } = await snapshot();
 
   // The store apps go straight to the platform's sheet (ADR-156).
   if (isNativeApp()) {
     const outcome = await shareFileFromApp(backupFilename(backup), JSON.stringify(backup, null, 2));
     if (outcome === "cancelled") return "cancelled";
-    await recordBackup();
+    await recordBackup(backup, revision);
     return "shared";
   }
 
@@ -139,34 +146,38 @@ export async function shareBackup(): Promise<BackupDestination> {
       // spec, but not in every runtime that hands one back (jsdom is not).
       if ((err as { name?: unknown } | null)?.name === "AbortError") return "cancelled";
       await downloadBackup(backup, backupFilename(backup));
-      await recordBackup();
+      await recordBackup(backup, revision);
       return "downloaded";
     }
-    await recordBackup();
+    await recordBackup(backup, revision);
     return "shared";
   }
 
   await downloadBackup(backup, backupFilename(backup));
-  await recordBackup();
+  await recordBackup(backup, revision);
   return "downloaded";
 }
 
-/** Bookkeeping for the reminder. Best-effort: a failure here must not turn a
- *  backup that did leave into a reported failure. */
-async function recordBackup(): Promise<void> {
+/** Bookkeeping for the reminder and the Settings row (ADR-275): what the
+ *  file held, and the write count it was read at. Best-effort: a failure here
+ *  must not turn a backup that did leave into a reported failure. */
+async function recordBackup(backup: BowlingBackup, revision: number): Promise<void> {
   try {
-    const sessionCount = await db.sessions.count();
-    await setSetting("last_backup_at", new Date().toISOString());
-    await setSetting("sessions_at_last_backup", String(sessionCount));
+    await db.backup_state.put({
+      key: "last_backup",
+      at: new Date().toISOString(),
+      sessions: backup.tables.sessions.length,
+      revision
+    });
   } catch {
     // ignored
   }
 }
 
 export async function exportBackup() {
-  const backup = await createBackup();
+  const { backup, revision } = await snapshot();
   await downloadBackup(backup, backupFilename(backup));
-  await recordBackup();
+  await recordBackup(backup, revision);
   return backup;
 }
 
@@ -215,30 +226,31 @@ export async function prepareImport(fileOrJson: File | string | unknown): Promis
 }
 
 /**
- * Replace the entire database with the file's contents (ADR-038). Every local
- * row is destroyed first, so a safety copy of the current data is downloaded
- * before anything is cleared, that file is the only way back.
+ * Save a copy of what is on this device before a restore replaces it
+ * (ADR-038): the downloads folder on the web, the share sheet in the apps.
+ *
+ * The restore asks for this and then waits for the bowler, rather than
+ * refusing to go on when the sheet is closed (ADR-274): the copy is offered
+ * until they choose to continue, and choosing to is theirs.
  */
-export async function replaceAllData(
-  backup: BowlingBackup,
-  options: { safetyCopy?: boolean } = {}
-): Promise<ImportBackupResult> {
-  // On a device that holds nothing there is nothing to hand back, and a
-  // pre-import file of an empty database only confuses a first-time user.
-  if (options.safetyCopy !== false) {
-    const safetyCopy = await createBackup();
-    const saved = await downloadBackup(safetyCopy, `pre-import-${backupFilename(safetyCopy)}`);
-    // Closing the sheet in the apps means the copy is in the app's cache at
-    // most, which the bowler cannot reach and the platform may clear. Wiping
-    // now would leave the file being restored as the only copy (ADR-250).
-    if (saved === "cancelled") {
-      throw new Error(t`The copy of what is on this phone was not saved, so nothing was replaced.`);
-    }
-  }
+export async function saveSafetyCopy(): Promise<BackupDestination> {
+  const { backup, revision } = await snapshot();
+  const saved = await downloadBackup(backup, `pre-import-${backupFilename(backup)}`);
+  // It is a whole backup that left the device, so it counts as one: a restore
+  // cancelled after it leaves the row saying the device is backed up.
+  if (saved !== "cancelled") await recordBackup(backup, revision);
+  return saved;
+}
 
+/**
+ * Replace the entire database with the file's contents (ADR-038). Every local
+ * row is destroyed, so the caller offers `saveSafetyCopy` first, that file is
+ * the only way back.
+ */
+export async function replaceAllData(backup: BowlingBackup): Promise<ImportBackupResult> {
   await db.transaction(
     "rw",
-    [db.sessions, db.games, db.frames, db.balls, db.oil_patterns, db.spare_lines, db.lane_notes, db.settings],
+    [db.sessions, db.games, db.frames, db.balls, db.oil_patterns, db.spare_lines, db.lane_notes, db.settings, db.backup_state],
     async () => {
       await Promise.all([
         db.sessions.clear(),
@@ -260,11 +272,26 @@ export async function replaceAllData(
       await db.oil_patterns.bulkAdd(backup.tables.oil_patterns ?? []);
       await db.spare_lines.bulkAdd(backup.tables.spare_lines ?? []);
       await db.lane_notes.bulkAdd(backup.tables.lane_notes ?? []);
-      await db.settings.bulkAdd(backup.tables.settings ?? []);
+      // A file from before ADR-275 carries the bookkeeping as settings. It
+      // describes the backup before that file, so it is not installed.
+      await db.settings.bulkAdd(
+        (backup.tables.settings ?? []).filter((s) => !LEGACY_BACKUP_SETTINGS.includes(s.key))
+      );
 
       // Pre-ADR-037 files carry the pattern name on the session itself; give
       // those sessions a real pattern row so the name survives.
       await linkLegacySessionOilPatterns(db.sessions, db.oil_patterns);
+
+      // The device now holds exactly what the file does, so the file is the
+      // last backup, as of when it was made, with nothing changed since. Read
+      // last, after every write above has counted.
+      const counter = await db.backup_state.get("revision");
+      await db.backup_state.put({
+        key: "last_backup",
+        at: backup.exported_at,
+        sessions: backup.tables.sessions.length,
+        revision: counter?.key === "revision" ? counter.value : 0
+      });
     }
   );
 

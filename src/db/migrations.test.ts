@@ -62,7 +62,7 @@ describe("database upgrades", () => {
     legacy.close();
 
     await db.open();
-    expect(db.verno).toBe(6);
+    expect(db.verno).toBe(7);
 
     const frame = (await db.frames.toArray())[0] as Frame & Record<string, unknown>;
     expect(frame.shots).toEqual([
@@ -126,5 +126,43 @@ describe("database upgrades", () => {
 
     expect(await db.oil_patterns.toArray()).toEqual([]);
     expect((await db.sessions.toArray())[0].oil_pattern_id).toBeUndefined();
+  });
+
+  /**
+   * The backup bookkeeping leaves settings, which every file carries, for a
+   * table no file does (ADR-275). The counter is new, so what was edited
+   * before it is unknown, and no "no changes" may be claimed until the next
+   * backup.
+   */
+  it("moves the last backup out of settings at v7, claiming nothing about edits", async () => {
+    const v6 = new Dexie(DB_NAME);
+    v6.version(6).stores({
+      sessions: "++id, date, alley_name, oil_pattern_id",
+      games: "++id, session_id, game_number, lane_number, final_score",
+      frames: "++id, game_id, [game_id+frame_number], frame_number, is_strike, is_spare",
+      balls: "++id, name, is_spare_ball",
+      oil_patterns: "++id, name",
+      spare_lines: "++id",
+      lane_notes: "++id, [alley+lane]",
+      settings: "&key",
+      ball_catalog: "&id, brand, coverstockCategory, coreType, rg, diff, releaseYear"
+    });
+    await v6.open();
+    await v6.table("settings").bulkAdd([
+      { key: "last_backup_at", value: "2026-10-01T09:00:00.000Z" },
+      { key: "sessions_at_last_backup", value: "4" },
+      { key: "theme", value: "dark" }
+    ]);
+    v6.close();
+
+    await db.open();
+
+    expect(await db.backup_state.get("last_backup")).toEqual({
+      key: "last_backup",
+      at: "2026-10-01T09:00:00.000Z",
+      sessions: 4,
+      revision: null
+    });
+    expect((await db.settings.toArray()).map((s) => s.key)).toEqual(["theme"]);
   });
 });

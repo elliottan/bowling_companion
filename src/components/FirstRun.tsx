@@ -69,7 +69,6 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
   // of the first run and onto an app the bowler has not been shown yet. Escape
   // is a no-op on purpose: there is nowhere behind this to go back to.
   const overlayRef = useOverlay<HTMLDivElement>(() => {}, true, false);
-  const [confirmText, setConfirmText] = useState("");
   const fileRef = useRef<HTMLInputElement | null>(null);
   // The setup form's answers, held until Next. A tap on a hand used to finish
   // the first run on the spot, before the grip or a name could be given.
@@ -127,8 +126,8 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
     setError("");
     try {
       // The device is empty on a true first run, so there is nothing worth
-      // saving off first (backupRepository.replaceAllData).
-      await replaceAllData(pending.backup, { safetyCopy: pending.current.sessions > 0 });
+      // saving off first; over sessions, the gate has offered the copy.
+      await replaceAllData(pending.backup);
       // A full reload rather than a state update. The database was just
       // replaced wholesale, and this screen sits above state that was read
       // once at boot (handedness, drift model); re-deriving it by hand would
@@ -348,13 +347,10 @@ export function FirstRun({ onSelectHandedness, hasSavedData = false }: FirstRunP
 
       <ReplaceConfirmDialog
         pending={gateOpen ? pending : null}
-        confirmText={confirmText}
-        onConfirmTextChange={setConfirmText}
         isBusy={busy}
         onConfirm={() => void handleRestore()}
         onCancel={() => {
           setGateOpen(false);
-          setConfirmText("");
         }}
       />
     </div>

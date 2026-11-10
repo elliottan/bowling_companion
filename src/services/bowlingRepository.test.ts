@@ -318,8 +318,7 @@ describe("backup nudge state", () => {
   it("assembles backed-up state", async () => {
     await createSession({ date: "2026-07-19", alley_name: "Test Lanes" });
     await createSession({ date: "2026-07-19", alley_name: "Other Lanes" });
-    await setSetting("last_backup_at", "2026-07-01T00:00:00.000Z");
-    await setSetting("sessions_at_last_backup", "1");
+    await db.backup_state.put({ key: "last_backup", at: "2026-07-01T00:00:00.000Z", sessions: 1, revision: null });
 
     const state = await getBackupNudgeState();
 

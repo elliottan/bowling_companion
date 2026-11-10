@@ -79,6 +79,11 @@ msgstr "{0, plural, other {#게임}}"
 msgid "{0, plural, one {# lane} other {# lanes}}"
 msgstr "{0, plural, other {레인 #개}}"
 
+#. placeholder {0}: status.newSessions
+#: src/lib/backupNudge.ts
+msgid "{0, plural, one {# new session} other {# new sessions}}"
+msgstr "{0, plural, other {새 세션 #개}}"
+
 #. placeholder {0}: patterns.length
 #: src/lib/lineReport.ts
 msgid "{0, plural, one {# pattern} other {# patterns}}"
@@ -419,6 +424,10 @@ msgstr "{leavePin}번 핀 스페어"
 msgid "{lengthBand, select, early {Reads the lane early} mid {Picks up in the mid lane} other {Saves its energy for the back}} and {shapeBand, select, smooth {arcs smoothly through the breakpoint} defined {turns the corner with a defined shape} other {snaps hard at the breakpoint}}."
 msgstr "{lengthBand, select, early {레인 초반부터 반응하고} mid {레인 중반에 힘을 받고} other {힘을 뒤쪽에 아껴 두고}} {shapeBand, select, smooth {브레이크 포인트를 부드러운 곡선으로 지나가요} defined {뚜렷한 형태로 꺾여요} other {브레이크 포인트에서 강하게 꺾여요}}."
 
+#: src/lib/backupNudge.ts
+msgid "{line} ({added})"
+msgstr "{line} ({added})"
+
 #. The greeting on Home with the bowler's name on the end: a greeting, then the name
 #: src/lib/greeting.ts
 msgid "{line}, {who}"
@@ -691,8 +700,8 @@ msgid "3 months"
 msgstr "3개월"
 
 #: src/views/BackupRestoreView.tsx
-msgid "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. Your current data is saved off first."
-msgstr "백업은 파일 하나로, 이 기기나 원하는 곳에 보관돼요. 복원하면 이 기기의 모든 데이터가 파일 내용으로 <0>대체돼요</0>. 현재 데이터는 먼저 따로 저장해 둬요."
+msgid "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. You are asked to save a copy of your current data first."
+msgstr "백업은 파일 하나로, 이 기기나 원하는 곳에 보관돼요. 복원하면 이 기기의 모든 데이터가 파일 내용으로 <0>대체돼요</0>. 먼저 현재 데이터의 사본을 저장하도록 안내해 드려요."
 
 #: src/components/BallLayoutDiagram.tsx
 msgid "A bowling ball drilled with a thumb hole and two finger holes, showing a {drillingAngle} by {pinToPap} inch by {valAngle} dual angle layout."
@@ -709,6 +718,14 @@ msgstr "엄지 구멍 없이 손가락 구멍 2개로 드릴링한 볼, {drillin
 #: src/components/BallLayoutDiagram.tsx
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "엄지 구멍 없이 손가락 구멍 2개로 드릴링한 볼, {pinToPap} × {core} × {buffer}인치 Storm VLS 레이아웃."
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "A copy is in your downloads."
+msgstr "사본이 다운로드 폴더에 있어요."
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "A copy is saved."
+msgstr "사본을 저장했어요."
 
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
@@ -1479,6 +1496,10 @@ msgstr "비교 기준"
 #: src/views/CatalogView.tsx
 msgid "Connect once to load the catalog"
 msgstr "한 번 연결하면 카탈로그를 불러와요"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Continue"
+msgstr "계속"
 
 #. Bowling term: the share of spare chances for this leave that were made.
 #: src/components/SpareLineFormDialog.tsx
@@ -2339,10 +2360,6 @@ msgstr "라인 있음"
 msgid "Headpin {version}"
 msgstr "Headpin {version}"
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Headpin downloads a copy of your current data first, so you can undo this."
-msgstr "Headpin이 먼저 현재 데이터의 사본을 내려받으니 되돌릴 수 있어요."
-
 #: src/components/GetTheAppBanner.tsx
 msgid "Headpin for iPhone"
 msgstr "iPhone용 Headpin"
@@ -3107,7 +3124,7 @@ msgstr "이름순 (가나다)"
 msgid "never"
 msgstr "없음"
 
-#: src/views/SettingsView.tsx
+#: src/lib/backupNudge.ts
 msgid "Never backed up"
 msgstr "백업한 적 없음"
 
@@ -3170,6 +3187,14 @@ msgstr "아직 비교할 볼이 없어요. 투구에 볼을 지정하면 볼별 
 #: src/views/ArsenalView.tsx
 msgid "No balls yet"
 msgstr "아직 볼이 없어요"
+
+#: src/lib/backupNudge.ts
+msgid "No changes since last backup ({age})"
+msgstr "마지막 백업 이후 변경 없음 ({age})"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "No copy of this device was saved, so this cannot be undone."
+msgstr "이 기기의 사본을 저장하지 않아서 되돌릴 수 없어요."
 
 #. Under a zone of the approach diagram: this zone does not move the slide foot
 #: src/components/DriftZoneLane.tsx
@@ -3909,6 +3934,10 @@ msgstr "백업에서 복원"
 msgid "Restore purchase"
 msgstr "구매 복원"
 
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Restoring replaces everything on this device. Keep a copy of what is here now, so you can undo it."
+msgstr "복원하면 이 기기의 모든 데이터가 대체돼요. 되돌릴 수 있도록 지금 데이터의 사본을 저장해 두세요."
+
 #: src/components/FirstRun.tsx
 msgid "Restoring…"
 msgstr "복원하는 중…"
@@ -4045,10 +4074,15 @@ msgstr "저장"
 msgid "Save a backup"
 msgstr "백업 저장"
 
+#: src/components/ReplaceConfirmDialog.tsx
 #: src/components/SaveCopyPrompt.tsx
 #: src/views/DashboardView.tsx
 msgid "Save a copy"
 msgstr "사본 저장"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Save a copy first"
+msgstr "먼저 사본 저장"
 
 #. Bowling terms: a leave is the pins left standing after the first ball; the intended line is where the bowler plans to stand and aim
 #: src/components/NextSteps.tsx
@@ -4058,6 +4092,10 @@ msgstr "남은 핀마다 라인을 저장해 두면, 점수 입력 중 그 핀�
 #: src/components/SpareLinePickerSheet.tsx
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "한 남은 핀에 라인을 저장해 두면 다른 남은 핀에도 가져다 쓸 수 있어요."
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Save another copy"
+msgstr "사본 하나 더 저장"
 
 #: src/views/BowlingProfileView.tsx
 msgid "Save bowling profile"
@@ -4090,6 +4128,10 @@ msgstr "남은 핀마다 서는 위치와 조준 위치를 저장해 두면, 다
 #: src/components/SaveCopyPrompt.tsx
 msgid "Saved on this phone only. Save a copy before closing the tab."
 msgstr "이 휴대폰에만 저장되어 있어요. 탭을 닫기 전에 사본을 저장해 두세요."
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Saving a copy"
+msgstr "사본 저장 중"
 
 #: src/components/ShareCardDialog.tsx
 msgid "Saving failed."
@@ -4811,9 +4853,13 @@ msgstr "카탈로그를 불러오지 못했어요"
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "카탈로그를 아직 불러오지 못했어요. 한 번만 연결하면 이후에는 오프라인에서도 쓸 수 있어요."
 
-#: src/services/backupRepository.ts
-msgid "The copy of what is on this phone was not saved, so nothing was replaced."
-msgstr "이 휴대폰에 있는 데이터의 사본이 저장되지 않아서 아무것도 교체하지 않았어요."
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "The copy could not be saved."
+msgstr "사본을 저장하지 못했어요."
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "The copy was not saved."
+msgstr "사본을 저장하지 않았어요."
 
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."
@@ -4996,10 +5042,6 @@ msgstr "세션이 두 개면 첫 게임과 마지막 게임을 비교할 수 있
 #: src/views/SettingsView.tsx
 msgid "Two-handed"
 msgstr "투핸드"
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Type {word} to confirm"
-msgstr "확인하려면 {word} 입력"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Unable to add game."

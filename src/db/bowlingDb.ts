@@ -1,5 +1,5 @@
-import Dexie, { type EntityTable } from "dexie";
-import type { AppSetting, Ball, Frame, Game, LaneNote, OilPattern, Session, SpareLine } from "../types/bowling";
+import Dexie, { type DBCore, type EntityTable, type Middleware, type Table } from "dexie";
+import type { AppSetting, BackupStateRow, Ball, Frame, Game, LaneNote, OilPattern, Session, SpareLine } from "../types/bowling";
 import type { PinNumber, Shot } from "../types/bowling";
 import type { CatalogBall } from "../types/catalog";
 
@@ -13,9 +13,11 @@ export class BowlingDatabase extends Dexie {
   lane_notes!: EntityTable<LaneNote, "id">;
   settings!: EntityTable<AppSetting, "key">;
   ball_catalog!: EntityTable<CatalogBall, "id">;
+  backup_state!: Table<BackupStateRow, string>;
 
   constructor() {
     super("BowlingCompanionDB");
+    this.use(backupRevisionMiddleware);
 
     this.version(1).stores({
       sessions: "++id, date, alley_name",
@@ -88,8 +90,108 @@ export class BowlingDatabase extends Dexie {
     }).upgrade(async (tx) => {
       await linkLegacySessionOilPatterns(tx.table("sessions"), tx.table("oil_patterns"));
     });
+
+    // ADR-275: the backup bookkeeping leaves `settings`, which every backup
+    // carries, for a table no backup does. The counter starts now, so what
+    // was edited before it is unknown: the last backup's revision is null,
+    // and the row claims no "no changes" until the next one.
+    this.version(7).stores({
+      sessions: "++id, date, alley_name, oil_pattern_id",
+      games: "++id, session_id, game_number, lane_number, final_score",
+      frames: "++id, game_id, [game_id+frame_number], frame_number, is_strike, is_spare",
+      balls: "++id, name, is_spare_ball",
+      oil_patterns: "++id, name",
+      spare_lines: "++id",
+      lane_notes: "++id, [alley+lane]",
+      settings: "&key",
+      ball_catalog: "&id, brand, coverstockCategory, coreType, rg, diff, releaseYear",
+      backup_state: "&key"
+    }).upgrade(async (tx) => {
+      const settings = tx.table("settings");
+      const at = (await settings.get("last_backup_at")) as AppSetting | undefined;
+      const sessions = (await settings.get("sessions_at_last_backup")) as AppSetting | undefined;
+      if (at?.value) {
+        await tx.table("backup_state").put({
+          key: "last_backup",
+          at: at.value,
+          sessions: Number(sessions?.value ?? 0) || 0,
+          revision: null
+        } satisfies BackupStateRow);
+      }
+      await settings.bulkDelete(LEGACY_BACKUP_SETTINGS);
+    });
   }
 }
+
+/** Where the bookkeeping lived before ADR-275. A restored file from before it
+ *  still carries these, and they are dropped rather than installed. */
+export const LEGACY_BACKUP_SETTINGS = ["last_backup_at", "sessions_at_last_backup"];
+
+/** The tables a backup holds the bowler's data in (ADR-275). `settings` is in
+ *  the file too, but it is preferences (a theme, a snoozed reminder), and a
+ *  backup is not out of date because the theme changed. */
+const COUNTED_TABLES = new Set([
+  "sessions",
+  "games",
+  "frames",
+  "balls",
+  "oil_patterns",
+  "spare_lines",
+  "lane_notes"
+]);
+
+/**
+ * Counts every write to the bowler's data, in the database itself (ADR-275).
+ *
+ * A write path that forgets to count is the one bug a count kept by the
+ * repositories would have, and there are dozens of write paths. Here every
+ * read-write transaction over a counted table also takes `backup_state`, and
+ * every mutation bumps `revision` inside it, so the count commits or rolls
+ * back with the write. It costs one small read and write per mutation,
+ * however large the history, and a bulk write counts once.
+ */
+const backupRevisionMiddleware: Middleware<DBCore> = {
+  stack: "dbcore",
+  name: "BackupRevision",
+  create(down) {
+    const counts = (stores: string[]) => stores.some((name) => COUNTED_TABLES.has(name));
+    return {
+      ...down,
+      transaction(stores, mode, options) {
+        const widened =
+          mode === "readwrite" && counts(stores) && !stores.includes("backup_state")
+            ? [...stores, "backup_state"]
+            : stores;
+        return down.transaction(widened, mode, options);
+      },
+      table(name) {
+        const table = down.table(name);
+        if (!COUNTED_TABLES.has(name)) return table;
+        return {
+          ...table,
+          async mutate(req) {
+            const result = await table.mutate(req);
+            // A schema upgrade writes through here too, before this table
+            // exists for the versions older than 7. The v7 upgrade starts the
+            // count fresh, so nothing is lost by not counting them.
+            if ((req.trans as unknown as IDBTransaction).mode !== "versionchange") {
+              const state = down.table("backup_state");
+              const current = (await state.get({ trans: req.trans, key: "revision" })) as
+                | { value: number }
+                | undefined;
+              await state.mutate({
+                trans: req.trans,
+                type: "put",
+                values: [{ key: "revision", value: (current?.value ?? 0) + 1 }]
+              });
+            }
+            return result;
+          }
+        };
+      }
+    };
+  }
+};
 
 /** Minimal surface of a Dexie table, so this works against `db`'s typed tables
  *  or the loosely-typed ones a transaction hands out during an upgrade. */

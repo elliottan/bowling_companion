@@ -30,8 +30,6 @@ import type {
 const HANDEDNESS_KEY = "handedness";
 const LAYDOWN_OFFSET_KEY = "laydown_offset";
 const DRIFT_MODEL_KEY = "drift_model";
-const LAST_BACKUP_AT_KEY = "last_backup_at";
-const SESSIONS_AT_LAST_BACKUP_KEY = "sessions_at_last_backup";
 const BACKUP_NUDGE_SNOOZED_UNTIL_KEY = "backup_nudge_snoozed_until";
 const PAP_KEY = "pap";
 const GRIP_STYLE_KEY = "grip_style";
@@ -698,21 +696,55 @@ export async function getResumableForSession(sessionId: number): Promise<Resumab
   return { sessionId: session.id, alleyName: session.alley_name, gameNumber: target.game_number };
 }
 
-/** Assembles the state needed to decide whether to show the backup nudge. */
+/** The last backup this device made or restored (ADR-275), or none. */
+async function getLastBackup() {
+  const row = await db.backup_state.get("last_backup");
+  return row?.key === "last_backup" ? row : undefined;
+}
+
+/** Assembles the state needed to decide whether to show the backup nudge.
+ *  Reads only the last-backup row, never the write counter, so a scorer that
+ *  watches this is not woken by every ball it saves. */
 export async function getBackupNudgeState(): Promise<BackupNudgeState> {
-  const [lastBackupAt, sessionsAtLastBackup, snoozedUntil, totalSessions] = await Promise.all([
-    getSetting(LAST_BACKUP_AT_KEY),
-    getSetting(SESSIONS_AT_LAST_BACKUP_KEY),
+  const [lastBackup, snoozedUntil, totalSessions] = await Promise.all([
+    getLastBackup(),
     getSetting(BACKUP_NUDGE_SNOOZED_UNTIL_KEY),
     db.sessions.count()
   ]);
 
   return {
-    lastBackupAt: lastBackupAt ?? null,
-    sessionsAtLastBackup: sessionsAtLastBackup ? Number(sessionsAtLastBackup) : 0,
+    lastBackupAt: lastBackup?.at ?? null,
+    sessionsAtLastBackup: lastBackup?.sessions ?? 0,
     totalSessions,
     snoozedUntil: snoozedUntil ?? null,
     now: new Date()
+  };
+}
+
+export interface BackupStatus {
+  /** When the last backup was made, or null for never. */
+  lastBackupAt: string | null;
+  /** Sessions added since it, never below zero. */
+  newSessions: number;
+  /** Nothing the backup holds has been written since it (ADR-275). False
+   *  when that is not known, for a backup from before the counter. */
+  unchanged: boolean;
+}
+
+/** What the Settings row says about the last backup (ADR-275). Two small
+ *  reads and a count, whatever the size of the history. */
+export async function getBackupStatus(): Promise<BackupStatus> {
+  const [lastBackup, counter, totalSessions] = await Promise.all([
+    getLastBackup(),
+    db.backup_state.get("revision"),
+    db.sessions.count()
+  ]);
+  if (!lastBackup) return { lastBackupAt: null, newSessions: 0, unchanged: false };
+  const revision = counter?.key === "revision" ? counter.value : 0;
+  return {
+    lastBackupAt: lastBackup.at,
+    newSessions: Math.max(0, totalSessions - lastBackup.sessions),
+    unchanged: lastBackup.revision !== null && lastBackup.revision === revision
   };
 }
 

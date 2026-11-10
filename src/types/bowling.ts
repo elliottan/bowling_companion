@@ -267,6 +267,27 @@ export interface AppSetting {
   value: string;
 }
 
+/**
+ * The device's own backup bookkeeping (ADR-275). Never exported and never
+ * restored: a backup file describing when it was itself backed up is how the
+ * Settings row came to name the backup before the one restored.
+ *
+ * `revision` counts every write to the data a backup holds; `last_backup`
+ * records what a backup held, so the two can say "no changes since".
+ */
+export type BackupStateRow =
+  | { key: "revision"; value: number }
+  | {
+      key: "last_backup";
+      /** When the backup was made (a restore: when its file was). */
+      at: string;
+      /** Sessions it held, for "N new sessions". */
+      sessions: number;
+      /** `revision` when it was made. Null when that is not known (a backup
+       *  recorded before the counter existed), so no "no changes" is claimed. */
+      revision: number | null;
+    };
+
 export interface Frame {
   id?: number;
   game_id: number;
