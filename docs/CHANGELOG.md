@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.106.3: The shot tracer's geometry and its first trace of the sample clips (2026-11-11)
+
+- No change to the app. The first two steps of `docs/SHOT-TRACKER-PLAN.md`:
+  the lane geometry and a synthetic lane renderer under `src/lib/shotTrack/`,
+  then the tracer itself and a harness that runs it on the six sample clips
+  (`scripts/shot-tracker/`). Nothing in the app imports it yet.
+
 ## 0.106.2: A plan for reading a shot's line off a video (2026-11-11)
 
 - No change to the app. `docs/SHOT-TRACKER-PLAN.md` is the plan for a shot
