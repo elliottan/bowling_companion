@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "build:ios": "npm run build && tsx scripts/native/assemble.ts && cap sync ios",
     "build:android": "npm run build && tsx scripts/native/assemble.ts && cap sync android",
+    "bundle:android": "npm run build:android && cd android && ./gradlew bundleRelease",
     "preview": "vite preview",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

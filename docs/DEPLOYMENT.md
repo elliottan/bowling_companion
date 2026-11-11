@@ -249,7 +249,47 @@ npx cap run android     # builds a debug APK, installs it and launches it
 `android/` is committed and `android/app/src/main/assets/public/` is not, so a
 fresh checkout needs `npm run build:android` first, as for iOS. The project
 targets SDK 36 and needs JDK 21. `MainActivity.java` carries the back button
-(ADR-155).
+(ADR-155), and `HeadpinStorePlugin.java` sells Pro through Play Billing
+(ADR-274).
+
+**The emulator walk.** `.github/workflows/android-device-check.yml` builds the
+debug APK on every change under `android/` and walks the app on an emulator
+(`scripts/native/device-check/android.ts`). Its image has no Play Store, so
+Billing never connects there: it checks that Pro is locked and offered, not a
+purchase.
+
+**The upload key.** Play wants a signed App Bundle (`.aab`). With Play App
+Signing, Google holds the key that signs what bowlers install, and the owner
+holds an upload key that only proves an upload came from them. Make it once,
+on the owner's own machine, and keep it and its password somewhere backed up
+(a lost upload key can be reset through Play support, but it takes days):
+
+```bash
+keytool -genkeypair -v -keystore ~/headpin-upload.jks -alias upload \
+  -keyalg RSA -keysize 2048 -validity 10000
+```
+
+Then copy `android/keystore.properties.example` to `android/keystore.properties`
+and fill in the path and passwords. Git ignores that file and any `.jks` or
+`.keystore`, and none of them may ever be committed. CI can pass the same four
+values as `HEADPIN_UPLOAD_STORE_FILE`, `HEADPIN_UPLOAD_STORE_PASSWORD`,
+`HEADPIN_UPLOAD_KEY_ALIAS` and `HEADPIN_UPLOAD_KEY_PASSWORD` instead.
+
+**A release.**
+
+```bash
+npm run bundle:android   # web build, copied in, then gradlew bundleRelease
+# android/app/build/outputs/bundle/release/app-release.aab
+```
+
+Without the key the bundle still builds, unsigned, and Play refuses it. The
+versionCode is read from `package.json` (`0.106.0` is `106000`), which every
+merge bumps, so each upload has a larger one; the version bowlers see,
+`versionName`, is the store version in `android/app/build.gradle`, `1.0` for
+the first release. The first upload goes to Internal testing in Play Console,
+where Play App Signing is turned on, and its SHA-256 (Setup, App signing) is
+what `/.well-known/assetlinks.json` names for App Links. The listing text is
+[PLAY-LISTING.md](./PLAY-LISTING.md).
 
 ## Manual checks
 

@@ -17,8 +17,11 @@ had all shipped.
   Google account, and leave out the iPhone's Live Activity.
 - After a good game the Android app may ask for a rating through Google Play,
   at the same moment the iPhone app asks Apple.
-- No change on the web or in the iPhone app. The Android app is not in Google
-  Play yet.
+- The privacy policy and terms name Google Play for the Android app's
+  purchase, alongside the App Store.
+- No other change on the web or in the iPhone app. The Android app is not in
+  Google Play yet; its release signing and Play listing draft are ready
+  (`docs/DEPLOYMENT.md`, `docs/PLAY-LISTING.md`).
 
 ## 0.105.1: The store pictures show the line boxes as they are now (2026-11-10)
 

@@ -255,7 +255,14 @@ switch.
 ### 5. Android (after iOS is live)
 
 - [ ] Google Play account (US$25 once), and 12 or more testers opted in for 14
-      days in a row.
+      days in a row. The order is "Testing before production" in
+      `docs/PLAY-LISTING.md`.
+- [x] Release signing: an upload key kept off git, `npm run bundle:android`
+      for a signed `.aab`, and a versionCode from `package.json`
+      (`docs/DEPLOYMENT.md`, "The Android app"). The key itself is the
+      owner's to make.
+- [x] The Play listing and its policy forms drafted (`docs/PLAY-LISTING.md`).
+      The feature graphic and Play-sized screenshots are not made yet.
 - [x] The Android shell, from the same build (ADR-155, `npm run build:android`):
       portrait, edge to edge, and the back button through history. Walked on
       an emulator by `android-device-check.yml`; not yet on a phone.
