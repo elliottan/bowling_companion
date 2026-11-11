@@ -23,6 +23,7 @@ reasoning and invariants the code cannot express.
 | Write or run tests, or wonder what the gate checks | [ARCHITECTURE.md](./ARCHITECTURE.md), "Where the tests live" |
 | Ship a build | [DEPLOYMENT.md](./DEPLOYMENT.md) |
 | Pick up new work | [ROADMAP.md](./ROADMAP.md) |
+| Build the shot tracer (a line, speed and replay from a video of a shot) | [SHOT-TRACKER-PLAN.md](./SHOT-TRACKER-PLAN.md), a plan and not yet documentation |
 | Work on Pro, its gating, or the store apps | [PRO-LAUNCH.md](./PRO-LAUNCH.md) and [DECISIONS.md](./DECISIONS.md) ADR-154, ADR-155 for the iOS app |
 | Write a release note | [CHANGELOG.md](./CHANGELOG.md) |
 | Remake the ads or the App Store screenshots | `scripts/ad-content/reel/README.md` for the reel, `scripts/app-store/screenshots.mjs` for the store set, [APP-STORE-LISTING.md](./APP-STORE-LISTING.md) for the captions and the listing |
