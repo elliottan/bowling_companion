@@ -53,6 +53,26 @@ opens a real v1 database, writes rows in the shape v1 actually stored, and lets
 the app's own Dexie declaration upgrade it: this is the one failure mode with no
 recovery, since there is no server holding a second copy.
 
+## The backup bookkeeping (ADR-275)
+
+`backup_state` is the one table a backup never holds, on purpose: it is this
+device's record of its own backups, and a file that carried it would describe
+the backup before itself. Two rows, by `key`:
+
+- `revision`, a count of every write to the bowler's data. A DBCore middleware
+  in `bowlingDb.ts` keeps it, inside the transaction of the write it counts, so
+  no write path can forget it and a failed write does not count. `settings` and
+  `ball_catalog` are not counted: a preference does not make a backup out of
+  date, and the catalog is not in one.
+- `last_backup`, what the last backup held: when, its session count, and the
+  `revision` it was read at (null for one recorded before the counter, which
+  claims nothing about edits). A restore writes it as the restored file.
+
+"No changes since last backup" is the two revisions being equal. It costs two
+reads whatever the size of the history, and no hash of the data is taken.
+Whatever watches the reminder reads `last_backup` alone, never `revision`, so a
+live query in the scorer is not woken by every ball saved.
+
 ## A ball's layout (ADR-099)
 
 `Ball.layout_spec` stores the dual angle three plus the ball's own core geometry

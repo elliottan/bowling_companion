@@ -6,7 +6,7 @@ import { ToolsList } from "../components/ToolsList";
 import { PushScreen } from "../components/PushScreen";
 import { AppearanceView } from "./AppearanceView";
 import { BowlingProfileView } from "./BowlingProfileView";
-import { getBowlerName, getDefaultBallWeight, getGripStyle, getLiveActivityEnabled, getSetting } from "../services/bowlingRepository";
+import { getBowlerName, getDefaultBallWeight, getGripStyle, getBackupStatus, getLiveActivityEnabled } from "../services/bowlingRepository";
 import { DEFAULT_WEIGHT } from "../types/catalog";
 import { readLiveActivityStatus, type LiveActivityStatus } from "../lib/nativeLiveActivity";
 import { BowlerNameSheet } from "../components/BowlerNameSheet";
@@ -25,7 +25,7 @@ import { BowlingBallIcon, LanePairIcon, SpareLineIcon } from "../components/icon
 // Navigating to a section is a navigation action, so the union lives with the
 // rest of the navigation state.
 import type { SettingsSection } from "../lib/appNavigation";
-import { describeLastBackup } from "../lib/backupNudge";
+import { describeBackupStatus } from "../lib/backupNudge";
 import { useLiveQuery } from "dexie-react-hooks";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
 import { InstallPrompt } from "../components/InstallPrompt";
@@ -199,13 +199,11 @@ function SettingsMenu({
   // Live rather than read once at mount: Settings does not unmount when the
   // backup screen is pushed over it, so a mount-only read left the row saying
   // t`Never backed up` straight after a backup.
-  const lastBackupAt = useLiveQuery(async () => (await getSetting("last_backup_at")) ?? null);
+  const backupStatus = useLiveQuery(getBackupStatus);
   const backupDescription =
-    lastBackupAt === undefined
+    backupStatus === undefined
       ? t`Export or import your data`
-      : lastBackupAt
-        ? describeLastBackup(lastBackupAt, new Date())
-        : t`Never backed up`;
+      : describeBackupStatus(backupStatus, new Date());
   const grip: GripStyle = useLiveQuery(getGripStyle, [], undefined) ?? "1h";
   const ballWeight = useLiveQuery(getDefaultBallWeight, [], null) ?? DEFAULT_WEIGHT;
 
@@ -257,7 +255,13 @@ function SettingsMenu({
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-bold text-ink">{t`Backup & restore`}</span>
-          <span className="block truncate text-sm text-ink">{backupDescription}</span>
+          <span className="flex min-w-0 items-center gap-1 text-sm text-ink">
+            {/* The tick is for "nothing to back up" alone (ADR-275). */}
+            {backupStatus?.unchanged && (
+              <Check size={14} aria-hidden="true" className="shrink-0 text-success-700" />
+            )}
+            <span className="truncate">{backupDescription}</span>
+          </span>
         </span>
         <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-accent" />
       </button>

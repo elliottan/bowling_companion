@@ -14,7 +14,6 @@ import type {
   LineSpec,
   PinNumber,
   Session,
-  SessionSummary,
   Shot,
   SpareLine
 } from "../types/bowling";
@@ -130,25 +129,38 @@ function latestSpareIntended(
  * there is no house to match, and nothing comes back.
  */
 export function earlierSessionFrames(
-  history: SessionSummary[],
+  history: Array<{
+    session: Pick<Session, "id" | "date" | "alley_name" | "oil_pattern_id">;
+    games: Array<Game & { frames?: Frame[] }>;
+  }>,
   current: Pick<Session, "id" | "date" | "alley_name" | "oil_pattern_id">
 ): Frame[] {
-  const alley = current.alley_name.trim().toLowerCase();
-  if (!alley) return [];
+  const wanted = new Set(earlierSessionCandidates(history.map((h) => h.session), current));
   return history
-    .filter(
-      ({ session: s }) =>
-        s.id !== current.id &&
-        s.date <= current.date &&
-        s.alley_name.trim().toLowerCase() === alley &&
-        s.oil_pattern_id === current.oil_pattern_id
-    )
+    .filter(({ session }) => wanted.has(session))
     .sort((a, b) => a.session.date.localeCompare(b.session.date) || (a.session.id ?? 0) - (b.session.id ?? 0))
     .flatMap(({ games }) =>
-      [...games]
-        .sort((a, b) => a.game_number - b.game_number)
-        .flatMap((g) => (g as Game & { frames?: Frame[] }).frames ?? [])
+      [...games].sort((a, b) => a.game_number - b.game_number).flatMap((g) => g.frames ?? [])
     );
+}
+
+/**
+ * The sessions whose frames `earlierSessionFrames` draws on: before this one,
+ * at the same alley (trimmed, any case), on the same pattern. Exposed so the
+ * repository can read only their frames rather than the whole history.
+ */
+export function earlierSessionCandidates<
+  S extends Pick<Session, "id" | "date" | "alley_name" | "oil_pattern_id">
+>(sessions: S[], current: Pick<Session, "id" | "date" | "alley_name" | "oil_pattern_id">): S[] {
+  const alley = current.alley_name.trim().toLowerCase();
+  if (!alley) return [];
+  return sessions.filter(
+    (s) =>
+      s.id !== current.id &&
+      s.date <= current.date &&
+      s.alley_name.trim().toLowerCase() === alley &&
+      s.oil_pattern_id === current.oil_pattern_id
+  );
 }
 
 /**

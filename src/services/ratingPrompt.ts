@@ -37,7 +37,7 @@ function defaultDeps(): RatingDeps {
 
 /**
  * Asks the store for its rating prompt after a good game, in the store apps
- * only: Apple's on iOS (ADR-218), Play's on Android (ADR-274). Called once per
+ * only: Apple's on iOS (ADR-218), Play's on Android (ADR-277). Called once per
  * game, when its last ball finishes it. Best effort: nothing here can fail a
  * saved frame.
  */

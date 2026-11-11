@@ -420,7 +420,7 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
     await f.snap("stats");
   });
 
-  // Both store apps sell Pro (ADR-158, ADR-274), so a deeper card is locked and
+  // Both store apps sell Pro (ADR-158, ADR-277), so a deeper card is locked and
   // offers the purchase, and Settings carries Restore purchase. The purchase
   // itself needs the store's own sheet and a test account, so it is tried by
   // hand: in Xcode against ios/App/App/Headpin.storekit, and on Android from a

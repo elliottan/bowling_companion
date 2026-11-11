@@ -9,7 +9,7 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.106.0: Headpin Pro in the Android app (2026-11-11)
+## 0.107.0: Headpin Pro in the Android app (2026-11-11)
 
 - The Android app sells Headpin Pro through Google Play: buy it, restore it on
   a new phone, and keep it offline, as in the iPhone app. Until now everything
@@ -22,6 +22,32 @@ had all shipped.
 - No other change on the web or in the iPhone app. The Android app is not in
   Google Play yet; its release signing and Play listing draft are ready
   (`docs/DEPLOYMENT.md`, `docs/PLAY-LISTING.md`).
+
+## 0.106.1: The scorer stays quick after years of bowling, and backups are half the size (2026-11-11)
+
+- Entering a ball no longer reloads your whole history in the background.
+  The scorer now reads only your earlier nights at the same alley on the same
+  pattern, once, to suggest your line for a leave, so it stays responsive
+  however many seasons you have. The suggestions are the same as before.
+- Backup files are written without indentation, which makes them less than
+  half the size. Every backup saved before still restores.
+- The "Save a copy first" popup no longer says whether the copy was saved,
+  which the web app could not tell. Its button always reads Save a copy.
+
+## 0.106.0: Restoring asks for a copy, and Settings says if your backup is current (2026-11-10)
+
+- Restoring a backup over what is on the device opens "Save a copy first",
+  which saves a copy straight away and stays up until you choose Continue.
+  Close the share sheet or skip the copy and you can still go on; nothing is
+  replaced until you confirm.
+- The confirm no longer asks you to type REPLACE. It is one red Replace
+  everything button, and says so when no copy was saved.
+- Settings says whether your last backup is still current: "No changes since
+  last backup (3 days ago)" with a tick when nothing has changed, or "Last
+  backup 3 days ago (2 new sessions)" when you have bowled since. After
+  updating, the tick appears from your next backup.
+- Restoring a backup now shows it as your last backup. It used to show the
+  backup before it.
 
 ## 0.105.1: The store pictures show the line boxes as they are now (2026-11-10)
 

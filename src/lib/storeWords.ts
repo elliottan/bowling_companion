@@ -2,7 +2,7 @@ import { t } from "@lingui/core/macro";
 import { isAndroidApp } from "./platform";
 
 /**
- * The words for the store that sells Pro in this copy (ADR-274): Google Play
+ * The words for the store that sells Pro in this copy (ADR-277): Google Play
  * and a Google account in the Android app, the App Store and an Apple ID
  * everywhere else. Functions, not constants, so each is read in the bowler's
  * language at the moment it is shown.

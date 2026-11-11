@@ -4,7 +4,7 @@ Draft text and form answers for the Android app's Play Console page, for the
 owner to review and paste. It is copy, not code: nothing reads this file. It
 follows [APP-STORE-LISTING.md](./APP-STORE-LISTING.md), so the two stores say
 the same thing, with the iPhone-only parts left out (the Lock Screen, the
-Dynamic Island and the Apple Watch, ADR-274). The voice is
+Dynamic Island and the Apple Watch, ADR-277). The voice is
 `docs/DESIGN-LANGUAGE.md` section 8: sentence case, contractions, one word per
 thing, no exclamation marks, no em dashes.
 
@@ -133,14 +133,14 @@ If you've bowled with Headpin on the web, export a backup there and import it he
   listing.
 - **Privacy policy:** `https://headpin.app/legal`, the same page the app shows
   in Settings (ADR-181). It names Google Play for the Android app's purchase
-  as of 0.106.0.
+  as of 0.107.0.
 
 ## The Headpin Pro in-app product
 
 Monetize, Products, One-time products, Create:
 
 - **Product ID:** `app.headpin.pro`. It must be exactly this: the app asks Play
-  for this id (`PRO_PRODUCT_ID`, ADR-274), and an id cannot be changed or
+  for this id (`PRO_PRODUCT_ID`, ADR-277), and an id cannot be changed or
   reused once made.
 - **Name:** Headpin Pro. **Description (under 200):**
   `Deeper stats, the game plan, and the line and layout tools. Pay once, with every Pro feature added later included.`

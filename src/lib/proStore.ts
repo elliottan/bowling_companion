@@ -9,7 +9,7 @@ export { loadStorePlugin, type StorePlugin };
  * Headpin Pro in the store apps, through the app's own store plugin: StoreKit
  * on iOS (`ios/App/App/HeadpinStorePlugin.swift`, ADR-158), Play Billing on
  * Android (`android/app/src/main/java/app/headpin/HeadpinStorePlugin.java`,
- * ADR-274). Both answer the same calls.
+ * ADR-277). Both answer the same calls.
  *
  * The receipt is the truth. The page keeps a copy of the last answer so an
  * owner never sees a locked card flash while StoreKit is asked again, and asks
@@ -27,7 +27,7 @@ interface CapacitorPlatform {
 }
 
 /** Whether this copy sells Pro: the store apps, the iOS app through StoreKit
- *  (ADR-158) and the Android app through Play Billing (ADR-274). */
+ *  (ADR-158) and the Android app through Play Billing (ADR-277). */
 export function sellsPro(scope: object = globalThis, native = isNativeApp(scope)): boolean {
   const platform = (scope as { Capacitor?: CapacitorPlatform }).Capacitor?.getPlatform?.();
   return native && (platform === "ios" || platform === "android");

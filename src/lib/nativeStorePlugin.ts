@@ -4,7 +4,7 @@ import type { PurchaseOutcome } from "./pro";
 /**
  * The store apps' own plugin, `HeadpinStore`: StoreKit on iOS
  * (`ios/App/App/HeadpinStorePlugin.swift`, ADR-158) and Play Billing on Android
- * (`HeadpinStorePlugin.java`, ADR-274). Headpin Pro and the store's rating
+ * (`HeadpinStorePlugin.java`, ADR-277). Headpin Pro and the store's rating
  * prompt (ADR-218). Kept apart from
  * `proStore.ts`, which is React, so a service can ask for a rating without it.
  */

@@ -5,8 +5,15 @@ const shareFileFromApp = vi.fn(async (_name: string, _data: Blob | string) => "s
 vi.mock("../lib/nativeShare", () => ({ shareFileFromApp: (n: string, d: Blob | string) => shareFileFromApp(n, d) }));
 
 const { db } = await import("../db/bowlingDb");
-const { createBackup, exportBackup, prepareImport, replaceAllData, shareBackup } = await import("./backupRepository");
-const { createSession, getSetting } = await import("./bowlingRepository");
+const { createBackup, exportBackup, prepareImport, replaceAllData, saveSafetyCopy, shareBackup } = await import("./backupRepository");
+const { createSession } = await import("./bowlingRepository");
+
+/** The recorded last backup's time (ADR-275), or undefined for none. */
+async function lastBackupAt(): Promise<string | undefined> {
+  const row = await db.backup_state.get("last_backup");
+  return row?.key === "last_backup" ? row.at : undefined;
+}
+
 
 /** The store apps' web views neither download nor share (ADR-156). */
 describe("backups in the store apps", () => {
@@ -15,6 +22,7 @@ describe("backups in the store apps", () => {
   beforeEach(async () => {
     vi.stubGlobal("Capacitor", { isNativePlatform: () => true });
     await db.settings.clear();
+    await db.backup_state.clear();
     shareFileFromApp.mockClear();
     click.mockClear();
   });
@@ -28,30 +36,25 @@ describe("backups in the store apps", () => {
     expect(name).toMatch(/^headpin-\d{4}-\d{2}-\d{2}-\d{4}-\d+s\.json$/);
     expect(JSON.parse(data as string).tables).toBeDefined();
     expect(click).not.toHaveBeenCalled();
-    expect(await getSetting("last_backup_at")).toBeDefined();
+    expect(await lastBackupAt()).toBeDefined();
   });
 
   it("does not count a closed sheet as a backup, so the reminder keeps asking", async () => {
     shareFileFromApp.mockResolvedValueOnce("cancelled");
     expect(await shareBackup()).toBe("cancelled");
-    expect(await getSetting("last_backup_at")).toBeUndefined();
+    expect(await lastBackupAt()).toBeUndefined();
   });
 
-  it("replaces nothing when the safety copy's sheet is closed (ADR-250)", async () => {
-    await db.sessions.clear();
-    await createSession({ date: "2026-11-01", alley_name: "Only Copy Lanes" });
-    const incoming = await prepareImport(JSON.stringify({ ...(await createBackup()), tables: { ...(await createBackup()).tables, sessions: [] } }));
-    // The sheet the safety copy opens on is closed: nothing left the phone.
+  it("sends the safety copy through the sheet, and says when it was closed (ADR-274)", async () => {
     shareFileFromApp.mockResolvedValueOnce("cancelled");
-
-    await expect(replaceAllData(incoming.backup)).rejects.toThrow(/not saved/);
-
+    expect(await saveSafetyCopy()).toBe("cancelled");
     expect(shareFileFromApp.mock.calls[0][0]).toMatch(/^pre-import-/);
-    // What was on the phone is still there.
-    expect((await db.sessions.toArray()).map((s) => s.alley_name)).toEqual(["Only Copy Lanes"]);
+    expect(click).not.toHaveBeenCalled();
+    // A safety copy is not a backup the reminder counts.
+    expect(await lastBackupAt()).toBeUndefined();
   });
 
-  it("replaces once the safety copy has left through the sheet", async () => {
+  it("replaces without opening a sheet of its own", async () => {
     await db.sessions.clear();
     await createSession({ date: "2026-11-01", alley_name: "Old Lanes" });
     const incoming = await prepareImport(JSON.stringify({ ...(await createBackup()), tables: { ...(await createBackup()).tables, sessions: [] } }));
@@ -59,6 +62,7 @@ describe("backups in the store apps", () => {
     await replaceAllData(incoming.backup);
 
     expect(await db.sessions.count()).toBe(0);
+    expect(shareFileFromApp).not.toHaveBeenCalled();
   });
 
   it("sends the error screen's export through the sheet too", async () => {

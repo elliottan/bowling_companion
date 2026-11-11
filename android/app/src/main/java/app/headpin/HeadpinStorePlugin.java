@@ -27,7 +27,7 @@ import java.util.List;
 
 /**
  * Headpin Pro, bought and restored through Google Play Billing, and Play's
- * rating prompt (ADR-274). The Android twin of
+ * rating prompt (ADR-277). The Android twin of
  * {@code ios/App/App/HeadpinStorePlugin.swift} (ADR-158): the same name, the
  * same methods and the same answers, so the page cannot tell them apart.
  *
@@ -238,7 +238,7 @@ public class HeadpinStorePlugin extends Plugin {
         whenConnected(() -> owned(call), call);
     }
 
-    /** Asks for Play's rating prompt (ADR-218, ADR-274). Play decides whether
+    /** Asks for Play's rating prompt (ADR-218, ADR-277). Play decides whether
      *  it shows and never says which; this resolves either way. */
     @PluginMethod
     public void requestReview(PluginCall call) {

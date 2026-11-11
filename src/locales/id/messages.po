@@ -79,6 +79,11 @@ msgstr "{0, plural, other {# game}}"
 msgid "{0, plural, one {# lane} other {# lanes}}"
 msgstr "{0, plural, other {# lintasan}}"
 
+#. placeholder {0}: status.newSessions
+#: src/lib/backupNudge.ts
+msgid "{0, plural, one {# new session} other {# new sessions}}"
+msgstr "{0, plural, other {# sesi baru}}"
+
 #. placeholder {0}: patterns.length
 #: src/lib/lineReport.ts
 msgid "{0, plural, one {# pattern} other {# patterns}}"
@@ -419,6 +424,10 @@ msgstr "spare pin {leavePin}"
 msgid "{lengthBand, select, early {Reads the lane early} mid {Picks up in the mid lane} other {Saves its energy for the back}} and {shapeBand, select, smooth {arcs smoothly through the breakpoint} defined {turns the corner with a defined shape} other {snaps hard at the breakpoint}}."
 msgstr "{lengthBand, select, early {Membaca lintasan lebih awal} mid {Mulai menggigit di tengah lintasan} other {Menyimpan tenaganya untuk bagian akhir lintasan}} dan {shapeBand, select, smooth {melengkung halus melewati titik belok} defined {berbelok tajam dengan bentuk yang jelas} other {menyentak keras di titik belok}}."
 
+#: src/lib/backupNudge.ts
+msgid "{line} ({added})"
+msgstr "{line} ({added})"
+
 #. The greeting on Home with the bowler's name on the end: a greeting, then the name
 #: src/lib/greeting.ts
 msgid "{line}, {who}"
@@ -691,8 +700,8 @@ msgid "3 months"
 msgstr "3 bulan"
 
 #: src/views/BackupRestoreView.tsx
-msgid "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. Your current data is saved off first."
-msgstr "Cadangan adalah satu file, disimpan di perangkat ini atau di mana pun kamu menaruhnya. Memulihkan akan <0>menggantikan</0> semua data di perangkat ini dengan isi file. Datamu saat ini disimpan dulu."
+msgid "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. You are asked to save a copy of your current data first."
+msgstr "Cadangan adalah satu file, disimpan di perangkat ini atau di mana pun kamu menaruhnya. Memulihkan akan <0>menggantikan</0> semua data di perangkat ini dengan isi file. Kamu akan diminta menyimpan salinan datamu saat ini dulu."
 
 #: src/components/BallLayoutDiagram.tsx
 msgid "A bowling ball drilled with a thumb hole and two finger holes, showing a {drillingAngle} by {pinToPap} inch by {valAngle} dual angle layout."
@@ -1482,6 +1491,10 @@ msgstr "Bandingkan menurut"
 #: src/views/CatalogView.tsx
 msgid "Connect once to load the catalog"
 msgstr "Sambungkan sekali untuk memuat katalog"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Continue"
+msgstr "Lanjutkan"
 
 #. Bowling term: the share of spare chances for this leave that were made.
 #: src/components/SpareLineFormDialog.tsx
@@ -2350,10 +2363,6 @@ msgstr "Punya jalur"
 msgid "Headpin {version}"
 msgstr "Headpin {version}"
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Headpin downloads a copy of your current data first, so you can undo this."
-msgstr "Headpin mengunduh salinan datamu saat ini terlebih dahulu, jadi kamu bisa mengurungkannya."
-
 #: src/components/GetTheAppBanner.tsx
 msgid "Headpin for iPhone"
 msgstr "Headpin untuk iPhone"
@@ -3118,7 +3127,7 @@ msgstr "Nama, A sampai Z"
 msgid "never"
 msgstr "belum pernah"
 
-#: src/views/SettingsView.tsx
+#: src/lib/backupNudge.ts
 msgid "Never backed up"
 msgstr "Belum dicadangkan"
 
@@ -3181,6 +3190,10 @@ msgstr "Belum ada bola untuk dibandingkan. Tulis nama bola di lemparanmu dan rat
 #: src/views/ArsenalView.tsx
 msgid "No balls yet"
 msgstr "Belum ada bola"
+
+#: src/lib/backupNudge.ts
+msgid "No changes since last backup ({age})"
+msgstr "Tidak ada perubahan sejak cadangan terakhir ({age})"
 
 #. Under a zone of the approach diagram: this zone does not move the slide foot
 #: src/components/DriftZoneLane.tsx
@@ -3920,6 +3933,10 @@ msgstr "Pulihkan dari cadangan"
 msgid "Restore purchase"
 msgstr "Pulihkan pembelian"
 
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Restoring replaces everything on this device. Keep a copy of what is here now, so you can undo it."
+msgstr "Memulihkan akan menggantikan semua data di perangkat ini. Simpan salinan data yang ada sekarang agar kamu bisa membatalkannya."
+
 #: src/components/FirstRun.tsx
 msgid "Restoring…"
 msgstr "Memulihkan…"
@@ -4056,10 +4073,15 @@ msgstr "Simpan"
 msgid "Save a backup"
 msgstr "Simpan cadangan"
 
+#: src/components/ReplaceConfirmDialog.tsx
 #: src/components/SaveCopyPrompt.tsx
 #: src/views/DashboardView.tsx
 msgid "Save a copy"
 msgstr "Simpan salinan"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Save a copy first"
+msgstr "Simpan salinan dulu"
 
 #. Bowling terms: a leave is the pins left standing after the first ball; the intended line is where the bowler plans to stand and aim
 #: src/components/NextSteps.tsx
@@ -4818,10 +4840,6 @@ msgstr "Katalog belum dimuat"
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "Katalog belum dimuat. Katalog butuh koneksi satu kali, setelah itu bisa dipakai offline."
 
-#: src/services/backupRepository.ts
-msgid "The copy of what is on this phone was not saved, so nothing was replaced."
-msgstr "Salinan isi ponsel ini tidak tersimpan, jadi tidak ada yang diganti."
-
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."
 msgstr "Gambar tidak bisa dibuat."
@@ -5006,10 +5024,6 @@ msgstr "Dua sesi cukup untuk membandingkan game pertama dengan yang terakhir."
 #: src/views/SettingsView.tsx
 msgid "Two-handed"
 msgstr "Dua tangan"
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Type {word} to confirm"
-msgstr "Ketik {word} untuk konfirmasi"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Unable to add game."

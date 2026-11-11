@@ -47,19 +47,20 @@ test("exports a backup, clears the database, and restores it via import", async 
   // Import the captured backup, confirm the session is restored.
   await page.getByRole("button", { name: "Settings" }).click();
   await page.getByRole("button", { name: "Backup & restore" }).click();
-  await page.locator('input[type="file"]').setInputFiles(filePath);
 
-  // Import replaces everything (ADR-038), so it is gated behind typed confirmation.
-  await expect(page.getByRole("heading", { name: "Replace all data?" })).toBeVisible();
-  const replaceButton = page.getByRole("button", { name: "Replace everything" });
-  await expect(replaceButton).toBeDisabled();
-  await page.getByPlaceholder("REPLACE").fill("REPLACE");
-  // The safety copy of the current (empty) database downloads before the wipe.
+  // Import replaces everything (ADR-038). The popup saves a copy of the
+  // current data as it opens, and waits for Continue (ADR-274).
   const safetyCopyPromise = page.waitForEvent("download");
-  await replaceButton.click();
+  await page.locator('input[type="file"]').setInputFiles(filePath);
+  await expect(page.getByRole("heading", { name: "Save a copy first" })).toBeVisible();
   expect((await safetyCopyPromise).suggestedFilename()).toMatch(
     /^pre-import-headpin-.*\.json$/
   );
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // Then one red button, no typed word.
+  await expect(page.getByRole("heading", { name: "Replace all data?" })).toBeVisible();
+  await page.getByRole("button", { name: "Replace everything" }).click();
 
   // The restore reloads the app, because the shell reads handedness and the
   // drift model once at boot and the database underneath them just changed.

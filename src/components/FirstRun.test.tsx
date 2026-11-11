@@ -143,9 +143,10 @@ describe("FirstRun", () => {
   /**
    * The boot gate should mean a bowler with sessions never reaches the welcome,
    * but a slow read is a race, and the cost of losing it is every session on
-   * the device. The same typed gate the Settings restore uses stands behind it.
+   * the device. The same gate the Settings restore uses stands behind it: the
+   * copy first, then the confirm (ADR-274).
    */
-  it("puts the typed gate in front of a restore over existing sessions", async () => {
+  it("puts the gate in front of a restore over existing sessions", async () => {
     const file = await backupFileWith("Restored Lanes");
     await createSession({ date: "2026-05-27", alley_name: "Local Lanes" });
 
@@ -154,10 +155,14 @@ describe("FirstRun", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: "Restore" }));
 
+    expect(await screen.findByText("Save a copy first")).toBeInTheDocument();
+    const next = await screen.findByRole("button", { name: "Continue" });
+    await waitFor(() => expect(next).toBeEnabled());
+    fireEvent.click(next);
     const gate = (await screen.findByText("Replace all data?")).closest(
       "[role=dialog]"
     ) as HTMLElement;
-    expect(within(gate).getByRole("button", { name: /Replace everything/ })).toBeDisabled();
+    expect(within(gate).getByRole("button", { name: /Replace everything/ })).toBeEnabled();
     expect(await db.sessions.count()).toBe(1);
   });
 

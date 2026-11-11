@@ -84,7 +84,7 @@ scripts; a build drops it (`devProUnlock` in `src/lib/pro.ts`).
 Until the app is listed, `/app` shows the locked app too, so the free tier can be
 checked on the web before an iPhone rebuild (`LOCK_FREE_WEB` in
 `src/lib/appStore.ts`, ADR-166). The Pro page's button then says the app is not in
-the App Store yet. The Android app sells Pro through Google Play (ADR-274).
+the App Store yet. The Android app sells Pro through Google Play (ADR-277).
 
 ## How Pro shows where it is locked
 
@@ -266,7 +266,7 @@ switch.
 - [x] The Android shell, from the same build (ADR-155, `npm run build:android`):
       portrait, edge to edge, and the back button through history. Walked on
       an emulator by `android-device-check.yml`; not yet on a phone.
-- [x] Play Billing for the same product (ADR-274, `HeadpinStorePlugin.java`):
+- [x] Play Billing for the same product (ADR-277, `HeadpinStorePlugin.java`):
       buy, restore, acknowledge, and Play's rating prompt. Builds; not yet
       tried against Play Console, which needs `app.headpin.pro` as a one-time
       product and a build on a testing track.

@@ -88,7 +88,7 @@ describe("the Pro page (ADR-164)", () => {
     expect(await screen.findByText(/did not answer: offline/)).toBeInTheDocument();
   });
 
-  it("sells the Android app through Google Play, without the iPhone's Live Activity (ADR-274)", async () => {
+  it("sells the Android app through Google Play, without the iPhone's Live Activity (ADR-277)", async () => {
     const scope = globalThis as { Capacitor?: unknown };
     scope.Capacitor = { isNativePlatform: () => true, getPlatform: () => "android" };
     try {

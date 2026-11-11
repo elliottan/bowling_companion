@@ -22,7 +22,7 @@ export interface ProAction {
 /**
  * The one action a locked thing offers. On the web, the steps for moving games
  * and then the App Store page. In the store apps, the purchase itself (ADR-158,
- * ADR-274): the store's own sheet takes it from the tap, and everything opens by itself once
+ * ADR-277): the store's own sheet takes it from the tap, and everything opens by itself once
  * it is bought, here and everywhere.
  *
  * This is the action that charges. The Pro page runs it from its own button;

@@ -81,7 +81,7 @@ const FEATURES: Array<{ title: MessageDescriptor; why: MessageDescriptor; sample
 
 export function ProOfferView({ onBack }: ProOfferViewProps) {
   const access = useProAccess();
-  // The Android app does not offer what only an iPhone has (ADR-274).
+  // The Android app does not offer what only an iPhone has (ADR-277).
   const android = isAndroidApp();
   const features = android ? FEATURES.filter((f) => !f.iPhoneOnly) : FEATURES;
   return (

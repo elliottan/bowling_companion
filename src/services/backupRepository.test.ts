@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "../db/bowlingDb";
 import {
   backupFilename,
@@ -7,11 +7,19 @@ import {
   exportBackup,
   prepareImport,
   replaceAllData,
+  saveSafetyCopy,
+  serializeBackup,
   shareBackup
 } from "./backupRepository";
 import type { BowlingBackup } from "../types/bowling";
 import { addGameToSession, createSession, getSessionHistory, getSetting, saveFrame } from "./bowlingRepository";
 
+
+/** The recorded last backup's time (ADR-275), or undefined for none. */
+async function lastBackupAt(): Promise<string | undefined> {
+  const row = await db.backup_state.get("last_backup");
+  return row?.key === "last_backup" ? row.at : undefined;
+}
 
 /** The full import flow: validate, then replace everything (ADR-038). */
 async function importBackup(fileOrJson: unknown) {
@@ -21,11 +29,28 @@ async function importBackup(fileOrJson: unknown) {
 
 describe("backupRepository", () => {
   beforeEach(async () => {
-    // replaceAllData downloads a safety copy; jsdom has no Blob URL APIs.
+    // Exports download through a Blob URL, which jsdom does not implement.
     URL.createObjectURL = () => "blob:stub";
     URL.revokeObjectURL = () => {};
     await db.delete();
     await db.open();
+  });
+
+  /**
+   * Files are written compact, more than halving them at years of data, and
+   * every file written indented before that still has to restore.
+   */
+  it("writes a compact file, and still restores an indented one", async () => {
+    await createSession({ date: "2026-11-01", alley_name: "Compact Lanes" });
+    const backup = await createBackup();
+
+    const written = serializeBackup(backup);
+    expect(written).not.toContain("\n");
+    expect(JSON.parse(written)).toEqual(backup);
+
+    await db.sessions.clear();
+    await importBackup(JSON.stringify(backup, null, 2));
+    expect((await db.sessions.toArray()).map((s) => s.alley_name)).toEqual(["Compact Lanes"]);
   });
 
   it("creates and imports a backup", async () => {
@@ -121,7 +146,42 @@ describe("backupRepository", () => {
     expect(history[0].session.alley_name).toBe("Imported Lanes");
   });
 
-  it("downloads a safety copy of the current data before wiping it", async () => {
+  /**
+   * After a restore the device holds exactly the file, so the file is the
+   * last backup, as of when it was made, with nothing changed since. A file
+   * from before ADR-275 carries the old bookkeeping in its settings, which
+   * describes the backup before it and is not installed.
+   */
+  it("records the restored file as the last backup, unchanged since (ADR-275)", async () => {
+    await createSession({ date: "2026-05-27", alley_name: "Replaced Lanes" });
+
+    await importBackup({
+      app: "bowling-companion" as const,
+      version: 3 as const,
+      exported_at: "2026-09-01T12:00:00.000Z",
+      tables: {
+        sessions: [{ id: 1, date: "2026-08-30", alley_name: "Restored Lanes" }],
+        games: [],
+        frames: [],
+        settings: [
+          { key: "last_backup_at", value: "2026-01-01T00:00:00.000Z" },
+          { key: "sessions_at_last_backup", value: "9" },
+          { key: "theme", value: "dark" }
+        ]
+      }
+    });
+
+    const revision = await db.backup_state.get("revision");
+    expect(await db.backup_state.get("last_backup")).toEqual({
+      key: "last_backup",
+      at: "2026-09-01T12:00:00.000Z",
+      sessions: 1,
+      revision: revision?.key === "revision" ? revision.value : -1
+    });
+    expect((await db.settings.toArray()).map((s) => s.key)).toEqual(["theme"]);
+  });
+
+  it("saves a safety copy of the current data, under its own name", async () => {
     await createSession({ date: "2026-05-27", alley_name: "About To Be Deleted" });
 
     let downloadedBlob: Blob | null = null;
@@ -129,13 +189,16 @@ describe("backupRepository", () => {
       downloadedBlob = blob;
       return "blob:stub";
     };
-
-    await importBackup({
-      app: "bowling-companion" as const,
-      version: 3 as const,
-      exported_at: "2026-05-27T00:00:00.000Z",
-      tables: { sessions: [], games: [], frames: [] }
+    const names: string[] = [];
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
+      this: HTMLAnchorElement
+    ) {
+      names.push(this.download);
     });
+
+    expect(await saveSafetyCopy()).toBe("downloaded");
+    click.mockRestore();
+    expect(names[0]).toMatch(/^pre-import-headpin-/);
 
     // jsdom's Blob implements neither .text() nor the fetch Blob interface,
     // so read it the way jsdom does support.
@@ -145,7 +208,8 @@ describe("backupRepository", () => {
       reader.readAsText(downloadedBlob!);
     });
     expect(downloaded).toContain("About To Be Deleted");
-    expect(await db.sessions.count()).toBe(0);
+    // Saving a copy touches nothing.
+    expect(await db.sessions.count()).toBe(1);
   });
 
   it("imports a v1 backup with flat frame fields", async () => {
@@ -245,7 +309,7 @@ describe("backupRepository", () => {
     expect(notes[0].notes).toBe("hooks early");
   });
 
-  it("stamps last_backup_at and sessions_at_last_backup after export", async () => {
+  it("records the backup, and what it held, after export (ADR-275)", async () => {
     // jsdom doesn't implement the Blob URL APIs the download link uses.
     URL.createObjectURL = () => "blob:stub";
     URL.revokeObjectURL = () => {};
@@ -254,8 +318,13 @@ describe("backupRepository", () => {
 
     await exportBackup();
 
-    expect(await getSetting("last_backup_at")).toEqual(expect.any(String));
-    expect(await getSetting("sessions_at_last_backup")).toBe("1");
+    expect(await db.backup_state.get("last_backup")).toMatchObject({
+      at: expect.any(String),
+      sessions: 1,
+      revision: (await db.backup_state.get("revision"))?.key === "revision" ? expect.any(Number) : null
+    });
+    // Kept out of settings, which every backup file carries.
+    expect(await getSetting("last_backup_at")).toBeUndefined();
   });
 });
 
@@ -350,7 +419,8 @@ describe("backup completeness", () => {
    * above instead of shipping.
    */
   const NOT_BACKED_UP: Record<string, string> = {
-    ball_catalog: "read-only reference data, re-synced from the shipped catalog"
+    ball_catalog: "read-only reference data, re-synced from the shipped catalog",
+    backup_state: "this device's own record of its backups, which a file must not carry (ADR-275)"
   };
 
   it("backs up every table in the schema, or names why not", async () => {
@@ -519,7 +589,7 @@ describe("shareBackup through the share sheet", () => {
     expect(shared[0][0].name).toMatch(/^headpin-.*\.json$/);
     expect(JSON.parse(await shared[0][0].text()).tables.sessions).toHaveLength(1);
     expect(clicks).toBe(0);
-    expect(await getSetting("last_backup_at")).toEqual(expect.any(String));
+    expect(await lastBackupAt()).toEqual(expect.any(String));
   });
 
   it("reads a closed sheet as cancelled, and records nothing", async () => {
@@ -530,7 +600,7 @@ describe("shareBackup through the share sheet", () => {
     expect(await shareBackup()).toBe("cancelled");
 
     // Nothing left the device, so the reminder has to keep asking.
-    expect(await getSetting("last_backup_at")).toBeUndefined();
+    expect(await lastBackupAt()).toBeUndefined();
     expect(clicks).toBe(0);
   });
 
@@ -542,7 +612,7 @@ describe("shareBackup through the share sheet", () => {
     expect(await shareBackup()).toBe("downloaded");
 
     expect(clicks).toBe(1);
-    expect(await getSetting("last_backup_at")).toEqual(expect.any(String));
+    expect(await lastBackupAt()).toEqual(expect.any(String));
   });
 
   it("downloads where the browser cannot share a file", async () => {

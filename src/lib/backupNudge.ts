@@ -111,6 +111,29 @@ export function describeAge(iso: string | null, now: Date): string {
 }
 
 /**
+ * The Settings row's one line about the backup (ADR-275):
+ *
+ * - nothing written since: "No changes since last backup (3 days ago)", the
+ *   one the row puts a tick beside;
+ * - sessions added: "Last backup 3 days ago (2 new sessions)";
+ * - anything else changed, or not known: "Last backup 3 days ago".
+ */
+export function describeBackupStatus(
+  status: { lastBackupAt: string | null; newSessions: number; unchanged: boolean },
+  now: Date
+): string {
+  if (status.lastBackupAt === null) return t`Never backed up`;
+  if (status.unchanged) {
+    const age = describeAge(status.lastBackupAt, now);
+    return t`No changes since last backup (${age})`;
+  }
+  const line = describeLastBackup(status.lastBackupAt, now);
+  if (status.newSessions === 0) return line;
+  const added = plural(status.newSessions, { one: "# new session", other: "# new sessions" });
+  return t`${line} (${added})`;
+}
+
+/**
  * The Settings row's whole line, "Last backup 3 days ago". A sentence of its
  * own rather than "Last backup" and `describeAge` joined, because the order of
  * those two parts is not the same in every language.

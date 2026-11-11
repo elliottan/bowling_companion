@@ -250,7 +250,7 @@ npx cap run android     # builds a debug APK, installs it and launches it
 fresh checkout needs `npm run build:android` first, as for iOS. The project
 targets SDK 36 and needs JDK 21. `MainActivity.java` carries the back button
 (ADR-155), and `HeadpinStorePlugin.java` sells Pro through Play Billing
-(ADR-274).
+(ADR-277).
 
 **The emulator walk.** `.github/workflows/android-device-check.yml` builds the
 debug APK on every change under `android/` and walks the app on an emulator
@@ -283,7 +283,7 @@ npm run bundle:android   # web build, copied in, then gradlew bundleRelease
 ```
 
 Without the key the bundle still builds, unsigned, and Play refuses it. The
-versionCode is read from `package.json` (`0.106.0` is `106000`), which every
+versionCode is read from `package.json` (`0.107.0` is `107000`), which every
 merge bumps, so each upload has a larger one; the version bowlers see,
 `versionName`, is the store version in `android/app/build.gradle`, `1.0` for
 the first release. The first upload goes to Internal testing in Play Console,

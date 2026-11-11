@@ -19,7 +19,7 @@ def uploadStoreFile = signingValue('storeFile', 'HEADPIN_UPLOAD_STORE_FILE')
 def canSignRelease = uploadStoreFile != null && file(uploadStoreFile).exists()
 
 // Play needs a larger versionCode on every upload. It is read from the web
-// app's version in package.json (0.106.0 is 106000), which every merge bumps,
+// app's version in package.json (0.107.0 is 107000), which every merge bumps,
 // so two uploads never share one. The name bowlers see is the store version.
 def appVersion = new JsonSlurper().parse(rootProject.file('../package.json')).version
 def (vMajor, vMinor, vPatch) = appVersion.tokenize('.').collect { it.replaceAll(/\D.*/, '') as int }
@@ -73,7 +73,7 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
-    // Headpin Pro and the rating prompt (HeadpinStorePlugin, ADR-274).
+    // Headpin Pro and the rating prompt (HeadpinStorePlugin, ADR-277).
     implementation "com.android.billingclient:billing:$playBillingVersion"
     implementation "com.google.android.play:review:$playReviewVersion"
     testImplementation "junit:junit:$junitVersion"

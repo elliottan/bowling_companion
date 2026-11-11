@@ -79,6 +79,11 @@ msgstr "{0, plural, one {# juego} other {# juegos}}"
 msgid "{0, plural, one {# lane} other {# lanes}}"
 msgstr "{0, plural, one {# pista} other {# pistas}}"
 
+#. placeholder {0}: status.newSessions
+#: src/lib/backupNudge.ts
+msgid "{0, plural, one {# new session} other {# new sessions}}"
+msgstr "{0, plural, one {# sesión nueva} other {# sesiones nuevas}}"
+
 #. placeholder {0}: patterns.length
 #: src/lib/lineReport.ts
 msgid "{0, plural, one {# pattern} other {# patterns}}"
@@ -419,6 +424,10 @@ msgstr "spare del pino {leavePin}"
 msgid "{lengthBand, select, early {Reads the lane early} mid {Picks up in the mid lane} other {Saves its energy for the back}} and {shapeBand, select, smooth {arcs smoothly through the breakpoint} defined {turns the corner with a defined shape} other {snaps hard at the breakpoint}}."
 msgstr "{lengthBand, select, early {Lee la pista temprano} mid {Agarra en la parte media de la pista} other {Guarda su energía para la parte final}} y {shapeBand, select, smooth {traza un arco suave en el punto de quiebre} defined {dobla la esquina con una forma definida} other {rompe con fuerza en el punto de quiebre}}."
 
+#: src/lib/backupNudge.ts
+msgid "{line} ({added})"
+msgstr "{line} ({added})"
+
 #. The greeting on Home with the bowler's name on the end: a greeting, then the name
 #: src/lib/greeting.ts
 msgid "{line}, {who}"
@@ -691,8 +700,8 @@ msgid "3 months"
 msgstr "3 meses"
 
 #: src/views/BackupRestoreView.tsx
-msgid "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. Your current data is saved off first."
-msgstr "Un respaldo es un solo archivo, guardado en este dispositivo o donde tú lo pongas. Al restaurar, <0>se reemplaza</0> todo lo que hay en este dispositivo con lo que contiene el archivo. Antes se guardan tus datos actuales."
+msgid "A backup is one file, kept on this device or wherever you put it. Restoring <0>replaces</0> everything on this device with what is in the file. You are asked to save a copy of your current data first."
+msgstr "Un respaldo es un solo archivo, guardado en este dispositivo o donde tú lo pongas. Al restaurar, <0>se reemplaza</0> todo lo que hay en este dispositivo con lo que contiene el archivo. Antes se te pide guardar una copia de tus datos actuales."
 
 #: src/components/BallLayoutDiagram.tsx
 msgid "A bowling ball drilled with a thumb hole and two finger holes, showing a {drillingAngle} by {pinToPap} inch by {valAngle} dual angle layout."
@@ -1482,6 +1491,10 @@ msgstr "Comparar por"
 #: src/views/CatalogView.tsx
 msgid "Connect once to load the catalog"
 msgstr "Conéctate una vez para cargar el catálogo"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Continue"
+msgstr "Continuar"
 
 #. Bowling term: the share of spare chances for this leave that were made.
 #: src/components/SpareLineFormDialog.tsx
@@ -2350,10 +2363,6 @@ msgstr "Con línea"
 msgid "Headpin {version}"
 msgstr "Headpin {version}"
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Headpin downloads a copy of your current data first, so you can undo this."
-msgstr "Headpin descarga primero una copia de tus datos actuales, para que puedas deshacer esto."
-
 #: src/components/GetTheAppBanner.tsx
 msgid "Headpin for iPhone"
 msgstr "Headpin para iPhone"
@@ -3118,7 +3127,7 @@ msgstr "Nombre, de A a Z"
 msgid "never"
 msgstr "nunca"
 
-#: src/views/SettingsView.tsx
+#: src/lib/backupNudge.ts
 msgid "Never backed up"
 msgstr "Nunca respaldado"
 
@@ -3181,6 +3190,10 @@ msgstr "Aún no hay bolas para comparar. Indica la bola en tus tiros y el promed
 #: src/views/ArsenalView.tsx
 msgid "No balls yet"
 msgstr "Aún no hay bolas"
+
+#: src/lib/backupNudge.ts
+msgid "No changes since last backup ({age})"
+msgstr "Sin cambios desde el último respaldo ({age})"
 
 #. Under a zone of the approach diagram: this zone does not move the slide foot
 #: src/components/DriftZoneLane.tsx
@@ -3920,6 +3933,10 @@ msgstr "Restaurar desde un respaldo"
 msgid "Restore purchase"
 msgstr "Restaurar compra"
 
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Restoring replaces everything on this device. Keep a copy of what is here now, so you can undo it."
+msgstr "Al restaurar se reemplaza todo lo que hay en este dispositivo. Guarda una copia de lo que hay ahora para poder deshacerlo."
+
 #: src/components/FirstRun.tsx
 msgid "Restoring…"
 msgstr "Restaurando…"
@@ -4056,10 +4073,15 @@ msgstr "Guardar"
 msgid "Save a backup"
 msgstr "Guardar un respaldo"
 
+#: src/components/ReplaceConfirmDialog.tsx
 #: src/components/SaveCopyPrompt.tsx
 #: src/views/DashboardView.tsx
 msgid "Save a copy"
 msgstr "Guardar una copia"
+
+#: src/components/ReplaceConfirmDialog.tsx
+msgid "Save a copy first"
+msgstr "Primero guarda una copia"
 
 #. Bowling terms: a leave is the pins left standing after the first ball; the intended line is where the bowler plans to stand and aim
 #: src/components/NextSteps.tsx
@@ -4818,10 +4840,6 @@ msgstr "El catálogo no se ha cargado"
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "El catálogo aún no se ha cargado. Necesita una conexión una vez y luego funciona sin internet."
 
-#: src/services/backupRepository.ts
-msgid "The copy of what is on this phone was not saved, so nothing was replaced."
-msgstr "La copia de lo que hay en este teléfono no se guardó, así que no se reemplazó nada."
-
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."
 msgstr "No se pudo crear la imagen."
@@ -5006,10 +5024,6 @@ msgstr "Con dos sesiones basta para comparar tu primer juego con el último."
 #: src/views/SettingsView.tsx
 msgid "Two-handed"
 msgstr "A dos manos"
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Type {word} to confirm"
-msgstr "Escribe {word} para confirmar"
 
 #: src/views/ActiveSessionView.tsx
 msgid "Unable to add game."

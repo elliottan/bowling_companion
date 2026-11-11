@@ -29,7 +29,6 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
   const [persisted, setPersisted] = useState<boolean | null>(null);
   const native = isNativeApp();
   const [pending, setPending] = useState<PreparedImport | null>(null);
-  const [confirmText, setConfirmText] = useState("");
 
   useEffect(() => {
     navigator.storage?.persisted?.()
@@ -95,10 +94,9 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
       window.location.reload();
     } catch (err) {
       // The confirm closes so the reason is on screen rather than behind it.
-      // Nothing was replaced (the safety copy that was not saved stops it
-      // before the wipe, ADR-250), so the file can simply be picked again.
+      // The wipe runs in one transaction, so a failure replaced nothing and
+      // the file can simply be picked again.
       setPending(null);
-      setConfirmText("");
       setError(err instanceof Error ? err.message : t`Import failed.`);
       setIsBusy(false);
     }
@@ -110,7 +108,7 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
         <Trans>
           A backup is one file, kept on this device or wherever you put it. Restoring{" "}
           <strong className="font-semibold text-ink">replaces</strong> everything on this device
-          with what is in the file. Your current data is saved off first.
+          with what is in the file. You are asked to save a copy of your current data first.
         </Trans>
       </p>
 
@@ -179,14 +177,9 @@ export function BackupRestoreView({ onBack, mode = "inline" }: BackupRestoreView
 
       <ReplaceConfirmDialog
         pending={pending}
-        confirmText={confirmText}
-        onConfirmTextChange={setConfirmText}
         isBusy={isBusy}
         onConfirm={handleConfirmReplace}
-        onCancel={() => {
-          setPending(null);
-          setConfirmText("");
-        }}
+        onCancel={() => setPending(null)}
       />
     </section>
   );
