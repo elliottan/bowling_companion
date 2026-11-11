@@ -56,6 +56,16 @@ async function snapshot(): Promise<{ backup: BowlingBackup; revision: number }> 
 }
 
 /**
+ * A backup as the text of its file: compact, with no indentation. Indented, a
+ * file was more than twice the size (about 60 MB against 25 at ten heavy
+ * years) for a layout nobody reads. Restore parses either, so every file
+ * written before this still restores.
+ */
+export function serializeBackup(backup: BowlingBackup): string {
+  return JSON.stringify(backup);
+}
+
+/**
  * A name that sorts and identifies itself in a cloud folder (ADR-067).
  *
  * Date alone collided: two exports on the same day become "(1)" and "(2)" in
@@ -76,7 +86,7 @@ async function downloadBackup(
   backup: BowlingBackup,
   filename: string
 ): Promise<"shared" | "downloaded" | "cancelled"> {
-  const json = JSON.stringify(backup, null, 2);
+  const json = serializeBackup(backup);
   // In the apps the file leaves through the sheet, which can be closed. The
   // caller hears about it: a safety copy that never left is no safety copy.
   if (isNativeApp()) return shareFileFromApp(filename, json);
@@ -107,7 +117,7 @@ export function canShareBackupFile(file: File, nav: Navigator = navigator): bool
 }
 
 function backupFile(backup: BowlingBackup): File {
-  return new File([JSON.stringify(backup, null, 2)], backupFilename(backup), {
+  return new File([serializeBackup(backup)], backupFilename(backup), {
     type: "application/json"
   });
 }
@@ -126,7 +136,7 @@ export async function shareBackup(): Promise<BackupDestination> {
 
   // The store apps go straight to the platform's sheet (ADR-156).
   if (isNativeApp()) {
-    const outcome = await shareFileFromApp(backupFilename(backup), JSON.stringify(backup, null, 2));
+    const outcome = await shareFileFromApp(backupFilename(backup), serializeBackup(backup));
     if (outcome === "cancelled") return "cancelled";
     await recordBackup(backup, revision);
     return "shared";

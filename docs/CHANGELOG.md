@@ -9,6 +9,15 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.106.1: The scorer stays quick after years of bowling, and backups are half the size (2026-11-11)
+
+- Entering a ball no longer reloads your whole history in the background.
+  The scorer now reads only your earlier nights at the same alley on the same
+  pattern, once, to suggest your line for a leave, so it stays responsive
+  however many seasons you have. The suggestions are the same as before.
+- Backup files are written without indentation, which makes them less than
+  half the size. Every backup saved before still restores.
+
 ## 0.106.0: Restoring asks for a copy, and Settings says if your backup is current (2026-11-10)
 
 - Restoring a backup over what is on the device opens "Save a copy first",

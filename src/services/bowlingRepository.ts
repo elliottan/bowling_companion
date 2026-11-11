@@ -14,6 +14,7 @@ import {
   type DriftModel
 } from "../lib/driftModel";
 import type { BackupNudgeState } from "../lib/backupNudge";
+import { earlierSessionCandidates, earlierSessionFrames } from "../lib/shotSeeding";
 import { DEFAULT_TEXT_SIZE, isTextSizeId, type TextSizeId } from "../lib/textScale";
 import type { PapMeasurement } from "../lib/ballLayout";
 import type {
@@ -771,6 +772,49 @@ export async function setBackupNudgeSnoozedUntil(iso: string): Promise<void> {
  */
 export async function getCompletedGameCount(): Promise<number> {
   return db.games.filter((g) => g.final_score !== undefined).count();
+}
+
+/**
+ * Every frame from earlier sessions at this house on this pattern, for the
+ * scorer's line seeding (ADR-140), read without loading the whole history.
+ *
+ * The sessions are few and are read whole; only the matching ones' games and
+ * frames are read after them, by index. That also keeps a live query on this
+ * quiet while a game is bowled: the frames saved belong to the current
+ * session, which is never one of those read, so a ball entered does not
+ * re-run it. Loading every frame ever bowled, as it used to, re-ran it on
+ * every ball, and cost most of a second at ten years of data.
+ */
+export async function getEarlierSessionFrames(
+  current: Pick<Session, "id" | "date" | "alley_name" | "oil_pattern_id">
+): Promise<Frame[]> {
+  // The matching itself is `earlierSessionCandidates`'s, so this cannot drift
+  // from it: this only decides what to read before handing it over.
+  const sessions = earlierSessionCandidates(await db.sessions.toArray(), current);
+  const sessionIds = sessions.flatMap((s) => (s.id == null ? [] : [s.id]));
+  if (sessionIds.length === 0) return [];
+
+  const games = await db.games.where("session_id").anyOf(sessionIds).toArray();
+  const gameIds = games.flatMap((g) => (g.id == null ? [] : [g.id]));
+  const frames = gameIds.length === 0 ? [] : await db.frames.where("game_id").anyOf(gameIds).toArray();
+
+  const framesByGame = new Map<number, Frame[]>();
+  for (const frame of frames) {
+    const list = framesByGame.get(frame.game_id);
+    if (list) list.push(frame);
+    else framesByGame.set(frame.game_id, [frame]);
+  }
+  for (const list of framesByGame.values()) list.sort((a, b) => a.frame_number - b.frame_number);
+
+  return earlierSessionFrames(
+    sessions.map((session) => ({
+      session,
+      games: games
+        .filter((g) => g.session_id === session.id)
+        .map((g) => ({ ...g, frames: (g.id != null && framesByGame.get(g.id)) || [] }))
+    })),
+    current
+  );
 }
 
 export async function getSessionHistory(): Promise<SessionSummary[]> {
