@@ -1,5 +1,29 @@
 apply plugin: 'com.android.application'
 
+import groovy.json.JsonSlurper
+
+// The release is signed with the owner's upload key (Play App Signing then
+// re-signs it with Google's key). The key never enters git: its path and
+// passwords come from android/keystore.properties, which .gitignore keeps
+// out, or from the environment in CI. Without them a release still builds,
+// unsigned, so the project stays buildable on any machine.
+def signingProps = new Properties()
+def signingFile = rootProject.file('keystore.properties')
+if (signingFile.exists()) {
+    signingFile.withInputStream { signingProps.load(it) }
+}
+def signingValue = { String key, String env ->
+    signingProps.getProperty(key) ?: System.getenv(env)
+}
+def uploadStoreFile = signingValue('storeFile', 'HEADPIN_UPLOAD_STORE_FILE')
+def canSignRelease = uploadStoreFile != null && file(uploadStoreFile).exists()
+
+// Play needs a larger versionCode on every upload. It is read from the web
+// app's version in package.json (0.107.0 is 107000), which every merge bumps,
+// so two uploads never share one. The name bowlers see is the store version.
+def appVersion = new JsonSlurper().parse(rootProject.file('../package.json')).version
+def (vMajor, vMinor, vPatch) = appVersion.tokenize('.').collect { it.replaceAll(/\D.*/, '') as int }
+
 android {
     namespace = "app.headpin"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,7 +31,7 @@ android {
         applicationId "app.headpin"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode vMajor * 1000000 + vMinor * 1000 + vPatch
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -16,8 +40,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (canSignRelease) {
+                storeFile file(uploadStoreFile)
+                storePassword signingValue('storePassword', 'HEADPIN_UPLOAD_STORE_PASSWORD')
+                keyAlias signingValue('keyAlias', 'HEADPIN_UPLOAD_KEY_ALIAS')
+                keyPassword signingValue('keyPassword', 'HEADPIN_UPLOAD_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (canSignRelease) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -36,6 +73,9 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    // Headpin Pro and the rating prompt (HeadpinStorePlugin, ADR-277).
+    implementation "com.android.billingclient:billing:$playBillingVersion"
+    implementation "com.google.android.play:review:$playReviewVersion"
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"

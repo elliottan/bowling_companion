@@ -2,15 +2,17 @@ import { unthenable } from "./nativePlugin";
 import type { PurchaseOutcome } from "./pro";
 
 /**
- * The iOS app's own StoreKit plugin (`ios/App/App/HeadpinStorePlugin.swift`):
- * Headpin Pro (ADR-158) and Apple's rating prompt (ADR-218). Kept apart from
+ * The store apps' own plugin, `HeadpinStore`: StoreKit on iOS
+ * (`ios/App/App/HeadpinStorePlugin.swift`, ADR-158) and Play Billing on Android
+ * (`HeadpinStorePlugin.java`, ADR-277). Headpin Pro and the store's rating
+ * prompt (ADR-218). Kept apart from
  * `proStore.ts`, which is React, so a service can ask for a rating without it.
  */
 export interface StorePlugin {
   purchase(options: { id: string }): Promise<{ status: PurchaseOutcome }>;
   entitlements(): Promise<{ ids: string[] }>;
   restore(): Promise<{ ids: string[] }>;
-  /** Asks Apple to show its rating prompt, which Apple may decline to show. */
+  /** Asks the store to show its rating prompt, which it may decline to show. */
   requestReview(): Promise<void>;
   addListener(event: "entitlements", listener: (data: { ids: string[] }) => void): Promise<{ remove: () => Promise<void> }>;
 }

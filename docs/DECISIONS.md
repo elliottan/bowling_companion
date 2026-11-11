@@ -11422,3 +11422,53 @@ says that no copy was saved. Continue is the only way on, as before.
 **Consequences.** The app no longer claims what it cannot know. A copy that
 was saved through the apps' share sheet still counts as a backup for the
 Settings row (ADR-275), since the sheet does report it.
+
+## ADR-277: The Android app sells Pro through its own Play Billing plugin
+
+**Status.** Accepted, 2026-11-11. Follows ADR-158 and replaces its last point
+("Only the iOS app sells Pro"). Phase 5 of `docs/PRO-LAUNCH.md`, started by the
+owner while iOS 1.0 is still in review.
+
+**Context.** ADR-158 kept the Android app open until Play Billing was in,
+because locking what nobody can buy would only take it away. Pro on Android has
+the same needs as on iOS: buy it, restore it on a new phone, and know it is
+owned at an alley with no signal, with no account and no server. Google Play
+also refunds a one-time purchase that the app does not acknowledge within
+three days.
+
+**Decision.**
+
+- **The Android app carries its own Capacitor plugin,
+  `android/app/src/main/java/app/headpin/HeadpinStorePlugin.java`, on Play
+  Billing 8,** under the same name (`HeadpinStore`) and with the same calls and
+  answers as the Swift one: `product`, `purchase` (`purchased`, `cancelled` or
+  `pending`), `entitlements`, `restore`, `requestReview`, and an
+  `entitlements` event. The page cannot tell the two apart, so `proStore.ts`
+  and `nativeStorePlugin.ts` serve both unchanged. `MainActivity` registers it.
+- **The product id is `app.headpin.pro` in Play Console too,** a one-time
+  product.
+- **Every completed purchase is acknowledged as soon as the app sees it,** from
+  the purchase sheet or from asking what the account owns, so one bought while
+  the app was closed is not refunded.
+- **Ownership is `queryPurchasesAsync`,** which the Play Store answers from its
+  own copy when offline. Restore asks the same question: Play has no separate
+  restore. The page keeps its copy of the last answer as on iOS.
+- **Pending purchases are enabled** (a cash payment at a shop); they own
+  nothing until Play reports them complete, and the page shows "Waiting for
+  approval" as for Ask to Buy.
+- **The rating prompt is Play's In-App Review,** asked at the same good moment
+  as on iOS (ADR-218).
+- **The Android app names Google Play and a Google account** where the iOS app
+  names the App Store and an Apple ID (`src/lib/storeWords.ts`), and its Pro
+  page leaves out Live Activity, which only an iPhone has.
+
+**Consequences.**
+
+- The Android app locks Pro as the iOS app does. A copy installed outside Play
+  (a sideloaded debug APK) has no Play to buy from: it stays locked, and a buy
+  says Google Play did not answer. Test purchases need a build from a Play
+  testing track and a licence tester account.
+- Play Console must hold `app.headpin.pro` before the first testing build, or
+  a buy says Pro is not available from Google Play.
+- The web's "Get the app" still names only the iPhone app until the Play
+  listing exists (PRO-LAUNCH).

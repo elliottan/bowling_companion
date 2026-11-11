@@ -88,6 +88,21 @@ describe("the Pro page (ADR-164)", () => {
     expect(await screen.findByText(/did not answer: offline/)).toBeInTheDocument();
   });
 
+  it("sells the Android app through Google Play, without the iPhone's Live Activity (ADR-277)", async () => {
+    const scope = globalThis as { Capacitor?: unknown };
+    scope.Capacitor = { isNativePlatform: () => true, getPlatform: () => "android" };
+    try {
+      const store = { ...base, restore: async () => false };
+      renderOffer({ locked: true, store }, store);
+      expect(screen.getByRole("heading", { name: "Move your line" })).toBeInTheDocument();
+      expect(screen.queryByRole("heading", { name: "Live Activity" })).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Restore purchase" }));
+      expect(await screen.findByText("This Google account has not bought Headpin Pro.")).toBeInTheDocument();
+    } finally {
+      delete scope.Capacitor;
+    }
+  });
+
   it("does not thank somebody for a purchase they did not make", () => {
     renderOffer({ locked: false });
     expect(screen.getByText("Everything in Pro is open here.")).toBeInTheDocument();

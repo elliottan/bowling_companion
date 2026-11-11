@@ -6,15 +6,18 @@ import type { ProStore } from "./pro";
 export { loadStorePlugin, type StorePlugin };
 
 /**
- * Headpin Pro in the iOS app, through the app's own StoreKit plugin
- * (`ios/App/App/HeadpinStorePlugin.swift`, ADR-158).
+ * Headpin Pro in the store apps, through the app's own store plugin: StoreKit
+ * on iOS (`ios/App/App/HeadpinStorePlugin.swift`, ADR-158), Play Billing on
+ * Android (`android/app/src/main/java/app/headpin/HeadpinStorePlugin.java`,
+ * ADR-277). Both answer the same calls.
  *
  * The receipt is the truth. The page keeps a copy of the last answer so an
  * owner never sees a locked card flash while StoreKit is asked again, and asks
  * again on every launch, which StoreKit answers from the phone, offline too.
  */
 
-/** The one product: a non-consumable, bought once per Apple ID. */
+/** The one product: bought once per Apple ID or Google account. Both stores
+ *  name it the same. */
 export const PRO_PRODUCT_ID = "app.headpin.pro";
 
 const OWNED_KEY = "headpin.proOwned";
@@ -23,11 +26,11 @@ interface CapacitorPlatform {
   getPlatform?: () => string;
 }
 
-/** Whether this copy sells Pro: the iOS app. The Android app sells it once Play
- *  Billing is in, and leaves everything open until then (PRO-LAUNCH, phase 5). */
+/** Whether this copy sells Pro: the store apps, the iOS app through StoreKit
+ *  (ADR-158) and the Android app through Play Billing (ADR-277). */
 export function sellsPro(scope: object = globalThis, native = isNativeApp(scope)): boolean {
   const platform = (scope as { Capacitor?: CapacitorPlatform }).Capacitor?.getPlatform?.();
-  return native && platform === "ios";
+  return native && (platform === "ios" || platform === "android");
 }
 
 function localStorageOrNull(): Storage | null {
@@ -39,7 +42,7 @@ function localStorageOrNull(): Storage | null {
 }
 
 /**
- * The iOS app's Pro, for `ProAccessContext`; null where nothing sells it.
+ * The store app's Pro, for `ProAccessContext`; null where nothing sells it.
  */
 export function useProStore(
   enabled: boolean = sellsPro(),

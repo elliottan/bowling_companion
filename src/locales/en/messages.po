@@ -991,8 +991,11 @@ msgstr "Arsenal"
 msgid "As intended"
 msgstr "As intended"
 
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
+msgid "Asking Google Play…"
+msgstr "Asking Google Play…"
+
+#: src/lib/storeWords.ts
 msgid "Asking the App Store…"
 msgstr "Asking the App Store…"
 
@@ -2288,6 +2291,14 @@ msgstr "Go to"
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
 msgstr "Go to frame {frameNumber}"
+
+#: src/lib/storeWords.ts
+msgid "Google Play did not answer: {reason}"
+msgstr "Google Play did not answer: {reason}"
+
+#: src/lib/storeWords.ts
+msgid "Google Play did not answer. Try again in a moment."
+msgstr "Google Play did not answer. Try again in a moment."
 
 #: src/components/InstallPrompt.tsx
 msgid "Got it"
@@ -4797,15 +4808,11 @@ msgstr "That file is not a Headpin backup."
 msgid "The app crashed"
 msgstr "The app crashed"
 
-#: src/components/ui/useProAction.tsx
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "The App Store did not answer: {reason}"
 msgstr "The App Store did not answer: {reason}"
 
-#: src/components/ui/useProAction.tsx
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "The App Store did not answer. Try again in a moment."
 msgstr "The App Store did not answer. Try again in a moment."
 
@@ -4881,8 +4888,7 @@ msgstr "The stance and target you saved for this leave are gone. Your shots keep
 msgid "Theme"
 msgstr "Theme"
 
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "This Apple ID has not bought Headpin Pro."
 msgstr "This Apple ID has not bought Headpin Pro."
 
@@ -4922,6 +4928,10 @@ msgstr "This deletes everything on this device: {0, plural, one {# session} othe
 #: src/components/LaneNoteFormDialog.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
 msgstr "This deletes your note on this lane. Your games aren't affected."
+
+#: src/lib/storeWords.ts
+msgid "This Google account has not bought Headpin Pro."
+msgstr "This Google account has not bought Headpin Pro."
 
 #: src/components/PatternSheet.tsx
 msgid "This pattern has no load table, so there is nothing to show."

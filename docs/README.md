@@ -26,7 +26,7 @@ reasoning and invariants the code cannot express.
 | Build the shot tracer (a line, speed and replay from a video of a shot) | [SHOT-TRACKER-PLAN.md](./SHOT-TRACKER-PLAN.md), a plan and not yet documentation |
 | Work on Pro, its gating, or the store apps | [PRO-LAUNCH.md](./PRO-LAUNCH.md) and [DECISIONS.md](./DECISIONS.md) ADR-154, ADR-155 for the iOS app |
 | Write a release note | [CHANGELOG.md](./CHANGELOG.md) |
-| Remake the ads or the App Store screenshots | `scripts/ad-content/reel/README.md` for the reel, `scripts/app-store/screenshots.mjs` for the store set, [APP-STORE-LISTING.md](./APP-STORE-LISTING.md) for the captions and the listing |
+| Remake the ads or the App Store screenshots | `scripts/ad-content/reel/README.md` for the reel, `scripts/app-store/screenshots.mjs` for the store set, [APP-STORE-LISTING.md](./APP-STORE-LISTING.md) for the captions and the listing, [PLAY-LISTING.md](./PLAY-LISTING.md) for Google Play's |
 
 [archive/](./archive/) holds delivered plans and specs. They are history, not
 documentation, and are not a source of truth for anything.
