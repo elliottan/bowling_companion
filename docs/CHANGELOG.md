@@ -23,6 +23,13 @@ had all shipped.
   Google Play yet; its release signing and Play listing draft are ready
   (`docs/DEPLOYMENT.md`, `docs/PLAY-LISTING.md`).
 
+## 0.106.2: A plan for reading a shot's line off a video (2026-11-11)
+
+- No change to the app. `docs/SHOT-TRACKER-PLAN.md` is the plan for a shot
+  tracer: one clip of a shot, filmed from behind, becomes the shot's Actual
+  line, its speed and a replay, with the video not kept. It is on the roadmap
+  and nothing of it is built.
+
 ## 0.106.1: The scorer stays quick after years of bowling, and backups are half the size (2026-11-11)
 
 - Entering a ball no longer reloads your whole history in the background.

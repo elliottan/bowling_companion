@@ -14,6 +14,17 @@ A free app with one Pro unlock, sold only in the store apps, with no accounts an
 no server (ADR-154). The phases, the free and Pro split, and how the catalog
 refreshes offline are in [PRO-LAUNCH.md](./PRO-LAUNCH.md).
 
+### The shot tracer: a line read off a video
+
+One clip of one shot, filmed from behind, becomes the shot's Actual line, its
+speed and a replay on the app's own lane, with the video dropped afterwards.
+Pro, built and tried on the web first (the owner's copy at `/score`), then the
+iOS app. The research, the requirements, the method stage by stage, the
+pull requests in order and the questions still open for the owner are in
+[SHOT-TRACKER-PLAN.md](./SHOT-TRACKER-PLAN.md). Nothing is built, and the plan
+has a gate after its second pull request: no screens until the tracer has been
+measured on real clips.
+
 ### The Live Activity, seen on a watch
 
 ADR-221 puts the game on the Lock Screen and in the Dynamic Island, and ADR-222
