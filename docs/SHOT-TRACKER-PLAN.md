@@ -21,15 +21,27 @@ afterwards without keeping the video.
 | Blocked video | Best effort: trace what can be seen, say what was guessed |
 | Accuracy | Half a board is the target wherever the ball is visible |
 | Speed | Yes |
-| Platform order | iOS first, then Android, then the web |
+| Platform order | The web first (the owner's copy at `/score`, tried on a Vercel preview), then iOS, then Android |
+| Speed unit | A setting, mph by default, km/h the other choice |
+| An estimated number (a laydown the camera could not see) | Saved, flagged as estimated |
+| Sample clips | Cut-down copies are committed, in `scripts/shot-tracker/fixtures/` |
+| Proof of accuracy | No Specto lane. The owner reviews the overlay by eye, laydown and arrows above all |
+| Seeing a stored replay without Pro | Yes. The replay is an animation drawn from the stored numbers, never the video |
+| iOS minimum | Raised to 15.4 when the iOS work is done |
 | Reading the leave from the video | Wanted, later, as a suggestion the bowler confirms |
+
+**Who builds this.** An Opus agent executes the pull requests in section 12. It
+may hand bounded jobs to Sonnet or Haiku subagents (section 12 says which).
+The author of this plan reviews each pull request and takes the problems the
+executor cannot solve. Section 12 says when to stop and ask.
 
 ---
 
 ## 1. What the sample clips say
 
-Six clips from the owner were looked at on 2026-11-11. They are not in the
-repository (section 12 says why and what to do about it).
+Six clips from the owner were looked at on 2026-11-11. Cut-down copies are in
+`scripts/shot-tracker/fixtures/clips/`, and that folder's README says how they
+were cut.
 
 | Clip | Size | Frame rate | Codec | Notes |
 |---|---|---|---|---|
@@ -46,9 +58,16 @@ What every clip has in common, and so what the design must assume:
    stands behind the ball return, roughly 25 to 35 feet behind the foul line,
    and the camera pans, tilts and sometimes zooms a little during the shot. The
    person does not walk, so the camera turns but does not travel.
-2. **The bowler stands between the camera and the lane.** In five of six clips
-   the body hides the foul line and the first 15 to 25 feet of the ball's path.
-   The ball comes into view to one side of the legs, mid-lane.
+2. **The release is in view.** The camera is behind and slightly to one side,
+   so the ball is seen leaving the hand beside the slide foot, and the foul
+   line is visible beyond the feet. An earlier draft of this plan said the body
+   hid the laydown. That was wrong: it was read off frames too far apart. The
+   laydown is measurable. What does happen is that the swinging arm or the
+   trailing leg crosses the ball for a few frames, and in one clip (shot-04)
+   the bowler stands nearly on the ball's line. Five clips are right-handed
+   and one is left-handed.
+   The ball is **in the air** for the first few frames after it leaves the
+   hand. Section 7.4 has what that means for the laydown.
 3. **The lane is a small part of the picture.** Read by eye off one full
    resolution frame of IMG_7213: the lane is about 80 pixels wide at the pin
    deck (about 2 pixels a board), the ball is about 22 pixels across at
@@ -92,7 +111,8 @@ What limits it, honestly:
 |---|---|---|
 | Arrows to breakpoint, when visible | Within 0.5 board | Plenty of pixels, many frames |
 | At the pins | 0.5 to 1 board | 2 pixels a board, the pins and the reflection crowd the ball |
-| Laydown | 1 to 2 boards, marked as estimated | Hidden by the body in most clips, so it is the skid line run backwards |
+| Laydown | Within 0.5 board when the touchdown is seen | The most pixels of anywhere (about 7 a board). The care needed is finding where the ball first touches the lane, not where it leaves the hand |
+| Laydown, when an arm or leg covers the touchdown | About 1 board, marked as estimated | The skid line run back to the touchdown distance |
 | A 720p clip from a messaging app | About double all of the above | Half the pixels and heavy compression |
 
 The errors that averaging does **not** remove are the ones to engineer against:
@@ -139,9 +159,11 @@ with slow motion clips.
 
 ### Replay without the video
 
-Yes. A traced shot stores a short list of points (feet, board) and its speeds.
-The replay animates a ball along those points on the app's own lane drawing at
-real speed or slowed down. Section 8 has the stored shape and section 9 the
+Yes, and to be clear about the word: the replay is not the video. A traced
+shot stores a short list of points (feet, board) and its speeds, about 300
+bytes. The replay is an animation of a ball moving along those points on the
+app's own lane drawing, at real speed or slowed down. The video is gone once
+the review closes. Section 8 has the stored shape and section 9 the
 screen.
 
 ---
@@ -165,7 +187,7 @@ screen.
 - Leave suggestion from the same clip.
 - No-handles calibration (the lane found automatically).
 - A capture screen of the app's own with framing guides and 4K.
-- Android, then the web for Pro previews.
+- The iOS app, then Android.
 
 ### Not planned
 
@@ -531,8 +553,34 @@ the warped one, to avoid resampling twice):
    sighting's weight.
 4. Weight: the fraction of rays that found an edge.
 
+**The ball in the air, and the touchdown.** A bowler sets the ball down a
+foot or more past the foul line, and until then it is above the lane, where
+the contact-point rule of 6.4 is wrong: a ball 6 inches up maps several feet
+too far down-lane. So the first sightings need their own treatment:
+
+1. On the lane, the ball and its mirror image touch: the gap between the
+   bottom of the ball's circle and the top of the reflection's is zero. In
+   the air there is a gap, and the reflection sits lower than the contact
+   point would predict. Measure the reflection's top edge along "down" below
+   each early sighting.
+2. The touchdown frame is the first in which the gap closes to within a pixel
+   and stays closed. Sightings before it are flagged airborne and are not
+   used for the path or the speed.
+3. For an airborne sighting the point on the lane under the ball is midway
+   between the ball's centre and its reflection's centre. Use that to draw
+   the loft in the review, not to fit.
+4. **Laydown** is the board at the touchdown, and its distance is stored too.
+   The app's `laydown` field is a board at the foul line by convention, so
+   `trackToLine.ts` decides how a touchdown at 1.5 ft maps to it (run the
+   skid line back to 0 ft, which moves it by a fraction of a board). Record
+   that choice in the ADR.
+5. If the reflection cannot be found (a dull lane surface), fall back to the
+   apparent speed: an airborne ball mapped through 6.4 appears to move
+   impossibly fast down-lane, then drops to its real speed at the touchdown.
+
 - **Tests:** synthetic discs with a reflection, blur along the direction of
-  travel and added noise. Centre within 0.3 pixel. A distractor disc on the
+  travel and added noise. A lofted release whose touchdown frame and board
+  are recovered within one frame and 0.3 board. Centre within 0.3 pixel. A distractor disc on the
   next lane and a large moving blob (the bowler) are rejected.
 
 ### 7.5 Fitting the path
@@ -571,7 +619,7 @@ line as the app will draw it, next to the measured points.
 | Metric | Definition | Measured when | Estimated when |
 |---|---|---|---|
 | Board at the arrows | `u(15)` | A sighting within 3 ft of 15 ft | First sighting at or before 30 ft and 6 sightings in the skid |
-| Laydown | `u(0)` | A sighting within 3 ft of the foul line | Same rule as the arrows. Never better than estimated in clips like the samples |
+| Laydown | The board at the touchdown (7.4) | The touchdown frame was found | The touchdown was covered: the skid line run back, when the first clear sighting is at or before 30 ft |
 | Breakpoint | The point of the path furthest toward the bowler's own gutter | Sightings on both sides of it within 5 ft | The fit puts it inside the visible range but one side is thin |
 | Board at the pins | `u(60)` | Last sighting at or beyond 57 ft | Last sighting at or beyond 52 ft |
 | Entry angle | Slope over the last 6 ft, as degrees | Same as board at the pins | Same |
@@ -588,7 +636,9 @@ last sighting.
   changes sharply (foreground energy inside the projected rack). That instant
   is 60 ft, known to one frame. Add it as a heavily weighted point. It is the
   best measurement of time at the far end by a wide margin.
-- **The release anchor:** not used. The release is hidden.
+- **The touchdown anchor:** the frame the ball first touches the lane
+  (7.4), at the distance the homography gives it. A second sharp event at the
+  near end, where distance is well measured.
 - **Reported:** average speed over the visible range as the headline, and
   speed at the pins when the fit supports it. Launch speed only when a
   sighting exists before 20 ft.
@@ -604,8 +654,10 @@ stretched by 4 or 8 for part of the clip and the speed comes out wrong by that
 factor. Defences: ask the picker for the original (11.2), and treat a speed
 under 8 mph on a clip whose frame rate is 30 as this case and say so.
 
-**Units.** No speed is shown anywhere in the app today. Add a formatter to
-`src/lib/format.ts`. Open question for the owner in section 13.
+**Units.** No speed is shown anywhere in the app today. Add a setting, mph by
+default with km/h as the other choice, stored the way the other display
+preferences are, and a formatter in `src/lib/format.ts` that reads it. Storage
+is always mph (section 8).
 
 ### 7.7 Failures
 
@@ -722,7 +774,7 @@ reduced motion: show the finished path with no animation.
 ### 9.4 Filming guidance (copy, shown at pick and on failures)
 
 - Stand behind the bowler, a step to the side the ball is thrown from, so the
-  ball is in view sooner.
+  release and the foul line are in view.
 - Hold the phone as high as is comfortable. Chest height hides the lane behind
   the bowler.
 - Keep the whole lane in frame from the foul line to the pins, and keep
@@ -788,8 +840,21 @@ three independent checks:
 3. The owner's eye on the overlay strip. A wrong trace is obvious when drawn
    over the frames.
 
-If the owner's centre has a Specto lane, one session there with both would
-settle the accuracy question outright (section 13).
+There is no Specto lane to compare with, so the owner's eye is the final
+check, and the harness must make that check easy. It writes one HTML page per
+clip (`review.html`, self-contained, images inlined) with:
+
+- the frame at the touchdown, enlarged, with the board lines of the lane drawn
+  over it every 5 boards and numbered, and the traced laydown marked, so the
+  owner can read the board off the picture and compare,
+- the same at the arrows, where the real arrows on boards 5 to 35 should sit
+  exactly under the drawn lines,
+- the same at the breakpoint and at the pins,
+- the numbers the tracer reports beside each.
+
+The reviewer publishes these pages for the owner to look at. The owner's
+verdict on the laydown and the arrows, per clip, is recorded in the harness
+README and is part of the gate.
 
 ### 10.4 App-level tests
 
@@ -829,17 +894,19 @@ Notes for A:
 - Reading pixels back from a canvas is the slow step. Draw only the lane
   region, at full scale, into a small canvas.
 
-### 11.2 iOS (first)
+### 11.2 iOS (second, after the web)
 
 Read ADR-155, `src/lib/platform.ts`, `scripts/native/assemble.ts` and
-`capacitor.config.ts` first. The deployment target is iOS 15.0.
+`capacitor.config.ts` first. The deployment target is iOS 15.0 today and is
+raised to 15.4 in the iOS pull request (owner's decision), which is the first
+version with `requestVideoFrameCallback`.
 
 | Concern | Plan | Must be checked on a real iPhone by the owner |
 |---|---|---|
 | Picking a clip | `<input type="file" accept="video/*">`, which offers the library, the camera and Files | Whether the web view recompresses or downsizes a library video before handing it over. If it does, build the native picker below |
 | Recording | The same input's camera option, for a start | What resolution and frame rate that camera uses |
 | Slow motion clips | Ask for the original | Which form arrives (7.6) |
-| Decoding | Implementation A | `requestVideoFrameCallback` needs iOS 15.4. On 15.0 to 15.3 say the feature needs a newer iOS, or raise the target. Check that frames are not dropped at 0.5x |
+| Decoding | Implementation A | That frames are not dropped at 0.5x |
 | Memory | A 1080p clip is small as a file. Never hold decoded frames: process and drop | Watch the web view's memory on a 4K clip |
 | Speed of the trace | Worker, lane region only | R17 on an iPhone 12 |
 
@@ -863,7 +930,7 @@ Pro table in `docs/PRO-LAUNCH.md`.
 Agents cannot run any of this. Each pull request that touches `ios/` lists
 what the owner must build and look at, the way ADR-227 does.
 
-### 11.3 Android (second)
+### 11.3 Android (third)
 
 The same TypeScript. The Android System WebView is Chromium, so A and B both
 work. Differences to plan for:
@@ -878,9 +945,20 @@ work. Differences to plan for:
 - A native picker or decoder, if ever needed, is Kotlin with `MediaExtractor`
   and `MediaCodec` behind the same interface.
 
-### 11.4 Web (third)
+### 11.4 Web (first)
 
-The same TypeScript again.
+The whole feature is possible on the web with nothing native: a file input
+gives the clip, a video element and a canvas give the frames, a worker runs
+the tracer, and IndexedDB already holds the shot. Nothing is uploaded. This is
+where the feature is built and tried first.
+
+- **Trying it needs no deploy.** A pull request's Vercel preview address,
+  at the path `/score`, is the full app with the feature open.
+- **On the phone in Safari** the file input offers the library and the camera.
+  Whether Safari hands over the original or a recompressed copy is the first
+  thing to check with a real clip, because it decides how good a trace from
+  the phone's browser can be. A desktop browser reading a clip sent by
+  AirDrop or a cable always gets the original.
 
 - `/score` (the owner's copy) gets the whole feature. `/app` shows it as a Pro
   preview that points at the App Store (ADR-154). Replays of shots traced
@@ -900,10 +978,42 @@ Each is one PR, green on `npm run verify`, with a version bump and a
 `CHANGELOG.md` section (`CLAUDE.md`, House rules). Do them in order. Stop at
 the gate after PR 2.
 
-**Before anything: the sample clips.** They were attached to a conversation and
-are not in the repository: they are 75 MB, and they show people. Whoever picks
-this up needs them attached again, or the owner's answer to the question in
-section 13 about committing cut-down copies.
+**The sample clips** are in `scripts/shot-tracker/fixtures/clips/`. Read that
+folder's README first.
+
+**How the work is divided.**
+
+- **The executor (Opus)** does each pull request below, in order, one at a
+  time, and writes the hard parts itself: `homography.ts`, `registration.ts`,
+  `ballDetect.ts` (the circle fit and the touchdown), `associate.ts`,
+  `pathFit.ts`, and anything that touches the data model.
+- **Subagents (Sonnet)** are suited to jobs with a tight written contract and
+  a test that says when they are done: `image.ts`, `laneModel.ts`, the
+  synthetic renderer once its camera model is written, the harness's drawing
+  and HTML output, React components from a finished design, the backup
+  validator, unit tests for a function whose behaviour is already fixed.
+- **Subagents (Haiku)** are suited to mechanical jobs: wiring strings through
+  `t`, running the `translate-strings` skill, changelog and doc link upkeep,
+  looking over harness output images and reporting what they show.
+- Give a subagent the file's contract from section 5.2, the relevant part of
+  sections 6 and 7, and the tests it must pass. Do not hand a subagent a
+  tuning problem on real clips: that needs the whole picture.
+- **The reviewer** (the author of this plan) reviews every pull request before
+  it merges and takes over a problem the executor has spent two serious
+  attempts on without progress. Leave it as a failing or skipped-with-reason
+  harness case, never a weakened test, and write down what was tried, what the
+  overlay shows and the smallest clip and frame range that shows it.
+
+**Stop and ask the owner or the reviewer when:** the gate after PR 2 is not
+met; a requirement in section 4 cannot be met as written; a change to scoring,
+the data model or import and merge is needed beyond what section 8 describes;
+or real clips contradict an assumption stated in sections 6 and 7 (the camera
+does not travel, the lane edge is the gutter boundary, the ball has a
+reflection).
+
+**Looking at pictures is part of the work.** Every stage that touches pixels
+is checked by drawing its result over the frames and looking at it, not only
+by its unit tests. An agent can read the images the harness writes.
 
 ### PR 1. Geometry and the synthetic renderer
 
@@ -919,12 +1029,14 @@ section 13 about committing cut-down copies.
 - `edgeSnap.ts`, `registration.ts`, `background.ts`, `ballDetect.ts`,
   `associate.ts`, `pathFit.ts`, `calibrationCheck.ts`, `pipeline.ts`.
 - `scripts/shot-tracker/` with the harness and a README of results.
-- Done when: the end to end synthetic test of 10.1 passes, and the README
-  holds the table of 10.3 for every sample clip.
+- Done when: the end to end synthetic test of 10.1 passes, the README holds
+  the table of 10.3 for every sample clip, and a `review.html` exists for
+  each clip for the owner to look at.
 - **Gate.** Report to the owner, per clip: visible range, calibration check in
   boards, residual, the overlay strip. Go on only if at least four of the six
   clips trace with the pins check inside 1 board and a residual under 0.5
-  board. If not, the report says which stage fails and why, and the owner
+  board, and the owner agrees with the laydown and the arrows on the review
+  pages. If not, the report says which stage fails and why, and the owner
   decides. Do not build screens on a tracer that has not passed.
 
 ### PR 3. The stored track and the replay
@@ -935,31 +1047,38 @@ section 13 about committing cut-down copies.
   a dev fixture, so this ships dark.
 - Done when: a backup with tracks round trips, and a merge keeps them.
 
-### PR 4. The flow, on the web build
+### PR 4. The flow, on the web
 
 - `videoFrames.ts` (implementation A), `shotTrackWorker.ts`,
   `ShotTraceView.tsx`, `TraceCalibrator.tsx`, `TraceReview.tsx`, the entry
   points, Pro gating, every string through `t`, translations by the
-  `translate-strings` skill, the speed formatter.
+  `translate-strings` skill, the speed unit setting and its formatter.
 - The Playwright flow of 10.4.
-- Done when: the flow works in Chromium and Safari on a desktop with a sample
-  clip, and on `/score`.
+- No deploy is needed to try it: every pull request gets a Vercel preview
+  address, and the path `/score` on that address has every feature open
+  (ADR-154). The PR body gives the owner that link and a short list of what to
+  try: a clip on a desktop browser, and the same clip on the phone in Safari.
+- Done when: the flow works in Chromium and Safari on a desktop with every
+  sample clip, on `/score`, and the owner has traced a clip of their own on
+  the preview.
 
-### PR 5. iOS
+### PR 5. Hardening from real use on the web
 
-- The `Info.plist` strings, the items in 11.2, the native picker only if the
-  owner's device check says the file input recompresses.
-- A checklist for the owner in the PR body: pick from library, record, a slow
-  motion clip, a 4K clip, time the trace, check memory.
-- Done when: the owner has run the checklist on a phone.
-
-### PR 6. Hardening from real use
-
-- Whatever the first real nights show. Expected: threshold tuning, the lane
-  edge definition on a second centre's lanes, better failure copy.
+- Whatever the owner's first real clips on the preview show. Expected:
+  threshold tuning, the lane edge definition on a second centre's lanes,
+  better failure copy.
 - Diagnostics (`src/lib/diagnostics.ts`): a traced shot can export its
   calibration and sightings as JSON, with no pixels, so a bad trace can be
   reported and reproduced.
+
+### PR 6. iOS
+
+- The deployment target raised to 15.4, the `Info.plist` strings, the items
+  in 11.2, the native picker only if the owner's device check says the file
+  input recompresses.
+- A checklist for the owner in the PR body: pick from library, record, a slow
+  motion clip, a 4K clip, time the trace, check memory.
+- Done when: the owner has run the checklist on a phone.
 
 ### PR 7. Leave suggestion
 
@@ -1002,49 +1121,55 @@ section 13 about committing cut-down copies.
 
 ## 13. Concerns and open questions for the owner
 
-**Things to agree on**
+**Decided by the owner (2026-11-11)**
 
-1. **Half a board is a target until PR 2 measures it.** The geometry says it
-   is reachable from the arrows to the breakpoint and tight at the pins. If
-   the measured number is worse, the app's wording follows the measurement.
-2. **The laydown is hidden in most clips like the samples.** It will be an
-   estimate, shown as "about", unless the person filming stands to the ball
-   side. Is an estimated laydown worth writing into the Actual line, where the
-   drift model and stats read it, or should it be shown and not saved?
-   Recommended: save it, with the track recording that it was estimated, and
-   make stats that depend on laydown ignore estimated ones.
-3. **There is no instrument to prove accuracy against.** The plan uses the
-   arrows and pins as built-in references plus hand labels. Does your centre
-   have a Specto lane? One session filmed there would settle it.
-4. **The sample clips.** May cut-down copies be committed (cropped to the
-   lane, re-encoded to about 1 MB each), or must they stay out of the
-   repository because they show people and a name on a scoreboard? If they
-   stay out, every agent that works on the tracer needs them attached again.
-5. **Clips sent through chat apps are much worse** (the 720p sample). The app
-   will accept them and say the result is rougher. Agreed?
-6. **Speed units.** mph, km/h, or follow the phone's region? There is no unit
-   setting in the app today.
-7. **Replay for non-Pro.** Tracing is Pro. A stored replay is the bowler's
-   data, so the plan shows it free. Agreed?
-8. **iOS 15.0 to 15.3** cannot run the simple decoder. Raise the minimum to
-   15.4, or show the feature as needing a newer iOS there?
+1. An estimated number is saved, flagged as estimated in the track. Stats that
+   depend on a laydown should ignore estimated ones.
+2. Cut-down sample clips are committed.
+3. There is no Specto lane. The owner reviews the overlay pages by eye
+   (10.3), and their verdict is part of the gate.
+4. Speed is a setting, mph by default.
+5. A stored replay plays without Pro. It is an animation from the numbers.
+6. The iOS minimum goes to 15.4.
+7. The web comes first, tried on a Vercel preview at `/score`.
+
+**Still to agree on**
+
+1. **Half a board is a target until PR 2 measures it.** If the measured number
+   is worse somewhere (the pins are the likely place), the app's wording
+   follows the measurement.
+2. **Clips sent through chat apps are much worse** (shot-06 is 720p at 30).
+   The plan accepts them and says the result is rougher.
+3. **The slide foot is in view too.** The Actual line has a `slide` field
+   (ADR-032), and the shoe at the foul line is visible in every sample. Reading
+   it is a separate, harder problem (a shoe is not a circle) and is not in
+   this plan. Worth a later look.
+4. **Which hand.** The tracer measures boards from the left edge and the app
+   counts from the bowler's own gutter, so it needs the hand. It takes the
+   profile's, which is wrong when tracing a friend's clip. The review should
+   show the hand and let it be flipped.
+5. **Phone browser against desktop.** If Safari on the phone recompresses a
+   picked clip, traces made in the phone's browser will be rougher than the
+   same clip on a desktop until the iOS app's native picker exists.
 
 **Risks, with what the plan does about each**
 
 | Risk | Answer in the plan |
 |---|---|
-| The web view recompresses picked videos | Checked on a device in PR 5, native picker as the fallback |
+| The browser or web view recompresses picked videos | Checked with a real clip in PR 4 (Safari) and PR 6 (the app), native picker as the fallback in the app |
+| The ball is in the air at the release | The touchdown is found from the ball meeting its reflection (7.4) |
+| An arm or leg covers the ball for a few frames | Those frames lose their sighting. The fit bridges them, and the laydown falls back to estimated |
 | Slow motion clips give a wrong speed | Ask for the original, sanity range, say so when detected |
 | A ball the colour of the lane | Detection is by change from the empty lane, not by colour. Still the hardest case: test with a light ball before the gate |
 | Glare and reflections on a freshly oiled lane | The background median absorbs static reflections. The upper-arc circle fit ignores the ball's own |
 | Someone walks through the shot | Those frames lose their sighting. The path bridges the gap or stops |
 | The camera travels | Out of scope, detected as registration failure, reported as too shaky |
-| Synthetic tests pass and real lanes differ | The gate is on real clips, and PR 6 exists for the second centre |
+| Synthetic tests pass and real lanes differ | The gate is on real clips, and PR 5 exists for the second centre |
 | Native code no agent can run | Kept to a picker and permission strings, each with an owner checklist |
-| The lane edge is defined differently on wood, synthetic, or with capped gutters | The definition is one ADR and one function. PR 6 revisits it with more centres |
+| The lane edge is defined differently on wood, synthetic, or with capped gutters | The definition is one ADR and one function. PR 5 revisits it with more centres |
 | Bundle size and offline | The tracer is a lazy chunk and a worker, precached |
 | App Review asks about camera and photo use | On-device only, nothing stored or sent, stated in the strings and the listing |
-| Scope: this is about ten pull requests | Phased so the first six are the feature and the rest are optional |
+| Scope: this is about ten pull requests | Phased so the first five are the feature on the web, the sixth is the iOS app, and the rest are optional |
 
 ---
 

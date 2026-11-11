@@ -18,7 +18,8 @@ refreshes offline are in [PRO-LAUNCH.md](./PRO-LAUNCH.md).
 
 One clip of one shot, filmed from behind, becomes the shot's Actual line, its
 speed and a replay on the app's own lane, with the video dropped afterwards.
-Pro, iOS first. The research, the requirements, the method stage by stage, the
+Pro, built and tried on the web first (the owner's copy at `/score`), then the
+iOS app. The research, the requirements, the method stage by stage, the
 pull requests in order and the questions still open for the owner are in
 [SHOT-TRACKER-PLAN.md](./SHOT-TRACKER-PLAN.md). Nothing is built, and the plan
 has a gate after its second pull request: no screens until the tracer has been
