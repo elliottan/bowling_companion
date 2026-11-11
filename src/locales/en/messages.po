@@ -719,14 +719,6 @@ msgstr "A bowling ball drilled with two finger holes and no thumb hole, showing 
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "A copy is in your downloads."
-msgstr "A copy is in your downloads."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "A copy is saved."
-msgstr "A copy is saved."
-
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "A drilling layout, drawn on the ball"
@@ -3192,10 +3184,6 @@ msgstr "No balls yet"
 msgid "No changes since last backup ({age})"
 msgstr "No changes since last backup ({age})"
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "No copy of this device was saved, so this cannot be undone."
-msgstr "No copy of this device was saved, so this cannot be undone."
-
 #. Under a zone of the approach diagram: this zone does not move the slide foot
 #: src/components/DriftZoneLane.tsx
 msgid "no drift"
@@ -4093,10 +4081,6 @@ msgstr "Save a line for a leave, and it prefills the intended line when you leav
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "Save a line for one leave and you can borrow it for another."
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Save another copy"
-msgstr "Save another copy"
-
 #: src/views/BowlingProfileView.tsx
 msgid "Save bowling profile"
 msgstr "Save bowling profile"
@@ -4128,10 +4112,6 @@ msgstr "Save where you stand and where you aim for a leave, and it is there the 
 #: src/components/SaveCopyPrompt.tsx
 msgid "Saved on this phone only. Save a copy before closing the tab."
 msgstr "Saved on this phone only. Save a copy before closing the tab."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Saving a copy"
-msgstr "Saving a copy"
 
 #: src/components/ShareCardDialog.tsx
 msgid "Saving failed."
@@ -4852,14 +4832,6 @@ msgstr "The catalog has not loaded"
 #: src/components/BallFormDialog.tsx
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "The catalog has not loaded yet. It needs one connection, then it works offline."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "The copy could not be saved."
-msgstr "The copy could not be saved."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "The copy was not saved."
-msgstr "The copy was not saved."
 
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."

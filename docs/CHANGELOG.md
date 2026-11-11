@@ -17,6 +17,8 @@ had all shipped.
   however many seasons you have. The suggestions are the same as before.
 - Backup files are written without indentation, which makes them less than
   half the size. Every backup saved before still restores.
+- The "Save a copy first" popup no longer says whether the copy was saved,
+  which the web app could not tell. Its button always reads Save a copy.
 
 ## 0.106.0: Restoring asks for a copy, and Settings says if your backup is current (2026-11-10)
 

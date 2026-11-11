@@ -57,13 +57,17 @@ describe("BackupRestoreView", () => {
     fireEvent.change(document.querySelector('input[type="file"]')!, { target: { files: [file] } });
 
     expect(await screen.findByText("Save a copy first")).toBeInTheDocument();
-    expect(await screen.findByText("A copy is in your downloads.")).toBeInTheDocument();
-    expect(downloads).toHaveLength(1);
+    await waitFor(() => expect(downloads).toHaveLength(1));
     expect(downloads[0]).toMatch(/^pre-import-headpin-/);
     expect(screen.queryByText("Replace all data?")).not.toBeInTheDocument();
 
-    // Saving again is the bowler's to ask for.
-    fireEvent.click(screen.getByRole("button", { name: "Save another copy" }));
+    // A web download reports done before the bowler has kept it, so the popup
+    // claims nothing about it, and the button reads the same either way
+    // (ADR-276). Saving again is the bowler's to ask for.
+    expect(screen.queryByText(/A copy is/)).toBeNull();
+    const again = screen.getByRole("button", { name: "Save a copy" });
+    await waitFor(() => expect(again).toBeEnabled());
+    fireEvent.click(again);
     await waitFor(() => expect(downloads).toHaveLength(2));
 
     await continuePastCopy();

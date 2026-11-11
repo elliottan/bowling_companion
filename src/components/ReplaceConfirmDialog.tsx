@@ -1,26 +1,20 @@
 import { plural, t } from "@lingui/core/macro";
 import { Download } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import {
-  saveSafetyCopy,
-  type BackupDestination,
-  type PreparedImport
-} from "../services/backupRepository";
+import { saveSafetyCopy, type PreparedImport } from "../services/backupRepository";
 import { describeAge } from "../lib/backupNudge";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { Button } from "./ui/Button";
-
-type CopyState = "saving" | BackupDestination | "failed";
 
 /**
  * Import destroys every local row, and there is no server copy behind it, so
  * it runs in two steps (ADR-274).
  *
- * First the copy: the popup opens by saving one, and stays up whatever the
- * download or the share sheet did, with a button to save it again. Only
- * Continue moves on, so a closed sheet never replaces anything and never
- * blocks the bowler either. Then the confirm: their own counts, and one red
- * button.
+ * First the copy: the popup opens by saving one, and stays up with a button
+ * to save it again. It says nothing about whether the copy was kept: a web
+ * download reports done before the bowler has chosen to keep it, so the app
+ * cannot know (ADR-276). Only Continue moves on. Then the confirm: their own
+ * counts, and one red button.
  */
 export function ReplaceConfirmDialog({
   pending,
@@ -64,15 +58,17 @@ function ReplaceSteps({
   safetyCopy: boolean;
 }) {
   const [step, setStep] = useState<"copy" | "confirm">(safetyCopy ? "copy" : "confirm");
-  const [copy, setCopy] = useState<CopyState>("saving");
+  const [saving, setSaving] = useState(false);
   const started = useRef(false);
 
   async function save() {
-    setCopy("saving");
+    setSaving(true);
     try {
-      setCopy(await saveSafetyCopy());
+      await saveSafetyCopy();
     } catch {
-      setCopy("failed");
+      // The button is still there to try again.
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -84,8 +80,6 @@ function ReplaceSteps({
     void save();
   }, [step]);
 
-  const saved = copy === "shared" || copy === "downloaded";
-
   if (step === "copy") {
     return (
       <ConfirmDialog
@@ -94,7 +88,7 @@ function ReplaceSteps({
         title={t`Save a copy first`}
         confirmVariant="primary"
         confirmLabel={t`Continue`}
-        confirmDisabled={copy === "saving"}
+        confirmDisabled={saving}
         // Continue opens the confirm rather than closing this, so the dialog
         // that follows takes its place.
         onConfirm={() => setStep("confirm")}
@@ -104,16 +98,9 @@ function ReplaceSteps({
             <p>
               {t`Restoring replaces everything on this device. Keep a copy of what is here now, so you can undo it.`}
             </p>
-            <p role="status" className={saved ? "font-semibold text-success-700" : ""}>
-              {copy === "saving" && t`Saving a copy`}
-              {copy === "downloaded" && t`A copy is in your downloads.`}
-              {copy === "shared" && t`A copy is saved.`}
-              {copy === "cancelled" && t`The copy was not saved.`}
-              {copy === "failed" && t`The copy could not be saved.`}
-            </p>
-            <Button variant="secondary" onClick={() => void save()} disabled={copy === "saving"}>
+            <Button variant="secondary" onClick={() => void save()} disabled={saving}>
               <Download size={16} aria-hidden="true" />
-              {saved ? t`Save another copy` : t`Save a copy`}
+              {t`Save a copy`}
             </Button>
           </>
         }
@@ -157,11 +144,6 @@ function ReplaceSteps({
               other: "# sessions"
             })}, ${plural(incoming.games, { one: "# game", other: "# games" })} instead, saved ${age}.`}
           </p>
-          {safetyCopy && !saved && (
-            <p className="font-semibold text-danger-700">
-              {t`No copy of this device was saved, so this cannot be undone.`}
-            </p>
-          )}
         </>
       }
     />
