@@ -982,8 +982,11 @@ msgstr "아스널"
 msgid "As intended"
 msgstr "의도대로"
 
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
+msgid "Asking Google Play…"
+msgstr "Google Play에 확인하는 중…"
+
+#: src/lib/storeWords.ts
 msgid "Asking the App Store…"
 msgstr "App Store에 확인하는 중…"
 
@@ -2275,6 +2278,14 @@ msgstr "바로 가기"
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
 msgstr "프레임 {frameNumber}(으)로 이동"
+
+#: src/lib/storeWords.ts
+msgid "Google Play did not answer: {reason}"
+msgstr "Google Play에서 응답이 없어요: {reason}"
+
+#: src/lib/storeWords.ts
+msgid "Google Play did not answer. Try again in a moment."
+msgstr "Google Play에서 응답이 없어요. 잠시 후 다시 시도하세요."
 
 #: src/components/InstallPrompt.tsx
 msgid "Got it"
@@ -4775,15 +4786,11 @@ msgstr "이 파일은 Headpin 백업이 아니에요."
 msgid "The app crashed"
 msgstr "앱이 중단됐어요"
 
-#: src/components/ui/useProAction.tsx
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "The App Store did not answer: {reason}"
 msgstr "App Store에서 응답이 없어요: {reason}"
 
-#: src/components/ui/useProAction.tsx
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "The App Store did not answer. Try again in a moment."
 msgstr "App Store에서 응답이 없어요. 잠시 후 다시 시도하세요."
 
@@ -4863,8 +4870,7 @@ msgstr "이 남은 핀에 저장한 스탠스와 타깃이 사라져요. 투구 
 msgid "Theme"
 msgstr "테마"
 
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "This Apple ID has not bought Headpin Pro."
 msgstr "이 Apple ID로 Headpin Pro를 구매한 기록이 없어요."
 
@@ -4904,6 +4910,10 @@ msgstr "이 기기의 모든 데이터를 삭제해요: {0, plural, other {세�
 #: src/components/LaneNoteFormDialog.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
 msgstr "이 레인에 남긴 메모를 삭제해요. 게임에는 영향이 없어요."
+
+#: src/lib/storeWords.ts
+msgid "This Google account has not bought Headpin Pro."
+msgstr "이 Google 계정으로 Headpin Pro를 구매한 기록이 없어요."
 
 #: src/components/PatternSheet.tsx
 msgid "This pattern has no load table, so there is nothing to show."

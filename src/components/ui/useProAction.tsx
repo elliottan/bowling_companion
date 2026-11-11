@@ -3,6 +3,7 @@ import { useState, type ReactNode } from "react";
 import { MoveGamesDialog } from "../MoveGamesDialog";
 import { openAppStore, type LockedProAccess } from "../../lib/pro";
 import { useProOffer } from "../../lib/proOffer";
+import { storeDidNotAnswer } from "../../lib/storeWords";
 
 export interface ProAction {
   /** What the button says: the purchase, or "Get the app". */
@@ -20,8 +21,8 @@ export interface ProAction {
 
 /**
  * The one action a locked thing offers. On the web, the steps for moving games
- * and then the App Store page. In the iOS app, the purchase itself (ADR-158):
- * Apple's own sheet takes it from the tap, and everything opens by itself once
+ * and then the App Store page. In the store apps, the purchase itself (ADR-158,
+ * ADR-274): the store's own sheet takes it from the tap, and everything opens by itself once
  * it is bought, here and everywhere.
  *
  * This is the action that charges. The Pro page runs it from its own button;
@@ -75,9 +76,7 @@ export function useProAction(access: LockedProAccess): ProAction {
       state === "pending"
         ? t`Waiting for approval. Pro opens as soon as it comes through.`
         : state === "failed"
-          ? why
-            ? t`The App Store did not answer: ${{ reason: why }}`
-            : t`The App Store did not answer. Try again in a moment.`
+          ? storeDidNotAnswer(why)
           : null,
     start: () => void buy(),
     dialog: null

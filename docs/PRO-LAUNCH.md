@@ -214,7 +214,7 @@ switch.
 
 - [x] One module that answers "is Pro open": `src/lib/pro.ts` and
       `useProAccess`. The web half is built, and stays open until
-      `APP_STORE_URL` is set. The iOS half reads the receipt (`proStore.ts`).
+      `APP_STORE_URL` is set. The store apps read the receipt (`proStore.ts`).
 - [x] A purchase plugin with Restore purchases: the app's own, on StoreKit 2
       (`HeadpinStorePlugin.swift`, ADR-158), product `app.headpin.pro`. Try it
       in the simulator from Xcode, with `Headpin.storekit` (the `App` scheme
@@ -259,8 +259,11 @@ switch.
 - [x] The Android shell, from the same build (ADR-155, `npm run build:android`):
       portrait, edge to edge, and the back button through history. Builds a
       debug APK; not yet run on an emulator.
-- [ ] Play Billing for the same product, and the web's "Get the app" gains
-      Android.
+- [x] Play Billing for the same product (ADR-274, `HeadpinStorePlugin.java`):
+      buy, restore, acknowledge, and Play's rating prompt. Builds; not yet
+      tried against Play Console, which needs `app.headpin.pro` as a one-time
+      product and a build on a testing track.
+- [ ] The web's "Get the app" gains Android, once the Play listing exists.
 
 ### 6. After approval
 

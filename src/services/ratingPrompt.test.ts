@@ -3,7 +3,7 @@ import { considerRatingPrompt, type RatingDeps } from "./ratingPrompt";
 
 function deps(overrides: Partial<RatingDeps> = {}): RatingDeps {
   return {
-    ios: true,
+    storeApp: true,
     finishedScores: async () => [150, 160, 200],
     lastAskedAt: async () => undefined,
     markAsked: vi.fn(async () => {}),
@@ -23,7 +23,7 @@ describe("considerRatingPrompt", () => {
   });
 
   it("does nothing outside the iPhone app", async () => {
-    const d = deps({ ios: false });
+    const d = deps({ storeApp: false });
     expect(await considerRatingPrompt(200, d)).toBe(false);
     expect(d.requestReview).not.toHaveBeenCalled();
   });

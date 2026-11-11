@@ -982,8 +982,11 @@ msgstr "Arsenal"
 msgid "As intended"
 msgstr "Como lo planeaste"
 
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
+msgid "Asking Google Play…"
+msgstr "Consultando Google Play…"
+
+#: src/lib/storeWords.ts
 msgid "Asking the App Store…"
 msgstr "Consultando la App Store…"
 
@@ -2275,6 +2278,14 @@ msgstr "Ir a"
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
 msgstr "Ir al cuadro {frameNumber}"
+
+#: src/lib/storeWords.ts
+msgid "Google Play did not answer: {reason}"
+msgstr "Google Play no respondió: {reason}"
+
+#: src/lib/storeWords.ts
+msgid "Google Play did not answer. Try again in a moment."
+msgstr "Google Play no respondió. Inténtalo de nuevo en un momento."
 
 #: src/components/InstallPrompt.tsx
 msgid "Got it"
@@ -4775,15 +4786,11 @@ msgstr "Ese archivo no es un respaldo de Headpin."
 msgid "The app crashed"
 msgstr "La app falló"
 
-#: src/components/ui/useProAction.tsx
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "The App Store did not answer: {reason}"
 msgstr "La App Store no respondió: {reason}"
 
-#: src/components/ui/useProAction.tsx
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "The App Store did not answer. Try again in a moment."
 msgstr "La App Store no respondió. Inténtalo de nuevo en un momento."
 
@@ -4863,8 +4870,7 @@ msgstr "La posición y el objetivo que guardaste para esta dejada ya no están. 
 msgid "Theme"
 msgstr "Tema"
 
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "This Apple ID has not bought Headpin Pro."
 msgstr "Este Apple ID no ha comprado Headpin Pro."
 
@@ -4904,6 +4910,10 @@ msgstr "Esto elimina todo en este dispositivo: {0, plural, one {# sesión} other
 #: src/components/LaneNoteFormDialog.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
 msgstr "Esto elimina tu nota de esta pista. Tus juegos no se ven afectados."
+
+#: src/lib/storeWords.ts
+msgid "This Google account has not bought Headpin Pro."
+msgstr "Esta cuenta de Google no ha comprado Headpin Pro."
 
 #: src/components/PatternSheet.tsx
 msgid "This pattern has no load table, so there is nothing to show."

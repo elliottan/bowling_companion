@@ -18,6 +18,8 @@ import {
 import { IslandPreview, LockScreenPreview, WatchPreview } from "../components/LiveActivityPreviews";
 import { sampleLiveActivityState } from "../lib/liveActivitySample";
 import { useProAccess, useProOwned, useProStoreContext } from "../lib/useProAccess";
+import { isAndroidApp } from "../lib/platform";
+import { storeAsking, storeDidNotAnswer, storeNotBought } from "../lib/storeWords";
 
 /**
  * What Headpin Pro is, before anything charges (ADR-164): a picture and a
@@ -33,7 +35,7 @@ interface ProOfferViewProps {
   onBack: () => void;
 }
 
-const FEATURES: Array<{ title: MessageDescriptor; why: MessageDescriptor; sample: ReactNode }> = [
+const FEATURES: Array<{ title: MessageDescriptor; why: MessageDescriptor; sample: ReactNode; iPhoneOnly?: true }> = [
   {
     title: msg`Move your line`,
     why: msg`Drag the laydown, target and breakpoint on the lane, shape the hook, and watch the path follow. It works in the line visualizer, on your spare lines and on any shot you have scored.`,
@@ -67,7 +69,8 @@ const FEATURES: Array<{ title: MessageDescriptor; why: MessageDescriptor; sample
   {
     title: msg`Live Activity`,
     why: msg`In the iPhone app, your score follows you as you bowl, updated with every ball: on the Lock Screen, in the Dynamic Island and on your Apple Watch.`,
-    sample: <LiveActivitySample />
+    sample: <LiveActivitySample />,
+    iPhoneOnly: true
   },
   {
     title: msg`More colors`,
@@ -78,6 +81,9 @@ const FEATURES: Array<{ title: MessageDescriptor; why: MessageDescriptor; sample
 
 export function ProOfferView({ onBack }: ProOfferViewProps) {
   const access = useProAccess();
+  // The Android app does not offer what only an iPhone has (ADR-274).
+  const android = isAndroidApp();
+  const features = android ? FEATURES.filter((f) => !f.iPhoneOnly) : FEATURES;
   return (
     // Above every sheet: a lock inside one opens this page, and closing it goes
     // back to that sheet as it was (ADR-175).
@@ -101,7 +107,7 @@ export function ProOfferView({ onBack }: ProOfferViewProps) {
         </header>
 
         <ul className="mt-5 space-y-3">
-          {FEATURES.map((f) => (
+          {features.map((f) => (
             <li key={f.title.id} className="rounded-xl border border-edge bg-surface p-3 shadow-sm">
               {/* The words lead, as a heading over the picture, so a bowler
                   reads what a feature is before looking at it. */}
@@ -127,13 +133,9 @@ function Purchase({ access }: { access: Extract<ReturnType<typeof useProAccess>,
     setRestoring(true);
     setRestored(null);
     try {
-      setRestored((await store.restore()) ? t`Headpin Pro is restored.` : t`This Apple ID has not bought Headpin Pro.`);
+      setRestored((await store.restore()) ? t`Headpin Pro is restored.` : storeNotBought());
     } catch (err) {
-      setRestored(
-        err instanceof Error && err.message
-          ? t`The App Store did not answer: ${{ reason: err.message }}`
-          : t`The App Store did not answer. Try again in a moment.`
-      );
+      setRestored(storeDidNotAnswer(err instanceof Error ? err.message : ""));
     } finally {
       setRestoring(false);
     }
@@ -148,7 +150,7 @@ function Purchase({ access }: { access: Extract<ReturnType<typeof useProAccess>,
         disabled={action.busy || action.unavailable}
         onClick={action.start}
       >
-        {action.busy ? t`Asking the App Store…` : action.label}
+        {action.busy ? storeAsking() : action.label}
       </Button>
       {action.note && (
         <p role="status" className="text-center text-xs text-ink-secondary">
@@ -163,7 +165,7 @@ function Purchase({ access }: { access: Extract<ReturnType<typeof useProAccess>,
             disabled={restoring}
             className="min-h-11 px-3 text-sm font-semibold text-accent active:opacity-60 disabled:opacity-50"
           >
-            {restoring ? t`Asking the App Store…` : t`Restore purchase`}
+            {restoring ? storeAsking() : t`Restore purchase`}
           </button>
           {restored && (
             <p role="status" className="text-center text-xs text-ink-secondary">
@@ -183,8 +185,8 @@ function Purchase({ access }: { access: Extract<ReturnType<typeof useProAccess>,
 }
 
 function Owned() {
-  // Thanks only where Pro is owned (a purchase): Pro is
-  // also open on Android, where nobody has paid (ADR-164, ADR-167).
+  // Thanks only where Pro is owned (a purchase): Pro is also open where
+  // nothing sells it, and there nobody has paid (ADR-164, ADR-167).
   const bought = useProOwned();
   return (
     <p className="flex items-center justify-center gap-2 py-2 text-sm font-semibold text-ink">

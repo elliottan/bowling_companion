@@ -29,6 +29,7 @@ import { describeLastBackup } from "../lib/backupNudge";
 import { useLiveQuery } from "dexie-react-hooks";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
 import { InstallPrompt } from "../components/InstallPrompt";
+import { storeAsking, storeDidNotAnswer, storeNotBought } from "../lib/storeWords";
 import { Suspense, lazy, useEffect, useState } from "react";
 export type { SettingsSection };
 
@@ -420,7 +421,7 @@ function ProSection() {
   const [message, setMessage] = useState<string | null>(null);
   const mark = <ProMark size={30} word={false} className="rounded-[8px]" />;
   if (!store) {
-    // Pro merely open (the Android app, a stray address) has nothing to show.
+    // Pro merely open (a web with nothing to sell, a stray address) has nothing to show.
     if (!openOffer || (!access.locked && !owned)) return null;
     return (
       <ListGroup heading={t`Headpin Pro`}>
@@ -444,15 +445,13 @@ function ProSection() {
       // Say why when the store did: "not available right now" and "offline" call
       // for different things from a bowler, and one line hid both.
       const reason = err instanceof Error ? err.message : "";
-      setMessage(
-        reason ? t`The App Store did not answer: ${reason}` : t`The App Store did not answer. Try again in a moment.`
-      );
+      setMessage(storeDidNotAnswer(reason));
     } finally {
       setBusy(null);
     }
   }
 
-  const waiting = t`Asking the App Store…`;
+  const waiting = storeAsking();
   const buy = () =>
     run("buy", async (s) => {
       const outcome = await s.buy();
@@ -460,7 +459,7 @@ function ProSection() {
     });
   const restore = () =>
     run("restore", async (s) =>
-      (await s.restore()) ? t`Headpin Pro is restored.` : t`This Apple ID has not bought Headpin Pro.`
+      (await s.restore()) ? t`Headpin Pro is restored.` : storeNotBought()
     );
 
   return (

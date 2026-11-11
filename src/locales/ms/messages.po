@@ -982,8 +982,11 @@ msgstr "Arsenal"
 msgid "As intended"
 msgstr "Seperti dirancang"
 
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
+msgid "Asking Google Play…"
+msgstr "Menghubungi Google Play…"
+
+#: src/lib/storeWords.ts
 msgid "Asking the App Store…"
 msgstr "Menghubungi App Store…"
 
@@ -2275,6 +2278,14 @@ msgstr "Pergi ke"
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
 msgstr "Pergi ke frame {frameNumber}"
+
+#: src/lib/storeWords.ts
+msgid "Google Play did not answer: {reason}"
+msgstr "Google Play tidak menjawab: {reason}"
+
+#: src/lib/storeWords.ts
+msgid "Google Play did not answer. Try again in a moment."
+msgstr "Google Play tidak menjawab. Cuba lagi sebentar nanti."
 
 #: src/components/InstallPrompt.tsx
 msgid "Got it"
@@ -4775,15 +4786,11 @@ msgstr "Fail itu bukan sandaran Headpin."
 msgid "The app crashed"
 msgstr "Apl ranap"
 
-#: src/components/ui/useProAction.tsx
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "The App Store did not answer: {reason}"
 msgstr "App Store tidak menjawab: {reason}"
 
-#: src/components/ui/useProAction.tsx
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "The App Store did not answer. Try again in a moment."
 msgstr "App Store tidak menjawab. Cuba lagi sebentar nanti."
 
@@ -4863,8 +4870,7 @@ msgstr "Kedudukan awal dan sasaran yang anda simpan untuk baki pin ini telah hil
 msgid "Theme"
 msgstr "Tema"
 
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "This Apple ID has not bought Headpin Pro."
 msgstr "Apple ID ini belum membeli Headpin Pro."
 
@@ -4904,6 +4910,10 @@ msgstr "Ini memadam segala-galanya pada peranti ini: {0, plural, other {# sesi}}
 #: src/components/LaneNoteFormDialog.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
 msgstr "Ini memadam nota anda pada lorong ini. Permainan anda tidak terjejas."
+
+#: src/lib/storeWords.ts
+msgid "This Google account has not bought Headpin Pro."
+msgstr "Akaun Google ini belum membeli Headpin Pro."
 
 #: src/components/PatternSheet.tsx
 msgid "This pattern has no load table, so there is nothing to show."

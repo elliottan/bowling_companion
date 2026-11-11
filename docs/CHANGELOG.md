@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.106.0: Headpin Pro in the Android app (2026-11-11)
+
+- The Android app sells Headpin Pro through Google Play: buy it, restore it on
+  a new phone, and keep it offline, as in the iPhone app. Until now everything
+  in Pro was open there. Its Pro page and Settings name Google Play and your
+  Google account, and leave out the iPhone's Live Activity.
+- After a good game the Android app may ask for a rating through Google Play,
+  at the same moment the iPhone app asks Apple.
+- No change on the web or in the iPhone app. The Android app is not in Google
+  Play yet.
+
 ## 0.105.1: The store pictures show the line boxes as they are now (2026-11-10)
 
 - The App Store screenshots in every language and the Headpin Pro review
