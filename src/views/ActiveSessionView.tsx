@@ -46,7 +46,7 @@ import {
   deleteSession,
   getBackupNudgeState,
   getSessionDetails,
-  getSessionHistory,
+  getEarlierSessionFrames,
   getSetting,
   resumeLiveActivity,
   deleteFrame,
@@ -57,7 +57,6 @@ import {
   updateSession
 } from "../services/bowlingRepository";
 import type { Frame, Game, OilPattern, SessionSummary } from "../types/bowling";
-import { earlierSessionFrames } from "../lib/shotSeeding";
 
 /** A stable empty list, so the scorer's seeding is not re-run for nothing. */
 const NO_FRAMES: Frame[] = [];
@@ -350,7 +349,7 @@ export function ActiveSessionView({
   const seedSession = sessionDetails?.session;
   const earlierFrames = useLiveQuery(
     async () =>
-      seedSession ? earlierSessionFrames(await getSessionHistory(), seedSession) : NO_FRAMES,
+      seedSession ? getEarlierSessionFrames(seedSession) : NO_FRAMES,
     [seedSession?.id, seedSession?.date, seedSession?.alley_name, seedSession?.oil_pattern_id]
   );
 

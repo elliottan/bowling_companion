@@ -719,14 +719,6 @@ msgstr "Una bola de boliche perforada con dos hoyos para los dedos y sin hoyo pa
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "Una bola de boliche perforada con dos hoyos para los dedos y sin hoyo para el pulgar, con un layout Storm VLS de {pinToPap} por {core} por {buffer} pulgadas."
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "A copy is in your downloads."
-msgstr "Hay una copia en tus descargas."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "A copy is saved."
-msgstr "Copia guardada."
-
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "Un layout de perforación, dibujado en la bola"
@@ -3192,10 +3184,6 @@ msgstr "Aún no hay bolas"
 msgid "No changes since last backup ({age})"
 msgstr "Sin cambios desde el último respaldo ({age})"
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "No copy of this device was saved, so this cannot be undone."
-msgstr "No se guardó ninguna copia de este dispositivo, así que esto no se puede deshacer."
-
 #. Under a zone of the approach diagram: this zone does not move the slide foot
 #: src/components/DriftZoneLane.tsx
 msgid "no drift"
@@ -4093,10 +4081,6 @@ msgstr "Guarda una línea para una dejada y, al anotar, se llenará la línea pr
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "Guarda una línea para una dejada y podrás usarla en otra."
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Save another copy"
-msgstr "Guardar otra copia"
-
 #: src/views/BowlingProfileView.tsx
 msgid "Save bowling profile"
 msgstr "Guardar perfil de boliche"
@@ -4128,10 +4112,6 @@ msgstr "Guarda dónde te paras y a dónde apuntas para una dejada, y la tendrás
 #: src/components/SaveCopyPrompt.tsx
 msgid "Saved on this phone only. Save a copy before closing the tab."
 msgstr "Guardado solo en este teléfono. Guarda una copia antes de cerrar la pestaña."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Saving a copy"
-msgstr "Guardando una copia"
 
 #: src/components/ShareCardDialog.tsx
 msgid "Saving failed."
@@ -4852,14 +4832,6 @@ msgstr "El catálogo no se ha cargado"
 #: src/components/BallFormDialog.tsx
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "El catálogo aún no se ha cargado. Necesita una conexión una vez y luego funciona sin internet."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "The copy could not be saved."
-msgstr "No se pudo guardar la copia."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "The copy was not saved."
-msgstr "La copia no se guardó."
 
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."

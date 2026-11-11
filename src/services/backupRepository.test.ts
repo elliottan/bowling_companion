@@ -8,6 +8,7 @@ import {
   prepareImport,
   replaceAllData,
   saveSafetyCopy,
+  serializeBackup,
   shareBackup
 } from "./backupRepository";
 import type { BowlingBackup } from "../types/bowling";
@@ -33,6 +34,23 @@ describe("backupRepository", () => {
     URL.revokeObjectURL = () => {};
     await db.delete();
     await db.open();
+  });
+
+  /**
+   * Files are written compact, more than halving them at years of data, and
+   * every file written indented before that still has to restore.
+   */
+  it("writes a compact file, and still restores an indented one", async () => {
+    await createSession({ date: "2026-11-01", alley_name: "Compact Lanes" });
+    const backup = await createBackup();
+
+    const written = serializeBackup(backup);
+    expect(written).not.toContain("\n");
+    expect(JSON.parse(written)).toEqual(backup);
+
+    await db.sessions.clear();
+    await importBackup(JSON.stringify(backup, null, 2));
+    expect((await db.sessions.toArray()).map((s) => s.alley_name)).toEqual(["Compact Lanes"]);
   });
 
   it("creates and imports a backup", async () => {

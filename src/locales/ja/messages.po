@@ -719,14 +719,6 @@ msgstr "フィンガーホール2つでサムホールのないボウリング�
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "フィンガーホール2つでサムホールのないボウリングボール。{pinToPap}×{core}×{buffer}インチのStorm VLSレイアウトを表示しています。"
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "A copy is in your downloads."
-msgstr "コピーはダウンロードフォルダにあります。"
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "A copy is saved."
-msgstr "コピーを保存しました。"
-
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "ボールに描くドリルレイアウト"
@@ -3192,10 +3184,6 @@ msgstr "ボールがまだありません"
 msgid "No changes since last backup ({age})"
 msgstr "前回のバックアップから変更なし（{age}）"
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "No copy of this device was saved, so this cannot be undone."
-msgstr "この端末のコピーは保存されていないため、元に戻せません。"
-
 #. Under a zone of the approach diagram: this zone does not move the slide foot
 #: src/components/DriftZoneLane.tsx
 msgid "no drift"
@@ -4093,10 +4081,6 @@ msgstr "残りピンごとにラインを保存すると、スコア入力中に
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "ある残りピンのラインを保存すると、別の残りピンにも流用できます。"
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Save another copy"
-msgstr "もう1つコピーを保存"
-
 #: src/views/BowlingProfileView.tsx
 msgid "Save bowling profile"
 msgstr "ボウリングプロフィールを保存"
@@ -4128,10 +4112,6 @@ msgstr "残りピンに対する立ち位置と狙いを保存すると、次に
 #: src/components/SaveCopyPrompt.tsx
 msgid "Saved on this phone only. Save a copy before closing the tab."
 msgstr "このスマートフォンにのみ保存されています。タブを閉じる前にコピーを保存してください。"
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Saving a copy"
-msgstr "コピーを保存中"
 
 #: src/components/ShareCardDialog.tsx
 msgid "Saving failed."
@@ -4852,14 +4832,6 @@ msgstr "カタログが読み込まれていません"
 #: src/components/BallFormDialog.tsx
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "カタログはまだ読み込まれていません。一度接続すれば、以降はオフラインで使えます。"
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "The copy could not be saved."
-msgstr "コピーを保存できませんでした。"
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "The copy was not saved."
-msgstr "コピーは保存されませんでした。"
 
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."

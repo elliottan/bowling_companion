@@ -719,14 +719,6 @@ msgstr "엄지 구멍 없이 손가락 구멍 2개로 드릴링한 볼, {drillin
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "엄지 구멍 없이 손가락 구멍 2개로 드릴링한 볼, {pinToPap} × {core} × {buffer}인치 Storm VLS 레이아웃."
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "A copy is in your downloads."
-msgstr "사본이 다운로드 폴더에 있어요."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "A copy is saved."
-msgstr "사본을 저장했어요."
-
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "볼 위에 그려 보는 드릴링 레이아웃"
@@ -3192,10 +3184,6 @@ msgstr "아직 볼이 없어요"
 msgid "No changes since last backup ({age})"
 msgstr "마지막 백업 이후 변경 없음 ({age})"
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "No copy of this device was saved, so this cannot be undone."
-msgstr "이 기기의 사본을 저장하지 않아서 되돌릴 수 없어요."
-
 #. Under a zone of the approach diagram: this zone does not move the slide foot
 #: src/components/DriftZoneLane.tsx
 msgid "no drift"
@@ -4093,10 +4081,6 @@ msgstr "남은 핀마다 라인을 저장해 두면, 점수 입력 중 그 핀�
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "한 남은 핀에 라인을 저장해 두면 다른 남은 핀에도 가져다 쓸 수 있어요."
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Save another copy"
-msgstr "사본 하나 더 저장"
-
 #: src/views/BowlingProfileView.tsx
 msgid "Save bowling profile"
 msgstr "볼링 프로필 저장"
@@ -4128,10 +4112,6 @@ msgstr "남은 핀마다 서는 위치와 조준 위치를 저장해 두면, 다
 #: src/components/SaveCopyPrompt.tsx
 msgid "Saved on this phone only. Save a copy before closing the tab."
 msgstr "이 휴대폰에만 저장되어 있어요. 탭을 닫기 전에 사본을 저장해 두세요."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Saving a copy"
-msgstr "사본 저장 중"
 
 #: src/components/ShareCardDialog.tsx
 msgid "Saving failed."
@@ -4852,14 +4832,6 @@ msgstr "카탈로그를 불러오지 못했어요"
 #: src/components/BallFormDialog.tsx
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "카탈로그를 아직 불러오지 못했어요. 한 번만 연결하면 이후에는 오프라인에서도 쓸 수 있어요."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "The copy could not be saved."
-msgstr "사본을 저장하지 못했어요."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "The copy was not saved."
-msgstr "사본을 저장하지 않았어요."
 
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."

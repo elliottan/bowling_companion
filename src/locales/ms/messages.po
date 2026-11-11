@@ -719,14 +719,6 @@ msgstr "Bola boling yang digerudi dengan dua lubang jari tanpa lubang ibu jari, 
 msgid "A bowling ball drilled with two finger holes and no thumb hole, showing a {pinToPap} by {core} by {buffer} inch Storm VLS layout."
 msgstr "Bola boling yang digerudi dengan dua lubang jari tanpa lubang ibu jari, menunjukkan layout Storm VLS {pinToPap} x {core} x {buffer} inci."
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "A copy is in your downloads."
-msgstr "Salinan ada dalam muat turun anda."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "A copy is saved."
-msgstr "Salinan disimpan."
-
 #: src/components/ToolsList.tsx
 msgid "A drilling layout, drawn on the ball"
 msgstr "Layout gerudi, dilukis pada bola"
@@ -3192,10 +3184,6 @@ msgstr "Belum ada bola"
 msgid "No changes since last backup ({age})"
 msgstr "Tiada perubahan sejak sandaran terakhir ({age})"
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "No copy of this device was saved, so this cannot be undone."
-msgstr "Tiada salinan peranti ini disimpan, jadi ini tidak boleh dibuat asal."
-
 #. Under a zone of the approach diagram: this zone does not move the slide foot
 #: src/components/DriftZoneLane.tsx
 msgid "no drift"
@@ -4093,10 +4081,6 @@ msgstr "Simpan laluan untuk sesuatu baki pin, dan laluan yang dirancang akan dii
 msgid "Save a line for one leave and you can borrow it for another."
 msgstr "Simpan laluan untuk satu baki pin dan anda boleh meminjamnya untuk baki pin lain."
 
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Save another copy"
-msgstr "Simpan salinan lain"
-
 #: src/views/BowlingProfileView.tsx
 msgid "Save bowling profile"
 msgstr "Simpan profil boling"
@@ -4128,10 +4112,6 @@ msgstr "Simpan tempat anda berdiri dan tempat anda menyasar untuk sesuatu baki p
 #: src/components/SaveCopyPrompt.tsx
 msgid "Saved on this phone only. Save a copy before closing the tab."
 msgstr "Disimpan pada telefon ini sahaja. Simpan satu salinan sebelum menutup tab."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "Saving a copy"
-msgstr "Menyimpan salinan"
 
 #: src/components/ShareCardDialog.tsx
 msgid "Saving failed."
@@ -4852,14 +4832,6 @@ msgstr "Katalog belum dimuatkan"
 #: src/components/BallFormDialog.tsx
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "Katalog belum dimuatkan lagi. Ia memerlukan satu sambungan, kemudian ia berfungsi di luar talian."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "The copy could not be saved."
-msgstr "Salinan tidak dapat disimpan."
-
-#: src/components/ReplaceConfirmDialog.tsx
-msgid "The copy was not saved."
-msgstr "Salinan tidak disimpan."
 
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."

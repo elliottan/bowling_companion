@@ -11401,3 +11401,24 @@ brought back the record of the backup before it.
   not woken by the counter on every ball.
 - A backup made by a build before this one and restored here still restores
   everything but those two settings.
+
+## ADR-276: The safety copy's popup does not say whether the copy was kept
+
+**Status.** Accepted, 2026-11-11, at the owner's request ("No need to detect
+that, just have the Save a copy button regardless of what the user did or
+not"). Amends ADR-274 on what the popup and the confirm say; the two steps and
+the one red button stand.
+
+**Context.** ADR-274's popup said whether the copy was saved, and the confirm
+said when none was. In the web app the copy is a download, and the browser
+reports a download as done before the bowler has chosen to keep it (iOS Safari
+asks first). The owner closed that prompt without saving and was told "A copy
+is in your downloads."
+
+**Decision.** The popup still saves a copy as it opens, and says nothing about
+the result. Its button reads "Save a copy" every time. The confirm no longer
+says that no copy was saved. Continue is the only way on, as before.
+
+**Consequences.** The app no longer claims what it cannot know. A copy that
+was saved through the apps' share sheet still counts as a backup for the
+Settings row (ADR-275), since the sheet does report it.
