@@ -420,11 +420,12 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
     await f.snap("stats");
   });
 
-  // The iOS app sells Pro (ADR-158), so a deeper card is locked and offers the
-  // purchase, and Settings carries Restore purchase. The Android app sells
-  // nothing yet and keeps every card open. The purchase itself needs Apple's
-  // sheet and a sandbox account, so it is tried by hand, in Xcode, against
-  // ios/App/App/Headpin.storekit.
+  // Both store apps sell Pro (ADR-158, ADR-274), so a deeper card is locked and
+  // offers the purchase, and Settings carries Restore purchase. The purchase
+  // itself needs the store's own sheet and a test account, so it is tried by
+  // hand: in Xcode against ios/App/App/Headpin.storekit, and on Android from a
+  // Play testing track. The emulator here has no Play Store, so Billing never
+  // connects and the page keeps its locked default, which is what is checked.
   if (d.platform === "ios") {
     await f.check("the app's own plugins answer: the tab bar is the phone's, and the store reports ownership", async () => {
       // The phone's bar replaces the page's own, so no tab bar in the page means
@@ -445,16 +446,12 @@ export async function runFlow(d: Driver, outDir: string, opts: { slow?: number; 
 
   await f.check("Pro: what the app offers, and Restore purchase", async () => {
     const offer = `__dc.find("^Get Headpin Pro")`;
-    if (d.platform === "ios") {
-      await f.until(offer, "a locked card offering Headpin Pro");
-      await f.snap("pro-locked");
-      await f.tab("Settings");
-      await f.until(`__dc.find("^Restore purchase")`, "Restore purchase in Settings");
-      await f.snap("pro-settings");
-      return "locked, with the purchase and Restore purchase";
-    }
-    if (await f.js(offer)) throw new Error("the Android app offers Pro, which it cannot sell yet");
-    return "open: nothing sold on Android yet";
+    await f.until(offer, "a locked card offering Headpin Pro");
+    await f.snap("pro-locked");
+    await f.tab("Settings");
+    await f.until(`__dc.find("^Restore purchase")`, "Restore purchase in Settings");
+    await f.snap("pro-settings");
+    return "locked, with the purchase and Restore purchase";
   });
 
   await f.check("oil patterns open, and a pattern draws on the lane", async () => {
