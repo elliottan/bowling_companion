@@ -1,0 +1,60 @@
+{
+  "clip": "shot-06.mp4",
+  "frame": 50,
+  "hand": "left",
+  "farFeet": 62.6,
+  "marks": {
+    "left": [
+      [
+        241,
+        200
+      ],
+      [
+        233,
+        380
+      ]
+    ],
+    "right": [
+      [
+        298,
+        200
+      ],
+      [
+        395,
+        330
+      ],
+      120
+    ],
+    "foul": [
+      [
+        235,
+        387
+      ],
+      [
+        365,
+        387
+      ]
+    ],
+    "deck": [
+      [
+        252,
+        196
+      ],
+      [
+        292,
+        196
+      ]
+    ]
+  },
+  "interior": {
+    "120": [
+      260,
+      300
+    ]
+  },
+  "notes": "Left-handed, 720p at 30 frames a second, recompressed by a messaging app. Filmed from behind the left gutter. The bowler hides the right edge on the calibration frame; it is marked on frame 120, snapped there and carried. The masking units here are screens that animate, so the picture's shift is less sure: registration takes a wider slack.",
+  "register": {
+    "band": 5,
+    "slack": 4
+  }
+}

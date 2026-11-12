@@ -8,7 +8,7 @@ import { apply, downAt } from "./homography";
 import { median, sample } from "./image";
 import { BALL_DIAMETER_IN, contactPoint, expectedRadiusPx, homographyFromMarks, imageToLane } from "./laneModel";
 import { fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, type MotionPoint } from "./pathFit";
-import { register, type FrameGeometry, type FrameSource } from "./registration";
+import { register, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, TrackError, TrackFailure, TrackResult } from "./types";
 
 /**
@@ -38,6 +38,8 @@ export interface TraceInput {
    * hidden on the chosen frame): kept as given, not snapped again.
    */
   carried?: (keyof LaneMarks)[];
+  /** Registration tuning (band, slack), for clips whose camera moves more. */
+  register?: RegisterOptions;
   /** Half-width of the calibration snap, pixels. */
   snapBand?: number;
   onProgress?: (stage: string, fraction: number) => void;
@@ -89,7 +91,7 @@ export function trace(input: TraceInput): TraceOutput {
   const H0 = homographyFromMarks(marks, input.farFeet);
 
   progress("registration", 0);
-  const geometry = register(source, input.calibFrame, marks, first, last, { farFeet: input.farFeet });
+  const geometry = register(source, input.calibFrame, marks, first, last, { ...input.register, farFeet: input.farFeet });
   debug.geometry = geometry;
   const usable = geometry.filter((g) => g && g.ok);
   if (usable.length < Math.max(MIN_SIGHTINGS, 0.3 * geometry.length)) {

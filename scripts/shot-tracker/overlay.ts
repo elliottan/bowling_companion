@@ -22,6 +22,8 @@ export interface CalibrationFile {
   farFeet?: number;
   /** A point on the lane, for orienting edges snapped on another frame, per frame. */
   interior?: Record<string, [number, number]>;
+  /** Registration tuning for this clip (band and slack in pixels). */
+  register?: { band?: number; slack?: number };
   notes?: string;
   /** The owner's own reading of the shot, when they have one. */
   owner?: string;

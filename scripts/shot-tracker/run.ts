@@ -43,7 +43,7 @@ for (const name of names) {
   const clipPath = join(here, "fixtures", "clips", cal.clip);
   const clip = loadClip(clipPath);
   const t0 = Date.now();
-  const out = trace({ source: clip, calibFrame: cal.frame, marks: toMarks(cal, carrier(clip), refiner(clip, cal)), hand: cal.hand, farFeet: cal.farFeet,
+  const out = trace({ source: clip, calibFrame: cal.frame, marks: toMarks(cal, carrier(clip), refiner(clip, cal)), hand: cal.hand, farFeet: cal.farFeet, register: cal.register,
     carried: (Object.keys(cal.marks) as (keyof typeof cal.marks)[]).filter((k) => cal.marks[k].length === 3) });
   const ms = Date.now() - t0;
   const r = out.result;
