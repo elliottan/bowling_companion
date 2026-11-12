@@ -275,7 +275,7 @@ export function metrics(inp: MetricInput): TrackMetrics {
 
   const laydown =
     inp.touchdown !== null
-      ? M(board(0), "measured")
+      ? M(board(inp.touchdown), "measured")
       : from <= 30
         ? M(board(0), "estimated")
         : M(null, "missing");
@@ -314,8 +314,14 @@ export function metrics(inp: MetricInput): TrackMetrics {
 
   const m = inp.motion;
   const vAt = (t: number) => m.v0 + m.w * t + 0.5 * m.d * t * t;
-  const avg = (inp.anchoredSpeed ?? (vAt(inp.tLast) - vAt(inp.tFirst)) / (inp.tLast - inp.tFirst)) * FTS_TO_MPH;
-  const spState: MetricState = inp.speedMeasured ? "measured" : "estimated";
+  // Two readings: the slope of the fitted distance against time over the
+  // visible range, and the two sharp events. Measured only when they agree
+  // within 1.5 mph; otherwise the slope, as estimated.
+  const slope = ((vAt(inp.tLast) - vAt(inp.tFirst)) / (inp.tLast - inp.tFirst)) * FTS_TO_MPH;
+  const anchored = inp.anchoredSpeed !== undefined ? inp.anchoredSpeed * FTS_TO_MPH : null;
+  const agree = anchored !== null && Math.abs(anchored - slope) <= 1.5;
+  const avg = agree ? anchored : slope;
+  const spState: MetricState = inp.speedMeasured && agree ? "measured" : "estimated";
   const sane = (x: number) => x >= 8 && x <= 26;
   const speed = sane(avg) ? M(avg, spState) : M(null, "missing");
   const t60 = timeAtFeet(m, 60);

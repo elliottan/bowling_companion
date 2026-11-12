@@ -69,7 +69,8 @@ for (const name of names) {
     savePng(drawLane(r), join(outDir, "lane.png"));
     Object.assign(json, {
       from: r.from, to: r.to, rms: r.rms, path: r.path, metrics: r.metrics, motion: r.motion,
-      touchdownFrame: r.touchdownFrame, pinFrame: r.pinFrame,
+      touchdownFrame: r.touchdownFrame, pinFrame: r.pinFrame, speeds: out.debug.speeds,
+      edgeOffsetPx: edgeStats(out),
       sightings: r.sightings.map((s) => ({ f: s.frame, t: +s.t.toFixed(4), u: +s.u.toFixed(2), v: +s.v.toFixed(2), r: +s.r.toFixed(2), w: +s.weight.toFixed(2), air: s.airborne }))
     });
     writeFileSync(join(outDir, "review.html"), reviewHtml(reviewShots(name, clip, clipPath, cal, r, out), name, cal, r, out, json));
@@ -82,8 +83,8 @@ for (const name of names) {
   if (r.ok) radiusRows.push(radiusRow(name, r));
 }
 writeFileSync(join(here, "out", "summary.md"), [
-  "| Clip | Visible | Sightings | Pins check | Arrows check | RMS | Laydown | Arrows | Breakpoint | Pins | Speed |",
-  "|---|---|---|---|---|---|---|---|---|---|---|",
+  "| Clip | Visible | Sightings | Pins check | Arrows check | RMS | Edge re-snap median / worst | Speed anchored / slope mph | Laydown | Arrows | Breakpoint | Pins | Speed |",
+  "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
   ...rows
 ].join("\n") + "\n");
 writeFileSync(join(here, "out", "radius.md"), [
@@ -110,6 +111,13 @@ function radiusRow(name: string, r: TrackResult): string {
   return `| ${name} | ${bin(0, 20)} | ${bin(20, 40)} | ${bin(40, 61)} | ${both.length} of ${r.sightings.length} | ${mean((s) => s.v - s.radiusV!).toFixed(2)} | ${mean((s) => s.u - s.radiusU!).toFixed(2)} |`;
 }
 
+/** Median and worst pixels between the predicted and the re-snapped edges at the ball's row. */
+function edgeStats(out: TraceOutput) {
+  const xs = out.debug.edgeOffsets.flatMap((e) => [e.left, e.right]).filter((x): x is number => x !== null).sort((a, b) => a - b);
+  const covered = out.debug.edgeOffsets.flatMap((e) => [e.left, e.right]).filter((x) => x === null).length;
+  return xs.length ? { median: +xs[xs.length >> 1].toFixed(2), worst: +xs[xs.length - 1].toFixed(2), resnapped: xs.length, covered } : null;
+}
+
 function fmt(m: Metric, unit = ""): string {
   if (m.value === null) return "missing";
   return `${m.state === "estimated" ? "about " : ""}${m.value.toFixed(1)}${unit} (${m.state === "measured" ? "m" : "e"})`;
@@ -123,7 +131,9 @@ function summaryRow(name: string, cal: CalibrationFile, out: TraceOutput, ms: nu
   if (!r.ok) return `| ${name} (${cal.hand}) | failed: ${r.failure} | | ${pins} | ${arrows} | | | | | | |`;
   const m = r.metrics;
   const n = r.sightings.filter((s) => !s.airborne).length;
-  return `| ${name} (${cal.hand}) | ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft | ${n} | ${pins} | ${arrows} | ${r.rms.toFixed(2)} | ${fmt(m.laydown)} | ${fmt(m.arrows)} | ${fmt(m.breakpoint)} at ${fmt(m.breakpointFeet, " ft")} | ${fmt(m.pins)} | ${fmt(m.speed, " mph")} (${(ms / 1000).toFixed(0)} s) |`;
+  const sp = out.debug.speeds;
+  const es = edgeStats(out);
+  return `| ${name} (${cal.hand}) | ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft | ${n} | ${pins} | ${arrows} | ${r.rms.toFixed(2)} | ${es ? `${es.median} / ${es.worst} px` : "none"} | ${sp ? `${sp.anchored?.toFixed(1) ?? "none"} / ${sp.slope.toFixed(1)}` : ""} | ${fmt(m.laydown)} | ${fmt(m.arrows)} | ${fmt(m.breakpoint)} at ${fmt(m.breakpointFeet, " ft")} | ${fmt(m.pins)} | ${fmt(m.speed, " mph")} (${(ms / 1000).toFixed(0)} s) |`;
 }
 
 /** The picture's shift from one frame to another, summed frame by frame (registration's coarse step). */

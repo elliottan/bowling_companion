@@ -3,12 +3,12 @@ import { associate } from "./associate";
 import { laneRoi, medianBackground, steady, type Roi } from "./background";
 import { findCandidates, refineCircle, type Candidate, type CircleFit } from "./ballDetect";
 import { calibrationReport, type CalibrationReport } from "./calibrationCheck";
-import { snapMarks, type MarkSnap } from "./edgeSnap";
-import { apply, downAt } from "./homography";
+import { snapEdge, snapMarks, type MarkSnap } from "./edgeSnap";
+import { apply, downAt, lineDistance } from "./homography";
 import type { Point } from "./types";
 import { median, sample } from "./image";
 import { BALL_DIAMETER_IN, contactPoint, expectedRadiusPx, homographyFromMarks, imageToLane } from "./laneModel";
-import { fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, type MotionPoint } from "./pathFit";
+import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, type MotionPoint } from "./pathFit";
 import { register, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, TrackError, TrackFailure, TrackResult } from "./types";
 
@@ -56,6 +56,10 @@ export interface TraceDebug {
   associated: Candidate[];
   circles: Map<number, CircleFit>;
   pinEnergy: { frame: number; energy: number }[];
+  /** Per sighting, pixels between each predicted edge and its re-snap at the ball's row (null: covered). */
+  edgeOffsets: { frame: number; left: number | null; right: number | null }[];
+  /** The two speed readings, mph: the event anchors and the fitted slope. */
+  speeds?: { anchored: number | null; slope: number };
   calibration: CalibrationReport | null;
   calibH: LaneMarks;
 }
@@ -83,7 +87,7 @@ export function trace(input: TraceInput): TraceOutput {
   }
   const debug: TraceDebug = {
     snap, geometry: [], first, roi: null, background: null, candidates: [], associated: [],
-    circles: new Map(), pinEnergy: [], calibration: null, calibH: snap.marks
+    circles: new Map(), pinEnergy: [], edgeOffsets: [], calibration: null, calibH: snap.marks
   };
   if (snap.support.left < 0.3 || snap.support.right < 0.3) {
     return { result: fail("lane-not-found", `the ${snap.support.left < 0.3 ? "left" : "right"} lane edge could not be followed`), debug };
@@ -113,7 +117,15 @@ export function trace(input: TraceInput): TraceOutput {
     cands.push(...findCandidates(steady(f, g.S, roi), bg, roi, g.S, g.H, g.index));
   }
   debug.candidates = cands;
-  const chosen = associate(cands);
+  // A candidate that does not move is background (a reflection, a mark the
+  // median missed): one that has company at the same lane spot in two or
+  // more frames 0.04 to 0.15 s away, where a rolling ball would have moved a
+  // foot or more, is dropped.
+  const moving = cands.filter((c) => cands.filter((o) => {
+    const dt = Math.abs(o.t - c.t);
+    return dt >= 0.04 && dt <= 0.15 && Math.abs(o.v - c.v) < 0.3 && Math.abs(o.u - c.u) < 0.5;
+  }).length < 2);
+  const chosen = associate(moving);
   debug.associated = chosen;
   if (chosen.length < MIN_SIGHTINGS) return { result: fail("ball-not-found", `${chosen.length} sightings`), debug };
 
@@ -135,14 +147,21 @@ export function trace(input: TraceInput): TraceOutput {
     // mirror image is not found: the centre plus the radius the lane's width
     // predicts there, along "down", never the dark disc's own radius.
     const c = { x: fit.cx, y: fit.cy };
-    let cp = contactPoint(g.H, c, fit.r);
-    const rExpected = expectedRadiusPx(g.H, cp.u, cp.v);
-    cp = contactPoint(g.H, c, rExpected);
+    // The board is the ball's place between the two edges as measured in this
+    // frame near its row: the registration only predicts where the edges are.
+    // A short stretch of each is re-snapped around the prediction; a covered
+    // stretch keeps the prediction and the sighting counts for less.
+    const local = localEdges(f, g, c, input.farFeet);
+    debug.edgeOffsets.push({ frame: c0.frame, left: local.left, right: local.right });
+    const gl = { ...g, H: local.H };
+    let cp = contactPoint(gl.H, c, fit.r);
+    const rExpected = expectedRadiusPx(gl.H, cp.u, cp.v);
+    cp = contactPoint(gl.H, c, rExpected);
     const radiusLane = { u: cp.u, v: cp.v };
     // Ball size check (plan 6.5): the fitted radius must be near the lane's prediction.
     if (Math.abs(fit.r / rExpected - 1) > 0.35) continue;
-    const down = downAt(g.H, c);
-    const refl = refineCircle(f, g.H, { x: c.x + 2 * rExpected * down.x, y: c.y + 2 * rExpected * down.y }, rExpected, true);
+    const down = downAt(gl.H, c);
+    const refl = refineCircle(f, gl.H, { x: c.x + 2 * rExpected * down.x, y: c.y + 2 * rExpected * down.y }, rExpected, true);
     let reflection: Point | undefined;
     if (refl && refl.weight >= 0.35) {
       const dx = refl.cx - c.x;
@@ -152,14 +171,14 @@ export function trace(input: TraceInput): TraceOutput {
       if (along >= 1.6 * rExpected && along <= 4 * rExpected && across < 0.35 * rExpected) {
         reflection = { x: refl.cx, y: refl.cy };
         const mid = { x: (c.x + refl.cx) / 2, y: (c.y + refl.cy) / 2 };
-        const lane = imageToLane(g.H, mid);
+        const lane = imageToLane(gl.H, mid);
         cp = { contact: mid, u: lane.u, v: lane.v };
       }
     }
-    const below = imageToLane(g.H, { x: cp.contact.x, y: cp.contact.y + 0.5 });
+    const below = imageToLane(gl.H, { x: cp.contact.x, y: cp.contact.y + 0.5 });
     sv.push(Math.abs(below.v - cp.v));
     sightings.push({
-      frame: c0.frame, t: f.t, cx: fit.cx, cy: fit.cy, r: fit.r, contact: cp.contact, u: cp.u, v: cp.v, weight: fit.weight,
+      frame: c0.frame, t: f.t, cx: fit.cx, cy: fit.cy, r: fit.r, contact: cp.contact, u: cp.u, v: cp.v, weight: fit.weight * (local.left === null || local.right === null ? 0.5 : 1),
       airborne: false, rExpected, reflection, radiusU: radiusLane.u, radiusV: radiusLane.v
     });
   }
@@ -214,7 +233,8 @@ export function trace(input: TraceInput): TraceOutput {
   let pinFrame: number | null = null;
   let anchoredSpeed: number | undefined;
   if (contactV !== null) {
-    const found = findPinFrame(source, geometry, motion, fit.path, debug);
+    const farT = seen.filter((s) => s.v > 50).map((s) => s.t);
+    const found = findPinFrame(source, geometry, motion, fit.path, debug, farT.length ? Math.max(...farT) : -Infinity);
     if (found !== null) {
       pinFrame = found.frame;
       if (touchdown !== null && found.t > seen[0].t) anchoredSpeed = (contactV - seen[0].v) / (found.t - seen[0].t);
@@ -243,6 +263,11 @@ export function trace(input: TraceInput): TraceOutput {
     speedMeasured: distance !== "default" && anchoredSpeed !== undefined,
     anchoredSpeed
   });
+  const vAt = (t: number) => motion.v0 + motion.w * t + 0.5 * motion.d * t * t;
+  debug.speeds = {
+    anchored: anchoredSpeed !== undefined ? anchoredSpeed * FTS_TO_MPH : null,
+    slope: ((vAt(tLast) - vAt(tFirst)) / (tLast - tFirst)) * FTS_TO_MPH
+  };
   progress("done", 1);
   return {
     result: {
@@ -259,12 +284,39 @@ export function trace(input: TraceInput): TraceOutput {
  * up to pin height, the ball and its reflection are masked out, and each
  * frame is compared with the rack's median before the ball got near.
  */
+function localEdges(f: GrayFrame, g: FrameGeometry, c: Point, farFeet?: number): { H: FrameGeometry["H"]; left: number | null; right: number | null } {
+  const marks = { ...g.marks };
+  const out: { left: number | null; right: number | null } = { left: null, right: null };
+  const interior = apply(g.H, { x: 20, y: imageToLane(g.H, c).v });
+  for (const k of ["left", "right"] as const) {
+    const sgm = g.marks[k];
+    const dx = sgm.b.x - sgm.a.x;
+    const dy = sgm.b.y - sgm.a.y;
+    if (Math.abs(dy) < 1e-6) continue;
+    const t = (c.y - sgm.a.y) / dy;
+    const p = { x: sgm.a.x + t * dx, y: c.y };
+    const len = Math.hypot(dx, dy);
+    const half = 45 / len;
+    const stretch = { a: { x: p.x - half * dx, y: p.y - half * dy }, b: { x: p.x + half * dx, y: p.y + half * dy } };
+    const r = snapEdge(f, stretch, { band: 3, interior, sign: "rising", minSupport: 0.4 });
+    if (!r.ok) continue;
+    out[k] = Math.abs(lineDistance(r.line, p));
+    marks[k] = r.segment;
+  }
+  try {
+    return { H: homographyFromMarks(marks, farFeet), ...out };
+  } catch {
+    return { H: g.H, left: null, right: null };
+  }
+}
+
 function findPinFrame(
   source: FrameSource,
   geometry: FrameGeometry[],
   motion: { v0: number; w: number; d: number },
   path: Parameters<typeof pathU>[0],
-  debug: TraceDebug
+  debug: TraceDebug,
+  notBefore: number
 ): { frame: number; t: number } | null {
   const vAt = (t: number) => motion.v0 + motion.w * t + 0.5 * motion.d * t * t;
   const rows = [0.15, 0.3, 0.45, 0.6, 0.75, 0.9];
@@ -316,7 +368,8 @@ function findPinFrame(
     const e = energy(s);
     debug.pinEnergy.push({ frame: s.frame, energy: e });
   }
-  const hit = samples.find((s, k) => s.v > 50 && debug.pinEnergy[k].energy > thr);
+  // The pins cannot move while the ball is still seen short of them.
+  const hit = samples.find((s, k) => s.v > 50 && s.t > notBefore && debug.pinEnergy[k].energy > thr);
   if (!hit) return null;
   // The pins moved during the interval before this frame: take its middle.
   const k = samples.indexOf(hit);

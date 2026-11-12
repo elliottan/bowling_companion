@@ -157,7 +157,7 @@ describe("pathFit", () => {
     expect(fit.rms).toBeLessThan(0.1);
     const m = metrics({
       path: fit.path, hand: "right", seen: pts.map((p) => p.v), touchdown: 1,
-      motion: { v0: -10, w: 25, d: -1 }, tFirst: 0.5, tLast: 2.8, speedMeasured: true
+      motion: { v0: -10, w: 25, d: -1 }, tFirst: 0.5, tLast: 2.8, speedMeasured: true, anchoredSpeed: 23.6
     });
     expect(m.arrows.state).toBe("measured");
     expect(m.arrows.value!).toBeCloseTo(40 - pathU(fit.path, 15), 5);
@@ -165,6 +165,13 @@ describe("pathFit", () => {
     expect(m.pins.state).toBe("measured");
     expect(m.launchAngle.state).toBe("measured");
     expect(m.speed.state).toBe("measured");
+    // The two readings must agree within 1.5 mph to count as measured.
+    const off = metrics({
+      path: fit.path, hand: "right", seen: pts.map((p) => p.v), touchdown: 1,
+      motion: { v0: -10, w: 25, d: -1 }, tFirst: 0.5, tLast: 2.8, speedMeasured: true, anchoredSpeed: 30
+    });
+    expect(off.speed.state).toBe("estimated");
+    expect(off.speed.value!).toBeCloseTo(23.35 * (3600 / 5280), 1);
     expect(pinContactFeet(fit.path)).toBeGreaterThan(59);
   });
 
