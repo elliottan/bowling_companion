@@ -1,0 +1,56 @@
+{
+  "clip": "shot-05.mp4",
+  "frame": 230,
+  "hand": "right",
+  "farFeet": 62.6,
+  "marks": {
+    "left": [
+      [
+        540,
+        200
+      ],
+      [
+        395,
+        425
+      ],
+      520
+    ],
+    "right": [
+      [
+        622,
+        245
+      ],
+      [
+        634,
+        505
+      ]
+    ],
+    "foul": [
+      [
+        470,
+        510
+      ],
+      [
+        630,
+        510
+      ]
+    ],
+    "deck": [
+      [
+        560,
+        228.4
+      ],
+      [
+        618,
+        228.3
+      ]
+    ]
+  },
+  "notes": "Slow motion, 120 frames a second with true timestamps. The bowler hides the left of the rack and the lane's left edge on the calibration frame; the left edge is marked on frame 520, snapped there and carried by the picture's shift.",
+  "interior": {
+    "520": [
+      600,
+      350
+    ]
+  }
+}

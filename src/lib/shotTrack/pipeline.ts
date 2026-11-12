@@ -33,6 +33,11 @@ export interface TraceInput {
   last?: number;
   /** Distance of the far marked line: the deck end, or 62.6 when marked at the 7 and 10 pin bases. */
   farFeet?: number;
+  /**
+   * Lines already snapped on another frame and carried here (plan 6.3, a line
+   * hidden on the chosen frame): kept as given, not snapped again.
+   */
+  carried?: (keyof LaneMarks)[];
   /** Half-width of the calibration snap, pixels. */
   snapBand?: number;
   onProgress?: (stage: string, fraction: number) => void;
@@ -69,6 +74,10 @@ export function trace(input: TraceInput): TraceOutput {
   const progress = input.onProgress ?? (() => {});
   const calibFrame = source.frame(input.calibFrame);
   const snap = snapMarks(calibFrame, input.marks, input.snapBand ?? 4);
+  for (const k of input.carried ?? []) {
+    snap.marks[k] = input.marks[k];
+    snap.support[k] = 1;
+  }
   const debug: TraceDebug = {
     snap, geometry: [], first, roi: null, background: null, candidates: [], associated: [],
     circles: new Map(), pinEnergy: [], calibration: null, calibH: snap.marks

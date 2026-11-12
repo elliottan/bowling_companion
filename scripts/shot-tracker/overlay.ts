@@ -3,7 +3,7 @@ import { arrowFeet } from "../../src/lib/laneGeometry";
 import { PIN_POSITIONS } from "../../src/lib/pinGeometry";
 import { apply } from "../../src/lib/shotTrack/homography";
 import { DECK_END_FT, LEFT_U, RIGHT_U, handedBoard } from "../../src/lib/shotTrack/laneModel";
-import type { LaneMarks, Mat3, Point } from "../../src/lib/shotTrack/types";
+import type { LaneMarks, Mat3, Point, Segment } from "../../src/lib/shotTrack/types";
 import type { Handedness } from "../../src/types/bowling";
 import { CYAN, MAGENTA, RED, cross, dot, line, text, type Canvas, type Color } from "./draw";
 
@@ -20,6 +20,8 @@ export interface CalibrationFile {
   marks: Record<keyof LaneMarks, [[number, number], [number, number]] | [[number, number], [number, number], number]>;
   /** Distance of the far marked line: 62.6 when it is marked at the bases of the 7 and 10 pins. */
   farFeet?: number;
+  /** A point on the lane, for orienting edges snapped on another frame, per frame. */
+  interior?: Record<string, [number, number]>;
   notes?: string;
   /** The owner's own reading of the shot, when they have one. */
   owner?: string;
@@ -29,12 +31,20 @@ export function readCalibration(path: string): CalibrationFile {
   return JSON.parse(readFileSync(path, "utf8")) as CalibrationFile;
 }
 
-export function toMarks(c: CalibrationFile, carry?: (from: number, to: number) => { x: number; y: number }): LaneMarks {
-  const seg = (s: [[number, number], [number, number]] | [[number, number], [number, number], number]) => {
-    const d = s.length === 3 && carry ? carry(s[2], c.frame) : { x: 0, y: 0 };
-    return { a: { x: s[0][0] + d.x, y: s[0][1] + d.y }, b: { x: s[1][0] + d.x, y: s[1][1] + d.y } };
+export function toMarks(
+  c: CalibrationFile,
+  carry?: (from: number, to: number) => { x: number; y: number },
+  refine?: (frame: number, s: Segment, edge: boolean) => Segment
+): LaneMarks {
+  const seg = (s: [[number, number], [number, number]] | [[number, number], [number, number], number], key: string) => {
+    let g: Segment = { a: { x: s[0][0], y: s[0][1] }, b: { x: s[1][0], y: s[1][1] } };
+    if (s.length !== 3 || !carry) return g;
+    // Snapped where it shows, then carried by the picture's shift.
+    if (refine) g = refine(s[2], g, key === "left" || key === "right");
+    const d = carry(s[2], c.frame);
+    return { a: { x: g.a.x + d.x, y: g.a.y + d.y }, b: { x: g.b.x + d.x, y: g.b.y + d.y } };
   };
-  return { left: seg(c.marks.left), right: seg(c.marks.right), foul: seg(c.marks.foul), deck: seg(c.marks.deck) };
+  return { left: seg(c.marks.left, "left"), right: seg(c.marks.right, "right"), foul: seg(c.marks.foul, "foul"), deck: seg(c.marks.deck, "deck") };
 }
 
 export function drawSegment(c: Canvas, s: { a: Point; b: Point }, col: Color, k = 1, ox = 0, oy = 0, dash?: number): void {

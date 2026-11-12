@@ -19,7 +19,8 @@ import { DECK_END_FT, LEFT_U, RIGHT_U, handedBoard, laneU } from "../../src/lib/
 import { pathU } from "../../src/lib/shotTrack/pathFit";
 import { trace, type TraceOutput } from "../../src/lib/shotTrack/pipeline";
 import { globalShift } from "../../src/lib/shotTrack/registration";
-import type { BallSighting, Metric, TrackResult } from "../../src/lib/shotTrack/types";
+import { snapEdge } from "../../src/lib/shotTrack/edgeSnap";
+import type { BallSighting, Metric, Segment, TrackResult } from "../../src/lib/shotTrack/types";
 import { loadClip, loadColorFrame, type Clip } from "./clip";
 import {
   BLUE, CYAN, GREEN, MAGENTA, ORANGE, RED, WHITE, YELLOW,
@@ -42,7 +43,8 @@ for (const name of names) {
   const clipPath = join(here, "fixtures", "clips", cal.clip);
   const clip = loadClip(clipPath);
   const t0 = Date.now();
-  const out = trace({ source: clip, calibFrame: cal.frame, marks: toMarks(cal, carrier(clip)), hand: cal.hand, farFeet: cal.farFeet });
+  const out = trace({ source: clip, calibFrame: cal.frame, marks: toMarks(cal, carrier(clip), refiner(clip, cal)), hand: cal.hand, farFeet: cal.farFeet,
+    carried: (Object.keys(cal.marks) as (keyof typeof cal.marks)[]).filter((k) => cal.marks[k].length === 3) });
   const ms = Date.now() - t0;
   const r = out.result;
   console.log(`${name}: ${r.ok ? "traced" : `failed (${r.failure}: ${r.detail})`} in ${(ms / 1000).toFixed(1)} s, ${out.debug.candidates.length} candidates, ${out.debug.associated.length} associated`);
@@ -106,6 +108,16 @@ function carrier(clip: Clip) {
   };
 }
 
+/** Snap a line on the frame it was marked on (edges by the lane-is-brighter rule). */
+function refiner(clip: Clip, cal: CalibrationFile) {
+  return (frame: number, s: Segment, edge: boolean): Segment => {
+    const p = cal.interior?.[String(frame)];
+    const r = snapEdge(clip.frame(frame), s, { band: 6, sign: edge ? "rising" : "auto", interior: p ? { x: p[0], y: p[1] } : undefined });
+    if (!r.ok) console.log(`  a line marked on frame ${frame} did not snap (support ${r.support.toFixed(2)}); kept as marked`);
+    return r.ok ? r.segment : s;
+  };
+}
+
 function frameCanvas(clipPath: string, clip: Clip, i: number): Canvas {
   return fromRgb(loadColorFrame(clipPath, i, clip.width, clip.height), clip.width, clip.height);
 }
@@ -113,7 +125,7 @@ function frameCanvas(clipPath: string, clip: Clip, i: number): Canvas {
 function drawCalibration(clip: Clip, clipPath: string, cal: CalibrationFile, out: TraceOutput, file: string): void {
   const full = frameCanvas(clipPath, clip, cal.frame);
   const m = out.debug.snap.marks;
-  const rough = toMarks(cal, carrier(clip));
+  const rough = toMarks(cal, carrier(clip), refiner(clip, cal));
   const g = out.debug.geometry[cal.frame - out.debug.first];
   const xs = [m.left.a.x, m.left.b.x, m.right.a.x, m.right.b.x];
   const ys = [m.deck.a.y, m.foul.a.y, m.foul.b.y];
