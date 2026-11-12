@@ -232,8 +232,11 @@ function solve3(A: number[][], b: number[]): number[] {
  * Fixed radius first, then free; the free fit is kept unless it strays more
  * than FREE_RADIUS_TOLERANCE from the expected radius.
  */
-export function refineCircle(f: GrayFrame, H: Mat3, rough: Point, r: number): CircleFit | null {
-  const down = downAt(H, rough);
+export function refineCircle(f: GrayFrame, H: Mat3, rough: Point, r: number, lower = false): CircleFit | null {
+  // `lower` fits the ball's mirror image instead: its clean edge is the lower
+  // arc (the image of the ball's top), its top is hidden behind the ball.
+  const d0 = downAt(H, rough);
+  const down = lower ? { x: -d0.x, y: -d0.y } : d0;
   // Inside darker than outside means the edge rises outward.
   let inside = 0;
   let outside = 0;

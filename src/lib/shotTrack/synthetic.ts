@@ -301,6 +301,13 @@ function floorTone(x: number, y: number): number {
   return 215;
 }
 
+/**
+ * A sign with a short linear ramp. The renderer samples each pixel once, so a
+ * hard pattern edge would jump whole pixels as the camera turns; a ramp a few
+ * pixels wide moves smoothly, as a real picture does through the lens.
+ */
+const soft = (x: number) => Math.max(-1, Math.min(1, 6 * x));
+
 function skyTone(o: Vec3, d: Vec3): number {
   // Back wall (masking units) and a textured ceiling, so the top of the
   // picture has the static texture the coarse pass registers on.
@@ -310,12 +317,12 @@ function skyTone(o: Vec3, d: Vec3): number {
     const x = o[0] + tw * d[0];
     const z = o[2] + tw * d[2];
     if (z < 2.5) return 25;
-    return 120 + 50 * Math.sign(Math.sin(x * 1.7) * Math.sin(z * 2.3));
+    return 120 + 50 * soft(Math.sin(x * 1.7) * Math.sin(z * 2.3));
   }
   if (tc < Infinity) {
     const x = o[0] + tc * d[0];
     const y = o[1] + tc * d[1];
-    return 190 + 40 * Math.sign(Math.sin(x * 0.9) * Math.sin(y * 0.6));
+    return 190 + 40 * soft(Math.sin(x * 0.9) * Math.sin(y * 0.6));
   }
   return 180;
 }

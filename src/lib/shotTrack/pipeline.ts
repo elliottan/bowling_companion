@@ -5,6 +5,7 @@ import { findCandidates, refineCircle, type Candidate, type CircleFit } from "./
 import { calibrationReport, type CalibrationReport } from "./calibrationCheck";
 import { snapMarks, type MarkSnap } from "./edgeSnap";
 import { apply, downAt } from "./homography";
+import type { Point } from "./types";
 import { median, sample } from "./image";
 import { BALL_DIAMETER_IN, contactPoint, expectedRadiusPx, homographyFromMarks, imageToLane } from "./laneModel";
 import { fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, type MotionPoint } from "./pathFit";
@@ -120,33 +121,77 @@ export function trace(input: TraceInput): TraceOutput {
   const geoOf = (i: number) => geometry[i - first];
   const sightings: BallSighting[] = [];
   const sv: number[] = [];
-  for (const c of chosen) {
-    const g = geoOf(c.frame);
-    const f = source.frame(c.frame);
-    const fit = refineCircle(f, g.H, { x: c.x, y: c.y }, c.r);
+  for (const c0 of chosen) {
+    const g = geoOf(c0.frame);
+    const f = source.frame(c0.frame);
+    const fit = refineCircle(f, g.H, { x: c0.x, y: c0.y }, c0.r);
     if (!fit) continue;
-    debug.circles.set(c.frame, fit);
-    const cp = contactPoint(g.H, { x: fit.cx, y: fit.cy }, fit.r);
-    // Ball size check (plan 6.5): the fitted radius must match the lane's width there.
-    const expected = expectedRadiusPx(g.H, cp.u, cp.v);
-    if (Math.abs(fit.r / expected - 1) > 0.35) continue;
+    debug.circles.set(c0.frame, fit);
+    // The contact point (plan 6.4, revised after the sample clips). A glossy
+    // ball mirrors the bright lane on its underside, so the dark disc is cut
+    // off at the bottom and its fitted radius runs small. The point under the
+    // ball is the midpoint of the ball's centre and its mirror image's centre
+    // (mirror symmetry in the lane), which needs no radius at all. When the
+    // mirror image is not found: the centre plus the radius the lane's width
+    // predicts there, along "down", never the dark disc's own radius.
+    const c = { x: fit.cx, y: fit.cy };
+    let cp = contactPoint(g.H, c, fit.r);
+    const rExpected = expectedRadiusPx(g.H, cp.u, cp.v);
+    cp = contactPoint(g.H, c, rExpected);
+    const radiusLane = { u: cp.u, v: cp.v };
+    // Ball size check (plan 6.5): the fitted radius must be near the lane's prediction.
+    if (Math.abs(fit.r / rExpected - 1) > 0.35) continue;
+    const down = downAt(g.H, c);
+    const refl = refineCircle(f, g.H, { x: c.x + 2 * rExpected * down.x, y: c.y + 2 * rExpected * down.y }, rExpected, true);
+    let reflection: Point | undefined;
+    if (refl && refl.weight >= 0.35) {
+      const dx = refl.cx - c.x;
+      const dy = refl.cy - c.y;
+      const along = dx * down.x + dy * down.y;
+      const across = Math.abs(dx * down.y - dy * down.x);
+      if (along >= 1.6 * rExpected && along <= 4 * rExpected && across < 0.35 * rExpected) {
+        reflection = { x: refl.cx, y: refl.cy };
+        const mid = { x: (c.x + refl.cx) / 2, y: (c.y + refl.cy) / 2 };
+        const lane = imageToLane(g.H, mid);
+        cp = { contact: mid, u: lane.u, v: lane.v };
+      }
+    }
     const below = imageToLane(g.H, { x: cp.contact.x, y: cp.contact.y + 0.5 });
     sv.push(Math.abs(below.v - cp.v));
-    sightings.push({ frame: c.frame, t: f.t, cx: fit.cx, cy: fit.cy, r: fit.r, contact: cp.contact, u: cp.u, v: cp.v, weight: fit.weight, airborne: false });
+    sightings.push({
+      frame: c0.frame, t: f.t, cx: fit.cx, cy: fit.cy, r: fit.r, contact: cp.contact, u: cp.u, v: cp.v, weight: fit.weight,
+      airborne: false, rExpected, reflection, radiusU: radiusLane.u, radiusV: radiusLane.v
+    });
   }
   if (sightings.length < MIN_SIGHTINGS) return { result: fail("ball-not-found", `${sightings.length} circles fitted`), debug };
 
-  // The ball in the air (plan 7.4, fallback 5): mapped through the contact
-  // rule, a ball above the lane appears too far down-lane, so it runs ahead
-  // of the distance-against-time fit of the rolling ball. The sample clips'
-  // glossy balls mirror the lane on their lower rim, so the gap to the
-  // reflection does not close at the touchdown; the apparent speed does.
+  // The ball in the air (plan 7.4). On the lane the ball's centre and its
+  // mirror image's are two expected radii apart; in the air, further. The
+  // touchdown is the first sighting where they close to that and stay so.
+  const sep = (s: BallSighting) =>
+    s.reflection && s.rExpected ? Math.hypot(s.reflection.x - s.cx, s.reflection.y - s.cy) / (2 * s.rExpected) : null;
+  const onLane = (s: BallSighting) => {
+    const k = sep(s);
+    return k !== null && (k - 1) * 2 * s.rExpected! < 0.08 * 2 * s.rExpected! + 0.7;
+  };
+  // Sightings whose mirror image was found are judged by it. The first one
+  // that is on the lane, with the next two not contradicting it, is the
+  // touchdown by reflection; those before it that were judged are airborne.
+  const touch = sightings.findIndex((s, i) => onLane(s) && sightings.slice(i + 1, i + 3).every((n) => sep(n) === null || onLane(n)));
+  const judgedUpTo = touch < 0 ? sightings.length : touch;
+  for (let i = 0; i < judgedUpTo; i++) if (sep(sightings[i]) !== null && sightings[i].v < 10) sightings[i].airborne = true;
+  // The rest before it, with no mirror image found (on the approach, or a dull
+  // lane), by the fallback of plan 7.4 step 5: mapped through the contact
+  // rule, a ball above the lane appears too far down-lane, so it runs ahead of
+  // the distance-against-time fit of the rolling ball.
   const rolling = sightings.filter((s) => s.v >= 8);
   const base = rolling.length >= 6 ? rolling : sightings;
   const m0 = fitMotion(base.map((s) => ({ t: s.t, v: s.v, w: s.weight })));
   const resid = base.map((s) => s.v - (m0.v0 + m0.w * s.t + 0.5 * m0.d * s.t * s.t));
   const sigma = Math.max(0.25, 1.4826 * median(resid.map(Math.abs)));
-  for (const s of sightings) {
+  for (let i = 0; i < judgedUpTo; i++) {
+    const s = sightings[i];
+    if (sep(s) !== null) continue;
     const r = s.v - (m0.v0 + m0.w * s.t + 0.5 * m0.d * s.t * s.t);
     if (s.v < 8 && r > Math.max(0.75, 3 * sigma)) s.airborne = true;
     else break;

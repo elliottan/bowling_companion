@@ -80,6 +80,13 @@ export interface BallSighting {
   v: number;
   /** 0 to 1, the fraction of the circle's rays that found an edge. */
   weight: number;
+  /** The ball's radius the lane's width predicts at its contact point, pixels. */
+  rExpected?: number;
+  /** Centre of the ball's mirror image, when it was found. */
+  reflection?: Point;
+  /** Lane position by the radius rule (centre plus expected radius along down), for comparison. */
+  radiusU?: number;
+  radiusV?: number;
   /** Before the touchdown: not used for the path or the speed (plan 7.4). */
   airborne: boolean;
 }

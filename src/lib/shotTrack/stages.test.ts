@@ -56,13 +56,9 @@ describe("registration", () => {
     expect(s.y).toBeCloseTo(-2.2, 0);
   });
 
-  // Plan 7.3 asks for 0.3 pixel. Measured here: about 0.5 where the far line
-  // re-snaps, because the renderer does not antialias and its deck end lies
-  // almost along a pixel row (so the edge is quantised to whole rows), and up
-  // to about a pixel where standing pins defeat the snap and the line keeps
-  // its shifted prediction. Both are recorded in the harness README.
+  // Plan 7.3: the far corners within 0.3 pixel, with the body in the picture.
   it("carries the far corners through drift and jitter", () => {
-    const spec = standardShot({ width: 240, height: 427, duration: 1.2, fill: 0.3 });
+    const spec = standardShot({ width: 240, height: 427, duration: 1.2, fill: 0.3, body: true });
     const src = syntheticSource(spec);
     const last = src.count - 1;
     const geo = register(src, last, truthMarks(spec, last), 0, last);
@@ -71,7 +67,7 @@ describe("registration", () => {
       const t = truthMarks(spec, i);
       const truth = intersect(segmentLine(t.left), segmentLine(t.deck))!;
       const got = intersect(segmentLine(geo[i].marks.left), segmentLine(geo[i].marks.deck))!;
-      expect(Math.hypot(got.x - truth.x, got.y - truth.y)).toBeLessThan(geo[i].predicted ? 1.2 : 0.6);
+      expect(Math.hypot(got.x - truth.x, got.y - truth.y)).toBeLessThan(0.3);
     }
   });
 });
