@@ -55,6 +55,46 @@ Choices made here, with the reason:
 - The calibration check's arrows are rarely found: on these lanes they are
   faint under the lane's reflections. Its numbers below are not trustworthy.
 
+## Results, round three (2026-11-12)
+
+Since round two: each sighting's board comes from the two edges re-snapped
+in its own frame over a short stretch around the ball's row (the whole-picture
+registration only predicts them; a covered stretch keeps the prediction and
+halves the sighting's weight); nothing behind the foul line is a sighting and
+the laydown is the board at the touchdown; a candidate that stays put for
+0.04 to 0.15 s is background; the pin frame cannot fire before the last
+sighting beyond 50 ft; and the speed is read two ways and is measured only
+when they agree within 1.5 mph (otherwise the slope, estimated).
+
+| Clip | Visible | Sightings | Pins check (boards) | RMS | Edge re-snap, median / worst | Speed: anchors / slope | Laydown | Arrows | Breakpoint | Pins | Speed |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| shot-01 (right) | 0.1 to 50.1 ft | 103 | 7: 1.31, 10: -0.60, 1: 0.23 | 0.23 | 0.68 / 3.00 px | 14.4 / 15.7 | 21.4 (m) | 16.7 (m) | 8.0 (m) at 45.8 ft | missing | 14.4 mph (m) |
+| shot-02 (right) | -0.2 to 52.9 ft | 101 | not found | 0.22 | 0.91 / 4.06 px | 20.0 / 19.3 | 17.8 (m) | 14.6 (m) | missing | about 8.9 (e) | 20.0 mph (m) |
+| shot-03 (right) | not calibrated | | | | | | | | | | |
+| shot-04 (right) | not calibrated | | | | | | | | | | |
+| shot-05 (right) | 1.1 to 53.9 ft | 215 | 10: -0.48 | 0.34 | 0.07 / 2.99 px | 18.0 / 17.7 | 16.6 (m) | 12.8 (m) | 8.5 (m) at 42.6 ft | about 9.5 (e) | 18.0 mph (m) |
+| shot-06 (left) | 0.9 to 63.2 ft | 53 | not found | 0.26 | 0.45 / 2.78 px | 19.8 / 20.9 | 18.4 (m) | 16.4 (m) | 14.3 (m) at 38.6 ft | 16.0 (m) | 19.8 mph (m) |
+
+Radius ratio (fitted over expected) by 0-20, 20-40, 40-60 ft: shot-01 0.940,
+0.946, 0.979; shot-02 0.956, 0.932, 0.954; shot-05 0.992, 0.991, 0.962;
+shot-06 1.004, 1.063, 1.028.
+
+**Open issue, the lane edge (not tuned):** on shot-01 and shot-02 the radius
+ratio reads about 0.94 to 0.95 at every distance, and on shot-01 the 7 and 10
+pins read 1.31 and 0.60 boards inside the edges. Both say the snapped lane is
+about 5% too wide there, worth about 0.6 board at board 8 (the breakpoint).
+shot-05 and shot-06 read about 1.00.
+
+**Still failing:** shot-01 stops at 50 ft (it traced to 58.9 ft in round
+one; cause not found). shot-02's 20 mph is believed by both readings but not
+by the reviewer. shot-03 and shot-04 are not calibrated. The touchdown and
+arrows panels were regenerated larger but were not inspected by eye in this
+round. The laydown and arrows on shot-01 moved 22.2 / 17.1 (round one) to
+21.0 / 16.1 (round two) to 21.4 / 16.7 (now); the re-snapped edges sit 0.68
+px (median) from the registration's prediction, about a tenth of a board at
+the arrows, so the round-to-round moves are not explained by registration
+alone. Not resolved.
+
 ## Results, round two (2026-11-12)
 
 Registration now matches textured patches of the whole picture against the
