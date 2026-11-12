@@ -26,6 +26,9 @@ describe.each([
 ])("tracing a synthetic $hand-handed shot at $fps fps (body $body)", (c) => {
   const spec = standardShot(c);
   const src = syntheticSource(spec);
+  // Marked on the last frame, after the pins have gone, so the deck end is a
+  // clean edge (on real clips it is hidden behind standing pins: see the
+  // harness README).
   const calib = src.count - 2;
   const out = trace({ source: src, calibFrame: calib, marks: roughMarks(spec, calib), hand: c.hand });
   const r = out.result as TrackResult;

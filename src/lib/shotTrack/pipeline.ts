@@ -157,7 +157,7 @@ export function trace(input: TraceInput): TraceOutput {
   const contactV = pinContactFeet(fit.path);
   let pinFrame: number | null = null;
   if (contactV !== null) {
-    const found = findPinFrame(source, geometry, first, motion, fit.path, debug);
+    const found = findPinFrame(source, geometry, motion, fit.path, debug);
     if (found !== null) {
       pinFrame = found.frame;
       const total = motionPts.reduce((s, p) => s + p.w, 0);
@@ -201,7 +201,6 @@ export function trace(input: TraceInput): TraceOutput {
 function findPinFrame(
   source: FrameSource,
   geometry: FrameGeometry[],
-  first: number,
   motion: { v0: number; w: number; d: number },
   path: Parameters<typeof pathU>[0],
   debug: TraceDebug

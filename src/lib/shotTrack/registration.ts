@@ -141,8 +141,9 @@ export function relocate(
   };
   const left = follow(predicted.left);
   const right = follow(predicted.right);
+  // Pins stand on the far line and flying pins cross it, so when its snap
+  // fails it keeps its prediction (the shift from the last good frame).
   let deck = follow(predicted.deck, "auto");
-  // Flying pins can drag the deck end: it then keeps its prediction too.
   if (!deck.ok) deck = { ...deck, segment: predicted.deck };
   const support = { left: left.support, right: right.support, deck: deck.support };
   const marks: LaneMarks = { left: left.segment, right: right.segment, deck: deck.segment, foul: predicted.foul };
