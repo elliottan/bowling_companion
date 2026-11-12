@@ -75,13 +75,25 @@ export function worldToLane(x: number, y: number): { u: number; v: number } {
   return { u: x / BOARD_FT + CENTER_U, v: y };
 }
 
+/**
+ * The far cross-lane line's distance when it is marked through the bases of
+ * the 7 and 10 pins. From a phone held at chest height the tail plank is
+ * hidden behind the pins (every sample clip), so that line is marked instead;
+ * it is 3 inches in front of the deck end.
+ */
+export const BACK_ROW_FT = 62.6;
+
 /** The corners the marks meet at, in lane coordinates, in the order NL, NR, FL, FR. */
-export const LANE_CORNERS: Point[] = [
-  { x: LEFT_U, y: 0 },
-  { x: RIGHT_U, y: 0 },
-  { x: LEFT_U, y: DECK_END_FT },
-  { x: RIGHT_U, y: DECK_END_FT }
-];
+export function laneCorners(farFeet = DECK_END_FT): Point[] {
+  return [
+    { x: LEFT_U, y: 0 },
+    { x: RIGHT_U, y: 0 },
+    { x: LEFT_U, y: farFeet },
+    { x: RIGHT_U, y: farFeet }
+  ];
+}
+
+export const LANE_CORNERS: Point[] = laneCorners();
 
 /** Image corners of the marked rectangle, NL, NR, FL, FR, or null if lines are parallel. */
 export function markCorners(m: LaneMarks): Point[] | null {
@@ -93,11 +105,11 @@ export function markCorners(m: LaneMarks): Point[] | null {
   return pts.every((p) => p !== null) ? (pts as Point[]) : null;
 }
 
-/** Lane to image homography from the four marked lines (plan 6.2). */
-export function homographyFromMarks(m: LaneMarks): Mat3 {
+/** Lane to image homography from the four marked lines (plan 6.2); the far line sits at `farFeet`. */
+export function homographyFromMarks(m: LaneMarks, farFeet = DECK_END_FT): Mat3 {
   const c = markCorners(m);
   if (!c) throw new Error("marked lines do not meet");
-  return solveHomography(LANE_CORNERS, c);
+  return solveHomography(laneCorners(farFeet), c);
 }
 
 export function laneToImage(H: Mat3, u: number, v: number): Point {

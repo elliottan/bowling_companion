@@ -1,0 +1,13 @@
+{
+  "clip": "shot-01.mp4",
+  "frame": 150,
+  "hand": "right",
+  "farFeet": 62.6,
+  "marks": {
+    "left": [[496.2, 416.6], [416.9, 532.8]],
+    "right": [[572.5, 430.0], [603.2, 628.1]],
+    "foul": [[411.1, 621.0], [570.1, 624.0]],
+    "deck": [[506.9, 409.4], [563.3, 410.3]]
+  },
+  "notes": "The tail plank is hidden behind the pins; the far line is marked at the bases of the 7 and 10 pins (62.6 ft)."
+}

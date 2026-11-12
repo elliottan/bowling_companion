@@ -357,6 +357,25 @@ export function renderFrame(spec: SyntheticShot, i: number): GrayFrame {
   const body = spec.body ? { ...laneToWorld(spec.body.u, spec.body.v), r: spec.body.radius, h: spec.body.height } : null;
   const bodyX = body ? body.x + 0.4 * Math.sin(t * 2) : 0;
 
+  // Picture boxes outside which the pins and the balls cannot be hit, so the
+  // per-pixel ray tests run only where they matter.
+  const boxOf = (pts: Vec3[], pad: number) => {
+    const ps = pts.map((q) => project(cam, q)).filter((q): q is Point => q !== null);
+    if (ps.length < pts.length) return { x0: 0, y0: 0, x1: W, y1: Hh };
+    return {
+      x0: Math.min(...ps.map((q) => q.x)) - pad, x1: Math.max(...ps.map((q) => q.x)) + pad,
+      y0: Math.min(...ps.map((q) => q.y)) - pad, y1: Math.max(...ps.map((q) => q.y)) + pad
+    };
+  };
+  const inBox = (b: { x0: number; y0: number; x1: number; y1: number } | null, x: number, y: number) =>
+    b !== null && x >= b.x0 && x <= b.x1 && y >= b.y0 && y <= b.y1;
+  const rackBox = pins.length
+    ? boxOf(pins.flatMap((p) => [-pinR, pinR].flatMap((d) => [[p.x + d, p.y, 0], [p.x + d, p.y, PIN_HEIGHT_FT]] as Vec3[])), 2)
+    : null;
+  const ballPts: Vec3[] = balls.flat().flatMap((b) =>
+    [-1, 1].flatMap((sx) => [-1, 1].flatMap((sy) => [-1, 1].map((sz) => [b.c[0] + sx * R, b.c[1] + sy * R, sz * (b.c[2] + R)] as Vec3)))
+  );
+  const ballBox = ballPts.length ? boxOf(ballPts, 3) : null;
   const cx = (W - 1) / 2;
   const cy = (Hh - 1) / 2;
   const o = B.c;
@@ -382,7 +401,7 @@ export function renderFrame(spec: SyntheticShot, i: number): GrayFrame {
       }
       let tNear = tFloor;
       tone = tFloor < Infinity ? floorTone(fx, fy) : skyTone(o, d);
-      for (const p of pins) {
+      if (inBox(rackBox, px, py)) for (const p of pins) {
         const tp = hitCylinder(o, d, p.x, p.y, pinR, PIN_HEIGHT_FT);
         if (tp < tNear) {
           tNear = tp;
@@ -397,7 +416,7 @@ export function renderFrame(spec: SyntheticShot, i: number): GrayFrame {
         }
       }
       // The moving balls and their mirror images, averaged over the shutter.
-      if (balls.some((s) => s.length)) {
+      if (inBox(ballBox, px, py)) {
         const floorIsLane = tFloor === tNear && tFloor < Infinity && fy >= 0 && fy <= DECK_END_FT;
         let acc = 0;
         for (const set of balls) {
