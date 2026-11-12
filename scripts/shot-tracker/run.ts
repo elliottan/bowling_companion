@@ -256,17 +256,19 @@ function reviewShots(name: string, clip: Clip, clipPath: string, cal: Calibratio
   const add = (title: string, s: BallSighting, at: number, metric: Metric, note: string) => {
     const g = out.debug.geometry[s.frame - out.debug.first];
     const full = frameCanvas(clipPath, clip, s.frame);
-    const a = apply(g.H, { x: LEFT_U - 2, y: Math.max(-2, s.v - 4) });
-    const b = apply(g.H, { x: RIGHT_U + 2, y: Math.max(-2, s.v - 4) });
+    // Ten boards either side of the ball, enlarged so a board can be read off
+    // the numbered lines by eye.
+    const a = apply(g.H, { x: Math.max(LEFT_U - 2, s.u - 10), y: Math.max(-2, s.v - 4) });
+    const b = apply(g.H, { x: Math.min(RIGHT_U + 2, s.u + 10), y: Math.max(-2, s.v - 4) });
     const top = apply(g.H, { x: 20, y: Math.min(DECK_END_FT, s.v + 6) });
     const x0 = Math.max(0, Math.round(Math.min(a.x, b.x) - 6));
     const x1 = Math.min(clip.width, Math.round(Math.max(a.x, b.x) + 6));
     const y0 = Math.max(0, Math.round(Math.min(top.y, s.cy - 3 * s.r) - 6));
     const y1 = Math.min(clip.height, Math.round(Math.max(a.y, s.cy + 3 * s.r) + 6));
-    const k = Math.max(2, Math.min(10, Math.floor(900 / (x1 - x0))));
+    const k = Math.max(3, Math.min(14, Math.floor(1000 / (x1 - x0))));
     const c = cropScale(full, x0, y0, x1 - x0, y1 - y0, k);
     drawBoards(c, g.H, cal.hand, { k, ox: x0, oy: y0, v0: Math.max(0, s.v - 4), v1: Math.min(DECK_END_FT, s.v + 4), every: 5, labelAt: Math.max(0, s.v - 3.5) });
-    drawBoards(c, g.H, cal.hand, { k, ox: x0, oy: y0, v0: Math.max(0, s.v - 1.5), v1: Math.min(DECK_END_FT, s.v + 1.5), every: 1, color: [120, 255, 255] });
+    drawBoards(c, g.H, cal.hand, { k, ox: x0, oy: y0, v0: Math.max(0, s.v - 4), v1: Math.min(DECK_END_FT, s.v + 4), every: 1, color: [120, 255, 255] });
     if (title.startsWith("Arrows")) drawLandmarks(c, g.H, k, x0, y0);
     circle(c, (s.cx - x0) * k, (s.cy - y0) * k, s.r * k, GREEN);
     cross(c, (s.contact.x - x0) * k, (s.contact.y - y0) * k, 6, RED);
