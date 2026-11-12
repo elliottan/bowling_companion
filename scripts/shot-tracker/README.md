@@ -146,6 +146,17 @@ round "laydown" was the touchdown board.
 tracer reads 22.6 and 16.8. (The owner's earlier 25 was read off a frame
 with the ball still in the hand.)
 
+**The owner's own reading of shot-06:** laydown about 18, arrows 14.5 or 15.
+The tracer reads 17.2 and 14.9.
+
+**Open: the laydown may sit to the left of the owner's.** In the lane's own
+terms (not the bowler's boards) the tracer's laydown is left of the owner's
+reading on all three clips read so far: 0.6 board on shot-01, 0.3 on shot-05
+(against the middle of 18 to 19), 0.8 on shot-06 (a left-hander, so a lower
+board is further left). The readings are good to about half a board and the
+arrows do not show the same lean, so this is not established. Not looked
+into.
+
 **shot-06: calibrated, and the cause was the pin marks, not the lens.** The
 seven pin marks sat on the reflected pins' necks, 10 pixels below the bases:
 down each pin's column the brightness runs head (y 171), neck (174), belly
