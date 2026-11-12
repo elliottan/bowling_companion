@@ -61,12 +61,12 @@ describe("registration", () => {
     const spec = standardShot({ width: 240, height: 427, duration: 1.2, fill: 0.3, body: true });
     const src = syntheticSource(spec);
     const last = src.count - 1;
-    const geo = register(src, last, truthMarks(spec, last), 0, last);
+    const geo = register(src, last, truthAt(spec, last).H, 0, last);
     for (const i of [0, 10, 25]) {
       expect(geo[i].ok).toBe(true);
       const t = truthMarks(spec, i);
       const truth = intersect(segmentLine(t.left), segmentLine(t.deck))!;
-      const got = intersect(segmentLine(geo[i].marks.left), segmentLine(geo[i].marks.deck))!;
+      const got = apply(geo[i].H, { x: 0.5, y: 62.849 });
       expect(Math.hypot(got.x - truth.x, got.y - truth.y)).toBeLessThan(0.3);
     }
   });

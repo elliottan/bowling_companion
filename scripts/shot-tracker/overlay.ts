@@ -2,28 +2,36 @@ import { readFileSync } from "node:fs";
 import { arrowFeet } from "../../src/lib/laneGeometry";
 import { PIN_POSITIONS } from "../../src/lib/pinGeometry";
 import { apply } from "../../src/lib/shotTrack/homography";
-import { DECK_END_FT, LEFT_U, RIGHT_U, handedBoard } from "../../src/lib/shotTrack/laneModel";
-import type { LaneMarks, Mat3, Point, Segment } from "../../src/lib/shotTrack/types";
+import { namedLine, namedPoint, type CalMark } from "../../src/lib/shotTrack/calibrate";
+import { DECK_END_FT, LEFT_U, RIGHT_U, handedBoard, laneU } from "../../src/lib/shotTrack/laneModel";
+import type { Mat3, Point } from "../../src/lib/shotTrack/types";
 import type { Handedness } from "../../src/types/bowling";
 import { CYAN, MAGENTA, RED, cross, dot, line, text, type Canvas, type Color } from "./draw";
 
-/** A hand-made calibration beside the harness (plan 10.3). */
+/**
+ * A hand-made calibration beside the harness, from the lane's own markings
+ * (see the README). Every mark is something visible on the frame it names
+ * (the calibration frame when it names none); nothing hidden is marked.
+ */
 export interface CalibrationFile {
   clip: string;
   frame: number;
   hand: Handedness;
   /**
-   * Each line as two points on the calibration frame, or on another frame
-   * named third (plan 6.3: a line hidden on the chosen frame is marked where
-   * it shows, and carried over by the picture's shift between the frames).
+   * Points whose lane position is known: [name, x, y] or [name, x, y, frame].
+   * Names: "arrow N" (handed board N, the arrow's tip), "pin N" (the front of
+   * the pin's base, centred on the pin).
    */
-  marks: Record<keyof LaneMarks, [[number, number], [number, number]] | [[number, number], [number, number], number]>;
-  /** Distance of the far marked line: 62.6 when it is marked at the bases of the 7 and 10 pins. */
-  farFeet?: number;
-  /** A point on the lane, for orienting edges snapped on another frame, per frame. */
-  interior?: Record<string, [number, number]>;
-  /** Registration tuning for this clip (band and slack in pixels). */
-  register?: { band?: number; slack?: number };
+  points?: ([string, number, number] | [string, number, number, number])[];
+  /**
+   * Points on a lane line: [name, [[x, y], ...]] or [name, [[x, y], ...], frame].
+   * Names: "left" and "right" (the edges as seen from the foul line, at the
+   * lane's lane-side flank of the gutter lip), "foul", "pinrow" (the bases of
+   * the back-row pins, 62.6 ft, on any lane: it runs straight across the house).
+   */
+  lines?: ([string, [number, number][]] | [string, [number, number][], number])[];
+  /** Registration tuning for this clip. */
+  register?: { tolerance?: number; maxJump?: number };
   /** Not calibrated: why. The harness writes a review page that says so. */
   skip?: string;
   notes?: string;
@@ -35,20 +43,20 @@ export function readCalibration(path: string): CalibrationFile {
   return JSON.parse(readFileSync(path, "utf8")) as CalibrationFile;
 }
 
-export function toMarks(
-  c: CalibrationFile,
-  carry?: (from: number, to: number) => { x: number; y: number },
-  refine?: (frame: number, s: Segment, edge: boolean) => Segment
-): LaneMarks {
-  const seg = (s: [[number, number], [number, number]] | [[number, number], [number, number], number], key: string) => {
-    let g: Segment = { a: { x: s[0][0], y: s[0][1] }, b: { x: s[1][0], y: s[1][1] } };
-    if (s.length !== 3 || !carry) return g;
-    // Snapped where it shows, then carried by the picture's shift.
-    if (refine) g = refine(s[2], g, key === "left" || key === "right");
-    const d = carry(s[2], c.frame);
-    return { a: { x: g.a.x + d.x, y: g.a.y + d.y }, b: { x: g.b.x + d.x, y: g.b.y + d.y } };
-  };
-  return { left: seg(c.marks.left, "left"), right: seg(c.marks.right, "right"), foul: seg(c.marks.foul, "foul"), deck: seg(c.marks.deck, "deck") };
+/** The file's marks as the pipeline takes them. Throws on a name it does not know. */
+export function toCalMarks(c: CalibrationFile): (CalMark & { frame?: number })[] {
+  const out: (CalMark & { frame?: number })[] = [];
+  for (const p of c.points ?? []) {
+    const lane = namedPoint(p[0], (b) => laneU(b, c.hand));
+    if (!lane) throw new Error(`unknown point mark "${p[0]}"`);
+    out.push({ kind: "point", label: p[0], ...lane, at: { x: p[1], y: p[2] }, frame: p[3] });
+  }
+  for (const l of c.lines ?? []) {
+    const lane = namedLine(l[0]);
+    if (!lane) throw new Error(`unknown line mark "${l[0]}"`);
+    out.push({ kind: "line", label: l[0], ...lane, at: l[1].map(([x, y]) => ({ x, y })), frame: l[2] });
+  }
+  return out;
 }
 
 export function drawSegment(c: Canvas, s: { a: Point; b: Point }, col: Color, k = 1, ox = 0, oy = 0, dash?: number): void {

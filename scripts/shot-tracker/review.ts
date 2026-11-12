@@ -61,7 +61,12 @@ ${cal.owner ? `<p>Owner's reading: ${esc(cal.owner)}</p>` : ""}
 ${table ? `<table>${table}</table>` : ""}
 ${checks}
 ${shots.map((s) => `<section><h2>${esc(s.title)}</h2>${s.lines.map((l) => `<p>${esc(l)}</p>`).join("")}<img alt="${esc(s.title)}" src="data:image/png;base64,${s.png}"></section>`).join("\n")}
-<section><h2>Calibration frame</h2><p>Yellow dashes: the hand marks. Green: after snapping. Cyan: every 5 boards. Magenta: 15 ft and the arrows. Red: 60 ft and the pin spots.</p>${img("calibration.png", "calibration")}</section>
+<section><h2>Calibration (frame ${cal.frame})</h2>
+<p>The lane mapping is the least squares fit to every mark below: points whose lane position is known (arrow tips, pin bases) and points on lane lines (an edge, the foul line, the pin row across the house). Each mark's residual is how far it sits from where the fit puts it. A calibration with a mark more than a board off is refused.${out.debug.fit ? ` Worst: ${out.debug.fit.worstBoards.toFixed(2)} boards; ${out.debug.fit.redundancy} equations to spare.` : ""}</p>
+${out.debug.fit ? `<table><tr><td>Mark</td><td>Pixels</td><td>Boards across</td><td>Feet along</td></tr>${out.debug.fit.residuals.map((q) => `<tr><td>${esc(q.index ? `${q.label} #${q.index + 1}` : q.label)}</td><td>${q.px.toFixed(2)}</td><td>${q.boards === null ? "" : q.boards.toFixed(2)}</td><td>${q.feet === null ? "" : q.feet.toFixed(2)}</td></tr>`).join("")}</table>` : ""}
+${cal.notes ? `<p>${esc(cal.notes)}</p>` : ""}
+<p>Contrast-stretched. Yellow circles: the marks (point marks labelled with their residual in boards). Magenta crosses: the arrows' tips as the fit projects them; red: the pin spots. Cyan: every 5 boards (white: board 20). Yellow dashes: the foul line and the pin row.</p>
+${img("cal-lane.png", "the calibrated lane")}${img("cal-near.png", "the near end")}${img("cal-pins.png", "the pin deck")}</section>
 <section><h2>The track on the lane</h2><p>Dots: sightings (green strong, yellow weak, orange in the air). Blue: the fitted path, dashed beyond the sightings.</p>${img("lane.png", "lane")}</section>
 <section><h2>Every sighting</h2><p>Green: fitted circle. Yellow: edge points used. Red: contact point. Bottom: feet and handed board.</p>${img("sightings.png", "sightings")}</section>
 </body></html>

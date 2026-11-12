@@ -3,14 +3,15 @@ import { associate } from "./associate";
 import { laneRoi, medianBackground, steady, type Roi } from "./background";
 import { findCandidates, refineCircle, type Candidate, type CircleFit } from "./ballDetect";
 import { calibrationReport, type CalibrationReport } from "./calibrationCheck";
+import { fitCalibration, focalFromPlane, type CalibrationFit, type CalMark } from "./calibrate";
 import { snapEdge, snapMarks, type MarkSnap } from "./edgeSnap";
-import { apply, downAt, lineDistance } from "./homography";
+import { apply, downAt, invert, multiply, normalize } from "./homography";
 import type { Point } from "./types";
 import { median, sample } from "./image";
-import { BALL_DIAMETER_IN, contactPoint, expectedRadiusPx, homographyFromMarks, imageToLane } from "./laneModel";
+import { BALL_DIAMETER_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
 import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, type MotionPoint } from "./pathFit";
-import { register, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
-import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, TrackError, TrackFailure, TrackResult } from "./types";
+import { laneMarksOf, register, registerPlane, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
+import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, TrackError, TrackFailure, TrackResult } from "./types";
 
 /**
  * The tracer, stage by stage (plan 5.3): snap the marks, carry them to every
@@ -26,20 +27,22 @@ import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, TrackError, Tr
 export interface TraceInput {
   source: FrameSource;
   calibFrame: number;
-  /** The bowler's rough marks on the calibration frame; snapped here. */
-  marks: LaneMarks;
+  /**
+   * The lane's markings placed on the picture (arrows, pin bases, points on
+   * the edges, the foul line, the pin row), each on the calibration frame or
+   * on the frame it names: the calibration is the least squares fit to all of
+   * them, with every mark's residual reported.
+   */
+  calMarks?: (CalMark & { frame?: number })[];
+  /** Or the plan's four rough lines on the calibration frame, snapped here (the far one at `farFeet`). */
+  marks?: LaneMarks;
   hand: Handedness;
   distance?: DistanceSource;
   first?: number;
   last?: number;
-  /** Distance of the far marked line: the deck end, or 62.6 when marked at the 7 and 10 pin bases. */
+  /** With `marks`: distance of the far marked line, the deck end unless given. */
   farFeet?: number;
-  /**
-   * Lines already snapped on another frame and carried here (plan 6.3, a line
-   * hidden on the chosen frame): kept as given, not snapped again.
-   */
-  carried?: (keyof LaneMarks)[];
-  /** Registration tuning (band, slack), for clips whose camera moves more. */
+  /** Registration tuning, for clips whose camera moves more. */
   register?: RegisterOptions;
   /** Half-width of the calibration snap, pixels. */
   snapBand?: number;
@@ -47,7 +50,11 @@ export interface TraceInput {
 }
 
 export interface TraceDebug {
-  snap: MarkSnap;
+  snap: MarkSnap | null;
+  /** The calibration's least squares fit, with each mark's residual. */
+  fit: CalibrationFit | null;
+  /** The marks as fitted, in the calibration frame's pixels (marks from other frames carried). */
+  fitMarks: CalMark[];
   geometry: FrameGeometry[];
   first: number;
   roi: Roi | null;
@@ -56,12 +63,14 @@ export interface TraceDebug {
   associated: Candidate[];
   circles: Map<number, CircleFit>;
   pinEnergy: { frame: number; energy: number }[];
-  /** Per sighting, pixels between each predicted edge and its re-snap at the ball's row (null: covered). */
+  /**
+   * Per sighting, where each gutter edge re-snapped near the ball's row sits
+   * against the fitted edge, boards (null: covered or not found).
+   */
   edgeOffsets: { frame: number; left: number | null; right: number | null }[];
   /** The two speed readings, mph: the event anchors and the fitted slope. */
   speeds?: { anchored: number | null; slope: number };
   calibration: CalibrationReport | null;
-  calibH: LaneMarks;
 }
 
 export interface TraceOutput {
@@ -80,23 +89,77 @@ export function trace(input: TraceInput): TraceOutput {
   const last = input.last ?? source.count - 1;
   const progress = input.onProgress ?? (() => {});
   const calibFrame = source.frame(input.calibFrame);
-  const snap = snapMarks(calibFrame, input.marks, input.snapBand ?? 4);
-  for (const k of input.carried ?? []) {
-    snap.marks[k] = input.marks[k];
-    snap.support[k] = 1;
-  }
   const debug: TraceDebug = {
-    snap, geometry: [], first, roi: null, background: null, candidates: [], associated: [],
-    circles: new Map(), pinEnergy: [], edgeOffsets: [], calibration: null, calibH: snap.marks
+    snap: null, fit: null, fitMarks: [], geometry: [], first, roi: null, background: null, candidates: [], associated: [],
+    circles: new Map(), pinEnergy: [], edgeOffsets: [], calibration: null
   };
-  if (snap.support.left < 0.3 || snap.support.right < 0.3) {
-    return { result: fail("lane-not-found", `the ${snap.support.left < 0.3 ? "left" : "right"} lane edge could not be followed`), debug };
-  }
-  const marks = snap.marks;
-  const H0 = homographyFromMarks(marks, input.farFeet);
-
+  const I: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
   progress("registration", 0);
-  const geometry = register(source, input.calibFrame, marks, first, last, { ...input.register, farFeet: input.farFeet });
+  // The picture's transforms first: they carry marks made on other frames.
+  const pictures = register(source, input.calibFrame, I, first, last, input.register);
+  let marks: CalMark[];
+  const carry = (geo: FrameGeometry[]) =>
+    input.calMarks!.map((m) => {
+      const g = m.frame === undefined || m.frame === input.calibFrame ? null : geo[m.frame - first];
+      if (!g) return m;
+      const back = invert(g.S);
+      return m.kind === "point" ? { ...m, at: apply(back, m.at) } : { ...m, at: m.at.map((p) => apply(back, p)) };
+    });
+  if (input.calMarks) {
+    marks = carry(pictures);
+  } else if (input.marks) {
+    const snap = snapMarks(calibFrame, input.marks, input.snapBand ?? 4);
+    debug.snap = snap;
+    if (snap.support.left < 0.3 || snap.support.right < 0.3) {
+      return { result: fail("lane-not-found", `the ${snap.support.left < 0.3 ? "left" : "right"} lane edge could not be followed`), debug };
+    }
+    const m = snap.marks;
+    const line = (label: string, axis: "u" | "v", value: number, s: { a: Point; b: Point }): CalMark => ({ kind: "line", label, axis, value, at: [s.a, s.b] });
+    marks = [line("left", "u", LEFT_U, m.left), line("right", "u", RIGHT_U, m.right), line("foul", "v", 0, m.foul), line("deck", "v", input.farFeet ?? DECK_END_FT, m.deck)];
+  } else {
+    return { result: fail("lane-not-found", "no marks"), debug };
+  }
+  debug.fitMarks = marks;
+  let fitted: CalibrationFit;
+  try {
+    fitted = fitCalibration(marks);
+  } catch (e) {
+    return { result: fail("lane-not-found", (e as Error).message), debug };
+  }
+  debug.fit = fitted;
+  // A mark more than a board from where the fit puts it says the marks
+  // disagree: one is misplaced, or on something that is not what it was
+  // called. Refused rather than traced.
+  if (fitted.worstBoards > 1) {
+    return { result: fail("calibration-off", `a mark sits ${fitted.worstBoards.toFixed(2)} boards from the fit`), debug };
+  }
+  // The lane's plane, frame by frame (parallax from a camera that travels);
+  // marks made on other frames are carried again by it and the fit redone.
+  let H0 = fitted.H;
+  // The lens's focal length from the lane mapping, where it gives one: a
+  // turn's fit at the bottom of the picture depends on it, and the picture's
+  // own small turns fix it poorly.
+  const focal = focalFromPlane(H0, calibFrame.width, calibFrame.height) ?? undefined;
+  const geometry = registerPlane(source, input.calibFrame, H0, pictures, first, { focal });
+  if (input.calMarks && input.calMarks.some((m) => m.frame !== undefined && m.frame !== input.calibFrame)) {
+    marks = carry(geometry);
+    debug.fitMarks = marks;
+    try {
+      fitted = fitCalibration(marks);
+    } catch (e) {
+      return { result: fail("lane-not-found", (e as Error).message), debug };
+    }
+    debug.fit = fitted;
+    if (fitted.worstBoards > 1) {
+      return { result: fail("calibration-off", `a mark sits ${fitted.worstBoards.toFixed(2)} boards from the fit`), debug };
+    }
+    H0 = fitted.H;
+  }
+  for (const g of geometry) {
+    if (!g) continue;
+    g.H = normalize(multiply(g.S, H0));
+    g.marks = laneMarksOf(g.H);
+  }
   debug.geometry = geometry;
   const usable = geometry.filter((g) => g && g.ok);
   if (usable.length < Math.max(MIN_SIGHTINGS, 0.3 * geometry.length)) {
@@ -147,13 +210,14 @@ export function trace(input: TraceInput): TraceOutput {
     // mirror image is not found: the centre plus the radius the lane's width
     // predicts there, along "down", never the dark disc's own radius.
     const c = { x: fit.cx, y: fit.cy };
-    // The board is the ball's place between the two edges as measured in this
-    // frame near its row: the registration only predicts where the edges are.
-    // A short stretch of each is re-snapped around the prediction; a covered
-    // stretch keeps the prediction and the sighting counts for less.
-    const local = localEdges(f, g, c, input.farFeet);
+    // The gutter edges near the ball's row are re-snapped in this frame: not
+    // to define the boards (the marks' fit does that) but to track the
+    // registration. Their offsets from the fitted edges are corrected for
+    // below, once every sighting's are known; a covered stretch counts the
+    // sighting for less.
+    const local = localEdges(f, g, c);
     debug.edgeOffsets.push({ frame: c0.frame, left: local.left, right: local.right });
-    const gl = { ...g, H: local.H };
+    const gl = g;
     let cp = contactPoint(gl.H, c, fit.r);
     const rExpected = expectedRadiusPx(gl.H, cp.u, cp.v);
     cp = contactPoint(gl.H, c, rExpected);
@@ -183,6 +247,7 @@ export function trace(input: TraceInput): TraceOutput {
     });
   }
   if (sightings.length < MIN_SIGHTINGS) return { result: fail("ball-not-found", `${sightings.length} circles fitted`), debug };
+  trackEdges(sightings, debug.edgeOffsets);
 
   // The ball in the air (plan 7.4). On the lane the ball's centre and its
   // mirror image's are two expected radii apart; in the air, further. The
@@ -278,16 +343,11 @@ export function trace(input: TraceInput): TraceOutput {
   };
 }
 
-/**
- * The first frame in which the rack changes sharply (plan 7.6): the pins
- * start to move. The rack is sampled on a grid of points standing on the deck
- * up to pin height, the ball and its reflection are masked out, and each
- * frame is compared with the rack's median before the ball got near.
- */
-function localEdges(f: GrayFrame, g: FrameGeometry, c: Point, farFeet?: number): { H: FrameGeometry["H"]; left: number | null; right: number | null } {
-  const marks = { ...g.marks };
+/** Each gutter edge re-snapped on a short stretch around the ball's row, as lane u against the fitted edge. */
+function localEdges(f: GrayFrame, g: FrameGeometry, c: Point): { left: number | null; right: number | null } {
   const out: { left: number | null; right: number | null } = { left: null, right: null };
-  const interior = apply(g.H, { x: 20, y: imageToLane(g.H, c).v });
+  const v = imageToLane(g.H, c).v;
+  const interior = apply(g.H, { x: 20, y: v });
   for (const k of ["left", "right"] as const) {
     const sgm = g.marks[k];
     const dx = sgm.b.x - sgm.a.x;
@@ -300,16 +360,49 @@ function localEdges(f: GrayFrame, g: FrameGeometry, c: Point, farFeet?: number):
     const stretch = { a: { x: p.x - half * dx, y: p.y - half * dy }, b: { x: p.x + half * dx, y: p.y + half * dy } };
     const r = snapEdge(f, stretch, { band: 3, interior, sign: "rising", minSupport: 0.4 });
     if (!r.ok) continue;
-    out[k] = Math.abs(lineDistance(r.line, p));
-    marks[k] = r.segment;
+    // Where the re-snapped edge crosses the ball's row, in lane u, against the fitted edge.
+    const l = r.line;
+    if (Math.abs(l[0]) < 1e-9) continue;
+    const x = -(l[1] * c.y + l[2]) / l[0];
+    out[k] = imageToLane(g.H, { x, y: c.y }).u - (k === "left" ? LEFT_U : RIGHT_U);
   }
-  try {
-    return { H: homographyFromMarks(marks, farFeet), ...out };
-  } catch {
-    return { H: g.H, left: null, right: null };
+  return out;
+}
+
+/**
+ * The tracking correction. Each gutter edge sits a steady amount from the
+ * fitted edge (that is the gutter, not the registration: its median over the
+ * clip); what moves from frame to frame about that is the registration's
+ * error, common to the whole lane at that row, and is taken off the ball's
+ * board. Offsets more than a board from their median are a failed snap and
+ * are ignored.
+ */
+export function trackEdges(sightings: BallSighting[], offsets: { frame: number; left: number | null; right: number | null }[]): void {
+  const med = (k: "left" | "right") => {
+    const xs = offsets.map((o) => o[k]).filter((x): x is number => x !== null);
+    return xs.length >= 3 ? median(xs) : null;
+  };
+  const m = { left: med("left"), right: med("right") };
+  const byFrame = new Map(offsets.map((o) => [o.frame, o]));
+  for (const s of sightings) {
+    const o = byFrame.get(s.frame);
+    const dev: number[] = [];
+    for (const k of ["left", "right"] as const) {
+      const x = o?.[k];
+      const mk = m[k];
+      if (x !== null && x !== undefined && mk !== null && Math.abs(x - mk) <= 1) dev.push(x - mk);
+    }
+    if (!dev.length) continue;
+    s.u -= dev.reduce((a, b) => a + b, 0) / dev.length;
   }
 }
 
+/**
+ * The first frame in which the rack changes sharply (plan 7.6): the pins
+ * start to move. The rack is sampled on a grid of points standing on the deck
+ * up to pin height, the ball and its reflection are masked out, and each
+ * frame is compared with the rack's median before the ball got near.
+ */
 function findPinFrame(
   source: FrameSource,
   geometry: FrameGeometry[],

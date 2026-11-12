@@ -128,3 +128,52 @@ export function toPng(c: Canvas): Buffer {
 export function savePng(c: Canvas, path: string): void {
   writeFileSync(path, toPng(c));
 }
+
+/**
+ * Local contrast stretch, for finding faint lane marks by eye: each pixel's
+ * grey is stretched between the 2nd and 98th percentile of the grey around it
+ * (a `win` pixel square), colour kept as a tint.
+ */
+export function stretch(c: Canvas, win = 24): Canvas {
+  const { width: W, height: H } = c;
+  const g = new Float32Array(W * H);
+  for (let i = 0; i < W * H; i++) g[i] = 0.299 * c.rgb[i * 3] + 0.587 * c.rgb[i * 3 + 1] + 0.114 * c.rgb[i * 3 + 2];
+  const t = Math.max(4, Math.round(win / 2));
+  const tw = Math.ceil(W / t);
+  const th = Math.ceil(H / t);
+  const lo = new Float32Array(tw * th);
+  const hi = new Float32Array(tw * th);
+  for (let ty = 0; ty < th; ty++) {
+    for (let tx = 0; tx < tw; tx++) {
+      const xs: number[] = [];
+      for (let y = Math.max(0, (ty - 1) * t); y < Math.min(H, (ty + 2) * t); y += 1) {
+        for (let x = Math.max(0, (tx - 1) * t); x < Math.min(W, (tx + 2) * t); x += 1) xs.push(g[y * W + x]);
+      }
+      xs.sort((a, b) => a - b);
+      lo[ty * tw + tx] = xs[Math.floor(0.02 * (xs.length - 1))];
+      hi[ty * tw + tx] = xs[Math.ceil(0.98 * (xs.length - 1))];
+    }
+  }
+  const out = canvas(W, H);
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      // Bilinear between the tile centres, so no tile edges show.
+      const fx = Math.max(0, Math.min(tw - 1.001, x / t - 0.5));
+      const fy = Math.max(0, Math.min(th - 1.001, y / t - 0.5));
+      const ix = Math.min(tw - 2, Math.floor(fx));
+      const iy = Math.min(th - 2, Math.floor(fy));
+      const ax = tw > 1 ? fx - ix : 0;
+      const ay = th > 1 ? fy - iy : 0;
+      const at = (a: Float32Array, i: number, j: number) => a[Math.max(0, Math.min(th - 1, j)) * tw + Math.max(0, Math.min(tw - 1, i))];
+      const bl = (a: Float32Array) =>
+        (1 - ay) * ((1 - ax) * at(a, ix, iy) + ax * at(a, ix + 1, iy)) + ay * ((1 - ax) * at(a, ix, iy + 1) + ax * at(a, ix + 1, iy + 1));
+      const l0 = bl(lo);
+      const span = Math.max(12, bl(hi) - l0);
+      const v = Math.max(0, Math.min(255, ((g[y * W + x] - l0) / span) * 255));
+      const i = y * W + x;
+      const gi = Math.max(1, g[i]);
+      for (let ch = 0; ch < 3; ch++) out.rgb[i * 3 + ch] = Math.max(0, Math.min(255, v * (0.7 + (0.3 * c.rgb[i * 3 + ch]) / gi)));
+    }
+  }
+  return out;
+}

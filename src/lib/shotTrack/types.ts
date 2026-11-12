@@ -124,6 +124,7 @@ export type TrackFailure =
   | "too-short"
   | "too-small"
   | "lane-not-found"
+  | "calibration-off"
   | "too-shaky"
   | "ball-not-found"
   | "too-little-seen";

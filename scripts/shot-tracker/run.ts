@@ -6,7 +6,7 @@
  *
  * For each clip: decodes it to grey frames with ffmpeg, reads the hand-made
  * calibration in `calibrations/<clip>.json`, runs the same `pipeline.ts` the
- * app will run, and writes to `out/<clip>/`: calibration.png, sightings.png,
+ * app will run, and writes to `out/<clip>/`: cal-lane.png, cal-near.png, cal-pins.png, sightings.png,
  * lane.png, result.json and review.html. `out/summary.md` gets the results
  * table for the README.
  */
@@ -18,15 +18,13 @@ import { apply } from "../../src/lib/shotTrack/homography";
 import { DECK_END_FT, LEFT_U, RIGHT_U, handedBoard, laneU } from "../../src/lib/shotTrack/laneModel";
 import { pathU } from "../../src/lib/shotTrack/pathFit";
 import { trace, type TraceOutput } from "../../src/lib/shotTrack/pipeline";
-import { globalShift } from "../../src/lib/shotTrack/registration";
-import { snapEdge } from "../../src/lib/shotTrack/edgeSnap";
-import type { BallSighting, Metric, Segment, TrackResult } from "../../src/lib/shotTrack/types";
+import type { BallSighting, Mat3, Metric, TrackResult } from "../../src/lib/shotTrack/types";
 import { loadClip, loadColorFrame, type Clip } from "./clip";
 import {
   BLUE, CYAN, GREEN, MAGENTA, ORANGE, RED, WHITE, YELLOW,
-  canvas, circle, cropScale, cross, dot, fromRgb, line, savePng, text, toPng, type Canvas
+  canvas, circle, cropScale, cross, dot, fromRgb, line, savePng, stretch, text, toPng, type Canvas, type Color
 } from "./draw";
-import { drawAcross, drawBoards, drawLandmarks, drawSegment, readCalibration, toMarks, type CalibrationFile } from "./overlay";
+import { drawAcross, drawBoards, drawLandmarks, readCalibration, toCalMarks, type CalibrationFile } from "./overlay";
 import { reviewHtml, type ReviewShot } from "./review";
 
 const here = new URL(".", import.meta.url).pathname;
@@ -52,17 +50,23 @@ for (const name of names) {
     continue;
   }
   const t0 = Date.now();
-  const out = trace({ source: clip, calibFrame: cal.frame, marks: toMarks(cal, carrier(clip), refiner(clip, cal)), hand: cal.hand, farFeet: cal.farFeet, register: cal.register,
-    carried: (Object.keys(cal.marks) as (keyof typeof cal.marks)[]).filter((k) => cal.marks[k].length === 3) });
+  const out = trace({ source: clip, calibFrame: cal.frame, calMarks: toCalMarks(cal), hand: cal.hand, register: cal.register });
   const ms = Date.now() - t0;
   const r = out.result;
   console.log(`${name}: ${r.ok ? "traced" : `failed (${r.failure}: ${r.detail})`} in ${(ms / 1000).toFixed(1)} s, ${out.debug.candidates.length} candidates, ${out.debug.associated.length} associated`);
-  drawCalibration(clip, clipPath, cal, out, join(outDir, "calibration.png"));
+  drawCalibration(clip, clipPath, cal, out, outDir);
   const json: Record<string, unknown> = {
     clip: cal.clip, hand: cal.hand, ms, frames: clip.count,
     usableFrames: out.debug.geometry.filter((g) => g?.ok).length,
+    // Frames whose lane came from the floor's own homography; the rest kept the whole picture's turn.
+    floorRegistered: out.debug.geometry.filter((g) => g?.plane).length,
+    floorMissing: out.debug.geometry.filter((g) => g && !g.plane).map((g) => g.index),
     candidates: out.debug.candidates.length, associated: out.debug.associated.length,
-    calibration: out.debug.calibration, snapSupport: out.debug.snap.support
+    calibration: out.debug.calibration,
+    fit: out.debug.fit && {
+      redundancy: out.debug.fit.redundancy, worstBoards: +out.debug.fit.worstBoards.toFixed(3),
+      residuals: out.debug.fit.residuals.map((q) => ({ mark: q.index ? `${q.label} #${q.index + 1}` : q.label, px: +q.px.toFixed(2), boards: q.boards === null ? null : +q.boards.toFixed(3), feet: q.feet === null ? null : +q.feet.toFixed(3) }))
+    }
   };
   if (r.ok) {
     drawSightings(clip, r, out, join(outDir, "sightings.png"));
@@ -70,7 +74,7 @@ for (const name of names) {
     Object.assign(json, {
       from: r.from, to: r.to, rms: r.rms, path: r.path, metrics: r.metrics, motion: r.motion,
       touchdownFrame: r.touchdownFrame, pinFrame: r.pinFrame, speeds: out.debug.speeds,
-      edgeOffsetPx: edgeStats(out),
+      gutterEdgeBoards: edgeStats(out),
       sightings: r.sightings.map((s) => ({ f: s.frame, t: +s.t.toFixed(4), u: +s.u.toFixed(2), v: +s.v.toFixed(2), r: +s.r.toFixed(2), w: +s.weight.toFixed(2), air: s.airborne }))
     });
     writeFileSync(join(outDir, "review.html"), reviewHtml(reviewShots(name, clip, clipPath, cal, r, out), name, cal, r, out, json));
@@ -83,8 +87,8 @@ for (const name of names) {
   if (r.ok) radiusRows.push(radiusRow(name, r));
 }
 writeFileSync(join(here, "out", "summary.md"), [
-  "| Clip | Visible | Sightings | Pins check | Arrows check | RMS | Edge re-snap median / worst | Speed anchored / slope mph | Laydown | Arrows | Breakpoint | Pins | Speed |",
-  "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+  "| Clip | Marks (redundancy) | Worst mark, boards | Visible | Sightings | Pins check | RMS | Gutter edges vs fit, L / R boards | Speed anchored / slope mph | Laydown | Arrows | Breakpoint | Pins | Speed |",
+  "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
   ...rows
 ].join("\n") + "\n");
 writeFileSync(join(here, "out", "radius.md"), [
@@ -111,11 +115,13 @@ function radiusRow(name: string, r: TrackResult): string {
   return `| ${name} | ${bin(0, 20)} | ${bin(20, 40)} | ${bin(40, 61)} | ${both.length} of ${r.sightings.length} | ${mean((s) => s.v - s.radiusV!).toFixed(2)} | ${mean((s) => s.u - s.radiusU!).toFixed(2)} |`;
 }
 
-/** Median and worst pixels between the predicted and the re-snapped edges at the ball's row. */
+/** Median offset of each re-snapped gutter edge from the fitted lane edge near the ball's row, boards (positive: toward the right as seen). */
 function edgeStats(out: TraceOutput) {
-  const xs = out.debug.edgeOffsets.flatMap((e) => [e.left, e.right]).filter((x): x is number => x !== null).sort((a, b) => a - b);
-  const covered = out.debug.edgeOffsets.flatMap((e) => [e.left, e.right]).filter((x) => x === null).length;
-  return xs.length ? { median: +xs[xs.length >> 1].toFixed(2), worst: +xs[xs.length - 1].toFixed(2), resnapped: xs.length, covered } : null;
+  const med = (k: "left" | "right") => {
+    const xs = out.debug.edgeOffsets.map((e) => e[k]).filter((x): x is number => x !== null).sort((a, b) => a - b);
+    return xs.length ? +xs[xs.length >> 1].toFixed(2) : null;
+  };
+  return { left: med("left"), right: med("right"), resnapped: out.debug.edgeOffsets.length };
 }
 
 function fmt(m: Metric, unit = ""): string {
@@ -126,69 +132,92 @@ function fmt(m: Metric, unit = ""): string {
 function summaryRow(name: string, cal: CalibrationFile, out: TraceOutput, ms: number): string {
   const r = out.result;
   const c = out.debug.calibration;
+  const f = out.debug.fit;
+  const nMarks = (cal.points?.length ?? 0) + (cal.lines ?? []).reduce((s, l) => s + l[1].length, 0);
+  const fitCols = f ? `${nMarks} (${f.redundancy}) | ${f.worstBoards.toFixed(2)}` : `${nMarks} | not fitted`;
   const pins = c?.pins.length ? c.pins.map((p) => `${p.name.replace("pin ", "")}: ${p.error.toFixed(2)}`).join(", ") : "not found";
-  const arrows = c?.arrows.length ? `${c.arrows.length} found, worst ${c.arrowError!.toFixed(2)}` : "not found";
-  if (!r.ok) return `| ${name} (${cal.hand}) | failed: ${r.failure} | | ${pins} | ${arrows} | | | | | | |`;
+  if (!r.ok) return `| ${name} (${cal.hand}) | ${fitCols} | failed: ${r.failure} (${r.detail}) | | | | | | | | | | |`;
   const m = r.metrics;
   const n = r.sightings.filter((s) => !s.airborne).length;
   const sp = out.debug.speeds;
   const es = edgeStats(out);
-  return `| ${name} (${cal.hand}) | ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft | ${n} | ${pins} | ${arrows} | ${r.rms.toFixed(2)} | ${es ? `${es.median} / ${es.worst} px` : "none"} | ${sp ? `${sp.anchored?.toFixed(1) ?? "none"} / ${sp.slope.toFixed(1)}` : ""} | ${fmt(m.laydown)} | ${fmt(m.arrows)} | ${fmt(m.breakpoint)} at ${fmt(m.breakpointFeet, " ft")} | ${fmt(m.pins)} | ${fmt(m.speed, " mph")} (${(ms / 1000).toFixed(0)} s) |`;
-}
-
-/** The picture's shift from one frame to another, summed frame by frame (registration's coarse step). */
-function carrier(clip: Clip) {
-  return (from: number, to: number) => {
-    const d = { x: 0, y: 0 };
-    const step = from < to ? 1 : -1;
-    for (let i = from; i !== to; i += step) {
-      const s = globalShift(clip.frame(i), clip.frame(i + step));
-      d.x += s.x;
-      d.y += s.y;
-    }
-    return d;
-  };
-}
-
-/** Snap a line on the frame it was marked on (edges by the lane-is-brighter rule). */
-function refiner(clip: Clip, cal: CalibrationFile) {
-  return (frame: number, s: Segment, edge: boolean): Segment => {
-    const p = cal.interior?.[String(frame)];
-    const r = snapEdge(clip.frame(frame), s, { band: 6, sign: edge ? "rising" : "auto", interior: p ? { x: p[0], y: p[1] } : undefined });
-    if (!r.ok) console.log(`  a line marked on frame ${frame} did not snap (support ${r.support.toFixed(2)}); kept as marked`);
-    return r.ok ? r.segment : s;
-  };
+  return `| ${name} (${cal.hand}) | ${fitCols} | ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft | ${n} | ${pins} | ${r.rms.toFixed(2)} | ${es.left ?? "none"} / ${es.right ?? "none"} | ${sp ? `${sp.anchored?.toFixed(1) ?? "none"} / ${sp.slope.toFixed(1)}` : ""} | ${fmt(m.laydown)} | ${fmt(m.arrows)} | ${fmt(m.breakpoint)} at ${fmt(m.breakpointFeet, " ft")} | ${fmt(m.pins)} | ${fmt(m.speed, " mph")} (${(ms / 1000).toFixed(0)} s) |`;
 }
 
 function frameCanvas(clipPath: string, clip: Clip, i: number): Canvas {
   return fromRgb(loadColorFrame(clipPath, i, clip.width, clip.height), clip.width, clip.height);
 }
 
-function drawCalibration(clip: Clip, clipPath: string, cal: CalibrationFile, out: TraceOutput, file: string): void {
+/** The picture box around lane points (u, v), raised by `lift` pixels, clipped to the frame. */
+function boxAround(H: Mat3, us: number[], vs: number[], lift: number, W: number, Hh: number, pad = 6) {
+  const pts = us.flatMap((u) => vs.map((v) => apply(H, { x: u, y: v })));
+  const x0 = Math.max(0, Math.floor(Math.min(...pts.map((p) => p.x)) - pad));
+  const x1 = Math.min(W, Math.ceil(Math.max(...pts.map((p) => p.x)) + pad));
+  const y0 = Math.max(0, Math.floor(Math.min(...pts.map((p) => p.y)) - pad - lift));
+  const y1 = Math.min(Hh, Math.ceil(Math.max(...pts.map((p) => p.y)) + pad));
+  return { x0, y0, w: Math.max(1, x1 - x0), h: Math.max(1, y1 - y0) };
+}
+
+/**
+ * A contrast-stretched, enlarged crop with the calibration drawn on it: board
+ * lines every 5 (board 20 brighter), the foul line and the pin row, the
+ * projected arrows (magenta) and pin spots (red), and, when given, the marks
+ * (yellow) with each point mark's residual in boards.
+ */
+function calibratedCrop(
+  full: Canvas, H: Mat3, hand: CalibrationFile["hand"], box: { x0: number; y0: number; w: number; h: number }, width: number,
+  marks?: { at: { x: number; y: number }[]; label: string; boards: (number | null)[] }[]
+): Canvas {
+  const k = Math.max(2, Math.min(16, Math.floor(width / box.w)));
+  const c = cropScale(stretch(cropScale(full, box.x0, box.y0, box.w, box.h, 1)), 0, 0, box.w, box.h, k);
+  drawBoards(c, H, hand, { k, ox: box.x0, oy: box.y0, v0: -2, v1: DECK_END_FT, every: 5 });
+  drawBoards(c, H, hand, { k, ox: box.x0, oy: box.y0, v0: -2, v1: DECK_END_FT, every: 20, color: WHITE });
+  drawAcross(c, H, 0, YELLOW, k, box.x0, box.y0);
+  drawAcross(c, H, 62.6, YELLOW, k, box.x0, box.y0);
+  for (let b = 5; b <= 35; b += 5) {
+    const p = apply(H, { x: b, y: arrowFeet(b) });
+    cross(c, (p.x - box.x0) * k, (p.y - box.y0) * k, Math.max(4, k), MAGENTA);
+  }
+  for (const pin of Object.values(PIN_POSITIONS)) {
+    const p = apply(H, { x: pin.board, y: pin.feet });
+    cross(c, (p.x - box.x0) * k, (p.y - box.y0) * k, Math.max(4, k), RED);
+  }
+  for (const m of marks ?? []) {
+    m.at.forEach((q, n) => {
+      const x = (q.x - box.x0) * k;
+      const y = (q.y - box.y0) * k;
+      if (x < 0 || y < 0 || x >= c.width || y >= c.height) return;
+      circle(c, x, y, Math.max(3, k / 2), YELLOW);
+      const b = m.boards[n];
+      if (m.at.length === 1 && b !== null) text(c, x + 6, y + 6, b.toFixed(2), YELLOW, 2);
+    });
+  }
+  return c;
+}
+
+/** The calibration on its frame: the whole lane, the near end and the pin deck, for the owner. */
+function drawCalibration(clip: Clip, clipPath: string, cal: CalibrationFile, out: TraceOutput, outDir: string): void {
+  const fit = out.debug.fit;
+  if (!fit) return;
   const full = frameCanvas(clipPath, clip, cal.frame);
-  const m = out.debug.snap.marks;
-  const rough = toMarks(cal, carrier(clip), refiner(clip, cal));
-  const g = out.debug.geometry[cal.frame - out.debug.first];
-  const xs = [m.left.a.x, m.left.b.x, m.right.a.x, m.right.b.x];
-  const ys = [m.deck.a.y, m.foul.a.y, m.foul.b.y];
-  const x0 = Math.max(0, Math.round(Math.min(...xs) - 40));
-  const y0 = Math.max(0, Math.round(Math.min(...ys) - 50));
-  const w = Math.min(clip.width - x0, Math.round(Math.max(...xs) - x0 + 40));
-  const h = Math.min(clip.height - y0, Math.round(Math.max(...ys) - y0 + 30));
-  const k = Math.max(2, Math.min(4, Math.floor(1400 / w)));
-  const c = cropScale(full, x0, y0, w, h, k);
-  for (const key of ["left", "right", "foul", "deck"] as const) {
-    drawSegment(c, rough[key], YELLOW, k, x0, y0, 3);
-    drawSegment(c, m[key], GREEN, k, x0, y0);
-  }
-  if (g) {
-    drawBoards(c, g.H, cal.hand, { k, ox: x0, oy: y0, labelAt: 3 });
-    drawAcross(c, g.H, 15, MAGENTA, k, x0, y0);
-    drawAcross(c, g.H, 60, RED, k, x0, y0);
-    drawLandmarks(c, g.H, k, x0, y0);
-  }
-  text(c, 6, 6, `${cal.frame}`, YELLOW, 3);
-  savePng(c, file);
+  const H = fit.H;
+  const marks = out.debug.fitMarks.map((m) => {
+    const rs = fit.residuals.filter((q) => q.label === m.label);
+    return { label: m.label, at: m.kind === "point" ? [m.at] : m.at, boards: rs.map((q) => q.boards) };
+  });
+  const pinH = 2.2 * expectedRadiusPxAt(H, 61) * (15 / 8.5);
+  const whole = boxAround(H, [LEFT_U - 6, RIGHT_U + 6], [-3, DECK_END_FT], pinH, clip.width, clip.height, 20);
+  savePng(calibratedCrop(full, H, cal.hand, whole, 1100, marks), join(outDir, "cal-lane.png"));
+  const near = boxAround(H, [LEFT_U - 4, RIGHT_U + 4], [-2, 18], 0, clip.width, clip.height);
+  savePng(calibratedCrop(full, H, cal.hand, near, 1100, marks), join(outDir, "cal-near.png"));
+  const deck = boxAround(H, [LEFT_U - 4, RIGHT_U + 4], [57, 63.5], pinH, clip.width, clip.height);
+  savePng(calibratedCrop(full, H, cal.hand, deck, 1100, marks), join(outDir, "cal-pins.png"));
+}
+
+function expectedRadiusPxAt(H: Mat3, v: number): number {
+  const a = apply(H, { x: 16, y: v });
+  const b = apply(H, { x: 24, y: v });
+  return Math.hypot(b.x - a.x, b.y - a.y) / 2;
 }
 
 function drawSightings(clip: Clip, r: TrackResult, out: TraceOutput, file: string): void {
@@ -297,10 +326,97 @@ function reviewShots(name: string, clip: Clip, clipPath: string, cal: Calibratio
     });
   };
   const first = r.sightings.find((s) => !s.airborne)!;
-  add("Laydown (touchdown)", first, first.v, m.laydown, `Laydown is the board at the foul line on the skid line through the touchdown (${m.laydownFeet.value?.toFixed(1) ?? "?"} ft). Red cross: the ball's contact point. Magenta dot: the fitted path. Board lines every 5 (numbered, handed) and every board near the ball.`);
-  add("Arrows (15 ft)", nearestSighting(r, 15), 15, m.arrows, "The arrows (magenta dots are where the calibration puts them) should sit on the drawn board lines 5 to 35.");
+  shots.push(touchdownShot(clip, clipPath, cal, r, out, first));
+  shots.push(markedShot(clip, clipPath, cal, r, out, nearestSighting(r, 15), [6, 22], "Arrows (15 ft)", m.arrows,
+    "Contrast-stretched. Magenta crosses: where the calibration puts the arrows' tips; red: the pin spots; cyan lines every 5 boards (white: board 20). If the crosses do not sit on the real arrows, the calibration is off."));
   if (m.breakpointFeet.value !== null) add("Breakpoint", nearestSighting(r, m.breakpointFeet.value), m.breakpointFeet.value, m.breakpoint, `Breakpoint at ${m.breakpointFeet.value.toFixed(1)} ft.`);
-  add("Pins (60 ft)", nearestSighting(r, 58), 60, m.pins, `Entry angle ${fmt(m.entryAngle, " deg")}.`);
+  shots.push(markedShot(clip, clipPath, cal, r, out, nearestSighting(r, 58), [54, 63.5], "Pins (60 ft)", m.pins,
+    `Contrast-stretched. Red crosses: where the calibration puts the pin spots (each pin stands on its cross). Entry angle ${fmt(m.entryAngle, " deg")}.`));
   void name;
   return shots;
+}
+
+/**
+ * The touchdown, for reading the laydown by eye: the whole lane's width at
+ * the ball's row in that frame, the two lane edges as the tracer has them
+ * there (green), a tick every 5 boards on the ball's row with its number on
+ * it (board 20 white), the ball's circle and contact point, and the two frames
+ * before it, small.
+ */
+function touchdownShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: TrackResult, out: TraceOutput, s: BallSighting): ReviewShot {
+  const panel = (frame: number, width: number, mark: boolean) => {
+    const g = out.debug.geometry[frame - out.debug.first];
+    const H = g.H;
+    const box = boxAround(H, [LEFT_U - 3, RIGHT_U + 3], [Math.max(-3, s.v - 3), s.v + 4], 2.6 * s.r, clip.width, clip.height);
+    const k = Math.max(2, Math.min(12, Math.floor(width / box.w)));
+    const c = cropScale(frameCanvas(clipPath, clip, frame), box.x0, box.y0, box.w, box.h, k);
+    const P = (u: number, v: number) => {
+      const p = apply(H, { x: u, y: v });
+      return { x: (p.x - box.x0) * k, y: (p.y - box.y0) * k };
+    };
+    for (const u of [LEFT_U, RIGHT_U]) {
+      const a = P(u, s.v - 3);
+      const b = P(u, s.v + 4);
+      line(c, a.x, a.y, b.x, b.y, GREEN);
+    }
+    const a = P(LEFT_U, s.v);
+    const b = P(RIGHT_U, s.v);
+    line(c, a.x, a.y, b.x, b.y, CYAN, { alpha: 0.5 });
+    for (let n = 5; n <= 35; n += 5) {
+      const u = laneU(n, cal.hand);
+      const col: Color = n === 20 ? WHITE : CYAN;
+      const p = P(u, s.v - 0.6);
+      const q = P(u, s.v + 0.6);
+      line(c, p.x, p.y, q.x, q.y, col);
+      const at = P(u, s.v);
+      if (mark) text(c, at.x - 8 * (String(n).length), at.y - 12, String(n), col, n === 20 ? 4 : 3);
+    }
+    if (mark) {
+      circle(c, (s.cx - box.x0) * k, (s.cy - box.y0) * k, s.r * k, GREEN);
+      cross(c, (s.contact.x - box.x0) * k, (s.contact.y - box.y0) * k, 8, RED);
+    }
+    return c;
+  };
+  const big = panel(s.frame, 1000, true);
+  const smalls = [s.frame - 2, s.frame - 1].filter((f) => f >= out.debug.first && out.debug.geometry[f - out.debug.first]?.ok).map((f) => panel(f, 480, false));
+  const W = Math.max(big.width, smalls.reduce((a, c) => a + c.width + 8, 0));
+  const img = canvas(W, big.height + (smalls.length ? Math.max(...smalls.map((c) => c.height)) + 8 : 0), [250, 250, 250]);
+  const blit = (c: Canvas, ox: number, oy: number) => {
+    for (let y = 0; y < c.height; y++) img.rgb.set(c.rgb.subarray(y * c.width * 3, (y + 1) * c.width * 3), ((oy + y) * img.width + ox) * 3);
+  };
+  blit(big, 0, 0);
+  let ox = 0;
+  for (const c of smalls) {
+    blit(c, ox, big.height + 8);
+    ox += c.width + 8;
+  }
+  const m = r.metrics;
+  return {
+    title: "Laydown (touchdown)",
+    png: toPng(img).toString("base64"),
+    lines: [
+      `Laydown: ${m.laydown.value === null ? "missing" : `board ${m.laydown.value.toFixed(1)}`} (${m.laydown.state}), at ${m.laydownFeet.value?.toFixed(1) ?? "?"} ft.`,
+      "The laydown is the board where the ball first touches the lane. Above: that frame, the lane's whole width at the ball's row. Green: the lane's edges as the tracer has them in this frame. Ticks every 5 boards on the ball's row, numbered (the bowler's own boards; 20 in white). Red cross: the point under the ball. Below: the two frames before it, with the ball still in the air or in the hand.",
+      `Frame ${s.frame}, t ${s.t.toFixed(3)} s. This sighting: board ${handedBoard(s.u, r.hand).toFixed(2)} at ${s.v.toFixed(1)} ft, radius ${s.r.toFixed(1)} px.`
+    ]
+  };
+}
+
+/** A contrast-stretched lane stretch [v0, v1] at a sighting's frame, with the projected arrows and pin spots. */
+function markedShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: TrackResult, out: TraceOutput, s: BallSighting, [v0, v1]: number[], title: string, metric: Metric, note: string): ReviewShot {
+  const g = out.debug.geometry[s.frame - out.debug.first];
+  const pinH = v1 > 50 ? 4 * expectedRadiusPxAt(g.H, 61) : 2.6 * s.r;
+  const box = boxAround(g.H, [LEFT_U - 4, RIGHT_U + 4], [v0, v1], pinH, clip.width, clip.height);
+  const c = calibratedCrop(frameCanvas(clipPath, clip, s.frame), g.H, cal.hand, box, 1000);
+  const k = c.width / box.w;
+  circle(c, (s.cx - box.x0) * k, (s.cy - box.y0) * k, s.r * k, GREEN);
+  return {
+    title,
+    png: toPng(c).toString("base64"),
+    lines: [
+      `${title}: ${metric.value === null ? "missing" : `${metric.state === "estimated" ? "about " : ""}board ${metric.value.toFixed(1)}`} (${metric.state})`,
+      `Frame ${s.frame}. Nearest sighting: board ${handedBoard(s.u, r.hand).toFixed(2)} at ${s.v.toFixed(1)} ft (green circle).`,
+      note
+    ]
+  };
 }
