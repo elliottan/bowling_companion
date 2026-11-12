@@ -7,55 +7,166 @@ will run, on the six sample clips in `fixtures/clips/`.
 ## Commands
 
 ```
-npx tsx scripts/shot-tracker/run.ts             # every clip; about 1.5 minutes
+npx tsx scripts/shot-tracker/run.ts             # every clip; about 3 minutes
 npx tsx scripts/shot-tracker/run.ts shot-01     # one clip
 npx tsx scripts/shot-tracker/synthetic-grid.ts  # the full-size synthetic grid (add --all for 32 cases)
-npx tsx scripts/shot-tracker/calib.ts shot-01   # check a calibration's snap on its own frame
-npx tsx scripts/shot-tracker/peek.ts <clip> <frame> <x0> <y0> <w> <h> <scale> <out.png>   # gridded crop for marking
+npx tsx scripts/shot-tracker/look.ts <clip> <frame> <x0> <y0> <w> <h> <scale> <out.png> [--cal] [--median]
 ```
 
+`look.ts` is the marking aid: an enlarged, locally contrast-stretched crop of
+one frame with a pixel grid in source pixels. `--median` shows the median of
+every fourth frame carried into that frame instead (the bowler, the ball and
+passing reflections go). `--cal` fits the clip's calibration, prints every
+mark's residual, and draws the marks, the projected arrows (magenta) and pin
+spots (red), board lines every 5 and the foul line and pin row over the crop.
+
 `run.ts` writes to `scripts/shot-tracker/out/<clip>/` (gitignored):
-`review.html` (self-contained, for the owner), `calibration.png`,
-`sightings.png`, `lane.png`, `result.json`, and `out/summary.md` (the table
-below).
+`review.html` (self-contained, for the owner; phone-sized), `cal-lane.png`,
+`cal-near.png`, `cal-pins.png` (the calibration on its frame, contrast
+stretched), `sightings.png`, `lane.png`, `result.json` (with every mark's
+residual) and `out/summary.md` (the table below).
 
-## Calibrations
+## Calibration, round four: the lane's own markings
 
-`calibrations/<clip>.json` holds the four marked lines, made by eye on an
-enlarged frame (`peek.ts`) and refined by `edgeSnap`. A line may carry a third
-number, the frame it was marked on, when the chosen frame hides it (plan 6.3):
-it is snapped on that frame and carried by the picture's shift.
+`calibrations/<clip>.json` lists marks, each placed on something visible on
+the calibration frame or on the frame it names (carried by registration):
 
-Choices made here, with the reason:
+- `points`: `[name, x, y]` or `[name, x, y, frame]` for a point whose lane
+  position is known: `arrow N` (handed board N, the arrow's tip, at
+  `arrowFeet(N)`), `pin N` (the front of the pin's base, centred on it).
+- `lines`: `[name, [[x, y], ...]]` or `[name, [[x, y], ...], frame]` for points
+  on a lane line: `left` and `right` (the edges as seen from the foul line),
+  `foul`, `pinrow` (the back-row pin bases, 62.6 ft: straight across the
+  whole house, so other lanes' racks mark it) and `deck` (the tail plank).
 
-- **The far line is the bases of the 7 and 10 pins (62.6 ft), not the deck end.**
-  From a phone at chest height behind the approach the tail plank is hidden
-  behind the standing pins in every clip; what the plan's section 6.2 calls a
-  strong edge (lane over a dark pit) is not visible. Marking the deck end at
-  the visible lane-to-pin-deck boundary put it about 6 pixels (several feet)
-  short in shot-01. `farFeet: 62.6` in a calibration says which line was
-  marked. shot-02 is a spare with only two pins standing, so its deck end
-  shows and is used.
-- **The lane edge** is the lane-side flank of the thin dark line the gutter's
-  lip makes (`edgeSnap.ts`, the lane-is-brighter rule).
-- **Registration slack** is 2 pixels; shot-06 takes 4, because its masking
-  units are animated screens, which makes the coarse shift less sure.
+The lane mapping is the weighted least squares fit to all of them
+(`src/lib/shotTrack/calibrate.ts`: a linear solve, then Levenberg-Marquardt
+on the marks' distances in the picture). Every mark's residual is reported in
+pixels and in boards (across) or feet (along), in `result.json` and on the
+review page, and a calibration with a mark more than a board off is refused
+(`calibration-off`). A hidden edge is never marked: it comes out of the fit.
 
-## What the clips showed that the plan did not expect
+How the marks were found: pin bases by the bright columns of the rack on a row
+through the pins' bellies (their centres) and the dark seam where each pin
+meets its mirror image (its base); edges by snapping a rough segment on the
+visible stretch only (`snapEdge`, lane brighter) and checking it enlarged; the
+foul line by the darkest row at several columns, on this lane and the next.
 
-- The far end of the bowler's own lane is hidden by the bowler for most or all
-  of the clip in four of six clips (shot-02 to shot-05), and the deck end is
-  hidden behind the pins in all of them.
-- A ball rolling on the lane does **not** meet its reflection in the picture:
-  a bright gap separates them all the way down the lane (shot-01 frames 95 to
-  150), and the pins show the same gap. So the touchdown cannot be found by the
-  gap closing (plan 7.4 step 2). The tracer uses the plan's fallback, step 5:
-  an airborne ball appears to run ahead of the rolling ball's distance against
-  time.
-- The calibration check's arrows are rarely found: on these lanes they are
-  faint under the lane's reflections. Its numbers below are not trustworthy.
+**The arrows do not show in any of the six clips.** The lanes mirror the
+masking units and the compression flattens what is left; neither the frames
+nor the median of the clip (`look.ts --median`) shows an arrow by eye. So the
+board references are the pin spots at the far end and the edges at the near
+end, with the foul line and pin row for distance. The snapped gutter edges now
+sit 0.1 to 0.4 board from where the pins put the lane's edges (the "Gutter
+edges vs fit" column), so the edge definition agrees with the pin spots.
 
-## Results, round three (2026-11-12)
+## Registration, round four
+
+1. **The camera's turn** (`register`): H = K' R K^-1, three angles and a zoom
+   per frame from the whole picture's patches, robustly. The focal length is
+   taken from the lane mapping itself where it gives one (`focalFromPlane`:
+   the lane's two directions are at right angles); the picture's own small
+   turns fix it poorly (the synthetic shot's fitted f was 1270 for a true
+   2346).
+2. **The floor's own plane** (`registerPlane`): textured patches whose lane
+   position is on the floor (this lane, gutters, caps, the next lanes, the
+   approach, the decks) are found in each frame, and both a turn and a full
+   homography are fitted to them. The homography is taken only when it agrees
+   with a third more patches than the turn and moves the lane by more than a
+   quarter board at the foul line from where the turn puts it. A camera that
+   does not travel keeps the turn.
+3. The per-frame gutter re-snap at the ball's row is kept as a tracking aid:
+   each edge's offset from the fitted edge has its clip median taken off (that
+   is the gutter, not the registration), and what moves about it is taken off
+   the ball's board.
+
+## Corrections to the plan
+
+- 6.2 and 7.2: four marked lines with the deck end as one is replaced by the
+  least squares fit to every visible lane marking, with residuals and a
+  refusal over one board. The deck end is hidden behind the pins in every
+  clip; the pin row across the house is used instead.
+- 6.5: the arrows are not a usable check on these lanes (not visible).
+- 7.3: the camera does travel. A phone in a hand drifted sideways in shot-01
+  between the touchdown (frame 77) and the calibration frame (150): the near
+  floor moved 15 pixels more than the far wall (the ball return, nearer
+  still, more again). No transform of the whole picture can follow that; the
+  floor's own homography does. A similarity is also only the first-order part
+  of a turn; the turn model is H = K' R K^-1.
+- 7.3: the edges' re-snap may not define the boards: it is a tracking aid.
+- 7.4: past the deck end the ball is off the lane's plane; no sighting there.
+
+## Results, round four (2026-11-12)
+
+Each calibration's marks, the equations it has to spare, and its worst mark
+across the lane; (m) measured, (e) estimated; boards handed. Pins check:
+found minus expected, boards. Gutter edges vs fit: where the snapped gutter
+edges sit against the fitted lane edges near the ball (median, boards).
+
+| Clip | Marks (spare) | Worst mark | Visible | Sightings | Pins check | RMS | Gutter edges vs fit, L / R | Speed: anchors / slope | Laydown | Arrows | Breakpoint | Pins | Speed |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| shot-01 (right) | 13 (12) | 0.45 | 0.4 to 52.7 ft | 117 | 7: -0.07, 10: -0.35, 1: -0.32 | 0.26 | 0.12 / 0.09 | 16.1 / 16.1 | 22.4 (m) | 16.9 (m) | 7.9 (m) at 43.6 ft | about 12.4 (e) | 16.1 mph (m) |
+| shot-02 (right) | 10 (2) | 0.01 | 0.4 to 51.4 ft | 104 | not found | 0.22 | 0.07 / 0.37 | 21.2 / 20.3 | 17.5 (m) | 13.9 (m) | missing | missing | 21.2 mph (m) |
+| shot-03 (right) | not calibrated | | | | | | | | | | | | |
+| shot-04 (right) | not calibrated | | | | | | | | | | | | |
+| shot-05 (right) | 12 (8) | 0.29 | 1.4 to 52.9 ft | 220 | 10: -0.28 | 0.30 | -0.13 / 0.10 | 17.8 / 17.8 | 17.9 (m) | 13.8 (m) | 9.2 (m) at 44.7 ft | about 9.4 (e) | 17.8 mph (m) |
+| shot-06 (left) | 18 (17) | 1.10 | refused: calibration-off | | | | | | | | | | |
+
+Radius ratio (fitted over expected) by 0-20, 20-40, 40-60 ft: shot-01 0.928, 0.943,
+0.966; shot-02 0.940, 0.933, 0.947; shot-05 0.940, 0.952, 1.002 (round three:
+shot-01 0.940, 0.946, 0.979; shot-05 0.992, 0.991, 0.962).
+
+**shot-01's laydown.** It reads 22.4 (the reviewer's working truth from
+frame 77 is 22.5; round three read 21.4). The cause was registration, not the
+lane's edges: the camera travelled sideways between frame 77 and the
+calibration frame, and the whole-picture transform (round three's similarity,
+and the new turn alike) put the lane 13 to 16 pixels (two boards) to the left
+at the foul line in frame 77. The round-three edge re-snap could not catch it:
+its 1.5 pixel slack rejected the true edges as too far from the prediction, so
+the frame kept the prediction. The floor-plane registration fixes it.
+
+**The "5% wide" lane is not the edges.** Calibrated from the pin spots, the
+snapped gutter edges sit within 0.2 board of the fitted edges on shot-01, and
+the pins check reads 7: -0.07, 10: -0.35 (it read 1.31 and -0.60). The radius
+ratio still reads about 0.93 to 0.97: that is the glossy ball (its dark disc
+is cut off where its underside mirrors the lane), not the lane's width.
+
+**Still failing:**
+
+- shot-01 stops at 52.7 ft (job 2, cause found, not fixed). In frames 218 to
+  226 the ball is plainly in front of the pins' mirror images, but no
+  candidate is found: the difference from the empty lane is taken outside
+  the background's 3 by 3 minimum and maximum, and over the rack's
+  alternating bright pins and dark gaps that range spans nearly black to
+  white, so the ball's mid-grey interior falls inside it and only its rim
+  differs; the rim fails the size and fill tests. b0655d8 found these frames
+  (the same envelope, a slightly different registration put the rim on the
+  right side of the tests). Not fixed: a narrower tolerance there needs the
+  rack registered to well under a pixel, which a camera that travels makes
+  hard. Its board at the pins is therefore an estimate from 52.7 ft.
+- shot-06 is refused (`calibration-off`, 1.10 boards): the right edge is
+  hidden on the calibration frame and marked where it shows on frame 120;
+  carried to frame 50 it disagrees with the seven pin spots and the left edge
+  by up to 1.1 boards. Earlier rounds traced it with that edge guessed; the
+  refusal is the residual check doing its job. It needs a frame nearer the
+  calibration frame where the right edge shows, or a calibration frame where
+  it does.
+- shot-03 and shot-04 are not calibrated (job 1, two attempts on shot-03):
+  the bowler's sliding leg lies along shot-03's left edge near the camera and
+  the snap took it; no visible left edge was found to mark. shot-04 was not
+  attempted this round.
+- shot-02 has only lines (no pin is identifiable on a spare): 2 equations to
+  spare, so its residuals check little.
+- Synthetic: the dark lane (light gutters, light ball) traces with the
+  laydown 0.33 to 0.40 board off and the pins 0.3 to 0.5 off even with exact
+  marks, so ball finding, not calibration, misses the 0.3 limit there; two
+  lanes to the side the ball is first seen at 11.6 ft and the laydown is
+  estimated 0.8 off. Both calibrate within a tenth of a board (unit test);
+  one lane to the side traces within 0.3 from marks only. The floor-plane
+  registration could not be tested on the synthetic floor (too little
+  texture: its fits wandered by 5 to 50 pixels), only on shot-01.
+
+## Results, round three (2026-11-12, superseded)
 
 Since round two: each sighting's board comes from the two edges re-snapped
 in its own frame over a short stretch around the ball's row (the whole-picture

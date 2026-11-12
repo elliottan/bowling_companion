@@ -156,6 +156,8 @@ export interface SyntheticShot {
   loft: number;
   /** Camera turn per second (radians) and zoom change per second (fraction). */
   drift?: { yaw: number; pitch: number; roll: number; zoom: number };
+  /** The camera travelling, feet per second across (x) and down the lane (y): a hand that drifts. */
+  travel?: { x: number; y: number };
   /** Random camera turn per frame, radians, standard deviation. */
   jitter?: number;
   /** Sensor noise, grey levels, standard deviation. */
@@ -167,6 +169,10 @@ export interface SyntheticShot {
   distractor?: boolean;
   /** Fraction of the frame interval the shutter is open (motion blur). */
   shutter?: number;
+  /** "dark": a dark lane with light arrows between light gutters (the default is a light lane, dark gutters). */
+  palette?: "light" | "dark";
+  /** The ball's grey (45, a dark ball, by default). */
+  ballTone?: number;
 }
 
 export interface FrameTruth {
@@ -219,6 +225,8 @@ export function cameraAt(spec: SyntheticShot, i: number): Camera {
   const d = spec.drift ?? { yaw: 0, pitch: 0, roll: 0, zoom: 0 };
   return {
     ...spec.camera,
+    x: spec.camera.x + (spec.travel?.x ?? 0) * t,
+    y: spec.camera.y + (spec.travel?.y ?? 0) * t,
     yaw: spec.camera.yaw + d.yaw * t + j * gaussian(r),
     pitch: spec.camera.pitch + d.pitch * t + j * gaussian(r),
     roll: spec.camera.roll + d.roll * t + j * gaussian(r),
@@ -278,7 +286,14 @@ function hitCylinder(o: Vec3, d: Vec3, cx: number, cy: number, R: number, h: num
 }
 
 /** Grey level of the floor at world (x, y). */
-function floorTone(x: number, y: number): number {
+function floorTone(x: number, y: number, dark = false): number {
+  if (dark) {
+    // The same layout in a dark house: the lane dark, its arrows light, the
+    // gutters and caps light.
+    const t = floorTone(x, y);
+    if (y > DECK_END_FT) return 30;
+    return t >= 165 && t <= 180 ? 255 - t - 20 : t === 70 ? 190 : t === 95 ? 205 : t === 40 ? 200 : t;
+  }
   if (y > DECK_END_FT) return 30;
   const { u } = worldToLane(x, y);
   const fromLeft = (u - LEFT_U) * BOARD_IN;
@@ -350,7 +365,7 @@ export function renderFrame(spec: SyntheticShot, i: number): GrayFrame {
     const v = ballDistance(spec, tk);
     if (v !== null) {
       const w = laneToWorld(hookU(spec.path, Math.max(v, 0)), v);
-      set.push({ c: [w.x, w.y, R + ballHeight(spec, v)], tone: 45 });
+      set.push({ c: [w.x, w.y, R + ballHeight(spec, v)], tone: spec.ballTone ?? 45 });
     }
     if (spec.distractor) {
       const dv = 5 + 22 * tk;
@@ -407,7 +422,7 @@ export function renderFrame(spec: SyntheticShot, i: number): GrayFrame {
         if (fy > WALL_FT) tFloor = Infinity;
       }
       let tNear = tFloor;
-      tone = tFloor < Infinity ? floorTone(fx, fy) : skyTone(o, d);
+      tone = tFloor < Infinity ? floorTone(fx, fy, spec.palette === "dark") : skyTone(o, d);
       if (inBox(rackBox, px, py)) for (const p of pins) {
         const tp = hitCylinder(o, d, p.x, p.y, pinR, PIN_HEIGHT_FT);
         if (tp < tNear) {

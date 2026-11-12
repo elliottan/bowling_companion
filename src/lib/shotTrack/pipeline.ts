@@ -239,6 +239,8 @@ export function trace(input: TraceInput): TraceOutput {
         cp = { contact: mid, u: lane.u, v: lane.v };
       }
     }
+    // Past the deck end the ball is in the pit, off the lane's plane.
+    if (cp.v > DECK_END_FT) continue;
     const below = imageToLane(gl.H, { x: cp.contact.x, y: cp.contact.y + 0.5 });
     sv.push(Math.abs(below.v - cp.v));
     sightings.push({

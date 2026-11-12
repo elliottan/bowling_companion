@@ -2,6 +2,5 @@
   "clip": "shot-03.mp4",
   "frame": 100,
   "hand": "right",
-  "marks": { "left": [[0, 0], [0, 1]], "right": [[0, 0], [0, 1]], "foul": [[0, 0], [1, 0]], "deck": [[0, 0], [1, 0]] },
-  "skip": "The bowler's torso hides the far end of this lane (its pins and both edges for the last 15 feet) in every frame of the clip, so there is no far line to mark. Not calibrated. The neighbouring lanes' pins stand on the same line across the house and could fix it; the harness does not do that yet."
+  "skip": "Not calibrated. The bowler's torso hides this lane's rack and the far 15 feet of both edges in every frame, and the arrows do not show under the reflections. The right lane's full rack gives the pin row (62.6 ft, straight across the house) and the right edge snaps cleanly near the camera, but the left edge near the camera lies under the bowler's sliding leg, which runs along it: the snap took the leg or the far wall of the gutter (its slope disagreed with the lane's by half), so no left edge could be marked from what is visible. Without it the across scale near the foul line is not fixed."
 }

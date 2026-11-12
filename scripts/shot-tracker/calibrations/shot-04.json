@@ -2,6 +2,5 @@
   "clip": "shot-04.mp4",
   "frame": 100,
   "hand": "right",
-  "marks": { "left": [[0, 0], [0, 1]], "right": [[0, 0], [0, 1]], "foul": [[0, 0], [1, 0]], "deck": [[0, 0], [1, 0]] },
-  "skip": "The bowler stands nearly on the ball's line, so their head and torso hide this lane's rack and far edges through the shot. Not calibrated, for the same reason as shot-03, and not attempted further in this pass."
+  "skip": "Not calibrated. The bowler stands nearly on the ball's line, so their head and torso hide this lane's rack and far edges through the shot, and the arrows do not show under the reflections. Not attempted this round: the neighbouring racks' pin row and the visible near edges would serve, as for shot-03."
 }

@@ -1,7 +1,7 @@
 import type { Roi } from "./background";
 import { apply, downAt } from "./homography";
 import { median, parabolaPeak, sample } from "./image";
-import { contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
+import { DECK_END_FT, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
 import type { GrayFrame, Mat3, Point } from "./types";
 
 /** Finding the ball in one frame (plan 7.4). */
@@ -128,8 +128,9 @@ export function findCandidates(
     if (area < 0.35 * bw * Math.min(bh, 2 * r)) continue;
     const c = apply(S, { x: cxCal + roi.x0, y: cyCal + roi.y0 });
     const cp = contactPoint(H, c, r);
-    // Behind the foul line the ball is still in the hand: never a sighting.
-    if (cp.u < -2.5 || cp.u > 42.5 || cp.v < 0 || cp.v > 64) continue;
+    // Behind the foul line the ball is still in the hand, and past the deck
+    // end it has fallen into the pit, off the lane's plane: never a sighting.
+    if (cp.u < -2.5 || cp.u > 42.5 || cp.v < 0 || cp.v > DECK_END_FT) continue;
     out.push({ frame, t: steadied.t, x: c.x, y: c.y, r, u: cp.u, v: cp.v, box: { x0: x0 + roi.x0, y0: y0 + roi.y0, x1: x1 + roi.x0, y1: y1 + roi.y0 }, area });
   }
   return out;
