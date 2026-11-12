@@ -42,6 +42,14 @@ for (const name of names) {
   mkdirSync(outDir, { recursive: true });
   const clipPath = join(here, "fixtures", "clips", cal.clip);
   const clip = loadClip(clipPath);
+  if (cal.skip) {
+    const mid = frameCanvas(clipPath, clip, cal.frame);
+    savePng(mid, join(outDir, "frame.png"));
+    writeFileSync(join(outDir, "review.html"), `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${name} not traced</title><style>body{font:15px/1.45 system-ui,sans-serif;margin:16px;max-width:1000px}img{max-width:100%}</style></head><body><h1>${name}: not traced</h1><p>${cal.skip}</p><p>Frame ${cal.frame}:</p><img alt="frame" src="data:image/png;base64,${toPng(mid).toString("base64")}"></body></html>\n`);
+    rows.push(`| ${name} (${cal.hand}) | not calibrated: ${cal.skip} | | | | | | | | | |`);
+    console.log(`${name}: skipped (${cal.skip})`);
+    continue;
+  }
   const t0 = Date.now();
   const out = trace({ source: clip, calibFrame: cal.frame, marks: toMarks(cal, carrier(clip), refiner(clip, cal)), hand: cal.hand, farFeet: cal.farFeet, register: cal.register,
     carried: (Object.keys(cal.marks) as (keyof typeof cal.marks)[]).filter((k) => cal.marks[k].length === 3) });

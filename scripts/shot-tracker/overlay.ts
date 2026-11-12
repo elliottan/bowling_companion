@@ -24,6 +24,8 @@ export interface CalibrationFile {
   interior?: Record<string, [number, number]>;
   /** Registration tuning for this clip (band and slack in pixels). */
   register?: { band?: number; slack?: number };
+  /** Not calibrated: why. The harness writes a review page that says so. */
+  skip?: string;
   notes?: string;
   /** The owner's own reading of the shot, when they have one. */
   owner?: string;
