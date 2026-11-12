@@ -12,7 +12,12 @@ export interface CalibrationFile {
   clip: string;
   frame: number;
   hand: Handedness;
-  marks: Record<keyof LaneMarks, [[number, number], [number, number]]>;
+  /**
+   * Each line as two points on the calibration frame, or on another frame
+   * named third (plan 6.3: a line hidden on the chosen frame is marked where
+   * it shows, and carried over by the picture's shift between the frames).
+   */
+  marks: Record<keyof LaneMarks, [[number, number], [number, number]] | [[number, number], [number, number], number]>;
   /** Distance of the far marked line: 62.6 when it is marked at the bases of the 7 and 10 pins. */
   farFeet?: number;
   notes?: string;
@@ -24,8 +29,11 @@ export function readCalibration(path: string): CalibrationFile {
   return JSON.parse(readFileSync(path, "utf8")) as CalibrationFile;
 }
 
-export function toMarks(c: CalibrationFile): LaneMarks {
-  const seg = (s: [[number, number], [number, number]]) => ({ a: { x: s[0][0], y: s[0][1] }, b: { x: s[1][0], y: s[1][1] } });
+export function toMarks(c: CalibrationFile, carry?: (from: number, to: number) => { x: number; y: number }): LaneMarks {
+  const seg = (s: [[number, number], [number, number]] | [[number, number], [number, number], number]) => {
+    const d = s.length === 3 && carry ? carry(s[2], c.frame) : { x: 0, y: 0 };
+    return { a: { x: s[0][0] + d.x, y: s[0][1] + d.y }, b: { x: s[1][0] + d.x, y: s[1][1] + d.y } };
+  };
   return { left: seg(c.marks.left), right: seg(c.marks.right), foul: seg(c.marks.foul), deck: seg(c.marks.deck) };
 }
 

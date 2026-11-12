@@ -1,0 +1,12 @@
+{
+  "clip": "shot-02.mp4",
+  "frame": 192,
+  "hand": "right",
+  "marks": {
+    "left": [[500.1, 403.0], [477.3, 441.9]],
+    "right": [[578, 420], [615, 560]],
+    "foul": [[480, 633], [640, 629], 140],
+    "deck": [[505, 401.5], [585, 401.5]]
+  },
+  "notes": "A spare: two pins stand, so the deck end shows. The bowler hides the lane's left side and the scoring console the near right; the foul line is marked on frame 140 and carried."
+}

@@ -18,6 +18,7 @@ import { apply } from "../../src/lib/shotTrack/homography";
 import { DECK_END_FT, LEFT_U, RIGHT_U, handedBoard, laneU } from "../../src/lib/shotTrack/laneModel";
 import { pathU } from "../../src/lib/shotTrack/pathFit";
 import { trace, type TraceOutput } from "../../src/lib/shotTrack/pipeline";
+import { globalShift } from "../../src/lib/shotTrack/registration";
 import type { BallSighting, Metric, TrackResult } from "../../src/lib/shotTrack/types";
 import { loadClip, loadColorFrame, type Clip } from "./clip";
 import {
@@ -41,7 +42,7 @@ for (const name of names) {
   const clipPath = join(here, "fixtures", "clips", cal.clip);
   const clip = loadClip(clipPath);
   const t0 = Date.now();
-  const out = trace({ source: clip, calibFrame: cal.frame, marks: toMarks(cal), hand: cal.hand, farFeet: cal.farFeet });
+  const out = trace({ source: clip, calibFrame: cal.frame, marks: toMarks(cal, carrier(clip)), hand: cal.hand, farFeet: cal.farFeet });
   const ms = Date.now() - t0;
   const r = out.result;
   console.log(`${name}: ${r.ok ? "traced" : `failed (${r.failure}: ${r.detail})`} in ${(ms / 1000).toFixed(1)} s, ${out.debug.candidates.length} candidates, ${out.debug.associated.length} associated`);
@@ -91,6 +92,20 @@ function summaryRow(name: string, cal: CalibrationFile, out: TraceOutput, ms: nu
   return `| ${name} (${cal.hand}) | ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft | ${n} | ${pins} | ${arrows} | ${r.rms.toFixed(2)} | ${fmt(m.laydown)} | ${fmt(m.arrows)} | ${fmt(m.breakpoint)} at ${fmt(m.breakpointFeet, " ft")} | ${fmt(m.pins)} | ${fmt(m.speed, " mph")} (${(ms / 1000).toFixed(0)} s) |`;
 }
 
+/** The picture's shift from one frame to another, summed frame by frame (registration's coarse step). */
+function carrier(clip: Clip) {
+  return (from: number, to: number) => {
+    const d = { x: 0, y: 0 };
+    const step = from < to ? 1 : -1;
+    for (let i = from; i !== to; i += step) {
+      const s = globalShift(clip.frame(i), clip.frame(i + step));
+      d.x += s.x;
+      d.y += s.y;
+    }
+    return d;
+  };
+}
+
 function frameCanvas(clipPath: string, clip: Clip, i: number): Canvas {
   return fromRgb(loadColorFrame(clipPath, i, clip.width, clip.height), clip.width, clip.height);
 }
@@ -98,7 +113,7 @@ function frameCanvas(clipPath: string, clip: Clip, i: number): Canvas {
 function drawCalibration(clip: Clip, clipPath: string, cal: CalibrationFile, out: TraceOutput, file: string): void {
   const full = frameCanvas(clipPath, clip, cal.frame);
   const m = out.debug.snap.marks;
-  const rough = toMarks(cal);
+  const rough = toMarks(cal, carrier(clip));
   const g = out.debug.geometry[cal.frame - out.debug.first];
   const xs = [m.left.a.x, m.left.b.x, m.right.a.x, m.right.b.x];
   const ys = [m.deck.a.y, m.foul.a.y, m.foul.b.y];
