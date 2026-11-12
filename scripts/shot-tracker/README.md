@@ -142,6 +142,10 @@ round "laydown" was the touchdown board.
 **The owner's own reading of shot-05** (from the original video): laydown
 18, 18.5 or 19, arrows 13 or 13.5. The tracer reads 18.8 and 13.7.
 
+**The owner's own reading of shot-01:** laydown roughly 22, arrows 16. The
+tracer reads 22.6 and 16.8. (The owner's earlier 25 was read off a frame
+with the ball still in the hand.)
+
 **shot-06: calibrated, and the cause was the pin marks, not the lens.** The
 seven pin marks sat on the reflected pins' necks, 10 pixels below the bases:
 down each pin's column the brightness runs head (y 171), neck (174), belly
