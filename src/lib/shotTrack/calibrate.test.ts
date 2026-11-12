@@ -39,7 +39,8 @@ describe("calibration from the lane's markings", () => {
     expect(namedPoint("pin 1", right)!.u).toBe(20);
     expect(namedLine("right")).toEqual({ axis: "u", value: 39.5 });
     expect(namedLine("pinrow")).toEqual({ axis: "v", value: 62.6 });
-    expect(namedLine("deck")).toBeNull();
+    expect(namedLine("deck")!.value).toBeCloseTo(62.85, 2);
+    expect(namedLine("gutter")).toBeNull();
   });
 
   it("recovers the mapping from arrows, pins, the foul line and one edge, with no other edge", () => {

@@ -2,59 +2,15 @@
   "clip": "shot-06.mp4",
   "frame": 50,
   "hand": "left",
-  "farFeet": 62.6,
-  "marks": {
-    "left": [
-      [
-        241,
-        200
-      ],
-      [
-        233,
-        380
-      ]
-    ],
-    "right": [
-      [
-        298,
-        200
-      ],
-      [
-        395,
-        330
-      ],
-      120
-    ],
-    "foul": [
-      [
-        235,
-        387
-      ],
-      [
-        365,
-        387
-      ]
-    ],
-    "deck": [
-      [
-        252,
-        196
-      ],
-      [
-        292,
-        196
-      ]
-    ]
-  },
-  "interior": {
-    "120": [
-      260,
-      300
-    ]
-  },
-  "notes": "Left-handed, 720p at 30 frames a second, recompressed by a messaging app. Filmed from behind the left gutter. The bowler hides the right edge on the calibration frame; it is marked on frame 120, snapped there and carried. The masking units here are screens that animate, so the picture's shift is less sure: registration takes a wider slack.",
-  "register": {
-    "band": 5,
-    "slack": 4
-  }
+  "points": [
+    ["pin 7", 251.6, 195.7], ["pin 4", 258.0, 196.0], ["pin 2", 264.7, 196.4], ["pin 1", 271.6, 197.0],
+    ["pin 3", 278.2, 196.7], ["pin 6", 284.4, 196.0], ["pin 10", 290.4, 194.8]
+  ],
+  "lines": [
+    ["left", [[247.6, 200], [241.5, 290], [235.4, 380]]],
+    ["right", [[338.6, 265], [360, 297.4], [381.1, 330]], 120],
+    ["foul", [[280, 388.6], [300, 388.2], [320, 387.9], [550, 384.1], [600, 383.1]]]
+  ],
+  "notes": "Left-handed, 720p at 30 frames a second, recompressed by a messaging app. The arrows do not show under the lane's reflections. The bowler hides the right edge on the calibration frame, so it is marked only where it shows, on frame 120 (carried by registration). Pins: the bases of the seven columns of this lane's full rack (front pin of each column). The foul line is marked on this lane and, as the same straight line, on the lanes to the right.",
+  "register": { "tolerance": 2 }
 }

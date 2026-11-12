@@ -1,7 +1,7 @@
 import { arrowFeet } from "../laneGeometry";
 import { PIN_POSITIONS } from "../pinGeometry";
 import { apply, invert, mapLine, multiply, normalize, solveLinear } from "./homography";
-import { BACK_ROW_FT, BOARD_FT, LEFT_U, RIGHT_U } from "./laneModel";
+import { BACK_ROW_FT, BOARD_FT, DECK_END_FT, LEFT_U, RIGHT_U } from "./laneModel";
 import type { Mat3, Point } from "./types";
 
 /**
@@ -82,7 +82,7 @@ export function namedPoint(name: string, laneUOfBoard: (b: number) => number): {
   return p ? { u: p.board, v: p.feet - PIN_BASE_RADIUS_FT } : null;
 }
 
-/** Lane line of a named line mark: the two edges (as seen), the foul line, the pin row. */
+/** Lane line of a named line mark: the two edges (as seen), the foul line, the pin row, the deck end (tail plank). */
 export function namedLine(name: string): { axis: "u" | "v"; value: number } | null {
   switch (name.trim()) {
     case "left":
@@ -93,6 +93,8 @@ export function namedLine(name: string): { axis: "u" | "v"; value: number } | nu
       return { axis: "v", value: 0 };
     case "pinrow":
       return { axis: "v", value: BACK_ROW_FT };
+    case "deck":
+      return { axis: "v", value: DECK_END_FT };
     default:
       return null;
   }

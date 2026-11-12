@@ -2,11 +2,12 @@
   "clip": "shot-02.mp4",
   "frame": 192,
   "hand": "right",
-  "marks": {
-    "left": [[500.1, 403.0], [477.3, 441.9]],
-    "right": [[578, 420], [615, 560]],
-    "foul": [[480, 633], [640, 629], 140],
-    "deck": [[505, 401.5], [585, 401.5]]
-  },
-  "notes": "A spare: two pins stand, so the deck end shows. The bowler hides the lane's left side and the scoring console the near right; the foul line is marked on frame 140 and carried."
+  "points": [],
+  "lines": [
+    ["left", [[500.1, 403], [488.7, 422.4], [477.3, 441.9]]],
+    ["right", [[578.8, 420], [595.6, 490], [612.3, 560]]],
+    ["foul", [[480, 633], [640, 629]], 140],
+    ["deck", [[505, 401.5], [585, 401.5]]]
+  ],
+  "notes": "A spare: two pins of unknown number stand, so no pin is a mark; the deck end (tail plank) shows and is marked. The arrows do not show under the lane's reflections. The bowler hides the lane's left side and the scoring console the near right; the foul line is marked on frame 140 and carried. Only the edges' straightness is checked here: this calibration has two equations to spare."
 }
