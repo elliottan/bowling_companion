@@ -55,68 +55,69 @@ Choices made here, with the reason:
 - The calibration check's arrows are rarely found: on these lanes they are
   faint under the lane's reflections. Its numbers below are not trustworthy.
 
-## Results (2026-11-12)
+## Results, round two (2026-11-12)
 
-Boards are handed (board 1 is the bowler's gutter). (m) measured, (e)
-estimated. Pins check: found minus expected position of the 7, 10 and head
-pins, in boards, on a frame before the ball reaches 35 ft.
+Registration now matches textured patches of the whole picture against the
+calibration frame (a similarity by RANSAC), the contact point is the midpoint
+of the ball's centre and its mirror image's, the touchdown comes from that
+image (speed rule as fallback), and the speed is anchored on the touchdown and
+the first frame the rack moves. Boards are handed. (m) measured, (e)
+estimated. Pins check: found minus expected, boards.
 
-| Clip | Visible | Sightings | Pins check | Arrows check | RMS | Laydown | Arrows | Breakpoint | Pins | Speed |
-|---|---|---|---|---|---|---|---|---|---|---|
-| shot-01 (right) | 1.2 to 58.9 ft | 133 | 7: 1.25, 10: -0.74, 1: 0.18 | 2 found, worst 1.80 | 0.34 | 22.2 (m) | 17.1 (m) | 8.1 (m) at 44.7 ft (m) | 14.9 (m) | 15.5 mph (m) |
-| shot-02 (right) | 37.6 to 60.1 ft | 35 | not found | 3 found, worst 1.59 | 0.62 | missing | missing | 9.6 (m) at 48.3 ft (m) | 16.2 (m) | about 14.7 mph (e) |
-| shot-03 (right) | not calibrated | | | | | | | | | |
-| shot-04 (right) | not calibrated | | | | | | | | | |
-| shot-05 (right) | 0.3 to 37.3 ft | 164 | 10: 0.24 | 3 found, worst 2.16 | 0.32 | 16.9 (m) | 12.1 (m) | missing | missing | about 16.2 mph (e) |
-| shot-06 (left) | 15.7 to 50.5 ft | 15 | 7: 0.33 | 1 found, worst 1.02 | 0.16 | about 19.6 (e) | 16.5 (m) | about 12.5 (e) at about 38.2 ft (e) | missing | 17.5 mph (m) |
+| Clip | Visible | Sightings | Pins check | RMS | Laydown | Arrows | Breakpoint | Pins | Speed |
+|---|---|---|---|---|---|---|---|---|---|
+| shot-01 (right) | -4.3 to 49.3 ft | 112 | 7: 1.27, 10: -0.60, 1: 0.20 | 0.19 | 21.0 (m) | 16.1 (m) | missing | missing | 15.3 mph (m) |
+| shot-02 (right) | -0.2 to 52.9 ft | 101 | not found | 0.16 | 17.8 (m) | 14.2 (m) | missing | about 9.0 (e) | 20.1 mph (m) |
+| shot-03 (right) | not calibrated | | | | | | | | |
+| shot-04 (right) | not calibrated | | | | | | | | |
+| shot-05 (right) | 1.4 to 52.9 ft | 240 | 10: -0.53 | 0.39 | 16.8 (m) | 12.8 (m) | 8.6 (m) at 40.6 ft | about 10.7 (e) | 17.8 mph (m) |
+| shot-06 (left) | -4.3 to 63.1 ft | 57 | not found | 0.28 | 18.3 (m) | 16.7 (m) | about 14.6 (e) at 40.5 ft | 16.3 (m) | 24.0 mph (m) |
 
-Hand labels (plan 10.3, check 2) were not made in this pass. The owner's
-reading of the laydown and arrows, per clip, goes here once given.
+### Radius diagnostic (reviewer's A3)
 
-### Verdict per clip against the gate (pins check inside 1 board, RMS under 0.5, owner agrees)
+Fitted radius over the radius the lane's width predicts, by distance (count),
+and the mean offset of the mirror-image contact from the radius contact.
 
-- **shot-01: not met.** The best trace: the whole lane, 133 sightings, every
-  circle sits on the ball in `sightings.png`, RMS 0.34. But the 7 and 10 pins
-  sit about a board inside where the edges put them (1.25 and 0.74), so the
-  lane at the pins is about 5% narrower than the edges say. The head pin is
-  on board 20 (0.18), so boards near the middle are hardly affected; boards
-  near the edges at the pins are off by up to a board. Either the lane edge
-  definition is about a board outside the true edge at the far end, or the
-  pin check is biased on real pins. Not resolved.
-- **shot-02: not met.** The bowler hides the near lane, and the console the
-  near right, so the ball is found only from 37.6 ft. RMS 0.62. No pin check
-  (two pins standing).
-- **shot-03: not met, not calibrated.** The bowler hides this lane's far end in
-  every frame.
-- **shot-04: not met, not calibrated.** Same reason.
-- **shot-05: partial.** The near half traces well (0.3 to 37.3 ft, 164
-  sightings at 120 fps, RMS 0.32, 10 pin within 0.24) and gives a measured
-  laydown and arrows. Beyond 37 ft the ball is lost behind the bowler; the
-  breakpoint and pins are missing and the speed is estimated.
-- **shot-06: partial.** 720p, 30 fps, recompressed. 15 sightings from 15.7 to
-  50.5 ft, RMS 0.16, 7 pin within 0.33. Laydown and breakpoint estimated.
+| Clip | 0-20 ft | 20-40 ft | 40-60 ft | Mirror image found | Offset, feet | Offset, boards |
+|---|---|---|---|---|---|---|
+| shot-01 | 0.944 (45) | 0.944 (46) | 0.965 (19) | 104 of 114 | 0.17 | -0.08 |
+| shot-02 | 0.952 (39) | 0.946 (38) | 0.954 (23) | 94 of 103 | 0.11 | 0.35 |
+| shot-05 | 0.991 (94) | 0.989 (84) | 0.959 (63) | 32 of 244 | 0.20 | -0.11 |
+| shot-06 | 1.002 (20) | 1.038 (14) | 1.023 (19) | 43 of 57 | -0.20 | 0.04 |
 
-**The gate is not met:** no clip passes all of it, and only shot-01 traces the
-whole lane. The stages that fail on real clips are the far-end calibration
-(hidden by the bowler and the pins) and following the ball while the bowler
-stands in front of it, not the circle fit or the path fit.
+The dark disc runs small on a glossy ball (its underside mirrors the lane), so
+a ratio a little under 1 is expected from that alone. shot-01 and shot-02 read
+5% low at every distance; shot-05 and shot-06 read about 1.00 near and
+within 4% far. The edge definition was not tuned on this.
+
+### Verdicts against the gate (pins inside 1 board, RMS under 0.5, owner agrees)
+
+**Not met.** No clip passes the pins check and traces to the pins:
+
+- **shot-01:** pin 7 reads 1.27 board. It regressed in round two: it traced to
+  58.9 ft before and now stops at 49.3 ft. After frame 204 the ball's
+  candidates near the pins are missing and a static blob at 48 ft repeats.
+  Not resolved.
+- **shot-02 and shot-05:** now traced from the foul line to 53 ft (they were
+  from 37.6 ft, and to 37.3 ft). No usable pins check.
+- **shot-06:** traced to 63 ft, but 24 mph is not believable for this bowler.
+  Its pin anchor is suspect.
+- **shot-03 and shot-04** were not calibrated in round two (the reviewer's
+  B/C, far line through other lanes' pin bases, is not done).
+
+Open: hand labels (plan 10.3, check 2) and the R17 timing.
 
 ## Synthetic grid at clip size
 
-`synthetic-grid.ts` on frames the size of the clips, the lane as small as in
-them, calibrated on the last frame. Errors against the renderer's truth
-(boards; mph):
+Same cases, before and after round two (errors in boards; mph):
 
-| Size | fps | Hand | Side ft | Body | Laydown | Arrows | Breakpoint | Pins | Speed mph | Seen |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 1080x806 | 60 | right | 1.5 | yes | -0.06 | -0.05 | -0.06 | 0.09 | 2.04 | 5 to 59 ft |
-| 1080x806 | 60 | left | 1.5 | yes | -0.50 | -0.49 | -0.60 | missing | 2.27 | 3 to 50 ft |
-| 720x536 | 30 | right | 1.5 | yes | 1.15 | 1.43 | 1.01 | missing | 4.00 | 3 to 51 ft |
-| 720x536 | 30 | left | 1.5 | yes | -0.17 | -0.20 | -0.66 | -0.53 | 1.49 | 4 to 58 ft |
+| Case | Before: laydown / arrows / bp / pins / speed | After |
+|---|---|---|
+| 1080x806, 60, right | -0.06 / -0.05 / -0.06 / 0.09 / 2.04 | -0.06 / -0.07 / -0.03 / -0.10 / 0.01 |
+| 1080x806, 60, left | -0.50 / -0.49 / -0.60 / missing / 2.27 | 0.04 / 0.01 / -0.00 / -0.07 / 0.01 |
+| 720x536, 30, right | 1.15 / 1.43 / 1.01 / missing / 4.00 | 0.16 / 0.11 / 0.06 / 0.02 / 0.03 |
+| 720x536, 30, left | -0.17 / -0.20 / -0.66 / -0.53 / 1.49 | 0.13 / 0.10 / 0.03 / -0.02 / 0.05 |
 
-The unit suite's end to end test (`pipeline.test.ts`, a 360 by 640 frame with
-the lane filling a quarter of the width) holds 0.3 board and 0.3 mph. At clip
-size the speed is 1.5 to 4 mph off and the boards up to 1.4 off at 720p: the
-distance scale drifts when the far line cannot be re-snapped and is carried by
-the shift alone (about a pixel over a second, which is several feet at the
-far end). This is the first thing to fix.
+The synthetic ceiling and wall textures now ramp over a few pixels instead
+of stepping. The renderer samples each pixel once, so a hard edge jumped
+whole pixels as the camera turned, which no real lens does.

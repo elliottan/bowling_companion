@@ -254,6 +254,12 @@ export interface MetricInput {
   tLast: number;
   /** The distance scale came from the foul line or the arrows, and the pin anchor was found. */
   speedMeasured: boolean;
+  /**
+   * Average speed between the two sharp events, the touchdown and the first
+   * frame the rack moves (plan 7.6), when both were seen, ft/s. It does not
+   * lean on the far distance scale, so it is preferred to the fit.
+   */
+  anchoredSpeed?: number;
 }
 
 const M = (value: number | null, state: MetricState): Metric => (value === null || !Number.isFinite(value) ? { value: null, state: "missing" } : { value, state });
@@ -308,7 +314,7 @@ export function metrics(inp: MetricInput): TrackMetrics {
 
   const m = inp.motion;
   const vAt = (t: number) => m.v0 + m.w * t + 0.5 * m.d * t * t;
-  const avg = ((vAt(inp.tLast) - vAt(inp.tFirst)) / (inp.tLast - inp.tFirst)) * FTS_TO_MPH;
+  const avg = (inp.anchoredSpeed ?? (vAt(inp.tLast) - vAt(inp.tFirst)) / (inp.tLast - inp.tFirst)) * FTS_TO_MPH;
   const spState: MetricState = inp.speedMeasured ? "measured" : "estimated";
   const sane = (x: number) => x >= 8 && x <= 26;
   const speed = sane(avg) ? M(avg, spState) : M(null, "missing");

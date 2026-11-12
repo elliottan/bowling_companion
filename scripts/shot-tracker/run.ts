@@ -36,6 +36,7 @@ const names = process.argv.slice(2).length
   : readdirSync(calDir).filter((f) => f.endsWith(".json")).map((f) => f.replace(/\.json$/, "")).sort();
 
 const rows: string[] = [];
+const radiusRows: string[] = [];
 for (const name of names) {
   const cal = readCalibration(join(calDir, `${name}.json`));
   const outDir = join(here, "out", name);
@@ -78,13 +79,36 @@ for (const name of names) {
   }
   writeFileSync(join(outDir, "result.json"), JSON.stringify(json, null, 1));
   rows.push(summaryRow(name, cal, out, ms));
+  if (r.ok) radiusRows.push(radiusRow(name, r));
 }
 writeFileSync(join(here, "out", "summary.md"), [
   "| Clip | Visible | Sightings | Pins check | Arrows check | RMS | Laydown | Arrows | Breakpoint | Pins | Speed |",
   "|---|---|---|---|---|---|---|---|---|---|---|",
   ...rows
 ].join("\n") + "\n");
+writeFileSync(join(here, "out", "radius.md"), [
+  "| Clip | r / expected, 0-20 ft | 20-40 ft | 40-60 ft | Mirror image found | Midpoint minus radius contact: feet | boards |",
+  "|---|---|---|---|---|---|---|",
+  ...radiusRows
+].join("\n") + "\n");
 console.log(rows.join("\n"));
+console.log(radiusRows.join("\n"));
+
+/**
+ * The diagnostic for whether the snapped edges are the lane's true edges: the
+ * fitted radius over the radius the lane's width predicts, by distance (near
+ * 1.00 everywhere when they are), and how far the mirror-image contact sits
+ * from the radius contact.
+ */
+function radiusRow(name: string, r: TrackResult): string {
+  const bin = (lo: number, hi: number) => {
+    const xs = r.sightings.filter((s) => s.v >= lo && s.v < hi && s.rExpected).map((s) => s.r / s.rExpected!);
+    return xs.length ? `${(xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(3)} (${xs.length})` : "none";
+  };
+  const both = r.sightings.filter((s) => s.reflection && s.radiusV !== undefined);
+  const mean = (f: (s: BallSighting) => number) => (both.length ? both.reduce((a, s) => a + f(s), 0) / both.length : NaN);
+  return `| ${name} | ${bin(0, 20)} | ${bin(20, 40)} | ${bin(40, 61)} | ${both.length} of ${r.sightings.length} | ${mean((s) => s.v - s.radiusV!).toFixed(2)} | ${mean((s) => s.u - s.radiusU!).toFixed(2)} |`;
+}
 
 function fmt(m: Metric, unit = ""): string {
   if (m.value === null) return "missing";

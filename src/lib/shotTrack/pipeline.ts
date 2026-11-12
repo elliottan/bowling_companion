@@ -212,10 +212,12 @@ export function trace(input: TraceInput): TraceOutput {
   let motion = fitMotion(motionPts);
   const contactV = pinContactFeet(fit.path);
   let pinFrame: number | null = null;
+  let anchoredSpeed: number | undefined;
   if (contactV !== null) {
     const found = findPinFrame(source, geometry, motion, fit.path, debug);
     if (found !== null) {
       pinFrame = found.frame;
+      if (touchdown !== null && found.t > seen[0].t) anchoredSpeed = (contactV - seen[0].v) / (found.t - seen[0].t);
       const total = motionPts.reduce((s, p) => s + p.w, 0);
       motion = fitMotion([...motionPts, { t: found.t, v: contactV, w: 0.25 * total }]);
     }
@@ -236,7 +238,10 @@ export function trace(input: TraceInput): TraceOutput {
   const distance = input.distance ?? "foul";
   const met = metrics({
     path: fit.path, hand, seen: vs, touchdown, motion, tFirst, tLast,
-    speedMeasured: distance !== "default" && pinFrame !== null
+    // Measured only from the two sharp events; where the bowler hides the
+    // touchdown or the rack, the fit's speed is shown as estimated.
+    speedMeasured: distance !== "default" && anchoredSpeed !== undefined,
+    anchoredSpeed
   });
   progress("done", 1);
   return {
