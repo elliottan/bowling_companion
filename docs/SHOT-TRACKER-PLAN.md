@@ -569,11 +569,12 @@ too far down-lane. So the first sightings need their own treatment:
 3. For an airborne sighting the point on the lane under the ball is midway
    between the ball's centre and its reflection's centre. Use that to draw
    the loft in the review, not to fit.
-4. **Laydown** is the board at the touchdown, and its distance is stored too.
-   The app's `laydown` field is a board at the foul line by convention, so
-   `trackToLine.ts` decides how a touchdown at 1.5 ft maps to it (run the
-   skid line back to 0 ft, which moves it by a fraction of a board). Record
-   that choice in the ADR.
+4. **Laydown** is the board the ball crosses the foul line on (0 ft), in the
+   air or not: the owner's definition (2026-11-12), because one distance for
+   every shot is what makes shots comparable, and it is what the app's
+   `laydown` field already means. It is the fitted path run back from the
+   touchdown to 0 ft. The **touchdown** board and its distance are reported
+   beside it.
 5. If the reflection cannot be found (a dull lane surface), fall back to the
    apparent speed: an airborne ball mapped through 6.4 appears to move
    impossibly fast down-lane, then drops to its real speed at the touchdown.
@@ -619,7 +620,7 @@ line as the app will draw it, next to the measured points.
 | Metric | Definition | Measured when | Estimated when |
 |---|---|---|---|
 | Board at the arrows | `u(15)` | A sighting within 3 ft of 15 ft | First sighting at or before 30 ft and 6 sightings in the skid |
-| Laydown | The board at the touchdown (7.4) | The touchdown frame was found | The touchdown was covered: the skid line run back, when the first clear sighting is at or before 30 ft |
+| Laydown | The board over the foul line, `u(0)` (7.4) | The touchdown frame was found | The touchdown was covered: the skid line run back, when the first clear sighting is at or before 30 ft |
 | Breakpoint | The point of the path furthest toward the bowler's own gutter | Sightings on both sides of it within 5 ft | The fit puts it inside the visible range but one side is thin |
 | Board at the pins | `u(60)` | Last sighting at or beyond 57 ft | Last sighting at or beyond 52 ft |
 | Entry angle | Slope over the last 6 ft, as degrees | Same as board at the pins | Same |

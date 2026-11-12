@@ -87,8 +87,8 @@ for (const name of names) {
   if (r.ok) radiusRows.push(radiusRow(name, r));
 }
 writeFileSync(join(here, "out", "summary.md"), [
-  "| Clip | Marks (redundancy) | Worst mark, boards | Visible | Sightings | Pins check | RMS | Gutter edges vs fit, L / R boards | Speed anchored / slope mph | Laydown | Arrows | Breakpoint | Pins | Speed |",
-  "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+  "| Clip | Marks (redundancy) | Worst mark, boards | Visible | Sightings | Pins check | RMS | Gutter edges vs fit, L / R boards | Speed anchored / slope mph | Laydown (0 ft) | Touchdown | Arrows | Breakpoint | Pins | Speed |",
+  "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
   ...rows
 ].join("\n") + "\n");
 writeFileSync(join(here, "out", "radius.md"), [
@@ -141,7 +141,7 @@ function summaryRow(name: string, cal: CalibrationFile, out: TraceOutput, ms: nu
   const n = r.sightings.filter((s) => !s.airborne).length;
   const sp = out.debug.speeds;
   const es = edgeStats(out);
-  return `| ${name} (${cal.hand}) | ${fitCols} | ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft | ${n} | ${pins} | ${r.rms.toFixed(2)} | ${es.left ?? "none"} / ${es.right ?? "none"} | ${sp ? `${sp.anchored?.toFixed(1) ?? "none"} / ${sp.slope.toFixed(1)}` : ""} | ${fmt(m.laydown)} | ${fmt(m.arrows)} | ${fmt(m.breakpoint)} at ${fmt(m.breakpointFeet, " ft")} | ${fmt(m.pins)} | ${fmt(m.speed, " mph")} (${(ms / 1000).toFixed(0)} s) |`;
+  return `| ${name} (${cal.hand}) | ${fitCols} | ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft | ${n} | ${pins} | ${r.rms.toFixed(2)} | ${es.left ?? "none"} / ${es.right ?? "none"} | ${sp ? `${sp.anchored?.toFixed(1) ?? "none"} / ${sp.slope.toFixed(1)}` : ""} | ${fmt(m.laydown)} | ${fmt(m.touchdown)} at ${fmt(m.touchdownFeet, " ft")} | ${fmt(m.arrows)} | ${fmt(m.breakpoint)} at ${fmt(m.breakpointFeet, " ft")} | ${fmt(m.pins)} | ${fmt(m.speed, " mph")} (${(ms / 1000).toFixed(0)} s) |`;
 }
 
 function frameCanvas(clipPath: string, clip: Clip, i: number): Canvas {
@@ -394,11 +394,11 @@ function touchdownShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: Tr
   }
   const m = r.metrics;
   return {
-    title: "Laydown (touchdown)",
+    title: "Laydown and touchdown",
     png: toPng(img).toString("base64"),
     lines: [
-      `Laydown: ${m.laydown.value === null ? "missing" : `board ${m.laydown.value.toFixed(1)}`} (${m.laydown.state}), at ${m.laydownFeet.value?.toFixed(1) ?? "?"} ft.`,
-      "The laydown is the board where the ball first touches the lane. Above: that frame, the lane's whole width at the ball's row. Green: the lane's edges as the tracer has them in this frame. Ticks every 5 boards on the ball's row, numbered (the bowler's own boards; 20 in white). Red cross: the point under the ball. Below: the two frames before it, with the ball still in the air or in the hand.",
+      `Laydown: ${m.laydown.value === null ? "missing" : `board ${m.laydown.value.toFixed(1)}`} (${m.laydown.state}), over the foul line. Touchdown: ${m.touchdown.value === null ? "missing" : `board ${m.touchdown.value.toFixed(1)}`} at ${m.touchdownFeet.value?.toFixed(1) ?? "?"} ft.`,
+      "The laydown is the board the ball crosses the foul line on, in the air or not (the path run back to 0 ft). The touchdown is where it first touches the lane. Above: the touchdown frame, the lane's whole width at the ball's row. Green: the lane's edges as the tracer has them in this frame. Ticks every 5 boards on the ball's row, numbered (the bowler's own boards; 20 in white). Red cross: the point under the ball. Below: the two frames before it, with the ball still in the air or in the hand.",
       `Frame ${s.frame}, t ${s.t.toFixed(3)} s. This sighting: board ${handedBoard(s.u, r.hand).toFixed(2)} at ${s.v.toFixed(1)} ft, radius ${s.r.toFixed(1)} px.`
     ]
   };

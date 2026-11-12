@@ -106,8 +106,15 @@ export interface PathModel {
 
 export interface TrackMetrics {
   /** Handed boards (ADR-111), feet and degrees. */
+  /**
+   * The board the ball crosses the foul line on (0 ft), in the air or not:
+   * the owner's definition, and the app's `laydown` field. The fitted path
+   * run back to 0 ft.
+   */
   laydown: Metric;
-  laydownFeet: Metric;
+  /** The board, and the distance, where the ball first touches the lane. */
+  touchdown: Metric;
+  touchdownFeet: Metric;
   arrows: Metric;
   breakpoint: Metric;
   breakpointFeet: Metric;

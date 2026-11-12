@@ -25,7 +25,8 @@ function traced(spec: ReturnType<typeof standardShot>, calib?: number) {
 
 function expectBoards(spec: ReturnType<typeof standardShot>, r: TrackResult, limit = 0.3) {
   expect(r.ok).toBe(true);
-  expect(Math.abs(r.metrics.laydown.value! - truthBoard(spec, r.metrics.laydownFeet.value!))).toBeLessThan(limit);
+  expect(Math.abs(r.metrics.laydown.value! - truthBoard(spec, 0))).toBeLessThan(limit);
+  expect(Math.abs(r.metrics.touchdown.value! - truthBoard(spec, r.metrics.touchdownFeet.value!))).toBeLessThan(limit);
   expect(Math.abs(r.metrics.arrows.value! - truthBoard(spec, 15))).toBeLessThan(limit);
   expect(r.metrics.pins.value).not.toBeNull();
   expect(Math.abs(r.metrics.pins.value! - truthBoard(spec, 60))).toBeLessThan(limit);
@@ -88,7 +89,8 @@ describe("registration by the camera's turn", () => {
     const g1 = out.debug.geometry[calib];
     expect(Math.abs(g1.turn[0] - g0.turn[0])).toBeGreaterThan(0.09);
     expect(r.metrics.laydown.state).toBe("measured");
-    expect(Math.abs(r.metrics.laydown.value! - truthBoard(spec, r.metrics.laydownFeet.value!))).toBeLessThan(0.3);
+    expect(Math.abs(r.metrics.laydown.value! - truthBoard(spec, 0))).toBeLessThan(0.3);
+    expect(Math.abs(r.metrics.touchdown.value! - truthBoard(spec, r.metrics.touchdownFeet.value!))).toBeLessThan(0.3);
   }, 30000);
 
   it("builds the turn's homography from a rotation and a zoom", () => {

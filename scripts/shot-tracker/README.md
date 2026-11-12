@@ -111,6 +111,8 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
 - 6.3 and the screens: calibrate on one frame where everything marked shows.
   Marks carried from other frames bring the registration's error into the
   fit (shot-06's right edge, carried from frame 120, was 1.1 boards off).
+- 7.4: the laydown is the board over the foul line (0 ft), not the board at
+  the touchdown; the touchdown board and distance are reported beside it.
 - 7.5: the skid's and the bend's bounds (15 to 55 ft and 2 to 30 ft) were too
   tight for real shots. shot-05 bends from the laydown on and shot-02's fit
   sat on both limits. They are 0 to 55 ft and 2 to 60 ft now.
@@ -122,14 +124,23 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
 
 Five of six clips calibrate, each from one frame; three give a breakpoint.
 
-| Clip | Frame | Marks (spare) | Worst mark | Visible | Sightings | Pins check | Laydown | Arrows | Breakpoint | Pins | Speed |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| shot-01 (right) | 150 | 13 (12) | 0.45 | 0.4 to 57.1 ft | 107 | 7: -0.06, 10: -0.34, 1: -0.33 | 22.4 (m) | 16.8 (m) | 7.6 (m) at 42.9 ft | 15.5 (m) | 15.4 mph (m) |
-| shot-02 (right) | 192 (foul line from 140) | 10 (2) | 0.01 | 0.4 to 51.4 ft | 106 | not found | 17.6 (m) | 13.9 (m) | missing | missing | 21.2 mph (m) |
-| shot-03 (right) | 40 | 17 (12) | 0.46 | 1.1 to 26.9 ft | 48 | not found | 13.7 (m) | 10.5 (m) | missing | missing | 16.5 mph (m) |
-| shot-04 (right) | 202 | not calibrated | 1.5 to 2.2 | | | | | | | | |
-| shot-05 (right) | 230 (left edge from 520) | 12 (8) | 0.29 | 1.4 to 52.8 ft | 220 | 10: -0.28 | 18.2 (m) | 13.7 (m) | 9.0 (m) at 48.2 ft | about 9.6 (e) | 17.8 mph (m) |
-| shot-06 (left) | 20 | 16 (15) | 0.30 | 0.8 to 61.0 ft | 61 | 7: 0.26, 1: 0.08 | 17.1 (m) | 14.9 (m) | 12.6 (m) at 35.5 ft | 17.0 (m) | 17.1 mph (m) |
+| Clip | Frame | Marks (spare) | Worst mark | Visible | Sightings | Pins check | Laydown (0 ft) | Touchdown | Arrows | Breakpoint | Pins | Speed |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| shot-01 (right) | 150 | 13 (12) | 0.45 | 0.4 to 57.1 ft | 107 | 7: -0.06, 10: -0.34, 1: -0.33 | 22.6 (m) | 22.4 at 0.4 ft | 16.8 (m) | 7.6 (m) at 42.9 ft | 15.5 (m) | 15.4 mph (m) |
+| shot-02 (right) | 192 (foul line from 140) | 10 (2) | 0.01 | 0.4 to 51.4 ft | 106 | not found | 17.7 (m) | 17.6 at 0.4 ft | 13.9 (m) | missing | missing | 21.2 mph (m) |
+| shot-03 (right) | 40 | 17 (12) | 0.46 | 1.1 to 26.9 ft | 48 | not found | 13.9 (m) | 13.7 at 1.1 ft | 10.5 (m) | missing | missing | 16.5 mph (m) |
+| shot-04 (right) | 202 | not calibrated | 1.5 to 2.2 | | | | | | | | | |
+| shot-05 (right) | 230 (left edge from 520) | 12 (8) | 0.29 | 1.4 to 52.8 ft | 220 | 10: -0.28 | 18.8 (m) | 18.2 at 1.4 ft | 13.7 (m) | 9.0 (m) at 48.2 ft | about 9.6 (e) | 17.8 mph (m) |
+| shot-06 (left) | 20 | 16 (15) | 0.30 | 0.8 to 61.0 ft | 61 | 7: 0.26, 1: 0.08 | 17.2 (m) | 17.1 at 0.8 ft | 14.9 (m) | 12.6 (m) at 35.5 ft | 17.0 (m) | 17.1 mph (m) |
+
+**The laydown is the board over the foul line** (0 ft), in the air or not:
+the owner's definition (2026-11-12), so every shot is read at one distance.
+It is the fitted path run back from the touchdown to 0 ft. Where the ball
+lands (the touchdown board and distance) is reported beside it. Until this
+round "laydown" was the touchdown board.
+
+**The owner's own reading of shot-05** (from the original video): laydown
+18, 18.5 or 19, arrows 13 or 13.5. The tracer reads 18.8 and 13.7.
 
 **shot-06: calibrated, and the cause was the pin marks, not the lens.** The
 seven pin marks sat on the reflected pins' necks, 10 pixels below the bases:

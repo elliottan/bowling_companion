@@ -29,8 +29,9 @@ export function reviewHtml(
   const m = r?.metrics;
   const table = m
     ? [
-        metricRow("Laydown (board at the foul line)", m.laydown, ""),
-        metricRow("Touchdown distance", m.laydownFeet, " ft"),
+        metricRow("Laydown (board over the foul line, 0 ft)", m.laydown, ""),
+        metricRow("Touchdown board (where the ball lands)", m.touchdown, ""),
+        metricRow("Touchdown distance", m.touchdownFeet, " ft"),
         metricRow("Board at the arrows", m.arrows, ""),
         metricRow("Breakpoint board", m.breakpoint, ""),
         metricRow("Breakpoint distance", m.breakpointFeet, " ft"),

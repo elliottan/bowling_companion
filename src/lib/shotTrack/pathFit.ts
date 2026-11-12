@@ -298,13 +298,13 @@ export function metrics(inp: MetricInput): TrackMetrics {
   const near = (v: number, d: number) => seen.some((s) => Math.abs(s - v) <= d);
   const skidCount = seen.filter((v) => v <= path.s).length;
 
-  const laydown =
-    inp.touchdown !== null
-      ? M(board(inp.touchdown), "measured")
-      : from <= 30
-        ? M(board(0), "estimated")
-        : M(null, "missing");
-  const laydownFeet = inp.touchdown !== null ? M(inp.touchdown, laydown.state) : M(null, "missing");
+  // The laydown is the board over the foul line (0 ft), wherever the ball
+  // comes down: one distance for every shot, so shots compare. The touchdown
+  // is seen within 6 ft of it, so the path runs back a few feet of straight
+  // skid at most. Where the ball lands is reported beside it.
+  const laydown = inp.touchdown !== null ? M(board(0), "measured") : from <= 30 ? M(board(0), "estimated") : M(null, "missing");
+  const touchdown = inp.touchdown !== null ? M(board(inp.touchdown), "measured") : M(null, "missing");
+  const touchdownFeet = inp.touchdown !== null ? M(inp.touchdown, "measured") : M(null, "missing");
   const arrows = near(15, 3) ? M(board(15), "measured") : from <= 30 && skidCount >= 6 ? M(board(15), "estimated") : M(null, "missing");
 
   // Breakpoint: the point furthest toward the bowler's own gutter (lowest handed board).
@@ -352,5 +352,5 @@ export function metrics(inp: MetricInput): TrackMetrics {
   const t60 = timeAtFeet(m, 60);
   const endSpeed = t60 !== null ? (m.w + m.d * t60) * FTS_TO_MPH : NaN;
   const speedAtPins = to >= 52 && sane(endSpeed) ? M(endSpeed, spState) : M(null, "missing");
-  return { laydown, laydownFeet, arrows, breakpoint, breakpointFeet, pins, entryAngle, launchAngle, speed, speedAtPins };
+  return { laydown, touchdown, touchdownFeet, arrows, breakpoint, breakpointFeet, pins, entryAngle, launchAngle, speed, speedAtPins };
 }

@@ -159,6 +159,11 @@ describe("pathFit", () => {
       path: fit.path, hand: "right", seen: pts.map((p) => p.v), touchdown: 1,
       motion: { v0: -10, w: 25, d: -1 }, tFirst: 0.5, tLast: 2.8, speedMeasured: true, anchoredSpeed: 23.6
     });
+    // The laydown is the board over the foul line; the touchdown is where the ball lands.
+    expect(m.laydown.state).toBe("measured");
+    expect(m.laydown.value!).toBeCloseTo(40 - pathU(fit.path, 0), 5);
+    expect(m.touchdown.value!).toBeCloseTo(40 - pathU(fit.path, 1), 5);
+    expect(m.touchdownFeet.value).toBe(1);
     expect(m.arrows.state).toBe("measured");
     expect(m.arrows.value!).toBeCloseTo(40 - pathU(fit.path, 15), 5);
     expect(m.breakpoint.state).toBe("measured");
@@ -183,7 +188,8 @@ describe("pathFit", () => {
       motion: { v0: 0, w: 50, d: 0 }, tFirst: 0, tLast: 1, speedMeasured: false
     });
     expect(m.laydown.state).toBe("estimated");
-    expect(m.laydownFeet.state).toBe("missing");
+    expect(m.touchdown.state).toBe("missing");
+    expect(m.touchdownFeet.state).toBe("missing");
     expect(m.pins.state).toBe("missing");
     expect(m.speed.state).toBe("missing");
     // First sighting by 30 ft with the skid seen: the arrows are estimated.
