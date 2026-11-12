@@ -23,6 +23,8 @@ function traced(spec: ReturnType<typeof standardShot>, calib?: number) {
   return { out, r: out.result as TrackResult, src };
 }
 
+// The end to end cases take 7 s here and passed 30 s on CI under coverage
+// (2026-11-12), so they are given two minutes.
 function expectBoards(spec: ReturnType<typeof standardShot>, r: TrackResult, limit = 0.3) {
   expect(r.ok).toBe(true);
   expect(Math.abs(r.metrics.laydown.value! - truthBoard(spec, 0))).toBeLessThan(limit);
@@ -39,7 +41,7 @@ describe("calibrated from the lane's markings only", () => {
     expect(out.debug.fit!.redundancy).toBeGreaterThan(10);
     expect(out.debug.fit!.worstBoards).toBeLessThan(0.5);
     expectBoards(spec, r);
-  }, 30000);
+  }, 120000);
 
   it("maps a dark lane from two lanes to the side within a tenth of a board at both ends", () => {
     // The fit reads only the marks, so the lane's colours cannot matter; the
@@ -91,7 +93,7 @@ describe("registration by the camera's turn", () => {
     expect(r.metrics.laydown.state).toBe("measured");
     expect(Math.abs(r.metrics.laydown.value! - truthBoard(spec, 0))).toBeLessThan(0.3);
     expect(Math.abs(r.metrics.touchdown.value! - truthBoard(spec, r.metrics.touchdownFeet.value!))).toBeLessThan(0.3);
-  }, 30000);
+  }, 120000);
 
   it("builds the turn's homography from a rotation and a zoom", () => {
     const lens = { f: 1000, cx: 100, cy: 50 };

@@ -69,7 +69,7 @@ describe("registration", () => {
       const got = apply(geo[i].H, { x: 0.5, y: 62.849 });
       expect(Math.hypot(got.x - truth.x, got.y - truth.y)).toBeLessThan(0.3);
     }
-  });
+  }, 30000);
 });
 
 function truthMarks(spec: ReturnType<typeof standardShot>, i: number) {
