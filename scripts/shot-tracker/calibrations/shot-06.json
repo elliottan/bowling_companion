@@ -5,38 +5,38 @@
  "points": [
   [
    "pin 7",
-   256.8,
-   196.6
+   257.2,
+   184.9
   ],
   [
    "pin 4",
-   263.3,
-   197.0
+   263.6,
+   185.3
   ],
   [
    "pin 2",
-   270.0,
-   197.8
+   270.3,
+   186.0
   ],
   [
    "pin 1",
-   276.7,
-   198.4
+   276.9,
+   186.5
   ],
   [
    "pin 3",
-   283.1,
-   197.9
+   283.3,
+   185.7
   ],
   [
    "pin 6",
-   289.5,
-   196.8
+   289.7,
+   185.1
   ],
   [
    "pin 10",
-   295.4,
-   195.6
+   295.8,
+   184.2
   ]
  ],
  "lines": [
@@ -92,7 +92,7 @@
    ]
   ]
  ],
- "notes": "Left-handed, 720p at 30 frames a second, recompressed by a messaging app. Every mark is on frame 20, before the delivery, where the full rack, the left edge, the far 60% of the right edge and the foul line all show at once (the bowler stands right of the lane). The arrows do not show under the lane's reflections. Pins: the seam where each column's front pin meets its mirror image. The marks disagree on this one frame: the visible right edge sits 3.5 boards (4 px) outside where the pins and the left edge put it at the far end, and without it the fitted right edge runs well inside the visible gutter at the near end. Refused; see the README.",
+ "notes": "Left-handed, 720p at 30 frames a second, recompressed by a messaging app. Every mark is on frame 20, before the delivery, where the full rack, the left edge, the far 60% of the right edge and the foul line all show at once (the bowler stands right of the lane). The arrows do not show under the lane's reflections. Pins: each column's base, the dark seam halfway between the pin's head and its mirrored head (y 184 to 186.5). They were first marked on the reflection's neck, 10 px lower, and the calibration was refused at 3.54 boards; on the bases every mark agrees within 0.30 board.",
  "register": {
   "tolerance": 2
  }

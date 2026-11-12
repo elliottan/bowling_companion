@@ -7,7 +7,7 @@ import { fitLine, robustLine, snapEdge } from "./edgeSnap";
 import { apply, intersect, multiply, segmentLine } from "./homography";
 import { makeFrame, warp } from "./image";
 import { BALL_RADIUS_FT, laneToWorld } from "./laneModel";
-import { fitMotion, fitPath, metrics, nelderMead, pathU, pinContactFeet, timeAtFeet } from "./pathFit";
+import { fitMotion, fitPath, metrics, nelderMead, pathU, pinContactFeet, timeAtFeet, withoutIslands } from "./pathFit";
 import { globalShift, register } from "./registration";
 import { project, timeAt, truthAt } from "./synthetic";
 import { standardShot, syntheticSource } from "./syntheticSource";
@@ -188,6 +188,49 @@ describe("pathFit", () => {
     expect(m.speed.state).toBe("missing");
     // First sighting by 30 ft with the skid seen: the arrows are estimated.
     expect(m.arrows.state).toBe("estimated");
+  });
+
+  it("finds the breakpoint of a shot that bends from the first feet on", () => {
+    // shot-05 as the tracer saw it, in handed boards every 4 ft: the slope
+    // across falls steadily from the laydown, the ball turns near 44 ft, and
+    // the far sightings are few and uncertain.
+    const seen05 = [17.9, 16.4, 15.2, 14.0, 12.9, 11.9, 11.1, 10.4, 10.1, 9.8, 8.8, 8.9, 10.1, 11.0];
+    const at = (v: number) => {
+      const x = Math.min(seen05.length - 1.001, Math.max(0, (v - 2) / 4));
+      const i = Math.floor(x);
+      return 40 - (seen05[i] + (seen05[i + 1] - seen05[i]) * (x - i));
+    };
+    const bend = Array.from({ length: 100 }, (_, i) => {
+      const v = 1.5 + i * 0.52;
+      return { v, u: at(v) + 0.05 * Math.sin(i * 1.7), w: v > 46 ? 0.4 : 1, sv: v > 46 ? 1 : 0.1 };
+    }).filter((p, i) => p.v < 46 || i % 3 === 0);
+    const fit = fitPath(bend);
+    const m = metrics({
+      path: fit.path, hand: "right", seen: bend.map((p) => p.v), touchdown: 1.5,
+      motion: { v0: 0, w: 26, d: 0 }, tFirst: 0, tLast: 2, speedMeasured: false
+    });
+    expect(m.breakpoint.state).not.toBe("missing");
+    expect(m.breakpointFeet.value!).toBeGreaterThan(38);
+    expect(m.breakpointFeet.value!).toBeLessThan(50);
+    expect(Math.abs(m.breakpoint.value! - 8.8)).toBeLessThan(0.6);
+  });
+
+  it("does not fit across a long unseen stretch to a handful of far sightings", () => {
+    const near = pts.filter((p) => p.v < 27);
+    const far = [55.7, 56, 56.5, 57.3].map((v) => ({ v, u: 41, w: 1, sv: 0.5 }));
+    const kept = withoutIslands([...near, ...far]);
+    expect(kept).toEqual(near);
+    const m = metrics({
+      path: fitPath(kept).path, hand: "right", seen: kept.map((p) => p.v), touchdown: 1,
+      motion: { v0: 0, w: 20, d: 0 }, tFirst: 0, tLast: 1.3, speedMeasured: false
+    });
+    expect(m.pins.state).toBe("missing");
+    // A far group big enough to stand on its own stays, and so does everything
+    // when no group is big.
+    const farMany = Array.from({ length: 9 }, (_, i) => ({ v: 50 + i, u: 30, w: 1 }));
+    expect(withoutIslands([...near, ...farMany])).toHaveLength(near.length + 9);
+    expect(withoutIslands([{ v: 1 }, { v: 2 }, { v: 40 }])).toEqual([{ v: 1 }, { v: 2 }]);
+    expect(withoutIslands([])).toEqual([]);
   });
 
   it("falls back to a smoothing spline when the shape does not fit", () => {

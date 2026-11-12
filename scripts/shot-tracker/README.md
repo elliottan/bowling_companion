@@ -48,7 +48,11 @@ review page, and a calibration with a mark more than a board off is refused
 
 How the marks were found: pin bases by the bright columns of the rack on a row
 through the pins' bellies (their centres) and the dark seam where each pin
-meets its mirror image (its base); edges by snapping a rough segment on the
+meets its mirror image (its base). Check that seam against the pin itself:
+the pin's head, neck and belly must repeat below it in reverse order at equal
+distances, so the base is halfway between the head and the mirrored head. A
+pin and its reflection together show two dark necks, and shot-06's rack was
+first marked on the reflection's neck, 10 pixels low (round six). Edges by snapping a rough segment on the
 visible stretch only (`snapEdge`, lane brighter) and checking it enlarged; the
 foul line by the darkest row at several columns, on this lane and the next.
 
@@ -107,8 +111,57 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
 - 6.3 and the screens: calibrate on one frame where everything marked shows.
   Marks carried from other frames bring the registration's error into the
   fit (shot-06's right edge, carried from frame 120, was 1.1 boards off).
+- 7.5: the skid's and the bend's bounds (15 to 55 ft and 2 to 30 ft) were too
+  tight for real shots. shot-05 bends from the laydown on and shot-02's fit
+  sat on both limits. They are 0 to 55 ft and 2 to 60 ft now.
+- 7.5: a handful of sightings past a long unseen stretch (more than 15 ft,
+  fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
+  pins are then missing, not read off a path fitted across the gap.
 
-## Results, round five (2026-11-12)
+## Results, round six (2026-11-12)
+
+Five of six clips calibrate, each from one frame; three give a breakpoint.
+
+| Clip | Frame | Marks (spare) | Worst mark | Visible | Sightings | Pins check | Laydown | Arrows | Breakpoint | Pins | Speed |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| shot-01 (right) | 150 | 13 (12) | 0.45 | 0.4 to 57.1 ft | 107 | 7: -0.06, 10: -0.34, 1: -0.33 | 22.4 (m) | 16.8 (m) | 7.6 (m) at 42.9 ft | 15.5 (m) | 15.4 mph (m) |
+| shot-02 (right) | 192 (foul line from 140) | 10 (2) | 0.01 | 0.4 to 51.4 ft | 106 | not found | 17.6 (m) | 13.9 (m) | missing | missing | 21.2 mph (m) |
+| shot-03 (right) | 40 | 17 (12) | 0.46 | 1.1 to 26.9 ft | 48 | not found | 13.7 (m) | 10.5 (m) | missing | missing | 16.5 mph (m) |
+| shot-04 (right) | 202 | not calibrated | 1.5 to 2.2 | | | | | | | | |
+| shot-05 (right) | 230 (left edge from 520) | 12 (8) | 0.29 | 1.4 to 52.8 ft | 220 | 10: -0.28 | 18.2 (m) | 13.7 (m) | 9.0 (m) at 48.2 ft | about 9.6 (e) | 17.8 mph (m) |
+| shot-06 (left) | 20 | 16 (15) | 0.30 | 0.8 to 61.0 ft | 61 | 7: 0.26, 1: 0.08 | 17.1 (m) | 14.9 (m) | 12.6 (m) at 35.5 ft | 17.0 (m) | 17.1 mph (m) |
+
+**shot-06: calibrated, and the cause was the pin marks, not the lens.** The
+seven pin marks sat on the reflected pins' necks, 10 pixels below the bases:
+down each pin's column the brightness runs head (y 171), neck (174), belly
+(180), base (185 to 186.5), mirrored belly (191), mirrored neck (197 to 198),
+mirrored head (200), and the marks were at 196 to 198. That put the rack
+where the lane is 18% wider, which is the whole "rack reads 18% narrow". With
+the marks on the bases (each column's dark seam, checked against the midpoint
+of head and mirrored head) every mark on frame 20 agrees within 0.30 board
+with nothing left out, and the clip traces to the pins. The other four
+calibrations' pin marks were checked the same way and sit on the bases.
+
+**shot-05's breakpoint is back** (9.0 at 48.2 ft; round four read 9.2 at
+43 ft). The sightings were not the trouble: binned every 4 ft they read 17.9,
+16.4, 15.2, 14.0, 12.9, 11.9, 11.1, 10.4, 10.1, 9.8, 8.8, 8.9, 10.1, 11.0, a
+steady bend from the laydown with a turn near 44 ft. The fit had run into
+both of its limits (skid 15 ft, bend 30 ft) and flattened the turn away. The
+fitted turn is later than the sightings' own lowest point, by about 4 ft.
+
+**shot-03 no longer reports a pin board.** The four far sightings after the
+1.8 second gap are left out of the fit, so it is seen to 26.9 ft, its speed
+is measured (16.5 mph) and the pins are missing.
+
+**shot-02's breakpoint is missing honestly:** its board is still falling at
+the last sighting (9.2 at 48 to 51 ft).
+
+**Still failing:** shot-04 (cannot be calibrated, as in round five); shot-02
+and shot-03 are not seen to the pins; no clip's arrows show, so no arrows
+check; the synthetic dark-lane and two-lanes-to-the-side cases (round five's
+item 4) are not attempted.
+
+## Results, round five (2026-11-12, superseded)
 
 Each calibration is now made on one frame, from marks visible on it.
 

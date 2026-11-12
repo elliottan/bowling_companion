@@ -9,7 +9,7 @@ import { apply, downAt, invert, multiply, normalize } from "./homography";
 import type { Point } from "./types";
 import { median, sample } from "./image";
 import { BALL_DIAMETER_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
-import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, type MotionPoint } from "./pathFit";
+import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, withoutIslands, type MotionPoint } from "./pathFit";
 import { alignTo, laneMarksOf, register, registerPlane, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, TrackError, TrackFailure, TrackResult } from "./types";
 
@@ -301,7 +301,7 @@ export function trace(input: TraceInput): TraceOutput {
     if (s.v < 8 && r > Math.max(0.75, 3 * sigma)) s.airborne = true;
     else break;
   }
-  const seen = sightings.filter((s) => !s.airborne);
+  const seen = withoutIslands(sightings.filter((s) => !s.airborne));
   const svOf = new Map(sightings.map((s, k) => [s.frame, sv[k]]));
   const vs = seen.map((s) => s.v);
   if (seen.length < MIN_SIGHTINGS || Math.max(...vs) - Math.min(...vs) < 10) {

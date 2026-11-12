@@ -62,8 +62,33 @@ export function nelderMead(f: (x: number[]) => number, x0: number[], scale: numb
 
 const huber = (r: number, d: number) => (Math.abs(r) <= d ? 0.5 * r * r : d * (Math.abs(r) - 0.5 * d));
 
-export const S_RANGE: [number, number] = [15, 55];
-export const L_RANGE: [number, number] = [2, 30];
+// Wide on purpose. Real shots bend from the first feet on (shot-05's slope
+// across falls steadily from the laydown to 44 ft), and with the skid held to
+// 15 ft or more and the bend to 30 ft or less the fit ran into both limits and
+// flattened the breakpoint away.
+export const S_RANGE: [number, number] = [0, 55];
+export const L_RANGE: [number, number] = [2, 60];
+
+/**
+ * The sightings the fit may use: a handful seen again after a long unseen
+ * stretch (the ball behind the bowler, say) cannot be told from something
+ * else that moved, and a path fitted across the gap is a guess. Groups are
+ * split where consecutive sightings are more than `gapFt` apart; groups of
+ * fewer than `min` are dropped, unless none is that big, when the biggest
+ * stays.
+ */
+export function withoutIslands<T extends { v: number }>(pts: T[], gapFt = 15, min = 8): T[] {
+  const sorted = [...pts].sort((a, b) => a.v - b.v);
+  const groups: T[][] = [];
+  for (const p of sorted) {
+    const g = groups[groups.length - 1];
+    if (g && p.v - g[g.length - 1].v <= gapFt) g.push(p);
+    else groups.push([p]);
+  }
+  const big = groups.filter((g) => g.length >= min);
+  const keep = new Set((big.length ? big : groups.sort((a, b) => b.length - a.length).slice(0, 1)).flat());
+  return pts.filter((p) => keep.has(p));
+}
 
 function shape(x: number[]): HookShape {
   return { u0: x[0], a: x[1], s: x[2], L: x[3], k: x[4] };
