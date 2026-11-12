@@ -75,7 +75,12 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
    with a third more patches than the turn and moves the lane by more than a
    quarter board at the foul line from where the turn puts it. A camera that
    does not travel keeps the turn.
-3. The per-frame gutter re-snap at the ball's row is kept as a tracking aid:
+3. **Steadied onto the empty lane** (round five): frames registered on the
+   floor's homography are aligned once more to the empty lane by their own
+   patches (`alignTo`) before differencing; that homography is good to a pixel
+   or two at the far end, and over the rack that is the whole difference
+   between the ball and the pins' outlines. The lane mapping is not changed.
+4. The per-frame gutter re-snap at the ball's row is kept as a tracking aid:
    each edge's offset from the fitted edge has its clip median taken off (that
    is the gutter, not the registration), and what moves about it is taken off
    the ball's board.
@@ -87,7 +92,8 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   refusal over one board. The deck end is hidden behind the pins in every
   clip; the pin row across the house is used instead.
 - 6.5: the arrows are not a usable check on these lanes (not visible).
-- 7.3: the camera does travel. A phone in a hand drifted sideways in shot-01
+- 7.3: **the assumption that the camera does not travel is false for a
+  hand-held phone** (the filmer sways), so nothing may rely on it. The camera does travel. A phone in a hand drifted sideways in shot-01
   between the touchdown (frame 77) and the calibration frame (150): the near
   floor moved 15 pixels more than the far wall (the ball return, nearer
   still, more again). No transform of the whole picture can follow that; the
@@ -95,8 +101,74 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   of a turn; the turn model is H = K' R K^-1.
 - 7.3: the edges' re-snap may not define the boards: it is a tracking aid.
 - 7.4: past the deck end the ball is off the lane's plane; no sighting there.
+- 7.4: change is judged both against the empty lane's 3 by 3 range and
+  against each pixel's own spread over time (five spreads from its median):
+  over the rack the 3 by 3 range spans black to white and hid the ball.
+- 6.3 and the screens: calibrate on one frame where everything marked shows.
+  Marks carried from other frames bring the registration's error into the
+  fit (shot-06's right edge, carried from frame 120, was 1.1 boards off).
 
-## Results, round four (2026-11-12)
+## Results, round five (2026-11-12)
+
+Each calibration is now made on one frame, from marks visible on it.
+
+| Clip | Frame | Marks (spare) | Worst mark | Visible | Sightings | Pins check | Laydown | Arrows | Breakpoint | Pins | Speed |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| shot-01 (right) | 150 | 13 (12) | 0.45 | 0.4 to 57.1 ft | 107 | 7: -0.06, 10: -0.34, 1: -0.33 | 22.4 (m) | 16.8 (m) | 7.6 (m) at 42.9 ft | 15.4 (m) | 15.4 mph (m) |
+| shot-02 (right) | 192 (foul line from 140) | 10 (2) | 0.01 | 0.4 to 51.4 ft | 106 | not found | 17.5 (m) | 13.9 (m) | missing | missing | 21.2 mph (m) |
+| shot-03 (right) | 40 | 17 (12) | 0.46 | 1.1 to 57.3 ft | 48 | 7: -0.49 | 13.6 (m) | 10.5 (m) | missing | -18.9 (m), wrong | about 12.7 mph (e) |
+| shot-04 (right) | 202 | not calibrated | 1.5 to 2.2 | | | | | | | | |
+| shot-05 (right) | 230 (left edge from 520) | 12 (8) | 0.29 | 1.4 to 52.8 ft | 220 | 10: -0.35 | 17.9 (m) | 13.8 (m) | missing | about 9.1 (e) | 17.8 mph (m) |
+| shot-06 (left) | 20 | 16 (15) | 3.54 | refused | | | | | | | |
+
+Radius ratio 0-20, 20-40, 40-60 ft: shot-01 0.928, 0.939, 0.972; shot-02
+0.940, 0.933, 0.952; shot-03 0.934, 0.992; shot-05 0.940, 0.952, 1.002.
+
+**shot-01's tail (round four's job 2): fixed.** It traces to 57.1 ft again
+(round four: 52.7), so the board at the pins is measured, 15.4. Two causes,
+both needed: the floor-plane registration put the rack about 2 pixels off
+the empty lane (measured by matching the rack band, frames 180 to 240), and
+over the rack the empty lane's 3 by 3 range spans black to white and hid the
+ball's interior. Now those frames are steadied onto the empty lane once more
+(`alignTo`, floor-registered frames only), and a pixel also counts as changed
+five spreads from its own median over time. With three spreads it reached
+60.5 ft but the right-handed synthetic shot stopped at 56.6 ft; aligning
+every frame lost the synthetic pins by 0.4 to 0.55 board.
+
+**shot-06: refused, and the cause is not the carried edge alone.** Marked on
+one frame (20, before the delivery, where the full rack, the left edge, the
+far 60% of the right edge and the foul line all show), the right edge still
+sits 3.5 boards (4 pixels) outside where the seven pin bases and the left
+edge put it at the far end. Without the right edge the fit agrees with
+itself (worst 0.32 board), but the drawn right edge then runs well inside
+the visible gutter near the camera (checked enlarged, `cal-lane.png`), so the
+grid is not trustworthy either way. The rack's 7 to 10 span measures 38.6
+pixels where the edges, 39 boards apart, predict about 47: the rack reads
+18% narrow against the edges, on one frame. shot-01 reads 3% (pins 57 px,
+edges 66). Not explained: lens distortion at the picture's left edge, or the
+messaging app's recompression scaling, are candidates. Not traced.
+
+**shot-03: calibrated on frame 40.** On the approach the bowler covers the
+middle of the lane but neither edge near the camera; the rack's right three
+columns (3, 6, 10) show, and the next lanes' racks give the pin row. It
+traces 1.1 to 26.9 ft before the ball goes behind the bowler, then picks up
+four sightings at 55.7 to 57.3 ft in the right gutter (board -1), which a
+constant 11 to 12 mph fits; they may be the ball. The hook model through the
+1.8 second gap puts the pins at board -18.9: the path fit is not to be
+trusted across such a gap, and that number is wrong.
+
+**shot-04: cannot be calibrated** from any frame (see its review page and
+`out/shot-04/frame.png`, frame 202, the best): film from a better spot.
+
+**Got worse:** shot-05's breakpoint went from 9.2 at 43 ft to missing: its
+hook fit came out nearly straight with the new sightings. Aligning every
+frame (not only floor-registered ones) keeps it at 9.2, but fails the
+synthetic pins test. Not resolved.
+
+**Not attempted:** the synthetic floor texture and the dark-lane and
+two-lanes-to-the-side cases (item 4).
+
+## Results, round four (2026-11-12, superseded)
 
 Each calibration's marks, the equations it has to spare, and its worst mark
 across the lane; (m) measured, (e) estimated; boards handed. Pins check:

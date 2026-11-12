@@ -40,7 +40,7 @@ export interface CandidateOptions {
  */
 export function findCandidates(
   steadied: GrayFrame,
-  bg: GrayFrame,
+  bg: GrayFrame & { spread?: Float32Array },
   roi: Roi,
   S: Mat3,
   H: Mat3,
@@ -55,8 +55,15 @@ export function findCandidates(
   for (let i = 0; i < n; i++) {
     // Outside the empty lane's 3 by 3 range: a strong static edge that the
     // steadying misses by a fraction of a pixel does not count as change.
+    // Over the rack that range spans black to white (bright pins and their
+    // mirror images beside dark gaps) and hides a mid-grey ball, so a pixel
+    // also counts as changed when it leaves its own range over time: five
+    // spreads from its median (a jittering edge has a wide spread, a still
+    // pin's body a narrow one).
     const p = steadied.data[i];
-    const d = Math.max(0, p - env.hi[i], env.lo[i] - p);
+    const sp = bg.spread?.[i];
+    const own = sp !== undefined && Number.isFinite(sp) ? Math.abs(p - bg.data[i]) - K_SPREAD * Math.max(sp, 2) : 0;
+    const d = Math.max(0, p - env.hi[i], env.lo[i] - p, own);
     diff[i] = Number.isFinite(d) ? d : 0;
     if (i % 7 === 0) probe.push(diff[i]);
   }
@@ -136,6 +143,8 @@ export function findCandidates(
   return out;
 }
 
+/** Spreads from its own median at which a pixel counts as changed: well outside what it does over time. */
+const K_SPREAD = 5;
 const envelopes = new WeakMap<GrayFrame, { lo: Float32Array; hi: Float32Array }>();
 
 /** The 3 by 3 minimum and maximum of a picture, kept per picture. */

@@ -39,10 +39,20 @@ export function steady(f: GrayFrame, S: Mat3, roi: Roi): GrayFrame {
   return warp(f, S, roi.x0, roi.y0, roi.width, roi.height);
 }
 
-/** Per-pixel median of steadied frames; NaN where no frame saw the pixel. */
-export function medianBackground(frames: GrayFrame[]): GrayFrame {
+/** The empty lane, and per pixel how much it varies from frame to frame (see `medianBackground`). */
+export type Background = GrayFrame & { spread: Float32Array };
+
+/**
+ * Per-pixel median of steadied frames; NaN where no frame saw the pixel. With
+ * it, each pixel's spread over time (1.4826 times the median absolute
+ * deviation): large where steadying jitters a strong edge by a fraction of a
+ * pixel, small where the lane holds still, so change is judged against what
+ * that pixel itself does, not against its neighbours.
+ */
+export function medianBackground(frames: GrayFrame[]): Background {
   const { width, height } = frames[0];
   const out = new Float32Array(width * height);
+  const spread = new Float32Array(width * height);
   const col = new Float32Array(frames.length);
   for (let i = 0; i < out.length; i++) {
     let n = 0;
@@ -55,7 +65,11 @@ export function medianBackground(frames: GrayFrame[]): GrayFrame {
       continue;
     }
     const s = col.subarray(0, n).sort();
-    out[i] = n % 2 ? s[n >> 1] : (s[(n >> 1) - 1] + s[n >> 1]) / 2;
+    const m = n % 2 ? s[n >> 1] : (s[(n >> 1) - 1] + s[n >> 1]) / 2;
+    out[i] = m;
+    for (let k = 0; k < n; k++) s[k] = Math.abs(s[k] - m);
+    s.sort();
+    spread[i] = 1.4826 * (n % 2 ? s[n >> 1] : (s[(n >> 1) - 1] + s[n >> 1]) / 2);
   }
-  return { width, height, data: out, t: 0 };
+  return { width, height, data: out, t: 0, spread };
 }

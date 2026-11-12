@@ -1,16 +1,99 @@
 {
-  "clip": "shot-06.mp4",
-  "frame": 50,
-  "hand": "left",
-  "points": [
-    ["pin 7", 251.6, 195.7], ["pin 4", 258.0, 196.0], ["pin 2", 264.7, 196.4], ["pin 1", 271.6, 197.0],
-    ["pin 3", 278.2, 196.7], ["pin 6", 284.4, 196.0], ["pin 10", 290.4, 194.8]
+ "clip": "shot-06.mp4",
+ "frame": 20,
+ "hand": "left",
+ "points": [
+  [
+   "pin 7",
+   256.8,
+   196.6
   ],
-  "lines": [
-    ["left", [[247.6, 200], [241.5, 290], [235.4, 380]]],
-    ["right", [[338.6, 265], [360, 297.4], [381.1, 330]], 120],
-    ["foul", [[280, 388.6], [300, 388.2], [320, 387.9], [550, 384.1], [600, 383.1]]]
+  [
+   "pin 4",
+   263.3,
+   197.0
   ],
-  "notes": "Left-handed, 720p at 30 frames a second, recompressed by a messaging app. The arrows do not show under the lane's reflections. The bowler hides the right edge on the calibration frame, so it is marked only where it shows, on frame 120 (carried by registration). Pins: the bases of the seven columns of this lane's full rack (front pin of each column). The foul line is marked on this lane and, as the same straight line, on the lanes to the right.",
-  "register": { "tolerance": 2 }
+  [
+   "pin 2",
+   270.0,
+   197.8
+  ],
+  [
+   "pin 1",
+   276.7,
+   198.4
+  ],
+  [
+   "pin 3",
+   283.1,
+   197.9
+  ],
+  [
+   "pin 6",
+   289.5,
+   196.8
+  ],
+  [
+   "pin 10",
+   295.4,
+   195.6
+  ]
+ ],
+ "lines": [
+  [
+   "left",
+   [
+    [
+     252.6,
+     205
+    ],
+    [
+     247.4,
+     295
+    ],
+    [
+     242.3,
+     385
+    ]
+   ]
+  ],
+  [
+   "right",
+   [
+    [
+     309.9,
+     200
+    ],
+    [
+     339.3,
+     245
+    ],
+    [
+     368.6,
+     290
+    ]
+   ]
+  ],
+  [
+   "foul",
+   [
+    [
+     260,
+     390.1
+    ],
+    [
+     280,
+     389.1
+    ],
+    [
+     300,
+     388.9
+    ]
+   ]
+  ]
+ ],
+ "notes": "Left-handed, 720p at 30 frames a second, recompressed by a messaging app. Every mark is on frame 20, before the delivery, where the full rack, the left edge, the far 60% of the right edge and the foul line all show at once (the bowler stands right of the lane). The arrows do not show under the lane's reflections. Pins: the seam where each column's front pin meets its mirror image. The marks disagree on this one frame: the visible right edge sits 3.5 boards (4 px) outside where the pins and the left edge put it at the far end, and without it the fitted right edge runs well inside the visible gutter at the near end. Refused; see the README.",
+ "register": {
+  "tolerance": 2
+ }
 }

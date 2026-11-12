@@ -10,7 +10,7 @@ import type { Point } from "./types";
 import { median, sample } from "./image";
 import { BALL_DIAMETER_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
 import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, type MotionPoint } from "./pathFit";
-import { laneMarksOf, register, registerPlane, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
+import { alignTo, laneMarksOf, register, registerPlane, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, TrackError, TrackFailure, TrackResult } from "./types";
 
 /**
@@ -169,7 +169,25 @@ export function trace(input: TraceInput): TraceOutput {
   progress("background", 0.3);
   const roi = laneRoi(H0, calibFrame.width, calibFrame.height);
   debug.roi = roi;
-  const bgFrames = usable.filter((_, k) => k % 4 === 0).map((g) => steady(source.frame(g.index), g.S, roi));
+  // The empty lane, then each frame registered on the floor's own plane
+  // steadied onto it once more: that registration is good to a pixel or two
+  // at the far end, and over the rack
+  // (bright pins beside dark gaps) a pixel or two is the whole difference
+  // between seeing the ball and seeing the pins' outlines. Each frame's
+  // steadied picture is aligned to the empty lane by its own textured
+  // patches (`alignTo`); the lane's mapping is not changed by it.
+  const bgFrames0 = usable.filter((_, k) => k % 4 === 0).map((g) => steady(source.frame(g.index), g.S, roi));
+  const bg0 = medianBackground(bgFrames0);
+  const toRoi: Mat3 = [1, 0, roi.x0, 0, 1, roi.y0, 0, 0, 1];
+  const fromRoi: Mat3 = [1, 0, -roi.x0, 0, 1, -roi.y0, 0, 0, 1];
+  const steadyS = new Map<number, Mat3>();
+  for (const g of usable) {
+    // Only frames registered on the floor's own homography: a turn is exact
+    // for the camera it models, and aligning those adds only noise.
+    const R = g.plane ? alignTo(bg0, steady(source.frame(g.index), g.S, roi)) : null;
+    steadyS.set(g.index, R ? normalize(multiply(g.S, multiply(toRoi, multiply(R, fromRoi)))) : g.S);
+  }
+  const bgFrames = usable.filter((_, k) => k % 4 === 0).map((g) => steady(source.frame(g.index), steadyS.get(g.index)!, roi));
   const bg = medianBackground(bgFrames);
   debug.background = bg;
 
@@ -177,7 +195,8 @@ export function trace(input: TraceInput): TraceOutput {
   const cands: Candidate[] = [];
   for (const g of usable) {
     const f = source.frame(g.index);
-    cands.push(...findCandidates(steady(f, g.S, roi), bg, roi, g.S, g.H, g.index));
+    const Sg = steadyS.get(g.index)!;
+    cands.push(...findCandidates(steady(f, Sg, roi), bg, roi, Sg, g.H, g.index));
   }
   debug.candidates = cands;
   // A candidate that does not move is background (a reflection, a mark the

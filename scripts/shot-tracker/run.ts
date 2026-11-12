@@ -348,7 +348,7 @@ function touchdownShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: Tr
     const g = out.debug.geometry[frame - out.debug.first];
     const H = g.H;
     const box = boxAround(H, [LEFT_U - 3, RIGHT_U + 3], [Math.max(-3, s.v - 3), s.v + 4], 2.6 * s.r, clip.width, clip.height);
-    const k = Math.max(2, Math.min(12, Math.floor(width / box.w)));
+    const k = Math.max(2, Math.min(12, Math.ceil(width / box.w)));
     const c = cropScale(frameCanvas(clipPath, clip, frame), box.x0, box.y0, box.w, box.h, k);
     const P = (u: number, v: number) => {
       const p = apply(H, { x: u, y: v });
@@ -377,8 +377,10 @@ function touchdownShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: Tr
     }
     return c;
   };
-  const big = panel(s.frame, 1000, true);
-  const smalls = [s.frame - 2, s.frame - 1].filter((f) => f >= out.debug.first && out.debug.geometry[f - out.debug.first]?.ok).map((f) => panel(f, 480, false));
+  // The touchdown frame alone at 900 pixels or more, so a phone can read it;
+  // the two frames before it below, at half that.
+  const big = panel(s.frame, 900, true);
+  const smalls = [s.frame - 2, s.frame - 1].filter((f) => f >= out.debug.first && out.debug.geometry[f - out.debug.first]?.ok).map((f) => panel(f, Math.floor(big.width / 2) - 8, false));
   const W = Math.max(big.width, smalls.reduce((a, c) => a + c.width + 8, 0));
   const img = canvas(W, big.height + (smalls.length ? Math.max(...smalls.map((c) => c.height)) + 8 : 0), [250, 250, 250]);
   const blit = (c: Canvas, ox: number, oy: number) => {

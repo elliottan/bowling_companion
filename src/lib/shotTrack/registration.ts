@@ -617,3 +617,45 @@ export function robustHomography(P: Point[], Q: Point[], tol: number): { H: Mat3
   }
   return { H, inliers: best };
 }
+
+/**
+ * The homography taking `ref`'s pixels to `img`'s, where the two pictures are
+ * already within a few pixels of each other (a frame steadied onto the empty
+ * lane): textured patches of `ref` found in `img` near where they are, then a
+ * robust fit. Null when too few patches agree, or when the pictures already
+ * agree within half a pixel. Pixels outside a picture are
+ * NaN and patches touching them are skipped.
+ */
+export function alignTo(ref: GrayFrame, img: GrayFrame, tol = 0.8): Mat3 | null {
+  const clean = (f: GrayFrame): GrayFrame => ({ ...f, data: Float32Array.from(f.data, (v) => (Number.isFinite(v) ? v : -1000)) });
+  const a = clean(ref);
+  const b = clean(img);
+  const size = Math.max(8, Math.min(16, Math.round(Math.min(ref.width, ref.height) / 12)));
+  const patches = choosePatches(a, size, (p) => {
+    const h = size / 2 + 1;
+    for (const [dx, dy] of [[-h, -h], [h, -h], [-h, h], [h, h]]) {
+      const v = ref.data[Math.round(p.y + dy) * ref.width + Math.round(p.x + dx)];
+      if (!Number.isFinite(v)) return false;
+    }
+    return true;
+  }, 160);
+  const P: Point[] = [];
+  const Q: Point[] = [];
+  for (const pt of patches) {
+    const m = matchPatch(a, b, pt, pt, 4);
+    if (m) {
+      P.push(pt);
+      Q.push(m);
+    }
+  }
+  const fit = robustHomography(P, Q, tol);
+  if (!fit || fit.inliers.length < 12) return null;
+  // Under half a pixel anywhere the correction is no larger than its own
+  // noise: the pictures are already aligned.
+  let most = 0;
+  for (const [x, y] of [[0, 0], [ref.width, 0], [0, ref.height], [ref.width, ref.height], [ref.width / 2, ref.height / 2]]) {
+    const q = apply(fit.H, { x, y });
+    most = Math.max(most, Math.hypot(q.x - x, q.y - y));
+  }
+  return most < 0.5 ? null : fit.H;
+}

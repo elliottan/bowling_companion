@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { focalFromPlane } from "./calibrate";
 import { apply } from "./homography";
 import { trace } from "./pipeline";
-import { robustHomography, rotation, turnHomography } from "./registration";
+import { alignTo, robustHomography, rotation, turnHomography } from "./registration";
+import { medianBackground } from "./background";
+import { makeFrame, warp } from "./image";
 import { timeAt, truthAt } from "./synthetic";
 import { laneMarkings, standardShot, syntheticSource, truthBoard } from "./syntheticSource";
 import type { Mat3, TrackResult } from "./types";
@@ -119,5 +121,26 @@ describe("registration on the lane's own plane", () => {
     const q = apply(H, { x: 100, y: 100 });
     expect(Math.hypot(p.x - q.x, p.y - q.y)).toBeLessThan(1e-6);
     expect(robustHomography(P.slice(0, 5), Q.slice(0, 5), 0.5)).toBeNull();
+  });
+});
+
+describe("steadying onto the empty lane", () => {
+  it("finds the small residual shift between a frame and the background", () => {
+    const f = syntheticSource(standardShot({ width: 240, height: 427 })).frame(2);
+    const M: Mat3 = [1, 0, 1.4, 0, 1, -0.8, 0, 0, 1];
+    const moved = warp(f, M, 0, 0, f.width, f.height);
+    const R = alignTo(f, moved)!;
+    // moved(x) = f(M x), so f's pixel p is found in `moved` at M^-1 p.
+    const q = apply(R, { x: 120, y: 300 });
+    expect(q.x).toBeCloseTo(120 - 1.4, 0);
+    expect(q.y).toBeCloseTo(300 + 0.8, 0);
+    expect(alignTo(makeFrame(60, 60, 0, 90), makeFrame(60, 60, 0, 90))).toBeNull();
+  });
+
+  it("keeps each pixel's spread over time beside the median", () => {
+    const frames = [10, 12, 11, 200, 13].map((v, k) => ({ ...makeFrame(2, 1, k, v) }));
+    const bg = medianBackground(frames);
+    expect(bg.data[0]).toBe(12);
+    expect(bg.spread[0]).toBeCloseTo(1.4826, 3);
   });
 });
