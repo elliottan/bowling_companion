@@ -84,7 +84,7 @@ scripts; a build drops it (`devProUnlock` in `src/lib/pro.ts`).
 Until the app is listed, `/app` shows the locked app too, so the free tier can be
 checked on the web before an iPhone rebuild (`LOCK_FREE_WEB` in
 `src/lib/appStore.ts`, ADR-166). The Pro page's button then says the app is not in
-the App Store yet. The Android app stays open.
+the App Store yet. The Android app sells Pro through Google Play (ADR-277).
 
 ## How Pro shows where it is locked
 
@@ -214,7 +214,7 @@ switch.
 
 - [x] One module that answers "is Pro open": `src/lib/pro.ts` and
       `useProAccess`. The web half is built, and stays open until
-      `APP_STORE_URL` is set. The iOS half reads the receipt (`proStore.ts`).
+      `APP_STORE_URL` is set. The store apps read the receipt (`proStore.ts`).
 - [x] A purchase plugin with Restore purchases: the app's own, on StoreKit 2
       (`HeadpinStorePlugin.swift`, ADR-158), product `app.headpin.pro`. Try it
       in the simulator from Xcode, with `Headpin.storekit` (the `App` scheme
@@ -255,12 +255,22 @@ switch.
 ### 5. Android (after iOS is live)
 
 - [ ] Google Play account (US$25 once), and 12 or more testers opted in for 14
-      days in a row.
+      days in a row. The order is "Testing before production" in
+      `docs/PLAY-LISTING.md`.
+- [x] Release signing: an upload key kept off git, `npm run bundle:android`
+      for a signed `.aab`, and a versionCode from `package.json`
+      (`docs/DEPLOYMENT.md`, "The Android app"). The key itself is the
+      owner's to make.
+- [x] The Play listing and its policy forms drafted (`docs/PLAY-LISTING.md`).
+      The feature graphic and Play-sized screenshots are not made yet.
 - [x] The Android shell, from the same build (ADR-155, `npm run build:android`):
-      portrait, edge to edge, and the back button through history. Builds a
-      debug APK; not yet run on an emulator.
-- [ ] Play Billing for the same product, and the web's "Get the app" gains
-      Android.
+      portrait, edge to edge, and the back button through history. Walked on
+      an emulator by `android-device-check.yml`; not yet on a phone.
+- [x] Play Billing for the same product (ADR-277, `HeadpinStorePlugin.java`):
+      buy, restore, acknowledge, and Play's rating prompt. Builds; not yet
+      tried against Play Console, which needs `app.headpin.pro` as a one-time
+      product and a build on a testing track.
+- [ ] The web's "Get the app" gains Android, once the Play listing exists.
 
 ### 6. After approval
 

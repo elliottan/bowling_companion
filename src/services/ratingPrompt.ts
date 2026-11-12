@@ -1,5 +1,5 @@
 import { db } from "../db/bowlingDb";
-import { isIOSApp } from "../lib/platform";
+import { isNativeApp } from "../lib/platform";
 import { shouldAskForRating } from "../lib/ratingPrompt";
 import { loadStorePlugin } from "../lib/nativeStorePlugin";
 
@@ -10,7 +10,8 @@ export const RATING_ASKED_KEY = "rating_asked_at";
 const ASK_DELAY_MS = 2000;
 
 export interface RatingDeps {
-  ios: boolean;
+  /** A store app, whose store has a rating prompt. */
+  storeApp: boolean;
   finishedScores: () => Promise<number[]>;
   lastAskedAt: () => Promise<string | undefined>;
   markAsked: (at: string) => Promise<void>;
@@ -21,7 +22,7 @@ export interface RatingDeps {
 
 function defaultDeps(): RatingDeps {
   return {
-    ios: isIOSApp(),
+    storeApp: isNativeApp(),
     finishedScores: async () =>
       (await db.games.filter((g) => g.final_score !== undefined).toArray()).map((g) => g.final_score as number),
     lastAskedAt: async () => (await db.settings.get(RATING_ASKED_KEY))?.value,
@@ -35,12 +36,13 @@ function defaultDeps(): RatingDeps {
 }
 
 /**
- * Asks Apple for its rating prompt after a good game, in the iPhone app only
- * (ADR-218). Called once per game, when its last ball finishes it. Best
- * effort: nothing here can fail a saved frame.
+ * Asks the store for its rating prompt after a good game, in the store apps
+ * only: Apple's on iOS (ADR-218), Play's on Android (ADR-277). Called once per
+ * game, when its last ball finishes it. Best effort: nothing here can fail a
+ * saved frame.
  */
 export async function considerRatingPrompt(score: number, deps: RatingDeps = defaultDeps()): Promise<boolean> {
-  if (!deps.ios) return false;
+  if (!deps.storeApp) return false;
   try {
     const [finishedScores, lastAskedAt] = await Promise.all([deps.finishedScores(), deps.lastAskedAt()]);
     const now = deps.now();

@@ -991,8 +991,11 @@ msgstr "球库"
 msgid "As intended"
 msgstr "如预期"
 
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
+msgid "Asking Google Play…"
+msgstr "正在询问 Google Play…"
+
+#: src/lib/storeWords.ts
 msgid "Asking the App Store…"
 msgstr "正在询问 App Store…"
 
@@ -2288,6 +2291,14 @@ msgstr "前往"
 #: src/components/SessionLanePanel.tsx
 msgid "Go to frame {frameNumber}"
 msgstr "前往第 {frameNumber} 格"
+
+#: src/lib/storeWords.ts
+msgid "Google Play did not answer: {reason}"
+msgstr "Google Play 没有响应：{reason}"
+
+#: src/lib/storeWords.ts
+msgid "Google Play did not answer. Try again in a moment."
+msgstr "Google Play 没有响应，请稍后再试。"
 
 #: src/components/InstallPrompt.tsx
 msgid "Got it"
@@ -4797,15 +4808,11 @@ msgstr "该文件不是 Headpin 备份。"
 msgid "The app crashed"
 msgstr "App 崩溃了"
 
-#: src/components/ui/useProAction.tsx
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "The App Store did not answer: {reason}"
 msgstr "App Store 没有响应：{reason}"
 
-#: src/components/ui/useProAction.tsx
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "The App Store did not answer. Try again in a moment."
 msgstr "App Store 没有响应，请稍后再试。"
 
@@ -4881,8 +4888,7 @@ msgstr "你为这个残瓶保存的站位与目标将会消失。你的投球仍
 msgid "Theme"
 msgstr "主题"
 
-#: src/views/ProOfferView.tsx
-#: src/views/SettingsView.tsx
+#: src/lib/storeWords.ts
 msgid "This Apple ID has not bought Headpin Pro."
 msgstr "这个 Apple ID 尚未购买 Headpin Pro。"
 
@@ -4922,6 +4928,10 @@ msgstr "这会删除此设备上的所有数据：{0, plural, other {# 个场次
 #: src/components/LaneNoteFormDialog.tsx
 msgid "This deletes your note on this lane. Your games aren't affected."
 msgstr "这会删除你在这条球道上的备注，不会影响你的比赛。"
+
+#: src/lib/storeWords.ts
+msgid "This Google account has not bought Headpin Pro."
+msgstr "这个 Google 账号尚未购买 Headpin Pro。"
 
 #: src/components/PatternSheet.tsx
 msgid "This pattern has no load table, so there is nothing to show."

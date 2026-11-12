@@ -36,8 +36,8 @@ export interface ProStore {
  */
 export type ProAccess =
   /** `owned` is set where this copy is Pro as a buyer has it: an Apple ID that
-   *  bought it. Not where Pro is merely open (a
-   *  web with nothing to sell, the Android app), so a mark of ownership is never
+   *  or Google account that bought it. Not where Pro is merely open (a
+   *  web with nothing to sell), so a mark of ownership is never
    *  shown to a bowler who did not buy it (ADR-164). */
   | { locked: false; owned?: true }
   /** `appStoreUrl` is null on the free web before the app is listed (ADR-166):
@@ -78,8 +78,8 @@ const DEV_PRO = devProUnlock();
 
 /** What the web app offers: at /app the free features with the rest pointing
  *  at the App Store, or, before the app is listed, locked with nowhere to go
- *  yet (`LOCK_FREE_WEB`, ADR-166); anywhere else (the Android app) everything
- *  stays open. */
+ *  yet (`LOCK_FREE_WEB`, ADR-166); anywhere else (a path
+ *  that is not the web app) everything stays open. */
 export function webProAccess(
   appStoreUrl: string | null = APP_STORE_URL,
   pathname: string = typeof window === "undefined" ? FREE_APP_PATH : window.location.pathname,
@@ -91,9 +91,8 @@ export function webProAccess(
   return lockFreeWeb && isFreeAppPath(pathname) ? { locked: true, appStoreUrl: null } : PRO_OPEN;
 }
 
-/** What the app offers: the purchase where it sells Pro (the iOS app), and
- *  the web's answer anywhere else, which keeps everything open until Pro can
- *  be bought there (the Android app, until Play Billing). */
+/** What the app offers: the purchase where it sells Pro (the store apps), and
+ *  the web's answer anywhere else. */
 export function appProAccess(store: ProStore | null): ProAccess {
   if (!store) return webProAccess();
   return store.owned ? PRO_OWNED : { locked: true, store };

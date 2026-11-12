@@ -25,11 +25,13 @@ function fakePlugin(over: Partial<StorePlugin> = {}) {
 }
 
 describe("sellsPro", () => {
-  it("is the iOS app only", () => {
+  it("is the store apps, iOS and Android, and never the web", () => {
     const ios = { Capacitor: { isNativePlatform: () => true, getPlatform: () => "ios" } };
     const android = { Capacitor: { isNativePlatform: () => true, getPlatform: () => "android" } };
+    const web = { Capacitor: { isNativePlatform: () => false, getPlatform: () => "web" } };
     expect(sellsPro(ios)).toBe(true);
-    expect(sellsPro(android)).toBe(false);
+    expect(sellsPro(android)).toBe(true);
+    expect(sellsPro(web)).toBe(false);
     expect(sellsPro({})).toBe(false);
   });
 });

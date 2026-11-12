@@ -99,3 +99,9 @@ app/src/main/assets/public
 app/src/main/assets/capacitor.config.json
 app/src/main/assets/capacitor.plugins.json
 app/src/main/res/xml/config.xml
+
+# The upload key and its passwords (app/build.gradle, docs/DEPLOYMENT.md).
+# Never committed: whoever holds them can publish as Headpin.
+keystore.properties
+*.jks
+*.keystore
