@@ -11,12 +11,13 @@ import type { GrayFrame, Mat3, Point } from "./types";
  * it), so it is followed back from its first sighting by its own darkness: a
  * disc darker than the lane round its lower half and sides (the hand is over
  * its top). Each step back it may move a few radii and grow a little (it is
- * nearer the camera). The frame where its bottom reaches the foul line's row
- * is found between two frames, and the board is read on the foul line
- * straight below its centre. A ball carried over the line never reaches the
- * row in the picture (shot-02, shot-03, shot-05: its bottom stays 14 to 21
- * pixels short): then it is read where it comes lowest, its bottom closest to
- * the line, which is beside the slide foot at the release.
+ * nearer the camera). It is read in the first frame in which it sits on the
+ * foul line in the picture: where it comes lowest, at the bottom of the swing
+ * by the slide foot, on the foul line straight below its centre. On shot-01
+ * its bottom stays on the line's row from frame 72 to 77 as it goes out; the
+ * owner reads frame 72 (24 or 25), not 76 (2026-11-13). A ball carried over
+ * the line never reaches the row (shot-02, shot-03, shot-05: 14 to 21 pixels
+ * short) and is read the same way.
  */
 
 export interface ReleaseFrame {
@@ -32,9 +33,9 @@ export interface ReleaseFrame {
 export interface OverFoulLine {
   /** The ball as followed back, latest first. */
   track: ReleaseFrame[];
-  /** Fractional frame at which the ball's bottom is on the foul line's row, or closest to it. */
+  /** Fractional frame at which the ball comes lowest in the picture beside the foul line. */
   at: number;
-  /** The ball's bottom reached the foul line's row (rather than only coming closest to it). */
+  /** The ball's bottom is at or below the foul line's row then (rather than short of it). */
   reached: boolean;
   /** Picture point on the foul line straight below the ball's centre then. */
   point: Point;
@@ -141,11 +142,6 @@ export function overFoulLine(
     track.push({ frame: i, ...d });
     gaps.push(now.gap);
     const k = gaps.length - 1;
-    if (gaps[k - 1] <= 0 && now.gap > 0) {
-      // Between frame i (bottom below the line) and i + 1 (above it).
-      const s = now.gap / (now.gap - gaps[k - 1]);
-      return read(i, d.cx + s * (track[k - 1].cx - d.cx), i + s, true);
-    }
     // Two frames in a row higher in the picture than the one before them:
     // that one was where the ball came lowest. Going further back the ball is
     // up in the swing.
@@ -156,7 +152,7 @@ export function overFoulLine(
       const off = den < 0 ? Math.max(-0.5, Math.min(0.5, (0.5 * (a - c)) / den)) : 0;
       // off > 0 leans to the earlier frame (j + 1 in the track), < 0 to the later one.
       const cx = off >= 0 ? track[j].cx + off * (track[j + 1].cx - track[j].cx) : track[j].cx - off * (track[j - 1].cx - track[j].cx);
-      return read(track[j].frame, cx, track[j].frame - off, false);
+      return read(track[j].frame, cx, track[j].frame - off, gaps[j] >= 0);
     }
   }
   return null;

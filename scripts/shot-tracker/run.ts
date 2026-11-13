@@ -393,13 +393,25 @@ function laydownShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: Trac
       const at = P(u, 0);
       if (mark) text(c, at.x - 8 * String(n).length, at.y + 10, String(n), col, n === 20 ? 4 : 3);
     }
-    if (m.laydown.value !== null) {
+    // The plumb line runs through this frame's own ball where it was followed;
+    // in the laydown's frame it lands on the laydown.
+    const disc = rel?.track.find((d) => d.frame === frame);
+    if (disc) {
+      circle(c, (disc.cx - box.x0) * k, (disc.cy - box.y0) * k, disc.r * k, GREEN);
+      const foul = (x: number) => {
+        const a0 = apply(H, { x: LEFT_U, y: 0 });
+        const b0 = apply(H, { x: RIGHT_U, y: 0 });
+        return a0.y + ((x - a0.x) * (b0.y - a0.y)) / (b0.x - a0.x);
+      };
+      const fx = (disc.cx - box.x0) * k;
+      const fy = (foul(disc.cx) - box.y0) * k;
+      cross(c, fx, fy, mark ? 10 : 6, MAGENTA);
+      line(c, fx, fy, fx, (disc.cy - box.y0) * k - 2 * disc.r * k, MAGENTA, { alpha: 0.8, dash: 6 });
+    } else if (mark && m.laydown.value !== null) {
       const at = P(laneU(m.laydown.value, cal.hand), 0);
-      cross(c, at.x, at.y, mark ? 10 : 6, MAGENTA);
+      cross(c, at.x, at.y, 10, MAGENTA);
       line(c, at.x, at.y, at.x, at.y - 5 * first.r * k, MAGENTA, { alpha: 0.8, dash: 6 });
     }
-    const disc = rel?.track.find((d) => d.frame === frame);
-    if (disc) circle(c, (disc.cx - box.x0) * k, (disc.cy - box.y0) * k, disc.r * k, GREEN);
     return c;
   };
   const big = panel(f0, 900, true);
@@ -420,7 +432,7 @@ function laydownShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: Trac
     png: toPng(img).toString("base64"),
     lines: [
       `Laydown: ${m.laydown.value === null ? "missing" : `board ${m.laydown.value.toFixed(1)}`} (${m.laydown.state}), the board the ball is over as it crosses the foul line.`,
-      "The laydown is the board under the ball where it sits right above the foul line in the picture, in the hand or in the air: not where it lands. Above: that frame. Green circle: the ball as the tracer followed it back from the lane. Yellow: the foul line, with a tick every 5 boards on it, numbered (the bowler's own boards; 20 in white). Magenta cross: the tracer's laydown, with a plumb line up from it; the ball's centre should sit on that line. Below: the frame before and the frame after.",
+      "The laydown is the board under the ball where it sits right above the foul line in the picture, in the hand or in the air: not where it lands. Above: that frame. Green circle: the ball as the tracer followed it back from the lane. Yellow: the foul line, with a tick every 5 boards on it, numbered (the bowler's own boards; 20 in white). Magenta cross: on the foul line straight below the ball's centre, with a plumb line up through the centre; in the top picture it is the laydown. Below: the frame before and the frame after, each with its own ball and plumb line.",
       rel
         ? `Frame ${rel.at.toFixed(1)}: the ball's bottom ${rel.reached ? "reaches the foul line's row" : "comes closest to the foul line's row (it never reaches it: the ball is carried over the line)"}. First sighting on the lane: frame ${first.frame}, board ${handedBoard(first.u, r.hand).toFixed(2)} at ${first.v.toFixed(1)} ft.`
         : `The ball could not be followed back from the lane, so the laydown is the line through its first sightings run back to the foul line (over it at ${t0.toFixed(3)} s, frame ${f0}). First sighting: frame ${first.frame}, board ${handedBoard(first.u, r.hand).toFixed(2)} at ${first.v.toFixed(1)} ft.`

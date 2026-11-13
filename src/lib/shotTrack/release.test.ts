@@ -27,14 +27,13 @@ function follow(path: (k: number) => { cx: number; bottom: number }) {
 }
 
 describe("the ball over the foul line", () => {
-  it("reads the board where the ball's bottom reaches the foul line's row", () => {
-    // Bottom 10 px below the line at frame 0, 10 px above it at frame 10, moving left 5 px a frame.
-    const r = follow((k) => ({ cx: 300 - 5 * k, bottom: 410 - 2 * k }));
+  it("reads the first frame the ball sits on the line: where it comes lowest, not where it leaves the line's row", () => {
+    // Lowest at frame 4, 6 px below the line's row; its bottom leaves the row at frame 6.5 on its way out.
+    const r = follow((k) => ({ cx: 300 - 5 * k, bottom: Math.round(406 - 0.8 * (k - 4) ** 2) }));
     expect(r).not.toBeNull();
     expect(r!.reached).toBe(true);
-    // The hand over the ball's top pulls the found disc down a pixel or so: a frame of slack.
-    expect(Math.abs(r!.at - 5)).toBeLessThanOrEqual(1);
-    expect(Math.abs(r!.u - 17.5)).toBeLessThan(0.6);
+    expect(Math.abs(r!.at - 4)).toBeLessThanOrEqual(1);
+    expect(Math.abs(r!.u - 18)).toBeLessThan(0.6);
   });
 
   it("reads where the ball comes lowest when it never reaches the line", () => {

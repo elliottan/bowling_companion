@@ -254,6 +254,17 @@ through the first sightings, run back to 0 ft, is kept. The review page's
 laydown picture is that frame, with the followed ball circled. The pins
 picture is zoomed out to the next lanes and the last 20 ft (owner, shot-02).
 
+**Which frame: the first the ball sits on the line.** The owner again: shot-01's
+picture (frame 76, 23.9) was a few frames too late. Its bottom stays on the
+foul line's row from frame 72 to 77 as it goes out, and the owner reads the
+first of them. The laydown is now read where the ball comes lowest beside the
+line: shot-01 frame 72, 24.9; shot-06 frame 32, 21.9 (was 18.5 at frame 34,
+where its bottom leaves the row; the owner had read about 18 and called 17.5
+quite good, so this is for them to check). Each panel of the review picture
+now has its own ball's plumb line. Moving shot-01's foul line to the bottom
+of the light strip below it (y 635) was tried and dropped: it shifted the
+near end's board scale and read 21.8.
+
 **Still failing:** as round seven, and: the laydown is not measured on the
 crossing frame itself (the ball in the hand or the air is not a sighting),
 it is the rolling ball's line run back, checked by eye; shot-05's pins are
