@@ -285,6 +285,48 @@ export interface MetricInput {
    * lean on the far distance scale, so it is preferred to the fit.
    */
   anchoredSpeed?: number;
+  /**
+   * The sightings the path was fitted to. With them the laydown and the
+   * arrows are read off the sightings around them, not off the whole path.
+   */
+  points?: PathPoint[];
+}
+
+/** Feet of sightings a local reading takes in, either side of where it reads (from the first sighting on, for the laydown). */
+export const LOCAL_SPAN_FT = 10;
+
+/**
+ * The board at `at` feet from the sightings between `lo` and `hi` feet alone:
+ * a weighted straight line through them, with far outliers weighed down. Null
+ * with fewer than 6 sightings there or less than 4 ft of them.
+ *
+ * The whole path has one bend, and a shot that curves gently from the foul
+ * line and then turns hard near the pins pulls its straight start away from
+ * the sightings (shot-02: 0.7 board at the foul line). Over 10 ft every shot
+ * is straight enough for a line.
+ */
+export function localU(pts: PathPoint[], lo: number, hi: number, at: number): number | null {
+  const near = pts.filter((p) => p.v >= lo && p.v <= hi && p.w > 0);
+  if (near.length < 6) return null;
+  const vs = near.map((p) => p.v);
+  if (Math.max(...vs) - Math.min(...vs) < 4) return null;
+  let wts = near.map((p) => p.w);
+  let u0 = 0;
+  let a = 0;
+  for (let it = 0; it < 5; it++) {
+    const sw = wts.reduce((s, w) => s + w, 0);
+    const mv = near.reduce((s, p, i) => s + wts[i] * p.v, 0) / sw;
+    const mu = near.reduce((s, p, i) => s + wts[i] * p.u, 0) / sw;
+    const den = near.reduce((s, p, i) => s + wts[i] * (p.v - mv) ** 2, 0);
+    a = den > 0 ? near.reduce((s, p, i) => s + wts[i] * (p.v - mv) * (p.u - mu), 0) / den : 0;
+    u0 = mu - a * mv;
+    const r = near.map((p) => p.u - (u0 + a * p.v));
+    // The spread from the median residual, so one wild sighting does not set it.
+    const abs = r.map(Math.abs).sort((x, y) => x - y);
+    const sigma = Math.max(0.15, 1.4826 * abs[abs.length >> 1]);
+    wts = near.map((p, i) => p.w * (Math.abs(r[i]) <= 2 * sigma ? 1 : ((2 * sigma) / Math.abs(r[i])) ** 2));
+  }
+  return u0 + a * at;
 }
 
 const M = (value: number | null, state: MetricState): Metric => (value === null || !Number.isFinite(value) ? { value: null, state: "missing" } : { value, state });
@@ -297,15 +339,25 @@ export function metrics(inp: MetricInput): TrackMetrics {
   const board = (v: number) => handedBoard(pathU(path, v), hand);
   const near = (v: number, d: number) => seen.some((s) => Math.abs(s - v) <= d);
   const skidCount = seen.filter((v) => v <= path.s).length;
+  // The laydown and the arrows are read off the sightings around them where
+  // there are enough; the whole path's board is the fallback.
+  const pts = inp.points ?? [];
+  const local = (lo: number, hi: number, at: number) => {
+    const u = localU(pts, lo, hi, at);
+    return u === null ? board(at) : handedBoard(u, hand);
+  };
+  const board0 = from <= 6 ? local(from, from + LOCAL_SPAN_FT, 0) : board(0);
+  const board15 = local(15 - LOCAL_SPAN_FT / 2, 15 + LOCAL_SPAN_FT / 2, 15);
 
   // The laydown is the board over the foul line (0 ft), wherever the ball
   // comes down: one distance for every shot, so shots compare. The touchdown
-  // is seen within 6 ft of it, so the path runs back a few feet of straight
-  // skid at most. Where the ball lands is reported beside it.
-  const laydown = inp.touchdown !== null ? M(board(0), "measured") : from <= 30 ? M(board(0), "estimated") : M(null, "missing");
+  // is seen within 6 ft of it, so the line through the first 10 ft of
+  // sightings runs back a few feet at most. Where the ball lands is reported
+  // beside it.
+  const laydown = inp.touchdown !== null ? M(board0, "measured") : from <= 30 ? M(board0, "estimated") : M(null, "missing");
   const touchdown = inp.touchdown !== null ? M(board(inp.touchdown), "measured") : M(null, "missing");
   const touchdownFeet = inp.touchdown !== null ? M(inp.touchdown, "measured") : M(null, "missing");
-  const arrows = near(15, 3) ? M(board(15), "measured") : from <= 30 && skidCount >= 6 ? M(board(15), "estimated") : M(null, "missing");
+  const arrows = near(15, 3) ? M(board15, "measured") : from <= 30 && skidCount >= 6 ? M(board15, "estimated") : M(null, "missing");
 
   // Breakpoint: the point furthest toward the bowler's own gutter (lowest handed board).
   let bpV: number | null = null;

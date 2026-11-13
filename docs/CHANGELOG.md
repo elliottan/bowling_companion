@@ -15,6 +15,9 @@ had all shipped.
   the lane geometry and a synthetic lane renderer under `src/lib/shotTrack/`,
   then the tracer itself and a harness that runs it on the six sample clips
   (`scripts/shot-tracker/`). Nothing in the app imports it yet.
+- The tracer follows a dark ball in front of the dark pit (its highlight and
+  its lower half are joined into one ball), and reads the laydown and the
+  arrows off the sightings around them instead of off the whole fitted path.
 
 ## 0.107.0: Headpin Pro in the Android app (2026-11-11)
 
