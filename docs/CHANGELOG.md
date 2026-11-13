@@ -13,9 +13,11 @@ had all shipped.
 
 - No change to the app. The tracer follows the ball in front of the rack (the
   gaps between the pins cut its outline into strips) and reads the board at
-  the pins off its last sightings, so a late turn is no longer run under.
-  The review page shows the laydown on the frame where the ball is over the
-  foul line, with the boards marked on the foul line.
+  the pins where the ball meets them, from its last sightings before them,
+  so a late turn is no longer run under. The review page shows the laydown
+  on the frame where the ball is over the foul line, with the boards marked
+  on the foul line, and the release frame by frame. shot-01's lane edges
+  are marked on the lane's own edge lines, not the bumper.
 
 ## 0.107.1: The shot tracer's geometry and its first trace of the sample clips (2026-11-12)
 
