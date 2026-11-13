@@ -6,8 +6,8 @@ import { calibrationReport, checkArrows, checkPins } from "./calibrationCheck";
 import { fitLine, robustLine, snapEdge } from "./edgeSnap";
 import { apply, intersect, multiply, segmentLine } from "./homography";
 import { makeFrame, warp } from "./image";
-import { BALL_RADIUS_FT, expectedRadiusPx, laneToWorld } from "./laneModel";
-import { fitMotion, fitPath, localU, metrics, nelderMead, pathU, pinContactFeet, timeAtFeet, withoutIslands } from "./pathFit";
+import { BALL_RADIUS_FT, BOARD_FT, CONTACT_IN, expectedRadiusPx, laneToWorld } from "./laneModel";
+import { boardAtPins, fitMotion, fitPath, localU, metrics, nelderMead, pathU, pinContactFeet, timeAtFeet, withoutIslands } from "./pathFit";
 import { globalShift, register } from "./registration";
 import { project, timeAt, truthAt } from "./synthetic";
 import { standardShot, syntheticSource } from "./syntheticSource";
@@ -283,7 +283,23 @@ describe("pathFit", () => {
       motion, tFirst: late[0].t, tLast: late[late.length - 1].t, speedMeasured: true
     });
     expect(m.pins.state).toBe("measured");
-    expect(Math.abs(m.pins.value! - (40 - u(60)))).toBeLessThan(0.2);
+    // Read where the ball first meets the head pin, a little short of its spot at 60 ft.
+    const meet = 60 - Math.sqrt((CONTACT_IN / 12) ** 2 - ((40 - u(59.4) - 20) * BOARD_FT) ** 2);
+    expect(Math.abs(m.pins.value! - (40 - u(meet)))).toBeLessThan(0.25);
+  });
+
+  it("reads the board at the pins only from sightings before the ball meets them", () => {
+    // Straight at board 18 to the pins, then deflected two boards a foot among them.
+    const pts = Array.from({ length: 30 }, (_, i) => {
+      const t = 2.4 + i / 30;
+      const v = 22 * t;
+      return { v, u: v < 59.4 ? 22 : 22 + 2 * (v - 59.4), w: 1, sv: 0.1, t };
+    }).filter((p) => p.v >= 53);
+    expect(boardAtPins(pts, 59.4)! - 22).toBeCloseTo(0, 1);
+    // Told when the rack first moved, a ball seen past contact is still read before it.
+    expect(boardAtPins(pts, 70, 59.4 / 22)! - 22).toBeCloseTo(0, 1);
+    // Too few sightings give no reading.
+    expect(boardAtPins(pts.slice(0, 3), 59.4)).toBeNull();
   });
 
   it("marks what it could not see as estimated or missing", () => {

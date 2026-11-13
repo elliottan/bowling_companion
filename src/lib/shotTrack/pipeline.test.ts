@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { trace } from "./pipeline";
 import { timeAt } from "./synthetic";
-import { roughMarks, standardShot, syntheticSource, truthBoard, truthSpeedMph } from "./syntheticSource";
+import { roughMarks, standardShot, syntheticSource, truthBoard, truthBoardAtPins, truthSpeedMph } from "./syntheticSource";
 import type { TrackResult } from "./types";
 
 /**
@@ -49,7 +49,7 @@ describe.each([
     expect(Math.abs(m.breakpoint.value! - bp.board)).toBeLessThan(0.3);
     expect(Math.abs(m.breakpointFeet.value! - bp.feet)).toBeLessThan(3);
     expect(m.pins.state).toBe("measured");
-    expect(Math.abs(m.pins.value! - truthBoard(spec, 60))).toBeLessThan(0.3);
+    expect(Math.abs(m.pins.value! - truthBoardAtPins(spec))).toBeLessThan(0.3);
     expect(m.laydown.state).toBe("measured");
     expect(Math.abs(m.laydown.value! - truthBoard(spec, 0))).toBeLessThan(0.3);
   });

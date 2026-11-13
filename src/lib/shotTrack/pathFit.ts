@@ -253,12 +253,17 @@ export function timeAtFeet(m: { v0: number; w: number; d: number }, v: number): 
  * instant is when the pins start to move (the pin anchor of plan 7.6).
  */
 export function pinContactFeet(path: PathModel): number | null {
+  return firstPinContact((v) => pathU(path, v));
+}
+
+/** Feet at which a ball whose lane u at v feet is `uAt(v)` first touches a pin, or null. */
+export function firstPinContact(uAt: (v: number) => number): number | null {
   const reach = CONTACT_IN / 12;
   let bestV: number | null = null;
   for (const pin of Object.values(PIN_POSITIONS)) {
     // The rack is symmetric, so a pin's board reads the same in lane u.
     for (let v = pin.feet - reach; v <= pin.feet; v += 0.01) {
-      const dx = (pathU(path, v) - pin.board) * BOARD_FT;
+      const dx = (uAt(v) - pin.board) * BOARD_FT;
       if (Math.hypot(dx, pin.feet - v) <= reach) {
         if (bestV === null || v < bestV) bestV = v;
         break;
@@ -292,6 +297,55 @@ export interface MetricInput {
    * arrows are read off the sightings around them, not off the whole path.
    */
   points?: PathPoint[];
+  /** When the rack was first seen to move, seconds: the ball has met the pins by then. */
+  rackMovesAt?: number;
+}
+
+/** Weighted straight line y = a + b x through the points, or null with fewer than two distinct x. */
+function line(xs: number[], ys: number[], ws: number[]): { a: number; b: number } | null {
+  const sw = ws.reduce((s, w) => s + w, 0);
+  if (!(sw > 0)) return null;
+  const mx = xs.reduce((s, x, i) => s + ws[i] * x, 0) / sw;
+  const my = ys.reduce((s, y, i) => s + ws[i] * y, 0) / sw;
+  const den = xs.reduce((s, x, i) => s + ws[i] * (x - mx) ** 2, 0);
+  if (!(den > 0)) return null;
+  const b = xs.reduce((s, x, i) => s + ws[i] * (x - mx) * (ys[i] - my), 0) / den;
+  return { a: my - b * mx, b };
+}
+
+/**
+ * The ball's board where it first meets a pin, from its last sightings alone
+ * (from 54 ft on), in lane u, or null when there are too few. Each of board
+ * and distance is a straight line against time through those sightings: next
+ * to the rack a pixel is about a foot, so a sighting's own distance jumps
+ * about, but a line through several of them holds. The ball meets the pin
+ * when that line reaches `contactV`, or when the rack is first seen to move,
+ * whichever is sooner; sightings after either are the ball among the pins and
+ * are not used.
+ */
+export function boardAtPins(pts: PathPoint[], contactV: number, rackMovesAt?: number): number | null {
+  // Which sightings are from 54 ft to contact is judged by the line through
+  // them, not by each sighting's own distance, which jumps about.
+  const near = pts.filter((p) => p.t !== undefined && p.w > 0 && p.v >= PINS_FROM_FT - 4 && (rackMovesAt === undefined || p.t < rackMovesAt));
+  if (near.length < 4) return null;
+  const all = line(near.map((p) => p.t!), near.map((p) => p.v), near.map((p) => p.w));
+  if (!all || !(all.b > 0)) return null;
+  const late = near.filter((p) => {
+    const v = all.a + all.b * p.t!;
+    return v >= PINS_FROM_FT && v <= contactV + 0.2;
+  });
+  if (late.length < 4) return null;
+  const ts = late.map((p) => p.t!);
+  const ws = late.map((p) => p.w);
+  if (Math.max(...ts) - Math.min(...ts) < 0.03) return null;
+  const vt = line(ts, late.map((p) => p.v), ws);
+  const ut = line(ts, late.map((p) => p.u), ws);
+  if (!vt || !ut) return null;
+  let tc = vt.b > 0 ? (contactV - vt.a) / vt.b : Math.max(...ts);
+  if (rackMovesAt !== undefined) tc = Math.min(tc, rackMovesAt);
+  // Never run the line on past the rack's first movement or far beyond the last sighting.
+  tc = Math.min(tc, Math.max(...ts) + 0.1);
+  return ut.a + ut.b * tc;
 }
 
 /** The board at the pins is read off the sightings from here on, feet. */
@@ -393,10 +447,21 @@ export function metrics(inp: MetricInput): TrackMetrics {
   // distance is taken from when they were seen (the fitted distance against
   // time): next to the rack a pixel is a foot, so a sighting's own distance
   // jumps about, and its time does not.
+  //
+  // It is read where the ball first meets a pin (the owner's reading of
+  // shot-06: about 18, a high pocket, where 60 ft read 19.5), and only from
+  // sightings before then: after it the ball is deflected by the pins.
   const m = inp.motion;
-  const byTime = pts.filter((p) => p.t !== undefined).map((p) => ({ ...p, v: m.v0 + m.w * p.t! + 0.5 * m.d * p.t! * p.t! }));
-  const lastU = localU(byTime, PINS_FROM_FT, 62, 60, 4, 2);
-  const board60 = lastU === null ? board(60) : handedBoard(lastU, hand);
+  // Where it meets a pin depends on its board there: two rounds settle it.
+  let contactV = 60;
+  let lastU: number | null = null;
+  for (let round = 0; round < 3; round++) {
+    lastU = boardAtPins(pts, contactV, inp.rackMovesAt);
+    const at = lastU ?? pathU(path, contactV);
+    contactV = firstPinContact(() => at) ?? 60;
+  }
+  lastU = boardAtPins(pts, contactV, inp.rackMovesAt);
+  const board60 = lastU === null ? board(contactV) : handedBoard(lastU, hand);
   const pins = pinState === "missing" ? M(null, "missing") : M(board60, pinState);
   const entry = (Math.atan(Math.abs(board(60) - board(54)) * BOARD_FT / 6) * 180) / Math.PI;
   const entryAngle = pinState === "missing" ? M(null, "missing") : M(entry, pinState);

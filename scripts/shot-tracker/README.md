@@ -224,6 +224,20 @@ owner's 24 to 25: a narrower lane shrinks the boards on the ball's side.
 The left edge, marked on the line nearest the lane, has no second line
 between it and the lane surface. Pins 18.2, breakpoint 7.2 at 43 ft.
 
+**The board at the pins is read where the ball meets them.** The owner read
+shot-06's pins as about 18, a high pocket, like shot-01. The 60 ft reading
+used frame 105, at 61 ft, already among the pins, and read past the point of
+contact. Now (`boardAtPins`) board and distance are each a straight line
+against time through the sightings from 54 ft on, and the board is read
+where the distance line reaches the first pin contact (or when the rack is
+first seen to move, if sooner); sightings past either are left out. shot-01
+reads 17.9 (owner: about 18). shot-06 reads 19.2: its last clear sightings
+are 18.2 at 58 ft and still turning a board a foot. By eye on frames 99 to
+103 (pin spots drawn) the ball's centre is 2 boards inside the head pin at
+frame 99 and about one at 101 and 103, so 18.5 to 19 at contact. This clip
+is 720 pixels wide and recompressed, and cannot settle it to better than a
+board. Not tuned further.
+
 **Still failing:** as round seven, and: the laydown is not measured on the
 crossing frame itself (the ball in the hand or the air is not a sighting),
 it is the rolling ball's line run back, checked by eye; shot-05's pins are
