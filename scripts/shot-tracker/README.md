@@ -210,6 +210,20 @@ five frames. So the ball reaches the foul line over about 23 and is over 24
 to 25 about a foot and a half before it. Asked the owner which frame they
 read.
 
+**The owner's third point: the right edge was on the bumper.** On the review
+page the green right edge ran along the dark groove of the gutter structure,
+not the lane's own edge. Row by row on frame 150 the right side is: the lane,
+a thin dark line (the lane's edge, where the lane's colour ends), a grey
+strip about 4 pixels wide, then the dark groove. The old right mark had two
+points; the far one sat on the thin line and the near one on the groove, so
+near the foul line the edge was 4.5 pixels (nearly a board) too far out. It
+is re-marked on the thin line at seven rows from 504 to 616. Every mark now
+agrees within 0.30 board (was 0.43) and the pins check improved (7: -0.08,
+10: -0.14, 1: -0.21). The laydown moved from 23.3 to 22.7, away from the
+owner's 24 to 25: a narrower lane shrinks the boards on the ball's side.
+The left edge, marked on the line nearest the lane, has no second line
+between it and the lane surface. Pins 18.2, breakpoint 7.2 at 43 ft.
+
 **Still failing:** as round seven, and: the laydown is not measured on the
 crossing frame itself (the ball in the hand or the air is not a sighting),
 it is the rolling ball's line run back, checked by eye; shot-05's pins are
