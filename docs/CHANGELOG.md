@@ -18,6 +18,8 @@ had all shipped.
   on the frame where the ball is over the foul line, with the boards marked
   on the foul line, and the release frame by frame. shot-01's lane edges
   are marked on the lane's own edge lines, not the bumper.
+- The laydown is the board under the ball where it sits right above the foul
+  line, in the hand or in the air, followed back from where it lands.
 
 ## 0.107.1: The shot tracer's geometry and its first trace of the sample clips (2026-11-12)
 

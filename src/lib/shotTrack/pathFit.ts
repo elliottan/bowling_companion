@@ -293,6 +293,12 @@ export interface MetricInput {
    */
   anchoredSpeed?: number;
   /**
+   * Lane u under the ball where it sits right above the foul line in the
+   * picture, followed back from its first sighting (`release.ts`). When
+   * given, it is the laydown, measured.
+   */
+  overFoulLineU?: number;
+  /**
    * The sightings the path was fitted to. With them the laydown and the
    * arrows are read off the sightings around them, not off the whole path.
    */
@@ -414,7 +420,10 @@ export function metrics(inp: MetricInput): TrackMetrics {
   // is seen within 6 ft of it, so the line through the first 10 ft of
   // sightings runs back a few feet at most. Where the ball lands is reported
   // beside it.
-  const laydown = inp.touchdown !== null ? M(board0, "measured") : from <= 30 ? M(board0, "estimated") : M(null, "missing");
+  const laydown =
+    inp.overFoulLineU !== undefined
+      ? M(handedBoard(inp.overFoulLineU, hand), "measured")
+      : inp.touchdown !== null ? M(board0, "measured") : from <= 30 ? M(board0, "estimated") : M(null, "missing");
   const touchdown = inp.touchdown !== null ? M(board(inp.touchdown), "measured") : M(null, "missing");
   const touchdownFeet = inp.touchdown !== null ? M(inp.touchdown, "measured") : M(null, "missing");
   const arrows = near(15, 3) ? M(board15, "measured") : from <= 30 && skidCount >= 6 ? M(board15, "estimated") : M(null, "missing");

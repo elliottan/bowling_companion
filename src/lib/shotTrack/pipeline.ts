@@ -10,6 +10,7 @@ import type { Point } from "./types";
 import { median, sample } from "./image";
 import { BALL_DIAMETER_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
 import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, withoutIslands, type MotionPoint } from "./pathFit";
+import { overFoulLine, type OverFoulLine } from "./release";
 import { alignTo, laneMarksOf, register, registerPlane, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, TrackError, TrackFailure, TrackResult } from "./types";
 
@@ -73,6 +74,8 @@ export interface TraceDebug {
   /** The two speed readings, mph: the event anchors and the fitted slope. */
   speeds?: { anchored: number | null; slope: number };
   calibration: CalibrationReport | null;
+  /** The ball followed back to where it sits right above the foul line (the laydown), when it could be. */
+  release?: OverFoulLine | null;
 }
 
 export interface TraceOutput {
@@ -310,6 +313,21 @@ export function trace(input: TraceInput): TraceOutput {
     return { result: fail("too-little-seen", `${seen.length} sightings over ${(Math.max(...vs) - Math.min(...vs)).toFixed(1)} ft`), debug };
   }
 
+  // The laydown as the owner reads it: the ball right above the foul line in
+  // the picture, followed back from its first sighting on the lane.
+  const firstSeen = sightings.find((s) => !s.airborne) ?? seen[0];
+  const okGeo = (i: number) => {
+    const g = geometry[i - first];
+    return g && g.ok ? g : null;
+  };
+  debug.release = overFoulLine(
+    (i) => (okGeo(i) ? source.frame(i) : null),
+    (i) => okGeo(i)?.H ?? null,
+    firstSeen.frame,
+    { cx: firstSeen.cx, cy: firstSeen.cy, r: firstSeen.r },
+    Math.round(0.5 / Math.max(1e-3, (seen[seen.length - 1].t - seen[0].t) / Math.max(1, seen[seen.length - 1].frame - seen[0].frame)))
+  );
+
   progress("path", 0.85);
   const pathPts = seen.map((s) => ({ v: s.v, u: s.u, w: s.weight, sv: svOf.get(s.frame), t: s.t }));
   const fit = fitPath(pathPts);
@@ -349,6 +367,7 @@ export function trace(input: TraceInput): TraceOutput {
   const distance = input.distance ?? "foul";
   const met = metrics({
     path: fit.path, hand, seen: vs, points: pathPts, touchdown, motion, tFirst, tLast, rackMovesAt: pinT,
+    overFoulLineU: debug.release?.u,
     // Measured only from the two sharp events; where the bowler hides the
     // touchdown or the rack, the fit's speed is shown as estimated.
     speedMeasured: distance !== "default" && anchoredSpeed !== undefined,

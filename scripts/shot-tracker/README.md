@@ -238,6 +238,22 @@ frame 99 and about one at 101 and 103, so 18.5 to 19 at contact. This clip
 is 720 pixels wide and recompressed, and cannot settle it to better than a
 board. Not tuned further.
 
+**The laydown is the ball right above the foul line, in the picture.** The
+owner (2026-11-13, third time): shot-01's laydown is the board under the ball
+in the frame where it sits immediately above the foul line, about 24 or 25,
+not where the ball reaches the line on the ground. `release.ts` follows the
+ball back from its first sighting by its darkness against the lane round its
+lower half (the hand covers its top), and reads the board on the foul line
+straight below its centre in the frame where its bottom reaches the foul
+line's row. On shot-02, shot-03 and shot-05 the bottom never reaches the row
+(14 to 21 pixels short: the ball is carried over the line), and it is read
+where it comes lowest, beside the slide foot. Laydowns: shot-01 23.9 (owner
+24 or 25), shot-02 18.4, shot-03 13.7, shot-05 18.7 (owner 18 to 19),
+shot-06 18.5 (owner about 18). Where the ball cannot be followed the line
+through the first sightings, run back to 0 ft, is kept. The review page's
+laydown picture is that frame, with the followed ball circled. The pins
+picture is zoomed out to the next lanes and the last 20 ft (owner, shot-02).
+
 **Still failing:** as round seven, and: the laydown is not measured on the
 crossing frame itself (the ball in the hand or the air is not a sighting),
 it is the rolling ball's line run back, checked by eye; shot-05's pins are
