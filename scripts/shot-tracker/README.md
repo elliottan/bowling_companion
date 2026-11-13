@@ -12,7 +12,12 @@ npx tsx scripts/shot-tracker/run.ts shot-01     # one clip
 npx tsx scripts/shot-tracker/synthetic-grid.ts  # the full-size synthetic grid (add --all for 32 cases)
 npx tsx scripts/shot-tracker/look.ts <clip> <frame> <x0> <y0> <w> <h> <scale> <out.png> [--cal] [--median]
 npx tsx scripts/shot-tracker/diff.ts <clip> <first> <last> <step> <x0> <y0> <w> <h> <scale> <out.png>
+npx tsx scripts/shot-tracker/foul.ts <clip> <out.png> <frame> [<frame> ...]
 ```
+
+`foul.ts` is the release aid: the near end of each frame named, with the foul
+line drawn and a tick every board on it (numbered every 5), for reading where
+the ball is as it reaches the line.
 
 `diff.ts` is the detection aid: for each frame of a run, the same crop three
 times (the frame steadied onto the empty lane, the empty lane, and the change
@@ -188,6 +193,22 @@ picture.
 frame 77 the lane's edges sit on the gutter lips and the foul line on the
 gutter ends (checked enlarged), and the ball's centre is over 22.75 on the
 ticks. Not resolved: the owner to read it off the new picture.
+
+**The owner's second reading of shot-01's laydown: 24 to 25, definitely not
+22.** Two things came out of it. First, shot-01's left edge was never marked
+(the bowler's leg covers it near the foul line on frame 150). It shows as a
+thin dark line between the leg and the lane on rows 470 to 530 and is marked
+there now. The fit agrees with it within 0.15 board (worst mark 0.43, 18
+equations to spare), and the laydown moved from 22.8 to 23.3 (pins 18.6 to
+18.9). Second, `foul.ts shot-01 out.png 66 69 72 74 76 77` shows the release
+with a tick every board on the foul line. The ball is over about 25 at frame
+72 and 24 at 74, in the hand, then 23.3 at 76 and 22.7 at 77. At 72 and 74 it
+is behind the foul line, low over the approach: its bottom is below the foul
+line in the picture, it is 8% larger than at 77 (nearer the camera), it first
+meets its mirror image at 77, and at 15 mph it covers about 1.8 ft in those
+five frames. So the ball reaches the foul line over about 23 and is over 24
+to 25 about a foot and a half before it. Asked the owner which frame they
+read.
 
 **Still failing:** as round seven, and: the laydown is not measured on the
 crossing frame itself (the ball in the hand or the air is not a sighting),
