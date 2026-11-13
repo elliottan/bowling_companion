@@ -12,6 +12,8 @@ export interface PathPoint {
   w: number;
   /** Down-lane uncertainty of this sighting, feet. */
   sv?: number;
+  /** When it was seen, seconds. */
+  t?: number;
 }
 
 /** Nelder-Mead minimiser, deterministic. */
@@ -292,24 +294,28 @@ export interface MetricInput {
   points?: PathPoint[];
 }
 
+/** The board at the pins is read off the sightings from here on, feet. */
+export const PINS_FROM_FT = 54;
+
 /** Feet of sightings a local reading takes in, either side of where it reads (from the first sighting on, for the laydown). */
 export const LOCAL_SPAN_FT = 10;
 
 /**
  * The board at `at` feet from the sightings between `lo` and `hi` feet alone:
  * a weighted straight line through them, with far outliers weighed down. Null
- * with fewer than 6 sightings there or less than 4 ft of them.
+ * with fewer than `minCount` sightings there or less than `minSpan` feet of
+ * them.
  *
  * The whole path has one bend, and a shot that curves gently from the foul
  * line and then turns hard near the pins pulls its straight start away from
  * the sightings (shot-02: 0.7 board at the foul line). Over 10 ft every shot
  * is straight enough for a line.
  */
-export function localU(pts: PathPoint[], lo: number, hi: number, at: number): number | null {
+export function localU(pts: PathPoint[], lo: number, hi: number, at: number, minCount = 6, minSpan = 4): number | null {
   const near = pts.filter((p) => p.v >= lo && p.v <= hi && p.w > 0);
-  if (near.length < 6) return null;
+  if (near.length < minCount) return null;
   const vs = near.map((p) => p.v);
-  if (Math.max(...vs) - Math.min(...vs) < 4) return null;
+  if (Math.max(...vs) - Math.min(...vs) < minSpan) return null;
   let wts = near.map((p) => p.w);
   let u0 = 0;
   let a = 0;
@@ -381,7 +387,17 @@ export function metrics(inp: MetricInput): TrackMetrics {
   const breakpointFeet = bpState === "missing" ? M(null, "missing") : M(bpV, bpState);
 
   const pinState: MetricState = to >= 57 ? "measured" : to >= 52 ? "estimated" : "missing";
-  const pins = pinState === "missing" ? M(null, "missing") : M(board(60), pinState);
+  // The board at the pins is read off the last sightings alone, like the
+  // laydown: a ball turns hardest in its last feet (shot-01: a board a foot),
+  // and the whole path, one bend and then straight, runs under it. Their
+  // distance is taken from when they were seen (the fitted distance against
+  // time): next to the rack a pixel is a foot, so a sighting's own distance
+  // jumps about, and its time does not.
+  const m = inp.motion;
+  const byTime = pts.filter((p) => p.t !== undefined).map((p) => ({ ...p, v: m.v0 + m.w * p.t! + 0.5 * m.d * p.t! * p.t! }));
+  const lastU = localU(byTime, PINS_FROM_FT, 62, 60, 4, 2);
+  const board60 = lastU === null ? board(60) : handedBoard(lastU, hand);
+  const pins = pinState === "missing" ? M(null, "missing") : M(board60, pinState);
   const entry = (Math.atan(Math.abs(board(60) - board(54)) * BOARD_FT / 6) * 180) / Math.PI;
   const entryAngle = pinState === "missing" ? M(null, "missing") : M(entry, pinState);
   const skidSpan = seen.filter((v) => v <= path.s);
@@ -389,7 +405,6 @@ export function metrics(inp: MetricInput): TrackMetrics {
   const launchAngle =
     skidSpan.length >= 2 && Math.max(...skidSpan) - Math.min(...skidSpan) >= 10 ? M(launch, "measured") : M(launch, from <= 30 ? "estimated" : "missing");
 
-  const m = inp.motion;
   const vAt = (t: number) => m.v0 + m.w * t + 0.5 * m.d * t * t;
   // Two readings: the slope of the fitted distance against time over the
   // visible range, and the two sharp events. Measured only when they agree

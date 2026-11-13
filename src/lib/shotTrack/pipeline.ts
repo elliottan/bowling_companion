@@ -311,7 +311,7 @@ export function trace(input: TraceInput): TraceOutput {
   }
 
   progress("path", 0.85);
-  const pathPts = seen.map((s) => ({ v: s.v, u: s.u, w: s.weight, sv: svOf.get(s.frame) }));
+  const pathPts = seen.map((s) => ({ v: s.v, u: s.u, w: s.weight, sv: svOf.get(s.frame), t: s.t }));
   const fit = fitPath(pathPts);
   const touchdown = seen[0].v <= 6 ? seen[0].v : null;
 

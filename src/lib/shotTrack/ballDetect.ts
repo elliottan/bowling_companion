@@ -92,73 +92,112 @@ export function findCandidates(
       if (s / 9 > thr) mask[y * w + x] = 1;
     }
   }
-  const out: Candidate[] = [];
-  const blobs: Blob[] = [];
-  const label = new Int32Array(n);
-  const stack: number[] = [];
-  let next = 0;
   const tol = opts.widthTolerance ?? 0.35;
-  for (let s0 = 0; s0 < n; s0++) {
-    if (!mask[s0] || label[s0]) continue;
-    next++;
-    label[s0] = next;
-    stack.push(s0);
-    let x0 = w;
-    let x1 = -1;
-    let y0 = h;
-    let y1 = -1;
-    let area = 0;
-    const rowsX: number[][] = [];
-    while (stack.length) {
-      const p = stack.pop()!;
-      const x = p % w;
-      const y = (p - x) / w;
-      area++;
-      if (x < x0) x0 = x;
-      if (x > x1) x1 = x;
-      if (y < y0) y0 = y;
-      if (y > y1) y1 = y;
-      (rowsX[y] ??= []).push(x);
-      for (const q of [p - 1, p + 1, p - w, p + w]) {
-        if (q < 0 || q >= n || label[q] || !mask[q]) continue;
-        if ((q === p - 1 && x === 0) || (q === p + 1 && x === w - 1)) continue;
-        label[q] = next;
-        stack.push(q);
-      }
-    }
-    if (area >= MIN_PIECE) blobs.push({ x0, x1, y0, y1, area, rowsX });
-  }
-  for (const { x0, x1, y0, y1, area, rowsX } of joinPieces(blobs)) {
-    if (area < 12) continue;
-    const bw = x1 - x0 + 1;
-    const bh = y1 - y0 + 1;
-    // The top of the blob is the top of the ball (the reflection hangs below).
-    // Its centre is one radius down from the top, across the top rows' middle.
-    let r = 0;
-    let cxCal = (x0 + x1) / 2;
-    let cyCal = y0;
-    for (let it = 0; it < 4; it++) {
-      const top = apply(S, { x: cxCal + roi.x0, y: y0 + roi.y0 });
-      const guess = r || bw / 2;
-      const lane = imageToLane(H, { x: top.x, y: top.y + 2 * guess });
-      r = expectedRadiusPx(H, lane.u, lane.v);
-      const span: number[] = [];
-      for (let y = y0; y <= Math.min(y1, y0 + Math.round(1.4 * r)); y++) for (const x of rowsX[y] ?? []) span.push(x);
-      cxCal = span.length ? (Math.min(...span) + Math.max(...span)) / 2 : cxCal;
-      cyCal = y0 + r;
-    }
-    if (!(r > 1)) continue;
-    if (Math.abs(bw / (2 * r) - 1) > tol) continue;
-    if (bh < 1.4 * r || bh > 7 * r) continue;
-    if (area < 0.35 * bw * Math.min(bh, 2 * r)) continue;
-    const c = apply(S, { x: cxCal + roi.x0, y: cyCal + roi.y0 });
-    const cp = contactPoint(H, c, r);
-    // Behind the foul line the ball is still in the hand, and past the deck
-    // end it has fallen into the pit, off the lane's plane: never a sighting.
-    if (cp.u < -2.5 || cp.u > 42.5 || cp.v < 0 || cp.v > DECK_END_FT) continue;
-    out.push({ frame, t: steadied.t, x: c.x, y: c.y, r, u: cp.u, v: cp.v, box: { x0: x0 + roi.x0, y0: y0 + roi.y0, x1: x1 + roi.x0, y1: y1 + roi.y0 }, area });
+  const out = collect(mask);
+  // In front of the rack the gaps between the pins cut the ball's change into
+  // strips (a grey ball does not differ from a dark gap). The same search on
+  // the change with gaps up to four pixels wide closed finds it; what it
+  // finds where the plain search already found a ball is dropped.
+  for (const c of collect(closeGaps(mask, w, h, 2))) {
+    if (!out.some((o) => Math.hypot(o.x - c.x, o.y - c.y) < c.r)) out.push(c);
   }
   return out;
+
+  function collect(mask: Uint8Array): Candidate[] {
+    const out: Candidate[] = [];
+    const blobs: Blob[] = [];
+    const label = new Int32Array(n);
+    const stack: number[] = [];
+    let next = 0;
+    for (let s0 = 0; s0 < n; s0++) {
+      if (!mask[s0] || label[s0]) continue;
+      next++;
+      label[s0] = next;
+      stack.push(s0);
+      let x0 = w;
+      let x1 = -1;
+      let y0 = h;
+      let y1 = -1;
+      let area = 0;
+      const rowsX: number[][] = [];
+      while (stack.length) {
+        const p = stack.pop()!;
+        const x = p % w;
+        const y = (p - x) / w;
+        area++;
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (y < y0) y0 = y;
+        if (y > y1) y1 = y;
+        (rowsX[y] ??= []).push(x);
+        for (const q of [p - 1, p + 1, p - w, p + w]) {
+          if (q < 0 || q >= n || label[q] || !mask[q]) continue;
+          if ((q === p - 1 && x === 0) || (q === p + 1 && x === w - 1)) continue;
+          label[q] = next;
+          stack.push(q);
+        }
+      }
+      if (area >= MIN_PIECE) blobs.push({ x0, x1, y0, y1, area, rowsX });
+    }
+    for (const { x0, x1, y0, y1, area, rowsX } of joinPieces(blobs)) {
+      if (area < 12) continue;
+      const bw = x1 - x0 + 1;
+      const bh = y1 - y0 + 1;
+      // The top of the blob is the top of the ball (the reflection hangs below).
+      // Its centre is one radius down from the top, across the top rows' middle.
+      let r = 0;
+      let cxCal = (x0 + x1) / 2;
+      let cyCal = y0;
+      for (let it = 0; it < 4; it++) {
+        const top = apply(S, { x: cxCal + roi.x0, y: y0 + roi.y0 });
+        const guess = r || bw / 2;
+        const lane = imageToLane(H, { x: top.x, y: top.y + 2 * guess });
+        r = expectedRadiusPx(H, lane.u, lane.v);
+        const span: number[] = [];
+        for (let y = y0; y <= Math.min(y1, y0 + Math.round(1.4 * r)); y++) for (const x of rowsX[y] ?? []) span.push(x);
+        cxCal = span.length ? (Math.min(...span) + Math.max(...span)) / 2 : cxCal;
+        cyCal = y0 + r;
+      }
+      if (!(r > 1)) continue;
+      if (Math.abs(bw / (2 * r) - 1) > tol) continue;
+      if (bh < 1.4 * r || bh > 7 * r) continue;
+      if (area < 0.35 * bw * Math.min(bh, 2 * r)) continue;
+      const c = apply(S, { x: cxCal + roi.x0, y: cyCal + roi.y0 });
+      const cp = contactPoint(H, c, r);
+      // Behind the foul line the ball is still in the hand, and past the deck
+      // end it has fallen into the pit, off the lane's plane: never a sighting.
+      if (cp.u < -2.5 || cp.u > 42.5 || cp.v < 0 || cp.v > DECK_END_FT) continue;
+      out.push({ frame, t: steadied.t, x: c.x, y: c.y, r, u: cp.u, v: cp.v, box: { x0: x0 + roi.x0, y0: y0 + roi.y0, x1: x1 + roi.x0, y1: y1 + roi.y0 }, area });
+    }
+    return out;
+  }
+}
+
+/** A mask with gaps up to `2 * radius` pixels wide closed: grown by `radius`, then shrunk by it. */
+export function closeGaps(mask: Uint8Array, w: number, h: number, radius: number): Uint8Array {
+  const pass = (src: Uint8Array, grow: boolean) => {
+    const out = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        let hit = !grow;
+        for (let j = -radius; j <= radius && hit !== grow; j++) {
+          for (let i = -radius; i <= radius; i++) {
+            const xx = x + i;
+            const yy = y + j;
+            // Outside the picture is clear, so nothing near the border comes out larger than it went in.
+            const v = xx >= 0 && yy >= 0 && xx < w && yy < h && src[yy * w + xx] === 1;
+            if (v === grow) {
+              hit = grow;
+              break;
+            }
+          }
+        }
+        out[y * w + x] = hit ? 1 : 0;
+      }
+    }
+    return out;
+  };
+  return pass(pass(mask, true), false);
 }
 
 interface Blob {

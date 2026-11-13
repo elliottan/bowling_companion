@@ -9,6 +9,14 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.107.2: The shot tracer reads the pins and shows the laydown where the owner reads them (2026-11-13)
+
+- No change to the app. The tracer follows the ball in front of the rack (the
+  gaps between the pins cut its outline into strips) and reads the board at
+  the pins off its last sightings, so a late turn is no longer run under.
+  The review page shows the laydown on the frame where the ball is over the
+  foul line, with the boards marked on the foul line.
+
 ## 0.107.1: The shot tracer's geometry and its first trace of the sample clips (2026-11-12)
 
 - No change to the app. The first two steps of `docs/SHOT-TRACKER-PLAN.md`:

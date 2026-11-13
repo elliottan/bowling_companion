@@ -132,11 +132,69 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   the whole path. The path has one bend, and a shot that curves gently from
   the foul line and then turns hard pulls its straight start off the
   sightings.
+- 7.4: in front of the rack a grey ball does not differ from the dark gaps
+  between the pins, so its change is cut into strips. The candidates are also
+  searched for on the change with gaps up to four pixels closed (`closeGaps`).
+- 7.5: the board at the pins is a straight line through the sightings from
+  54 ft on, placed by when they were seen (the fitted distance against time),
+  not the whole path's board at 60 ft. A ball turns hardest in its last feet
+  and the path, one bend and then straight, runs under it.
 - 7.5: a handful of sightings past a long unseen stretch (more than 15 ft,
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
-## Results, round seven (2026-11-13)
+## Results, round eight (2026-11-13)
+
+After the owner's review of round seven.
+
+| Clip | Visible | Sightings | Laydown (0 ft) | Touchdown | Arrows | Breakpoint | Pins | Speed |
+|---|---|---|---|---|---|---|---|---|
+| shot-01 (right) | 0.4 to 58.4 ft | 117 | 22.8 (m) | 22.4 at 0.4 ft | 16.8 (m) | 7.5 (m) at 43.1 ft | 18.6 (m) | 15.4 mph (m) |
+| shot-02 (right) | 1.7 to 54.4 ft | 114 | 17.8 (m) | 16.5 at 1.7 ft | 13.5 (m) | 8.6 (m) at 44.5 ft | about 14.5 (e) | about 15.3 mph (e) |
+| shot-03 (right) | 1.1 to 26.9 ft | 48 | 13.9 (m) | 13.7 at 1.1 ft | 10.5 (m) | missing | missing | 16.5 mph (m) |
+| shot-04 (right) | not calibrated | | | | | | | |
+| shot-05 (right) | 1.4 to 52.8 ft | 214 | 18.6 (m) | 18.2 at 1.4 ft | 13.7 (m) | 8.8 (m) at 50.2 ft | about 9.2 (e) | 17.8 mph (m) |
+| shot-06 (left) | 0.8 to 61.0 ft | 63 | 17.5 (m) | 17.0 at 0.8 ft | 14.8 (m) | 12.5 (m) at 36.0 ft | 19.5 (m) | 17.0 mph (m) |
+
+**The owner's reading of shot-01's pins: about 18, definitely not 15.** The
+tracer read 15.6 and now reads 18.6. The owner was right, and the frames show
+it: the ball is at board 14 at frame 227, 15.1 at 229, 16.0 at 231, 16.7 at
+233 and 17.5 at 235 (read against the pin columns; the rack first moves at
+236), a board in two frames. Two causes. The ball was not found after frame
+227: in front of the rack the gaps between the pins cut its change into
+strips, which fail the shape tests (`diff.ts shot-01 226 237 1 500 395 70 45
+4 out.png`). And the path, straight after its one bend, was run on from 57 ft
+under a ball still turning. With the gaps closed it is seen at 229 (15.8),
+233 (17.6) and 234 (16.8), and the board at the pins is a line through the
+sightings from 54 ft on, placed by time. 18.6 may be half a board high: the
+line is run on to 60 ft and the ball meets the head pin a little before.
+
+**shot-06's pins moved with it**, 17.0 to 19.5 (its last sightings: 17.4 at
+57 ft, 19.2 at 61 ft). No owner's reading yet.
+
+**The laydown is shown where it is read.** The owner again: the laydown is
+where the ball crosses the foul line, not where it lands. The number already
+was that (a line through the first 10 ft of sightings, run back to 0 ft), but
+the review page showed the touchdown frame under the heading "Laydown and
+touchdown". It now has a "Laydown (foul line)" picture: the frame in which
+the ball is over the foul line (timed from the first 8 ft of sightings), the
+foul line with the boards ticked and numbered on it, and the tracer's laydown
+as a cross on the line with a plumb line up from it. On all five clips the
+ball's centre sits on that line, in the hand (shot-03, shot-05), in the air
+(shot-02) or on the lane (shot-01, shot-06). The touchdown has its own
+picture.
+
+**shot-01's laydown is still 22.8 against the owner's "roughly 22".** On
+frame 77 the lane's edges sit on the gutter lips and the foul line on the
+gutter ends (checked enlarged), and the ball's centre is over 22.75 on the
+ticks. Not resolved: the owner to read it off the new picture.
+
+**Still failing:** as round seven, and: the laydown is not measured on the
+crossing frame itself (the ball in the hand or the air is not a sighting),
+it is the rolling ball's line run back, checked by eye; shot-05's pins are
+an estimate (four sightings past 54 ft by time, over less than 2 ft).
+
+## Results, round seven (2026-11-13, superseded)
 
 Five of six clips calibrate, each from one frame; four give a breakpoint.
 

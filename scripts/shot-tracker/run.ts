@@ -326,6 +326,7 @@ function reviewShots(name: string, clip: Clip, clipPath: string, cal: Calibratio
     });
   };
   const first = r.sightings.find((s) => !s.airborne)!;
+  shots.push(laydownShot(clip, clipPath, cal, r, out));
   shots.push(touchdownShot(clip, clipPath, cal, r, out, first));
   shots.push(markedShot(clip, clipPath, cal, r, out, nearestSighting(r, 15), [6, 22], "Arrows (15 ft)", m.arrows,
     "Contrast-stretched. Magenta crosses: where the calibration puts the arrows' tips; red: the pin spots; cyan lines every 5 boards (white: board 20). If the crosses do not sit on the real arrows, the calibration is off."));
@@ -334,6 +335,88 @@ function reviewShots(name: string, clip: Clip, clipPath: string, cal: Calibratio
     `Contrast-stretched. Red crosses: where the calibration puts the pin spots (each pin stands on its cross). Entry angle ${fmt(m.entryAngle, " deg")}.`));
   void name;
   return shots;
+}
+
+/**
+ * The laydown, for checking by eye: the frame in which the ball is over the
+ * foul line (in the hand, in the air or on the lane), with the foul line drawn
+ * and a tick every 5 boards on it, numbered. The tracer's laydown is the
+ * magenta cross on the foul line, with a plumb line up from it: the ball's
+ * centre should sit on that line. Below it, the frame before and the frame
+ * after.
+ */
+function laydownShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: TrackResult, out: TraceOutput): ReviewShot {
+  const m = r.metrics;
+  const rolling = r.sightings.filter((s) => !s.airborne);
+  const first = rolling[0];
+  // The first 8 ft of sightings: a few frames alone time the crossing poorly.
+  const ground = rolling.filter((s) => s.v <= first.v + 8);
+  // When the ball is over the foul line: the first sightings' distance against time, run back to 0 ft.
+  const mt = ground.reduce((a, s) => a + s.t, 0) / ground.length;
+  const mv = ground.reduce((a, s) => a + s.v, 0) / ground.length;
+  const den = ground.reduce((a, s) => a + (s.t - mt) ** 2, 0);
+  const speed = den > 0 ? ground.reduce((a, s) => a + (s.t - mt) * (s.v - mv), 0) / den : 0;
+  const t0 = speed > 0 ? mt - mv / speed : first.t;
+  const ok = (f: number) => f >= out.debug.first && !!out.debug.geometry[f - out.debug.first]?.ok;
+  let f0 = first.frame;
+  for (let f = first.frame; f >= Math.max(out.debug.first, first.frame - 30); f--) {
+    if (ok(f) && Math.abs(clip.times[f] - t0) < Math.abs(clip.times[f0] - t0)) f0 = f;
+  }
+  const panel = (frame: number, width: number, mark: boolean) => {
+    const H = out.debug.geometry[frame - out.debug.first].H;
+    const box = boxAround(H, [LEFT_U - 3, RIGHT_U + 3], [-3, 4], 4.5 * first.r, clip.width, clip.height);
+    const k = Math.max(2, Math.min(12, Math.ceil(width / box.w)));
+    const c = cropScale(frameCanvas(clipPath, clip, frame), box.x0, box.y0, box.w, box.h, k);
+    const P = (u: number, v: number) => {
+      const p = apply(H, { x: u, y: v });
+      return { x: (p.x - box.x0) * k, y: (p.y - box.y0) * k };
+    };
+    for (const u of [LEFT_U, RIGHT_U]) {
+      const a = P(u, -1);
+      const b = P(u, 4);
+      line(c, a.x, a.y, b.x, b.y, GREEN);
+    }
+    const a = P(LEFT_U - 2, 0);
+    const b = P(RIGHT_U + 2, 0);
+    line(c, a.x, a.y, b.x, b.y, YELLOW);
+    for (let n = 5; n <= 35; n += 5) {
+      const u = laneU(n, cal.hand);
+      const col: Color = n === 20 ? WHITE : CYAN;
+      const p = P(u, -0.5);
+      const q = P(u, 0.5);
+      line(c, p.x, p.y, q.x, q.y, col);
+      const at = P(u, 0);
+      if (mark) text(c, at.x - 8 * String(n).length, at.y + 10, String(n), col, n === 20 ? 4 : 3);
+    }
+    if (m.laydown.value !== null) {
+      const at = P(laneU(m.laydown.value, cal.hand), 0);
+      cross(c, at.x, at.y, mark ? 10 : 6, MAGENTA);
+      line(c, at.x, at.y, at.x, at.y - 5 * first.r * k, MAGENTA, { alpha: 0.8, dash: 6 });
+    }
+    return c;
+  };
+  const big = panel(f0, 900, true);
+  const smalls = [f0 - 1, f0 + 1].filter((f) => ok(f) && f < clip.count).map((f) => panel(f, Math.floor(big.width / 2) - 8, false));
+  const W = Math.max(big.width, smalls.reduce((a, c) => a + c.width + 8, 0));
+  const img = canvas(W, big.height + (smalls.length ? Math.max(...smalls.map((c) => c.height)) + 8 : 0), [250, 250, 250]);
+  const blit = (c: Canvas, ox: number, oy: number) => {
+    for (let y = 0; y < c.height; y++) img.rgb.set(c.rgb.subarray(y * c.width * 3, (y + 1) * c.width * 3), ((oy + y) * img.width + ox) * 3);
+  };
+  blit(big, 0, 0);
+  let ox = 0;
+  for (const c of smalls) {
+    blit(c, ox, big.height + 8);
+    ox += c.width + 8;
+  }
+  return {
+    title: "Laydown (foul line)",
+    png: toPng(img).toString("base64"),
+    lines: [
+      `Laydown: ${m.laydown.value === null ? "missing" : `board ${m.laydown.value.toFixed(1)}`} (${m.laydown.state}), the board the ball is over as it crosses the foul line.`,
+      "The laydown is read where the ball crosses the foul line, in the hand, in the air or on the lane: not where it lands. Above: the frame in which the ball is over the foul line. Yellow: the foul line, with a tick every 5 boards on it, numbered (the bowler's own boards; 20 in white). Green: the lane's edges. Magenta cross: the tracer's laydown, with a plumb line up from it; the ball's centre should sit on that line. Below: the frame before and the frame after.",
+      `Frame ${f0}, t ${clip.times[f0].toFixed(3)} s (the ball is over the foul line at ${t0.toFixed(3)} s). First sighting on the lane: frame ${first.frame}, board ${handedBoard(first.u, r.hand).toFixed(2)} at ${first.v.toFixed(1)} ft.`
+    ]
+  };
 }
 
 /**
@@ -394,11 +477,11 @@ function touchdownShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: Tr
   }
   const m = r.metrics;
   return {
-    title: "Laydown and touchdown",
+    title: "Touchdown",
     png: toPng(img).toString("base64"),
     lines: [
-      `Laydown: ${m.laydown.value === null ? "missing" : `board ${m.laydown.value.toFixed(1)}`} (${m.laydown.state}), over the foul line. Touchdown: ${m.touchdown.value === null ? "missing" : `board ${m.touchdown.value.toFixed(1)}`} at ${m.touchdownFeet.value?.toFixed(1) ?? "?"} ft.`,
-      "The laydown is the board the ball crosses the foul line on, in the air or not (the path run back to 0 ft). The touchdown is where it first touches the lane. Above: the touchdown frame, the lane's whole width at the ball's row. Green: the lane's edges as the tracer has them in this frame. Ticks every 5 boards on the ball's row, numbered (the bowler's own boards; 20 in white). Red cross: the point under the ball. Below: the two frames before it, with the ball still in the air or in the hand.",
+      `Touchdown: ${m.touchdown.value === null ? "missing" : `board ${m.touchdown.value.toFixed(1)}`} at ${m.touchdownFeet.value?.toFixed(1) ?? "?"} ft.`,
+      "The touchdown is where the ball first touches the lane; it is not the laydown. Above: the touchdown frame, the lane's whole width at the ball's row. Green: the lane's edges as the tracer has them in this frame. Ticks every 5 boards on the ball's row, numbered (the bowler's own boards; 20 in white). Red cross: the point under the ball. Below: the two frames before it, with the ball still in the air or in the hand.",
       `Frame ${s.frame}, t ${s.t.toFixed(3)} s. This sighting: board ${handedBoard(s.u, r.hand).toFixed(2)} at ${s.v.toFixed(1)} ft, radius ${s.r.toFixed(1)} px.`
     ]
   };
