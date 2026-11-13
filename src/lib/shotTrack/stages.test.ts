@@ -6,8 +6,8 @@ import { calibrationReport, checkArrows, checkPins } from "./calibrationCheck";
 import { fitLine, robustLine, snapEdge } from "./edgeSnap";
 import { apply, intersect, multiply, segmentLine } from "./homography";
 import { makeFrame, warp } from "./image";
-import { BALL_RADIUS_FT, laneToWorld } from "./laneModel";
-import { fitMotion, fitPath, metrics, nelderMead, pathU, pinContactFeet, timeAtFeet, withoutIslands } from "./pathFit";
+import { BALL_RADIUS_FT, expectedRadiusPx, laneToWorld } from "./laneModel";
+import { fitMotion, fitPath, localU, metrics, nelderMead, pathU, pinContactFeet, timeAtFeet, withoutIslands } from "./pathFit";
 import { globalShift, register } from "./registration";
 import { project, timeAt, truthAt } from "./synthetic";
 import { standardShot, syntheticSource } from "./syntheticSource";
@@ -101,6 +101,35 @@ describe("ballDetect", () => {
     expect(Math.abs(c[0].v - truth.v)).toBeLessThan(1.5);
   });
 
+  it("joins a ball's highlight to its lower half when its top is lost against the pit", () => {
+    // A flat empty lane; the ball changes it only in a small highlight at its
+    // top and in its lower half, with a band of no change between them.
+    const at = apply(H, { x: 20, y: 30 });
+    const r = Math.round(expectedRadiusPx(H, 20, 30));
+    expect(r).toBeGreaterThanOrEqual(5);
+    const cx = Math.round(at.x) - roi.x0;
+    const cy = Math.round(at.y) - r - roi.y0;
+    const flat = makeFrame(roi.width, roi.height, 0, 120);
+    const draw = (highlight: boolean) => {
+      const f = makeFrame(roi.width, roi.height, 0, 120);
+      for (let y = -r; y <= r; y++) {
+        for (let x = -r; x <= r; x++) {
+          if (x * x + y * y > r * r) continue;
+          const low = y >= 1;
+          const top = highlight && y <= -r + 2 && Math.abs(x) <= 2;
+          if (low || top) f.data[(cy + y) * roi.width + cx + x] = top ? 220 : 30;
+        }
+      }
+      return f;
+    };
+    const whole = findCandidates(draw(true), flat, roi, I, H, 0);
+    expect(whole.length).toBe(1);
+    expect(whole[0].box.y1 - whole[0].box.y0).toBeGreaterThanOrEqual(2 * r - 2);
+    expect(Math.abs(whole[0].y - (cy + roi.y0))).toBeLessThan(1.5);
+    // Without the highlight the lower half alone is not the shape of a ball.
+    expect(findCandidates(draw(false), flat, roi, I, H, 0).length).toBe(0);
+  });
+
   it("fits the circle's centre within 0.3 pixel", () => {
     const i = Math.round(timeAt(spec, 30) * spec.fps);
     const truth = truthAt(spec, i);
@@ -178,6 +207,28 @@ describe("pathFit", () => {
     expect(off.speed.state).toBe("estimated");
     expect(off.speed.value!).toBeCloseTo(23.35 * (3600 / 5280), 1);
     expect(pinContactFeet(fit.path)).toBeGreaterThan(59);
+  });
+
+  it("reads the laydown and the arrows off the sightings around them", () => {
+    // Curved from the foul line, then a hard turn: one bend cannot follow both.
+    const u = (v: number) => 22 + 0.3 * v - 0.004 * v * v - (v > 44 ? 0.04 * (v - 44) ** 2 : 0);
+    const curved = Array.from({ length: 110 }, (_, i) => ({ v: 1 + i * 0.5, u: u(1 + i * 0.5) + 0.05 * Math.sin(i * 1.7), w: 1, sv: 0.1 }));
+    const fit = fitPath(curved);
+    const input = {
+      path: fit.path, hand: "right" as const, seen: curved.map((p) => p.v), touchdown: 1,
+      motion: { v0: -10, w: 25, d: -1 }, tFirst: 0.5, tLast: 2.8, speedMeasured: true
+    };
+    const m = metrics({ ...input, points: curved });
+    expect(Math.abs(m.laydown.value! - (40 - u(0)))).toBeLessThan(0.15);
+    expect(Math.abs(m.arrows.value! - (40 - u(15)))).toBeLessThan(0.15);
+    // Without the sightings, the whole path's board is what there is.
+    expect(metrics(input).laydown.value!).toBeCloseTo(40 - pathU(fit.path, 0), 5);
+    // Too few sightings, or too short a stretch, give no local reading.
+    expect(localU(curved.slice(0, 5), 0, 10, 0)).toBeNull();
+    expect(localU(curved, 1, 4, 0)).toBeNull();
+    // One wild sighting does not move the line.
+    const wild = curved.map((p, i) => (i === 6 ? { ...p, u: p.u + 6 } : p));
+    expect(Math.abs(localU(wild, 1, 11, 0)! - u(0))).toBeLessThan(0.2);
   });
 
   it("marks what it could not see as estimated or missing", () => {

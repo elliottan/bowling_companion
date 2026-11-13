@@ -59,6 +59,8 @@ export interface TraceDebug {
   first: number;
   roi: Roi | null;
   background: GrayFrame | null;
+  /** Per frame, calibration pixels to that frame's as used for differencing (after the second alignment). */
+  steady: Map<number, Mat3>;
   candidates: Candidate[];
   associated: Candidate[];
   circles: Map<number, CircleFit>;
@@ -90,7 +92,7 @@ export function trace(input: TraceInput): TraceOutput {
   const progress = input.onProgress ?? (() => {});
   const calibFrame = source.frame(input.calibFrame);
   const debug: TraceDebug = {
-    snap: null, fit: null, fitMarks: [], geometry: [], first, roi: null, background: null, candidates: [], associated: [],
+    snap: null, fit: null, fitMarks: [], geometry: [], first, roi: null, background: null, steady: new Map(), candidates: [], associated: [],
     circles: new Map(), pinEnergy: [], edgeOffsets: [], calibration: null
   };
   const I: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
@@ -180,7 +182,7 @@ export function trace(input: TraceInput): TraceOutput {
   const bg0 = medianBackground(bgFrames0);
   const toRoi: Mat3 = [1, 0, roi.x0, 0, 1, roi.y0, 0, 0, 1];
   const fromRoi: Mat3 = [1, 0, -roi.x0, 0, 1, -roi.y0, 0, 0, 1];
-  const steadyS = new Map<number, Mat3>();
+  const steadyS = debug.steady;
   for (const g of usable) {
     // Only frames registered on the floor's own homography: a turn is exact
     // for the camera it models, and aligning those adds only noise.
@@ -309,7 +311,8 @@ export function trace(input: TraceInput): TraceOutput {
   }
 
   progress("path", 0.85);
-  const fit = fitPath(seen.map((s) => ({ v: s.v, u: s.u, w: s.weight, sv: svOf.get(s.frame) })));
+  const pathPts = seen.map((s) => ({ v: s.v, u: s.u, w: s.weight, sv: svOf.get(s.frame) }));
+  const fit = fitPath(pathPts);
   const touchdown = seen[0].v <= 6 ? seen[0].v : null;
 
   // Speed: distance against time, anchored at the pins (plan 7.6).
@@ -343,7 +346,7 @@ export function trace(input: TraceInput): TraceOutput {
   const tLast = seen[seen.length - 1].t;
   const distance = input.distance ?? "foul";
   const met = metrics({
-    path: fit.path, hand, seen: vs, touchdown, motion, tFirst, tLast,
+    path: fit.path, hand, seen: vs, points: pathPts, touchdown, motion, tFirst, tLast,
     // Measured only from the two sharp events; where the bowler hides the
     // touchdown or the rack, the fit's speed is shown as estimated.
     speedMeasured: distance !== "default" && anchoredSpeed !== undefined,

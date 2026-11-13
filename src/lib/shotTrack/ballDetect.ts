@@ -31,22 +31,14 @@ export interface CandidateOptions {
 }
 
 /**
- * Blobs that differ from the empty lane and are the size of a ball where they
- * sit. The bowler fails on size, the scoring screen and a ball on the next
- * lane on position, and balls in the return are part of the background.
- *
- * `steadied` and `bg` are in calibration pixels (the `roi` box); `S` takes
- * calibration pixels to this frame's, and `H` is this frame's lane mapping.
+ * How far each pixel of a steadied frame is from the empty lane, grey levels,
+ * and the level over which it counts as changed.
  */
-export function findCandidates(
+export function changeMap(
   steadied: GrayFrame,
   bg: GrayFrame & { spread?: Float32Array },
-  roi: Roi,
-  S: Mat3,
-  H: Mat3,
-  frame: number,
   opts: CandidateOptions = {}
-): Candidate[] {
+): { diff: Float32Array; threshold: number } {
   const { width: w, height: h } = steadied;
   const n = w * h;
   const diff = new Float32Array(n);
@@ -68,7 +60,29 @@ export function findCandidates(
     if (i % 7 === 0) probe.push(diff[i]);
   }
   const noise = 1.4826 * median(probe);
-  const thr = Math.max((opts.k ?? 4) * noise, opts.floor ?? 14);
+  return { diff, threshold: Math.max((opts.k ?? 4) * noise, opts.floor ?? 14) };
+}
+
+/**
+ * Blobs that differ from the empty lane and are the size of a ball where they
+ * sit. The bowler fails on size, the scoring screen and a ball on the next
+ * lane on position, and balls in the return are part of the background.
+ *
+ * `steadied` and `bg` are in calibration pixels (the `roi` box); `S` takes
+ * calibration pixels to this frame's, and `H` is this frame's lane mapping.
+ */
+export function findCandidates(
+  steadied: GrayFrame,
+  bg: GrayFrame & { spread?: Float32Array },
+  roi: Roi,
+  S: Mat3,
+  H: Mat3,
+  frame: number,
+  opts: CandidateOptions = {}
+): Candidate[] {
+  const { width: w, height: h } = steadied;
+  const n = w * h;
+  const { diff, threshold: thr } = changeMap(steadied, bg, opts);
   // Smooth the difference over 3 by 3 so a ball's highlights do not split it.
   const mask = new Uint8Array(n);
   for (let y = 1; y < h - 1; y++) {
@@ -79,6 +93,7 @@ export function findCandidates(
     }
   }
   const out: Candidate[] = [];
+  const blobs: Blob[] = [];
   const label = new Int32Array(n);
   const stack: number[] = [];
   let next = 0;
@@ -111,6 +126,9 @@ export function findCandidates(
         stack.push(q);
       }
     }
+    if (area >= MIN_PIECE) blobs.push({ x0, x1, y0, y1, area, rowsX });
+  }
+  for (const { x0, x1, y0, y1, area, rowsX } of joinPieces(blobs)) {
     if (area < 12) continue;
     const bw = x1 - x0 + 1;
     const bh = y1 - y0 + 1;
@@ -141,6 +159,46 @@ export function findCandidates(
     out.push({ frame, t: steadied.t, x: c.x, y: c.y, r, u: cp.u, v: cp.v, box: { x0: x0 + roi.x0, y0: y0 + roi.y0, x1: x1 + roi.x0, y1: y1 + roi.y0 }, area });
   }
   return out;
+}
+
+interface Blob {
+  x0: number;
+  x1: number;
+  y0: number;
+  y1: number;
+  area: number;
+  rowsX: number[][];
+}
+
+/** Smallest piece of change kept for joining, pixels. */
+const MIN_PIECE = 6;
+
+/**
+ * A dark ball in front of the dark pit shows as two pieces of change: the
+ * highlight on its top, and its lower half against the lane, with nothing
+ * between them (the sample clips' shot-02 from 48 ft on). Neither piece is
+ * the shape of a ball. A small piece sitting straight above a wider one, no
+ * further up than the wider one's width allows for one ball, is joined to it.
+ */
+function joinPieces(blobs: Blob[]): Blob[] {
+  const gone = new Set<Blob>();
+  const out: Blob[] = [];
+  for (const low of blobs) {
+    if (gone.has(low)) continue;
+    const bw = low.x1 - low.x0 + 1;
+    let joined = low;
+    for (const top of blobs) {
+      if (top === low || gone.has(top) || top.area >= low.area) continue;
+      if (top.x0 < low.x0 - 1 || top.x1 > low.x1 + 1) continue;
+      if (top.y1 >= low.y0 || low.y1 - top.y0 + 1 > 1.25 * bw) continue;
+      gone.add(top);
+      const rowsX: number[][] = [];
+      for (const b of [joined, top]) b.rowsX.forEach((xs, y) => (rowsX[y] ??= []).push(...xs));
+      joined = { x0: low.x0, x1: low.x1, y0: Math.min(joined.y0, top.y0), y1: low.y1, area: joined.area + top.area, rowsX };
+    }
+    out.push(joined);
+  }
+  return out.filter((b) => !gone.has(b));
 }
 
 /** Spreads from its own median at which a pixel counts as changed: well outside what it does over time. */

@@ -11,7 +11,14 @@ npx tsx scripts/shot-tracker/run.ts             # every clip; about 3 minutes
 npx tsx scripts/shot-tracker/run.ts shot-01     # one clip
 npx tsx scripts/shot-tracker/synthetic-grid.ts  # the full-size synthetic grid (add --all for 32 cases)
 npx tsx scripts/shot-tracker/look.ts <clip> <frame> <x0> <y0> <w> <h> <scale> <out.png> [--cal] [--median]
+npx tsx scripts/shot-tracker/diff.ts <clip> <first> <last> <step> <x0> <y0> <w> <h> <scale> <out.png>
 ```
+
+`diff.ts` is the detection aid: for each frame of a run, the same crop three
+times (the frame steadied onto the empty lane, the empty lane, and the change
+the detector counts, white where it is over the threshold), with the frame's
+candidates boxed (green: kept as the ball). It shows why a ball that the eye
+can see is not found.
 
 `look.ts` is the marking aid: an enlarged, locally contrast-stretched crop of
 one frame with a pixel grid in source pixels. `--median` shows the median of
@@ -116,11 +123,78 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
 - 7.5: the skid's and the bend's bounds (15 to 55 ft and 2 to 30 ft) were too
   tight for real shots. shot-05 bends from the laydown on and shot-02's fit
   sat on both limits. They are 0 to 55 ft and 2 to 60 ft now.
+- 7.4: near the pins a dark ball's top half is in front of the dark pit and
+  does not differ from it. The change is then two pieces, a highlight and the
+  lower half, and neither is the shape of a ball; a small piece straight above
+  a wider one is joined to it (`joinPieces`).
+- 7.5: the laydown and the arrows are read off a straight line through the
+  sightings around them (`localU`: the first 10 ft, and 10 to 20 ft), not off
+  the whole path. The path has one bend, and a shot that curves gently from
+  the foul line and then turns hard pulls its straight start off the
+  sightings.
 - 7.5: a handful of sightings past a long unseen stretch (more than 15 ft,
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
-## Results, round six (2026-11-12)
+## Results, round seven (2026-11-13)
+
+Five of six clips calibrate, each from one frame; four give a breakpoint.
+
+| Clip | Frame | Marks (spare) | Worst mark | Visible | Sightings | Pins check | Laydown (0 ft) | Touchdown | Arrows | Breakpoint | Pins | Speed |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| shot-01 (right) | 150 | 13 (12) | 0.45 | 0.4 to 57.1 ft | 111 | 7: -0.06, 10: -0.34, 1: -0.33 | 22.8 (m) | 22.4 at 0.4 ft | 16.8 (m) | 7.6 (m) at 42.9 ft | 15.6 (m) | 15.4 mph (m) |
+| shot-02 (right) | 192 | 17 (9) | 0.22 | 1.7 to 54.4 ft | 116 | not found | 17.8 (m) | 16.5 at 1.7 ft | 13.5 (m) | 8.6 (m) at 44.5 ft | about 14.4 (e) | about 15.3 mph (e) |
+| shot-03 (right) | 40 | 17 (12) | 0.46 | 1.1 to 26.9 ft | 48 | not found | 13.9 (m) | 13.7 at 1.1 ft | 10.5 (m) | missing | missing | 16.5 mph (m) |
+| shot-04 (right) | 202 | not calibrated | 1.5 to 2.2 | | | | | | | | | |
+| shot-05 (right) | 230 (left edge from 520) | 12 (8) | 0.29 | 1.4 to 52.8 ft | 216 | 10: -0.35 | 18.6 (m) | 18.2 at 1.4 ft | 13.7 (m) | 8.9 (m) at 49.4 ft | about 9.1 (e) | 17.8 mph (m) |
+| shot-06 (left) | 20 | 16 (15) | 0.30 | 0.8 to 61.0 ft | 61 | 7: 0.26, 1: 0.08 | 17.5 (m) | 17.1 at 0.8 ft | 14.7 (m) | 12.6 (m) at 35.5 ft | 17.0 (m) | 17.1 mph (m) |
+
+**shot-02 was mis-calibrated, and that was its 21 mph.** Its far line was
+drawn level across the deck (y 401.5), and its foul line was marked on frame
+140 and carried to the calibration frame, where it landed 25 pixels from the
+gutter ends. In this picture the house's cross-lane lines slope about 3
+degrees: the 7 pins' bases on lanes 8, 9 and 11 and lane 11's 10 pin lie on
+one line that drops 27 pixels over 483, and the gutter ends on this lane and
+the next lie on a line of the same slope. Marked on frame 192 alone (pin row
+across four racks, foul line at the gutter ends, the left edge both beyond
+the bowler and beside their feet), the fit has 9 equations to spare instead
+of 2 and its worst mark is 0.22 board. The speed reads about 15.3 mph (it
+read 21.2, which the reviewer did not believe), the touchdown 1.7 ft (0.4).
+
+**shot-02 is followed to 54.4 ft and has a breakpoint** (8.6 at 44.5 ft). It
+stopped at 48 ft because from there the ball's top half is in front of the
+pit: a dark ball on a dark ground, no change. What changed was a highlight 7
+by 4 pixels and the lower half 16 by 11, apart, and neither passed for a
+ball (`diff.ts shot-02 184 214 3 500 360 110 60 3 out.png` shows it). They
+are joined now. From frame 199 the highlight goes too and the lower half
+alone is still refused; the ball is plain to the eye until frame 214, turning
+left by about 5 boards over its last 10 ft, so the board at the pins
+(about 14.4) is an estimate from 54 ft and likely low: by eye it is nearer
+17. Its distances past 48 ft are rough (54.4, then 49.0 and 49.8): one pixel
+is close to a foot there.
+
+**The laydown and the arrows are read locally.** With shot-02's late turn
+in the fit, the one-bend path put its straight start 0.7 board off the
+sightings at the foul line (16.9 for sightings that run 17.4 at 1 ft and
+16.0 at 5 ft). Both are now a straight line through the sightings around
+them. Against the owner's readings: shot-01 22.8 (owner roughly 22; it read
+22.6), shot-05 18.6 (owner 18 to 19; 18.8), shot-06 17.5 (owner about 18;
+17.2), and shot-06's arrows 14.7 (owner 14.5 or 15; 14.9). The lean noted
+in round six is smaller on shot-05 and shot-06 and 0.2 larger on shot-01.
+
+**Got worse or moved:** shot-02's path RMS is 0.48 (0.22): the late turn is
+in the fit now and one bend follows it poorly. shot-05 lost 4 sightings and
+its breakpoint moved from 9.0 at 48.2 ft to 8.9 at 49.4 ft, its board at the
+pins from about 9.6 to about 9.1; shot-01 gained 4 sightings and its pins
+read 15.6 (15.5). Both from joining pieces; not looked into further.
+
+**Still failing:** shot-04 (cannot be calibrated); shot-03 is not seen past
+26.9 ft (the ball is behind the bowler); shot-02's pins are not found by the
+pins check (a spare, two pins) and its speed is an estimate (no pin frame);
+a half-hidden ball with no highlight is not found; no clip's arrows show;
+the synthetic dark-lane and two-lanes-to-the-side cases are not attempted.
+
+## Results, round six (2026-11-12, superseded)
 
 Five of six clips calibrate, each from one frame; three give a breakpoint.
 
