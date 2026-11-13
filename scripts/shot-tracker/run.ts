@@ -51,6 +51,14 @@ for (const name of names) {
   }
   const t0 = Date.now();
   const out = trace({ source: clip, calibFrame: cal.frame, calMarks: toCalMarks(cal), hand: cal.hand, register: cal.register });
+  // The near end from its own calibration, when the clip has one (see `near`).
+  const nearOut = cal.near
+    ? trace({ source: clip, calibFrame: cal.near.frame, calMarks: toCalMarks({ ...cal, points: cal.near.points, lines: cal.near.lines }), hand: cal.hand, register: cal.near.register })
+    : null;
+  if (nearOut && nearOut.result.ok && out.result.ok) {
+    const n = nearOut.result.metrics;
+    out.result.metrics = { ...out.result.metrics, laydown: n.laydown, touchdown: n.touchdown, touchdownFeet: n.touchdownFeet, arrows: n.arrows, launchAngle: n.launchAngle };
+  }
   const ms = Date.now() - t0;
   const r = out.result;
   console.log(`${name}: ${r.ok ? "traced" : `failed (${r.failure}: ${r.detail})`} in ${(ms / 1000).toFixed(1)} s, ${out.debug.candidates.length} candidates, ${out.debug.associated.length} associated`);
@@ -77,7 +85,7 @@ for (const name of names) {
       gutterEdgeBoards: edgeStats(out),
       sightings: r.sightings.map((s) => ({ f: s.frame, t: +s.t.toFixed(4), u: +s.u.toFixed(2), v: +s.v.toFixed(2), r: +s.r.toFixed(2), w: +s.weight.toFixed(2), air: s.airborne }))
     });
-    writeFileSync(join(outDir, "review.html"), reviewHtml(reviewShots(name, clip, clipPath, cal, r, out), name, cal, r, out, json));
+    writeFileSync(join(outDir, "review.html"), reviewHtml(reviewShots(name, clip, clipPath, cal, r, out, nearOut && nearOut.result.ok ? { r: nearOut.result, out: nearOut } : null), name, cal, r, out, json));
   } else {
     Object.assign(json, { failure: r.failure, detail: r.detail });
     writeFileSync(join(outDir, "review.html"), reviewHtml([], name, cal, null, out, json));
@@ -289,7 +297,7 @@ function nearestSighting(r: TrackResult, v: number): BallSighting {
   return seen.reduce((b, s) => (Math.abs(s.v - v) < Math.abs(b.v - v) ? s : b), seen[0]);
 }
 
-function reviewShots(name: string, clip: Clip, clipPath: string, cal: CalibrationFile, r: TrackResult, out: TraceOutput): ReviewShot[] {
+function reviewShots(name: string, clip: Clip, clipPath: string, cal: CalibrationFile, r: TrackResult, out: TraceOutput, near: { r: TrackResult; out: TraceOutput } | null): ReviewShot[] {
   const m = r.metrics;
   const shots: ReviewShot[] = [];
   const add = (title: string, s: BallSighting, at: number, metric: Metric, note: string) => {
@@ -325,10 +333,13 @@ function reviewShots(name: string, clip: Clip, clipPath: string, cal: Calibratio
       ]
     });
   };
-  const first = r.sightings.find((s) => !s.airborne)!;
-  shots.push(laydownShot(clip, clipPath, cal, r, out));
-  shots.push(touchdownShot(clip, clipPath, cal, r, out, first));
-  shots.push(markedShot(clip, clipPath, cal, r, out, nearestSighting(r, 15), [6, 22], "Arrows (15 ft)", m.arrows,
+  // The near end's pictures come from the near calibration's trace when there is one.
+  const nr = near?.r ?? r;
+  const no = near?.out ?? out;
+  const first = nr.sightings.find((s) => !s.airborne)!;
+  shots.push(laydownShot(clip, clipPath, cal, nr, no));
+  shots.push(touchdownShot(clip, clipPath, cal, nr, no, first));
+  shots.push(markedShot(clip, clipPath, cal, nr, no, nearestSighting(nr, 15), [6, 22], "Arrows (15 ft)", m.arrows,
     "Contrast-stretched. Magenta crosses: where the calibration puts the arrows' tips; red: the pin spots; cyan lines every 5 boards (white: board 20). If the crosses do not sit on the real arrows, the calibration is off."));
   if (m.breakpointFeet.value !== null) add("Breakpoint", nearestSighting(r, m.breakpointFeet.value), m.breakpointFeet.value, m.breakpoint, `Breakpoint at ${m.breakpointFeet.value.toFixed(1)} ft.`);
   const last = nearestSighting(r, 58);

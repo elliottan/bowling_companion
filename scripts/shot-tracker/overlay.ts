@@ -34,6 +34,13 @@ export interface CalibrationFile {
   register?: { tolerance?: number; maxJump?: number };
   /** Not calibrated: why. The harness writes a review page that says so. */
   skip?: string;
+  /**
+   * A second calibration for the near end, on a frame at the release, for a
+   * clip whose camera pans too far for one calibration to carry from end to
+   * end (shot-02). The laydown, touchdown, arrows and launch angle are read
+   * with it; the rest with the main one.
+   */
+  near?: { frame: number; points?: CalibrationFile["points"]; lines?: CalibrationFile["lines"]; register?: CalibrationFile["register"] };
   notes?: string;
   /** The owner's own reading of the shot, when they have one. */
   owner?: string;

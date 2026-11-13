@@ -273,6 +273,20 @@ now fitted to the ball's outline (`fitOutline`: the dark-to-light step along
 rays over its lower half and sides, a circle through them with the radius
 free). shot-01 reads 25.1.
 
+**shot-02 has two calibrations.** The owner: in its touchdown picture the
+lane edges did not follow the lane, and the ball sits on the 20th board's
+dot. The camera pans hard through this shot; the calibration on frame 192
+(after the shot, where the scoring console also hides the near right edge)
+carried back to the release missed the lane by a board or more. A second
+calibration on frame 66, the touchdown, marks both edges near the foul line
+(the thin line inside the bumper groove, on both sides), the foul line and
+the pin row from lanes 9 and 11 (worst mark 0.11 board). Calibrated on
+frame 66 alone the far frames do not register (the ball is lost at 36 ft),
+so the near readings come from it and the far ones from frame 192
+(`near` in the calibration file). Laydown 22.1 (was 18.3), touchdown 20.4
+(16.5), arrows 15.7 (13.5); breakpoint 8.6 at 44.5 ft and pins as before.
+The same split would be needed in the app for a camera that pans this far.
+
 **Still failing:** as round seven, and: the laydown is not measured on the
 crossing frame itself (the ball in the hand or the air is not a sighting),
 it is the rolling ball's line run back, checked by eye; shot-05's pins are
