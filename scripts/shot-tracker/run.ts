@@ -25,6 +25,7 @@ import {
   canvas, circle, cropScale, cross, dot, fromRgb, line, savePng, stretch, text, toPng, type Canvas, type Color
 } from "./draw";
 import { drawAcross, drawBoards, drawLandmarks, readCalibration, toCalMarks, type CalibrationFile } from "./overlay";
+import { followNearEnd } from "./follow";
 import { reviewHtml, type ReviewShot } from "./review";
 
 const here = new URL(".", import.meta.url).pathname;
@@ -58,6 +59,11 @@ for (const name of names) {
   if (nearOut && nearOut.result.ok && out.result.ok) {
     const n = nearOut.result.metrics;
     out.result.metrics = { ...out.result.metrics, laydown: n.laydown, touchdown: n.touchdown, touchdownFeet: n.touchdownFeet, arrows: n.arrows, launchAngle: n.launchAngle };
+  }
+  // When the ball is not found against the empty lane, its near end followed by its darkness (see `follow`).
+  if (!out.result.ok && cal.follow) {
+    const followed = followNearEnd(clip, cal, out);
+    if (followed) out.result = followed;
   }
   const ms = Date.now() - t0;
   const r = out.result;
@@ -343,7 +349,7 @@ function reviewShots(name: string, clip: Clip, clipPath: string, cal: Calibratio
     "Contrast-stretched. Magenta crosses: where the calibration puts the arrows' tips; red: the pin spots; cyan lines every 5 boards (white: board 20). If the crosses do not sit on the real arrows, the calibration is off."));
   if (m.breakpointFeet.value !== null) add("Breakpoint", nearestSighting(r, m.breakpointFeet.value), m.breakpointFeet.value, m.breakpoint, `Breakpoint at ${m.breakpointFeet.value.toFixed(1)} ft.`);
   const last = nearestSighting(r, 58);
-  shots.push(markedShot(clip, clipPath, cal, r, out, last, [Math.min(42, last.v - 12), 63.5], "Pins (60 ft)", m.pins,
+  if (r.to > 40) shots.push(markedShot(clip, clipPath, cal, r, out, last, [Math.min(42, last.v - 12), 63.5], "Pins (60 ft)", m.pins,
     `Contrast-stretched. Red crosses: where the calibration puts the pin spots (each pin stands on its cross). Entry angle ${fmt(m.entryAngle, " deg")}.`));
   void name;
   return shots;

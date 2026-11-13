@@ -40,6 +40,12 @@ export interface CalibrationFile {
    * end (shot-02). The laydown, touchdown, arrows and launch angle are read
    * with it; the rest with the main one.
    */
+  /**
+   * Where to start following the ball by its darkness when the tracer cannot
+   * find it against the empty lane (`follow.ts`): a frame just after it lands,
+   * the ball's centre and radius there.
+   */
+  follow?: { frame: number; x: number; y: number; r: number };
   near?: { frame: number; points?: CalibrationFile["points"]; lines?: CalibrationFile["lines"]; register?: CalibrationFile["register"] };
   notes?: string;
   /** The owner's own reading of the shot, when they have one. */

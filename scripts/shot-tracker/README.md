@@ -287,6 +287,20 @@ so the near readings come from it and the far ones from frame 192
 (16.5), arrows 15.7 (13.5); breakpoint 8.6 at 44.5 ft and pins as before.
 The same split would be needed in the app for a camera that pans this far.
 
+**shot-04: the laydown and the arrows at least.** The owner asked. Calibrated
+on frame 88, as the ball lands: both edges on the thin line inside the bumper
+groove, the foul line where the lane ends, the pin row on lanes 3 and 8
+(edges and foul line within 0.05 board; lane 8's pins 1.3 ft off along the
+lane, which moves nothing near the foul line). The tracer still finds the
+ball in only 7 frames: the camera pans and the bowler stands over the
+ball's path, so the empty lane holds the bowler and the ball merges with
+what changed round it. `follow.ts` follows the ball by its own darkness from
+frame 88 (`follow` in the calibration file) until it goes behind the bowler
+at 11.7 ft, through each frame's lane mapping (the grid follows both gutters
+on frames 75 to 104). Laydown 6.4 (the ball followed back into the hand,
+frame 75), touchdown 5.8 at 4.0 ft, arrows about 5.0 (a straight line run
+on from 11.7 ft, estimated). Nothing further is read.
+
 **Still failing:** as round seven, and: the laydown is not measured on the
 crossing frame itself (the ball in the hand or the air is not a sighting),
 it is the rolling ball's line run back, checked by eye; shot-05's pins are
