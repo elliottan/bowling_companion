@@ -1,0 +1,13 @@
+{
+ "clip": "shot-03.mp4",
+ "frame": 40,
+ "hand": "right",
+ "points": [["pin 3", 540.1, 415.8], ["pin 6", 549.6, 414.8], ["pin 10", 559.3, 413.8]],
+ "lines": [
+  ["left", [[428.0, 515], [389.7, 572.5], [351.4, 630]]],
+  ["right", [[567.3, 430], [577.7, 530], [588.0, 630]]],
+  ["foul", [[360, 644.8], [380, 644.6], [400, 644.3], [560, 642.2], [620, 641.7]]],
+  ["pinrow", [[613.4, 413.1], [669.7, 412.2], [420.1, 417.2]]]
+ ],
+ "notes": "Every mark is on frame 40, on the approach, where the bowler's body covers the middle of this lane but neither edge near the camera: the left edge shows left of the legs, the right edge in full. This lane's rack shows only its right three columns (pins 3, 6 and 10) beside the bowler's head. The pin row is also marked on the next lanes' racks (lane 10's 7 and 10 pins, lane 8's 10 pin): same distance, any board. The arrows do not show. Round four tried frame 100, where the sliding leg lies along the left edge."
+}

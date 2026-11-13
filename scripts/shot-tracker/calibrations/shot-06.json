@@ -1,0 +1,99 @@
+{
+ "clip": "shot-06.mp4",
+ "frame": 20,
+ "hand": "left",
+ "points": [
+  [
+   "pin 7",
+   257.2,
+   184.9
+  ],
+  [
+   "pin 4",
+   263.6,
+   185.3
+  ],
+  [
+   "pin 2",
+   270.3,
+   186.0
+  ],
+  [
+   "pin 1",
+   276.9,
+   186.5
+  ],
+  [
+   "pin 3",
+   283.3,
+   185.7
+  ],
+  [
+   "pin 6",
+   289.7,
+   185.1
+  ],
+  [
+   "pin 10",
+   295.8,
+   184.2
+  ]
+ ],
+ "lines": [
+  [
+   "left",
+   [
+    [
+     252.6,
+     205
+    ],
+    [
+     247.4,
+     295
+    ],
+    [
+     242.3,
+     385
+    ]
+   ]
+  ],
+  [
+   "right",
+   [
+    [
+     309.9,
+     200
+    ],
+    [
+     339.3,
+     245
+    ],
+    [
+     368.6,
+     290
+    ]
+   ]
+  ],
+  [
+   "foul",
+   [
+    [
+     260,
+     390.1
+    ],
+    [
+     280,
+     389.1
+    ],
+    [
+     300,
+     388.9
+    ]
+   ]
+  ]
+ ],
+ "notes": "Left-handed, 720p at 30 frames a second, recompressed by a messaging app. Every mark is on frame 20, before the delivery, where the full rack, the left edge, the far 60% of the right edge and the foul line all show at once (the bowler stands right of the lane). The arrows do not show under the lane's reflections. Pins: each column's base, the dark seam halfway between the pin's head and its mirrored head (y 184 to 186.5). They were first marked on the reflection's neck, 10 px lower, and the calibration was refused at 3.54 boards; on the bases every mark agrees within 0.30 board.",
+ "register": {
+  "tolerance": 2
+ }
+}

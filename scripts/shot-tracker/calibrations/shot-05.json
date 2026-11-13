@@ -1,0 +1,12 @@
+{
+  "clip": "shot-05.mp4",
+  "frame": 230,
+  "hand": "right",
+  "points": [["pin 1", 579.4, 227.2], ["pin 3", 590.1, 226.6], ["pin 6", 600.8, 225.8], ["pin 10", 610.8, 225.0]],
+  "lines": [
+    ["right", [[618.4, 245], [628.7, 375], [639.1, 505]]],
+    ["left", [[514.6, 256.2], [470.6, 312.5], [426.6, 368.8]], 520],
+    ["foul", [[470, 510], [630, 510]]]
+  ],
+  "notes": "Slow motion, 120 frames a second with true timestamps. The arrows do not show under the lane's reflections. The bowler hides the left of the rack and the lane's left edge on the calibration frame: the left edge is marked where it shows, on frame 520, and carried by registration. Pins: the bases of the four columns that show (1, 3, 6, 10)."
+}

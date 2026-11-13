@@ -1,0 +1,13 @@
+{
+  "clip": "shot-02.mp4",
+  "frame": 192,
+  "hand": "right",
+  "points": [],
+  "lines": [
+    ["left", [[500.1, 403], [488.7, 422.4], [477.3, 441.9], [392.5, 590], [384.5, 605], [376.5, 620], [370.5, 632]]],
+    ["right", [[578.8, 420], [595.6, 490], [612.3, 560]]],
+    ["foul", [[207, 647], [340, 639.3], [362, 637.5]]],
+    ["pinrow", [[183, 415.5], [296, 408.5], [609.3, 391.2], [666, 388.2]]]
+  ],
+  "notes": "A spare: two pins of unknown number stand, so no pin is a mark. Everything is marked on frame 192. The house's cross-lane lines slope about 3 degrees in this picture (the camera is rolled), so the pin row is marked across four racks: the 7 pin's base on lanes 8, 9 and 11 and the 10 pin's on lane 11. The foul line is where the gutters end, on this lane and the next to the left. The left edge shows beyond the bowler at the far end and beside their feet near the foul line; the scoring console hides the near right edge. The arrows do not show under the lane's reflections."
+}

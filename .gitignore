@@ -48,3 +48,6 @@ scripts/sync-catalog/contact-sheet.html
 
 # Ad renders (scripts/ad-content): regenerated, never committed.
 ads-out/
+
+# Shot tracer harness output (scripts/shot-tracker/run.ts)
+scripts/shot-tracker/out/
