@@ -265,6 +265,14 @@ now has its own ball's plumb line. Moving shot-01's foul line to the bottom
 of the light strip below it (y 635) was tried and dropped: it shifted the
 near end's board scale and read 21.8.
 
+**The ball's circle follows its outline.** The owner: the green circle in the
+laydown picture did not border the ball. The darkness match keeps the radius
+it is given, and the ball in the hand is nearer the camera (shot-01: 23.6
+pixels on the lane, 26.6 at frame 72), so it matched off-centre. Each disc is
+now fitted to the ball's outline (`fitOutline`: the dark-to-light step along
+rays over its lower half and sides, a circle through them with the radius
+free). shot-01 reads 25.1.
+
 **Still failing:** as round seven, and: the laydown is not measured on the
 crossing frame itself (the ball in the hand or the air is not a sighting),
 it is the rolling ball's line run back, checked by eye; shot-05's pins are

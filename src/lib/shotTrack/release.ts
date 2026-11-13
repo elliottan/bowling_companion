@@ -1,3 +1,4 @@
+import { sample } from "./image";
 import { mapLine } from "./homography";
 import { imageToLane } from "./laneModel";
 import type { GrayFrame, Mat3, Point } from "./types";
@@ -96,6 +97,82 @@ export function findDisc(f: GrayFrame, near: Point, radii: number[], reach: numb
 }
 
 /**
+ * The disc fitted to the ball's own outline: along rays from the rough centre
+ * over its lower half and sides (the hand covers its top), where the picture
+ * turns from the dark ball to the lighter lane, then a circle through those
+ * points with the radius free, twice, dropping points more than 2 pixels off.
+ * The darkness match alone keeps the radius it was given, and a ball nearer
+ * the camera than that is matched off-centre (the owner, shot-01). The rough
+ * disc is kept when too few rays find an edge or the fit strays.
+ */
+export function fitOutline(f: GrayFrame, d: { cx: number; cy: number; r: number; contrast: number }): { cx: number; cy: number; r: number; contrast: number } {
+  let cx = d.cx;
+  let cy = d.cy;
+  let r = d.r;
+  for (let round = 0; round < 3; round++) {
+    const pts: { x: number; y: number }[] = [];
+    for (let deg = -30; deg <= 210; deg += 6) {
+      const a = (deg * Math.PI) / 180;
+      const dx = Math.cos(a);
+      const dy = Math.sin(a);
+      let best = 0;
+      let at = -1;
+      for (let t = 0.6 * r; t <= 1.6 * r; t += 0.5) {
+        const inner = sample(f, cx + dx * (t - 1), cy + dy * (t - 1));
+        const outer = sample(f, cx + dx * (t + 1), cy + dy * (t + 1));
+        const g = outer - inner;
+        if (Number.isFinite(g) && g > best) {
+          best = g;
+          at = t;
+        }
+      }
+      if (at > 0 && best >= 12) pts.push({ x: cx + dx * at, y: cy + dy * at });
+    }
+    let use = pts;
+    let fit: { cx: number; cy: number; r: number } | null = null;
+    for (let pass = 0; pass < 2; pass++) {
+      if (use.length < 10) break;
+      fit = circleThrough(use);
+      if (!fit) break;
+      const f0 = fit;
+      use = use.filter((p) => Math.abs(Math.hypot(p.x - f0.cx, p.y - f0.cy) - f0.r) <= 2);
+    }
+    if (!fit || fit.r < 0.75 * d.r || fit.r > 1.6 * d.r || Math.hypot(fit.cx - d.cx, fit.cy - d.cy) > d.r) break;
+    cx = fit.cx;
+    cy = fit.cy;
+    r = fit.r;
+  }
+  return { cx, cy, r, contrast: d.contrast };
+}
+
+/** Least-squares circle through points (Kasa), or null when they do not fix one. */
+function circleThrough(pts: { x: number; y: number }[]): { cx: number; cy: number; r: number } | null {
+  const n = pts.length;
+  const mx = pts.reduce((s, p) => s + p.x, 0) / n;
+  const my = pts.reduce((s, p) => s + p.y, 0) / n;
+  let suu = 0, svv = 0, suv = 0, suuu = 0, svvv = 0, suvv = 0, svuu = 0;
+  for (const p of pts) {
+    const u = p.x - mx;
+    const v = p.y - my;
+    suu += u * u;
+    svv += v * v;
+    suv += u * v;
+    suuu += u * u * u;
+    svvv += v * v * v;
+    suvv += u * v * v;
+    svuu += v * u * u;
+  }
+  const det = suu * svv - suv * suv;
+  if (Math.abs(det) < 1e-9) return null;
+  const b1 = 0.5 * (suuu + suvv);
+  const b2 = 0.5 * (svvv + svuu);
+  const uc = (b1 * svv - b2 * suv) / det;
+  const vc = (suu * b2 - suv * b1) / det;
+  const r = Math.sqrt(uc * uc + vc * vc + (suu + svv) / n);
+  return Number.isFinite(r) ? { cx: mx + uc, cy: my + vc, r } : null;
+}
+
+/**
  * Follows the ball back from its first sighting (frame `first`, disc
  * `start`) through earlier frames until its bottom is below the foul line's
  * row in the picture, and reads where it was right above the line. `frame(i)`
@@ -120,8 +197,9 @@ export function overFoulLine(
   };
   const f0 = frame(first);
   if (!f0) return null;
-  const d0 = findDisc(f0, { x: start.cx, y: start.cy }, [start.r], Math.max(2, 0.3 * start.r));
-  if (!d0) return null;
+  const rough0 = findDisc(f0, { x: start.cx, y: start.cy }, [start.r], Math.max(2, 0.3 * start.r));
+  if (!rough0) return null;
+  const d0 = fitOutline(f0, rough0);
   const track: ReleaseFrame[] = [{ frame: first, ...d0 }];
   const first0 = below(first, d0);
   if (!first0) return null;
@@ -136,8 +214,9 @@ export function overFoulLine(
     const f = frame(i);
     const last = track[track.length - 1];
     if (!f || !H(i)) break;
-    const d = findDisc(f, { x: last.cx, y: last.cy }, [last.r, last.r * 1.03, last.r * 1.06], Math.max(4, 0.9 * last.r));
-    if (!d || d.contrast < d0.contrast / 3) break;
+    const rough = findDisc(f, { x: last.cx, y: last.cy }, [last.r, last.r * 1.04, last.r * 1.08], Math.max(4, 0.9 * last.r));
+    if (!rough || rough.contrast < d0.contrast / 3) break;
+    const d = fitOutline(f, rough);
     const now = below(i, d)!;
     track.push({ frame: i, ...d });
     gaps.push(now.gap);
