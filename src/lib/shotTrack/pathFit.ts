@@ -449,7 +449,10 @@ export function metrics(inp: MetricInput): TrackMetrics {
   const breakpoint = bpState === "missing" ? M(null, "missing") : M(bpB, bpState);
   const breakpointFeet = bpState === "missing" ? M(null, "missing") : M(bpV, bpState);
 
-  const pinState: MetricState = to >= 57 ? "measured" : to >= 52 ? "estimated" : "missing";
+  // Not read at all when the ball was last seen short of 54 ft (the owner,
+  // shot-05: last seen at 52.8 ft, the pins cannot be seen, and "about 9.2"
+  // was too sure of itself).
+  const pinState: MetricState = to >= 57 ? "measured" : to >= 54 ? "estimated" : "missing";
   // The board at the pins is read off the last sightings alone, like the
   // laydown: a ball turns hardest in its last feet (shot-01: a board a foot),
   // and the whole path, one bend and then straight, runs under it. Their

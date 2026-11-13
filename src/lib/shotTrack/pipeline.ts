@@ -306,6 +306,15 @@ export function trace(input: TraceInput): TraceOutput {
     if (s.v < 8 && r > Math.max(0.75, 3 * sigma)) s.airborne = true;
     else break;
   }
+  // A ball does not leave the lane once it lands: a sighting before one judged
+  // in the air is in the air too, mirror image found or not (shot-05: frames
+  // 139 and 140 had none and were taken as on the lane, 141 and 142 were in
+  // the air; the owner saw it still in the air at 139).
+  let lastAir = -1;
+  sightings.forEach((s, i) => {
+    if (s.airborne && s.v < 10) lastAir = i;
+  });
+  for (let i = 0; i < lastAir; i++) sightings[i].airborne = true;
   const seen = withoutIslands(sightings.filter((s) => !s.airborne));
   const svOf = new Map(sightings.map((s, k) => [s.frame, sv[k]]));
   const vs = seen.map((s) => s.v);

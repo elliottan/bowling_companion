@@ -301,6 +301,21 @@ on frames 75 to 104). Laydown 6.4 (the ball followed back into the hand,
 frame 75), touchdown 5.8 at 4.0 ft, arrows about 5.0 (a straight line run
 on from 11.7 ft, estimated). Nothing further is read.
 
+**shot-05: the touchdown and the pins.** The owner: at frame 139 the ball is
+still in the air, and "about 9.2" at the pins is too sure when the ball is not
+seen there. Frames 139 and 140 had no mirror image found and were taken as on
+the lane, though 141 and 142 were judged in the air; a sighting before one in
+the air is now in the air too. Touchdown 18.0 at 1.8 ft (was 18.2 at 1.4).
+The board at the pins is left unread when the ball was last seen short of
+54 ft (shot-05: 52.8 ft); it was estimated from 52 ft. No other clip's
+readings moved.
+
+**shot-06's laydown is open.** Read at the first frame the ball sits on the
+foul line (as the owner reads shot-01), it is 21.6; the owner reads about 18,
+which is the last frame on the line (18.5, frame 33.4). Its grid was checked
+against the gutters (unchanged from frame 20 to 33, the camera holds still)
+and against the ball's size at the touchdown (within 3%). Asked the owner.
+
 **Still failing:** as round seven, and: the laydown is not measured on the
 crossing frame itself (the ball in the hand or the air is not a sighting),
 it is the rolling ball's line run back, checked by eye; shot-05's pins are
