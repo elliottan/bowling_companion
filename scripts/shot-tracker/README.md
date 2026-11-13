@@ -310,11 +310,23 @@ The board at the pins is left unread when the ball was last seen short of
 54 ft (shot-05: 52.8 ft); it was estimated from 52 ft. No other clip's
 readings moved.
 
-**shot-06's laydown is open.** Read at the first frame the ball sits on the
-foul line (as the owner reads shot-01), it is 21.6; the owner reads about 18,
-which is the last frame on the line (18.5, frame 33.4). Its grid was checked
-against the gutters (unchanged from frame 20 to 33, the camera holds still)
-and against the ball's size at the touchdown (within 3%). Asked the owner.
+**The laydown: the last frame the ball sits on the foul line.** The owner
+chose it (2026-11-13): the ball's bottom sits on the foul line's row in the
+picture for a few frames as it goes out, and the board under it changes as
+it moves across. It is read where the bottom is last on the row (followed
+back from the lane, where it first comes down onto it), or where the ball
+comes lowest when it never reaches it. shot-06 17.7 (owner about 18),
+shot-01 24.2 (owner 24 or 25), shot-02 21.0, shot-04 6.2; shot-03 and
+shot-05 unchanged.
+
+**shot-01's left edge was on the bumper too.** The owner marked the lane about
+a board further in. Inside the old mark there is no second dark line, only a
+pale strip without the lane's yellow tint; the lane's colour starts 5.5 to 7
+pixels in on rows 470 to 482, where the lane is clear of reflections. The
+edge is moved 5.5 pixels in, parallel to the old one (worst mark 0.42 board,
+pins check 7: -0.32, 10: -0.05, 1: -0.36). With the lane narrower the boards
+on its left side read higher: touchdown 23.3 (was 22.4), arrows 17.3 (16.6;
+the owner read 16), breakpoint 7.2, pins 17.4 (owner about 18).
 
 **Still failing:** as round seven, and: the laydown is not measured on the
 crossing frame itself (the ball in the hand or the air is not a sighting),
