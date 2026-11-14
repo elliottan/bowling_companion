@@ -15,7 +15,7 @@ import { join } from "node:path";
 import { arrowFeet } from "../../src/lib/laneGeometry";
 import { PIN_POSITIONS } from "../../src/lib/pinGeometry";
 import { apply } from "../../src/lib/shotTrack/homography";
-import { DECK_END_FT, LEFT_U, RIGHT_U, handedBoard, laneU } from "../../src/lib/shotTrack/laneModel";
+import { CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, handedBoard, laneU } from "../../src/lib/shotTrack/laneModel";
 import { pathU } from "../../src/lib/shotTrack/pathFit";
 import { trace, type TraceOutput } from "../../src/lib/shotTrack/pipeline";
 import type { BallSighting, Mat3, Metric, TrackResult } from "../../src/lib/shotTrack/types";
@@ -25,6 +25,8 @@ import {
   canvas, circle, cropScale, cross, dot, fromRgb, line, savePng, stretch, text, toPng, type Canvas, type Color
 } from "./draw";
 import { drawAcross, drawBoards, drawLandmarks, readCalibration, toCalMarks, type CalibrationFile } from "./overlay";
+import { followNearEnd } from "./follow";
+import { uAtColumn } from "../../src/lib/shotTrack/release";
 import { reviewHtml, type ReviewShot } from "./review";
 
 const here = new URL(".", import.meta.url).pathname;
@@ -51,6 +53,19 @@ for (const name of names) {
   }
   const t0 = Date.now();
   const out = trace({ source: clip, calibFrame: cal.frame, calMarks: toCalMarks(cal), hand: cal.hand, register: cal.register });
+  // The near end from its own calibration, when the clip has one (see `near`).
+  const nearOut = cal.near
+    ? trace({ source: clip, calibFrame: cal.near.frame, calMarks: toCalMarks({ ...cal, points: cal.near.points, lines: cal.near.lines }), hand: cal.hand, register: cal.near.register })
+    : null;
+  if (nearOut && nearOut.result.ok && out.result.ok) {
+    const n = nearOut.result.metrics;
+    out.result.metrics = { ...out.result.metrics, laydown: n.laydown, touchdown: n.touchdown, touchdownFeet: n.touchdownFeet, arrows: n.arrows, launchAngle: n.launchAngle };
+  }
+  // When the ball is not found against the empty lane, its near end followed by its darkness (see `follow`).
+  if (!out.result.ok && cal.follow) {
+    const followed = followNearEnd(clip, cal, out);
+    if (followed) out.result = followed;
+  }
   const ms = Date.now() - t0;
   const r = out.result;
   console.log(`${name}: ${r.ok ? "traced" : `failed (${r.failure}: ${r.detail})`} in ${(ms / 1000).toFixed(1)} s, ${out.debug.candidates.length} candidates, ${out.debug.associated.length} associated`);
@@ -77,7 +92,7 @@ for (const name of names) {
       gutterEdgeBoards: edgeStats(out),
       sightings: r.sightings.map((s) => ({ f: s.frame, t: +s.t.toFixed(4), u: +s.u.toFixed(2), v: +s.v.toFixed(2), r: +s.r.toFixed(2), w: +s.weight.toFixed(2), air: s.airborne }))
     });
-    writeFileSync(join(outDir, "review.html"), reviewHtml(reviewShots(name, clip, clipPath, cal, r, out), name, cal, r, out, json));
+    writeFileSync(join(outDir, "review.html"), reviewHtml(reviewShots(name, clip, clipPath, cal, r, out, nearOut && nearOut.result.ok ? { r: nearOut.result, out: nearOut } : null), name, cal, r, out, json));
   } else {
     Object.assign(json, { failure: r.failure, detail: r.detail });
     writeFileSync(join(outDir, "review.html"), reviewHtml([], name, cal, null, out, json));
@@ -289,7 +304,7 @@ function nearestSighting(r: TrackResult, v: number): BallSighting {
   return seen.reduce((b, s) => (Math.abs(s.v - v) < Math.abs(b.v - v) ? s : b), seen[0]);
 }
 
-function reviewShots(name: string, clip: Clip, clipPath: string, cal: CalibrationFile, r: TrackResult, out: TraceOutput): ReviewShot[] {
+function reviewShots(name: string, clip: Clip, clipPath: string, cal: CalibrationFile, r: TrackResult, out: TraceOutput, near: { r: TrackResult; out: TraceOutput } | null): ReviewShot[] {
   const m = r.metrics;
   const shots: ReviewShot[] = [];
   const add = (title: string, s: BallSighting, at: number, metric: Metric, note: string) => {
@@ -325,15 +340,131 @@ function reviewShots(name: string, clip: Clip, clipPath: string, cal: Calibratio
       ]
     });
   };
-  const first = r.sightings.find((s) => !s.airborne)!;
-  shots.push(touchdownShot(clip, clipPath, cal, r, out, first));
-  shots.push(markedShot(clip, clipPath, cal, r, out, nearestSighting(r, 15), [6, 22], "Arrows (15 ft)", m.arrows,
+  // The near end's pictures come from the near calibration's trace when there is one.
+  const nr = near?.r ?? r;
+  const no = near?.out ?? out;
+  const first = nr.sightings.find((s) => !s.airborne)!;
+  shots.push(laydownShot(clip, clipPath, cal, nr, no));
+  shots.push(touchdownShot(clip, clipPath, cal, nr, no, first));
+  shots.push(markedShot(clip, clipPath, cal, nr, no, nearestSighting(nr, 15), [6, 22], "Arrows (15 ft)", m.arrows,
     "Contrast-stretched. Magenta crosses: where the calibration puts the arrows' tips; red: the pin spots; cyan lines every 5 boards (white: board 20). If the crosses do not sit on the real arrows, the calibration is off."));
   if (m.breakpointFeet.value !== null) add("Breakpoint", nearestSighting(r, m.breakpointFeet.value), m.breakpointFeet.value, m.breakpoint, `Breakpoint at ${m.breakpointFeet.value.toFixed(1)} ft.`);
-  shots.push(markedShot(clip, clipPath, cal, r, out, nearestSighting(r, 58), [54, 63.5], "Pins (60 ft)", m.pins,
+  // The pins picture is the last frame before the rack moves when the ball was
+  // followed there (the owner, shot-01), else the sighting nearest 58 ft.
+  const followed = out.debug.toPins?.length ? out.debug.toPins[out.debug.toPins.length - 1] : null;
+  const last: BallSighting = followed
+    ? (() => {
+        const g = out.debug.geometry[followed.frame - out.debug.first];
+        const u = uAtColumn(g.H, followed.cx, 60 - CONTACT_IN / 12);
+        return { frame: followed.frame, t: clip.times[followed.frame], cx: followed.cx, cy: followed.cy, r: followed.r, contact: { x: followed.cx, y: followed.cy + followed.r }, u, v: 60 - CONTACT_IN / 12, weight: 1, airborne: false };
+      })()
+    : nearestSighting(r, 58);
+  if (r.to > 40) shots.push(markedShot(clip, clipPath, cal, r, out, last, [Math.min(42, last.v - 12), 63.5], "Pins (60 ft)", m.pins,
     `Contrast-stretched. Red crosses: where the calibration puts the pin spots (each pin stands on its cross). Entry angle ${fmt(m.entryAngle, " deg")}.`));
   void name;
   return shots;
+}
+
+/**
+ * The laydown, for checking by eye: the frame in which the ball is over the
+ * foul line (in the hand, in the air or on the lane), with the foul line drawn
+ * and a tick every 5 boards on it, numbered. The tracer's laydown is the
+ * magenta cross on the foul line, with a plumb line up from it: the ball's
+ * centre should sit on that line. Below it, the frame before and the frame
+ * after.
+ */
+function laydownShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: TrackResult, out: TraceOutput): ReviewShot {
+  const m = r.metrics;
+  const rolling = r.sightings.filter((s) => !s.airborne);
+  const first = rolling[0];
+  // The first 8 ft of sightings: a few frames alone time the crossing poorly.
+  const ground = rolling.filter((s) => s.v <= first.v + 8);
+  // When the ball is over the foul line: the first sightings' distance against time, run back to 0 ft.
+  const mt = ground.reduce((a, s) => a + s.t, 0) / ground.length;
+  const mv = ground.reduce((a, s) => a + s.v, 0) / ground.length;
+  const den = ground.reduce((a, s) => a + (s.t - mt) ** 2, 0);
+  const speed = den > 0 ? ground.reduce((a, s) => a + (s.t - mt) * (s.v - mv), 0) / den : 0;
+  const t0 = speed > 0 ? mt - mv / speed : first.t;
+  const ok = (f: number) => f >= out.debug.first && !!out.debug.geometry[f - out.debug.first]?.ok;
+  const rel = out.debug.release ?? null;
+  let f0 = first.frame;
+  if (rel) f0 = Math.round(rel.at);
+  else {
+    for (let f = first.frame; f >= Math.max(out.debug.first, first.frame - 30); f--) {
+      if (ok(f) && Math.abs(clip.times[f] - t0) < Math.abs(clip.times[f0] - t0)) f0 = f;
+    }
+  }
+  const panel = (frame: number, width: number, mark: boolean) => {
+    const H = out.debug.geometry[frame - out.debug.first].H;
+    const box = boxAround(H, [LEFT_U - 3, RIGHT_U + 3], [-3, 4], 4.5 * first.r, clip.width, clip.height);
+    const k = Math.max(2, Math.min(12, Math.ceil(width / box.w)));
+    const c = cropScale(frameCanvas(clipPath, clip, frame), box.x0, box.y0, box.w, box.h, k);
+    const P = (u: number, v: number) => {
+      const p = apply(H, { x: u, y: v });
+      return { x: (p.x - box.x0) * k, y: (p.y - box.y0) * k };
+    };
+    for (const u of [LEFT_U, RIGHT_U]) {
+      const a = P(u, -1);
+      const b = P(u, 4);
+      line(c, a.x, a.y, b.x, b.y, GREEN);
+    }
+    const a = P(LEFT_U - 2, 0);
+    const b = P(RIGHT_U + 2, 0);
+    line(c, a.x, a.y, b.x, b.y, YELLOW);
+    for (let n = 5; n <= 35; n += 5) {
+      const u = laneU(n, cal.hand);
+      const col: Color = n === 20 ? WHITE : CYAN;
+      const p = P(u, -0.5);
+      const q = P(u, 0.5);
+      line(c, p.x, p.y, q.x, q.y, col);
+      const at = P(u, 0);
+      if (mark) text(c, at.x - 8 * String(n).length, at.y + 10, String(n), col, n === 20 ? 4 : 3);
+    }
+    // The plumb line runs through this frame's own ball where it was followed;
+    // in the laydown's frame it lands on the laydown.
+    const disc = rel?.track.find((d) => d.frame === frame);
+    if (disc) {
+      circle(c, (disc.cx - box.x0) * k, (disc.cy - box.y0) * k, disc.r * k, GREEN);
+      const foul = (x: number) => {
+        const a0 = apply(H, { x: LEFT_U, y: 0 });
+        const b0 = apply(H, { x: RIGHT_U, y: 0 });
+        return a0.y + ((x - a0.x) * (b0.y - a0.y)) / (b0.x - a0.x);
+      };
+      const fx = (disc.cx - box.x0) * k;
+      const fy = (foul(disc.cx) - box.y0) * k;
+      cross(c, fx, fy, mark ? 10 : 6, MAGENTA);
+      line(c, fx, fy, fx, (disc.cy - box.y0) * k - 2 * disc.r * k, MAGENTA, { alpha: 0.8, dash: 6 });
+    } else if (mark && m.laydown.value !== null) {
+      const at = P(laneU(m.laydown.value, cal.hand), 0);
+      cross(c, at.x, at.y, 10, MAGENTA);
+      line(c, at.x, at.y, at.x, at.y - 5 * first.r * k, MAGENTA, { alpha: 0.8, dash: 6 });
+    }
+    return c;
+  };
+  const big = panel(f0, 900, true);
+  const smalls = [f0 - 1, f0 + 1].filter((f) => ok(f) && f < clip.count).map((f) => panel(f, Math.floor(big.width / 2) - 8, false));
+  const W = Math.max(big.width, smalls.reduce((a, c) => a + c.width + 8, 0));
+  const img = canvas(W, big.height + (smalls.length ? Math.max(...smalls.map((c) => c.height)) + 8 : 0), [250, 250, 250]);
+  const blit = (c: Canvas, ox: number, oy: number) => {
+    for (let y = 0; y < c.height; y++) img.rgb.set(c.rgb.subarray(y * c.width * 3, (y + 1) * c.width * 3), ((oy + y) * img.width + ox) * 3);
+  };
+  blit(big, 0, 0);
+  let ox = 0;
+  for (const c of smalls) {
+    blit(c, ox, big.height + 8);
+    ox += c.width + 8;
+  }
+  return {
+    title: "Laydown (foul line)",
+    png: toPng(img).toString("base64"),
+    lines: [
+      `Laydown: ${m.laydown.value === null ? "missing" : `board ${m.laydown.value.toFixed(1)}`} (${m.laydown.state}), the board the ball is over as it crosses the foul line.`,
+      "The laydown is the board under the ball where it sits right above the foul line in the picture, in the hand or in the air: not where it lands. Above: that frame. Green circle: the ball as the tracer followed it back from the lane. Yellow: the foul line, with a tick every 5 boards on it, numbered (the bowler's own boards; 20 in white). Magenta cross: on the foul line straight below the ball's centre, with a plumb line up through the centre; in the top picture it is the laydown. Below: the frame before and the frame after, each with its own ball and plumb line.",
+      rel
+        ? `Frame ${rel.at.toFixed(1)}: the ball's bottom ${rel.reached ? "reaches the foul line's row" : "comes closest to the foul line's row (it never reaches it: the ball is carried over the line)"}. First sighting on the lane: frame ${first.frame}, board ${handedBoard(first.u, r.hand).toFixed(2)} at ${first.v.toFixed(1)} ft.`
+        : `The ball could not be followed back from the lane, so the laydown is the line through its first sightings run back to the foul line (over it at ${t0.toFixed(3)} s, frame ${f0}). First sighting: frame ${first.frame}, board ${handedBoard(first.u, r.hand).toFixed(2)} at ${first.v.toFixed(1)} ft.`
+    ]
+  };
 }
 
 /**
@@ -394,11 +525,11 @@ function touchdownShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: Tr
   }
   const m = r.metrics;
   return {
-    title: "Laydown and touchdown",
+    title: "Touchdown",
     png: toPng(img).toString("base64"),
     lines: [
-      `Laydown: ${m.laydown.value === null ? "missing" : `board ${m.laydown.value.toFixed(1)}`} (${m.laydown.state}), over the foul line. Touchdown: ${m.touchdown.value === null ? "missing" : `board ${m.touchdown.value.toFixed(1)}`} at ${m.touchdownFeet.value?.toFixed(1) ?? "?"} ft.`,
-      "The laydown is the board the ball crosses the foul line on, in the air or not (the path run back to 0 ft). The touchdown is where it first touches the lane. Above: the touchdown frame, the lane's whole width at the ball's row. Green: the lane's edges as the tracer has them in this frame. Ticks every 5 boards on the ball's row, numbered (the bowler's own boards; 20 in white). Red cross: the point under the ball. Below: the two frames before it, with the ball still in the air or in the hand.",
+      `Touchdown: ${m.touchdown.value === null ? "missing" : `board ${m.touchdown.value.toFixed(1)}`} at ${m.touchdownFeet.value?.toFixed(1) ?? "?"} ft.`,
+      "The touchdown is where the ball first touches the lane; it is not the laydown. Above: the touchdown frame, the lane's whole width at the ball's row. Green: the lane's edges as the tracer has them in this frame. Ticks every 5 boards on the ball's row, numbered (the bowler's own boards; 20 in white). Red cross: the point under the ball. Below: the two frames before it, with the ball still in the air or in the hand.",
       `Frame ${s.frame}, t ${s.t.toFixed(3)} s. This sighting: board ${handedBoard(s.u, r.hand).toFixed(2)} at ${s.v.toFixed(1)} ft, radius ${s.r.toFixed(1)} px.`
     ]
   };
@@ -408,7 +539,9 @@ function touchdownShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: Tr
 function markedShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: TrackResult, out: TraceOutput, s: BallSighting, [v0, v1]: number[], title: string, metric: Metric, note: string): ReviewShot {
   const g = out.debug.geometry[s.frame - out.debug.first];
   const pinH = v1 > 50 ? 4 * expectedRadiusPxAt(g.H, 61) : 2.6 * s.r;
-  const box = boxAround(g.H, [LEFT_U - 4, RIGHT_U + 4], [v0, v1], pinH, clip.width, clip.height);
+  // The pins picture is zoomed out (the owner, shot-02): the next lanes' edges and the last 20 ft of the ball's path.
+  const wide = v1 > 50 ? 12 : 4;
+  const box = boxAround(g.H, [LEFT_U - wide, RIGHT_U + wide], [v0, v1], pinH, clip.width, clip.height);
   const c = calibratedCrop(frameCanvas(clipPath, clip, s.frame), g.H, cal.hand, box, 1000);
   const k = c.width / box.w;
   circle(c, (s.cx - box.x0) * k, (s.cy - box.y0) * k, s.r * k, GREEN);
@@ -417,7 +550,7 @@ function markedShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: Track
     png: toPng(c).toString("base64"),
     lines: [
       `${title}: ${metric.value === null ? "missing" : `${metric.state === "estimated" ? "about " : ""}board ${metric.value.toFixed(1)}`} (${metric.state})`,
-      `Frame ${s.frame}. Nearest sighting: board ${handedBoard(s.u, r.hand).toFixed(2)} at ${s.v.toFixed(1)} ft (green circle).`,
+      `Frame ${s.frame}. The ball (green circle): board ${handedBoard(s.u, r.hand).toFixed(2)} at ${s.v.toFixed(1)} ft.`,
       note
     ]
   };

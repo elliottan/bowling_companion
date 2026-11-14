@@ -12,7 +12,12 @@ npx tsx scripts/shot-tracker/run.ts shot-01     # one clip
 npx tsx scripts/shot-tracker/synthetic-grid.ts  # the full-size synthetic grid (add --all for 32 cases)
 npx tsx scripts/shot-tracker/look.ts <clip> <frame> <x0> <y0> <w> <h> <scale> <out.png> [--cal] [--median]
 npx tsx scripts/shot-tracker/diff.ts <clip> <first> <last> <step> <x0> <y0> <w> <h> <scale> <out.png>
+npx tsx scripts/shot-tracker/foul.ts <clip> <out.png> <frame> [<frame> ...]
 ```
+
+`foul.ts` is the release aid: the near end of each frame named, with the foul
+line drawn and a tick every board on it (numbered every 5), for reading where
+the ball is as it reaches the line.
 
 `diff.ts` is the detection aid: for each frame of a run, the same crop three
 times (the frame steadied onto the empty lane, the empty lane, and the change
@@ -132,11 +137,231 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   the whole path. The path has one bend, and a shot that curves gently from
   the foul line and then turns hard pulls its straight start off the
   sightings.
+- 7.4: in front of the rack a grey ball does not differ from the dark gaps
+  between the pins, so its change is cut into strips. The candidates are also
+  searched for on the change with gaps up to four pixels closed (`closeGaps`).
+- 7.5: the board at the pins is a straight line through the sightings from
+  54 ft on, placed by when they were seen (the fitted distance against time),
+  not the whole path's board at 60 ft. A ball turns hardest in its last feet
+  and the path, one bend and then straight, runs under it.
 - 7.5: a handful of sightings past a long unseen stretch (more than 15 ft,
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
-## Results, round seven (2026-11-13)
+## Results, round eight (2026-11-13)
+
+After the owner's review of round seven.
+
+| Clip | Visible | Sightings | Laydown (0 ft) | Touchdown | Arrows | Breakpoint | Pins | Speed |
+|---|---|---|---|---|---|---|---|---|
+| shot-01 (right) | 0.4 to 58.4 ft | 117 | 22.8 (m) | 22.4 at 0.4 ft | 16.8 (m) | 7.5 (m) at 43.1 ft | 18.6 (m) | 15.4 mph (m) |
+| shot-02 (right) | 1.7 to 54.4 ft | 114 | 17.8 (m) | 16.5 at 1.7 ft | 13.5 (m) | 8.6 (m) at 44.5 ft | about 14.5 (e) | about 15.3 mph (e) |
+| shot-03 (right) | 1.1 to 26.9 ft | 48 | 13.9 (m) | 13.7 at 1.1 ft | 10.5 (m) | missing | missing | 16.5 mph (m) |
+| shot-04 (right) | not calibrated | | | | | | | |
+| shot-05 (right) | 1.4 to 52.8 ft | 214 | 18.6 (m) | 18.2 at 1.4 ft | 13.7 (m) | 8.8 (m) at 50.2 ft | about 9.2 (e) | 17.8 mph (m) |
+| shot-06 (left) | 0.8 to 61.0 ft | 63 | 17.5 (m) | 17.0 at 0.8 ft | 14.8 (m) | 12.5 (m) at 36.0 ft | 19.5 (m) | 17.0 mph (m) |
+
+**The owner's reading of shot-01's pins: about 18, definitely not 15.** The
+tracer read 15.6 and now reads 18.6. The owner was right, and the frames show
+it: the ball is at board 14 at frame 227, 15.1 at 229, 16.0 at 231, 16.7 at
+233 and 17.5 at 235 (read against the pin columns; the rack first moves at
+236), a board in two frames. Two causes. The ball was not found after frame
+227: in front of the rack the gaps between the pins cut its change into
+strips, which fail the shape tests (`diff.ts shot-01 226 237 1 500 395 70 45
+4 out.png`). And the path, straight after its one bend, was run on from 57 ft
+under a ball still turning. With the gaps closed it is seen at 229 (15.8),
+233 (17.6) and 234 (16.8), and the board at the pins is a line through the
+sightings from 54 ft on, placed by time. 18.6 may be half a board high: the
+line is run on to 60 ft and the ball meets the head pin a little before.
+
+**shot-06's pins moved with it**, 17.0 to 19.5 (its last sightings: 17.4 at
+57 ft, 19.2 at 61 ft). No owner's reading yet.
+
+**The laydown is shown where it is read.** The owner again: the laydown is
+where the ball crosses the foul line, not where it lands. The number already
+was that (a line through the first 10 ft of sightings, run back to 0 ft), but
+the review page showed the touchdown frame under the heading "Laydown and
+touchdown". It now has a "Laydown (foul line)" picture: the frame in which
+the ball is over the foul line (timed from the first 8 ft of sightings), the
+foul line with the boards ticked and numbered on it, and the tracer's laydown
+as a cross on the line with a plumb line up from it. On all five clips the
+ball's centre sits on that line, in the hand (shot-03, shot-05), in the air
+(shot-02) or on the lane (shot-01, shot-06). The touchdown has its own
+picture.
+
+**shot-01's laydown is still 22.8 against the owner's "roughly 22".** On
+frame 77 the lane's edges sit on the gutter lips and the foul line on the
+gutter ends (checked enlarged), and the ball's centre is over 22.75 on the
+ticks. Not resolved: the owner to read it off the new picture.
+
+**The owner's second reading of shot-01's laydown: 24 to 25, definitely not
+22.** Two things came out of it. First, shot-01's left edge was never marked
+(the bowler's leg covers it near the foul line on frame 150). It shows as a
+thin dark line between the leg and the lane on rows 470 to 530 and is marked
+there now. The fit agrees with it within 0.15 board (worst mark 0.43, 18
+equations to spare), and the laydown moved from 22.8 to 23.3 (pins 18.6 to
+18.9). Second, `foul.ts shot-01 out.png 66 69 72 74 76 77` shows the release
+with a tick every board on the foul line. The ball is over about 25 at frame
+72 and 24 at 74, in the hand, then 23.3 at 76 and 22.7 at 77. At 72 and 74 it
+is behind the foul line, low over the approach: its bottom is below the foul
+line in the picture, it is 8% larger than at 77 (nearer the camera), it first
+meets its mirror image at 77, and at 15 mph it covers about 1.8 ft in those
+five frames. So the ball reaches the foul line over about 23 and is over 24
+to 25 about a foot and a half before it. Asked the owner which frame they
+read.
+
+**The owner's third point: the right edge was on the bumper.** On the review
+page the green right edge ran along the dark groove of the gutter structure,
+not the lane's own edge. Row by row on frame 150 the right side is: the lane,
+a thin dark line (the lane's edge, where the lane's colour ends), a grey
+strip about 4 pixels wide, then the dark groove. The old right mark had two
+points; the far one sat on the thin line and the near one on the groove, so
+near the foul line the edge was 4.5 pixels (nearly a board) too far out. It
+is re-marked on the thin line at seven rows from 504 to 616. Every mark now
+agrees within 0.30 board (was 0.43) and the pins check improved (7: -0.08,
+10: -0.14, 1: -0.21). The laydown moved from 23.3 to 22.7, away from the
+owner's 24 to 25: a narrower lane shrinks the boards on the ball's side.
+The left edge, marked on the line nearest the lane, has no second line
+between it and the lane surface. Pins 18.2, breakpoint 7.2 at 43 ft.
+
+**The board at the pins is read where the ball meets them.** The owner read
+shot-06's pins as about 18, a high pocket, like shot-01. The 60 ft reading
+used frame 105, at 61 ft, already among the pins, and read past the point of
+contact. Now (`boardAtPins`) board and distance are each a straight line
+against time through the sightings from 54 ft on, and the board is read
+where the distance line reaches the first pin contact (or when the rack is
+first seen to move, if sooner); sightings past either are left out. shot-01
+reads 17.9 (owner: about 18). shot-06 reads 19.2: its last clear sightings
+are 18.2 at 58 ft and still turning a board a foot. By eye on frames 99 to
+103 (pin spots drawn) the ball's centre is 2 boards inside the head pin at
+frame 99 and about one at 101 and 103, so 18.5 to 19 at contact. This clip
+is 720 pixels wide and recompressed, and cannot settle it to better than a
+board. Not tuned further.
+
+**The laydown is the ball right above the foul line, in the picture.** The
+owner (2026-11-13, third time): shot-01's laydown is the board under the ball
+in the frame where it sits immediately above the foul line, about 24 or 25,
+not where the ball reaches the line on the ground. `release.ts` follows the
+ball back from its first sighting by its darkness against the lane round its
+lower half (the hand covers its top), and reads the board on the foul line
+straight below its centre in the frame where its bottom reaches the foul
+line's row. On shot-02, shot-03 and shot-05 the bottom never reaches the row
+(14 to 21 pixels short: the ball is carried over the line), and it is read
+where it comes lowest, beside the slide foot. Laydowns: shot-01 23.9 (owner
+24 or 25), shot-02 18.4, shot-03 13.7, shot-05 18.7 (owner 18 to 19),
+shot-06 18.5 (owner about 18). Where the ball cannot be followed the line
+through the first sightings, run back to 0 ft, is kept. The review page's
+laydown picture is that frame, with the followed ball circled. The pins
+picture is zoomed out to the next lanes and the last 20 ft (owner, shot-02).
+
+**Which frame: the first the ball sits on the line.** The owner again: shot-01's
+picture (frame 76, 23.9) was a few frames too late. Its bottom stays on the
+foul line's row from frame 72 to 77 as it goes out, and the owner reads the
+first of them. The laydown is now read where the ball comes lowest beside the
+line: shot-01 frame 72, 24.9; shot-06 frame 32, 21.9 (was 18.5 at frame 34,
+where its bottom leaves the row; the owner had read about 18 and called 17.5
+quite good, so this is for them to check). Each panel of the review picture
+now has its own ball's plumb line. Moving shot-01's foul line to the bottom
+of the light strip below it (y 635) was tried and dropped: it shifted the
+near end's board scale and read 21.8.
+
+**The ball's circle follows its outline.** The owner: the green circle in the
+laydown picture did not border the ball. The darkness match keeps the radius
+it is given, and the ball in the hand is nearer the camera (shot-01: 23.6
+pixels on the lane, 26.6 at frame 72), so it matched off-centre. Each disc is
+now fitted to the ball's outline (`fitOutline`: the dark-to-light step along
+rays over its lower half and sides, a circle through them with the radius
+free). shot-01 reads 25.1.
+
+**shot-02 has two calibrations.** The owner: in its touchdown picture the
+lane edges did not follow the lane, and the ball sits on the 20th board's
+dot. The camera pans hard through this shot; the calibration on frame 192
+(after the shot, where the scoring console also hides the near right edge)
+carried back to the release missed the lane by a board or more. A second
+calibration on frame 66, the touchdown, marks both edges near the foul line
+(the thin line inside the bumper groove, on both sides), the foul line and
+the pin row from lanes 9 and 11 (worst mark 0.11 board). Calibrated on
+frame 66 alone the far frames do not register (the ball is lost at 36 ft),
+so the near readings come from it and the far ones from frame 192
+(`near` in the calibration file). Laydown 22.1 (was 18.3), touchdown 20.4
+(16.5), arrows 15.7 (13.5); breakpoint 8.6 at 44.5 ft and pins as before.
+The same split would be needed in the app for a camera that pans this far.
+
+**shot-04: the laydown and the arrows at least.** The owner asked. Calibrated
+on frame 88, as the ball lands: both edges on the thin line inside the bumper
+groove, the foul line where the lane ends, the pin row on lanes 3 and 8
+(edges and foul line within 0.05 board; lane 8's pins 1.3 ft off along the
+lane, which moves nothing near the foul line). The tracer still finds the
+ball in only 7 frames: the camera pans and the bowler stands over the
+ball's path, so the empty lane holds the bowler and the ball merges with
+what changed round it. `follow.ts` follows the ball by its own darkness from
+frame 88 (`follow` in the calibration file) until it goes behind the bowler
+at 11.7 ft, through each frame's lane mapping (the grid follows both gutters
+on frames 75 to 104). Laydown 6.4 (the ball followed back into the hand,
+frame 75), touchdown 5.8 at 4.0 ft, arrows about 5.0 (a straight line run
+on from 11.7 ft, estimated). Nothing further is read.
+
+**shot-05: the touchdown and the pins.** The owner: at frame 139 the ball is
+still in the air, and "about 9.2" at the pins is too sure when the ball is not
+seen there. Frames 139 and 140 had no mirror image found and were taken as on
+the lane, though 141 and 142 were judged in the air; a sighting before one in
+the air is now in the air too. Touchdown 18.0 at 1.8 ft (was 18.2 at 1.4).
+The board at the pins is left unread when the ball was last seen short of
+54 ft (shot-05: 52.8 ft); it was estimated from 52 ft. No other clip's
+readings moved.
+
+**The laydown: the last frame the ball sits on the foul line.** The owner
+chose it (2026-11-13): the ball's bottom sits on the foul line's row in the
+picture for a few frames as it goes out, and the board under it changes as
+it moves across. It is read where the bottom is last on the row (followed
+back from the lane, where it first comes down onto it), or where the ball
+comes lowest when it never reaches it. shot-06 17.7 (owner about 18),
+shot-01 24.2 (owner 24 or 25), shot-02 21.0, shot-04 6.2; shot-03 and
+shot-05 unchanged.
+
+**shot-01's left edge was on the bumper too.** The owner marked the lane about
+a board further in. Inside the old mark there is no second dark line, only a
+pale strip without the lane's yellow tint; the lane's colour starts 5.5 to 7
+pixels in on rows 470 to 482, where the lane is clear of reflections. The
+edge is moved 5.5 pixels in, parallel to the old one (worst mark 0.42 board,
+pins check 7: -0.32, 10: -0.05, 1: -0.36). With the lane narrower the boards
+on its left side read higher: touchdown 23.3 (was 22.4), arrows 17.3 (16.6;
+the owner read 16), breakpoint 7.2, pins 17.4 (owner about 18).
+
+**The board at the pins: the ball just before it meets them.** The owner:
+shot-01 is a really high pocket, more than 17.4. Its last sighting was at
+frame 232, seven frames before the rack is seen to move (239; by eye a pin
+leans at 236). The ball is now followed on by its darkness to the frame
+before the rack moves (`followForward`) and read by its centre across the
+picture on the head pin's contact row: in front of the rack its circle slides
+onto its mirror image, so only its column is trusted. A straight line through
+the last four frames' boards is read halfway between the last frame before
+the rack moves and the first that does. Used only when the ball was lost more
+than two frames before that; otherwise the sightings reach it. shot-01 reads
+19.7 (by eye against the pin columns: centre at x 521, head pin at 520,
+about 19.4). No other clip's board at the pins moved. The pins picture is
+that last frame.
+
+**The board at the pins when the rack is hidden.** The owner: shot-02 is
+not 14; in the last frame before the bowler's hand covers the ball it is on
+a path to touch the head pin, so at least in the pocket. The rack is never
+seen to move there (the arm swings across it as the ball arrives), so the
+follower above never ran, and the 14.3 was the fitted path run on from 54 ft.
+Now, with no rack movement found, the ball is followed on from its last
+sighting until it is lost; if the fitted motion has it at 57 ft or more by
+then, the mean of its last three frames' boards (by column, as above) is the
+board at the pins, shown as estimated because the last feet of turn are not
+seen. shot-02 reads 16.0 (frames 214 to 219 read 15.0 to 16.4; the head pin
+is on 20, and a ball centre within about 6.3 boards of it touches it). The
+gate is the fitted distance as well as the sighting's own: shot-02's last
+sighting reads 49.8 ft where the fit has 53.8. No other clip moved.
+
+**Still failing:** as round seven, and: the laydown is not measured on the
+crossing frame itself (the ball in the hand or the air is not a sighting),
+it is the rolling ball's line run back, checked by eye; shot-05's pins are
+an estimate (four sightings past 54 ft by time, over less than 2 ft).
+
+## Results, round seven (2026-11-13, superseded)
 
 Five of six clips calibrate, each from one frame; four give a breakpoint.
 

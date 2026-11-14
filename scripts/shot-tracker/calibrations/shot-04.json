@@ -1,6 +1,14 @@
 {
- "clip": "shot-04.mp4",
- "frame": 202,
- "hand": "right",
- "skip": "This clip cannot be calibrated: film from a better spot. The camera stands right behind the bowler, so in every frame their body hides the middle of this lane, its rack and its far edges. Frame 202 (after the shot, bowler standing still; saved beside this page) is the best: both edges show near the camera, the rack's left three columns show (pins 7, 4, 2), the next lane's 7 pin gives the pin row, and the foul line is faint. Marked there, the marks disagree by 1.5 to 2.2 boards (pin 4 and pin 2 against the edges): the right edge runs beside the bowler's right leg and its snap is unsure (support 0.42), and with the rack mostly hidden nothing else fixes the far end. A calibration that disagrees with itself by two boards is refused rather than traced."
+  "clip": "shot-04.mp4",
+  "frame": 88,
+  "hand": "right",
+  "points": [],
+  "lines": [
+    ["left", [[309.0, 450.0], [290.0, 480.0], [278.0, 500.0], [266.0, 520.0], [259.5, 530.0]]],
+    ["right", [[521.0, 370.0], [525.0, 400.0], [534.0, 460.0], [540.0, 500.0], [543.7, 525.0]]],
+    ["foul", [[300.0, 521.5], [350.0, 519.5], [420.0, 518.0]]],
+    ["pinrow", [[321.0, 252.0], [381.0, 251.0], [882.0, 247.5], [942.0, 244.0]]]
+  ],
+  "follow": {"frame": 88, "x": 503, "y": 437, "r": 23},
+  "notes": "Calibrated on frame 88, as the ball lands (the owner asked for the laydown and the arrows at least, 2026-11-13). The camera stands right behind the bowler and pans through the shot, so this lane's own rack and far edges are hidden in every frame; an earlier attempt on frame 202 (after the shot) disagreed with itself by 1.5 to 2.2 boards. Here: both edges on the thin line where the lane's colour ends, inside the bumper groove (left rows 450 to 530 below the bowler's leg, right rows 370 to 525); the foul line where the lane surface ends, as on shot-01 and shot-02; the pin row on the outer pins of lanes 3 and 8. Only the near end is trusted: nothing on this lane fixes the far end. The tracer does not find the ball against the empty lane here (the bowler stands over its path), so it is followed by its darkness from frame 88 (`follow`) until it goes behind the bowler at about 11 ft."
 }

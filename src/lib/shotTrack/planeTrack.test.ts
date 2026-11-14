@@ -6,7 +6,7 @@ import { alignTo, robustHomography, rotation, turnHomography } from "./registrat
 import { medianBackground } from "./background";
 import { makeFrame, warp } from "./image";
 import { timeAt, truthAt } from "./synthetic";
-import { laneMarkings, standardShot, syntheticSource, truthBoard } from "./syntheticSource";
+import { laneMarkings, standardShot, syntheticSource, truthBoard, truthBoardAtPins } from "./syntheticSource";
 import type { Mat3, TrackResult } from "./types";
 
 /**
@@ -31,7 +31,7 @@ function expectBoards(spec: ReturnType<typeof standardShot>, r: TrackResult, lim
   expect(Math.abs(r.metrics.touchdown.value! - truthBoard(spec, r.metrics.touchdownFeet.value!))).toBeLessThan(limit);
   expect(Math.abs(r.metrics.arrows.value! - truthBoard(spec, 15))).toBeLessThan(limit);
   expect(r.metrics.pins.value).not.toBeNull();
-  expect(Math.abs(r.metrics.pins.value! - truthBoard(spec, 60))).toBeLessThan(limit);
+  expect(Math.abs(r.metrics.pins.value! - truthBoardAtPins(spec))).toBeLessThan(limit);
 }
 
 describe("calibrated from the lane's markings only", () => {

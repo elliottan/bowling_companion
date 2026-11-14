@@ -8,8 +8,9 @@ import { snapEdge, snapMarks, type MarkSnap } from "./edgeSnap";
 import { apply, downAt, invert, multiply, normalize } from "./homography";
 import type { Point } from "./types";
 import { median, sample } from "./image";
-import { BALL_DIAMETER_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
+import { BALL_DIAMETER_IN, CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
 import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, withoutIslands, type MotionPoint } from "./pathFit";
+import { followForward, overFoulLine, uAtColumn, type OverFoulLine, type ReleaseFrame } from "./release";
 import { alignTo, laneMarksOf, register, registerPlane, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, TrackError, TrackFailure, TrackResult } from "./types";
 
@@ -73,6 +74,10 @@ export interface TraceDebug {
   /** The two speed readings, mph: the event anchors and the fitted slope. */
   speeds?: { anchored: number | null; slope: number };
   calibration: CalibrationReport | null;
+  /** The ball followed back to where it sits right above the foul line (the laydown), when it could be. */
+  release?: OverFoulLine | null;
+  /** The ball followed by its darkness from its last sighting to just before the rack moves. */
+  toPins?: ReleaseFrame[];
 }
 
 export interface TraceOutput {
@@ -303,6 +308,15 @@ export function trace(input: TraceInput): TraceOutput {
     if (s.v < 8 && r > Math.max(0.75, 3 * sigma)) s.airborne = true;
     else break;
   }
+  // A ball does not leave the lane once it lands: a sighting before one judged
+  // in the air is in the air too, mirror image found or not (shot-05: frames
+  // 139 and 140 had none and were taken as on the lane, 141 and 142 were in
+  // the air; the owner saw it still in the air at 139).
+  let lastAir = -1;
+  sightings.forEach((s, i) => {
+    if (s.airborne && s.v < 10) lastAir = i;
+  });
+  for (let i = 0; i < lastAir; i++) sightings[i].airborne = true;
   const seen = withoutIslands(sightings.filter((s) => !s.airborne));
   const svOf = new Map(sightings.map((s, k) => [s.frame, sv[k]]));
   const vs = seen.map((s) => s.v);
@@ -310,8 +324,23 @@ export function trace(input: TraceInput): TraceOutput {
     return { result: fail("too-little-seen", `${seen.length} sightings over ${(Math.max(...vs) - Math.min(...vs)).toFixed(1)} ft`), debug };
   }
 
+  // The laydown as the owner reads it: the ball right above the foul line in
+  // the picture, followed back from its first sighting on the lane.
+  const firstSeen = sightings.find((s) => !s.airborne) ?? seen[0];
+  const okGeo = (i: number) => {
+    const g = geometry[i - first];
+    return g && g.ok ? g : null;
+  };
+  debug.release = overFoulLine(
+    (i) => (okGeo(i) ? source.frame(i) : null),
+    (i) => okGeo(i)?.H ?? null,
+    firstSeen.frame,
+    { cx: firstSeen.cx, cy: firstSeen.cy, r: firstSeen.r },
+    Math.round(0.5 / Math.max(1e-3, (seen[seen.length - 1].t - seen[0].t) / Math.max(1, seen[seen.length - 1].frame - seen[0].frame)))
+  );
+
   progress("path", 0.85);
-  const pathPts = seen.map((s) => ({ v: s.v, u: s.u, w: s.weight, sv: svOf.get(s.frame) }));
+  const pathPts = seen.map((s) => ({ v: s.v, u: s.u, w: s.weight, sv: svOf.get(s.frame), t: s.t }));
   const fit = fitPath(pathPts);
   const touchdown = seen[0].v <= 6 ? seen[0].v : null;
 
@@ -320,15 +349,62 @@ export function trace(input: TraceInput): TraceOutput {
   let motion = fitMotion(motionPts);
   const contactV = pinContactFeet(fit.path);
   let pinFrame: number | null = null;
+  let pinT: number | undefined;
   let anchoredSpeed: number | undefined;
   if (contactV !== null) {
     const farT = seen.filter((s) => s.v > 50).map((s) => s.t);
     const found = findPinFrame(source, geometry, motion, fit.path, debug, farT.length ? Math.max(...farT) : -Infinity);
     if (found !== null) {
       pinFrame = found.frame;
+      pinT = found.t;
       if (touchdown !== null && found.t > seen[0].t) anchoredSpeed = (contactV - seen[0].v) / (found.t - seen[0].t);
       const total = motionPts.reduce((s, p) => s + p.w, 0);
       motion = fitMotion([...motionPts, { t: found.t, v: contactV, w: 0.25 * total }]);
+    }
+  }
+
+  // The board at the pins as the owner reads it (shot-01): where the ball is
+  // just before it meets the pins. It is followed by its darkness from its
+  // last sighting to the frame before the rack is first seen to move, and read
+  // by its centre across the picture on the head pin's contact row (in front
+  // of the rack its circle slides onto its mirror image, so only its column is
+  // trusted).
+  let pinsU: number | undefined;
+  let pinsEstimated = false;
+  const vAtT = (t: number) => motion.v0 + motion.w * t + 0.5 * motion.d * t * t;
+  const lastSeen = seen[seen.length - 1];
+  // Only when the ball was lost more than two frames before the rack moves
+  // (shot-01: seven); seen closer than that, the sightings already reach it.
+  if (pinFrame !== null && lastSeen.v > 50 && pinFrame - lastSeen.frame > 2 && pinFrame - lastSeen.frame <= 30) {
+    const track = followForward((i) => (geometry[i - first]?.ok ? source.frame(i) : null), lastSeen.frame, lastSeen, pinFrame - 1);
+    debug.toPins = track;
+    const reach = track.length ? track[track.length - 1].frame : lastSeen.frame;
+    if (reach >= pinFrame - 3) {
+      // A straight line through the last four frames' boards, read halfway
+      // between the last frame before the rack moves and the first that does:
+      // a hooking ball still turns, and at 30 frames a second the frames are
+      // 0.7 ft apart.
+      const near = [{ frame: lastSeen.frame, cx: lastSeen.cx }, ...track].slice(-4);
+      const xs = near.map((d) => d.frame);
+      const ys = near.map((d) => uAtColumn(geometry[d.frame - first].H, d.cx, 60 - CONTACT_IN / 12));
+      const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
+      const my = ys.reduce((a, b) => a + b, 0) / ys.length;
+      const den = xs.reduce((a, x) => a + (x - mx) ** 2, 0);
+      const slope = den > 0 ? xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / den : 0;
+      pinsU = my + slope * (pinFrame - 0.5 - mx);
+    }
+  } else if (pinFrame === null && Math.max(lastSeen.v, vAtT(lastSeen.t)) > 50) {
+    // The rack never seen to move (shot-02: the bowler's arm swings across it
+    // as the ball arrives). The ball is followed on until the arm covers it;
+    // if by then the fitted motion has it within three feet of the head pin,
+    // its last three frames' boards are the estimate. Not run on: the turn
+    // left in the last feet is not seen.
+    const track = followForward((i) => (geometry[i - first]?.ok ? source.frame(i) : null), lastSeen.frame, lastSeen, lastSeen.frame + 30);
+    if (track.length >= 3 && vAtT(source.frame(track[track.length - 1].frame).t) >= 57) {
+      debug.toPins = track;
+      const tail = track.slice(-3);
+      pinsU = tail.reduce((a, d) => a + uAtColumn(geometry[d.frame - first].H, d.cx, 60 - CONTACT_IN / 12), 0) / tail.length;
+      pinsEstimated = true;
     }
   }
 
@@ -346,7 +422,10 @@ export function trace(input: TraceInput): TraceOutput {
   const tLast = seen[seen.length - 1].t;
   const distance = input.distance ?? "foul";
   const met = metrics({
-    path: fit.path, hand, seen: vs, points: pathPts, touchdown, motion, tFirst, tLast,
+    path: fit.path, hand, seen: vs, points: pathPts, touchdown, motion, tFirst, tLast, rackMovesAt: pinT,
+    overFoulLineU: debug.release?.u,
+    pinsU,
+    pinsEstimated,
     // Measured only from the two sharp events; where the bowler hides the
     // touchdown or the rack, the fit's speed is shown as estimated.
     speedMeasured: distance !== "default" && anchoredSpeed !== undefined,

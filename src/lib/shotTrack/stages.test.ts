@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { associate, polyfit } from "./associate";
 import { laneRoi, medianBackground, steady } from "./background";
-import { findCandidates, refineCircle } from "./ballDetect";
+import { closeGaps, findCandidates, refineCircle } from "./ballDetect";
 import { calibrationReport, checkArrows, checkPins } from "./calibrationCheck";
 import { fitLine, robustLine, snapEdge } from "./edgeSnap";
 import { apply, intersect, multiply, segmentLine } from "./homography";
 import { makeFrame, warp } from "./image";
-import { BALL_RADIUS_FT, expectedRadiusPx, laneToWorld } from "./laneModel";
-import { fitMotion, fitPath, localU, metrics, nelderMead, pathU, pinContactFeet, timeAtFeet, withoutIslands } from "./pathFit";
+import { BALL_RADIUS_FT, BOARD_FT, CONTACT_IN, expectedRadiusPx, laneToWorld } from "./laneModel";
+import { boardAtPins, fitMotion, fitPath, localU, metrics, nelderMead, pathU, pinContactFeet, timeAtFeet, withoutIslands } from "./pathFit";
 import { globalShift, register } from "./registration";
 import { project, timeAt, truthAt } from "./synthetic";
 import { standardShot, syntheticSource } from "./syntheticSource";
@@ -130,6 +130,43 @@ describe("ballDetect", () => {
     expect(findCandidates(draw(false), flat, roi, I, H, 0).length).toBe(0);
   });
 
+  it("closes gaps in the change up to twice the radius wide, and no wider", () => {
+    const w = 20;
+    const h = 9;
+    const mask = new Uint8Array(w * h);
+    const set = (x0: number, x1: number) => {
+      for (let y = 2; y <= 6; y++) for (let x = x0; x <= x1; x++) mask[y * w + x] = 1;
+    };
+    set(1, 3);
+    set(7, 9); // a 3 pixel gap from the first strip
+    set(16, 18); // a 6 pixel gap from the second
+    const closed = closeGaps(mask, w, h, 2);
+    expect(closed[4 * w + 5]).toBe(1);
+    expect(closed[4 * w + 12]).toBe(0);
+    // Nothing grows: what was clear outside the strips stays clear.
+    expect(closed[0]).toBe(0);
+    expect(closed[4 * w + 19]).toBe(0);
+    expect(closed[4 * w + 8]).toBe(1);
+  });
+
+  it("finds a ball whose change the gaps between the pins cut into strips", () => {
+    const at = apply(H, { x: 20, y: 30 });
+    const r = Math.round(expectedRadiusPx(H, 20, 30));
+    const cx = Math.round(at.x) - roi.x0;
+    const cy = Math.round(at.y) - r - roi.y0;
+    const flat = makeFrame(roi.width, roi.height, 0, 120);
+    const f = makeFrame(roi.width, roi.height, 0, 120);
+    for (let y = -r; y <= r; y++) {
+      for (let x = -r; x <= r; x++) {
+        // Every fourth and fifth column shows no change, top to bottom.
+        if (x * x + y * y <= r * r && (x + 100) % 5 < 3) f.data[(cy + y) * roi.width + cx + x] = 30;
+      }
+    }
+    const c = findCandidates(f, flat, roi, I, H, 0);
+    expect(c.length).toBe(1);
+    expect(Math.abs(c[0].x - (cx + roi.x0))).toBeLessThan(1.5);
+  });
+
   it("fits the circle's centre within 0.3 pixel", () => {
     const i = Math.round(timeAt(spec, 30) * spec.fps);
     const truth = truthAt(spec, i);
@@ -229,6 +266,40 @@ describe("pathFit", () => {
     // One wild sighting does not move the line.
     const wild = curved.map((p, i) => (i === 6 ? { ...p, u: p.u + 6 } : p));
     expect(Math.abs(localU(wild, 1, 11, 0)! - u(0))).toBeLessThan(0.2);
+  });
+
+  it("reads the board at the pins off the last sightings, by when they were seen", () => {
+    // A ball that turns a board a foot from 54 ft on, at 22 ft a second.
+    const u = (v: number) => 30 - (v > 54 ? 1.0 * (v - 54) : 0);
+    const motion = { v0: 0, w: 22, d: 0 };
+    const late = Array.from({ length: 59 }, (_, i) => {
+      const v = 1 + i;
+      // Next to the rack a sighting's own distance jumps about; its time does not.
+      return { v: v > 54 ? v + (i % 2 ? 1.2 : -1.2) : v, u: u(v), w: 1, sv: 0.1, t: v / 22 };
+    });
+    const fit = fitPath(late);
+    const m = metrics({
+      path: fit.path, hand: "right", seen: late.map((p) => p.v), points: late, touchdown: 1,
+      motion, tFirst: late[0].t, tLast: late[late.length - 1].t, speedMeasured: true
+    });
+    expect(m.pins.state).toBe("measured");
+    // Read where the ball first meets the head pin, a little short of its spot at 60 ft.
+    const meet = 60 - Math.sqrt((CONTACT_IN / 12) ** 2 - ((40 - u(59.4) - 20) * BOARD_FT) ** 2);
+    expect(Math.abs(m.pins.value! - (40 - u(meet)))).toBeLessThan(0.25);
+  });
+
+  it("reads the board at the pins only from sightings before the ball meets them", () => {
+    // Straight at board 18 to the pins, then deflected two boards a foot among them.
+    const pts = Array.from({ length: 30 }, (_, i) => {
+      const t = 2.4 + i / 30;
+      const v = 22 * t;
+      return { v, u: v < 59.4 ? 22 : 22 + 2 * (v - 59.4), w: 1, sv: 0.1, t };
+    }).filter((p) => p.v >= 53);
+    expect(boardAtPins(pts, 59.4)! - 22).toBeCloseTo(0, 1);
+    // Told when the rack first moved, a ball seen past contact is still read before it.
+    expect(boardAtPins(pts, 70, 59.4 / 22)! - 22).toBeCloseTo(0, 1);
+    // Too few sightings give no reading.
+    expect(boardAtPins(pts.slice(0, 3), 59.4)).toBeNull();
   });
 
   it("marks what it could not see as estimated or missing", () => {

@@ -9,5 +9,14 @@
     ["foul", [[207, 647], [340, 639.3], [362, 637.5]]],
     ["pinrow", [[183, 415.5], [296, 408.5], [609.3, 391.2], [666, 388.2]]]
   ],
-  "notes": "A spare: two pins of unknown number stand, so no pin is a mark. Everything is marked on frame 192. The house's cross-lane lines slope about 3 degrees in this picture (the camera is rolled), so the pin row is marked across four racks: the 7 pin's base on lanes 8, 9 and 11 and the 10 pin's on lane 11. The foul line is where the gutters end, on this lane and the next to the left. The left edge shows beyond the bowler at the far end and beside their feet near the foul line; the scoring console hides the near right edge. The arrows do not show under the lane's reflections."
+  "near": {
+    "frame": 66,
+    "lines": [
+      ["left", [[453.0, 606.0], [450.0, 612.0], [448.0, 618.0], [444.0, 624.0], [442.0, 630.0], [439.0, 636.0]]],
+      ["right", [[644.0, 540.0], [648.0, 550.0], [651.0, 560.0], [654.0, 570.0], [657.0, 580.0], [667.0, 610.0], [670.0, 620.0]]],
+      ["foul", [[470.0, 637.5], [600.0, 633.5], [640.0, 631.5]]],
+      ["pinrow", [[431.0, 431.5], [642.0, 420.2], [700.0, 418.1]]]
+    ]
+  },
+  "notes": "A spare at two pins. Two calibrations: the camera pans hard through the shot and no one calibration carries from end to end. Far end (the main one, frame 192): the pin row across four racks (the 7 pin's base on lanes 8, 9 and 11, lane 11's 10 pin), the left edge beyond the bowler and beside their feet, the right edge at the far end; the scoring console hides the near right edge. Near end (frame 66, the touchdown), for the laydown, touchdown and arrows: carried back from frame 192 the grid missed the lane by a board or more (the owner, 2026-11-13). Edges on the thin line where the lane's colour ends, inside the darker bumper groove (left rows 606 to 636 below the leg, right rows 540 to 620); foul line on the top of the light strip where the lane ends, as on shot-01 (it and the gutter ends rise slightly to the right: the camera is rolled); pin row on the back-row 7 and 10 pins of lane 11 and the 7 pin of lane 9. The arrows do not show."
 }

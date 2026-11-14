@@ -4,6 +4,7 @@ import type { GrayFrame, LaneMarks } from "./types";
 import { apply } from "./homography";
 import { namedLine, namedPoint, type CalMark } from "./calibrate";
 import { handedBoard, hookU, laneU } from "./laneModel";
+import { firstPinContact } from "./pathFit";
 
 /**
  * Test support: a synthetic shot as a frame source (frames rendered on first
@@ -42,6 +43,11 @@ export function roughMarks(spec: SyntheticShot, i: number, slop = 1.5): LaneMark
 /** The true handed board at v feet, and the true average speed between two distances. */
 export function truthBoard(spec: SyntheticShot, v: number): number {
   return handedBoard(hookU(spec.path, v), spec.hand);
+}
+
+/** The true board where the ball first meets a pin: what the tracer reads as the board at the pins. */
+export function truthBoardAtPins(spec: SyntheticShot): number {
+  return truthBoard(spec, firstPinContact((v) => hookU(spec.path, v)) ?? 60);
 }
 
 export function truthSpeedMph(spec: SyntheticShot, v0: number, v1: number): number {
