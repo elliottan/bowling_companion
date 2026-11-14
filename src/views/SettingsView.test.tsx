@@ -460,3 +460,21 @@ describe("SettingsView's Headpin Pro", () => {
     });
   });
 });
+
+describe("Labs", () => {
+  beforeEach(() => localStorage.clear());
+
+  it("is hidden until the version line is tapped seven times, then opens the shot tracer", () => {
+    const onSectionChange = vi.fn();
+    renderMenu(onSectionChange);
+    expect(screen.queryByRole("button", { name: /Shot tracer/ })).toBeNull();
+    const version = screen.getByText(/^Headpin \d/);
+    for (let i = 0; i < 7; i++) fireEvent.click(version);
+    fireEvent.click(screen.getByRole("button", { name: /Shot tracer/ }));
+    expect(onSectionChange).toHaveBeenCalledWith("shot-tracer");
+    expect(localStorage.getItem("labs")).toBe("on");
+    for (let i = 0; i < 7; i++) fireEvent.click(version);
+    expect(screen.queryByRole("button", { name: /Shot tracer/ })).toBeNull();
+    cleanup();
+  });
+});

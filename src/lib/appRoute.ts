@@ -75,7 +75,8 @@ const SETTINGS_SECTIONS: readonly string[] = [
   "profile",
   "tools",
   "legal",
-  "live-activity"
+  "live-activity",
+  "shot-tracer"
 ];
 
 /** Settings sections are written behind their own segment because their names

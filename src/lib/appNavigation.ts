@@ -22,7 +22,8 @@ export type SettingsSection =
   | "profile"
   | "tools"
   | "legal"
-  | "live-activity";
+  | "live-activity"
+  | "shot-tracer";
 
 import type { LayoutSeed } from "./layoutShare";
 

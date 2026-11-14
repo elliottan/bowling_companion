@@ -550,6 +550,10 @@ msgctxt "balls thrown"
 msgid "{shots, plural, one {# ball} other {# balls}}"
 msgstr "{shots, plural, one {# tiro} other {# tiros}}"
 
+#: src/views/ShotTracerView.tsx
+msgid "{speed} mph"
+msgstr "{speed} mph"
+
 #: src/components/BallGameSessionsDialog.tsx
 msgid "{spoken} {made} of {of}"
 msgstr "{spoken} {made} de {of}"
@@ -959,6 +963,10 @@ msgstr "Ángulo en el PAP entre el pin y tu línea del eje. Un ángulo bajo deja
 msgid "Angle at the pin between your PAP and the CG or PSA. A low angle rolls early; a high one rolls later."
 msgstr "Ángulo en el pin entre tu PAP y el CG o PSA. Un ángulo bajo rueda temprano; uno alto rueda más tarde."
 
+#: src/views/ShotTracerView.tsx
+msgid "Another video"
+msgstr "Otro video"
+
 #: src/views/GamePlanView.tsx
 msgid "Any"
 msgstr "Cualquiera"
@@ -979,6 +987,11 @@ msgstr "Diagrama de las tablas de la aproximación para un jugador zurdo, dividi
 #: src/components/DriftZoneLane.tsx
 msgid "Approach board diagram for a right-handed bowler, split into outside, middle and inside drift zones"
 msgstr "Diagrama de las tablas de la aproximación para un jugador diestro, dividido en zonas de deriva exterior, centro e interior"
+
+#. A bowling term: the aiming arrows 15 feet down the lane; here the board the ball crosses there
+#: src/views/ShotTracerView.tsx
+msgid "Arrows"
+msgstr "Flechas"
 
 #: src/components/HomeProfile.tsx
 #: src/views/ArsenalView.tsx
@@ -1022,6 +1035,11 @@ msgstr "Asimétrico"
 #: src/components/BallFormDialog.tsx
 msgid "Asymmetric core"
 msgstr "Núcleo asimétrico"
+
+#. The board the ball is on where it meets the pins
+#: src/views/ShotTracerView.tsx
+msgid "At the pins"
+msgstr "En los pinos"
 
 #. Language setting: speak the phone's language
 #: src/views/AppearanceView.tsx
@@ -1074,6 +1092,11 @@ msgstr "Atrás"
 msgctxt "navigation"
 msgid "Back"
 msgstr "Atrás"
+
+#. The row of pin spots furthest from the bowler: the 7, 8, 9 and 10 pins
+#: src/views/ShotTracerView.tsx
+msgid "Back row of pins"
+msgstr "Fila trasera de pinos"
 
 #: src/components/FirstRun.tsx
 msgid "Backed up {when}"
@@ -1182,8 +1205,13 @@ msgid "Benchmark"
 msgstr "Referencia"
 
 #: src/components/DriftZoneLane.tsx
+#: src/views/ShotTracerView.tsx
 msgid "Board {board}"
 msgstr "Tabla {board}"
+
+#: src/views/ShotTracerView.tsx
+msgid "Board {board} at {feet} ft"
+msgstr "Tabla {board} a {feet} ft"
 
 #: src/views/BowlingProfileView.tsx
 msgid "boards"
@@ -1248,8 +1276,10 @@ msgstr "Quiebre {board}·{feet}ft"
 
 #. Bowling term: the point where the ball turns from skid to hook
 #. Bowling term: the point where the ball turns from skid to hook
+#. Bowling term: the point where the ball turns from skid to hook
 #: src/components/ProOfferSamples.tsx
 #: src/lib/shareCard.ts
+#: src/views/ShotTracerView.tsx
 msgid "Breakpoint"
 msgstr "Punto de quiebre"
 
@@ -1378,6 +1408,10 @@ msgstr "Gráfica por sesión"
 #: src/views/BackupRestoreView.tsx
 msgid "Choose a backup file"
 msgstr "Elegir un archivo de respaldo"
+
+#: src/views/ShotTracerView.tsx
+msgid "Choose a video"
+msgstr "Elegir un video"
 
 #: src/components/HistoryCalendar.tsx
 msgid "Choose month"
@@ -1763,6 +1797,10 @@ msgstr "Arrastra un punto para moverlo"
 msgid "Drag the ball, or use the arrow keys, to turn it."
 msgstr "Arrastra la bola, o usa las teclas de flecha, para girarla."
 
+#: src/views/ShotTracerView.tsx
+msgid "Drag the ends of each line onto the lane, on a frame where you can see it clearly. The lane's own edges, not the gutters."
+msgstr "Arrastra los extremos de cada línea sobre la pista, en un cuadro donde se vea bien. Los bordes de la propia pista, no los canales."
+
 #: src/components/LaneVisualizer.tsx
 msgid "Drag the lane to tilt"
 msgstr "Arrastra la pista para inclinarla"
@@ -1902,6 +1940,11 @@ msgstr "Activar Actividad en vivo"
 msgid "Enter whole numbers for both lanes."
 msgstr "Ingresa números enteros para ambas pistas."
 
+#. The tracer worked it out from where the ball was seen nearby
+#: src/views/ShotTracerView.tsx
+msgid "Estimated"
+msgstr "Estimado"
+
 #: src/components/BallEstimates.tsx
 msgid "Estimated average"
 msgstr "Promedio estimado"
@@ -2025,6 +2068,10 @@ msgstr "Fieltro"
 msgid "Fills in the core, coverstock, RG and diff."
 msgstr "Completa el núcleo, la cubierta, el RG y el diff."
 
+#: src/views/ShotTracerView.tsx
+msgid "Film from behind the bowler with the whole lane in view, and trim the video to the shot, from just before the release until the pins fall."
+msgstr "Graba desde detrás del jugador con toda la pista a la vista, y recorta el video al tiro, desde justo antes de soltar la bola hasta que caen los pinos."
+
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
 msgid "Filter leaves"
@@ -2133,6 +2180,11 @@ msgstr "Pasadas hacia adelante"
 msgid "Foul"
 msgstr "Falta"
 
+#. A bowling term: the line at the start of the lane a bowler must not cross
+#: src/views/ShotTracerView.tsx
+msgid "Foul line"
+msgstr "Línea de falta"
+
 #: src/components/ActiveGameScorer.tsx
 msgid "frame {frame}, ball {ball}"
 msgstr "cuadro {frame}, bola {ball}"
@@ -2157,6 +2209,11 @@ msgstr "cuadro {frame}, bola {ball} (strike)"
 #: src/components/LiveActivityPreviews.tsx
 msgid "Frame {frameNumber}"
 msgstr "Cuadro {frameNumber}"
+
+#. A picture of the video, not a bowling frame
+#: src/views/ShotTracerView.tsx
+msgid "Frame {frameNumber} of {count}"
+msgstr "Cuadro {frameNumber} de {count}"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Frame {frameNumber}, ball {ball} is already recorded. Changing it rescores the game from that frame on."
@@ -2597,6 +2654,11 @@ msgstr "Lleva el puntaje, además de la bola y la línea de cada tiro. Todo se q
 msgid "L"
 msgstr "Izq."
 
+#. Settings group for features still being tried out
+#: src/views/SettingsView.tsx
+msgid "Labs"
+msgstr "Labs"
+
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/SessionLanePanel.tsx
 #: src/views/GamePlanView.tsx
@@ -2716,6 +2778,7 @@ msgstr "Más tarde"
 #: src/components/LaneVisualizer.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/views/BowlingProfileView.tsx
+#: src/views/ShotTracerView.tsx
 msgid "Laydown"
 msgstr "Punto de soltada"
 
@@ -2811,6 +2874,10 @@ msgstr "Izquierda"
 msgctxt "times a leave was left"
 msgid "Left"
 msgstr "Veces"
+
+#: src/views/ShotTracerView.tsx
+msgid "Left edge of the lane"
+msgstr "Borde izquierdo de la pista"
 
 #. A ball layout card: the bowler throws left-handed
 #: src/lib/shareCard.ts
@@ -3020,6 +3087,11 @@ msgstr "MB {mbDiff}"
 msgid "MB diff"
 msgstr "Dif. MB"
 
+#. The tracer saw the ball there
+#: src/views/ShotTracerView.tsx
+msgid "Measured"
+msgstr "Medido"
+
 #. Flare reading: the middle third of the scale
 #. Strength reading: the middle third of the scale
 #: src/lib/ballLayout.ts
@@ -3101,6 +3173,10 @@ msgstr "Mover deriva exterior a la derecha"
 #: src/components/LaneVisualizer.tsx
 msgid "Move presets"
 msgstr "Movimientos predefinidos"
+
+#: src/views/ShotTracerView.tsx
+msgid "Move the lines and trace again"
+msgstr "Mover las líneas y trazar de nuevo"
 
 #: src/views/ProOfferView.tsx
 msgid "Move your line"
@@ -3322,6 +3398,11 @@ msgstr "No vinculada al catálogo"
 #: src/views/SpareLinesView.tsx
 msgid "Not now"
 msgstr "Ahora no"
+
+#. The tracer did not see the ball there
+#: src/views/ShotTracerView.tsx
+msgid "Not seen"
+msgstr "No visto"
 
 #: src/views/SpareLinesView.tsx
 msgid "Not the same shot"
@@ -3794,6 +3875,10 @@ msgstr "Proporción"
 msgid "Re-aim"
 msgstr "Reapuntar"
 
+#: src/views/ShotTracerView.tsx
+msgid "Reading the video…"
+msgstr "Leyendo el video…"
+
 #: src/components/FirstRun.tsx
 msgid "Reading…"
 msgstr "Leyendo…"
@@ -3807,6 +3892,10 @@ msgstr "Listo para jugar"
 #: src/views/SearchView.tsx
 msgid "Recent"
 msgstr "Recientes"
+
+#: src/views/ShotTracerView.tsx
+msgid "Record a shot"
+msgstr "Grabar un tiro"
 
 #. Bowling term: the easiest oil pattern tier, a high oil ratio (Kegel's tiers are Sport, Challenge and Recreation)
 #: src/lib/oilPattern.ts
@@ -4013,6 +4102,10 @@ msgstr "RG: más bajo, gira antes"
 #: src/views/LayoutLabView.tsx
 msgid "Right"
 msgstr "Derecha"
+
+#: src/views/ShotTracerView.tsx
+msgid "Right edge of the lane"
+msgstr "Borde derecho de la pista"
 
 #. A ball layout card: the bowler throws right-handed
 #: src/lib/shareCard.ts
@@ -4342,6 +4435,11 @@ msgstr "Hoja"
 msgid "Short pin"
 msgstr "Pin corto"
 
+#: src/views/SettingsView.tsx
+#: src/views/ShotTracerView.tsx
+msgid "Shot tracer"
+msgstr "Trazador de tiros"
+
 #: src/views/ArsenalView.tsx
 msgid "Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
 msgstr "Los tiros ya registrados con esta bola conservan su puntaje, pero pierden el nombre de la bola. Para conservarla en tu historial, mejor retírala."
@@ -4489,6 +4587,10 @@ msgstr "Especificaciones y fotos de las bolas actuales"
 #: src/views/CatalogView.tsx
 msgid "Specs at {weight}"
 msgstr "Especificaciones a {weight}"
+
+#: src/views/ShotTracerView.tsx
+msgid "Speed"
+msgstr "Velocidad"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins
@@ -4816,6 +4918,10 @@ msgstr "La App Store no respondió: {reason}"
 msgid "The App Store did not answer. Try again in a moment."
 msgstr "La App Store no respondió. Inténtalo de nuevo en un momento."
 
+#: src/views/ShotTracerView.tsx
+msgid "The ball couldn't be followed down the lane. Try a video with the whole lane in view."
+msgstr "No se pudo seguir la bola por la pista. Prueba con un video que muestre toda la pista."
+
 #: src/views/BowlingProfileView.tsx
 msgid "The board the ball lands on: your slide, moved by your release offset."
 msgstr "La tabla donde cae la bola: tu deslizamiento, desplazado por tu desfase de soltada."
@@ -4831,6 +4937,10 @@ msgstr "La tabla donde termina tu pie de deslizamiento: tu posición, desplazada
 #: src/views/BowlingProfileView.tsx
 msgid "The board your slide foot starts on."
 msgstr "La tabla donde empieza tu pie de deslizamiento."
+
+#: src/views/ShotTracerView.tsx
+msgid "The camera moves too much to follow the lane. Try a steadier video."
+msgstr "La cámara se mueve demasiado para seguir la pista. Prueba con un video más estable."
 
 #: src/views/CatalogView.tsx
 msgid "The catalog has not loaded"
@@ -4849,10 +4959,18 @@ msgstr "No se pudo crear la imagen."
 msgid "The lane as the sheet draws it: boards across, feet up from the foul line, darker where there is more oil. The faint wash is where the machine only buffs, laying no oil of its own."
 msgstr "La pista como la dibuja la hoja: tablas a lo ancho, pies desde la línea de falta, más oscuro donde hay más aceite. El tono tenue es donde la máquina solo pule, sin aplicar aceite propio."
 
+#: src/views/ShotTracerView.tsx
+msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."
+msgstr "No se pudo calcular la pista a partir de las líneas. Comprueba que cada una esté sobre su línea y vuelve a trazar."
+
 #. A leave is the set of pins left standing after the first ball (bowling term)
 #: src/views/OpenFramesView.tsx
 msgid "The leaves you keep missing rank here, most often first. Finish a game to start the count."
 msgstr "Las dejadas que sigues fallando se ordenan aquí, de la más frecuente a la menos. Termina un juego para empezar la cuenta."
+
+#: src/views/ShotTracerView.tsx
+msgid "The lines don't agree with each other. Check that each sits on its line, then trace again."
+msgstr "Las líneas no coinciden entre sí. Comprueba que cada una esté sobre su línea y vuelve a trazar."
 
 #. Describes the Benchmark drilling layout preset
 #: src/lib/ballLayout.ts
@@ -4957,6 +5075,10 @@ msgstr "Este tiro…"
 msgid "This tab is running an older version of the app than your scores were saved with. Everything is still on this device."
 msgstr "Esta pestaña usa una versión de la app más antigua que la que guardó tus puntajes. Todo sigue en este dispositivo."
 
+#: src/views/ShotTracerView.tsx
+msgid "This video couldn't be read. Try another one."
+msgstr "No se pudo leer este video. Prueba con otro."
+
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
 msgid "Time to bowl"
@@ -4979,6 +5101,14 @@ msgstr "Mejor resultado"
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"
 msgstr "Vista superior"
+
+#: src/views/ShotTracerView.tsx
+msgid "Trace the shot"
+msgstr "Trazar el tiro"
+
+#: src/views/ShotTracerView.tsx
+msgid "Tracing the shot…"
+msgstr "Trazando el tiro…"
 
 #. Bowling term: bands of boards across the lane, as an oil pattern sheet prints them
 #: src/components/PatternSheet.tsx
@@ -5395,6 +5525,10 @@ msgstr "Tu layout se guarda en la bola. Headpin Pro lo dibuja en la bola y muest
 #: src/views/BowlingProfileView.tsx
 msgid "Your line"
 msgstr "Tu línea"
+
+#: src/views/SettingsView.tsx
+msgid "Your line and boards from a video"
+msgstr "Tu línea y tus tablas desde un video"
 
 #: src/components/BowlerNameSheet.tsx
 msgid "Your name"
