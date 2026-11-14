@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { apply, horizon, invert, lineDistance, type Line3 } from "./homography";
+import { apply, mapLine, horizon, invert, lineDistance, type Line3 } from "./homography";
 import { makeFrame } from "./image";
 import {
   buildFan,
@@ -9,6 +9,11 @@ import {
   findFoulLine,
   findFoulLines,
   findLane,
+  findLanes,
+  frameLanes,
+  CAMERA_OFF_FT,
+  TYPICAL_CAMERA_FT,
+  guessFoul,
   findPinRow,
   houghLines,
   laneAttempts,
@@ -858,6 +863,60 @@ describe("findLane on a rendered house", () => {
     expect(m.left[0]).not.toBe((found.marks[0] as { at: Point[] }).at[0]);
   });
 
+  it("findLanes calibrates every frame, in frame order, and frameLanes hands them to the tracer", () => {
+    const all = findLanes(h.frames);
+    expect(all.lanes.length).toBeGreaterThanOrEqual(2);
+    expect(all.lanes.map((a) => a.found.index)).toEqual([...all.lanes.map((a) => a.found.index)].sort((a, b) => a - b));
+    for (const a of all.lanes) {
+      expect(cornerError(h, a.found.H).boards).toBeLessThan(0.3);
+      expect(Math.abs(a.found.camera - all.camera)).toBeLessThanOrEqual(CAMERA_OFF_FT);
+    }
+    expect(all.best).not.toBeNull();
+    const lanes = frameLanes(all, (i) => 100 + 7 * i);
+    expect(lanes.map((l) => l.frame)).toEqual(all.lanes.map((a) => 100 + 7 * a.found.index));
+    expect(lanes[0].H).toBe(all.lanes[0].found.H);
+    expect(lanes[0].weight).toBe(all.lanes[0].quality);
+  });
+
+  it("findLanes guesses the foul line on a frame that hides it from the camera distance the other frames measure", () => {
+    const foulY = Math.round(apply(h.H, { x: 20, y: 0 }).y);
+    const hidden = h.frames.map((f, i) => {
+      if (i !== 1) return f;
+      // The rows from just above the foul line down repeat the last one
+      // above it, as a bowler's legs and shadow would hide it.
+      const data = Uint8ClampedArray.from(f.data);
+      const y0 = foulY - 25;
+      for (let y = y0; y < f.height; y++) data.copyWithin(y * f.width, (y0 - 1) * f.width, y0 * f.width);
+      return { ...f, data };
+    });
+    const all = findLanes(hidden);
+    const one = all.lanes.find((a) => a.found.index === 1)!;
+    expect(one.found.guess).toEqual({ foul: "camera-from-frames" });
+    expect(one.found.camera).toBeCloseTo(all.camera, 6);
+    expect(cornerError(h, one.found.H).feet).toBeLessThan(1);
+    for (const a of all.lanes.filter((x) => x.found.index !== 1)) expect(a.found.guess).toBeNull();
+    // A guess is never chosen over a frame that saw everything.
+    expect(all.best!.guess).toBeNull();
+  });
+
+  it("guessFoul puts the foul line where the camera's distance says", () => {
+    const H = h.H;
+    const vp = vpOf(H);
+    const left = mapLine(H, [1, 0, -0.5]);
+    const right = mapLine(H, [1, 0, -39.5]);
+    const pin = mapLine(H, [0, 1, -62.6]);
+    const truthFoul = mapLine(H, [0, 1, 0]);
+    const slope = -truthFoul[0] / truthFoul[1];
+    // The camera's distance the truth gives, along the lane's middle.
+    const r = (apply(H, { x: 20, y: 62.6 }).y - vp.y) / (apply(H, { x: 20, y: 0 }).y - vp.y);
+    const d = (62.6 * r) / (1 - r);
+    const g = guessFoul(vp, left, right, pin, slope, d);
+    for (const x of [350, 480, 600]) expect(Math.abs(h.lane(onLineAtX(g.line, x)).y)).toBeLessThan(0.05);
+    // With the camera put further back than it is, the guess runs up the lane.
+    expect(h.lane(onLineAtX(guessFoul(vp, left, right, pin, slope, d + 5).line, 480)).y).toBeGreaterThan(0.5);
+    expect(g.points).toEqual([]);
+  });
+
   it("markLinesOf says which mark is missing", () => {
     expect(() => markLinesOf({ ...found, marks: found.marks.filter((k) => k.label !== "foul") })).toThrow("no foul mark");
     const asPoint = found.marks.map((k) => (k.label === "left" ? ({ kind: "point", label: "left", u: 0.5, v: 0, at: { x: 0, y: 0 } } as const) : k));
@@ -892,6 +951,7 @@ describe("when there is no lane to find", () => {
     expect(a.attempts).toEqual([]);
     expect(a.camera).toBeNaN();
     expect(findLane(blank)).toBeNull();
+    expect(findLanes(blank)).toEqual({ lanes: [], best: null, camera: NaN });
   });
 
   it("lanesOnFrame gives nothing when the lines meet but there is too little lane below them", () => {
@@ -911,9 +971,19 @@ describe("when there is no lane to find", () => {
     expect(lanesOnFrame(f)).toBeNull();
   });
 
-  it("findLane gives nothing when the foul line is below the picture", () => {
+  it("findLane guesses a foul line below the picture from a typical camera distance, and says so", () => {
     const spec: SyntheticShot = { ...mainSpec, camera: behindCamera({ width: 960, height: 720, fill: 0.14, back: 22 }) };
-    expect(findLane([0, 5, 10].map((i) => renderFrame(spec, i)))).toBeNull();
+    const h = house(spec);
+    const found = findLane(h.frames)!;
+    expect(found).not.toBeNull();
+    expect(found.guess).toEqual({ foul: "typical-camera" });
+    expect(found.camera).toBe(TYPICAL_CAMERA_FT);
+    // The camera is 22 ft back, so the typical distance puts the foul line right.
+    const err = cornerError(h, found.H);
+    expect(err.boards).toBeLessThan(0.5);
+    expect(err.feet).toBeLessThan(1);
+    expect(findLanes(h.frames).lanes.every((a) => a.found.guess !== null)).toBe(true);
+    expect(frameLanes(findLanes(h.frames), (i) => i).every((l) => l.guess)).toBe(true);
   }, SLOW);
 
   it("findLane gives nothing when no pin stands out from its reflection", () => {

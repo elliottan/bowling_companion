@@ -10,6 +10,7 @@ import type { Point } from "./types";
 import { median, sample } from "./image";
 import { BALL_DIAMETER_IN, CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
 import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, withoutIslands, type MotionPoint } from "./pathFit";
+import { laneTrack, type FrameLane, type LaneTrack, type LaneTrackOptions } from "./laneTrack";
 import { followForward, overFoulLine, uAtColumn, type OverFoulLine, type ReleaseFrame } from "./release";
 import { alignTo, laneMarksOf, register, registerPlane, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, TrackError, TrackFailure, TrackResult } from "./types";
@@ -37,6 +38,15 @@ export interface TraceInput {
   calMarks?: (CalMark & { frame?: number })[];
   /** Or the plan's four rough lines on the calibration frame, snapped here (the far one at `farFeet`). */
   marks?: LaneMarks;
+  /**
+   * Or the lane as found on many frames of the clip (`findLanes`), each on its
+   * own frame: every frame then takes its lane from the found frames near it,
+   * carried by registration over a few frames only (`laneTrack`), and
+   * `calibFrame` is only the frame the pictures are registered to.
+   */
+  lanes?: FrameLane[];
+  /** With `lanes`: how the found lanes are blended. */
+  laneTrack?: LaneTrackOptions;
   hand: Handedness;
   distance?: DistanceSource;
   first?: number;
@@ -56,6 +66,10 @@ export interface TraceDebug {
   fit: CalibrationFit | null;
   /** The marks as fitted, in the calibration frame's pixels (marks from other frames carried). */
   fitMarks: CalMark[];
+  /** The lane mapping on the calibration frame as traced (the fit's, or the found lanes' blend there). */
+  H0: Mat3 | null;
+  /** With `lanes`: the found lanes kept, and those dropped as disagreeing with the rest. */
+  lanes?: Omit<LaneTrack, "H">;
   geometry: FrameGeometry[];
   first: number;
   roi: Roi | null;
@@ -97,14 +111,14 @@ export function trace(input: TraceInput): TraceOutput {
   const progress = input.onProgress ?? (() => {});
   const calibFrame = source.frame(input.calibFrame);
   const debug: TraceDebug = {
-    snap: null, fit: null, fitMarks: [], geometry: [], first, roi: null, background: null, steady: new Map(), candidates: [], associated: [],
+    snap: null, fit: null, fitMarks: [], H0: null, geometry: [], first, roi: null, background: null, steady: new Map(), candidates: [], associated: [],
     circles: new Map(), pinEnergy: [], edgeOffsets: [], calibration: null
   };
   const I: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
   progress("registration", 0);
   // The picture's transforms first: they carry marks made on other frames.
   const pictures = register(source, input.calibFrame, I, first, last, input.register);
-  let marks: CalMark[];
+  let marks: CalMark[] = [];
   const carry = (geo: FrameGeometry[]) =>
     input.calMarks!.map((m) => {
       const g = m.frame === undefined || m.frame === input.calibFrame ? null : geo[m.frame - first];
@@ -112,6 +126,7 @@ export function trace(input: TraceInput): TraceOutput {
       const back = invert(g.S);
       return m.kind === "point" ? { ...m, at: apply(back, m.at) } : { ...m, at: m.at.map((p) => apply(back, p)) };
     });
+  const lanes = !input.calMarks && !input.marks && input.lanes?.length ? input.lanes.filter((l) => l.frame >= first && l.frame <= last) : null;
   if (input.calMarks) {
     marks = carry(pictures);
   } else if (input.marks) {
@@ -123,26 +138,42 @@ export function trace(input: TraceInput): TraceOutput {
     const m = snap.marks;
     const line = (label: string, axis: "u" | "v", value: number, s: { a: Point; b: Point }): CalMark => ({ kind: "line", label, axis, value, at: [s.a, s.b] });
     marks = [line("left", "u", LEFT_U, m.left), line("right", "u", RIGHT_U, m.right), line("foul", "v", 0, m.foul), line("deck", "v", input.farFeet ?? DECK_END_FT, m.deck)];
-  } else {
+  } else if (!lanes?.length) {
     return { result: fail("lane-not-found", "no marks"), debug };
   }
-  debug.fitMarks = marks;
-  let fitted: CalibrationFit;
-  try {
-    fitted = fitCalibration(marks);
-  } catch (e) {
-    return { result: fail("lane-not-found", (e as Error).message), debug };
-  }
-  debug.fit = fitted;
-  // A mark more than a board from where the fit puts it says the marks
-  // disagree: one is misplaced, or on something that is not what it was
-  // called. Refused rather than traced.
-  if (fitted.worstBoards > 1) {
-    return { result: fail("calibration-off", `a mark sits ${fitted.worstBoards.toFixed(2)} boards from the fit`), debug };
+  // The picture's transform from one frame's pixels to another's, over a registration.
+  const carryOn = (geo: FrameGeometry[]) => (from: number, to: number): Mat3 | null => {
+    const a = from === input.calibFrame ? null : geo[from - first];
+    const b = to === input.calibFrame ? null : geo[to - first];
+    if ((from !== input.calibFrame && !a?.ok) || (to !== input.calibFrame && !b?.ok)) return null;
+    return normalize(multiply(b ? b.S : I, a ? invert(a.S) : I));
+  };
+  let H0: Mat3;
+  let fitted: CalibrationFit | null = null;
+  if (lanes) {
+    // A first lane on the calibration frame from the picture's turns, for the
+    // floor's own registration to find the floor by.
+    const first0 = laneTrack(lanes, carryOn(pictures), [input.calibFrame], input.laneTrack).H.get(input.calibFrame);
+    if (!first0) return { result: fail("lane-not-found", "no found lane could be carried to the calibration frame"), debug };
+    H0 = first0;
+  } else {
+    debug.fitMarks = marks;
+    try {
+      fitted = fitCalibration(marks);
+    } catch (e) {
+      return { result: fail("lane-not-found", (e as Error).message), debug };
+    }
+    debug.fit = fitted;
+    // A mark more than a board from where the fit puts it says the marks
+    // disagree: one is misplaced, or on something that is not what it was
+    // called. Refused rather than traced.
+    if (fitted.worstBoards > 1) {
+      return { result: fail("calibration-off", `a mark sits ${fitted.worstBoards.toFixed(2)} boards from the fit`), debug };
+    }
+    H0 = fitted.H;
   }
   // The lane's plane, frame by frame (parallax from a camera that travels);
   // marks made on other frames are carried again by it and the fit redone.
-  let H0 = fitted.H;
   // The lens's focal length from the lane mapping, where it gives one: a
   // turn's fit at the bottom of the picture depends on it, and the picture's
   // own small turns fix it poorly.
@@ -162,9 +193,19 @@ export function trace(input: TraceInput): TraceOutput {
     }
     H0 = fitted.H;
   }
+  // Found lanes: each frame's own, blended from the found frames near it over
+  // the floor's registration.
+  let perFrame: Map<number, Mat3> | null = null;
+  if (lanes) {
+    const track = laneTrack(lanes, carryOn(geometry), geometry.filter((g) => g).map((g) => g.index), input.laneTrack);
+    perFrame = track.H;
+    debug.lanes = { kept: track.kept, dropped: track.dropped, checks: track.checks };
+    H0 = perFrame.get(input.calibFrame) ?? H0;
+  }
+  debug.H0 = H0;
   for (const g of geometry) {
     if (!g) continue;
-    g.H = normalize(multiply(g.S, H0));
+    g.H = perFrame?.get(g.index) ?? normalize(multiply(g.S, H0));
     g.marks = laneMarksOf(g.H);
   }
   debug.geometry = geometry;

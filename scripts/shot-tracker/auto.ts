@@ -1,6 +1,7 @@
 /**
- * The tracer with no marks at all: the lane found by `laneFind.ts`, then the
- * same `trace()` the app runs, against the hand-verified calibration.
+ * The tracer with no marks at all: the lane found by `laneFind.ts` on every
+ * frame it can be (`findLanes`), then the same `trace()` the app runs with
+ * those lanes (`lanes`), against the hand-verified calibration.
  *
  *   npx tsx scripts/shot-tracker/auto.ts [shot-0N ...] [--step 10] [--no-trace] [--png] [--fresh-hand]
  *
@@ -19,7 +20,7 @@ import { join } from "node:path";
 import { fitCalibration, focalFromPlane } from "../../src/lib/shotTrack/calibrate";
 import { checkPins } from "../../src/lib/shotTrack/calibrationCheck";
 import { apply, intersect, invert, lineThrough, multiply, normalize, type Line3 } from "../../src/lib/shotTrack/homography";
-import { findLane } from "../../src/lib/shotTrack/laneFind";
+import { findLanes, frameLanes } from "../../src/lib/shotTrack/laneFind";
 import { trace } from "../../src/lib/shotTrack/pipeline";
 import { register, registerPlane } from "../../src/lib/shotTrack/registration";
 import type { Mat3, Metric, TrackResult } from "../../src/lib/shotTrack/types";
@@ -67,7 +68,8 @@ for (const name of names) {
   const t = loadTruth(name);
   const t0 = Date.now();
   const idx = Array.from({ length: Math.ceil(t.clip.count / step) }, (_, i) => i * step);
-  const found = findLane(idx.map((i) => t.clip.frame(i)));
+  const all = findLanes(idx.map((i) => t.clip.frame(i)));
+  const found = all.best;
   const ms = Date.now() - t0;
   if (!found) {
     console.log(`${name}: no lane found (${ms} ms)`);
@@ -96,7 +98,7 @@ for (const name of names) {
   const pinRow = found.pinRow ? vOf(H, found.pinRow, 20) - 62.6 : NaN;
   const pins = checkPins(f, fit.H);
   const pinsTruth = checkPins(f, H);
-  console.log(`${name}: frame ${frame} (${ms} ms over ${idx.length} frames); camera ${fmt(found.camera, 1)} ft; support L ${fmt(found.support.left)} R ${fmt(found.support.right)}; fit worst ${fmt(fit.worstBoards)} boards`);
+  console.log(`${name}: frame ${frame} (${ms} ms over ${idx.length} frames, the lane on ${all.lanes.length}); camera ${fmt(found.camera, 1)} ft; support L ${fmt(found.support.left)} R ${fmt(found.support.right)}; fit worst ${fmt(fit.worstBoards)} boards`);
   console.log(`   coarse left ${fmt(uOf(H, found.coarse.left, 0) - 0.5)} / ${fmt(uOf(H, found.coarse.left, 50) - 0.5)}  right ${fmt(uOf(H, found.coarse.right, 0) - 39.5)} / ${fmt(uOf(H, found.coarse.right, 50) - 39.5)}`);
   console.log(`   left ${fmt(L[0])} / ${fmt(L[1])}  right ${fmt(R[0])} / ${fmt(R[1])} boards at 0 / 50 ft; foul ${fmt(foul)} ft; pin row ${fmt(pinRow)} ft`);
   console.log(`   pins check: found ${pins.map((p) => `${p.name} ${fmt(p.error)}`).join(", ")} | hand ${pinsTruth.map((p) => `${p.name} ${fmt(p.error)}`).join(", ")}`);
@@ -118,7 +120,13 @@ for (const name of names) {
   }
   let read = "| - | - | - | - | - |";
   if (!noTrace) {
-    const auto = trace({ source: t.clip, calibFrame: frame, calMarks: found.marks, hand: t.cal.hand, register: t.cal.register }).result;
+    // The lane found on every frame it was found on, each frame's own blended
+    // from those near it (`laneTrack`); the finder's chosen frame is only the
+    // one the pictures are registered to.
+    const t1 = Date.now();
+    const autoOut = trace({ source: t.clip, calibFrame: frame, lanes: frameLanes(all, (i) => idx[i]), hand: t.cal.hand, register: t.cal.register });
+    const auto = autoOut.result;
+    console.log(`   traced in ${Date.now() - t1} ms; found lanes dropped as disagreeing: ${autoOut.debug.lanes?.dropped.map((l) => l.frame).join(", ") || "none"}`);
     const line = (r: typeof auto) => (r.ok ? (r as TrackResult).metrics : null);
     const a = line(auto);
     const cache = join(here, "out", name, "hand-trace.json");

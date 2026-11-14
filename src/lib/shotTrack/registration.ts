@@ -523,9 +523,9 @@ export function registerPlane(
     for (let k = calibFrame - first + dir; k >= 0 && k < pictures.length; k += dir) {
       const g = pictures[k];
       if (!g) continue;
-      // The guess: last frame's floor transform, moved as the whole picture moved since.
+      // The guess: the last floor transform measured, moved as the whole
+      // picture moved since that frame.
       const guess = normalize(multiply(multiply(g.S, invert(prevPic)), prevPlane));
-      prevPic = g.S;
       const f = source.frame(g.index);
       const P: Point[] = [];
       const Q: Point[] = [];
@@ -555,10 +555,19 @@ export function registerPlane(
       if (!planeOk || disagreement(St, fit.H, H0) < travelled) {
         const H = normalize(multiply(St, H0));
         out[k] = { ...g, S: St, H, marks: laneMarksOf(H), lens };
-        prevPlane = St;
+        // A frame whose floor could not be measured (a hand or the bowler over
+        // a third of the floor's patches) does not become the next guess: on a
+        // camera that travels the turn puts the near floor 20 pixels out
+        // (shot-01 from frame 210), beyond the patch search, and the floor was
+        // never found again.
+        if (planeOk) {
+          prevPlane = St;
+          prevPic = g.S;
+        }
         continue;
       }
       prevPlane = fit.H;
+      prevPic = g.S;
       const H = normalize(multiply(fit.H, H0));
       out[k] = { ...g, S: fit.H, H, marks: laneMarksOf(H), plane: fit.inliers.length };
     }
