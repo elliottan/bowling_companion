@@ -9,6 +9,19 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.109.0: The shot tracer finds the lane on its own (2026-11-14)
+
+- In Settings, Labs (hidden behind seven taps on the version line): the shot
+  tracer no longer asks for the lane's lines first. It looks for the lane's
+  two edges, the foul line and the back row of pins in the video itself and
+  traces at once. When it cannot find them it asks for the lines as before,
+  and "Move the lines and trace again" on the result shows the lines it found,
+  to correct them.
+- On the six sample clips it finds the bowler's own lane every time. Its
+  readings are within half a board of the hand-marked ones on one clip, within
+  about a board on three, and two boards off on one filmed with a hard pan;
+  `docs/SHOT-TRACKER-HANDOFF.md` has the table and what comes next.
+
 ## 0.108.1: The shot tracer's handoff (2026-11-14)
 
 - No change to the app. `docs/SHOT-TRACKER-HANDOFF.md` sets out the next work

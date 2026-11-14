@@ -2127,6 +2127,10 @@ msgstr "Skor akhir"
 msgid "Find the pocket"
 msgstr "Temukan pocket"
 
+#: src/views/ShotTracerView.tsx
+msgid "Finding the lane…"
+msgstr "Mencari lintasan…"
+
 #: src/lib/shareCard.ts
 msgid "Finishes on"
 msgstr "Selesai pada"
@@ -4958,6 +4962,10 @@ msgstr "Gambar tidak bisa dibuat."
 #: src/components/PatternSheet.tsx
 msgid "The lane as the sheet draws it: boards across, feet up from the foul line, darker where there is more oil. The faint wash is where the machine only buffs, laying no oil of its own."
 msgstr "Lintasan seperti digambar di lembar pola: papan melintang, jarak dalam kaki dari foul line, makin gelap di bagian yang minyaknya lebih banyak. Warna samar menandai bagian yang hanya di-buff mesin tanpa menambah minyak."
+
+#: src/views/ShotTracerView.tsx
+msgid "The lane couldn't be found on its own. Drag the lines onto it."
+msgstr "Lintasan tidak ditemukan secara otomatis. Seret garis-garis ke atasnya."
 
 #: src/views/ShotTracerView.tsx
 msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."

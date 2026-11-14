@@ -173,7 +173,15 @@ export interface SyntheticShot {
   palette?: "light" | "dark";
   /** The ball's grey (45, a dark ball, by default). */
   ballTone?: number;
+  /**
+   * Pins mirrored in the glossy pin deck, each with a shaded foot, as on the
+   * sample clips: the seam the lane finder reads the pin row from.
+   */
+  pinMirror?: boolean;
 }
+
+/** Height of a pin's shaded foot, feet. */
+const PIN_FOOT_FT = 0.12;
 
 export interface FrameTruth {
   t: number;
@@ -392,7 +400,7 @@ export function renderFrame(spec: SyntheticShot, i: number): GrayFrame {
   const inBox = (b: { x0: number; y0: number; x1: number; y1: number } | null, x: number, y: number) =>
     b !== null && x >= b.x0 && x <= b.x1 && y >= b.y0 && y <= b.y1;
   const rackBox = pins.length
-    ? boxOf(pins.flatMap((p) => [-pinR, pinR].flatMap((d) => [[p.x + d, p.y, 0], [p.x + d, p.y, PIN_HEIGHT_FT]] as Vec3[])), 2)
+    ? boxOf(pins.flatMap((p) => [-pinR, pinR].flatMap((d) => [[p.x + d, p.y, spec.pinMirror ? -PIN_HEIGHT_FT : 0], [p.x + d, p.y, PIN_HEIGHT_FT]] as Vec3[])), 2)
     : null;
   const ballPts: Vec3[] = balls.flat().flatMap((b) =>
     [-1, 1].flatMap((sx) => [-1, 1].flatMap((sy) => [-1, 1].map((sz) => [b.c[0] + sx * R, b.c[1] + sy * R, sz * (b.c[2] + R)] as Vec3)))
@@ -423,11 +431,24 @@ export function renderFrame(spec: SyntheticShot, i: number): GrayFrame {
       }
       let tNear = tFloor;
       tone = tFloor < Infinity ? floorTone(fx, fy, spec.palette === "dark") : skyTone(o, d);
-      if (inBox(rackBox, px, py)) for (const p of pins) {
-        const tp = hitCylinder(o, d, p.x, p.y, pinR, PIN_HEIGHT_FT);
-        if (tp < tNear) {
-          tNear = tp;
-          tone = 238;
+      if (inBox(rackBox, px, py)) {
+        for (const p of pins) {
+          const tp = hitCylinder(o, d, p.x, p.y, pinR, PIN_HEIGHT_FT);
+          if (tp < tNear) {
+            tNear = tp;
+            tone = spec.pinMirror && o[2] + tp * d[2] < PIN_FOOT_FT ? 150 : 238;
+          }
+        }
+        // The deck in front of the pins mirrors them.
+        if (spec.pinMirror && tNear === tFloor && tFloor < Infinity && fy > 55 && fy <= DECK_END_FT) {
+          const rd: Vec3 = [d[0], d[1], -d[2]];
+          for (const p of pins) {
+            const tm = hitCylinder([fx, fy, 0], rd, p.x, p.y, pinR, PIN_HEIGHT_FT);
+            if (tm < Infinity) {
+              tone = 0.45 * tone + 0.55 * (tm * rd[2] < PIN_FOOT_FT ? 150 : 238);
+              break;
+            }
+          }
         }
       }
       if (body) {

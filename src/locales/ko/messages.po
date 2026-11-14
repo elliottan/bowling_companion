@@ -2127,6 +2127,10 @@ msgstr "최종 점수"
 msgid "Find the pocket"
 msgstr "포켓을 노려요"
 
+#: src/views/ShotTracerView.tsx
+msgid "Finding the lane…"
+msgstr "레인 찾는 중…"
+
 #: src/lib/shareCard.ts
 msgid "Finishes on"
 msgstr "도착 보드"
@@ -4958,6 +4962,10 @@ msgstr "이미지를 만들 수 없어요."
 #: src/components/PatternSheet.tsx
 msgid "The lane as the sheet draws it: boards across, feet up from the foul line, darker where there is more oil. The faint wash is where the machine only buffs, laying no oil of its own."
 msgstr "시트에 그려진 레인이에요. 가로는 보드, 세로는 파울 라인에서 올라가는 피트이고, 오일이 많을수록 어두워져요. 옅은 부분은 머신이 버핑만 하고 오일을 따로 바르지 않는 구간이에요."
+
+#: src/views/ShotTracerView.tsx
+msgid "The lane couldn't be found on its own. Drag the lines onto it."
+msgstr "레인을 자동으로 찾지 못했습니다. 선을 레인 위로 끌어다 놓으세요."
 
 #: src/views/ShotTracerView.tsx
 msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."

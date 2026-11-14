@@ -1,156 +1,192 @@
-# Shot tracer handoff: finding the lane
+# Shot tracer handoff: the lane with no lines
 
-For the next agent. Two pieces of work, in order: snap the bowler's rough lane
-lines onto the real edges, then find the lane with no lines at all. Read this,
-then `docs/SHOT-TRACKER-PLAN.md` (sections 6 and 7, and "PR 8. Calibration
-with no handles"), then `scripts/shot-tracker/README.md` from "In the app"
-down to "round four". `CLAUDE.md` holds the house rules; the ones that bite
-here are at the end.
+For the next agent. The goal the owner set (2026-11-14): **the tracer runs with
+no input from the bowler.** The lane's edges, the foul line and the pin row are
+found in the video; dragging lines is the fallback when that fails, and a
+development aid, not the product. Read this, then
+`scripts/shot-tracker/README.md` ("The lane with no lines" and "In the app"),
+then `docs/SHOT-TRACKER-PLAN.md` sections 6 and 7 for the geometry. `CLAUDE.md`
+holds the house rules; the ones that bite here are at the end.
 
-## Where it stands (0.108.0, 2026-11-14)
+## Where it stands (0.109.0, 2026-11-14)
 
-- The tracer (`src/lib/shotTrack/`) turns a video plus a lane calibration into
-  the laydown, arrows, breakpoint, board at the pins and speed. Everything
-  after the calibration is automatic: following the camera, the empty lane,
-  finding and following the ball, the path, the readings, and a check of the
-  calibration against the pins.
-- **The calibration is not automatic.** It is a homography fitted to points
-  placed on the lane's markings (`calibrate.ts`, `fitCalibration`).
-  - In the app (Settings, Labs, Shot tracer, behind seven taps on the version
-    line; `src/views/ShotTracerView.tsx`) the bowler drags the ends of four
-    lines: the left and right lane edges, the foul line and the back pin row.
-    Those eight points go to the tracer as they are. Nothing snaps them.
-  - In the harness (`scripts/shot-tracker/calibrations/*.json`) the marks were
-    placed by an agent, one clip at a time, with help: a rough segment drawn by
-    eye, refined to the edge with `snapEdge` (sub-pixel, lane-is-brighter
-    rule), then checked enlarged; pin bases from the bright columns of the rack
-    and the dark seam where each pin meets its reflection; the foul line from
-    the darkest row. Several were then corrected by the owner on the review
-    page (the edges were on the bumper or gutter cap, not the lane). The JSON
-    files hold the final coordinates; the harness does not snap at run time.
-- So the six harness calibrations are hand-verified and are the answer key for
-  both tasks below.
+- **The lane is found automatically** (`src/lib/shotTrack/laneFind.ts`,
+  `findLane`). On all six sample clips it finds the bowler's own lane, both
+  edges, the foul line and the back pin row, on a frame it chooses, in 3 to 9
+  seconds in Node (21 for the 120 fps clip, which gives it twice the frames).
+- **The app uses it** (`src/views/ShotTracerView.tsx`, Settings, Labs, behind
+  seven taps on the version line). A new video is read, the lane is looked for
+  in a worker (`src/shotTracer/find.worker.ts`), and when it is found the
+  trace starts at once: no marking screen. When it is not found the marking
+  screen opens as before, saying so. "Move the lines and trace again" on the
+  result opens the marking screen with the found lines on their frame, which
+  is how a wrong lane is corrected.
+- **It is not yet as good as the hand calibrations.** The readings of the
+  automatic trace against the hand-calibrated one are in the table below: one
+  clip agrees within half a board everywhere, three within about a board, one
+  is two boards off, one has no hand trace to compare with.
+- **The tracer, not the finder, is now the larger error.** The same good lines
+  put on different frames of shot-01 move its laydown by up to 6 boards (see
+  "The next work").
 
-## What already exists to build on
+### The measure (`npx tsx scripts/shot-tracker/auto.ts`)
 
-| Piece | Where | What it does today |
-|---|---|---|
-| `snapEdge` | `src/lib/shotTrack/edgeSnap.ts` | Moves a rough segment onto the strongest edge within `band` pixels: gradient profiles across it every `step` pixels, a robust line through the peaks (RANSAC then least squares), `support` = share of steps that agree. `sign: "rising"` asks for brighter toward `interior` (the lane). |
-| `snapMarks` | same | Snaps four rough lines (left, right, foul, deck end). Used by `trace()`'s `marks` input, which only the synthetic tests use (`pipeline.test.ts`, `roughMarks`). Its far line is the deck end, not the back pin row the app uses. |
-| `localEdges` | `pipeline.ts` | Re-snaps each gutter edge in a short stretch at the ball's row in every frame, as a tracking aid only (it never defines the boards). Proof the snap holds up on real frames. |
-| `checkPins`, `checkArrows` | `calibrationCheck.ts` | Finds the 7, 10 and head pins (brightest column a little above each base) and the arrows, and reports each one's error in boards against the calibration. A fine-fit and a self-check for task 2. |
-| `fitCalibration`, `markResiduals` | `calibrate.ts` | Least squares over any mix of point and line marks, with each mark's residual. More marks give redundancy, and a mark over a board off is refused (`calibration-off`). |
-| Harness | `scripts/shot-tracker/run.ts` and friends | `npx tsx scripts/shot-tracker/run.ts [shot-0N]` traces each clip and writes `out/<clip>/review.html`, `result.json` and `out/summary.md`. `look.ts` crops and enlarges frames; `foul.ts` and `diff.ts` are aids. The six clips are in `fixtures/clips/`, committed. |
+Automatic, with the hand-calibrated trace in brackets; boards, feet, mph; `e`
+is the tracer's own "estimated".
 
-## Task 1: snap the dragged lines onto the lane
+| clip | frame | laydown | arrows | breakpoint | pins | speed |
+|---|---|---|---|---|---|---|
+| shot-01 | 140 | 23.0 (24.2) | 16.6 (17.3) | 7.3 at 43 (7.2 at 44) | 19.0 (19.7) | 14.9 (15.1) |
+| shot-02 | 140 | 20.6 (18.3) | 15.7 (13.5) | none (8.6 at 44) | 16.1e (16.0e) | 16.1e (15.3e) |
+| shot-03 | 250 | 13.7 (14.2) | 10.5 (10.5) | none (none) | none (none) | 15.6e (16.5) |
+| shot-04 | 180 | 23.7 (none) | 31.9 (none) | none | none | 12.0e (none) |
+| shot-05 | 440 | 18.2 (18.9) | 13.2 (13.7) | none (8.8 at 51) | none (none) | 17.9 (18.0) |
+| shot-06 | 50 | 17.6 (17.7) | 14.7 (14.8) | 12.6 at 35 (12.5 at 36) | 18.8 (19.3) | 17.6 (17.0) |
 
-Goal: the bowler drags each line roughly into place and it lands on the real
-edge, so marking is quick on a phone and right to a fraction of a board.
+Reading it:
 
-1. In `ShotTracerView`, when a drag ends (pointer up), snap that line on the
-   frame shown: `snapEdge` with a band of about 6 to 10 pixels at the app's
-   frame size (962 by 718 for the 1080p clips), `interior` at the middle of the
-   four lines, `sign: "rising"` for the edges and `"auto"` for the foul line
-   and the pin row. Animate the line to the snapped place, and keep the
-   bowler's own line when `support` is low (say under 0.4), so a snap never
-   makes things worse. Keep the snapped segment's extent where the bowler put
-   the ends; only its position and angle change.
-2. **The lane edge is the lane's own edge, not the bumper.** Row by row from
-   the lane outward there is: the lane, a thin dark line (the lane's edge, where
-   the lane's colour ends), sometimes a grey strip a few pixels wide, then the
-   gutter's groove or the cap. The strongest edge is often the groove, a board
-   or more out. The snap must take the **first** rising edge from the lane side
-   (the edge nearest the lane surface that clears a threshold), not the
-   strongest in the band. The owner caught this three times (shot-01 left and
-   right, shot-02); see "The owner's third point" in the harness README.
-3. Put the snapping rule in `lib/` as a pure function with tests (the coverage
-   floor on `src/lib/**` is 90% of lines), for example `snapLaneLine(frame,
-   line, kind, interior)` in `lib/shotTrack/marking.ts`.
-4. Measure it on the harness: for each clip, start from its hand-verified
-   lines moved 5 to 15 pixels off at random, snap, and report how far each
-   snapped line sits from the answer, in boards at the foul line and at 50 ft.
-   Done when every edge on shot-01, 02, 03 and 06 lands within 0.3 board of
-   the answer (shot-04 and 05 have edges hidden by the bowler or the frame:
-   report them, do not tune to them), and the readings on the review page do
-   not move by more than 0.3 board.
+- shot-06: within 0.5 board everywhere, speed 0.6 mph high.
+- shot-01: laydown 1.2 and arrows 0.7 low. The left edge found sits about a
+  board outside the hand marks at the near end; the bowler's leg hides it
+  there on the chosen frame, and the hand marks sit on the lane side of a
+  faint grey strip between the lane and its strong dark line.
+- shot-03: laydown 0.5 low, arrows exact.
+- shot-05: laydown 0.7 and arrows 0.5 low, and the breakpoint is lost. The
+  found right edge is on the dark line at the lane's edge; the hand marks
+  (three points on one straight line, drawn by eye) are about 1.2 boards
+  further out. Which is right is the owner's call on the review page.
+- shot-02: two boards off at the near end. The camera pans hard, is rolled 3
+  degrees, a scoring screen hides the near right edge and the bowler's leg
+  lies along the left one. The hand run needed two calibrations for it.
+- shot-04: the hand trace fails without its `follow` aid, so nothing to
+  compare; the automatic arrows reading (31.9 with a laydown of 23.7) is not
+  believable and is the tracer following the wrong thing, since the found
+  edges agree with the hand ones.
 
-## Task 2: find the lane with no lines
+The hand calibrations (`scripts/shot-tracker/calibrations/*.json`) are still
+the answer key. They are good to about 0.3 to 0.5 board, not better: do not
+tune the finder to a difference smaller than that.
 
-Goal: the four lines start already placed on the lane, and the bowler only
-corrects them when they are wrong. The handles stay as the fallback and the
-way to correct (plan, PR 8).
+## How the finder works
 
-Suggested approach (plan, PR 8, with what the clips taught since):
+The header of `laneFind.ts` lists the stages; each is its own exported
+function with tests (`laneFind.test.ts`). In one paragraph each:
 
-1. Pick the frame: one where the lane is clearest, for example the median of
-   a few frames late in the clip, after the ball has gone (the harness's
-   `look.ts --median`). The bowler moves; the lane does not.
-2. Line segments: edges (Sobel or Canny) then segments (a probabilistic Hough
-   or LSD). Keep the long ones in the lower two thirds.
-3. Vanishing point: the point most of the long segments converge on (RANSAC
-   over pairs). The lane edges, gutters, caps and the neighbouring lanes all
-   run to it; the boards' own grain does too, faintly.
-4. Which pair is this lane: among the lines through the vanishing point, the
-   two that bound the lane surface the bowler stands behind (nearest the
-   picture's centre at the bottom, brighter between them than outside), with
-   the width the perspective allows for 41.5 inches against the neighbouring
-   lanes' pairs. Then apply task 1's first-edge-from-the-lane rule to each.
-5. The foul line: the strongest cross-lane edge low in the picture between the
-   two edges (the approach and the lane differ in colour and gloss). The back
-   pin row: the bases of the 7 and 10 pins, or the line through the bases of
-   the neighbouring racks (it runs straight across the whole house), or the
-   deck end (the lane over the dark pit) if the pins have fallen.
-6. Fine fit: with a first homography, `checkPins` finds the 7, 10 and head
-   pins; add them as point marks (`pin N`) and refit. Their residuals say
-   whether the lane found is the right one.
-7. Show the found lines with the handles on them, and a plain line under the
-   picture when the fit is unsure.
+1. **Vanishing point and roll** (`lanesOnFrame`). Hough lines on the halved
+   frame; the point most of the steep ones run through is where every
+   lane-parallel line in the house meets. The slope of the level ones (racks,
+   masking units, ceiling joints) is the camera's roll.
+2. **The fan** (`buildFan`, `columnProfile`). The frame resampled so each
+   column is one ray from the vanishing point, the reference line parallel to
+   the horizon. Every edge, gutter and cap is then an upright stripe, and the
+   median gradient down each column is a profile with a peak for each. The
+   median ignores the bowler; a second profile over the far half of the lane
+   rescues edges hidden near the camera; and each frame's profile is a median
+   with its neighbours' (`steadyProfiles`), so a trouser leg lying along an
+   edge on one frame is outvoted.
+3. **Which lane** (`laneWidth`, `lanePairs`, `rankLanes`). Every lane is the
+   same width in the fan. The bowler's is the pair of edges one lane width
+   apart whose middle is within three quarters of a lane of the picture's
+   centre at the near end; the neighbours' middles are 1.3 to 1.9 lanes away.
+4. **The edges, exactly** (`snapLaneEdge`). At full resolution, the **first**
+   rising edge from the lane side (`snapEdge` with `pick: "first"`), stepped
+   out to the middle of the thin dark line (`toLine`), then fitted as a ray
+   through the vanishing point refined from every lane line in view
+   (`refineVanishingPoint`). First, not strongest: the gutter's groove and the
+   cap are stronger and a board or more out. The owner caught that three
+   times on hand marks.
+5. **The pin row** (`pinRows`). Down a pin's column the picture is bright,
+   then a narrow darker seam at its base, then its mirror image on the deck.
+   The seams of every rack in the house lie on one line.
+6. **The foul line** (`findFoulLines`). Two strips just inside the edges,
+   clear of where the bowler slides; the rows where the brightness changes,
+   paired across the lane at the camera's roll.
+7. **The check that holds it together** (`laneAttempts`). Along the lane's
+   middle, (pin row - vanishing point) / (foul line - vanishing point) =
+   d / (d + 62.6) for a camera d feet behind the foul line. Each frame offers
+   several pin row and foul line candidates; the camera distance most frames
+   agree on picks among them (18 to 25 ft on the sample clips; 10 to 45 is
+   allowed).
+8. **The pins as marks** (`withPins`). `checkPins` finds the 7, 10 and head
+   pins against the first fit; those within 1.5 boards go in as point marks
+   and the fit is redone. They fix the far end across the lane, where an
+   edge is a few pixels long.
 
-Measure the same way as task 1: the found lines against the hand-verified
-ones, in boards at the foul line and at 50 ft, on all six clips, and the
-readings against the review page. Report each clip, including the ones where
-it fails; the owner wants to see where it fails, not a tuned average.
+## The next work, in order
 
-## Things that cost time before
+1. **Stop carrying one calibration through the whole clip.** The tracer
+   (`pipeline.ts`) registers every frame to the calibration frame, and on a
+   hand-held phone that chain is the weak link (README, "Corrections to the
+   plan", 7.3). Now that a calibration costs a third of a second a frame and
+   no hands, find the lane on many frames and use each frame's own (or the
+   nearest one's, carried a few frames only). Start by passing the finder's
+   marks from several frames as `calMarks` with `frame` set, which the
+   pipeline already accepts, and measure; then decide whether the pipeline
+   should take a calibration per frame. This is where shot-01's 6 boards of
+   laydown swing and shot-02's two boards are.
+2. **The near left edge of shot-01 and the right edge of shot-05**: ask the
+   owner which is the lane's edge on enlarged crops (`auto.ts --png` draws
+   found in green over the hand truth in cyan). If the finder is right,
+   re-mark the JSON; if the hand marks are, the first-edge rule needs to
+   prefer the faint inner line (`LaneEdgeOptions.share`).
+3. **Say how sure it is.** `LaneFound` carries each edge's support, the pins
+   used and the camera distance. Turn those into one "trust it or show the
+   lines" decision, and show the found lines over the frame on the result
+   screen, so a wrong lane is seen at a glance. Today a wrong lane is only
+   caught by the tracer's own `calibration-off`.
+4. **When the foul line is off the bottom of the picture** `findLane` returns
+   null. The plan's 6.3 covers the geometry (the arrows, or a default camera
+   distance now that step 7 measures it).
+5. **Speed on a phone.** Not measured in a browser yet. The finder looks at 24
+   frames; the cost is the fan (three frame-widths of columns a frame).
 
-- **The arrows do not show in any of the six clips** (reflections and
-  compression). Do not depend on them.
-- **The far end is a few pixels.** At 1080p a board at 60 ft is about one
-  pixel; at the app's 962 by 718 less. Fit lines over their whole length, never
-  from two points at the far end.
-- **Grey levels.** The tracer's thresholds were set on the video's own grey
-  (16 to 235, what ffmpeg gives). A browser canvas stretches it to 0 to 255,
-  and with that stretch the ball was lost at 47 ft. `toGray` in
-  `lib/shotTrack/marking.ts` converts back; use it for anything read in the
-  app, and if you work on harness frames in Node they are already in that
-  range.
+## Things that cost time
+
+- **Measuring the finder on a frame the hand truth is not on.** The truth is
+  carried to the finder's frame by registration, and that carry was wrong by 2
+  to 3 boards on shot-01 until `auto.ts` used the floor's own homography
+  (`registerPlane`) as the tracer does. Trust the traced readings over the
+  line errors.
+- **The median of the whole clip is not a clean lane.** On a hand-held clip it
+  smears, and on shot-04 the bowler never leaves. Single frames, many of them.
+- **A rolled camera.** The picture's bottom row is not a line of one distance;
+  neighbouring lanes then look narrower or wider than the bowler's, and the
+  lane width learned from them misses the bowler's own (shot-02).
+- **Caps outnumber lanes.** A cap's quiet top is a third of a lane wide and
+  turns up as often; the width vote is weighted by width.
+- **A pin's column is white from head to base.** Symmetry about the base does
+  not find it; the seam does.
+- **The arrows do not show in any of the six clips**, and `checkArrows` is two
+  boards out even against the hand truth. Do not depend on them.
+- **The far end is a few pixels.** A foot at the pins is under a pixel.
+- **Grey levels.** Everything reads the video's own grey (16 to 235); `toGray`
+  in `lib/shotTrack/marking.ts` converts a canvas back.
 - **Testing the app in a browser.** The container's Chromium cannot play
-  H.264. Re-encode a clip to VP9 for a headless run (`ffmpeg -i shot-01.mp4
-  -c:v libvpx-vp9 -b:v 6M -deadline realtime -cpu-used 8 -an shot-01.webm`).
-  The app lives at `/app?pro`; the first run asks "Set up Headpin" (see
-  `e2e/helpers.ts`, `dismissHandednessModal`). Drive the drags with
-  `page.mouse`, converting frame pixels through the picture's bounding box.
-  The Playwright browsers for `npm run test:e2e` are not installed in the
-  container either; CI runs them.
-- **Frame times.** A seek onto exactly a frame's edge lands either side of it.
-  `videoFrames.ts` aims a quarter frame in and takes each frame's own time
-  from `requestVideoFrameCallback`; keep that if you touch the reader.
-- **Reading the owner's screenshots.** They review on the generated review
-  page (scripts/shot-tracker `review.ts`) and on the in-app result picture.
-  Put zoomed crops at every point you read, with the lines drawn, so they can
-  check each one.
+  H.264; re-encode a clip to VP9 (`ffmpeg -i shot-01.mp4 -c:v libvpx-vp9 -b:v
+  6M -deadline realtime -cpu-used 8 -an shot-01.webm`). The app lives at
+  `/app?pro`; the first run asks "Set up Headpin" (`e2e/helpers.ts`).
+- **The synthetic renderer** draws one rack. With `pinMirror` it has the seam
+  the pin row is read from, but a rack alone is few bases: render 960 by 720
+  with the lane a tenth of the width at the pins or the pin row is not found.
+
+## The harness
+
+| Command | What it does |
+|---|---|
+| `npx tsx scripts/shot-tracker/auto.ts` | Finds the lane on every clip, traces with it and with the hand calibration, prints both and writes `out/auto.md`. About 10 minutes; the hand traces are cached in `out/<clip>/hand-trace.json`. |
+| `... auto.ts --no-trace --png shot-03` | The finder alone, a minute for all six; `out/<clip>/auto-lane.png` shows found (green, yellow) over hand (cyan). |
+| `npx tsx scripts/shot-tracker/run.ts` | The hand-calibrated traces and their review pages, as before. |
 
 ## House rules that apply
 
 - `npm run verify` is the gate (lint, vitest with coverage floors, build,
-  Playwright). Run it as its own command.
+  Playwright). Run it as its own command. `src/lib/**` needs 90% of lines.
 - New text is a `t` message, translated into every language in the same PR
   (the `translate-strings` skill; `npm run i18n:check` fails otherwise).
 - Every merge to `main` bumps the version (`npm version x.y.z
   --no-git-tag-version`) with a `docs/CHANGELOG.md` section headed by it.
   Merging to `main` deploys, so merge only when the owner says.
-- UI follows `docs/DESIGN-LANGUAGE.md` (semantic colour tokens, `Button`,
-  `PushScreen`, motion through the shared hooks).
+- UI follows `docs/DESIGN-LANGUAGE.md`.
 - Never write an em dash anywhere.
-- Update `scripts/shot-tracker/README.md` with a dated section per round, as
-  the earlier rounds did, and this file when the state above changes.
+- Update `scripts/shot-tracker/README.md` with a dated section per round, and
+  this file when the state above changes.

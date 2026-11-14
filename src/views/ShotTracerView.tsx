@@ -9,7 +9,7 @@ import { formatNumber } from "../lib/format";
 import { apply } from "../lib/shotTrack/homography";
 import { defaultMarkLines, MARK_LINES, pathInPicture, toCalMarks, type MarkLine, type MarkLines } from "../lib/shotTrack/marking";
 import type { Mat3, Metric, Point, TrackError, TrackFailure, TrackResult } from "../lib/shotTrack/types";
-import type { TraceMessage, TraceRequest } from "../shotTracer/protocol";
+import type { FindMessage, FindRequest, TraceMessage, TraceRequest } from "../shotTracer/protocol";
 import { readVideoFrames, type VideoFrames } from "../shotTracer/videoFrames";
 import type { Handedness } from "../types/bowling";
 
@@ -23,9 +23,13 @@ import type { Handedness } from "../types/bowling";
 type Step =
   | { kind: "pick"; unreadable?: boolean }
   | { kind: "reading"; fraction: number }
-  | { kind: "mark" }
+  | { kind: "finding" }
+  | { kind: "mark"; notFound?: boolean }
   | { kind: "tracing"; fraction: number }
   | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null };
+
+/** How many frames the lane search looks at, spread over the clip. */
+const FIND_FRAMES = 24;
 
 /** Each line's colour on the picture and in its key. */
 const LINE_TONE: Record<MarkLine, { stroke: string; fill: string }> = {
@@ -45,24 +49,81 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   // themselves go to the worker.
   const [shown, setShown] = useState<{ gray: Uint8ClampedArray; width: number; height: number } | null>(null);
   const workerRef = useRef<Worker | null>(null);
+  const findRef = useRef<Worker | null>(null);
 
-  useEffect(() => () => workerRef.current?.terminate(), []);
+  useEffect(
+    () => () => {
+      workerRef.current?.terminate();
+      findRef.current?.terminate();
+    },
+    []
+  );
 
   async function read(f: File, keepMarks: boolean) {
+    findRef.current?.terminate();
+    findRef.current = null;
     setStep({ kind: "reading", fraction: 0 });
     try {
       const v = await readVideoFrames(f, (fraction) => setStep({ kind: "reading", fraction }));
       if (v.gray.length < 10) throw new Error("too short");
       setVideo(v);
-      if (!keepMarks || !lines) {
-        // The last frame: the pins have fallen and the lane is clear.
-        setFrame(v.gray.length - 1);
-        setLines(defaultMarkLines(v.width, v.height));
+      if (keepMarks && lines) {
+        // Correcting a result: the lines that were used, found or dragged, and
+        // no second search, which would only find the same lane again.
+        setStep({ kind: "mark" });
+      } else {
+        findLane(v);
       }
-      setStep({ kind: "mark" });
     } catch {
       setStep({ kind: "pick", unreadable: true });
     }
+  }
+
+  /** Looks for the lane on a few frames; on a miss, the bowler marks it. */
+  function findLane(v: VideoFrames) {
+    // The last frame: the pins have fallen and the lane is clear.
+    const last = v.gray.length - 1;
+    const markByHand = () => {
+      setFrame(last);
+      setLines(defaultMarkLines(v.width, v.height));
+      setStep({ kind: "mark", notFound: true });
+    };
+    setStep({ kind: "finding" });
+    const stride = Math.max(1, Math.floor(v.gray.length / FIND_FRAMES));
+    const request: FindRequest = {
+      width: v.width,
+      height: v.height,
+      // Copies: the screen still needs its frames to show and to trace.
+      frames: v.gray.flatMap((g, index) => (index % stride === 0 ? [{ data: g.slice().buffer as ArrayBuffer, index }] : []))
+    };
+    let worker: Worker;
+    try {
+      worker = new Worker(new URL("../shotTracer/find.worker.ts", import.meta.url), { type: "module" });
+    } catch {
+      markByHand();
+      return;
+    }
+    findRef.current = worker;
+    const finish = () => {
+      worker.terminate();
+      if (findRef.current === worker) findRef.current = null;
+    };
+    worker.onmessage = (e: MessageEvent<FindMessage>) => {
+      finish();
+      const { frame: found, lines: foundLines } = e.data;
+      if (found === null || !foundLines) {
+        markByHand();
+        return;
+      }
+      setFrame(found);
+      setLines(foundLines);
+      traceShot(v, foundLines, found);
+    };
+    worker.onerror = () => {
+      finish();
+      markByHand();
+    };
+    worker.postMessage(request, request.frames.map((f) => f.data));
   }
 
   function choose(f: File | undefined) {
@@ -71,8 +132,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     void read(f, false);
   }
 
-  function traceShot() {
-    if (!video || !lines) return;
+  function traceShot(video: VideoFrames, lines: MarkLines, frame: number) {
     const calib = video.gray[frame];
     setShown({ gray: calib.slice(), width: video.width, height: video.height });
     const request: TraceRequest = {
@@ -113,14 +173,16 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         {step.kind === "reading" && (
           <Waiting label={t`Reading the video…`} fraction={step.fraction} />
         )}
+        {step.kind === "finding" && <Waiting label={t`Finding the lane…`} />}
         {step.kind === "mark" && video && lines && (
           <MarkLanes
+            notFound={step.notFound}
             video={video}
             frame={frame}
             onFrame={setFrame}
             lines={lines}
             onLines={setLines}
-            onTrace={traceShot}
+            onTrace={() => traceShot(video, lines, frame)}
             onAnother={() => setStep({ kind: "pick" })}
           />
         )}
@@ -175,13 +237,16 @@ function PickVideo({ unreadable, onChoose }: { unreadable?: boolean; onChoose: (
   );
 }
 
-function Waiting({ label, fraction }: { label: string; fraction: number }) {
+/** No fraction means no bar: the lane search reports no progress. */
+function Waiting({ label, fraction }: { label: string; fraction?: number }) {
   return (
     <div className="flex flex-col items-center gap-4 py-16">
       <Spinner label={label} />
-      <div className="h-1.5 w-48 overflow-hidden rounded-full bg-surface-muted">
-        <div className="h-full rounded-full bg-accent" style={{ width: `${Math.round(fraction * 100)}%` }} />
-      </div>
+      {fraction !== undefined && (
+        <div className="h-1.5 w-48 overflow-hidden rounded-full bg-surface-muted">
+          <div className="h-full rounded-full bg-accent" style={{ width: `${Math.round(fraction * 100)}%` }} />
+        </div>
+      )}
     </div>
   );
 }
@@ -264,6 +329,7 @@ function lineName(line: MarkLine): string {
 }
 
 function MarkLanes({
+  notFound,
   video,
   frame,
   onFrame,
@@ -272,6 +338,7 @@ function MarkLanes({
   onTrace,
   onAnother
 }: {
+  notFound?: boolean;
   video: VideoFrames;
   frame: number;
   onFrame: (i: number) => void;
@@ -322,6 +389,9 @@ function MarkLanes({
 
   return (
     <div className="space-y-4">
+      {notFound && (
+        <p className="text-subhead text-ink-secondary">{t`The lane couldn't be found on its own. Drag the lines onto it.`}</p>
+      )}
       <p className="text-subhead text-ink-secondary">
         {t`Drag the ends of each line onto the lane, on a frame where you can see it clearly. The lane's own edges, not the gutters.`}
       </p>

@@ -33,6 +33,69 @@ describe("edgeSnap", () => {
     expect(falling.ok).toBe(true);
   });
 
+  // A bright lane whose edge is a faint, thin dark line (3 px), then a pale
+  // strip, then a much stronger dark groove: the shape of a lane beside a
+  // gutter. Columns left to right: 150 | groove 60 (20..29) | strip 195 (30..36)
+  // | line 150 (37..39) | lane 200 (40..). The lane is to the right (or to the
+  // left when `flip`), so the groove's flank at 29.5 is far the strongest, the
+  // line's flank at 39.5 is the lane's own edge and the line's middle is 38.
+  const grooveFrame = (flip = false) => {
+    const f = makeFrame(100, 60);
+    for (let y = 0; y < 60; y++) {
+      for (let x = 0; x < 100; x++) {
+        let v = 150;
+        if (x >= 20 && x <= 29) v = 60;
+        else if (x >= 30 && x <= 36) v = 195;
+        else if (x >= 37 && x <= 39) v = 150;
+        else if (x >= 40) v = 200;
+        f.data[y * 100 + (flip ? 99 - x : x)] = v;
+      }
+    }
+    return f;
+  };
+  const edgeAt = (r: ReturnType<typeof snapEdge>, y = 30) => intersect(r.line, [0, 1, -y])!.x;
+  const rough = { a: { x: 40, y: 5 }, b: { x: 40, y: 55 } };
+
+  it("takes the strongest edge by default, the first one from the lane side with pick first", () => {
+    const base = { band: 12, interior: { x: 90, y: 30 }, sign: "rising" as const };
+    const strongest = snapEdge(grooveFrame(), rough, base);
+    expect(strongest.ok).toBe(true);
+    expect(edgeAt(strongest)).toBeCloseTo(29.5, 0);
+    expect(snapEdge(grooveFrame(), rough, { ...base, pick: "strongest" }).inliers.length).toBe(strongest.inliers.length);
+    const first = snapEdge(grooveFrame(), rough, { ...base, pick: "first", firstShare: 0.1, firstMin: 5 });
+    expect(first.ok).toBe(true);
+    expect(Math.abs(edgeAt(first) - 39.5)).toBeLessThan(0.6);
+    expect(first.rms).toBeLessThan(0.2);
+  });
+
+  it("holds to the strongest edge when the first one is under the share or the minimum gradient", () => {
+    const base = { band: 12, interior: { x: 90, y: 30 }, sign: "rising" as const, pick: "first" as const };
+    // The faint line's flank is about a fifth of the groove's: a 0.9 share rejects it...
+    expect(edgeAt(snapEdge(grooveFrame(), rough, { ...base, firstShare: 0.9 }))).toBeCloseTo(29.5, 0);
+    // ...and so does a minimum above its gradient (the default share is 0.4).
+    expect(edgeAt(snapEdge(grooveFrame(), rough, { ...base, firstShare: 0.01, firstMin: 100 }))).toBeCloseTo(29.5, 0);
+    expect(edgeAt(snapEdge(grooveFrame(), rough, base))).toBeCloseTo(29.5, 0);
+  });
+
+  it("works the same with the lane to the left, and reports no edge on a flat picture with pick first", () => {
+    const r = snapEdge(grooveFrame(true), { a: { x: 59, y: 5 }, b: { x: 59, y: 55 } }, { band: 12, interior: { x: 10, y: 30 }, sign: "rising", pick: "first", firstShare: 0.1, firstMin: 5 });
+    expect(r.ok).toBe(true);
+    expect(Math.abs(edgeAt(r) - 59.5)).toBeLessThan(0.6);
+    const flat = snapEdge(makeFrame(60, 60, 0, 90), { a: { x: 30, y: 5 }, b: { x: 30, y: 55 } }, { interior: { x: 50, y: 30 }, sign: "rising", pick: "first" });
+    expect(flat.ok).toBe(false);
+  });
+
+  it("steps out to the middle of the dark line with toLine", () => {
+    const base = { band: 12, interior: { x: 90, y: 30 }, sign: "rising" as const, pick: "first" as const, firstShare: 0.1, firstMin: 5 };
+    const flank = edgeAt(snapEdge(grooveFrame(), rough, base));
+    const mid = snapEdge(grooveFrame(), rough, { ...base, toLine: 4 });
+    expect(mid.ok).toBe(true);
+    expect(edgeAt(mid)).toBeLessThan(flank - 0.8);
+    expect(Math.abs(edgeAt(mid) - 38)).toBeLessThan(0.8);
+    // Too short a reach to find where the gradient turns back: the flank stays.
+    expect(edgeAt(snapEdge(grooveFrame(), rough, { ...base, toLine: 0.5 }))).toBeCloseTo(flank, 5);
+  });
+
   it("fits robust lines", () => {
     const pts = Array.from({ length: 30 }, (_, i) => ({ x: i, y: 2 * i + 1 }));
     pts.push({ x: 5, y: 80 }, { x: 9, y: -40 });
