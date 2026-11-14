@@ -2,21 +2,26 @@
  * The tracer with no marks at all: the lane found by `laneFind.ts`, then the
  * same `trace()` the app runs, against the hand-verified calibration.
  *
- *   npx tsx scripts/shot-tracker/auto.ts [shot-0N ...] [--step 10] [--no-trace]
+ *   npx tsx scripts/shot-tracker/auto.ts [shot-0N ...] [--step 10] [--no-trace] [--png] [--fresh-hand]
  *
  * For each clip: the frame the finder chose, the found lines against the hand
  * calibration carried to that frame (boards at the foul line and at 50 ft,
  * feet for the foul line and the pin row), the pins check, and the readings
  * of both traces side by side. Writes `out/auto.md`.
+ *
+ * The hand trace does not depend on the finder, so its readings are kept in
+ * `out/<clip>/hand-trace.json` beside the calibration they came from and
+ * reused while that file is unchanged; `--fresh-hand` traces it again (after
+ * a change to the tracer itself).
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { fitCalibration } from "../../src/lib/shotTrack/calibrate";
+import { fitCalibration, focalFromPlane } from "../../src/lib/shotTrack/calibrate";
 import { checkPins } from "../../src/lib/shotTrack/calibrationCheck";
-import { apply, intersect, invert, lineThrough, type Line3 } from "../../src/lib/shotTrack/homography";
+import { apply, intersect, invert, lineThrough, multiply, normalize, type Line3 } from "../../src/lib/shotTrack/homography";
 import { findLane } from "../../src/lib/shotTrack/laneFind";
 import { trace } from "../../src/lib/shotTrack/pipeline";
-import { register } from "../../src/lib/shotTrack/registration";
+import { register, registerPlane } from "../../src/lib/shotTrack/registration";
 import type { Mat3, Metric, TrackResult } from "../../src/lib/shotTrack/types";
 import { toCalMarks } from "./overlay";
 import { loadTruth } from "./truth";
@@ -37,6 +42,7 @@ const opt = (k: string) => {
 const step = Number(opt("--step") ?? 10);
 const noTrace = flag("--no-trace");
 const png = flag("--png");
+const freshHand = flag("--fresh-hand");
 const here = new URL(".", import.meta.url).pathname;
 const names = args.length ? [...args] : ["shot-01", "shot-02", "shot-03", "shot-04", "shot-05", "shot-06"];
 
@@ -71,7 +77,17 @@ for (const name of names) {
   const frame = idx[found.index];
   const lo = Math.min(frame, t.cal.frame);
   const hi = Math.max(frame, t.cal.frame);
-  const H = frame === t.cal.frame ? t.H : register(t.clip, t.cal.frame, t.H, lo, hi, t.cal.register)[frame - lo].H;
+  // The hand truth carried to the finder's frame the way the tracer carries
+  // its calibration: the whole picture's turn, then the lane's own plane
+  // (the camera travels on these hand-held clips, and the picture's turn
+  // alone puts the near end boards out over a hundred frames).
+  let H = t.H;
+  if (frame !== t.cal.frame) {
+    const I: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+    const pics = register(t.clip, t.cal.frame, I, lo, hi, t.cal.register);
+    const focal = focalFromPlane(t.H, t.clip.width, t.clip.height) ?? undefined;
+    H = normalize(multiply(registerPlane(t.clip, t.cal.frame, t.H, pics, lo, { focal })[frame - lo].S, t.H));
+  }
   const fit = fitCalibration(found.marks);
   const f = t.clip.frame(frame);
   const L = [uOf(H, found.left, 0) - 0.5, uOf(H, found.left, 50) - 0.5];
@@ -103,12 +119,26 @@ for (const name of names) {
   let read = "| - | - | - | - | - |";
   if (!noTrace) {
     const auto = trace({ source: t.clip, calibFrame: frame, calMarks: found.marks, hand: t.cal.hand, register: t.cal.register }).result;
-    const hand = trace({ source: t.clip, calibFrame: t.cal.frame, calMarks: toCalMarks(t.cal), hand: t.cal.hand, register: t.cal.register }).result;
     const line = (r: typeof auto) => (r.ok ? (r as TrackResult).metrics : null);
     const a = line(auto);
-    const h = line(hand);
+    const cache = join(here, "out", name, "hand-trace.json");
+    const key = JSON.stringify(t.cal);
+    const kept = existsSync(cache) ? (JSON.parse(readFileSync(cache, "utf8")) as { key: string; ok: boolean; failure?: string; metrics: TrackResult["metrics"] | null }) : null;
+    let handOk: boolean;
+    let handFailure: string | undefined;
+    let h: TrackResult["metrics"] | null;
+    if (kept && kept.key === key && !freshHand) {
+      ({ ok: handOk, failure: handFailure, metrics: h } = kept);
+    } else {
+      const hand = trace({ source: t.clip, calibFrame: t.cal.frame, calMarks: toCalMarks(t.cal), hand: t.cal.hand, register: t.cal.register }).result;
+      handOk = hand.ok;
+      handFailure = hand.ok ? undefined : hand.failure;
+      h = line(hand);
+      mkdirSync(join(here, "out", name), { recursive: true });
+      writeFileSync(cache, JSON.stringify({ key, ok: handOk, failure: handFailure, metrics: h }));
+    }
     const pair = (k: keyof TrackResult["metrics"], d = 1) => `${metric(a?.[k], d)} (${metric(h?.[k], d)})`;
-    console.log(`   auto ${auto.ok ? "traced" : `failed: ${auto.failure} ${auto.detail}`}; hand ${hand.ok ? "traced" : `failed: ${hand.failure}`}`);
+    console.log(`   auto ${auto.ok ? "traced" : `failed: ${auto.failure} ${auto.detail}`}; hand ${handOk ? "traced" : `failed: ${handFailure}`}`);
     console.log(`   laydown ${pair("laydown")}  arrows ${pair("arrows")}  breakpoint ${pair("breakpoint")} at ${pair("breakpointFeet", 0)} ft  pins ${pair("pins")}  speed ${pair("speed")}   (hand in brackets)`);
     read = `| ${pair("laydown")} | ${pair("arrows")} | ${pair("breakpoint")} at ${pair("breakpointFeet", 0)} | ${pair("pins")} | ${pair("speed")} |`;
   }

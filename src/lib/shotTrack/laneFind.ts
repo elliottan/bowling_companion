@@ -1,10 +1,12 @@
-import { intersect, lineDistance, type Line3 } from "./homography";
+import { apply, intersect, lineDistance, mapLine, type Line3 } from "./homography";
 import { boxBlur, downsample, gradient, median, parabolaPeak, sample } from "./image";
 import { robustLine, snapEdge } from "./edgeSnap";
-import type { CalMark } from "./calibrate";
+import { fitCalibration, type CalibrationFit, type CalMark } from "./calibrate";
+import { checkPins, type LandmarkError } from "./calibrationCheck";
+import { PIN_POSITIONS } from "../pinGeometry";
 import type { MarkLines } from "./marking";
-import { BACK_ROW_FT } from "./laneModel";
-import type { GrayFrame, Point } from "./types";
+import { BACK_ROW_FT, LEFT_U, RIGHT_U } from "./laneModel";
+import type { GrayFrame, Mat3, Point } from "./types";
 
 /**
  * Finding the lane with no marks (plan, PR 8; docs/SHOT-TRACKER-HANDOFF.md).
@@ -745,7 +747,23 @@ export function pinBases(f: GrayFrame, far: number, pinPx: number): Point[] {
  * the camera's roll: both are straight across the lane), strongest
  * together; with one side hidden, that side's best row at `slope`.
  */
-export function findFoulLine(f: GrayFrame, left: Line3, right: Line3, near: number, span: number, slope: number): { line: Line3; points: Point[]; strength: number } | null {
+export function findFoulLine(f: GrayFrame, left: Line3, right: Line3, near: number, span: number, slope: number): FoulLine | null {
+  return findFoulLines(f, left, right, near, span, slope)[0] ?? null;
+}
+
+export interface FoulLine {
+  line: Line3;
+  /** Where it crosses each strip (one point when one side is hidden). */
+  points: Point[];
+  strength: number;
+}
+
+/**
+ * Every foul line `findFoulLine` weighs, its choice first: then the other
+ * pairs, strongest first, then each side alone. `findLane` picks among them
+ * by where they put the camera, which no single frame can tell.
+ */
+export function findFoulLines(f: GrayFrame, left: Line3, right: Line3, near: number, span: number, slope: number): FoulLine[] {
   const X = (l: Line3, y: number) => -(l[1] * y + l[2]) / l[0];
   const yA = Math.max(1, Math.round(near - 0.18 * span));
   const yB = Math.min(f.height - 2, Math.round(near + 0.04 * span));
@@ -783,24 +801,37 @@ export function findFoulLine(f: GrayFrame, left: Line3, right: Line3, near: numb
     sides.push({ x: (y) => { const [x0, x1] = xs(y); return (x0 + x1) / 2; }, peaks });
   }
   const [L, R] = sides;
-  let best: { line: Line3; points: Point[]; strength: number } | null = null;
+  const pairs: FoulLine[] = [];
   for (const pl of L.peaks) {
     for (const pr of R.peaks) {
       const a = { x: L.x(pl.y), y: pl.y };
       const b = { x: R.x(pr.y), y: pr.y };
       const s = (b.y - a.y) / (b.x - a.x);
       if (Math.abs(s - slope) > 0.03) continue;
-      const strength = Math.min(pl.g, pr.g);
-      if (!best || strength > best.strength) best = { line: [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y], points: [a, b], strength };
+      pairs.push({ line: [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y], points: [a, b], strength: Math.min(pl.g, pr.g) });
     }
   }
-  if (best) return best;
-  // One side only: its strongest row, on the pin row's slope.
-  const one = [...L.peaks.map((p) => ({ ...p, x: L.x(p.y) })), ...R.peaks.map((p) => ({ ...p, x: R.x(p.y) }))].sort((p, q) => q.g - p.g)[0];
-  if (!one) return null;
-  const a = { x: one.x, y: one.y };
-  const b = { x: one.x + 100, y: one.y + 100 * slope };
-  return { line: [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y], points: [a], strength: one.g / 2 };
+  const out: FoulLine[] = [];
+  if (pairs.length) {
+    // The foul line is where the lane starts: everything nearer the camera is
+    // approach, whose joins, dots and a change of finish a foot or two back
+    // can be sharper than the foul line itself (shot-01 shows one 1.75 ft
+    // back). So of the pairs nearly as strong as the strongest, the one
+    // furthest up the lane comes first.
+    pairs.sort((a, b) => b.strength - a.strength);
+    const strongest = pairs[0].strength;
+    const yOf = (p: FoulLine) => (p.points[0].y + p.points[1].y) / 2;
+    const first = pairs.filter((p) => p.strength >= 0.6 * strongest).reduce((a, b) => (yOf(b) < yOf(a) ? b : a));
+    out.push(first, ...pairs.filter((p) => p !== first));
+  }
+  // One side only: its rows, strongest first, on the pin row's slope.
+  const ones = [...L.peaks.map((p) => ({ ...p, x: L.x(p.y) })), ...R.peaks.map((p) => ({ ...p, x: R.x(p.y) }))].sort((p, q) => q.g - p.g);
+  for (const one of ones) {
+    const a = { x: one.x, y: one.y };
+    const b = { x: one.x + 100, y: one.y + 100 * slope };
+    out.push({ line: [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y], points: [a], strength: one.g / 2 });
+  }
+  return out;
 }
 
 export interface LaneFound {
@@ -819,6 +850,14 @@ export interface LaneFound {
   camera: number;
   /** The edges as first found on the fan, before the fine snap. */
   coarse: { left: Line3; right: Line3 };
+  /** The lines as measured on the frame, before the fit with the pins (`left` and the rest are the fit's). */
+  measured: { left: Line3; right: Line3; foul: Line3; pinRow: Line3 };
+  /** Lane (u boards, v feet) to picture on that frame: the fit of the marks. */
+  H: Mat3;
+  /** The pins check against the measured lines alone. */
+  pins: LandmarkError[];
+  /** How many pins went into the fit as marks (0, 2 or 3). */
+  pinsUsed: number;
 }
 
 /** `n` points on a picture line, evenly between rows a and b. */
@@ -845,13 +884,35 @@ function across(l: Line3, a: number, b: number, n: number): Point[] {
 export const CAMERA_FT: [number, number] = [10, 45];
 
 /** The marks and how far to trust them, on one frame for one lane. */
-interface Attempt {
+export interface Attempt {
   found: LaneFound;
   quality: number;
 }
 
-/** Edges, pin row and foul line on one frame for the lane picked there. */
-function attempt(f: GrayFrame, r: FrameLanes, pick: LanePick): Attempt | null {
+/** One reading of the pin row and the foul line together, and where they put the camera. */
+interface Ends {
+  pin: PinRow;
+  foul: FoulLine;
+  /** Feet behind the foul line. */
+  camera: number;
+}
+
+/** What one frame measures for the lane picked there, before the pin row and foul line are settled. */
+interface Measured {
+  f: GrayFrame;
+  pick: LanePick;
+  vp: Point;
+  sl: NonNullable<ReturnType<typeof snapLaneEdge>>;
+  sr: NonNullable<ReturnType<typeof snapLaneEdge>>;
+  /** Every believable pin row and foul line, the frame's own choice first. */
+  ends: Ends[];
+}
+
+/** Ends kept per frame for `findLane` to choose among. */
+const MAX_ENDS = 16;
+
+/** Edges, and the candidate pin rows and foul lines, on one frame for the lane picked there. */
+function measure(f: GrayFrame, r: FrameLanes, pick: LanePick): Measured | null {
   const { vp } = refineVanishingPoint(f, r);
   const span = pick.near - pick.far;
   const X = (l: Line3, y: number) => -(l[1] * y + l[2]) / l[0];
@@ -866,13 +927,11 @@ function attempt(f: GrayFrame, r: FrameLanes, pick: LanePick): Attempt | null {
   if (!(wFar > 0)) return null;
   const mid = (y: number) => (X(left, y) + X(right, y)) / 2;
   const rowAt = (l: Line3, x: number) => -(l[0] * x + l[2]) / l[1];
-  // Each candidate pin row with the foul line on its slope; kept when the two
+  // Each candidate pin row with the foul lines on its slope; kept when the two
   // put the camera a believable distance behind the foul line. Along the
   // lane's middle, (pin row - vp) / (foul - vp) = d / (d + 62.6) for a camera d
   // feet behind the foul line: 18 to 25 ft on the sample clips.
-  let pin: PinRow | null = null;
-  let foul: ReturnType<typeof findFoulLine> = null;
-  let camera = NaN;
+  const ends: Ends[] = [];
   for (const p of pinRows(f, pick.far, (wFar * 15) / 41.5)) {
     const y = rowAt(p.line, mid(pick.far));
     if (y < pick.far - 0.05 * span || y > pick.far + 0.3 * span || p.bases.length < 4) continue;
@@ -880,38 +939,182 @@ function attempt(f: GrayFrame, r: FrameLanes, pick: LanePick): Attempt | null {
     // one rack alone is too short, and the house's level lines give it instead.
     const xs = p.bases.map((b) => b.x);
     const slope = Math.max(...xs) - Math.min(...xs) > 0.25 * f.width ? -p.line[0] / p.line[1] : r.fan.roll;
-    const fl = findFoulLine(f, left, right, pick.near, span, slope);
-    if (!fl) continue;
-    const yf = rowAt(fl.line, mid(pick.near));
-    const ratio = (y - vp.y) / (yf - vp.y);
-    const d = (BACK_ROW_FT * ratio) / (1 - ratio);
-    if (!(d >= CAMERA_FT[0] && d <= CAMERA_FT[1])) continue;
-    pin = p;
-    foul = fl;
-    camera = d;
-    break;
+    for (const fl of findFoulLines(f, left, right, pick.near, span, slope)) {
+      const yf = rowAt(fl.line, mid(pick.near));
+      if (!(yf - y > 0.5 * span)) continue;
+      const ratio = (y - vp.y) / (yf - vp.y);
+      const d = (BACK_ROW_FT * ratio) / (1 - ratio);
+      if (!(d >= CAMERA_FT[0] && d <= CAMERA_FT[1])) continue;
+      ends.push({ pin: p, foul: fl, camera: d });
+      if (ends.length >= MAX_ENDS) break;
+    }
+    if (ends.length >= MAX_ENDS) break;
   }
-  if (!pin || !foul) return null;
+  if (!ends.length) return null;
+  return { f, pick, vp, sl, sr, ends };
+}
+
+/** The marks on one frame from its edges and the pin row and foul line chosen. */
+function attempt(m: Measured, ends: Ends): Attempt | null {
+  const { f, pick, vp, sl, sr } = m;
+  const { pin, foul, camera } = ends;
+  const span = pick.near - pick.far;
+  const X = (l: Line3, y: number) => -(l[1] * y + l[2]) / l[0];
+  const left = sl.line;
+  const right = sr.line;
+  const mid = (y: number) => (X(left, y) + X(right, y)) / 2;
+  const rowAt = (l: Line3, x: number) => -(l[0] * x + l[2]) / l[1];
   const top = rowAt(pin.line, mid(pick.far));
   const bottom = rowAt(foul.line, mid(pick.near));
-  if (!(bottom - top > 0.5 * span)) return null;
-  const marks: CalMark[] = [
-    { kind: "line", label: "left", axis: "u", value: 0.5, at: along(left, top + 0.05 * span, bottom, 6) },
-    { kind: "line", label: "right", axis: "u", value: 39.5, at: along(right, top + 0.05 * span, bottom, 6) },
-    { kind: "line", label: "foul", axis: "v", value: 0, at: across(foul.line, X(left, bottom), X(right, bottom), 3) }
-  ];
   const xs = pin.bases.map((p) => p.x);
-  marks.push({ kind: "line", label: "pinrow", axis: "v", value: BACK_ROW_FT, at: across(pin.line, Math.min(...xs), Math.max(...xs), 4) });
+  const measured: CalMark[] = [
+    { kind: "line", label: "left", axis: "u", value: LEFT_U, at: along(left, top + 0.05 * span, bottom, 6) },
+    { kind: "line", label: "right", axis: "u", value: RIGHT_U, at: along(right, top + 0.05 * span, bottom, 6) },
+    { kind: "line", label: "foul", axis: "v", value: 0, at: across(foul.line, X(left, bottom), X(right, bottom), 3) },
+    { kind: "line", label: "pinrow", axis: "v", value: BACK_ROW_FT, at: across(pin.line, Math.min(...xs), Math.max(...xs), 4) }
+  ];
+  const fitted = withPins(f, measured);
+  if (!fitted) return null;
+  const { fit, pins, used } = fitted;
+  // The marks handed on are the fit's own lines over the same stretches, so
+  // the four lines the screen draws (`markLinesOf`) carry the pins too.
+  const H = fit.H;
+  const lane = {
+    left: mapLine(H, [1, 0, -LEFT_U]),
+    right: mapLine(H, [1, 0, -RIGHT_U]),
+    foul: mapLine(H, [0, 1, 0]),
+    pinRow: mapLine(H, [0, 1, -BACK_ROW_FT])
+  };
+  const marks: CalMark[] = [
+    { kind: "line", label: "left", axis: "u", value: LEFT_U, at: along(lane.left, top + 0.05 * span, bottom, 6) },
+    { kind: "line", label: "right", axis: "u", value: RIGHT_U, at: along(lane.right, top + 0.05 * span, bottom, 6) },
+    { kind: "line", label: "foul", axis: "v", value: 0, at: across(lane.foul, X(lane.left, bottom), X(lane.right, bottom), 3) },
+    { kind: "line", label: "pinrow", axis: "v", value: BACK_ROW_FT, at: across(lane.pinRow, Math.min(...xs), Math.max(...xs), 4) }
+  ];
   const quality =
     Math.min(sl.support, sr.support) +
     0.3 * Math.min(1, pin.bases.length / 30) +
     (foul.points.length === 2 ? 0.3 : 0) +
     0.1 * Math.min(1, pick.candidate.leftEdge / 20) +
-    0.1 * Math.min(1, -pick.candidate.rightEdge / 20);
+    0.1 * Math.min(1, -pick.candidate.rightEdge / 20) +
+    pinsAgree(pins);
   return {
-    found: { index: pick.index, marks, vp, left, right, foul: foul.line, pinRow: pin.line, support: { left: sl.support, right: sr.support }, camera, coarse: { left: pick.left, right: pick.right } },
+    found: {
+      index: pick.index, marks, vp, left: lane.left, right: lane.right, foul: lane.foul, pinRow: lane.pinRow,
+      support: { left: sl.support, right: sr.support }, camera, coarse: { left: pick.left, right: pick.right },
+      measured: { left, right, foul: foul.line, pinRow: pin.line }, H, pins, pinsUsed: used
+    },
     quality
   };
+}
+
+/**
+ * How well the measured lines meet the standing pins, as a share of the
+ * quality: the pins are the one check of the far end that does not come from
+ * the lines themselves. Nothing when fewer than two are found (fallen,
+ * hidden, or the lines too far out to look in the right place).
+ */
+function pinsAgree(pins: LandmarkError[]): number {
+  if (pins.length < 2) return 0;
+  const rms = Math.sqrt(pins.reduce((s, p) => s + p.error * p.error, 0) / pins.length);
+  return 0.3 * Math.max(0, 1 - rms) * (pins.length / 3);
+}
+
+/** A pin whose axis is found further than this from where the lines put it, boards, is not trusted as a mark. */
+export const PIN_AGREE = 1.5;
+
+/**
+ * The lane mapping from the measured lines, then the pins (7, 10 and the
+ * head pin, `checkPins`) as marks of their own where they stand: each pin's
+ * axis is found to a fraction of a pixel, at the far end where the edges are
+ * thinnest and an edge's angle carries the most error, and it gives the fit
+ * the redundancy that makes its residuals mean something. Two rounds, since
+ * the pins are looked for where the mapping puts them. Pins further than
+ * `PIN_AGREE` boards from the lines are left out (fallen, hidden, or a
+ * bright thing that is not a pin), and so are all of them unless two agree.
+ * `pins` is the check against the measured lines alone.
+ */
+function withPins(f: GrayFrame, measured: CalMark[]): { fit: CalibrationFit; pins: LandmarkError[]; used: number } | null {
+  let fit: CalibrationFit;
+  try {
+    fit = fitCalibration(measured);
+  } catch {
+    return null;
+  }
+  const pins = checkPins(f, fit.H);
+  let used = 0;
+  let H: Mat3 = fit.H;
+  for (let round = 0; round < 2; round++) {
+    const found = (round === 0 ? pins : checkPins(f, H)).filter((p) => Math.abs(p.error) <= PIN_AGREE);
+    if (found.length < 2) break;
+    const marks: CalMark[] = found.map((p) => {
+      const pos = PIN_POSITIONS[Number(p.name.replace("pin ", "")) as keyof typeof PIN_POSITIONS];
+      return { kind: "line", label: p.name, axis: "u", value: pos.board, at: [apply(H, { x: pos.board + p.error, y: pos.feet })], weight: PIN_WEIGHT };
+    });
+    try {
+      fit = fitCalibration([...measured, ...marks]);
+    } catch {
+      break;
+    }
+    H = fit.H;
+    used = found.length;
+  }
+  return { fit, pins, used };
+}
+
+/** A pin's axis counts as this many points on an edge. */
+const PIN_WEIGHT = 4;
+
+/**
+ * Every frame calibrated in full (see `findLane`), unranked, and the camera
+ * distance they agree on.
+ *
+ * Which of a frame's pin rows and foul lines are the real ones no single
+ * frame can always tell (a band of light reflected on the lane a few feet up,
+ * or a join on the approach behind the foul line, can be sharper than the
+ * foul line itself), but the frames together can: the person filming turns
+ * the camera and stays put (the tracer's registration rests on the same
+ * assumption), so the real ones put the camera the same distance behind the
+ * foul line on every frame, while a wrong one moves it by feet, by a
+ * different amount on each frame. The distance most frames' own choices
+ * agree on (a mode, not a median: on a hard clip half of them are wrong),
+ * then on each frame the candidate nearest it.
+ */
+export function laneAttempts(frames: GrayFrame[], tries = 10): { attempts: Attempt[]; camera: number } {
+  const per = frames.map((f) => lanesOnFrame(f));
+  steadyProfiles(per);
+  const ranked = rankLanes(per, frames[0].width);
+  const measured = ranked.slice(0, tries).map((pick) => measure(frames[pick.index], per[pick.index]!, pick)).filter((m): m is Measured => !!m);
+  if (!measured.length) return { attempts: [], camera: NaN };
+  const camera = modeOf(measured.map((m) => m.ends[0].camera), CAMERA_SPREAD_FT);
+  const attempts = measured
+    .map((m) => {
+      const near = m.ends.filter((e) => Math.abs(e.camera - camera) <= 2 * CAMERA_SPREAD_FT);
+      return attempt(m, near[0] ?? m.ends[0]);
+    })
+    .filter((a): a is Attempt => !!a);
+  return { attempts, camera };
+}
+
+/** How far the camera's distance behind the foul line wanders between frames of one clip, feet (a hand-held camera sways). */
+export const CAMERA_SPREAD_FT = 0.6;
+
+/** The value most of `xs` lie near: the peak of a Gaussian kernel density of width `h`, refined as the kernel-weighted mean. */
+export function modeOf(xs: number[], h: number): number {
+  const density = (x: number) => xs.reduce((s, v) => s + Math.exp(-0.5 * ((v - x) / h) ** 2), 0);
+  let best = xs[0];
+  for (const x of xs) if (density(x) > density(best)) best = x;
+  for (let it = 0; it < 3; it++) {
+    let sw = 0;
+    let sx = 0;
+    for (const v of xs) {
+      const w = Math.exp(-0.5 * ((v - best) / h) ** 2);
+      sw += w;
+      sx += w * v;
+    }
+    best = sx / sw;
+  }
+  return best;
 }
 
 /**
@@ -951,22 +1154,20 @@ export function steadyProfiles(per: (FrameLanes | null)[], reach = 2): void {
  * video-range grey, a dozen or more spread over the clip), the bowler's lane
  * and its edges, the foul line and the back pin row on the frame where they
  * show best, as calibration marks on that frame. The `tries` frames whose
- * lane edges stand out most are each calibrated in full, and the one whose
- * edges, pin row and foul line agree best is kept. Null when no frame gives
- * all four.
+ * lane edges stand out most are each calibrated in full (`laneAttempts`,
+ * which settles the pin row and foul line across them), and the one whose
+ * edges are clearest and whose lines meet the standing pins best is kept.
+ * Null when no frame gives all four.
  */
 export function findLane(frames: GrayFrame[], tries = 10): LaneFound | null {
-  const per = frames.map((f) => lanesOnFrame(f));
-  steadyProfiles(per);
-  const ranked = rankLanes(per, frames[0].width);
-  const attempts = ranked.slice(0, tries).map((pick) => attempt(frames[pick.index], per[pick.index]!, pick)).filter((a): a is Attempt => !!a);
+  const { attempts, camera: d } = laneAttempts(frames, tries);
   if (!attempts.length) return null;
   // The camera barely moves along the lane in a clip: an attempt whose lines put
-  // it somewhere else than the others do found a wrong pin row or foul line.
-  const d = median(attempts.map((a) => a.found.camera));
+  // it somewhere else than the others do found a wrong pin row or foul line
+  // (it had no candidate near the distance the others agree on).
   let best: Attempt | null = null;
   for (const a of attempts) {
-    const q = a.quality - Math.abs(a.found.camera - d) / 4;
+    const q = a.quality - 0.3 * Math.max(0, Math.abs(a.found.camera - d) - CAMERA_SPREAD_FT);
     if (!best || q > best.quality) best = { found: a.found, quality: q };
   }
   return best!.found;
