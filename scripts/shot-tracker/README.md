@@ -11,6 +11,7 @@ npx tsx scripts/shot-tracker/run.ts             # every clip; about 3 minutes
 npx tsx scripts/shot-tracker/run.ts shot-01     # one clip
 npx tsx scripts/shot-tracker/auto.ts            # no marks: the lane found, then traced, against the hand calibration; about 10 minutes
 npx tsx scripts/shot-tracker/auto.ts --no-trace --png shot-03   # the finder alone; out/shot-03/auto-lane.png
+npx tsx scripts/shot-tracker/swing.ts --mode lanes  # how the readings move with the calibration frame (modes one, marks, lanes); about 30 minutes
 npx tsx scripts/shot-tracker/synthetic-grid.ts  # the full-size synthetic grid (add --all for 32 cases)
 npx tsx scripts/shot-tracker/look.ts <clip> <frame> <x0> <y0> <w> <h> <scale> <out.png> [--cal] [--median]
 npx tsx scripts/shot-tracker/diff.ts <clip> <first> <last> <step> <x0> <y0> <w> <h> <scale> <out.png>
@@ -149,6 +150,204 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
 - 7.5: a handful of sightings past a long unseen stretch (more than 15 ft,
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
+
+## The lane on every frame (2026-11-14, second round)
+
+The handoff's first item: stop carrying one calibration through the whole
+clip. The finder now calibrates every frame it is given (`findLanes`), each
+frame of the clip takes its lane from the found frames near it
+(`src/lib/shotTrack/laneTrack.ts`), and `trace()` takes those lanes
+(`TraceInput.lanes`) instead of marks. `auto.ts` traces that way now.
+
+### First, the two edges the owner ruled on
+
+shot-01's left edge and shot-05's right edge are re-marked on the finder's
+rule (the thin dark line where the lane's colour ends), measured row by row
+as the line's darkest point: shot-01 on rows 455 to 525 and 595 to 615 of
+frame 150 (the leg hides it between; the old marks were 5.4 pixels inside it
+all along), shot-05 on rows 300 to 500 of frame 230 (the old three points
+were on the black line 8 pixels further out at row 500). Fits: shot-01 worst
+mark 0.40 board, shot-05 0.14. The finder's lines now agree with the hand
+ones within 0.1 board on shot-01 (was 1.6 at the foul line).
+
+That moved shot-01's hand-traced laydown from 24.2 to 20.6, three and a half
+boards for a board at the foul line on frame 150. It is not the boards: it is
+the registration. The laydown is read 74 frames from the calibration frame,
+and the calibration also sets the focal length and the floor patches the
+registration uses, so a small change to it moved the whole chain. That is the
+same weakness as the swing below, in the answer key.
+
+### The measure: `swing.ts`
+
+The clip traced once per finder attempt, each time with that attempt's frame
+as the calibration frame, six frames spread over the clip; the spread (max -
+min) of each reading over those traces. Mode `one` is the tracer as it was
+(the attempt's own marks, carried through the clip); `marks` passes every
+attempt's marks with their frames (`calMarks`, the cheapest idea); `lanes` is
+the new path. Spread in boards (mph for speed), with the number of traces
+that gave the reading:
+
+| clip | laydown | arrows | breakpoint | pins | speed |
+|---|---|---|---|---|---|
+| shot-01, one | 6.5 (6) | 0.6 (6) | 0.4 (6) | 8.8 (6) | 2.9 (6) |
+| shot-01, lanes | 0.1 (6) | 0.1 (6) | 1.3 (6) | 4.3 (5) | 1.0 (6) |
+| shot-02, one | 3.3 (6) | 1.9 (6) | 0.0 (2) | 0.2 (3) | 0.5 (6) |
+| shot-02, lanes | 0.1 (6) | 0.1 (6) | (1) | 0.3 (2) | 0.2 (6) |
+| shot-03, one | 29.0 (6) | 27.9 (6) | (0) | (1) | 5.8 (6) |
+| shot-03, lanes | 0.3 (6) | 0.5 (6) | 0.7 (2) | (0) | 2.9 (6) |
+| shot-04, one | (1) | (1) | (0) | (0) | (1) |
+| shot-04, lanes | (0) | (0) | (0) | (0) | (0) |
+| shot-05, one | 1.1 (6) | 0.3 (6) | 0.2 (6) | 1.8 (2) | 0.3 (6) |
+| shot-05, lanes | 0.0 (6) | 0.0 (6) | 0.3 (5) | 0.6 (2) | 0.3 (6) |
+| shot-06, one | 20.1 (6) | 20.0 (6) | 19.0 (6) | 21.8 (6) | 0.5 (6) |
+| shot-06, lanes | 0.1 (6) | 0.1 (6) | 0.2 (6) | 0.5 (6) | 0.3 (6) |
+
+The `one` rows of shot-03 and shot-06 include attempts on the next lane
+(frames 40 and 180 of shot-03, 70 of shot-06): `findLane` would not choose
+them, but the swing shows what a calibration frame can do. Without them
+shot-03's `one` spread is 0.0 and 0.6, shot-06's 0.6, 0.4, 0.4 and 2.1. The
+`one` runs are on the registration before the fix below; the `lanes` runs
+after it.
+
+`marks` was refused on every trace of shot-01, shot-02 and shot-06
+(`calibration-off`, a mark 1.9 to 20 boards from the fit): the attempts
+include frames that took the next lane, and marks carried a hundred frames
+by the registration disagree by more than a board anyway. Fitting one lane
+from many frames still carries it through the clip. Dropped.
+
+### What it took
+
+1. **Each frame's lane from the found frames near it** (`laneTrack`). Every
+   found lane is carried to the frame by the registration and the carried
+   lanes are blended, weighted by the finder's quality and by a Gaussian in
+   frames (`reach`, 15 frames; with lanes every 10 frames that is about the
+   two nearest), as the picture positions they give a grid of lane points,
+   refitted as one homography. A frame is carried 5 to 10 frames, not 100.
+2. **Which lane is the bowler's is the best frame's to say.** On shot-03 the
+   finder takes the next lane on frames 0 to 200 of 280 and the bowler's on
+   the rest; on shot-01 it takes the next lane on 210 to 230. A first
+   version kept the local majority and traced shot-03's next lane (laydown
+   41). Now the found lane with the most weight (the finder's quality) is
+   the anchor, and a lane more than 12 boards from it, carried to its frame,
+   or that cannot be carried there, is dropped (`SAME_LANE_BOARDS`).
+3. **A wrong lane among right ones.** Then each lane is checked against its
+   8 nearest (carried, within 1 board at every corner and 1.5 ft along): it
+   is kept when it agrees with at least two and with more than half as many
+   as the best-agreeing lane near it. A median of the disagreements failed
+   where wrong and right were half and half (shot-01, frames 200 to 270).
+   Dropped on the six clips: shot-01 10 of 24, shot-02 8 of 15, shot-03 21
+   of 28 (the next lane), shot-04 4 of 14, shot-05 5 of 38, shot-06 4 of 13.
+4. **A registration fault the found lanes exposed.** On shot-01, carried
+   from frame 120, frames 240 to 270 sat 4 boards off the lanes found on
+   them. `registerPlane` chains each frame's guess from the frame before; at
+   frame 210 a third of the floor's patches were lost for one frame, the
+   frame took the camera's turn, and the next guesses came from the turn,
+   which on this travelling camera puts the near floor 20 pixels out,
+   beyond the patch search: the floor was never found again. Now, after
+   such a frame, the last measured floor (moved by the picture's motion
+   since) is tried too and the guess that finds more patches is used. Frames
+   240 to 270 then agree with their found lanes within 0.6 to 0.9 board. The
+   synthetic tilt test (`planeTrack.test.ts`) needed both guesses: keeping
+   only the last floor broke it.
+
+### The hidden foul line
+
+The owner's steer: when the foul line is hidden or below the picture, guess
+it. `guessFoul` places it from the pin row by the camera's distance (the
+relation `laneAttempts` already checks), measured on the clip's frames that
+show it, or `TYPICAL_CAMERA_FT` (22 ft) when none does. The lane found that
+way says so (`LaneFound.guess`: `camera-from-frames` or `typical-camera`),
+counts 0.5 less in the finder's quality (never chosen over a frame that saw
+everything) and a quarter as much in `laneTrack`. `findLane` returns such a
+lane now instead of null. On the six clips only shot-02 has frames that hide
+it (0, 30 and 80, the bowler over it); all three guessed lanes were among
+those `laneTrack` dropped, so no reading below uses a guess. It is tested on
+synthetic frames (the foul line below the picture, and rubbed out on one
+frame of three).
+
+### The table (`auto.ts`), before and after
+
+Automatic, hand-calibrated trace in brackets. Before: the job's start (the
+re-marked edges, the old tracer and registration, for both traces). After:
+`findLanes` and `lanes` for the automatic trace, and the registration fix
+for both.
+
+| clip | before | after |
+|---|---|---|
+| shot-01 laydown / arrows | 23.0 (20.6) / 16.6 (16.7) | 23.8 (23.3) / 16.9 (16.7) |
+| shot-01 breakpoint / pins / speed | 7.3 at 43 (7.2 at 45) / 19.0 (19.6) / 14.9 (15.1) | 7.7 at 43 (7.5 at 43) / 16.7 (20.5) / 15.3 (15.3) |
+| shot-02 laydown / arrows | 20.6 (18.3) / 15.7 (13.5) | 21.9 (18.3) / 15.8 (13.7) |
+| shot-02 breakpoint / pins / speed | none (8.6 at 44) / 16.1e (16.1e) / 16.1e (15.3e) | none (8.7 at 45) / 16.1e (16.1e) / 15.9e (15.3e) |
+| shot-03 laydown / arrows | 13.7 (14.2) / 10.5 (10.5) | 14.1 (14.2) / 10.5 (10.5) |
+| shot-03 speed | 15.6e (16.5) | 18.3 (16.5) |
+| shot-04 | 23.7, arrows 31.9, 12.0e mph (no hand trace) | not traced (`too-little-seen`; nor is the hand) |
+| shot-05 laydown / arrows | 18.2 (18.5) / 13.2 (13.1) | 18.7 (18.5) / 13.1 (13.1) |
+| shot-05 breakpoint / speed | none (8.9 at 49) / 17.9 (18.1) | 8.9 at 49 (8.9 at 49) / 18.1 (18.1) |
+| shot-06 laydown / arrows | 17.6 (17.7) / 14.7 (14.8) | 17.8 (17.7) / 14.7 (14.8) |
+| shot-06 breakpoint / pins / speed | 12.6 at 35 (12.5 at 36) / 18.8 (19.3) / 17.6 (17.0) | 12.6 at 35 (12.5 at 36) / 18.4 (19.3) / 17.5 (17.0) |
+
+The hand column of `auto.ts` is the single calibration of the JSON. For
+shot-02, `run.ts` traces the near end with the second calibration on frame
+66 (`near`), which reads laydown 21.0 and arrows 15.7: the automatic 21.9
+and 15.8 are within a board of it on any calibration frame; the old
+automatic trace was 0.4 and 0.0 off it on the frame it chose, but its swing
+was 3.3 and 1.9.
+
+Reading it:
+
+- Laydown and arrows: within 0.5 board of the hand trace on shot-01, 03, 05
+  and 06 (0.9 on shot-02 against the two-calibration hand trace), and the
+  same on any calibration frame.
+- shot-05's breakpoint is found now (8.9 at 49 ft, the hand's exactly).
+- Worse: shot-01's pins (16.7 against 20.5) and shot-03's speed (18.3
+  against 16.5, and shown as measured). Neither is the lane. shot-01's
+  board at the pins is read by following the ball by its darkness to the
+  rack (`followForward`); on this trace it lost the ball after two frames,
+  six before the rack moves, and the path's own board was used. With other
+  calibration frames it reads 16.0 to 20.2: the pins reading depends on
+  where the ball was last detected, which still depends on the calibration
+  frame (the empty lane and the region searched are built in its pixels).
+  shot-03's ball is seen to 27 ft only and the rack's first movement is
+  found at frame 200 (the hand trace: 214), so the anchored speed differs;
+  its swing over calibration frames is 2.9 mph. Sampling the rack through
+  the registration rather than the per-frame lanes was tried and changed
+  nothing.
+- shot-04 is no longer traced: the old reading was not believable (arrows
+  31.9) and the hand trace fails the same way without `follow`.
+
+### The hand-calibrated path
+
+`run.ts` with the registration fix against the same calibrations without
+it: shot-03 to shot-06 unchanged; shot-02's breakpoint 8.6 at 44.5 to 8.7 at
+44.7; shot-01 laydown 20.6 to 23.3, touchdown 20.9 to 22.5, breakpoint 7.2
+at 44.5 to 7.5 at 42.5, pins 19.6 to 20.5, speed 15.1 to 15.3. The owner read
+shot-01's laydown as 24 or 25 and the pins as a really high pocket (by eye
+19.4), so the laydown moved toward the owner and the pins 0.9 away. The
+evidence for the fix is the found lanes: carried by the old registration,
+frames 240 to 270 sat 4 boards off the lane found on them, by the new 0.6 to
+0.9.
+
+### Cost (Node, this container, idle)
+
+| clip | frames given | findLane | findLanes | trace, one calibration | trace, lanes |
+|---|---|---|---|---|---|
+| shot-01 | 28 of 279 | 10.2 s | 12.7 s | 52.1 s | 52.3 s |
+| shot-06 | 13 of 126 | 3.1 s | 3.8 s | 9.1 s | 9.3 s |
+
+`findLanes` calibrates every frame given where `findLane` calibrates its 10
+best, a quarter more time; the blending in the trace costs nothing measurable.
+In the app the finder is given 24 frames.
+
+### Next
+
+- The far end still moves with the calibration frame (shot-01's pins 16.0
+  to 20.2, breakpoint 7.3 to 8.6): the empty lane and the search region are
+  built in the calibration frame's pixels. The next step is to build them
+  per stretch of the clip, or to choose the registration frame near the
+  middle of the ball's run once a first pass has found it.
+- `followForward` losing the ball over the rack on shot-01.
+- `reach` is in frames; at 120 fps (shot-05) it is a quarter of the time.
+  It made no difference on shot-05, but time would be the better unit.
 
 ## The lane with no lines (0.109.0, 2026-11-14)
 

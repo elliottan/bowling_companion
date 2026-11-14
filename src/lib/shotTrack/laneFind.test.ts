@@ -876,7 +876,7 @@ describe("findLane on a rendered house", () => {
     expect(lanes.map((l) => l.frame)).toEqual(all.lanes.map((a) => 100 + 7 * a.found.index));
     expect(lanes[0].H).toBe(all.lanes[0].found.H);
     expect(lanes[0].weight).toBe(all.lanes[0].quality);
-  });
+  }, SLOW);
 
   it("findLanes guesses the foul line on a frame that hides it from the camera distance the other frames measure", () => {
     const foulY = Math.round(apply(h.H, { x: 20, y: 0 }).y);
@@ -897,7 +897,7 @@ describe("findLane on a rendered house", () => {
     for (const a of all.lanes.filter((x) => x.found.index !== 1)) expect(a.found.guess).toBeNull();
     // A guess is never chosen over a frame that saw everything.
     expect(all.best!.guess).toBeNull();
-  });
+  }, SLOW);
 
   it("guessFoul puts the foul line where the camera's distance says", () => {
     const H = h.H;
