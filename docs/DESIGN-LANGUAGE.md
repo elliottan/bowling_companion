@@ -465,6 +465,10 @@ Settings with the site page's own text (ADR-181), not a trip to the site. Rows
 that leave the app, and that one, carry no sentence: a label that says "Privacy
 and terms" or "Send feedback" has nothing a second line could add.
 
+**Labs** is the owner's, for screens still being tried (the shot tracer): a
+group above the version line that no bowler is shown, turned on and off on a
+phone by seven quick taps on that line (`lib/labs.ts`).
+
 ## 4d. Lists that grow, and pages that are read
 
 **A long list is rows of what you read first, not tiles of what it holds.** The

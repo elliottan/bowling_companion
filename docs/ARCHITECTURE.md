@@ -23,6 +23,11 @@ Each layer's *role* and the *load-bearing* modules:
 - `lib/`: pure, React-free, Dexie-free, unit-tested functions. Load-bearing:
   `scoring.ts`, `frameController.ts` (shot state machine), `shotSeeding.ts`
   (what a shot opens with), `pins.ts`, `stats.ts`.
+- `shotTracer/`: the browser's side of the shot tracer (Settings, Labs):
+  reading a video's frames through a `<video>` and a canvas, and the worker
+  the tracer (`lib/shotTrack/`) runs in. It needs a real browser's decoder,
+  so it has no unit tests and no coverage floor; its pure parts are in
+  `lib/shotTrack/marking.ts`.
 - `db/bowlingDb.ts`: Dexie class + versioned schema.
   `types/bowling.ts`: shared interfaces.
 - `test/`: the vitest setup (jsdom shims for `Blob.text`, `matchMedia` and

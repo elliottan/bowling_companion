@@ -550,6 +550,10 @@ msgctxt "balls thrown"
 msgid "{shots, plural, one {# ball} other {# balls}}"
 msgstr "{shots, plural, other {# lemparan}}"
 
+#: src/views/ShotTracerView.tsx
+msgid "{speed} mph"
+msgstr "{speed} mph"
+
 #: src/components/BallGameSessionsDialog.tsx
 msgid "{spoken} {made} of {of}"
 msgstr "{spoken} {made} dari {of}"
@@ -959,6 +963,10 @@ msgstr "Sudut di PAP antara pin dan garis sumbumu. Rendah menaikkan pin untuk be
 msgid "Angle at the pin between your PAP and the CG or PSA. A low angle rolls early; a high one rolls later."
 msgstr "Sudut di pin antara PAP-mu dan CG atau PSA. Sudut rendah menggelinding lebih awal; sudut tinggi menggelinding lebih lambat."
 
+#: src/views/ShotTracerView.tsx
+msgid "Another video"
+msgstr "Video lain"
+
 #: src/views/GamePlanView.tsx
 msgid "Any"
 msgstr "Apa saja"
@@ -979,6 +987,11 @@ msgstr "Diagram papan approach untuk peboling kidal, dibagi menjadi zona pergese
 #: src/components/DriftZoneLane.tsx
 msgid "Approach board diagram for a right-handed bowler, split into outside, middle and inside drift zones"
 msgstr "Diagram papan approach untuk peboling tangan kanan, dibagi menjadi zona pergeseran luar, tengah, dan dalam"
+
+#. A bowling term: the aiming arrows 15 feet down the lane; here the board the ball crosses there
+#: src/views/ShotTracerView.tsx
+msgid "Arrows"
+msgstr "Panah"
 
 #: src/components/HomeProfile.tsx
 #: src/views/ArsenalView.tsx
@@ -1022,6 +1035,11 @@ msgstr "Asimetris"
 #: src/components/BallFormDialog.tsx
 msgid "Asymmetric core"
 msgstr "Inti asimetris"
+
+#. The board the ball is on where it meets the pins
+#: src/views/ShotTracerView.tsx
+msgid "At the pins"
+msgstr "Di pin"
 
 #. Language setting: speak the phone's language
 #: src/views/AppearanceView.tsx
@@ -1074,6 +1092,11 @@ msgstr "Kembali"
 msgctxt "navigation"
 msgid "Back"
 msgstr "Kembali"
+
+#. The row of pin spots furthest from the bowler: the 7, 8, 9 and 10 pins
+#: src/views/ShotTracerView.tsx
+msgid "Back row of pins"
+msgstr "Baris pin belakang"
 
 #: src/components/FirstRun.tsx
 msgid "Backed up {when}"
@@ -1182,8 +1205,13 @@ msgid "Benchmark"
 msgstr "Benchmark"
 
 #: src/components/DriftZoneLane.tsx
+#: src/views/ShotTracerView.tsx
 msgid "Board {board}"
 msgstr "Papan {board}"
+
+#: src/views/ShotTracerView.tsx
+msgid "Board {board} at {feet} ft"
+msgstr "Papan {board} di {feet} ft"
 
 #: src/views/BowlingProfileView.tsx
 msgid "boards"
@@ -1248,8 +1276,10 @@ msgstr "Belok {board}·{feet}ft"
 
 #. Bowling term: the point where the ball turns from skid to hook
 #. Bowling term: the point where the ball turns from skid to hook
+#. Bowling term: the point where the ball turns from skid to hook
 #: src/components/ProOfferSamples.tsx
 #: src/lib/shareCard.ts
+#: src/views/ShotTracerView.tsx
 msgid "Breakpoint"
 msgstr "Titik belok"
 
@@ -1378,6 +1408,10 @@ msgstr "Grafik per sesi"
 #: src/views/BackupRestoreView.tsx
 msgid "Choose a backup file"
 msgstr "Pilih file cadangan"
+
+#: src/views/ShotTracerView.tsx
+msgid "Choose a video"
+msgstr "Pilih video"
 
 #: src/components/HistoryCalendar.tsx
 msgid "Choose month"
@@ -1763,6 +1797,10 @@ msgstr "Seret titik untuk memindahkannya"
 msgid "Drag the ball, or use the arrow keys, to turn it."
 msgstr "Seret bola, atau pakai tombol panah, untuk memutarnya."
 
+#: src/views/ShotTracerView.tsx
+msgid "Drag the ends of each line onto the lane, on a frame where you can see it clearly. The lane's own edges, not the gutters."
+msgstr "Seret ujung tiap garis ke lintasan, pada frame yang terlihat jelas. Tepi lintasan itu sendiri, bukan gutter."
+
 #: src/components/LaneVisualizer.tsx
 msgid "Drag the lane to tilt"
 msgstr "Seret lintasan untuk memiringkan"
@@ -1902,6 +1940,11 @@ msgstr "Aktifkan Aktivitas Langsung"
 msgid "Enter whole numbers for both lanes."
 msgstr "Masukkan bilangan bulat untuk kedua lintasan."
 
+#. The tracer worked it out from where the ball was seen nearby
+#: src/views/ShotTracerView.tsx
+msgid "Estimated"
+msgstr "Perkiraan"
+
 #: src/components/BallEstimates.tsx
 msgid "Estimated average"
 msgstr "Perkiraan rata-rata"
@@ -2025,6 +2068,10 @@ msgstr "Felt"
 msgid "Fills in the core, coverstock, RG and diff."
 msgstr "Mengisi inti, coverstock, RG, dan diff."
 
+#: src/views/ShotTracerView.tsx
+msgid "Film from behind the bowler with the whole lane in view, and trim the video to the shot, from just before the release until the pins fall."
+msgstr "Rekam dari belakang peboling dengan seluruh lintasan terlihat, lalu potong video ke lemparannya, dari sesaat sebelum bola dilepas sampai pin jatuh."
+
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
 msgid "Filter leaves"
@@ -2133,6 +2180,11 @@ msgstr "Pass maju"
 msgid "Foul"
 msgstr "Foul"
 
+#. A bowling term: the line at the start of the lane a bowler must not cross
+#: src/views/ShotTracerView.tsx
+msgid "Foul line"
+msgstr "Garis foul"
+
 #: src/components/ActiveGameScorer.tsx
 msgid "frame {frame}, ball {ball}"
 msgstr "frame {frame}, lemparan {ball}"
@@ -2157,6 +2209,11 @@ msgstr "frame {frame}, lemparan {ball} (strike)"
 #: src/components/LiveActivityPreviews.tsx
 msgid "Frame {frameNumber}"
 msgstr "Frame {frameNumber}"
+
+#. A picture of the video, not a bowling frame
+#: src/views/ShotTracerView.tsx
+msgid "Frame {frameNumber} of {count}"
+msgstr "Frame {frameNumber} dari {count}"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Frame {frameNumber}, ball {ball} is already recorded. Changing it rescores the game from that frame on."
@@ -2597,6 +2654,11 @@ msgstr "Catat skor, plus bola dan jalur untuk setiap lemparan. Semuanya tetap di
 msgid "L"
 msgstr "Ki"
 
+#. Settings group for features still being tried out
+#: src/views/SettingsView.tsx
+msgid "Labs"
+msgstr "Labs"
+
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/SessionLanePanel.tsx
 #: src/views/GamePlanView.tsx
@@ -2716,6 +2778,7 @@ msgstr "Nanti"
 #: src/components/LaneVisualizer.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/views/BowlingProfileView.tsx
+#: src/views/ShotTracerView.tsx
 msgid "Laydown"
 msgstr "Titik lepas"
 
@@ -2811,6 +2874,10 @@ msgstr "Kiri"
 msgctxt "times a leave was left"
 msgid "Left"
 msgstr "Tersisa"
+
+#: src/views/ShotTracerView.tsx
+msgid "Left edge of the lane"
+msgstr "Tepi kiri lintasan"
 
 #. A ball layout card: the bowler throws left-handed
 #: src/lib/shareCard.ts
@@ -3020,6 +3087,11 @@ msgstr "MB {mbDiff}"
 msgid "MB diff"
 msgstr "MB diff"
 
+#. The tracer saw the ball there
+#: src/views/ShotTracerView.tsx
+msgid "Measured"
+msgstr "Terukur"
+
 #. Flare reading: the middle third of the scale
 #. Strength reading: the middle third of the scale
 #: src/lib/ballLayout.ts
@@ -3101,6 +3173,10 @@ msgstr "Ubah pergeseran zona luar ke kanan"
 #: src/components/LaneVisualizer.tsx
 msgid "Move presets"
 msgstr "Preset geseran"
+
+#: src/views/ShotTracerView.tsx
+msgid "Move the lines and trace again"
+msgstr "Geser garis dan lacak lagi"
 
 #: src/views/ProOfferView.tsx
 msgid "Move your line"
@@ -3322,6 +3398,11 @@ msgstr "Tidak tertaut ke katalog"
 #: src/views/SpareLinesView.tsx
 msgid "Not now"
 msgstr "Nanti saja"
+
+#. The tracer did not see the ball there
+#: src/views/ShotTracerView.tsx
+msgid "Not seen"
+msgstr "Tidak terlihat"
 
 #: src/views/SpareLinesView.tsx
 msgid "Not the same shot"
@@ -3794,6 +3875,10 @@ msgstr "Rasio"
 msgid "Re-aim"
 msgstr "Bidik ulang"
 
+#: src/views/ShotTracerView.tsx
+msgid "Reading the video…"
+msgstr "Membaca video…"
+
 #: src/components/FirstRun.tsx
 msgid "Reading…"
 msgstr "Membaca…"
@@ -3807,6 +3892,10 @@ msgstr "Siap melempar"
 #: src/views/SearchView.tsx
 msgid "Recent"
 msgstr "Terbaru"
+
+#: src/views/ShotTracerView.tsx
+msgid "Record a shot"
+msgstr "Rekam lemparan"
 
 #. Bowling term: the easiest oil pattern tier, a high oil ratio (Kegel's tiers are Sport, Challenge and Recreation)
 #: src/lib/oilPattern.ts
@@ -4013,6 +4102,10 @@ msgstr "RG: makin rendah, makin cepat berputar"
 #: src/views/LayoutLabView.tsx
 msgid "Right"
 msgstr "Kanan"
+
+#: src/views/ShotTracerView.tsx
+msgid "Right edge of the lane"
+msgstr "Tepi kanan lintasan"
 
 #. A ball layout card: the bowler throws right-handed
 #: src/lib/shareCard.ts
@@ -4342,6 +4435,11 @@ msgstr "Lembar"
 msgid "Short pin"
 msgstr "Pin pendek"
 
+#: src/views/SettingsView.tsx
+#: src/views/ShotTracerView.tsx
+msgid "Shot tracer"
+msgstr "Pelacak lemparan"
+
 #: src/views/ArsenalView.tsx
 msgid "Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
 msgstr "Lemparan yang sudah dicatat dengan bola ini tetap memiliki skornya, tetapi kehilangan nama bola. Untuk menjaganya di riwayatmu, pensiunkan saja bola ini."
@@ -4489,6 +4587,10 @@ msgstr "Spesifikasi dan gambar bola terkini"
 #: src/views/CatalogView.tsx
 msgid "Specs at {weight}"
 msgstr "Spesifikasi pada {weight}"
+
+#: src/views/ShotTracerView.tsx
+msgid "Speed"
+msgstr "Kecepatan"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins
@@ -4816,6 +4918,10 @@ msgstr "App Store tidak merespons: {reason}"
 msgid "The App Store did not answer. Try again in a moment."
 msgstr "App Store tidak merespons. Coba lagi sebentar lagi."
 
+#: src/views/ShotTracerView.tsx
+msgid "The ball couldn't be followed down the lane. Try a video with the whole lane in view."
+msgstr "Bola tidak bisa diikuti di sepanjang lintasan. Coba video yang menampilkan seluruh lintasan."
+
 #: src/views/BowlingProfileView.tsx
 msgid "The board the ball lands on: your slide, moved by your release offset."
 msgstr "Papan tempat bola mendarat: luncuranmu, digeser oleh offset pelepasanmu."
@@ -4831,6 +4937,10 @@ msgstr "Papan tempat kaki luncuranmu berakhir: posisi awalmu, digeser oleh perge
 #: src/views/BowlingProfileView.tsx
 msgid "The board your slide foot starts on."
 msgstr "Papan tempat kaki luncuranmu mulai."
+
+#: src/views/ShotTracerView.tsx
+msgid "The camera moves too much to follow the lane. Try a steadier video."
+msgstr "Kamera terlalu banyak bergerak untuk mengikuti lintasan. Coba video yang lebih stabil."
 
 #: src/views/CatalogView.tsx
 msgid "The catalog has not loaded"
@@ -4849,10 +4959,18 @@ msgstr "Gambar tidak bisa dibuat."
 msgid "The lane as the sheet draws it: boards across, feet up from the foul line, darker where there is more oil. The faint wash is where the machine only buffs, laying no oil of its own."
 msgstr "Lintasan seperti digambar di lembar pola: papan melintang, jarak dalam kaki dari foul line, makin gelap di bagian yang minyaknya lebih banyak. Warna samar menandai bagian yang hanya di-buff mesin tanpa menambah minyak."
 
+#: src/views/ShotTracerView.tsx
+msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."
+msgstr "Lintasan tidak bisa dihitung dari garis-garisnya. Pastikan tiap garis berada di tempatnya, lalu lacak lagi."
+
 #. A leave is the set of pins left standing after the first ball (bowling term)
 #: src/views/OpenFramesView.tsx
 msgid "The leaves you keep missing rank here, most often first. Finish a game to start the count."
 msgstr "Sisa pin yang sering gagal kamu tuntaskan diurutkan di sini, yang paling sering di atas. Selesaikan satu game untuk mulai menghitung."
+
+#: src/views/ShotTracerView.tsx
+msgid "The lines don't agree with each other. Check that each sits on its line, then trace again."
+msgstr "Garis-garisnya tidak cocok satu sama lain. Pastikan tiap garis berada di tempatnya, lalu lacak lagi."
 
 #. Describes the Benchmark drilling layout preset
 #: src/lib/ballLayout.ts
@@ -4957,6 +5075,10 @@ msgstr "Lemparan ini…"
 msgid "This tab is running an older version of the app than your scores were saved with. Everything is still on this device."
 msgstr "Tab ini menjalankan aplikasi versi lebih lama daripada versi yang menyimpan skormu. Semuanya masih ada di perangkat ini."
 
+#: src/views/ShotTracerView.tsx
+msgid "This video couldn't be read. Try another one."
+msgstr "Video ini tidak bisa dibaca. Coba video lain."
+
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
 msgid "Time to bowl"
@@ -4979,6 +5101,14 @@ msgstr "Hasil teratas"
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"
 msgstr "Dari atas"
+
+#: src/views/ShotTracerView.tsx
+msgid "Trace the shot"
+msgstr "Lacak lemparan"
+
+#: src/views/ShotTracerView.tsx
+msgid "Tracing the shot…"
+msgstr "Melacak lemparan…"
 
 #. Bowling term: bands of boards across the lane, as an oil pattern sheet prints them
 #: src/components/PatternSheet.tsx
@@ -5395,6 +5525,10 @@ msgstr "Layout-mu tersimpan pada bola. Headpin Pro menggambarnya pada bola dan m
 #: src/views/BowlingProfileView.tsx
 msgid "Your line"
 msgstr "Jalurmu"
+
+#: src/views/SettingsView.tsx
+msgid "Your line and boards from a video"
+msgstr "Line dan papanmu dari video"
 
 #: src/components/BowlerNameSheet.tsx
 msgid "Your name"

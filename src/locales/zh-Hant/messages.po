@@ -550,6 +550,10 @@ msgctxt "balls thrown"
 msgid "{shots, plural, one {# ball} other {# balls}}"
 msgstr "{shots, plural, other {# 次投球}}"
 
+#: src/views/ShotTracerView.tsx
+msgid "{speed} mph"
+msgstr "{speed} mph"
+
 #: src/components/BallGameSessionsDialog.tsx
 msgid "{spoken} {made} of {of}"
 msgstr "{spoken} {of} 中 {made}"
@@ -959,6 +963,10 @@ msgstr "PAP 處定位銷與你的軸線之間的角度。角度小會讓定位�
 msgid "Angle at the pin between your PAP and the CG or PSA. A low angle rolls early; a high one rolls later."
 msgstr "定位銷處，你的 PAP 與 CG 或 PSA 之間的角度。角度小會較早進入滾動；角度大則較晚。"
 
+#: src/views/ShotTracerView.tsx
+msgid "Another video"
+msgstr "換一段影片"
+
 #: src/views/GamePlanView.tsx
 msgid "Any"
 msgstr "不限"
@@ -979,6 +987,11 @@ msgstr "左手球友的助走道木板示意圖，分為外側、中間、內側
 #: src/components/DriftZoneLane.tsx
 msgid "Approach board diagram for a right-handed bowler, split into outside, middle and inside drift zones"
 msgstr "右手球友的助走道木板示意圖，分為外側、中間、內側偏移區域"
+
+#. A bowling term: the aiming arrows 15 feet down the lane; here the board the ball crosses there
+#: src/views/ShotTracerView.tsx
+msgid "Arrows"
+msgstr "箭頭"
 
 #: src/components/HomeProfile.tsx
 #: src/views/ArsenalView.tsx
@@ -1022,6 +1035,11 @@ msgstr "非對稱"
 #: src/components/BallFormDialog.tsx
 msgid "Asymmetric core"
 msgstr "非對稱球心"
+
+#. The board the ball is on where it meets the pins
+#: src/views/ShotTracerView.tsx
+msgid "At the pins"
+msgstr "球瓶處"
 
 #. Language setting: speak the phone's language
 #: src/views/AppearanceView.tsx
@@ -1074,6 +1092,11 @@ msgstr "返回"
 msgctxt "navigation"
 msgid "Back"
 msgstr "返回"
+
+#. The row of pin spots furthest from the bowler: the 7, 8, 9 and 10 pins
+#: src/views/ShotTracerView.tsx
+msgid "Back row of pins"
+msgstr "後排球瓶"
 
 #: src/components/FirstRun.tsx
 msgid "Backed up {when}"
@@ -1182,8 +1205,13 @@ msgid "Benchmark"
 msgstr "基準"
 
 #: src/components/DriftZoneLane.tsx
+#: src/views/ShotTracerView.tsx
 msgid "Board {board}"
 msgstr "第 {board} 板"
+
+#: src/views/ShotTracerView.tsx
+msgid "Board {board} at {feet} ft"
+msgstr "{feet} ft 處第 {board} 板"
 
 #: src/views/BowlingProfileView.tsx
 msgid "boards"
@@ -1248,8 +1276,10 @@ msgstr "轉折 {board}·{feet}ft"
 
 #. Bowling term: the point where the ball turns from skid to hook
 #. Bowling term: the point where the ball turns from skid to hook
+#. Bowling term: the point where the ball turns from skid to hook
 #: src/components/ProOfferSamples.tsx
 #: src/lib/shareCard.ts
+#: src/views/ShotTracerView.tsx
 msgid "Breakpoint"
 msgstr "轉折點"
 
@@ -1378,6 +1408,10 @@ msgstr "依場次顯示圖表"
 #: src/views/BackupRestoreView.tsx
 msgid "Choose a backup file"
 msgstr "選擇備份檔案"
+
+#: src/views/ShotTracerView.tsx
+msgid "Choose a video"
+msgstr "選擇影片"
 
 #: src/components/HistoryCalendar.tsx
 msgid "Choose month"
@@ -1763,6 +1797,10 @@ msgstr "拖曳圓點即可移動"
 msgid "Drag the ball, or use the arrow keys, to turn it."
 msgstr "拖曳球，或使用方向鍵來轉動。"
 
+#: src/views/ShotTracerView.tsx
+msgid "Drag the ends of each line onto the lane, on a frame where you can see it clearly. The lane's own edges, not the gutters."
+msgstr "在看得清楚的畫面上，把每條線的兩端拖到球道上。對準球道本身的邊緣，不是洗溝。"
+
 #: src/components/LaneVisualizer.tsx
 msgid "Drag the lane to tilt"
 msgstr "拖曳球道來傾斜"
@@ -1902,6 +1940,11 @@ msgstr "啟用即時動態"
 msgid "Enter whole numbers for both lanes."
 msgstr "請為兩條球道輸入整數。"
 
+#. The tracer worked it out from where the ball was seen nearby
+#: src/views/ShotTracerView.tsx
+msgid "Estimated"
+msgstr "估計"
+
 #: src/components/BallEstimates.tsx
 msgid "Estimated average"
 msgstr "預估平均分"
@@ -2025,6 +2068,10 @@ msgstr "氈綠"
 msgid "Fills in the core, coverstock, RG and diff."
 msgstr "自動帶入球心、球皮、RG 與 Diff。"
 
+#: src/views/ShotTracerView.tsx
+msgid "Film from behind the bowler with the whole lane in view, and trim the video to the shot, from just before the release until the pins fall."
+msgstr "從球手後方拍攝，讓整條球道入鏡，並把影片剪到這一球，從出手前一刻到球瓶倒下。"
+
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
 msgid "Filter leaves"
@@ -2133,6 +2180,11 @@ msgstr "正向趟數"
 msgid "Foul"
 msgstr "犯規"
 
+#. A bowling term: the line at the start of the lane a bowler must not cross
+#: src/views/ShotTracerView.tsx
+msgid "Foul line"
+msgstr "犯規線"
+
 #: src/components/ActiveGameScorer.tsx
 msgid "frame {frame}, ball {ball}"
 msgstr "第 {frame} 格，第 {ball} 球"
@@ -2157,6 +2209,11 @@ msgstr "第 {frame} 格，第 {ball} 球（全倒）"
 #: src/components/LiveActivityPreviews.tsx
 msgid "Frame {frameNumber}"
 msgstr "第 {frameNumber} 格"
+
+#. A picture of the video, not a bowling frame
+#: src/views/ShotTracerView.tsx
+msgid "Frame {frameNumber} of {count}"
+msgstr "第 {frameNumber}/{count} 格畫面"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Frame {frameNumber}, ball {ball} is already recorded. Changing it rescores the game from that frame on."
@@ -2597,6 +2654,11 @@ msgstr "記錄分數，以及每一球使用的球與路線。一切都只存在
 msgid "L"
 msgstr "左"
 
+#. Settings group for features still being tried out
+#: src/views/SettingsView.tsx
+msgid "Labs"
+msgstr "Labs"
+
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/SessionLanePanel.tsx
 #: src/views/GamePlanView.tsx
@@ -2716,6 +2778,7 @@ msgstr "稍後"
 #: src/components/LaneVisualizer.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/views/BowlingProfileView.tsx
+#: src/views/ShotTracerView.tsx
 msgid "Laydown"
 msgstr "出手點"
 
@@ -2811,6 +2874,10 @@ msgstr "左"
 msgctxt "times a leave was left"
 msgid "Left"
 msgstr "次數"
+
+#: src/views/ShotTracerView.tsx
+msgid "Left edge of the lane"
+msgstr "球道左緣"
 
 #. A ball layout card: the bowler throws left-handed
 #: src/lib/shareCard.ts
@@ -3020,6 +3087,11 @@ msgstr "MB {mbDiff}"
 msgid "MB diff"
 msgstr "MB diff"
 
+#. The tracer saw the ball there
+#: src/views/ShotTracerView.tsx
+msgid "Measured"
+msgstr "實測"
+
 #. Flare reading: the middle third of the scale
 #. Strength reading: the middle third of the scale
 #: src/lib/ballLayout.ts
@@ -3101,6 +3173,10 @@ msgstr "外側偏移向右移"
 #: src/components/LaneVisualizer.tsx
 msgid "Move presets"
 msgstr "移動預設"
+
+#: src/views/ShotTracerView.tsx
+msgid "Move the lines and trace again"
+msgstr "移動線條再追蹤一次"
 
 #: src/views/ProOfferView.tsx
 msgid "Move your line"
@@ -3322,6 +3398,11 @@ msgstr "未連結至型錄"
 #: src/views/SpareLinesView.tsx
 msgid "Not now"
 msgstr "暫時不要"
+
+#. The tracer did not see the ball there
+#: src/views/ShotTracerView.tsx
+msgid "Not seen"
+msgstr "未看到"
 
 #: src/views/SpareLinesView.tsx
 msgid "Not the same shot"
@@ -3794,6 +3875,10 @@ msgstr "比例"
 msgid "Re-aim"
 msgstr "重新瞄準"
 
+#: src/views/ShotTracerView.tsx
+msgid "Reading the video…"
+msgstr "正在讀取影片…"
+
 #: src/components/FirstRun.tsx
 msgid "Reading…"
 msgstr "讀取中…"
@@ -3807,6 +3892,10 @@ msgstr "準備開打"
 #: src/views/SearchView.tsx
 msgid "Recent"
 msgstr "最近搜尋"
+
+#: src/views/ShotTracerView.tsx
+msgid "Record a shot"
+msgstr "拍攝一球"
 
 #. Bowling term: the easiest oil pattern tier, a high oil ratio (Kegel's tiers are Sport, Challenge and Recreation)
 #: src/lib/oilPattern.ts
@@ -4013,6 +4102,10 @@ msgstr "RG：越低，越早起轉"
 #: src/views/LayoutLabView.tsx
 msgid "Right"
 msgstr "右"
+
+#: src/views/ShotTracerView.tsx
+msgid "Right edge of the lane"
+msgstr "球道右緣"
 
 #. A ball layout card: the bowler throws right-handed
 #: src/lib/shareCard.ts
@@ -4342,6 +4435,11 @@ msgstr "計分表"
 msgid "Short pin"
 msgstr "短定位銷"
 
+#: src/views/SettingsView.tsx
+#: src/views/ShotTracerView.tsx
+msgid "Shot tracer"
+msgstr "投球追蹤"
+
 #: src/views/ArsenalView.tsx
 msgid "Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
 msgstr "已用這顆球記錄的投球會保留分數，但會失去球名。若想在紀錄中保留它，請改為退役。"
@@ -4489,6 +4587,10 @@ msgstr "現行球款的規格與圖片"
 #: src/views/CatalogView.tsx
 msgid "Specs at {weight}"
 msgstr "{weight} 規格"
+
+#: src/views/ShotTracerView.tsx
+msgid "Speed"
+msgstr "球速"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins
@@ -4816,6 +4918,10 @@ msgstr "App Store 沒有回應：{reason}"
 msgid "The App Store did not answer. Try again in a moment."
 msgstr "App Store 沒有回應，請稍後再試。"
 
+#: src/views/ShotTracerView.tsx
+msgid "The ball couldn't be followed down the lane. Try a video with the whole lane in view."
+msgstr "無法沿球道追蹤到球。請換一段整條球道都入鏡的影片。"
+
 #: src/views/BowlingProfileView.tsx
 msgid "The board the ball lands on: your slide, moved by your release offset."
 msgstr "球落下的板：你的滑步位置，加上出手偏移。"
@@ -4831,6 +4937,10 @@ msgstr "滑步腳最後停下的板：你的站位，加上偏移。"
 #: src/views/BowlingProfileView.tsx
 msgid "The board your slide foot starts on."
 msgstr "滑步腳起始的板。"
+
+#: src/views/ShotTracerView.tsx
+msgid "The camera moves too much to follow the lane. Try a steadier video."
+msgstr "鏡頭晃動太大，無法追蹤球道。請換一段較穩定的影片。"
 
 #: src/views/CatalogView.tsx
 msgid "The catalog has not loaded"
@@ -4849,10 +4959,18 @@ msgstr "無法建立圖片。"
 msgid "The lane as the sheet draws it: boards across, feet up from the foul line, darker where there is more oil. The faint wash is where the machine only buffs, laying no oil of its own."
 msgstr "依油型表繪製的球道：橫向為板，縱向為距犯規線的英尺數，油越多顏色越深。淡淡的底色是機器只做擦拭、沒有上油的區域。"
 
+#: src/views/ShotTracerView.tsx
+msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."
+msgstr "無法從這些線算出球道。請確認每條線都在正確位置，再追蹤一次。"
+
 #. A leave is the set of pins left standing after the first ball (bowling term)
 #: src/views/OpenFramesView.tsx
 msgid "The leaves you keep missing rank here, most often first. Finish a game to start the count."
 msgstr "你常漏掉的殘瓶會排在這裡，最常出現的在最前面。完成一局後就會開始計算。"
+
+#: src/views/ShotTracerView.tsx
+msgid "The lines don't agree with each other. Check that each sits on its line, then trace again."
+msgstr "這些線彼此對不上。請確認每條線都在正確位置，再追蹤一次。"
 
 #. Describes the Benchmark drilling layout preset
 #: src/lib/ballLayout.ts
@@ -4957,6 +5075,10 @@ msgstr "這一球…"
 msgid "This tab is running an older version of the app than your scores were saved with. Everything is still on this device."
 msgstr "這個分頁執行的 App 版本，比儲存你分數時的版本還舊。所有資料仍保留在此裝置上。"
 
+#: src/views/ShotTracerView.tsx
+msgid "This video couldn't be read. Try another one."
+msgstr "無法讀取這段影片。請換一段試試。"
+
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
 msgid "Time to bowl"
@@ -4979,6 +5101,14 @@ msgstr "最佳結果"
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"
 msgstr "俯視"
+
+#: src/views/ShotTracerView.tsx
+msgid "Trace the shot"
+msgstr "追蹤這一球"
+
+#: src/views/ShotTracerView.tsx
+msgid "Tracing the shot…"
+msgstr "正在追蹤…"
 
 #. Bowling term: bands of boards across the lane, as an oil pattern sheet prints them
 #: src/components/PatternSheet.tsx
@@ -5395,6 +5525,10 @@ msgstr "你的打孔配置已儲存在這顆球上。Headpin Pro 會把它畫在
 #: src/views/BowlingProfileView.tsx
 msgid "Your line"
 msgstr "你的路線"
+
+#: src/views/SettingsView.tsx
+msgid "Your line and boards from a video"
+msgstr "從影片看你的路線和板數"
 
 #: src/components/BowlerNameSheet.tsx
 msgid "Your name"

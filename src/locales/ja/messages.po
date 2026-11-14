@@ -550,6 +550,10 @@ msgctxt "balls thrown"
 msgid "{shots, plural, one {# ball} other {# balls}}"
 msgstr "{shots, plural, other {#投}}"
 
+#: src/views/ShotTracerView.tsx
+msgid "{speed} mph"
+msgstr "{speed} mph"
+
 #: src/components/BallGameSessionsDialog.tsx
 msgid "{spoken} {made} of {of}"
 msgstr "{spoken} {of}回中{made}回"
@@ -959,6 +963,10 @@ msgstr "PAPでのピンと軸線の間の角度です。小さいとピンが上
 msgid "Angle at the pin between your PAP and the CG or PSA. A low angle rolls early; a high one rolls later."
 msgstr "ピンでのPAPとCGまたはPSAの間の角度です。小さい角度は早く転がり、大きい角度は遅く転がります。"
 
+#: src/views/ShotTracerView.tsx
+msgid "Another video"
+msgstr "別の動画"
+
 #: src/views/GamePlanView.tsx
 msgid "Any"
 msgstr "指定なし"
@@ -979,6 +987,11 @@ msgstr "左投げ用のアプローチのボード図。アウトサイド、ミ
 #: src/components/DriftZoneLane.tsx
 msgid "Approach board diagram for a right-handed bowler, split into outside, middle and inside drift zones"
 msgstr "右投げ用のアプローチのボード図。アウトサイド、ミドル、インサイドのドリフトゾーンに分割"
+
+#. A bowling term: the aiming arrows 15 feet down the lane; here the board the ball crosses there
+#: src/views/ShotTracerView.tsx
+msgid "Arrows"
+msgstr "スパット"
 
 #: src/components/HomeProfile.tsx
 #: src/views/ArsenalView.tsx
@@ -1022,6 +1035,11 @@ msgstr "非対称"
 #: src/components/BallFormDialog.tsx
 msgid "Asymmetric core"
 msgstr "非対称コア"
+
+#. The board the ball is on where it meets the pins
+#: src/views/ShotTracerView.tsx
+msgid "At the pins"
+msgstr "ピン位置"
 
 #. Language setting: speak the phone's language
 #: src/views/AppearanceView.tsx
@@ -1074,6 +1092,11 @@ msgstr "戻る"
 msgctxt "navigation"
 msgid "Back"
 msgstr "戻る"
+
+#. The row of pin spots furthest from the bowler: the 7, 8, 9 and 10 pins
+#: src/views/ShotTracerView.tsx
+msgid "Back row of pins"
+msgstr "後列のピン"
 
 #: src/components/FirstRun.tsx
 msgid "Backed up {when}"
@@ -1182,8 +1205,13 @@ msgid "Benchmark"
 msgstr "ベンチマーク"
 
 #: src/components/DriftZoneLane.tsx
+#: src/views/ShotTracerView.tsx
 msgid "Board {board}"
 msgstr "{board}枚目"
+
+#: src/views/ShotTracerView.tsx
+msgid "Board {board} at {feet} ft"
+msgstr "{feet} ftで{board}枚目"
 
 #: src/views/BowlingProfileView.tsx
 msgid "boards"
@@ -1248,8 +1276,10 @@ msgstr "ブレイク {board}·{feet}ft"
 
 #. Bowling term: the point where the ball turns from skid to hook
 #. Bowling term: the point where the ball turns from skid to hook
+#. Bowling term: the point where the ball turns from skid to hook
 #: src/components/ProOfferSamples.tsx
 #: src/lib/shareCard.ts
+#: src/views/ShotTracerView.tsx
 msgid "Breakpoint"
 msgstr "ブレイクポイント"
 
@@ -1378,6 +1408,10 @@ msgstr "セッション別グラフ"
 #: src/views/BackupRestoreView.tsx
 msgid "Choose a backup file"
 msgstr "バックアップファイルを選択"
+
+#: src/views/ShotTracerView.tsx
+msgid "Choose a video"
+msgstr "動画を選ぶ"
 
 #: src/components/HistoryCalendar.tsx
 msgid "Choose month"
@@ -1763,6 +1797,10 @@ msgstr "点をドラッグして移動"
 msgid "Drag the ball, or use the arrow keys, to turn it."
 msgstr "ボールをドラッグするか、矢印キーで回転できます。"
 
+#: src/views/ShotTracerView.tsx
+msgid "Drag the ends of each line onto the lane, on a frame where you can see it clearly. The lane's own edges, not the gutters."
+msgstr "見やすいフレームで、各線の両端をレーン上にドラッグしてください。ガターではなく、レーン自体の端に合わせます。"
+
 #: src/components/LaneVisualizer.tsx
 msgid "Drag the lane to tilt"
 msgstr "レーンをドラッグして傾ける"
@@ -1902,6 +1940,11 @@ msgstr "ライブアクティビティを有効にする"
 msgid "Enter whole numbers for both lanes."
 msgstr "両方のレーンに整数を入力してください。"
 
+#. The tracer worked it out from where the ball was seen nearby
+#: src/views/ShotTracerView.tsx
+msgid "Estimated"
+msgstr "推定"
+
 #: src/components/BallEstimates.tsx
 msgid "Estimated average"
 msgstr "推定アベレージ"
@@ -2025,6 +2068,10 @@ msgstr "フェルト"
 msgid "Fills in the core, coverstock, RG and diff."
 msgstr "コア、カバーストック、RG、Diffが自動で入力されます。"
 
+#: src/views/ShotTracerView.tsx
+msgid "Film from behind the bowler with the whole lane in view, and trim the video to the shot, from just before the release until the pins fall."
+msgstr "ボウラーの後ろから、レーン全体が入るように撮影し、リリース直前からピンが倒れるまでに動画をトリミングしてください。"
+
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
 msgid "Filter leaves"
@@ -2133,6 +2180,11 @@ msgstr "順方向のパス"
 msgid "Foul"
 msgstr "ファウル"
 
+#. A bowling term: the line at the start of the lane a bowler must not cross
+#: src/views/ShotTracerView.tsx
+msgid "Foul line"
+msgstr "ファウルライン"
+
 #: src/components/ActiveGameScorer.tsx
 msgid "frame {frame}, ball {ball}"
 msgstr "{frame}フレーム {ball}投目"
@@ -2157,6 +2209,11 @@ msgstr "{frame}フレーム {ball}投目（ストライク）"
 #: src/components/LiveActivityPreviews.tsx
 msgid "Frame {frameNumber}"
 msgstr "フレーム{frameNumber}"
+
+#. A picture of the video, not a bowling frame
+#: src/views/ShotTracerView.tsx
+msgid "Frame {frameNumber} of {count}"
+msgstr "フレーム {frameNumber}/{count}"
 
 #: src/components/ActiveGameScorer.tsx
 msgid "Frame {frameNumber}, ball {ball} is already recorded. Changing it rescores the game from that frame on."
@@ -2597,6 +2654,11 @@ msgstr "スコアに加えて、全ショットのボールとラインも記録
 msgid "L"
 msgstr "左"
 
+#. Settings group for features still being tried out
+#: src/views/SettingsView.tsx
+msgid "Labs"
+msgstr "Labs"
+
 #: src/components/LaneNoteFormDialog.tsx
 #: src/components/SessionLanePanel.tsx
 #: src/views/GamePlanView.tsx
@@ -2716,6 +2778,7 @@ msgstr "あとで"
 #: src/components/LaneVisualizer.tsx
 #: src/components/ProOfferSamples.tsx
 #: src/views/BowlingProfileView.tsx
+#: src/views/ShotTracerView.tsx
 msgid "Laydown"
 msgstr "リリース位置"
 
@@ -2811,6 +2874,10 @@ msgstr "左"
 msgctxt "times a leave was left"
 msgid "Left"
 msgstr "残り"
+
+#: src/views/ShotTracerView.tsx
+msgid "Left edge of the lane"
+msgstr "レーンの左端"
 
 #. A ball layout card: the bowler throws left-handed
 #: src/lib/shareCard.ts
@@ -3020,6 +3087,11 @@ msgstr "MB {mbDiff}"
 msgid "MB diff"
 msgstr "MB Diff"
 
+#. The tracer saw the ball there
+#: src/views/ShotTracerView.tsx
+msgid "Measured"
+msgstr "計測"
+
 #. Flare reading: the middle third of the scale
 #. Strength reading: the middle third of the scale
 #: src/lib/ballLayout.ts
@@ -3101,6 +3173,10 @@ msgstr "アウトサイドのドリフトを右へ移動"
 #: src/components/LaneVisualizer.tsx
 msgid "Move presets"
 msgstr "移動プリセット"
+
+#: src/views/ShotTracerView.tsx
+msgid "Move the lines and trace again"
+msgstr "線を動かしてもう一度トレース"
 
 #: src/views/ProOfferView.tsx
 msgid "Move your line"
@@ -3322,6 +3398,11 @@ msgstr "カタログにリンクされていません"
 #: src/views/SpareLinesView.tsx
 msgid "Not now"
 msgstr "今はしない"
+
+#. The tracer did not see the ball there
+#: src/views/ShotTracerView.tsx
+msgid "Not seen"
+msgstr "見えず"
 
 #: src/views/SpareLinesView.tsx
 msgid "Not the same shot"
@@ -3794,6 +3875,10 @@ msgstr "比率"
 msgid "Re-aim"
 msgstr "狙い直し"
 
+#: src/views/ShotTracerView.tsx
+msgid "Reading the video…"
+msgstr "動画を読み込み中…"
+
 #: src/components/FirstRun.tsx
 msgid "Reading…"
 msgstr "読み取り中…"
@@ -3807,6 +3892,10 @@ msgstr "さあ、投げましょう"
 #: src/views/SearchView.tsx
 msgid "Recent"
 msgstr "最近の検索"
+
+#: src/views/ShotTracerView.tsx
+msgid "Record a shot"
+msgstr "投球を撮影"
 
 #. Bowling term: the easiest oil pattern tier, a high oil ratio (Kegel's tiers are Sport, Challenge and Recreation)
 #: src/lib/oilPattern.ts
@@ -4013,6 +4102,10 @@ msgstr "RG:低いほど早く回転"
 #: src/views/LayoutLabView.tsx
 msgid "Right"
 msgstr "右"
+
+#: src/views/ShotTracerView.tsx
+msgid "Right edge of the lane"
+msgstr "レーンの右端"
 
 #. A ball layout card: the bowler throws right-handed
 #: src/lib/shareCard.ts
@@ -4342,6 +4435,11 @@ msgstr "シート"
 msgid "Short pin"
 msgstr "ショートピン"
 
+#: src/views/SettingsView.tsx
+#: src/views/ShotTracerView.tsx
+msgid "Shot tracer"
+msgstr "ショットトレーサー"
+
 #: src/views/ArsenalView.tsx
 msgid "Shots already recorded with this ball keep their scores, but lose the ball name. To keep it in your history, retire it instead."
 msgstr "このボールで記録済みの投球のスコアは残りますが、ボール名は消えます。履歴に残したい場合は、代わりに引退させてください。"
@@ -4489,6 +4587,10 @@ msgstr "現行ボールのスペックと写真"
 #: src/views/CatalogView.tsx
 msgid "Specs at {weight}"
 msgstr "{weight}のスペック"
+
+#: src/views/ShotTracerView.tsx
+msgid "Speed"
+msgstr "スピード"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins
@@ -4816,6 +4918,10 @@ msgstr "App Storeから応答がありませんでした: {reason}"
 msgid "The App Store did not answer. Try again in a moment."
 msgstr "App Storeから応答がありません。しばらくしてからもう一度お試しください。"
 
+#: src/views/ShotTracerView.tsx
+msgid "The ball couldn't be followed down the lane. Try a video with the whole lane in view."
+msgstr "ボールをレーン上で追えませんでした。レーン全体が映った動画で試してください。"
+
 #: src/views/BowlingProfileView.tsx
 msgid "The board the ball lands on: your slide, moved by your release offset."
 msgstr "ボールが着地するボード: スライドをリリースのオフセット分だけ動かした位置です。"
@@ -4831,6 +4937,10 @@ msgstr "スライド足が止まるボード: 立ち位置をドリフト分だ�
 #: src/views/BowlingProfileView.tsx
 msgid "The board your slide foot starts on."
 msgstr "スライド足を置き始めるボードです。"
+
+#: src/views/ShotTracerView.tsx
+msgid "The camera moves too much to follow the lane. Try a steadier video."
+msgstr "カメラが動きすぎてレーンを追えません。もっと安定した動画で試してください。"
 
 #: src/views/CatalogView.tsx
 msgid "The catalog has not loaded"
@@ -4849,10 +4959,18 @@ msgstr "画像を作成できませんでした。"
 msgid "The lane as the sheet draws it: boards across, feet up from the foul line, darker where there is more oil. The faint wash is where the machine only buffs, laying no oil of its own."
 msgstr "シートの描き方に沿ったレーン。横方向がボード、縦方向がファウルラインからのフィートで、オイルが多いほど濃く表示されます。薄い色の部分は、マシンがバフのみを行い、オイルを塗らない範囲です。"
 
+#: src/views/ShotTracerView.tsx
+msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."
+msgstr "線からレーンを割り出せませんでした。各線が正しい位置にあるか確かめて、もう一度トレースしてください。"
+
 #. A leave is the set of pins left standing after the first ball (bowling term)
 #: src/views/OpenFramesView.tsx
 msgid "The leaves you keep missing rank here, most often first. Finish a game to start the count."
 msgstr "取り損ねが続いている残りピンが、多い順にここに並びます。ゲームを終えると集計が始まります。"
+
+#: src/views/ShotTracerView.tsx
+msgid "The lines don't agree with each other. Check that each sits on its line, then trace again."
+msgstr "線どうしが合っていません。各線が正しい位置にあるか確かめて、もう一度トレースしてください。"
 
 #. Describes the Benchmark drilling layout preset
 #: src/lib/ballLayout.ts
@@ -4957,6 +5075,10 @@ msgstr "この投球…"
 msgid "This tab is running an older version of the app than your scores were saved with. Everything is still on this device."
 msgstr "このタブは、スコアの保存時より古いバージョンのアプリで動いています。データはすべてこの端末に残っています。"
 
+#: src/views/ShotTracerView.tsx
+msgid "This video couldn't be read. Try another one."
+msgstr "この動画は読み込めませんでした。別の動画で試してください。"
+
 #. A short greeting at the top of Home; the bowler's name may follow it
 #: src/lib/greeting.ts
 msgid "Time to bowl"
@@ -4979,6 +5101,14 @@ msgstr "トップヒット"
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"
 msgstr "真上から"
+
+#: src/views/ShotTracerView.tsx
+msgid "Trace the shot"
+msgstr "トレースする"
+
+#: src/views/ShotTracerView.tsx
+msgid "Tracing the shot…"
+msgstr "トレース中…"
 
 #. Bowling term: bands of boards across the lane, as an oil pattern sheet prints them
 #: src/components/PatternSheet.tsx
@@ -5395,6 +5525,10 @@ msgstr "レイアウトはボールに保存されます。Headpin Proならボ�
 #: src/views/BowlingProfileView.tsx
 msgid "Your line"
 msgstr "あなたのライン"
+
+#: src/views/SettingsView.tsx
+msgid "Your line and boards from a video"
+msgstr "動画からラインと枚数を"
 
 #: src/components/BowlerNameSheet.tsx
 msgid "Your name"

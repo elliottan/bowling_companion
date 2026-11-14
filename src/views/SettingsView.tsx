@@ -1,7 +1,7 @@
 import { t } from "@lingui/core/macro";
 import { LARGE_TITLE, TAB_TITLE_ROW } from "../components/ui/typography";
 import { CompactTitleBar, LARGE_TITLE_SCROLL_PX } from "../components/CompactTitleBar";
-import { Archive, ArrowUpRight, Check, ChevronRight, Compass, Download, Lock, MessageSquare, Palette, RotateCcw, ScrollText, Smartphone, UserRound, UserRoundCog } from "lucide-react";
+import { Archive, ArrowUpRight, Check, ChevronRight, Compass, Download, FlaskConical, Lock, MessageSquare, Palette, RotateCcw, ScrollText, Smartphone, UserRound, UserRoundCog } from "lucide-react";
 import { ToolsList } from "../components/ToolsList";
 import { PushScreen } from "../components/PushScreen";
 import { AppearanceView } from "./AppearanceView";
@@ -30,7 +30,8 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { canPromptInstall, isIOSSafari, isStandalone } from "../lib/installPrompt";
 import { InstallPrompt } from "../components/InstallPrompt";
 import { storeAsking, storeDidNotAnswer, storeNotBought } from "../lib/storeWords";
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import { countLabsTap, readLabsOn, writeLabsOn } from "../lib/labs";
 export type { SettingsSection };
 
 interface SettingsViewProps {
@@ -83,6 +84,9 @@ const LiveActivityView = lazy(() =>
 );
 const LegalView = lazy(() =>
   import("./LegalView").then((m) => ({ default: m.LegalView }))
+);
+const ShotTracerView = lazy(() =>
+  import("./ShotTracerView").then((m) => ({ default: m.ShotTracerView }))
 );
 
 export function SettingsView({ section, onSectionChange, handedness, onHandednessChange, driftModel, onDriftModelChange, onOpenBackup, onOpenLineVisualizer, lineVisualizerOpen = false, onOpenArsenal, onOpenSpareLines, onOpenLaneNotes, onOpenLayoutLab, onOpenOilPatternsScreen, onOpenCatalog, onOpenGuides, onShowPatternSessions, liveActivityStatus: liveActivityStatusOverride }: SettingsViewProps) {
@@ -141,6 +145,8 @@ export function SettingsView({ section, onSectionChange, handedness, onHandednes
           </PushScreen>
         ) : section === "legal" ? (
           <LegalView onBack={back} />
+        ) : section === "shot-tracer" ? (
+          <ShotTracerView handedness={handedness} onBack={back} />
         ) : section === "live-activity" ? (
           // Reached only from its row, which is drawn only once the phone has
           // answered; a stale address on another device falls back to the menu.
@@ -215,6 +221,19 @@ function SettingsMenu({
 
 
   const version = __APP_VERSION__;
+  // Labs (the shot tracer) is the owner's: seven quick taps on the version
+  // line turn it on or off on this phone, and no bowler is shown a way in.
+  const [labs, setLabs] = useState(readLabsOn);
+  const taps = useRef({ count: 0, at: -Infinity });
+  const tapVersion = () => {
+    const now = Date.now();
+    const next = countLabsTap(taps.current.count, taps.current.at, now);
+    taps.current = { count: next.count, at: now };
+    if (next.toggle) {
+      writeLabsOn(!labs);
+      setLabs(!labs);
+    }
+  };
   const initial = name ? [...name][0]?.toUpperCase() : null;
 
   return (
@@ -341,7 +360,21 @@ function SettingsMenu({
         />
       </ListGroup>
 
-      <p className="px-4 text-xs text-ink-secondary">{t`Headpin ${version}`}</p>
+      {labs && (
+        <ListGroup heading={t({ message: "Labs", comment: "Settings group for features still being tried out" })}>
+          <ListRow
+            icon={FlaskConical}
+            label={t`Shot tracer`}
+            description={t`Your line and boards from a video`}
+            onClick={() => onSectionChange("shot-tracer")}
+          />
+        </ListGroup>
+      )}
+
+      {/* Not a button to a bowler: it only counts taps for Labs. */}
+      <p onClick={tapVersion} className="select-none px-4 text-xs text-ink-secondary">
+        {t`Headpin ${version}`}
+      </p>
 
       <InstallPrompt open={installOpen} onClose={() => setInstallOpen(false)} />
 

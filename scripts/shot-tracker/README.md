@@ -148,6 +148,29 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
+## In the app (0.108.0, 2026-11-14)
+
+The tracer runs in the app, in Settings, Labs (`src/views/ShotTracerView.tsx`,
+the worker and the video reader in `src/shotTracer/`). The bowler drags four
+lines (both edges, the foul line, the back pin row) onto one frame; those are
+the calibration, eight equations and so no redundancy, unlike the harness
+files. Two things the harness did not need, both found by tracing shot-01
+through the app in a headless Chromium (re-encoded to VP9, which that build
+decodes):
+
+- **Seeking.** A seek to exactly a frame's start lands either side of it: read
+  at 30 from a 60 fps clip, the steps ran 1, 2, 3 source frames and the speed
+  read 18.6 mph. Each seek now aims a quarter of a 60 fps frame in, and takes
+  the frame's own time from `requestVideoFrameCallback`.
+- **Grey.** The canvas stretches the video to 0 to 255; ffmpeg's grey, which
+  the tracer's thresholds were set on, is the video's own 16 to 235. Stretched,
+  the ball was lost at 47 ft; in video range it is followed to 58.
+
+Read at 60 fps and 962 by 718, with the harness's lane lines placed by drag,
+shot-01 reads laydown 24.3, arrows 17.3, breakpoint 6.5 at 44 ft (estimated),
+pins 20.0 and 15.1 mph, against the harness's 24.2, 17.3, 7.2, 19.7 and 15.1.
+At 30 fps the pins read 14.8: the follower needs the frames.
+
 ## Results, round eight (2026-11-13)
 
 After the owner's review of round seven.

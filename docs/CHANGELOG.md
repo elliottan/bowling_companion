@@ -9,6 +9,19 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.108.0: The shot tracer in Settings, Labs (2026-11-14)
+
+- For the owner to try on real shots: Settings has a Labs group, hidden until
+  the version line at its foot is tapped seven times, with one row, Shot
+  tracer. Record a shot or choose a video, drag the lane's two edges, the foul
+  line and the back row of pins onto one frame, and it traces the ball and
+  reads the laydown, the arrows, the breakpoint, the board at the pins and the
+  speed, with the path drawn on the lane. Nothing is saved, and no bowler sees
+  it unless they find the taps.
+- The video is read in the browser at up to 60 frames a second (up to four
+  seconds at 60, eight at 30), in the video's own grey, and traced in a worker
+  so the screen keeps moving.
+
 ## 0.107.2: The shot tracer reads the pins and shows the laydown where the owner reads them (2026-11-13)
 
 - No change to the app. The tracer follows the ball in front of the rack (the
