@@ -2127,6 +2127,10 @@ msgstr "最终分数"
 msgid "Find the pocket"
 msgstr "找到甜区"
 
+#: src/views/ShotTracerView.tsx
+msgid "Finding the lane…"
+msgstr "正在寻找球道…"
+
 #: src/lib/shareCard.ts
 msgid "Finishes on"
 msgstr "结束于"
@@ -4958,6 +4962,10 @@ msgstr "无法创建图片。"
 #: src/components/PatternSheet.tsx
 msgid "The lane as the sheet draws it: boards across, feet up from the foul line, darker where there is more oil. The faint wash is where the machine only buffs, laying no oil of its own."
 msgstr "依油型表绘制的球道：横向为板，纵向为距犯规线的英尺数，油越多颜色越深。淡淡的底色是机器只做擦拭、没有上油的区域。"
+
+#: src/views/ShotTracerView.tsx
+msgid "The lane couldn't be found on its own. Drag the lines onto it."
+msgstr "无法自动找到球道。请把这些线拖到球道上。"
 
 #: src/views/ShotTracerView.tsx
 msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."

@@ -2127,6 +2127,10 @@ msgstr "最終スコア"
 msgid "Find the pocket"
 msgstr "ポケットを狙おう"
 
+#: src/views/ShotTracerView.tsx
+msgid "Finding the lane…"
+msgstr "レーンを探しています…"
+
 #: src/lib/shareCard.ts
 msgid "Finishes on"
 msgstr "終了位置"
@@ -4958,6 +4962,10 @@ msgstr "画像を作成できませんでした。"
 #: src/components/PatternSheet.tsx
 msgid "The lane as the sheet draws it: boards across, feet up from the foul line, darker where there is more oil. The faint wash is where the machine only buffs, laying no oil of its own."
 msgstr "シートの描き方に沿ったレーン。横方向がボード、縦方向がファウルラインからのフィートで、オイルが多いほど濃く表示されます。薄い色の部分は、マシンがバフのみを行い、オイルを塗らない範囲です。"
+
+#: src/views/ShotTracerView.tsx
+msgid "The lane couldn't be found on its own. Drag the lines onto it."
+msgstr "レーンを自動で見つけられませんでした。線をレーンの上にドラッグしてください。"
 
 #: src/views/ShotTracerView.tsx
 msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."
