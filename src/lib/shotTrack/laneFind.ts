@@ -19,7 +19,7 @@ import type { GrayFrame, Mat3, Point } from "./types";
  *    gutter and cap in the house as a peak.
  * 2. `rankLanes`: the lane width (every lane is as wide in the fan) and, on
  *    each frame, the pair of edges one lane width apart nearest the picture's
- *    centre: the bowler films from behind their own lane.
+ *    center: the bowler films from behind their own lane.
  * 3. `findLane`: on the best few frames, each edge snapped at full resolution
  *    to the first rising edge from the lane side (the lane's own edge, not the
  *    gutter's groove), as a ray through the refined vanishing point; the back
@@ -419,7 +419,7 @@ export function lanesOnFrame(f: GrayFrame): FrameLanes | null {
   const roll = estimateRoll(all);
   const found = vanishingPoint(lines, 3, (p) => p.y < small.height * 0.7 && p.y > -small.height);
   if (!found || found.support.length < 4) return null;
-  // Pixel centres: small pixel i covers full pixels k i .. k i + k - 1.
+  // Pixel centers: small pixel i covers full pixels k i .. k i + k - 1.
   const vp = { x: found.point.x * k + (k - 1) / 2, y: found.point.y * k + (k - 1) / 2 };
   const fan = buildFan(f, vp, roll);
   if (fan.rows < 10) return null;
@@ -504,17 +504,17 @@ export function lanePairs(r: FrameLanes, width: number): LaneCandidate[] {
   return out;
 }
 
-/** Centre of a candidate at the near end, in lane widths from the picture's centre. */
-function centreOffset(r: FrameLanes, c: LaneCandidate, frameWidth: number): number {
+/** Center of a candidate at the near end, in lane widths from the picture's center. */
+function centerOffset(r: FrameLanes, c: LaneCandidate, frameWidth: number): number {
   const s = (r.near - r.vp.y) / (r.fan.yRef - r.vp.y);
-  const centre = r.vp.x + ((c.left + c.right) / 2 - r.vp.x) * s;
-  return (centre - frameWidth / 2) / ((c.right - c.left) * s);
+  const center = r.vp.x + ((c.left + c.right) / 2 - r.vp.x) * s;
+  return (center - frameWidth / 2) / ((c.right - c.left) * s);
 }
 
 /**
  * The bowler's lane on each frame, best first: the pair of edges one lane
  * width apart whose middle is within three quarters of a lane width of the
- * picture's centre at the near end (the bowler films from behind their own
+ * picture's center at the near end (the bowler films from behind their own
  * lane; the next lanes' middles are a lane and a half or more away), scored
  * by its weaker edge.
  */
@@ -525,9 +525,9 @@ export function rankLanes(all: (FrameLanes | null)[], frameWidth: number): LaneP
   const out: { score: number; pick: LanePick }[] = [];
   all.forEach((r, index) => {
     if (!r) return;
-    const pairs = lanePairs(r, width).filter((c) => Math.abs(centreOffset(r, c, frameWidth)) < 0.75);
+    const pairs = lanePairs(r, width).filter((c) => Math.abs(centerOffset(r, c, frameWidth)) < 0.75);
     if (!pairs.length) return;
-    const score = (c: LaneCandidate) => Math.min(c.leftEdge, -c.rightEdge) * (1 - 0.3 * Math.abs(centreOffset(r, c, frameWidth)));
+    const score = (c: LaneCandidate) => Math.min(c.leftEdge, -c.rightEdge) * (1 - 0.3 * Math.abs(centerOffset(r, c, frameWidth)));
     const c = pairs.reduce((a, b) => (score(a) >= score(b) ? a : b));
     out.push({ score: score(c), pick: { index, vp: r.vp, far: r.far, near: r.near, candidate: c, left: columnLine(r.fan, c.left), right: columnLine(r.fan, c.right), width } });
   });
@@ -664,7 +664,6 @@ export function findPinRow(f: GrayFrame, far: number, pinPx: number): PinRow | n
  * of a pin there, pixels.
  */
 export function pinRows(f: GrayFrame, far: number, pinPx: number, max = 3): PinRow[] {
-  const D = Math.max(4, Math.round(pinPx));
   const bases = pinBases(f, far, pinPx);
   const out: PinRow[] = [];
   let left = bases;
@@ -767,7 +766,7 @@ export function findFoulLines(f: GrayFrame, left: Line3, right: Line3, near: num
   const X = (l: Line3, y: number) => -(l[1] * y + l[2]) / l[0];
   const yA = Math.max(1, Math.round(near - 0.18 * span));
   const yB = Math.min(f.height - 2, Math.round(near + 0.04 * span));
-  if (yB - yA < 6) return null;
+  if (yB - yA < 6) return [];
   type Side = { x: (y: number) => number; peaks: { y: number; g: number }[] };
   const sides: Side[] = [];
   for (const [a, b] of [[0.04, 0.15], [0.85, 0.96]]) {
