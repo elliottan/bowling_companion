@@ -2069,8 +2069,8 @@ msgid "Fills in the core, coverstock, RG and diff."
 msgstr "Mengisi teras, coverstock, RG dan diff."
 
 #: src/views/ShotTracerView.tsx
-msgid "Film from behind the bowler with the whole lane in view, and trim the video to the shot, from just before the release until the pins fall."
-msgstr "Rakam dari belakang pemain dengan seluruh lorong kelihatan, dan potong video kepada balingan itu, dari sejurus sebelum bola dilepaskan hingga pin jatuh."
+msgid "Film from behind the bowler with the whole lane in view, from just before the release until the pins fall. A longer video is fine: you'll choose where the shot starts."
+msgstr "Rakam dari belakang pemain dengan seluruh lorong kelihatan, dari sejurus sebelum bola dilepaskan hingga pin jatuh. Video yang lebih panjang tidak mengapa: anda akan memilih di mana balingan bermula."
 
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
@@ -4439,6 +4439,11 @@ msgstr "Helaian"
 msgid "Short pin"
 msgstr "Pin pendek"
 
+#. Where in the video the bowler has chosen to start reading, in seconds
+#: src/views/ShotTracerView.tsx
+msgid "Shot starts at {start} s of {duration} s"
+msgstr "Balingan bermula pada {start} s daripada {duration} s"
+
 #: src/views/SettingsView.tsx
 #: src/views/ShotTracerView.tsx
 msgid "Shot tracer"
@@ -4500,6 +4505,10 @@ msgstr "Gelongsor {board}"
 #: src/views/SpareLinesView.tsx
 msgid "Slide {slide}"
 msgstr "Gelongsor {slide}"
+
+#: src/views/ShotTracerView.tsx
+msgid "Slide to just before the release. The tracer keeps about 4 seconds of a 60 fps video, or 8 of a 30 fps one: enough from the release until the pins fall."
+msgstr "Luncurkan ke sejurus sebelum bola dilepaskan. Penjejak menyimpan kira-kira 4 saat video 60 fps, atau 8 saat video 30 fps: cukup dari bola dilepaskan hingga pin jatuh."
 
 #. Backend reading: a smooth arc
 #: src/lib/ballLayout.ts
@@ -5010,6 +5019,10 @@ msgstr "Bentuk paling lancar yang diterangkan oleh carta. Mengawal titik belok a
 msgid "The stance and target you saved for this leave are gone. Your shots keep their scores."
 msgstr "Kedudukan awal dan sasaran yang anda simpan untuk baki pin ini telah hilang. Balingan anda mengekalkan skornya."
 
+#: src/views/ShotTracerView.tsx
+msgid "The video"
+msgstr "Video itu"
+
 #: src/views/AppearanceView.tsx
 msgid "Theme"
 msgstr "Tema"
@@ -5109,6 +5122,10 @@ msgstr "Hasil teratas"
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"
 msgstr "Pandangan atas"
+
+#: src/views/ShotTracerView.tsx
+msgid "Trace from here"
+msgstr "Jejak dari sini"
 
 #: src/views/ShotTracerView.tsx
 msgid "Trace the shot"

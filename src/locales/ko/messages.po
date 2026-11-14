@@ -2069,8 +2069,8 @@ msgid "Fills in the core, coverstock, RG and diff."
 msgstr "코어, 커버스톡, RG, Diff를 채워 줘요."
 
 #: src/views/ShotTracerView.tsx
-msgid "Film from behind the bowler with the whole lane in view, and trim the video to the shot, from just before the release until the pins fall."
-msgstr "볼러 뒤에서 레인 전체가 보이게 촬영하고, 릴리스 직전부터 핀이 쓰러질 때까지로 동영상을 잘라 주세요."
+msgid "Film from behind the bowler with the whole lane in view, from just before the release until the pins fall. A longer video is fine: you'll choose where the shot starts."
+msgstr "볼러 뒤에서 레인 전체가 보이게, 릴리스 직전부터 핀이 쓰러질 때까지 촬영하세요. 더 긴 동영상도 괜찮아요. 투구가 시작되는 곳을 고를 수 있어요."
 
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
@@ -4439,6 +4439,11 @@ msgstr "시트"
 msgid "Short pin"
 msgstr "숏 핀"
 
+#. Where in the video the bowler has chosen to start reading, in seconds
+#: src/views/ShotTracerView.tsx
+msgid "Shot starts at {start} s of {duration} s"
+msgstr "투구 시작: {start}초 / {duration}초"
+
 #: src/views/SettingsView.tsx
 #: src/views/ShotTracerView.tsx
 msgid "Shot tracer"
@@ -4500,6 +4505,10 @@ msgstr "슬라이드 {board}"
 #: src/views/SpareLinesView.tsx
 msgid "Slide {slide}"
 msgstr "슬라이드 {slide}"
+
+#: src/views/ShotTracerView.tsx
+msgid "Slide to just before the release. The tracer keeps about 4 seconds of a 60 fps video, or 8 of a 30 fps one: enough from the release until the pins fall."
+msgstr "릴리스 직전까지 밀어 주세요. 60fps 동영상은 약 4초, 30fps는 약 8초를 써요. 릴리스부터 핀이 쓰러질 때까지 충분해요."
 
 #. Backend reading: a smooth arc
 #: src/lib/ballLayout.ts
@@ -5010,6 +5019,10 @@ msgstr "차트가 설명하는 가장 부드러운 형태예요. 레인 끝부�
 msgid "The stance and target you saved for this leave are gone. Your shots keep their scores."
 msgstr "이 남은 핀에 저장한 스탠스와 타깃이 사라져요. 투구 점수는 그대로 유지돼요."
 
+#: src/views/ShotTracerView.tsx
+msgid "The video"
+msgstr "동영상"
+
 #: src/views/AppearanceView.tsx
 msgid "Theme"
 msgstr "테마"
@@ -5109,6 +5122,10 @@ msgstr "최상위 결과"
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"
 msgstr "위에서 보기"
+
+#: src/views/ShotTracerView.tsx
+msgid "Trace from here"
+msgstr "여기서부터 추적"
 
 #: src/views/ShotTracerView.tsx
 msgid "Trace the shot"

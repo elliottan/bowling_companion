@@ -7,21 +7,32 @@ import { Spinner } from "../components/ui/Spinner";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { formatNumber } from "../lib/format";
 import { apply } from "../lib/shotTrack/homography";
-import { defaultMarkLines, MARK_LINES, pathInPicture, toCalMarks, type MarkLine, type MarkLines } from "../lib/shotTrack/marking";
+import {
+  defaultMarkLines,
+  latestStart,
+  MARK_LINES,
+  needsTrim,
+  pathInPicture,
+  toCalMarks,
+  type MarkLine,
+  type MarkLines
+} from "../lib/shotTrack/marking";
 import type { Mat3, Metric, Point, TrackError, TrackFailure, TrackResult } from "../lib/shotTrack/types";
 import type { FindMessage, FindRequest, TraceMessage, TraceRequest } from "../shotTracer/protocol";
-import { readVideoFrames, type VideoFrames } from "../shotTracer/videoFrames";
+import { readVideoFrames, videoDuration, type VideoFrames } from "../shotTracer/videoFrames";
 import type { Handedness } from "../types/bowling";
 
 /**
  * The shot tracer, in Labs (Settings, behind seven taps on the version line):
- * a video recorded or chosen, the four lane lines dragged onto one frame, then
+ * a video recorded or chosen (a long one first trimmed to where the shot
+ * starts), the lane found or its four lines dragged onto one frame, then
  * the tracer (`lib/shotTrack`) run in a worker and its readings shown on the
  * frame. For the owner to try on real shots before it is part of a session.
  */
 
 type Step =
   | { kind: "pick"; unreadable?: boolean }
+  | { kind: "trim"; duration: number }
   | { kind: "reading"; fraction: number }
   | { kind: "finding" }
   | { kind: "mark"; notFound?: boolean }
@@ -42,6 +53,9 @@ const LINE_TONE: Record<MarkLine, { stroke: string; fill: string }> = {
 export function ShotTracerView({ handedness, onBack }: { handedness: Handedness; onBack: () => void }) {
   const [step, setStep] = useState<Step>({ kind: "pick" });
   const [file, setFile] = useState<File | null>(null);
+  // Where in the file the read starts, seconds: chosen on the trim step, and
+  // kept for tracing again, which reads the same stretch.
+  const [start, setStart] = useState(0);
   const [video, setVideo] = useState<VideoFrames | null>(null);
   const [frame, setFrame] = useState(0);
   const [lines, setLines] = useState<MarkLines | null>(null);
@@ -59,12 +73,12 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     []
   );
 
-  async function read(f: File, keepMarks: boolean) {
+  async function read(f: File, keepMarks: boolean, from: number) {
     findRef.current?.terminate();
     findRef.current = null;
     setStep({ kind: "reading", fraction: 0 });
     try {
-      const v = await readVideoFrames(f, (fraction) => setStep({ kind: "reading", fraction }));
+      const v = await readVideoFrames(f, (fraction) => setStep({ kind: "reading", fraction }), from);
       if (v.gray.length < 10) throw new Error("too short");
       setVideo(v);
       if (keepMarks && lines) {
@@ -126,10 +140,21 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     worker.postMessage(request, request.frames.map((f) => f.data));
   }
 
-  function choose(f: File | undefined) {
+  async function choose(f: File | undefined) {
     if (!f) return;
     setFile(f);
-    void read(f, false);
+    setStart(0);
+    setStep({ kind: "reading", fraction: 0 });
+    let duration: number;
+    try {
+      duration = await videoDuration(f);
+    } catch {
+      setStep({ kind: "pick", unreadable: true });
+      return;
+    }
+    // A long video is trimmed to the shot first; a short one is read whole.
+    if (needsTrim(duration)) setStep({ kind: "trim", duration });
+    else void read(f, false, 0);
   }
 
   function traceShot(video: VideoFrames, lines: MarkLines, frame: number) {
@@ -169,7 +194,18 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   return (
     <PushScreen history="route" mode="inline" title={t`Shot tracer`} onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl space-y-5 px-3 pb-10 pt-2 sm:px-6">
-        {step.kind === "pick" && <PickVideo unreadable={step.unreadable} onChoose={choose} />}
+        {step.kind === "pick" && <PickVideo unreadable={step.unreadable} onChoose={(f) => void choose(f)} />}
+        {step.kind === "trim" && file && (
+          <TrimVideo
+            file={file}
+            duration={step.duration}
+            start={start}
+            onStart={setStart}
+            onRead={() => void read(file, false, start)}
+            onUnreadable={() => setStep({ kind: "pick", unreadable: true })}
+            onAnother={() => setStep({ kind: "pick" })}
+          />
+        )}
         {step.kind === "reading" && (
           <Waiting label={t`Reading the video…`} fraction={step.fraction} />
         )}
@@ -192,7 +228,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
             result={step.result}
             H={step.H}
             picture={shown}
-            onRetrace={file ? () => void read(file, true) : undefined}
+            onRetrace={file ? () => void read(file, true, start) : undefined}
             onAnother={() => setStep({ kind: "pick" })}
           />
         )}
@@ -207,7 +243,7 @@ function PickVideo({ unreadable, onChoose }: { unreadable?: boolean; onChoose: (
   return (
     <div className="space-y-4">
       <p className="text-subhead text-ink-secondary">
-        {t`Film from behind the bowler with the whole lane in view, and trim the video to the shot, from just before the release until the pins fall.`}
+        {t`Film from behind the bowler with the whole lane in view, from just before the release until the pins fall. A longer video is fine: you'll choose where the shot starts.`}
       </p>
       {unreadable && (
         <p role="alert" className="text-subhead text-danger-700">
@@ -233,6 +269,88 @@ function PickVideo({ unreadable, onChoose }: { unreadable?: boolean; onChoose: (
         onChange={(e) => onChoose(e.target.files?.[0])}
       />
       <input ref={pick} type="file" accept="video/*" className="hidden" onChange={(e) => onChoose(e.target.files?.[0])} />
+    </div>
+  );
+}
+
+/**
+ * A video longer than the reader holds, shown so the bowler can choose where
+ * the shot starts: the slider seeks the picture, so the release can be seen.
+ */
+function TrimVideo({
+  file,
+  duration,
+  start,
+  onStart,
+  onRead,
+  onUnreadable,
+  onAnother
+}: {
+  file: File;
+  duration: number;
+  start: number;
+  onStart: (seconds: number) => void;
+  onRead: () => void;
+  onUnreadable: () => void;
+  onAnother: () => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const last = latestStart(duration);
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const url = URL.createObjectURL(file);
+    // The fragment has iOS show a frame before anything has played.
+    v.src = `${url}#t=0.001`;
+    return () => {
+      v.removeAttribute("src");
+      URL.revokeObjectURL(url);
+    };
+  }, [file]);
+  useEffect(() => {
+    const v = videoRef.current;
+    if (v && v.readyState >= 1 && Math.abs(v.currentTime - start) > 1e-3) v.currentTime = start;
+  }, [start]);
+  return (
+    <div className="space-y-4">
+      <p className="text-subhead text-ink-secondary">
+        {t`Slide to just before the release. The tracer keeps about 4 seconds of a 60 fps video, or 8 of a 30 fps one: enough from the release until the pins fall.`}
+      </p>
+      <video
+        ref={videoRef}
+        muted
+        playsInline
+        preload="auto"
+        aria-label={t`The video`}
+        onLoadedMetadata={(e) => {
+          if (start > 0) e.currentTarget.currentTime = start;
+        }}
+        onError={onUnreadable}
+        className="block h-auto max-h-[60vh] w-full rounded-xl bg-surface-muted object-contain"
+      />
+      <label className="block space-y-1">
+        <span className={GROUP_HEADING}>
+          {t({
+            message: `Shot starts at ${{ start: formatNumber(start, 1) }} s of ${{ duration: formatNumber(duration, 1) }} s`,
+            comment: "Where in the video the bowler has chosen to start reading, in seconds"
+          })}
+        </span>
+        <input
+          type="range"
+          min={0}
+          max={last}
+          step={0.05}
+          value={Math.min(start, last)}
+          onChange={(e) => onStart(Number(e.target.value))}
+          className="block w-full accent-accent"
+        />
+      </label>
+      <div className="flex flex-wrap gap-3">
+        <Button variant="primary" onClick={onRead}>
+          {t`Trace from here`}
+        </Button>
+        <Button onClick={onAnother}>{t`Another video`}</Button>
+      </div>
     </div>
   );
 }

@@ -4,7 +4,8 @@ import type { FindMessage, FindRequest } from "../shotTracer/protocol";
 import { ShotTracerView } from "./ShotTracerView";
 
 const readVideoFrames = vi.hoisted(() => vi.fn());
-vi.mock("../shotTracer/videoFrames", () => ({ readVideoFrames }));
+const videoDuration = vi.hoisted(() => vi.fn());
+vi.mock("../shotTracer/videoFrames", () => ({ readVideoFrames, videoDuration }));
 
 /** A stand-in for the two workers: it records what it was sent and is answered by the test. */
 class FakeWorker {
@@ -49,10 +50,24 @@ const FOUND_LINES = {
   pinrow: [{ x: 3, y: 1 }, { x: 5, y: 1 }]
 };
 
-async function chooseVideo() {
+function pickFile() {
   render(<ShotTracerView handedness="right" onBack={vi.fn()} />);
   const input = document.querySelectorAll<HTMLInputElement>('input[type="file"]')[1];
   fireEvent.change(input, { target: { files: [new File(["x"], "shot.mp4", { type: "video/mp4" })] } });
+}
+
+async function chooseVideo() {
+  pickFile();
+  await waitFor(() => expect(find()).toBeTruthy());
+}
+
+/** A long video: the trim step, its start moved to `start` seconds, then read. */
+async function trimVideo(start: number) {
+  videoDuration.mockResolvedValue(30);
+  pickFile();
+  const slider = await screen.findByRole("slider");
+  fireEvent.change(slider, { target: { value: String(start) } });
+  fireEvent.click(screen.getByRole("button", { name: "Trace from here" }));
   await waitFor(() => expect(find()).toBeTruthy());
 }
 
@@ -64,6 +79,10 @@ describe("ShotTracerView", () => {
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
     readVideoFrames.mockReset();
     readVideoFrames.mockResolvedValue(fakeVideo());
+    videoDuration.mockReset();
+    videoDuration.mockResolvedValue(4.65);
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:shot");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
   });
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -78,6 +97,72 @@ describe("ShotTracerView", () => {
     expect(inputs).toHaveLength(2);
     expect(inputs[0].getAttribute("capture")).toBe("environment");
     expect(inputs[1].accept).toBe("video/*");
+  });
+
+  it("reads a short video from its start, with no trim step", async () => {
+    await chooseVideo();
+    expect(readVideoFrames).toHaveBeenCalledTimes(1);
+    expect(readVideoFrames.mock.calls[0][2]).toBe(0);
+    expect(screen.queryByRole("slider")).toBeNull();
+  });
+
+  it("asks where the shot starts in a long video, showing the video, then reads from there", async () => {
+    videoDuration.mockResolvedValue(30);
+    pickFile();
+    const slider = await screen.findByRole("slider");
+    expect(readVideoFrames).not.toHaveBeenCalled();
+    expect(screen.getByText(/Slide to just before the release/)).toBeTruthy();
+    expect(screen.getByLabelText("The video").tagName).toBe("VIDEO");
+    expect(screen.getByLabelText("The video").getAttribute("src")).toBe("blob:shot#t=0.001");
+    // The latest start leaves three seconds to read.
+    expect(slider.getAttribute("max")).toBe("27");
+    expect(screen.getByText("Shot starts at 0 s of 30 s")).toBeTruthy();
+    fireEvent.change(slider, { target: { value: "10.5" } });
+    expect(screen.getByText("Shot starts at 10.5 s of 30 s")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Trace from here" }));
+    await waitFor(() => expect(find()).toBeTruthy());
+    expect(readVideoFrames.mock.calls[0][2]).toBe(10.5);
+  });
+
+  it("seeks the video to the start as the slider moves", async () => {
+    videoDuration.mockResolvedValue(30);
+    pickFile();
+    const slider = await screen.findByRole("slider");
+    const video = screen.getByLabelText("The video") as HTMLVideoElement;
+    Object.defineProperty(video, "readyState", { value: 4 });
+    fireEvent.change(slider, { target: { value: "12" } });
+    expect(video.currentTime).toBe(12);
+  });
+
+  it("goes back to the choice from the trim step, and says when the video will not play", async () => {
+    videoDuration.mockResolvedValue(30);
+    pickFile();
+    await screen.findByRole("slider");
+    fireEvent.click(screen.getByRole("button", { name: "Another video" }));
+    expect(screen.getByRole("button", { name: /Choose a video/ })).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
+    const input = document.querySelectorAll<HTMLInputElement>('input[type="file"]')[1];
+    fireEvent.change(input, { target: { files: [new File(["y"], "long.mp4")] } });
+    fireEvent.error(await screen.findByLabelText("The video"));
+    expect(screen.getByRole("alert").textContent).toMatch(/couldn't be read/);
+  });
+
+  it("says a video is unreadable when its length cannot be read", async () => {
+    videoDuration.mockRejectedValue(new Error("no"));
+    pickFile();
+    expect((await screen.findByRole("alert")).textContent).toMatch(/couldn't be read/);
+    expect(readVideoFrames).not.toHaveBeenCalled();
+  });
+
+  it("traces again from the same start", async () => {
+    await trimVideo(8);
+    find()!.reply({ frame: 12, lines: FOUND_LINES as FindMessage["lines"] });
+    await waitFor(() => expect(trace()).toBeTruthy());
+    trace()!.reply({ kind: "done", result: { ok: false, failure: "ball-not-found" }, H: null });
+    fireEvent.click(await screen.findByRole("button", { name: /Move the lines and trace again/ }));
+    await waitFor(() => expect(screen.getByRole("button", { name: /Trace the shot/ })).toBeTruthy());
+    expect(readVideoFrames).toHaveBeenCalledTimes(2);
+    expect(readVideoFrames.mock.calls[1][2]).toBe(8);
   });
 
   it("looks for the lane on copies of about 24 frames spread over the clip", async () => {

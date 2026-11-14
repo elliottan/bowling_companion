@@ -2069,8 +2069,8 @@ msgid "Fills in the core, coverstock, RG and diff."
 msgstr "自動帶入球心、球皮、RG 與 Diff。"
 
 #: src/views/ShotTracerView.tsx
-msgid "Film from behind the bowler with the whole lane in view, and trim the video to the shot, from just before the release until the pins fall."
-msgstr "從球手後方拍攝，讓整條球道入鏡，並把影片剪到這一球，從出手前一刻到球瓶倒下。"
+msgid "Film from behind the bowler with the whole lane in view, from just before the release until the pins fall. A longer video is fine: you'll choose where the shot starts."
+msgstr "從球手後方拍攝，讓整條球道入鏡，從出手前一刻拍到球瓶倒下。影片較長也沒關係：你可以選擇這一球從哪裡開始。"
 
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
@@ -4439,6 +4439,11 @@ msgstr "計分表"
 msgid "Short pin"
 msgstr "短定位銷"
 
+#. Where in the video the bowler has chosen to start reading, in seconds
+#: src/views/ShotTracerView.tsx
+msgid "Shot starts at {start} s of {duration} s"
+msgstr "這一球從第 {start} 秒開始（共 {duration} 秒）"
+
 #: src/views/SettingsView.tsx
 #: src/views/ShotTracerView.tsx
 msgid "Shot tracer"
@@ -4500,6 +4505,10 @@ msgstr "滑步 {board}"
 #: src/views/SpareLinesView.tsx
 msgid "Slide {slide}"
 msgstr "滑步 {slide}"
+
+#: src/views/ShotTracerView.tsx
+msgid "Slide to just before the release. The tracer keeps about 4 seconds of a 60 fps video, or 8 of a 30 fps one: enough from the release until the pins fall."
+msgstr "滑到出手前一刻。60 fps 的影片會保留約 4 秒，30 fps 的約 8 秒：足以涵蓋從出手到球瓶倒下。"
 
 #. Backend reading: a smooth arc
 #: src/lib/ballLayout.ts
@@ -5010,6 +5019,10 @@ msgstr "圖表所描述最平順的球路。當後段太乾淨時，用來控制
 msgid "The stance and target you saved for this leave are gone. Your shots keep their scores."
 msgstr "你為這個殘瓶儲存的站位與目標將會消失。你的投球仍會保留分數。"
 
+#: src/views/ShotTracerView.tsx
+msgid "The video"
+msgstr "影片"
+
 #: src/views/AppearanceView.tsx
 msgid "Theme"
 msgstr "主題"
@@ -5109,6 +5122,10 @@ msgstr "最佳結果"
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"
 msgstr "俯視"
+
+#: src/views/ShotTracerView.tsx
+msgid "Trace from here"
+msgstr "從這裡追蹤"
 
 #: src/views/ShotTracerView.tsx
 msgid "Trace the shot"

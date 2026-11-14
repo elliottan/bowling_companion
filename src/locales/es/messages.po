@@ -2069,8 +2069,8 @@ msgid "Fills in the core, coverstock, RG and diff."
 msgstr "Completa el núcleo, la cubierta, el RG y el diff."
 
 #: src/views/ShotTracerView.tsx
-msgid "Film from behind the bowler with the whole lane in view, and trim the video to the shot, from just before the release until the pins fall."
-msgstr "Graba desde detrás del jugador con toda la pista a la vista, y recorta el video al tiro, desde justo antes de soltar la bola hasta que caen los pinos."
+msgid "Film from behind the bowler with the whole lane in view, from just before the release until the pins fall. A longer video is fine: you'll choose where the shot starts."
+msgstr "Graba desde detrás del jugador con toda la pista a la vista, desde justo antes de soltar la bola hasta que caen los pinos. Un video más largo sirve: elegirás dónde empieza el tiro."
 
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
@@ -4439,6 +4439,11 @@ msgstr "Hoja"
 msgid "Short pin"
 msgstr "Pin corto"
 
+#. Where in the video the bowler has chosen to start reading, in seconds
+#: src/views/ShotTracerView.tsx
+msgid "Shot starts at {start} s of {duration} s"
+msgstr "El tiro empieza en {start} s de {duration} s"
+
 #: src/views/SettingsView.tsx
 #: src/views/ShotTracerView.tsx
 msgid "Shot tracer"
@@ -4500,6 +4505,10 @@ msgstr "Deslizamiento {board}"
 #: src/views/SpareLinesView.tsx
 msgid "Slide {slide}"
 msgstr "Deslizamiento {slide}"
+
+#: src/views/ShotTracerView.tsx
+msgid "Slide to just before the release. The tracer keeps about 4 seconds of a 60 fps video, or 8 of a 30 fps one: enough from the release until the pins fall."
+msgstr "Desliza hasta justo antes de soltar la bola. El trazador guarda unos 4 segundos de un video a 60 fps, u 8 de uno a 30 fps: suficiente desde que sueltas la bola hasta que caen los pinos."
 
 #. Backend reading: a smooth arc
 #: src/lib/ballLayout.ts
@@ -5010,6 +5019,10 @@ msgstr "La forma más suave que describe la tabla. Controla el punto de quiebre 
 msgid "The stance and target you saved for this leave are gone. Your shots keep their scores."
 msgstr "La posición y el objetivo que guardaste para esta dejada ya no están. Tus tiros conservan su puntaje."
 
+#: src/views/ShotTracerView.tsx
+msgid "The video"
+msgstr "El video"
+
 #: src/views/AppearanceView.tsx
 msgid "Theme"
 msgstr "Tema"
@@ -5109,6 +5122,10 @@ msgstr "Mejor resultado"
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"
 msgstr "Vista superior"
+
+#: src/views/ShotTracerView.tsx
+msgid "Trace from here"
+msgstr "Trazar desde aquí"
 
 #: src/views/ShotTracerView.tsx
 msgid "Trace the shot"
