@@ -8,9 +8,9 @@ import { snapEdge, snapMarks, type MarkSnap } from "./edgeSnap";
 import { apply, downAt, invert, multiply, normalize } from "./homography";
 import type { Point } from "./types";
 import { median, sample } from "./image";
-import { BALL_DIAMETER_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
+import { BALL_DIAMETER_IN, CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
 import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, withoutIslands, type MotionPoint } from "./pathFit";
-import { overFoulLine, type OverFoulLine } from "./release";
+import { followForward, overFoulLine, uAtColumn, type OverFoulLine, type ReleaseFrame } from "./release";
 import { alignTo, laneMarksOf, register, registerPlane, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, TrackError, TrackFailure, TrackResult } from "./types";
 
@@ -76,6 +76,8 @@ export interface TraceDebug {
   calibration: CalibrationReport | null;
   /** The ball followed back to where it sits right above the foul line (the laydown), when it could be. */
   release?: OverFoulLine | null;
+  /** The ball followed by its darkness from its last sighting to just before the rack moves. */
+  toPins?: ReleaseFrame[];
 }
 
 export interface TraceOutput {
@@ -361,6 +363,36 @@ export function trace(input: TraceInput): TraceOutput {
     }
   }
 
+  // The board at the pins as the owner reads it (shot-01): where the ball is
+  // just before it meets the pins. It is followed by its darkness from its
+  // last sighting to the frame before the rack is first seen to move, and read
+  // by its centre across the picture on the head pin's contact row (in front
+  // of the rack its circle slides onto its mirror image, so only its column is
+  // trusted).
+  let pinsU: number | undefined;
+  const lastSeen = seen[seen.length - 1];
+  // Only when the ball was lost more than two frames before the rack moves
+  // (shot-01: seven); seen closer than that, the sightings already reach it.
+  if (pinFrame !== null && lastSeen.v > 50 && pinFrame - lastSeen.frame > 2 && pinFrame - lastSeen.frame <= 30) {
+    const track = followForward((i) => (geometry[i - first]?.ok ? source.frame(i) : null), lastSeen.frame, lastSeen, pinFrame - 1);
+    debug.toPins = track;
+    const reach = track.length ? track[track.length - 1].frame : lastSeen.frame;
+    if (reach >= pinFrame - 3) {
+      // A straight line through the last four frames' boards, read halfway
+      // between the last frame before the rack moves and the first that does:
+      // a hooking ball still turns, and at 30 frames a second the frames are
+      // 0.7 ft apart.
+      const near = [{ frame: lastSeen.frame, cx: lastSeen.cx }, ...track].slice(-4);
+      const xs = near.map((d) => d.frame);
+      const ys = near.map((d) => uAtColumn(geometry[d.frame - first].H, d.cx, 60 - CONTACT_IN / 12));
+      const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
+      const my = ys.reduce((a, b) => a + b, 0) / ys.length;
+      const den = xs.reduce((a, x) => a + (x - mx) ** 2, 0);
+      const slope = den > 0 ? xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / den : 0;
+      pinsU = my + slope * (pinFrame - 0.5 - mx);
+    }
+  }
+
   // The calibration check (plan 6.5): pins in a frame before the ball nears
   // them, arrows on the calibration frame.
   const tPins = timeAtFeet(motion, 35);
@@ -377,6 +409,7 @@ export function trace(input: TraceInput): TraceOutput {
   const met = metrics({
     path: fit.path, hand, seen: vs, points: pathPts, touchdown, motion, tFirst, tLast, rackMovesAt: pinT,
     overFoulLineU: debug.release?.u,
+    pinsU,
     // Measured only from the two sharp events; where the bowler hides the
     // touchdown or the rack, the fit's speed is shown as estimated.
     speedMeasured: distance !== "default" && anchoredSpeed !== undefined,

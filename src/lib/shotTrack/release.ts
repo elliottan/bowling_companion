@@ -243,3 +243,42 @@ export function overFoulLine(
   }
   return null;
 }
+
+/**
+ * The ball followed forward by its darkness from a sighting (`start`, in
+ * frame `from`) to frame `to`, while it stays at least `minContrast` of its
+ * first darkness against what is round it. In front of the rack the pins hide
+ * parts of it and its circle slides onto its mirror image, so only its centre
+ * across the picture is to be trusted (the owner, shot-01: the board at the
+ * pins is read just before the ball meets them).
+ */
+export function followForward(
+  frame: (i: number) => GrayFrame | null,
+  from: number,
+  start: { cx: number; cy: number; r: number },
+  to: number,
+  minContrast = 0.6
+): ReleaseFrame[] {
+  const f0 = frame(from);
+  if (!f0) return [];
+  const rough0 = findDisc(f0, { x: start.cx, y: start.cy }, [0.95, 1, 1.05].map((k) => k * start.r), Math.max(2, 0.3 * start.r));
+  if (!rough0) return [];
+  let d = fitOutline(f0, rough0);
+  const out: ReleaseFrame[] = [];
+  for (let i = from + 1; i <= to; i++) {
+    const f = frame(i);
+    if (!f) break;
+    const next = findDisc(f, { x: d.cx, y: d.cy }, [0.96, 0.98, 1].map((k) => k * d.r), Math.max(3, 0.6 * d.r));
+    if (!next || next.contrast < minContrast * rough0.contrast) break;
+    d = fitOutline(f, next);
+    out.push({ frame: i, ...d });
+  }
+  return out;
+}
+
+/** Lane u at the picture column `x` on the lane line `v` feet (board lines run nearly upright at the far end). */
+export function uAtColumn(H: Mat3, x: number, v: number): number {
+  const l = mapLine(H, [0, 1, -v]);
+  const y = -(l[0] * x + l[2]) / l[1];
+  return imageToLane(H, { x, y }).u;
+}

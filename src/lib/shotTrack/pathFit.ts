@@ -299,6 +299,12 @@ export interface MetricInput {
    */
   overFoulLineU?: number;
   /**
+   * Lane u of the ball just before it meets the pins, followed to the frame
+   * before the rack moves (`pipeline.ts`). When given, it is the board at the
+   * pins, measured.
+   */
+  pinsU?: number;
+  /**
    * The sightings the path was fitted to. With them the laydown and the
    * arrows are read off the sightings around them, not off the whole path.
    */
@@ -474,7 +480,7 @@ export function metrics(inp: MetricInput): TrackMetrics {
   }
   lastU = boardAtPins(pts, contactV, inp.rackMovesAt);
   const board60 = lastU === null ? board(contactV) : handedBoard(lastU, hand);
-  const pins = pinState === "missing" ? M(null, "missing") : M(board60, pinState);
+  const pins = inp.pinsU !== undefined ? M(handedBoard(inp.pinsU, hand), "measured") : pinState === "missing" ? M(null, "missing") : M(board60, pinState);
   const entry = (Math.atan(Math.abs(board(60) - board(54)) * BOARD_FT / 6) * 180) / Math.PI;
   const entryAngle = pinState === "missing" ? M(null, "missing") : M(entry, pinState);
   const skidSpan = seen.filter((v) => v <= path.s);

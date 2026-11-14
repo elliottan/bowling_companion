@@ -15,7 +15,7 @@ import { join } from "node:path";
 import { arrowFeet } from "../../src/lib/laneGeometry";
 import { PIN_POSITIONS } from "../../src/lib/pinGeometry";
 import { apply } from "../../src/lib/shotTrack/homography";
-import { DECK_END_FT, LEFT_U, RIGHT_U, handedBoard, laneU } from "../../src/lib/shotTrack/laneModel";
+import { CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, handedBoard, laneU } from "../../src/lib/shotTrack/laneModel";
 import { pathU } from "../../src/lib/shotTrack/pathFit";
 import { trace, type TraceOutput } from "../../src/lib/shotTrack/pipeline";
 import type { BallSighting, Mat3, Metric, TrackResult } from "../../src/lib/shotTrack/types";
@@ -26,6 +26,7 @@ import {
 } from "./draw";
 import { drawAcross, drawBoards, drawLandmarks, readCalibration, toCalMarks, type CalibrationFile } from "./overlay";
 import { followNearEnd } from "./follow";
+import { uAtColumn } from "../../src/lib/shotTrack/release";
 import { reviewHtml, type ReviewShot } from "./review";
 
 const here = new URL(".", import.meta.url).pathname;
@@ -348,7 +349,16 @@ function reviewShots(name: string, clip: Clip, clipPath: string, cal: Calibratio
   shots.push(markedShot(clip, clipPath, cal, nr, no, nearestSighting(nr, 15), [6, 22], "Arrows (15 ft)", m.arrows,
     "Contrast-stretched. Magenta crosses: where the calibration puts the arrows' tips; red: the pin spots; cyan lines every 5 boards (white: board 20). If the crosses do not sit on the real arrows, the calibration is off."));
   if (m.breakpointFeet.value !== null) add("Breakpoint", nearestSighting(r, m.breakpointFeet.value), m.breakpointFeet.value, m.breakpoint, `Breakpoint at ${m.breakpointFeet.value.toFixed(1)} ft.`);
-  const last = nearestSighting(r, 58);
+  // The pins picture is the last frame before the rack moves when the ball was
+  // followed there (the owner, shot-01), else the sighting nearest 58 ft.
+  const followed = out.debug.toPins?.length ? out.debug.toPins[out.debug.toPins.length - 1] : null;
+  const last: BallSighting = followed
+    ? (() => {
+        const g = out.debug.geometry[followed.frame - out.debug.first];
+        const u = uAtColumn(g.H, followed.cx, 60 - CONTACT_IN / 12);
+        return { frame: followed.frame, t: clip.times[followed.frame], cx: followed.cx, cy: followed.cy, r: followed.r, contact: { x: followed.cx, y: followed.cy + followed.r }, u, v: 60 - CONTACT_IN / 12, weight: 1, airborne: false };
+      })()
+    : nearestSighting(r, 58);
   if (r.to > 40) shots.push(markedShot(clip, clipPath, cal, r, out, last, [Math.min(42, last.v - 12), 63.5], "Pins (60 ft)", m.pins,
     `Contrast-stretched. Red crosses: where the calibration puts the pin spots (each pin stands on its cross). Entry angle ${fmt(m.entryAngle, " deg")}.`));
   void name;
@@ -540,7 +550,7 @@ function markedShot(clip: Clip, clipPath: string, cal: CalibrationFile, r: Track
     png: toPng(c).toString("base64"),
     lines: [
       `${title}: ${metric.value === null ? "missing" : `${metric.state === "estimated" ? "about " : ""}board ${metric.value.toFixed(1)}`} (${metric.state})`,
-      `Frame ${s.frame}. Nearest sighting: board ${handedBoard(s.u, r.hand).toFixed(2)} at ${s.v.toFixed(1)} ft (green circle).`,
+      `Frame ${s.frame}. The ball (green circle): board ${handedBoard(s.u, r.hand).toFixed(2)} at ${s.v.toFixed(1)} ft.`,
       note
     ]
   };

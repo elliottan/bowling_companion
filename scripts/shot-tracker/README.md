@@ -328,6 +328,20 @@ pins check 7: -0.32, 10: -0.05, 1: -0.36). With the lane narrower the boards
 on its left side read higher: touchdown 23.3 (was 22.4), arrows 17.3 (16.6;
 the owner read 16), breakpoint 7.2, pins 17.4 (owner about 18).
 
+**The board at the pins: the ball just before it meets them.** The owner:
+shot-01 is a really high pocket, more than 17.4. Its last sighting was at
+frame 232, seven frames before the rack is seen to move (239; by eye a pin
+leans at 236). The ball is now followed on by its darkness to the frame
+before the rack moves (`followForward`) and read by its centre across the
+picture on the head pin's contact row: in front of the rack its circle slides
+onto its mirror image, so only its column is trusted. A straight line through
+the last four frames' boards is read halfway between the last frame before
+the rack moves and the first that does. Used only when the ball was lost more
+than two frames before that; otherwise the sightings reach it. shot-01 reads
+19.7 (by eye against the pin columns: centre at x 521, head pin at 520,
+about 19.4). No other clip's board at the pins moved. The pins picture is
+that last frame.
+
 **Still failing:** as round seven, and: the laydown is not measured on the
 crossing frame itself (the ball in the hand or the air is not a sighting),
 it is the rolling ball's line run back, checked by eye; shot-05's pins are
