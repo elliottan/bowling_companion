@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.108.1: The shot tracer's handoff (2026-11-14)
+
+- No change to the app. `docs/SHOT-TRACKER-HANDOFF.md` sets out the next work
+  on the shot tracer: snapping the lane lines a bowler drags onto the lane's
+  own edges, then finding the lane with no lines at all, and how to measure
+  both against the six sample clips.
+
 ## 0.108.0: The shot tracer in Settings, Labs (2026-11-14)
 
 - For the owner to try on real shots: Settings has a Labs group, hidden until
