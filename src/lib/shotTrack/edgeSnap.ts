@@ -29,6 +29,22 @@ export interface SnapOptions {
   tolerance?: number;
   /** Below this fraction of steps agreeing, the line is not found. */
   minSupport?: number;
+  /**
+   * "strongest" (the default): the strongest edge across each step. "first":
+   * the edge nearest `interior` that is at least `firstShare` of that
+   * strongest one, so a lane's own edge wins over a stronger gutter groove or
+   * cap a board further out.
+   */
+  pick?: "strongest" | "first";
+  firstShare?: number;
+  /** With "first": nor under this gradient, grey levels a pixel. */
+  firstMin?: number;
+  /**
+   * Step out from the edge found to the middle of the dark line beyond it
+   * (where the gradient turns back), within this many pixels: the lane's own
+   * edge line rather than the flank where the lane's colour starts to fade.
+   */
+  toLine?: number;
 }
 
 export interface SnapResult {
@@ -154,10 +170,32 @@ export function snapEdge(f: GrayFrame, rough: Segment, opts: SnapOptions = {}): 
     const g = profiles[k];
     let bi = 1;
     for (let i = 1; i < g.length - 1; i++) if (sgn * g[i] > sgn * g[bi]) bi = i;
+    if (opts.pick === "first" && sgn * g[bi] > 0) {
+      // Larger i is nearer the interior: the innermost local peak that clears the share.
+      const floor = Math.max((opts.firstShare ?? 0.4) * sgn * g[bi], opts.firstMin ?? 0);
+      for (let i = g.length - 2; i > bi; i--) {
+        const v = sgn * g[i];
+        if (v >= floor && v >= sgn * g[i - 1] && v >= sgn * g[i + 1]) {
+          bi = i;
+          break;
+        }
+      }
+    }
     const peak = sgn * g[bi];
     if (peak <= 0) continue;
     const off = parabolaPeak(sgn * g[bi - 1], peak, sgn * g[bi + 1]);
-    const s = (bi - m + off) * ds;
+    let s = (bi - m + off) * ds;
+    if (opts.toLine) {
+      // Outward (smaller i) to where the gradient crosses zero: the line's darkest point.
+      const lim = Math.max(1, bi - Math.round(opts.toLine / ds));
+      for (let i = bi - 1; i >= lim; i--) {
+        if (sgn * g[i] <= 0) {
+          const t = (sgn * g[i + 1]) / (sgn * g[i + 1] - sgn * g[i]);
+          s = (i + 1 - t - m) * ds;
+          break;
+        }
+      }
+    }
     found.push({ x: bases[k].x + nx * s, y: bases[k].y + ny * s });
     strengths.push(peak);
   }
