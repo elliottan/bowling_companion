@@ -9,6 +9,8 @@ will run, on the six sample clips in `fixtures/clips/`.
 ```
 npx tsx scripts/shot-tracker/run.ts             # every clip; about 3 minutes
 npx tsx scripts/shot-tracker/run.ts shot-01     # one clip
+npx tsx scripts/shot-tracker/auto.ts            # no marks: the lane found, then traced, against the hand calibration; about 10 minutes
+npx tsx scripts/shot-tracker/auto.ts --no-trace --png shot-03   # the finder alone; out/shot-03/auto-lane.png
 npx tsx scripts/shot-tracker/synthetic-grid.ts  # the full-size synthetic grid (add --all for 32 cases)
 npx tsx scripts/shot-tracker/look.ts <clip> <frame> <x0> <y0> <w> <h> <scale> <out.png> [--cal] [--median]
 npx tsx scripts/shot-tracker/diff.ts <clip> <first> <last> <step> <x0> <y0> <w> <h> <scale> <out.png>
@@ -148,6 +150,68 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
+## The lane with no lines (0.109.0, 2026-11-14)
+
+The owner's goal: no input from the bowler. `src/lib/shotTrack/laneFind.ts`
+finds the lane (`findLane`: the frame it chose and the marks on it);
+`auto.ts` runs it on every clip, traces with it, and sets the readings beside
+the hand-calibrated trace's (`truth.ts` loads the hand calibration; where the
+finder chose another frame the truth is carried there by `register` and then
+`registerPlane`, as the tracer carries a calibration). How it works is in
+`docs/SHOT-TRACKER-HANDOFF.md` and the module's header.
+
+Automatic, hand in brackets (boards, feet, mph; `e` is estimated):
+
+| clip | frame | laydown | arrows | breakpoint | pins | speed |
+|---|---|---|---|---|---|---|
+| shot-01 | 140 | 23.0 (24.2) | 16.6 (17.3) | 7.3 at 43 (7.2 at 44) | 19.0 (19.7) | 14.9 (15.1) |
+| shot-02 | 140 | 20.6 (18.3) | 15.7 (13.5) | none (8.6 at 44) | 16.1e (16.0e) | 16.1e (15.3e) |
+| shot-03 | 250 | 13.7 (14.2) | 10.5 (10.5) | none (none) | none (none) | 15.6e (16.5) |
+| shot-04 | 180 | 23.7 (none) | 31.9 (none) | none | none | 12.0e (none) |
+| shot-05 | 440 | 18.2 (18.9) | 13.2 (13.7) | none (8.8 at 51) | none (none) | 17.9 (18.0) |
+| shot-06 | 50 | 17.6 (17.7) | 14.7 (14.8) | 12.6 at 35 (12.5 at 36) | 18.8 (19.3) | 17.6 (17.0) |
+
+The found lines against the hand ones on the finder's frame (boards at the
+foul line and at 50 ft; feet for the foul line and the pin row; the pins
+check is the 7, 10 and head pins against the found mapping):
+
+| clip | left 0 / 50 ft | right 0 / 50 ft | foul | pin row | pins check |
+|---|---|---|---|---|---|
+| shot-01 | -1.62 / -0.93 | 0.01 / 0.17 | 0.24 | 0.45 | 7: 0.15, 10: -0.09, 1: -0.07 |
+| shot-02 | 0.21 / 0.71 | -0.70 / -0.67 | 0.63 | -0.58 | none found |
+| shot-03 | 0.21 / 1.51 | -1.07 / -0.46 | -0.06 | 0.14 | none found |
+| shot-04 | -0.25 / 1.76 | 0.09 / 0.57 | -0.10 | -1.04 | none found |
+| shot-05 | 1.19 / -0.27 | -1.39 / -0.60 | 0.04 | 0.77 | 10: 1.54 |
+| shot-06 | -0.23 / -0.12 | 0.34 / -0.53 | -0.02 | -1.19 | 7: 0.10, 10: -0.15, 1: -0.07 |
+
+These line errors include the carry of the truth to another frame, up to 200
+frames away (shot-03), so the readings above are the better judge.
+
+What the clips taught:
+
+- **The tracer swings more than the finder.** shot-01 traced with each of the
+  finder's attempts, whose lines agree with the hand truth to about half a
+  board at the near end, gave laydowns of 18.2, 19.1, 21.1, 23.0, 23.1, 23.2,
+  23.5, 23.7 and 24.3. The calibration frame decides the registration chain,
+  the region searched and the empty lane. One calibration carried through a
+  hand-held clip is the limit now; the handoff's first item.
+- **The first edge, on its dark line.** The hand marks sit on the middle of
+  the thin dark line where the lane's colour ends; a gradient's peak is the
+  line's lane-side flank, 0.15 to 0.2 board in. `toLine` steps out to the
+  line's middle: shot-01's right edge and both of shot-04's then agree with
+  the marks within 0.12 board where the edge shows.
+- **The camera's distance ties the two ends together.** The foul line and the
+  pin row each have look-alikes (a join in the approach 1.75 ft back on
+  shot-01, the edge of a reflection 2 ft up the lane on half of shot-06's
+  frames, a row of reflections under the racks on shot-04). The pair that
+  puts the camera where most frames put it is the right one.
+- **The pins hold the far end across the lane**, as marks in the fit and as
+  the score that chooses the frame: shot-01's pins reading was 16.0 on a late
+  frame fitted from the edges alone, and is 19.0 against the hand 19.7.
+- **shot-04's automatic arrows reading (31.9) is wrong** and is not the
+  lane's doing: the found edges agree with the hand ones, and the hand trace
+  itself fails on this clip without `follow`.
+
 ## In the app (0.108.0, 2026-11-14)
 
 The tracer runs in the app, in Settings, Labs (`src/views/ShotTracerView.tsx`,
@@ -170,6 +234,12 @@ Read at 60 fps and 962 by 718, with the harness's lane lines placed by drag,
 shot-01 reads laydown 24.3, arrows 17.3, breakpoint 6.5 at 44 ft (estimated),
 pins 20.0 and 15.1 mph, against the harness's 24.2, 17.3, 7.2, 19.7 and 15.1.
 At 30 fps the pins read 14.8: the follower needs the frames.
+
+From 0.109.0 the lines are not dragged first: the lane is looked for on 24
+frames in a worker (`src/shotTracer/find.worker.ts`), and when it is found the
+trace starts at once. The marking screen is the fallback, and the way to
+correct a found lane ("Move the lines and trace again"). Not yet run in a
+browser on a real clip.
 
 ## Results, round eight (2026-11-13)
 
