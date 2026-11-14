@@ -370,6 +370,8 @@ export function trace(input: TraceInput): TraceOutput {
   // of the rack its circle slides onto its mirror image, so only its column is
   // trusted).
   let pinsU: number | undefined;
+  let pinsEstimated = false;
+  const vAtT = (t: number) => motion.v0 + motion.w * t + 0.5 * motion.d * t * t;
   const lastSeen = seen[seen.length - 1];
   // Only when the ball was lost more than two frames before the rack moves
   // (shot-01: seven); seen closer than that, the sightings already reach it.
@@ -391,6 +393,19 @@ export function trace(input: TraceInput): TraceOutput {
       const slope = den > 0 ? xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / den : 0;
       pinsU = my + slope * (pinFrame - 0.5 - mx);
     }
+  } else if (pinFrame === null && Math.max(lastSeen.v, vAtT(lastSeen.t)) > 50) {
+    // The rack never seen to move (shot-02: the bowler's arm swings across it
+    // as the ball arrives). The ball is followed on until the arm covers it;
+    // if by then the fitted motion has it within three feet of the head pin,
+    // its last three frames' boards are the estimate. Not run on: the turn
+    // left in the last feet is not seen.
+    const track = followForward((i) => (geometry[i - first]?.ok ? source.frame(i) : null), lastSeen.frame, lastSeen, lastSeen.frame + 30);
+    if (track.length >= 3 && vAtT(source.frame(track[track.length - 1].frame).t) >= 57) {
+      debug.toPins = track;
+      const tail = track.slice(-3);
+      pinsU = tail.reduce((a, d) => a + uAtColumn(geometry[d.frame - first].H, d.cx, 60 - CONTACT_IN / 12), 0) / tail.length;
+      pinsEstimated = true;
+    }
   }
 
   // The calibration check (plan 6.5): pins in a frame before the ball nears
@@ -410,6 +425,7 @@ export function trace(input: TraceInput): TraceOutput {
     path: fit.path, hand, seen: vs, points: pathPts, touchdown, motion, tFirst, tLast, rackMovesAt: pinT,
     overFoulLineU: debug.release?.u,
     pinsU,
+    pinsEstimated,
     // Measured only from the two sharp events; where the bowler hides the
     // touchdown or the rack, the fit's speed is shown as estimated.
     speedMeasured: distance !== "default" && anchoredSpeed !== undefined,

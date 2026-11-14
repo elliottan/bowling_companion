@@ -20,6 +20,9 @@ had all shipped.
   are marked on the lane's own edge lines, not the bumper.
 - The laydown is the board under the ball where it sits right above the foul
   line, in the hand or in the air, followed back from where it lands.
+- The board at the pins is read from the ball followed to the frame before
+  the rack moves, or, when the bowler's arm hides the rack, to the last frame
+  before the arm covers the ball (shown as estimated).
 
 ## 0.107.1: The shot tracer's geometry and its first trace of the sample clips (2026-11-12)
 

@@ -342,6 +342,20 @@ than two frames before that; otherwise the sightings reach it. shot-01 reads
 about 19.4). No other clip's board at the pins moved. The pins picture is
 that last frame.
 
+**The board at the pins when the rack is hidden.** The owner: shot-02 is
+not 14; in the last frame before the bowler's hand covers the ball it is on
+a path to touch the head pin, so at least in the pocket. The rack is never
+seen to move there (the arm swings across it as the ball arrives), so the
+follower above never ran, and the 14.3 was the fitted path run on from 54 ft.
+Now, with no rack movement found, the ball is followed on from its last
+sighting until it is lost; if the fitted motion has it at 57 ft or more by
+then, the mean of its last three frames' boards (by column, as above) is the
+board at the pins, shown as estimated because the last feet of turn are not
+seen. shot-02 reads 16.0 (frames 214 to 219 read 15.0 to 16.4; the head pin
+is on 20, and a ball centre within about 6.3 boards of it touches it). The
+gate is the fitted distance as well as the sighting's own: shot-02's last
+sighting reads 49.8 ft where the fit has 53.8. No other clip moved.
+
 **Still failing:** as round seven, and: the laydown is not measured on the
 crossing frame itself (the ball in the hand or the air is not a sighting),
 it is the rolling ball's line run back, checked by eye; shot-05's pins are

@@ -304,6 +304,8 @@ export interface MetricInput {
    * pins, measured.
    */
   pinsU?: number;
+  /** The ball was followed to near the pins but the moment it meets them is hidden. */
+  pinsEstimated?: boolean;
   /**
    * The sightings the path was fitted to. With them the laydown and the
    * arrows are read off the sightings around them, not off the whole path.
@@ -480,7 +482,7 @@ export function metrics(inp: MetricInput): TrackMetrics {
   }
   lastU = boardAtPins(pts, contactV, inp.rackMovesAt);
   const board60 = lastU === null ? board(contactV) : handedBoard(lastU, hand);
-  const pins = inp.pinsU !== undefined ? M(handedBoard(inp.pinsU, hand), "measured") : pinState === "missing" ? M(null, "missing") : M(board60, pinState);
+  const pins = inp.pinsU !== undefined ? M(handedBoard(inp.pinsU, hand), inp.pinsEstimated ? "estimated" : "measured") : pinState === "missing" ? M(null, "missing") : M(board60, pinState);
   const entry = (Math.atan(Math.abs(board(60) - board(54)) * BOARD_FT / 6) * 180) / Math.PI;
   const entryAngle = pinState === "missing" ? M(null, "missing") : M(entry, pinState);
   const skidSpan = seen.filter((v) => v <= path.s);
