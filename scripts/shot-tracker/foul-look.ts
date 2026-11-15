@@ -26,6 +26,7 @@ import { enlarge, jpg, thin } from "./review-lib";
 import { loadTruth } from "./truth";
 
 const [name, outDir, ...fs] = process.argv.slice(2);
+if (!outDir || /^\d+$/.test(outDir)) throw new Error("usage: foul-look.ts <clip> <outDir> [<frame> ...] (the output directory comes before the frames)");
 const t = loadTruth(name);
 const frames = fs.length ? fs.map(Number) : [t.cal.frame];
 mkdirSync(outDir, { recursive: true });

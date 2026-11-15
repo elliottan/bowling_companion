@@ -117,3 +117,28 @@ describe("tracing failures", () => {
     expect(progress).toContain("ball");
   });
 });
+
+describe("tracing a shot seen over the near lane only", () => {
+  // The ball rubbed out of every frame once it is past 11 ft (the same frame
+  // rendered with no ball thrown), as a bowler standing over the lane hides it.
+  const spec = { ...standardShot({ hand: "right", fps: 30 }), distractor: false };
+  const src = syntheticSource(spec);
+  const empty = syntheticSource({ ...spec, releaseT: 99 });
+  const hidden = { count: src.count, frame: (i: number) => ((truthAt(spec, i).ball?.v ?? 0) > 11 ? empty.frame(i) : src.frame(i)) };
+  const lanes = Array.from({ length: Math.floor(src.count / 6) }, (_, i) => ({ frame: 6 * i, H: truthAt(spec, 6 * i).H, weight: 1 }));
+  const out = trace({ source: hidden, calibFrame: 12, lanes, hand: "right" });
+
+  it("reads the near end and leaves the far readings missing rather than refusing the trace", () => {
+    const r = out.result as TrackResult;
+    expect(r.ok).toBe(true);
+    expect(out.debug.nearOnly).toBe(true);
+    expect(r.to).toBeLessThan(11.5);
+    expect(r.metrics.laydown.state).toBe("measured");
+    expect(Math.abs(r.metrics.laydown.value! - truthBoard(spec, 0))).toBeLessThan(0.5);
+    expect(r.metrics.arrows.state).toBe("estimated");
+    expect(r.metrics.breakpoint.state).toBe("missing");
+    expect(r.metrics.pins.state).toBe("missing");
+    expect(r.metrics.speed.state).toBe("estimated");
+    expect(r.pinFrame).toBeNull();
+  });
+});
