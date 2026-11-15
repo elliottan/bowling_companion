@@ -518,26 +518,40 @@ export function registerPlane(
   const laneV = patches.map((p) => apply(G0, p).y);
   const out: FrameGeometry[] = pictures.map((g) => ({ ...g }));
   for (const dir of [1, -1]) {
+    // The guess for each frame: the last frame's transform, moved as the whole
+    // picture moved since...
     let prevPlane: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
     let prevPic: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+    // ...and, after a frame whose floor could not be measured, also the last
+    // floor that was. On a camera that travels the turn puts the near floor
+    // 20 pixels out (shot-01 from frame 210, a hand over a third of the
+    // floor's patches), beyond the patch search, and chained from the turn the
+    // floor was never found again; the guess that finds more patches is used.
+    let lastFloor: { S: Mat3; pic: Mat3 } | null = null;
     for (let k = calibFrame - first + dir; k >= 0 && k < pictures.length; k += dir) {
       const g = pictures[k];
       if (!g) continue;
-      // The guess: last frame's floor transform, moved as the whole picture moved since.
-      const guess = normalize(multiply(multiply(g.S, invert(prevPic)), prevPlane));
-      prevPic = g.S;
       const f = source.frame(g.index);
-      const P: Point[] = [];
-      const Q: Point[] = [];
-      const V: number[] = [];
-      patches.forEach((pt, n) => {
-        const m = matchPatch(c0, f, pt, apply(guess, pt));
-        if (m) {
-          P.push(pt);
-          Q.push(m);
-          V.push(laneV[n]);
-        }
-      });
+      const matchFrom = (guess: Mat3) => {
+        const P: Point[] = [];
+        const Q: Point[] = [];
+        const V: number[] = [];
+        patches.forEach((pt, n) => {
+          const m = matchPatch(c0, f, pt, apply(guess, pt));
+          if (m) {
+            P.push(pt);
+            Q.push(m);
+            V.push(laneV[n]);
+          }
+        });
+        return { P, Q, V };
+      };
+      let { P, Q, V } = matchFrom(normalize(multiply(multiply(g.S, invert(prevPic)), prevPlane)));
+      // (Only after such a frame: right after a measured floor the two guesses are one.)
+      if (lastFloor && lastFloor.pic !== prevPic) {
+        const other = matchFrom(normalize(multiply(multiply(g.S, invert(lastFloor.pic)), lastFloor.S)));
+        if (other.P.length > P.length) ({ P, Q, V } = other);
+      }
       const fit = robustHomography(P, Q, tol);
       const span = fit ? Math.max(...fit.inliers.map((i) => V[i])) - Math.min(...fit.inliers.map((i) => V[i])) : 0;
       // The turn (a camera that does not travel) is the simpler model, so it
@@ -552,13 +566,16 @@ export function registerPlane(
       // it must agree with clearly more patches (a third more), or it has
       // only bent itself around noise and repeating patterns.
       const planeOk = fit !== null && fit.inliers.length >= minPatches && span >= 20 && fit.inliers.length >= 1.3 * (turn?.inliers.length ?? 0);
+      prevPic = g.S;
       if (!planeOk || disagreement(St, fit.H, H0) < travelled) {
         const H = normalize(multiply(St, H0));
         out[k] = { ...g, S: St, H, marks: laneMarksOf(H), lens };
         prevPlane = St;
+        if (planeOk) lastFloor = null;
         continue;
       }
       prevPlane = fit.H;
+      lastFloor = { S: fit.H, pic: g.S };
       const H = normalize(multiply(fit.H, H0));
       out[k] = { ...g, S: fit.H, H, marks: laneMarksOf(H), plane: fit.inliers.length };
     }

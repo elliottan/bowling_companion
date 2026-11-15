@@ -2069,8 +2069,8 @@ msgid "Fills in the core, coverstock, RG and diff."
 msgstr "Mengisi inti, coverstock, RG, dan diff."
 
 #: src/views/ShotTracerView.tsx
-msgid "Film from behind the bowler with the whole lane in view, and trim the video to the shot, from just before the release until the pins fall."
-msgstr "Rekam dari belakang peboling dengan seluruh lintasan terlihat, lalu potong video ke lemparannya, dari sesaat sebelum bola dilepas sampai pin jatuh."
+msgid "Film from behind the bowler with the whole lane in view, from just before the release until the pins fall. A longer video is fine: you'll choose where the shot starts."
+msgstr "Rekam dari belakang peboling dengan seluruh lintasan terlihat, dari sesaat sebelum bola dilepas sampai pin jatuh. Video yang lebih panjang tidak apa-apa: kamu akan memilih di mana lemparannya dimulai."
 
 #. Bowling term: a leave is the set of pins left standing after the first ball
 #: src/components/Stats.tsx
@@ -4439,6 +4439,11 @@ msgstr "Lembar"
 msgid "Short pin"
 msgstr "Pin pendek"
 
+#. Where in the video the bowler has chosen to start reading, in seconds
+#: src/views/ShotTracerView.tsx
+msgid "Shot starts at {start} s of {duration} s"
+msgstr "Lemparan dimulai di {start} dtk dari {duration} dtk"
+
 #: src/views/SettingsView.tsx
 #: src/views/ShotTracerView.tsx
 msgid "Shot tracer"
@@ -4500,6 +4505,10 @@ msgstr "Luncuran {board}"
 #: src/views/SpareLinesView.tsx
 msgid "Slide {slide}"
 msgstr "Luncuran {slide}"
+
+#: src/views/ShotTracerView.tsx
+msgid "Slide to just before the release. The tracer keeps about 4 seconds of a 60 fps video, or 8 of a 30 fps one: enough from the release until the pins fall."
+msgstr "Geser ke sesaat sebelum bola dilepas. Pelacak menyimpan sekitar 4 detik dari video 60 fps, atau 8 detik dari video 30 fps: cukup dari bola dilepas sampai pin jatuh."
 
 #. Backend reading: a smooth arc
 #: src/lib/ballLayout.ts
@@ -4971,6 +4980,10 @@ msgstr "Lintasan tidak ditemukan secara otomatis. Seret garis-garis ke atasnya."
 msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."
 msgstr "Lintasan tidak bisa dihitung dari garis-garisnya. Pastikan tiap garis berada di tempatnya, lalu lacak lagi."
 
+#: src/views/ShotTracerView.tsx
+msgid "The lane may be off. Check its lines on the picture, and move them if they miss it."
+msgstr "Lintasan mungkin meleset. Periksa garis-garisnya di gambar, dan geser jika tidak pas."
+
 #. A leave is the set of pins left standing after the first ball (bowling term)
 #: src/views/OpenFramesView.tsx
 msgid "The leaves you keep missing rank here, most often first. Finish a game to start the count."
@@ -5009,6 +5022,10 @@ msgstr "Bentuk paling halus yang dijelaskan bagan. Mengendalikan titik belok saa
 #: src/components/SpareDetailsSheet.tsx
 msgid "The stance and target you saved for this leave are gone. Your shots keep their scores."
 msgstr "Posisi awal dan target yang kamu simpan untuk sisa pin ini sudah hilang. Skor lemparanmu tetap ada."
+
+#: src/views/ShotTracerView.tsx
+msgid "The video"
+msgstr "Videonya"
 
 #: src/views/AppearanceView.tsx
 msgid "Theme"
@@ -5109,6 +5126,10 @@ msgstr "Hasil teratas"
 #: src/components/LaneVisualizer.tsx
 msgid "Top-down"
 msgstr "Dari atas"
+
+#: src/views/ShotTracerView.tsx
+msgid "Trace from here"
+msgstr "Lacak dari sini"
 
 #: src/views/ShotTracerView.tsx
 msgid "Trace the shot"

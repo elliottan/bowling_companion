@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { trace } from "./pipeline";
-import { timeAt } from "./synthetic";
+import { multiply, normalize } from "./homography";
+import { timeAt, truthAt } from "./synthetic";
 import { roughMarks, standardShot, syntheticSource, truthBoard, truthBoardAtPins, truthSpeedMph } from "./syntheticSource";
 import type { TrackResult } from "./types";
 
@@ -68,6 +69,32 @@ describe.each([
   it("passes its own calibration check", () => {
     expect(out.debug.calibration!.warn).toBe(false);
     expect(out.debug.calibration!.pins.length).toBeGreaterThan(0);
+  });
+});
+
+describe("tracing with the lane found on many frames", () => {
+  const spec = standardShot({ hand: "right", body: true });
+  const src = syntheticSource(spec);
+  // The true lane every sixth frame, as the finder would hand it on, and one
+  // frame's lane three boards out (a pin row read off a reflection).
+  const wrong = { frame: 30, H: normalize(multiply(truthAt(spec, 30).H, [1, 0, 3, 0, 1, 0, 0, 0, 1])) };
+  const lanes = [...Array.from({ length: Math.floor(src.count / 6) }, (_, i) => ({ frame: 6 * i, H: truthAt(spec, 6 * i).H, weight: 1 })).filter((l) => l.frame !== 30), wrong];
+  const out = trace({ source: src, calibFrame: 60, lanes, hand: "right" });
+  const r = out.result as TrackResult;
+
+  it("traces the shot with each frame's own lane, the wrong one dropped", () => {
+    expect(r.ok).toBe(true);
+    expect(out.debug.lanes!.dropped).toEqual([wrong]);
+    expect(out.debug.fit).toBeNull();
+    expect(out.debug.H0).not.toBeNull();
+    expect(Math.abs(r.metrics.arrows.value! - truthBoard(spec, 15))).toBeLessThan(0.3);
+    expect(Math.abs(r.metrics.laydown.value! - truthBoard(spec, 0))).toBeLessThan(0.3);
+    expect(Math.abs(r.metrics.pins.value! - truthBoardAtPins(spec))).toBeLessThan(0.3);
+  });
+
+  it("says the lane was not found when no found lane is in the frames traced", () => {
+    const none = trace({ source: src, calibFrame: 5, first: 0, last: 10, lanes: [{ frame: 80, H: truthAt(spec, 80).H }], hand: "right" });
+    expect(!none.result.ok && none.result.failure).toBe("lane-not-found");
   });
 });
 

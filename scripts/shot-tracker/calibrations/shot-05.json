@@ -4,9 +4,9 @@
   "hand": "right",
   "points": [["pin 1", 579.4, 227.2], ["pin 3", 590.1, 226.6], ["pin 6", 600.8, 225.8], ["pin 10", 610.8, 225.0]],
   "lines": [
-    ["right", [[618.4, 245], [628.7, 375], [639.1, 505]]],
+    ["right", [[620.3, 300], [623.5, 350], [625.8, 400], [628.6, 450], [630.1, 475], [631.4, 500]]],
     ["left", [[514.6, 256.2], [470.6, 312.5], [426.6, 368.8]], 520],
     ["foul", [[470, 510], [630, 510]]]
   ],
-  "notes": "Slow motion, 120 frames a second with true timestamps. The arrows do not show under the lane's reflections. The bowler hides the left of the rack and the lane's left edge on the calibration frame: the left edge is marked where it shows, on frame 520, and carried by registration. Pins: the bases of the four columns that show (1, 3, 6, 10)."
+  "notes": "Slow motion, 120 frames a second with true timestamps. The arrows do not show under the lane's reflections. The bowler hides the left of the rack and the lane's left edge on the calibration frame: the left edge is marked where it shows, on frame 520, and carried by registration. Pins: the bases of the four columns that show (1, 3, 6, 10). Right edge re-marked on 2026-11-14 on the owner's ruling: the lane's edge is the thin dark line at the start of the grey strip (the finder's first rising edge stepped to the line), not the black line further out where the earlier three points, drawn by eye, sat (about 8 pixels out at row 500). Measured as the thin line's middle row by row on frame 230, rows 300 to 500; above 300 it is too faint to read."
 }
