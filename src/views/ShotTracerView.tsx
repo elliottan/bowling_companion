@@ -1,45 +1,40 @@
 import { t } from "@lingui/core/macro";
 import { Camera, FileVideo } from "lucide-react";
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PushScreen } from "../components/PushScreen";
 import { Button } from "../components/ui/Button";
 import { Spinner } from "../components/ui/Spinner";
-import { GROUP_HEADING } from "../components/ui/typography";
 import { formatNumber } from "../lib/format";
 import { apply } from "../lib/shotTrack/homography";
 import { BACK_ROW_FT, laneU, LEFT_U, RIGHT_U } from "../lib/shotTrack/laneModel";
 import type { FrameLane } from "../lib/shotTrack/laneTrack";
 import { laneVerdict, type LaneEvidence, type LaneVerdict } from "../lib/shotTrack/laneVerdict";
-import {
-  defaultMarkLines,
-  latestStart,
-  MARK_LINES,
-  needsTrim,
-  pathInPicture,
-  toCalMarks,
-  type MarkLine,
-  type MarkLines
-} from "../lib/shotTrack/marking";
+import { MARK_LINES, pathInPicture, type MarkLine } from "../lib/shotTrack/marking";
+import { laneBands, readFrom, type Band, type ShotFound } from "../lib/shotTrack/shotStart";
 import type { Mat3, Metric, Point, TrackError, TrackFailure, TrackResult } from "../lib/shotTrack/types";
-import type { FindMessage, FindRequest, TraceMessage, TraceRequest } from "../shotTracer/protocol";
-import { readVideoFrames, videoDuration, type VideoFrames } from "../shotTracer/videoFrames";
+import type { FindMessage, FindRequest, SearchMessage, SearchRequest, TraceMessage, TraceRequest } from "../shotTracer/protocol";
+import { readVideoFrames, scanVideo, type VideoFrames } from "../shotTracer/videoFrames";
 import type { Handedness } from "../types/bowling";
 
 /**
  * The shot tracer, in Labs (Settings, behind seven taps on the version line):
- * a video recorded or chosen (a long one first trimmed to where the shot
- * starts), the lane found or its four lines dragged onto one frame, then
- * the tracer (`lib/shotTrack`) run in a worker and its readings shown on the
- * frame. For the owner to try on real shots before it is part of a session.
+ * a video recorded or chosen, with nothing more asked of the bowler. A first
+ * look over the whole video finds the shot (the ball's run up the lane,
+ * `lib/shotTrack/shotStart.ts`) and, in a portrait video, the band of the
+ * picture the lane is in; those few seconds are read at full quality, the lane
+ * is found in a worker, and the tracer (`lib/shotTrack`) runs in another, its
+ * readings shown on the frame. For the owner to try on real shots before it
+ * is part of a session.
  */
 
 type Step =
   | { kind: "pick"; unreadable?: boolean }
-  | { kind: "trim"; duration: number }
+  | { kind: "searching"; fraction: number }
   | { kind: "reading"; fraction: number }
   | { kind: "finding" }
-  | { kind: "mark"; notFound?: boolean }
   | { kind: "tracing"; fraction: number }
+  /** The shot or the lane was not found: nothing to trace. */
+  | { kind: "failed"; missing: "shot" | "lane" }
   | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null };
 
 /** The lane as the finder found it: on every frame it could, and what it knows about how sure it is. */
@@ -57,203 +52,199 @@ interface Found {
  */
 const FIND_FRAMES = 24;
 
-/** Each line's colour on the picture and in its key. */
-const LINE_TONE: Record<MarkLine, { stroke: string; fill: string }> = {
-  left: { stroke: "stroke-accent", fill: "fill-accent" },
-  right: { stroke: "stroke-accent", fill: "fill-accent" },
-  foul: { stroke: "stroke-danger-600", fill: "fill-danger-600" },
-  pinrow: { stroke: "stroke-warning-700", fill: "fill-warning-700" }
+/** Each line's colour on the picture. */
+const LINE_TONE: Record<MarkLine, string> = {
+  left: "stroke-accent",
+  right: "stroke-accent",
+  foul: "stroke-danger-600",
+  pinrow: "stroke-warning-700"
 };
 
 export function ShotTracerView({ handedness, onBack }: { handedness: Handedness; onBack: () => void }) {
   const [step, setStep] = useState<Step>({ kind: "pick" });
-  const [file, setFile] = useState<File | null>(null);
-  // Where in the file the read starts, seconds: chosen on the trim step, and
-  // kept for tracing again, which reads the same stretch.
-  const [start, setStart] = useState(0);
-  const [video, setVideo] = useState<VideoFrames | null>(null);
-  const [frame, setFrame] = useState(0);
-  const [lines, setLines] = useState<MarkLines | null>(null);
-  // The frame the lines were placed on, kept for the result: the frames
+  // The frame the lane was found best on, kept for the result: the frames
   // themselves go to the worker.
   const [shown, setShown] = useState<{ gray: Uint8ClampedArray; width: number; height: number } | null>(null);
-  const workerRef = useRef<Worker | null>(null);
-  const findRef = useRef<Worker | null>(null);
+  const workers = useRef(new Set<Worker>());
+  // Each video chosen is a new attempt; an older one's late answers are dropped.
+  const attempt = useRef(0);
 
   useEffect(
     () => () => {
-      workerRef.current?.terminate();
-      findRef.current?.terminate();
+      for (const w of workers.current) w.terminate();
+      workers.current.clear();
     },
     []
   );
 
-  async function read(f: File, keepMarks: boolean, from: number) {
-    findRef.current?.terminate();
-    findRef.current = null;
-    setStep({ kind: "reading", fraction: 0 });
+  function startWorker(url: URL): Worker {
+    const worker = new Worker(url, { type: "module" });
+    workers.current.add(worker);
+    return worker;
+  }
+
+  function stopWorker(worker: Worker) {
+    worker.terminate();
+    workers.current.delete(worker);
+  }
+
+  /** Looks for the shot over the whole video, the small frames going to a worker as they are drawn. */
+  async function search(f: File, mine: number): Promise<{ found: ShotFound | null; width: number; height: number; duration: number }> {
+    const worker = startWorker(new URL("../shotTracer/search.worker.ts", import.meta.url));
     try {
-      const v = await readVideoFrames(f, (fraction) => setStep({ kind: "reading", fraction }), from);
-      if (v.gray.length < 10) throw new Error("too short");
-      setVideo(v);
-      if (keepMarks && lines) {
-        // Correcting a result: the lines that were used, found or dragged, and
-        // no second search, which would only find the same lane again.
-        setStep({ kind: "mark" });
-      } else {
-        findLane(v);
-      }
-    } catch {
-      setStep({ kind: "pick", unreadable: true });
+      const answer = new Promise<ShotFound | null>((resolve) => {
+        worker.onmessage = (e: MessageEvent<SearchMessage>) => resolve(e.data.found);
+        worker.onerror = () => resolve(null);
+      });
+      const video = await scanVideo(
+        f,
+        (frame) => {
+          const data = frame.data.buffer as ArrayBuffer;
+          worker.postMessage({ kind: "frame", width: frame.width, height: frame.height, data, t: frame.t } satisfies SearchRequest, [data]);
+        },
+        (fraction) => {
+          if (attempt.current === mine) setStep({ kind: "searching", fraction });
+        }
+      );
+      worker.postMessage({ kind: "done" } satisfies SearchRequest);
+      return { ...video, found: await answer };
+    } finally {
+      stopWorker(worker);
     }
   }
 
-  /** Looks for the lane on a few frames; on a miss, the bowler marks it. */
-  function findLane(v: VideoFrames) {
-    // The last frame: the pins have fallen and the lane is clear.
-    const last = v.gray.length - 1;
-    const markByHand = () => {
-      setFrame(last);
-      setLines(defaultMarkLines(v.width, v.height));
-      setStep({ kind: "mark", notFound: true });
-    };
+  async function choose(f: File | undefined) {
+    if (!f) return;
+    const mine = ++attempt.current;
+    for (const w of workers.current) w.terminate();
+    workers.current.clear();
+    setStep({ kind: "searching", fraction: 0 });
+    let found: ShotFound | null;
+    let from: number | null;
+    let bands: (Band | null)[];
+    try {
+      const looked = await search(f, mine);
+      found = looked.found;
+      from = readFrom(looked.duration, found);
+      bands = laneBands(looked.width, looked.height, found);
+    } catch {
+      if (attempt.current === mine) setStep({ kind: "pick", unreadable: true });
+      return;
+    }
+    if (attempt.current !== mine) return;
+    console.info(
+      `Shot tracer: ${found ? `ball seen from ${found.release.toFixed(2)} s, pins ${found.pinHit?.toFixed(2) ?? "not seen"}, confidence ${found.confidence.toFixed(2)}` : "no shot found"}; ` +
+        `reading from ${from?.toFixed(2) ?? "nowhere"} s, rows ${bands.map((b) => (b ? `${b.top.toFixed(2)} to ${b.bottom.toFixed(2)}` : "all")).join(", then ")}`
+    );
+    if (from === null) setStep({ kind: "failed", missing: "shot" });
+    else void readBand(f, from, bands, mine);
+  }
+
+  /** Reads the shot's few seconds in the first band left, then looks for the lane there. */
+  async function readBand(f: File, from: number, bands: (Band | null)[], mine: number) {
+    setStep({ kind: "reading", fraction: 0 });
+    let v: VideoFrames;
+    try {
+      v = await readVideoFrames(
+        f,
+        (fraction) => {
+          if (attempt.current === mine) setStep({ kind: "reading", fraction });
+        },
+        from,
+        bands[0]
+      );
+      if (v.gray.length < 10) throw new Error("too short");
+    } catch {
+      if (attempt.current === mine) setStep({ kind: "pick", unreadable: true });
+      return;
+    }
+    if (attempt.current !== mine) return;
+    // Not found in this band: the next, read again, or nothing to trace.
+    findLane(v, mine, () => {
+      if (attempt.current !== mine) return;
+      if (bands.length > 1) void readBand(f, from, bands.slice(1), mine);
+      else setStep({ kind: "failed", missing: "lane" });
+    });
+  }
+
+  /** Looks for the lane on a few frames, then traces with it; `lost` when it is not found. */
+  function findLane(v: VideoFrames, mine: number, lost: () => void) {
     setStep({ kind: "finding" });
     const stride = Math.max(1, Math.floor(v.gray.length / FIND_FRAMES));
     const request: FindRequest = {
       width: v.width,
       height: v.height,
-      // Copies: the screen still needs its frames to show and to trace.
+      // Copies: the frames are still needed to trace.
       frames: v.gray.flatMap((g, index) => (index % stride === 0 ? [{ data: g.slice().buffer as ArrayBuffer, index }] : []))
     };
     let worker: Worker;
     try {
-      worker = new Worker(new URL("../shotTracer/find.worker.ts", import.meta.url), { type: "module" });
+      worker = startWorker(new URL("../shotTracer/find.worker.ts", import.meta.url));
     } catch {
-      markByHand();
+      lost();
       return;
     }
-    findRef.current = worker;
-    const finish = () => {
-      worker.terminate();
-      if (findRef.current === worker) findRef.current = null;
-    };
     worker.onmessage = (e: MessageEvent<FindMessage>) => {
-      finish();
+      stopWorker(worker);
       const m = e.data;
-      if (m.frame === null) {
-        markByHand();
-        return;
-      }
-      setFrame(m.frame);
-      setLines(m.lines);
-      traceShot(v, m.lines, m.frame, { lanes: m.lanes, evidence: m.evidence });
+      if (m.frame === null) lost();
+      else if (attempt.current === mine) traceShot(v, m.frame, { lanes: m.lanes, evidence: m.evidence }, mine);
     };
     worker.onerror = () => {
-      finish();
-      markByHand();
+      stopWorker(worker);
+      lost();
     };
     worker.postMessage(request, request.frames.map((f) => f.data));
   }
 
-  async function choose(f: File | undefined) {
-    if (!f) return;
-    setFile(f);
-    setStart(0);
-    setStep({ kind: "reading", fraction: 0 });
-    let duration: number;
-    try {
-      duration = await videoDuration(f);
-    } catch {
-      setStep({ kind: "pick", unreadable: true });
-      return;
-    }
-    // A long video is trimmed to the shot first; a short one is read whole.
-    if (needsTrim(duration)) setStep({ kind: "trim", duration });
-    else void read(f, false, 0);
-  }
-
-  /**
-   * Traces with the found lanes, each frame on its own, when the lane was
-   * found; with the lines on `frame` as marks when the bowler placed them.
-   */
-  function traceShot(video: VideoFrames, lines: MarkLines, frame: number, found?: Found) {
-    const calib = video.gray[frame];
-    setShown({ gray: calib.slice(), width: video.width, height: video.height });
+  /** Traces with the found lanes, each frame on its own. */
+  function traceShot(video: VideoFrames, frame: number, found: Found, mine: number) {
+    setShown({ gray: video.gray[frame].slice(), width: video.width, height: video.height });
     const request: TraceRequest = {
       width: video.width,
       height: video.height,
       frames: video.gray.map((g, i) => ({ data: g.buffer as ArrayBuffer, t: video.times[i] })),
       calibFrame: frame,
-      ...(found ? { lanes: found.lanes } : { marks: toCalMarks(lines) }),
+      lanes: found.lanes,
       hand: handedness
     };
-    // The frames move to the worker; tracing again reads the video again.
-    setVideo(null);
     setStep({ kind: "tracing", fraction: 0 });
-    workerRef.current?.terminate();
-    const worker = new Worker(new URL("../shotTracer/trace.worker.ts", import.meta.url), { type: "module" });
-    workerRef.current = worker;
+    const worker = startWorker(new URL("../shotTracer/trace.worker.ts", import.meta.url));
+    const finish = (next: Step) => {
+      stopWorker(worker);
+      if (attempt.current === mine) setStep(next);
+    };
     worker.onmessage = (e: MessageEvent<TraceMessage>) => {
       const m = e.data;
-      if (m.kind === "progress") setStep({ kind: "tracing", fraction: m.fraction });
-      else {
-        // How sure the found lane is; the bowler's own lines need no verdict.
-        const verdict = found ? laneVerdict({ ...found.evidence, ...m.evidence }) : null;
-        setStep({ kind: "done", result: m.result, H: m.H, verdict });
-        worker.terminate();
-        workerRef.current = null;
-      }
+      if (m.kind === "progress") {
+        if (attempt.current === mine) setStep({ kind: "tracing", fraction: m.fraction });
+      } else finish({ kind: "done", result: m.result, H: m.H, verdict: laneVerdict({ ...found.evidence, ...m.evidence }) });
     };
-    worker.onerror = () => {
-      setStep({ kind: "done", result: { ok: false, failure: "unsupported-video", detail: "worker failed" }, H: null, verdict: null });
-      worker.terminate();
-      workerRef.current = null;
-    };
+    worker.onerror = () =>
+      finish({ kind: "done", result: { ok: false, failure: "unsupported-video", detail: "worker failed" }, H: null, verdict: null });
+    // The frames move to the worker; the screen keeps only the one it shows.
     worker.postMessage(request, request.frames.map((f) => f.data));
   }
+
+  const another = () => {
+    attempt.current++;
+    for (const w of workers.current) w.terminate();
+    workers.current.clear();
+    setStep({ kind: "pick" });
+  };
 
   return (
     <PushScreen history="route" mode="inline" title={t`Shot tracer`} onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl space-y-5 px-3 pb-10 pt-2 sm:px-6">
         {step.kind === "pick" && <PickVideo unreadable={step.unreadable} onChoose={(f) => void choose(f)} />}
-        {step.kind === "trim" && file && (
-          <TrimVideo
-            file={file}
-            duration={step.duration}
-            start={start}
-            onStart={setStart}
-            onRead={() => void read(file, false, start)}
-            onUnreadable={() => setStep({ kind: "pick", unreadable: true })}
-            onAnother={() => setStep({ kind: "pick" })}
-          />
-        )}
-        {step.kind === "reading" && (
-          <Waiting label={t`Reading the video…`} fraction={step.fraction} />
-        )}
+        {step.kind === "searching" && <Waiting label={t`Looking for the shot…`} fraction={step.fraction} />}
+        {step.kind === "reading" && <Waiting label={t`Reading the video…`} fraction={step.fraction} />}
         {step.kind === "finding" && <Waiting label={t`Finding the lane…`} />}
-        {step.kind === "mark" && video && lines && (
-          <MarkLanes
-            notFound={step.notFound}
-            video={video}
-            frame={frame}
-            onFrame={setFrame}
-            lines={lines}
-            onLines={setLines}
-            onTrace={() => traceShot(video, lines, frame)}
-            onAnother={() => setStep({ kind: "pick" })}
-          />
-        )}
         {step.kind === "tracing" && <Waiting label={t`Tracing the shot…`} fraction={step.fraction} />}
-        {step.kind === "done" && (
-          <Result
-            result={step.result}
-            H={step.H}
-            verdict={step.verdict}
-            picture={shown}
-            onRetrace={file ? () => void read(file, true, start) : undefined}
-            onAnother={() => setStep({ kind: "pick" })}
-          />
+        {step.kind === "failed" && (
+          <Failure text={step.missing === "shot" ? t`The shot couldn't be found in this video.` : t`The lane couldn't be found in this video.`} onAnother={another} />
         )}
+        {step.kind === "done" && <Result result={step.result} H={step.H} verdict={step.verdict} picture={shown} onAnother={another} />}
       </div>
     </PushScreen>
   );
@@ -265,7 +256,7 @@ function PickVideo({ unreadable, onChoose }: { unreadable?: boolean; onChoose: (
   return (
     <div className="space-y-4">
       <p className="text-subhead text-ink-secondary">
-        {t`Film from behind the bowler with the whole lane in view, from just before the release until the pins fall. A longer video is fine: you'll choose where the shot starts.`}
+        {t`Film one shot from behind the bowler, with the whole lane in view from the foul line to the pins, and hold the phone still. The video can start before the approach and run past the pins: the shot is found in it.`}
       </p>
       {unreadable && (
         <p role="alert" className="text-subhead text-danger-700">
@@ -295,84 +286,17 @@ function PickVideo({ unreadable, onChoose }: { unreadable?: boolean; onChoose: (
   );
 }
 
-/**
- * A video longer than the reader holds, shown so the bowler can choose where
- * the shot starts: the slider seeks the picture, so the release can be seen.
- */
-function TrimVideo({
-  file,
-  duration,
-  start,
-  onStart,
-  onRead,
-  onUnreadable,
-  onAnother
-}: {
-  file: File;
-  duration: number;
-  start: number;
-  onStart: (seconds: number) => void;
-  onRead: () => void;
-  onUnreadable: () => void;
-  onAnother: () => void;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const last = latestStart(duration);
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    const url = URL.createObjectURL(file);
-    // The fragment has iOS show a frame before anything has played.
-    v.src = `${url}#t=0.001`;
-    return () => {
-      v.removeAttribute("src");
-      URL.revokeObjectURL(url);
-    };
-  }, [file]);
-  useEffect(() => {
-    const v = videoRef.current;
-    if (v && v.readyState >= 1 && Math.abs(v.currentTime - start) > 1e-3) v.currentTime = start;
-  }, [start]);
+/** What could not be done, what to try, and another video. */
+function Failure({ text, onAnother }: { text: string; onAnother: () => void }) {
   return (
     <div className="space-y-4">
-      <p className="text-subhead text-ink-secondary">
-        {t`Slide to just before the release. The tracer keeps about 4 seconds of a 60 fps video, or 8 of a 30 fps one: enough from the release until the pins fall.`}
+      <p role="alert" className="text-subhead text-ink">
+        {text}
       </p>
-      <video
-        ref={videoRef}
-        muted
-        playsInline
-        preload="auto"
-        aria-label={t`The video`}
-        onLoadedMetadata={(e) => {
-          if (start > 0) e.currentTarget.currentTime = start;
-        }}
-        onError={onUnreadable}
-        className="block h-auto max-h-[60vh] w-full rounded-xl bg-surface-muted object-contain"
-      />
-      <label className="block space-y-1">
-        <span className={GROUP_HEADING}>
-          {t({
-            message: `Shot starts at ${{ start: formatNumber(start, 1) }} s of ${{ duration: formatNumber(duration, 1) }} s`,
-            comment: "Where in the video the bowler has chosen to start reading, in seconds"
-          })}
-        </span>
-        <input
-          type="range"
-          min={0}
-          max={last}
-          step={0.05}
-          value={Math.min(start, last)}
-          onChange={(e) => onStart(Number(e.target.value))}
-          className="block w-full accent-accent"
-        />
-      </label>
-      <div className="flex flex-wrap gap-3">
-        <Button variant="primary" onClick={onRead}>
-          {t`Trace from here`}
-        </Button>
-        <Button onClick={onAnother}>{t`Another video`}</Button>
-      </div>
+      <p className="text-subhead text-ink-secondary">
+        {t`Film from behind the bowler, with the whole lane in view from the foul line to the pins, and hold the phone still.`}
+      </p>
+      <Button onClick={onAnother}>{t`Another video`}</Button>
     </div>
   );
 }
@@ -408,17 +332,13 @@ function FramePicture({
   width,
   height,
   crop,
-  canvasRef,
-  children,
-  svgProps
+  children
 }: {
   gray: Uint8ClampedArray;
   width: number;
   height: number;
   crop?: Crop;
-  canvasRef?: React.MutableRefObject<HTMLCanvasElement | null>;
   children?: React.ReactNode;
-  svgProps?: React.SVGProps<SVGSVGElement>;
 }) {
   const own = useRef<HTMLCanvasElement | null>(null);
   const box = crop ?? { x: 0, y: 0, w: width, h: height };
@@ -440,212 +360,31 @@ function FramePicture({
   return (
     <div className="relative overflow-hidden rounded-xl bg-surface-muted">
       <canvas
-        ref={(el) => {
-          own.current = el;
-          if (canvasRef) canvasRef.current = el;
-        }}
+        ref={own}
         width={box.w}
         height={box.h}
         className="block h-auto w-full"
       />
-      <svg viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`} className="absolute inset-0 h-full w-full" {...svgProps}>
+      <svg viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`} className="absolute inset-0 h-full w-full">
         {children}
       </svg>
     </div>
   );
 }
 
-function lineName(line: MarkLine): string {
-  switch (line) {
-    case "left":
-      return t`Left edge of the lane`;
-    case "right":
-      return t`Right edge of the lane`;
-    case "foul":
-      return t({ message: "Foul line", comment: "A bowling term: the line at the start of the lane a bowler must not cross" });
-    case "pinrow":
-      return t({ message: "Back row of pins", comment: "The row of pin spots furthest from the bowler: the 7, 8, 9 and 10 pins" });
-  }
-}
-
-function MarkLanes({
-  notFound,
-  video,
-  frame,
-  onFrame,
-  lines,
-  onLines,
-  onTrace,
-  onAnother
-}: {
-  notFound?: boolean;
-  video: VideoFrames;
-  frame: number;
-  onFrame: (i: number) => void;
-  lines: MarkLines;
-  onLines: (l: MarkLines) => void;
-  onTrace: () => void;
-  onAnother: () => void;
-}) {
-  const { width, height } = video;
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const loupeRef = useRef<HTMLCanvasElement | null>(null);
-  const [drag, setDrag] = useState<{ line: MarkLine; end: 0 | 1 } | null>(null);
-  const handle = Math.max(width, height) / 70;
-  const reach = handle * 3;
-
-  const toFrame = (e: ReactPointerEvent<SVGSVGElement>): Point => {
-    const r = e.currentTarget.getBoundingClientRect();
-    return {
-      x: Math.min(width - 1, Math.max(0, ((e.clientX - r.left) / r.width) * width)),
-      y: Math.min(height - 1, Math.max(0, ((e.clientY - r.top) / r.height) * height))
-    };
-  };
-
-  // The loupe: the picture round the end being dragged, three times larger, so
-  // the end can be placed on a line the finger is covering.
-  const at = drag ? lines[drag.line][drag.end] : null;
-  useEffect(() => {
-    const c = loupeRef.current;
-    const src = canvasRef.current;
-    const ctx = c?.getContext("2d");
-    if (!c || !src || !ctx || !at) return;
-    const span = c.width / 4;
-    ctx.imageSmoothingEnabled = false;
-    ctx.clearRect(0, 0, c.width, c.height);
-    ctx.drawImage(src, at.x - span / 2, at.y - span / 2, span, span, 0, 0, c.width, c.height);
-    // A light crosshair under a dark one, so it shows on the lane and the pit.
-    for (const [style, w] of [[getComputedStyle(c).backgroundColor, 3], [getComputedStyle(c).color, 1]] as const) {
-      ctx.strokeStyle = style;
-      ctx.lineWidth = w;
-      ctx.beginPath();
-      ctx.moveTo(c.width / 2, 0);
-      ctx.lineTo(c.width / 2, c.height);
-      ctx.moveTo(0, c.height / 2);
-      ctx.lineTo(c.width, c.height / 2);
-      ctx.stroke();
-    }
-  }, [at]);
-
-  return (
-    <div className="space-y-4">
-      {notFound && (
-        <p className="text-subhead text-ink-secondary">{t`The lane couldn't be found on its own. Drag the lines onto it.`}</p>
-      )}
-      <p className="text-subhead text-ink-secondary">
-        {t`Drag the ends of each line onto the lane, on a frame where you can see it clearly. The lane's own edges, not the gutters.`}
-      </p>
-      <div className="relative">
-        <FramePicture
-          gray={video.gray[frame]}
-          width={width}
-          height={height}
-          canvasRef={canvasRef}
-          svgProps={{
-            style: { touchAction: "none" },
-            // The end nearest the finger, within reach: the far ends sit a few
-            // pixels apart, too close for a target each.
-            onPointerDown: (e) => {
-              const p = toFrame(e);
-              let best: { line: MarkLine; end: 0 | 1; d: number } | null = null;
-              for (const k of MARK_LINES) for (const end of [0, 1] as const) {
-                const q = lines[k][end];
-                const d = Math.hypot(q.x - p.x, q.y - p.y);
-                if (d <= reach && (!best || d < best.d)) best = { line: k, end, d };
-              }
-              if (!best) return;
-              e.currentTarget.setPointerCapture(e.pointerId);
-              setDrag({ line: best.line, end: best.end });
-            },
-            onPointerMove: (e) => {
-              if (!drag) return;
-              const p = toFrame(e);
-              const next = { ...lines, [drag.line]: [...lines[drag.line]] as [Point, Point] };
-              next[drag.line][drag.end] = p;
-              onLines(next);
-            },
-            onPointerUp: () => setDrag(null),
-            onPointerCancel: () => setDrag(null)
-          }}
-        >
-          {MARK_LINES.map((k) => (
-            <line
-              key={k}
-              x1={lines[k][0].x}
-              y1={lines[k][0].y}
-              x2={lines[k][1].x}
-              y2={lines[k][1].y}
-              strokeWidth={handle / 3}
-              className={LINE_TONE[k].stroke}
-            />
-          ))}
-          {MARK_LINES.flatMap((k) =>
-            ([0, 1] as const).map((end) => (
-              <g key={`${k}${end}`}>
-                <circle cx={lines[k][end].x} cy={lines[k][end].y} r={handle} fillOpacity={0.35} className={LINE_TONE[k].fill} />
-              </g>
-            ))
-          )}
-        </FramePicture>
-        {at && (
-          <canvas
-            ref={loupeRef}
-            width={128}
-            height={128}
-            aria-hidden="true"
-            className={`pointer-events-none absolute top-2 h-32 w-32 rounded-full border-2 border-surface bg-surface text-accent shadow-sm ${
-              at.x < width / 2 ? "right-2" : "left-2"
-            }`}
-          />
-        )}
-      </div>
-      <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-        {MARK_LINES.map((k) => (
-          <li key={k} className="flex items-center gap-2 text-footnote text-ink-secondary">
-            <svg width="14" height="14" aria-hidden="true">
-              <circle cx="7" cy="7" r="6" className={LINE_TONE[k].fill} />
-            </svg>
-            {lineName(k)}
-          </li>
-        ))}
-      </ul>
-      <label className="block space-y-1">
-        <span className={GROUP_HEADING}>
-          {t({ message: `Frame ${{ frameNumber: formatNumber(frame + 1) }} of ${{ count: formatNumber(video.gray.length) }}`, comment: "A picture of the video, not a bowling frame" })}
-        </span>
-        <input
-          type="range"
-          min={0}
-          max={video.gray.length - 1}
-          step={1}
-          value={frame}
-          onChange={(e) => onFrame(Number(e.target.value))}
-          className="block w-full accent-accent"
-        />
-      </label>
-      <div className="flex flex-wrap gap-3">
-        <Button variant="primary" onClick={onTrace}>
-          {t`Trace the shot`}
-        </Button>
-        <Button onClick={onAnother}>{t`Another video`}</Button>
-      </div>
-    </div>
-  );
-}
-
+/** What went wrong in a trace, said as what could not be done; `Failure` adds what to try. */
 function failureText(f: TrackFailure): string {
   switch (f) {
     case "calibration-off":
-      return t`The lines don't agree with each other. Check that each sits on its line, then trace again.`;
     case "lane-not-found":
-      return t`The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again.`;
+      return t`The lane couldn't be found in this video.`;
     case "too-shaky":
-      return t`The camera moves too much to follow the lane. Try a steadier video.`;
+      return t`The camera moves too much to follow the lane.`;
     case "ball-not-found":
     case "too-little-seen":
-      return t`The ball couldn't be followed down the lane. Try a video with the whole lane in view.`;
+      return t`The ball couldn't be followed down the lane.`;
     default:
-      return t`This video couldn't be read. Try another one.`;
+      return t`This video couldn't be read.`;
   }
 }
 
@@ -654,36 +393,15 @@ function Result({
   H,
   verdict,
   picture,
-  onRetrace,
   onAnother
 }: {
   result: TrackResult | TrackError;
   H: Mat3 | null;
   verdict: LaneVerdict | null;
   picture: { gray: Uint8ClampedArray; width: number; height: number } | null;
-  onRetrace?: () => void;
   onAnother: () => void;
 }) {
-  const actions = (
-    <div className="flex flex-wrap gap-3">
-      {onRetrace && (
-        <Button variant="primary" onClick={onRetrace}>
-          {t`Move the lines and trace again`}
-        </Button>
-      )}
-      <Button onClick={onAnother}>{t`Another video`}</Button>
-    </div>
-  );
-  if (!result.ok) {
-    return (
-      <div className="space-y-4">
-        <p role="alert" className="text-subhead text-ink">
-          {failureText(result.failure)}
-        </p>
-        {actions}
-      </div>
-    );
-  }
+  if (!result.ok) return <Failure text={failureText(result.failure)} onAnother={onAnother} />;
   const m = result.metrics;
   const path = H ? pathInPicture(H, result.path, result.from, result.to) : [];
   // The laydown on the foul line, where the drawn path starts: the ball is
@@ -722,7 +440,7 @@ function Result({
       )}
       {verdict?.level === "check" && (
         <p className="text-subhead text-ink-secondary">
-          {t`The lane may be off. Check its lines on the picture, and move them if they miss it.`}
+          {t`The lane may be off. Check its lines on the picture.`}
         </p>
       )}
       <dl className="overflow-hidden rounded-[26px] bg-surface">
@@ -741,15 +459,16 @@ function Result({
         <Reading label={t({ message: "At the pins", comment: "The board the ball is on where it meets the pins" })} metric={m.pins} />
         <Reading label={t`Speed`} metric={m.speed} speed />
       </dl>
-      {actions}
+      <div className="flex flex-wrap gap-3">
+        <Button onClick={onAnother}>{t`Another video`}</Button>
+      </div>
     </div>
   );
 }
 
 /**
  * The lane the tracer used, drawn quietly under the path: both edges, the
- * foul line and the back pin row, in the colours the bowler drags them in. A
- * wrong lane shows at a glance.
+ * foul line and the back pin row. A wrong lane shows at a glance.
  */
 function LaneLines({ H, width }: { H: Mat3; width: number }) {
   const ends: Record<MarkLine, [Point, Point]> = {
@@ -762,7 +481,7 @@ function LaneLines({ H, width }: { H: Mat3; width: number }) {
     <g data-testid="lane-lines" strokeOpacity={0.55} strokeWidth={Math.max(1, width / 700)} strokeLinecap="round">
       {MARK_LINES.map((k) => {
         const [a, b] = ends[k].map((p) => apply(H, p));
-        return <line key={k} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className={LINE_TONE[k].stroke} />;
+        return <line key={k} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className={LINE_TONE[k]} />;
       })}
     </g>
   );

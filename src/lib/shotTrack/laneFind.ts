@@ -756,6 +756,25 @@ export interface FoulLine {
   /** Where it crosses each strip (one point when one side is hidden). */
   points: Point[];
   strength: number;
+  /** Through both gutters' near ends (`gutterEnds`) rather than a change of brightness. */
+  gutters?: boolean;
+}
+
+/** A gutter's structure above its end at least this, grey levels per pixel, for the end to count. */
+export const GUTTER_DROP = 6;
+
+/**
+ * The foul line through both gutters' near ends, when both are seen with
+ * channel enough above them and the line between them runs within 0.04 of
+ * `slope` across the lane (looser than the brightness pairs: the foul line is
+ * near the camera, and on a camera turned off the lane's axis its slope
+ * differs from the pin row's by up to 0.03 on the sample clips).
+ */
+export function gutterFoulLine(ends: [GutterEnd | null, GutterEnd | null], slope: number): FoulLine | null {
+  const [a, b] = ends;
+  if (!a || !b || a.drop < GUTTER_DROP || b.drop < GUTTER_DROP) return null;
+  if (Math.abs((b.y - a.y) / (b.x - a.x) - slope) > 0.04) return null;
+  return { line: [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y], points: [a, b], strength: Math.min(a.drop, b.drop), gutters: true };
 }
 
 /**
@@ -814,34 +833,24 @@ export function findFoulLines(f: GrayFrame, left: Line3, right: Line3, near: num
   const out: FoulLine[] = [];
   // The gutters begin at the foul line: where each channel's lengthwise
   // structure stops and the flat approach starts is the strongest cue there
-  // is (2026-11-15: the brightness rows alone took the edge of a lighter band
-  // of boards 1 to 1.7 ft up the lane on four of the six sample clips, and the
+  // is (2026-11-15: the brightness rows alone took the edge of a band of
+  // boards 1 to 1.7 ft up the lane on four of the six sample clips, and the
   // camera's distance agreed with it on every frame, so the mode could not
-  // catch it). Both gutter ends at the slope across the lane come first.
-  const ends = gutterEnds(f, left, right, near, span, slope);
-  const [gl, gr] = ends;
-  const lineOf = (a: Point, b: Point): Line3 => [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y];
-  const gutterLine: FoulLine | null = gl && gr && Math.abs((gr.y - gl.y) / (gr.x - gl.x) - slope) <= 0.03 ? { line: lineOf(gl, gr), points: [gl, gr], strength: Math.min(gl.drop, gr.drop) } : null;
+  // catch it). Both gutter ends, as a line, come first. One end alone is not
+  // used: the bottom of a scoring console, a shoe or the foul light's housing
+  // beside the gutter end it as sharply.
+  const gutterLine = gutterFoulLine(gutterEnds(f, left, right, near, span, slope), slope);
   if (gutterLine) out.push(gutterLine);
   if (pairs.length) {
+    // Then, of the pairs nearly as strong as the strongest, the one furthest
+    // up the lane (an approach join can be sharper than the foul line; but so
+    // can the edge of a band of sheen up the lane, which the gutters and the
+    // camera's distance over the clip settle).
     pairs.sort((a, b) => b.strength - a.strength);
     const strongest = pairs[0].strength;
     const yOf = (p: FoulLine) => (p.points[0].y + p.points[1].y) / 2;
-    // With one gutter end seen (the other hidden, or the two disagreeing), the
-    // pair that passes nearest it, if one passes within a few rows.
-    const one = gutterLine ? null : (gl ?? gr);
-    const rowOn = (l: Line3, x: number) => -(l[0] * x + l[2]) / l[1];
-    const nearOne = one ? pairs.filter((p) => Math.abs(rowOn(p.line, one.x) - one.y) <= 0.02 * span).sort((a, b) => Math.abs(rowOn(a.line, one.x) - one.y) - Math.abs(rowOn(b.line, one.x) - one.y))[0] : undefined;
-    // Otherwise, of the pairs nearly as strong as the strongest, the one
-    // furthest up the lane: nearer the camera is approach, whose joins can be
-    // sharper than the foul line.
-    const first = nearOne ?? pairs.filter((p) => p.strength >= 0.6 * strongest).reduce((a, b) => (yOf(b) < yOf(a) ? b : a));
+    const first = pairs.filter((p) => p.strength >= 0.6 * strongest).reduce((a, b) => (yOf(b) < yOf(a) ? b : a));
     out.push(first, ...pairs.filter((p) => p !== first));
-  }
-  // A gutter end alone, on the slope across the lane, after the pairs.
-  for (const g of ends) {
-    if (!g || gutterLine) continue;
-    out.push({ line: lineOf(g, { x: g.x + 100, y: g.y + 100 * slope }), points: [g], strength: g.drop / 2 });
   }
   // One side only: its rows, strongest first, on the pin row's slope.
   const ones = [...L.peaks.map((p) => ({ ...p, x: L.x(p.y) })), ...R.peaks.map((p) => ({ ...p, x: R.x(p.y) }))].sort((p, q) => q.g - p.g);
@@ -863,7 +872,8 @@ export interface GutterEnd {
 
 /**
  * The near end of each gutter: down a strip in the middle of the channel
- * (from 0.03 to 0.19 lane widths outside each edge; a gutter is 0.22 wide),
+ * (from 0.04 to 0.15 lane widths outside each edge; a gutter is 0.22 wide,
+ * and the foul light's housing can stand over its outer part),
  * the mean gradient across the strip is high over the channel (its walls,
  * groove and lip all run along the lane) and falls to nearly nothing on the
  * flat approach. The end is the row where it falls below half the gutter's
@@ -925,8 +935,8 @@ export function gutterEnds(f: GrayFrame, left: Line3, right: Line3, near: number
   };
   const width = (y: number) => X(right, y) - X(left, y);
   return [
-    side((y) => [X(left, y) - 0.19 * width(y), X(left, y) - 0.03 * width(y)]),
-    side((y) => [X(right, y) + 0.03 * width(y), X(right, y) + 0.19 * width(y)])
+    side((y) => [X(left, y) - 0.15 * width(y), X(left, y) - 0.04 * width(y)]),
+    side((y) => [X(right, y) + 0.04 * width(y), X(right, y) + 0.15 * width(y)])
   ];
 }
 
@@ -1225,8 +1235,11 @@ export function laneAttempts(frames: GrayFrame[], tries = 10): { attempts: Attem
   const measured = ranked.slice(0, tries).map((pick) => measure(frames[pick.index], per[pick.index]!, pick)).filter((m): m is Measured => !!m);
   if (!measured.length) return { attempts: [], camera: NaN };
   const seen = measured.filter((m) => m.ends.length);
-  // With no frame showing the foul line, a typical camera distance.
-  const camera = seen.length ? modeOf(seen.map((m) => m.ends[0].camera), CAMERA_SPREAD_FT) : TYPICAL_CAMERA_FT;
+  // The frames that show both gutters' near ends say where the foul line is
+  // best, so when there are a few of them they alone set the distance; with
+  // no frame showing the foul line, a typical camera distance.
+  const byGutters = seen.filter((m) => m.ends[0].foul.gutters);
+  const camera = seen.length ? modeOf((byGutters.length >= MIN_GUTTER_FRAMES ? byGutters : seen).map((m) => m.ends[0].camera), CAMERA_SPREAD_FT) : TYPICAL_CAMERA_FT;
   const attempts = measured
     .map((m) => {
       if (!m.ends.length) {
@@ -1242,6 +1255,9 @@ export function laneAttempts(frames: GrayFrame[], tries = 10): { attempts: Attem
     .filter((a): a is Attempt => !!a);
   return { attempts, camera };
 }
+
+/** Frames showing both gutter ends needed for them alone to set the camera's distance (`laneAttempts`). */
+export const MIN_GUTTER_FRAMES = 3;
 
 /** How far the camera's distance behind the foul line wanders between frames of one clip, feet (a hand-held camera sways). */
 export const CAMERA_SPREAD_FT = 0.6;
