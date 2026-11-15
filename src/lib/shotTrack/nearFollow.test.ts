@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Candidate } from "./ballDetect";
 import { makeFrame } from "./image";
 import { BALL_DIAMETER_BOARDS } from "./laneModel";
@@ -17,7 +17,9 @@ function frameAt(i: number, hideFrom = 26): GrayFrame {
   if (i >= hideFrom) return f;
   const cx = 50 + 5 * 20;
   const cy = 400 - 20 * vAt(i) - R;
-  for (let y = 0; y < f.height; y++) for (let x = 0; x < f.width; x++) if (Math.hypot(x - cx, y - cy) <= R) f.data[y * f.width + x] = 30;
+  // Only the disc's own box is visited: the whole picture a frame made these tests time out under CI's load.
+  for (let y = Math.max(0, Math.floor(cy - R)); y <= Math.min(f.height - 1, Math.ceil(cy + R)); y++)
+    for (let x = Math.floor(cx - R); x <= Math.ceil(cx + R); x++) if (Math.hypot(x - cx, y - cy) <= R) f.data[y * f.width + x] = 30;
   return f;
 }
 
@@ -37,7 +39,11 @@ describe("nearSeeds", () => {
 });
 
 describe("followNear", () => {
-  const frame = (i: number) => (i < 40 ? frameAt(i) : null);
+  // The follower asks for a frame more than once; drawn once each, and with
+  // room on the clock: on CI's shared runner these ran past the 5 s default.
+  vi.setConfig({ testTimeout: 30_000 });
+  const drawn = new Map<number, GrayFrame>();
+  const frame = (i: number) => (i < 40 ? (drawn.get(i) ?? drawn.set(i, frameAt(i)).get(i)!) : null);
   const lane = () => H;
 
   it("follows the ball up the lane until it is hidden, as candidates with the lane's radius", () => {
