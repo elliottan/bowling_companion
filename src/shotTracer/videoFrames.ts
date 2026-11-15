@@ -442,23 +442,6 @@ export async function readVideoFrames(
   }
 }
 
-/** A video's length in seconds, as its metadata says (`Infinity` or `NaN` when it does not know). */
-export async function videoDuration(file: Blob): Promise<number> {
-  const url = URL.createObjectURL(file);
-  const video = document.createElement("video");
-  video.muted = true;
-  video.preload = "metadata";
-  video.src = url;
-  try {
-    if (!(await once(video, "loadedmetadata"))) return Number.NaN;
-    return video.duration;
-  } finally {
-    video.removeAttribute("src");
-    video.load();
-    URL.revokeObjectURL(url);
-  }
-}
-
 /** The rate the first look plays at. Chromium on a 1080 by 1920 VP9 clip: 4 gave a frame every 0.067 s of video (15 a second) and read 7 s in 4.5. */
 const SCAN_RATE = 2;
 /** The most seeks the first look makes where it cannot play: a frame every `duration / SCAN_SEEKS` seconds at the least. */

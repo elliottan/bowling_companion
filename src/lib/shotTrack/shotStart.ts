@@ -81,9 +81,9 @@ export const LEAD_SECONDS = 0.6;
 export const CHANGE = 12;
 
 /** A candidate is no wider than this fraction of the picture's width, nor taller than twice it (the ball and its reflection). */
-export const MAX_BALL = 0.1;
+export const MAX_BALL = 0.15;
 /** ...covers no more than this times the width squared... */
-export const MAX_AREA = 0.0064;
+export const MAX_AREA = 0.01;
 /** ...and no fewer pixels than this: fewer is noise. */
 export const MIN_AREA = 4;
 /** How far round a candidate is looked at for other change, a fraction of the width (`alone`). */
@@ -303,11 +303,12 @@ interface Node {
  * seconds later, on the ball's run, or null when it cannot: higher in the
  * picture, no faster than `MAX_RISE_RATE`, mostly up rather than across, not
  * much larger, and neither much faster nor much slower than the step before.
- * `offset` is the camera's movement from `a`'s frame to `b`'s.
+ * `offset` is the camera's movement from `a`'s frame to `b`'s: a still point
+ * at (x, y) in `a`'s frame is at (x + dx, y + dy) in `b`'s.
  */
 function follows(a: Node, b: Blob, dt: number, h: number, offset: Shift): number | null {
-  const ax = a.blob.x - offset.dx;
-  const ay = a.blob.y - offset.dy;
+  const ax = a.blob.x + offset.dx;
+  const ay = a.blob.y + offset.dy;
   const rise = ay - b.y;
   if (rise < 0.25) return null;
   if (rise > MAX_RISE_RATE * h * dt + 1) return null;
@@ -363,7 +364,7 @@ function riseOf(run: Blob[], shifts: readonly Shift[], h: number): number {
   const last = run[run.length - 1];
   let dy = 0;
   for (let i = first.frame + 1; i <= last.frame; i++) dy += shifts[i].dy;
-  return (first.y - dy - last.y) / h;
+  return (first.y + dy - last.y) / h;
 }
 
 /** Whether a run is the ball's (see the header). */
@@ -394,7 +395,7 @@ function slowsDown(run: Blob[], times: readonly number[], shifts: readonly Shift
   for (let k = 1; k < run.length; k++) {
     let dy = 0;
     for (let i = run[k - 1].frame + 1; i <= run[k].frame; i++) dy += shifts[i].dy;
-    rates.push((run[k - 1].y - dy - run[k].y) / (times[run[k].frame] - times[run[k - 1].frame]));
+    rates.push((run[k - 1].y + dy - run[k].y) / (times[run[k].frame] - times[run[k - 1].frame]));
   }
   const half = Math.ceil(rates.length / 2);
   const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
@@ -442,10 +443,11 @@ function pinsHit(small: readonly CoarseFrame[], shifts: readonly Shift[], run: B
   during.sort((p, q) => p - q);
   const base = during[during.length >> 1];
   const off = { x: 0, y: 0 };
+  // From the second frame after: the first still has the ball leaving its last place.
   for (let i = end.frame + 1; i < small.length && small[i].t - small[end.frame].t <= PIN_WITHIN; i++) {
     off.x += shifts[i].dx / scale;
     off.y += shifts[i].dy / scale;
-    if (energy(i, off) > Math.max(3 * base, base + 4)) return small[i].t;
+    if (i > end.frame + 1 && energy(i, off) > Math.max(3 * base, base + 4)) return small[i].t;
   }
   return null;
 }

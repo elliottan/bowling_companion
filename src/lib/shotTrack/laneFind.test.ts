@@ -8,6 +8,9 @@ import {
   estimateRoll,
   findFoulLine,
   findFoulLines,
+  gutterEnds,
+  gutterFoulLine,
+  GUTTER_DROP,
   findLane,
   findLanes,
   frameLanes,
@@ -601,6 +604,63 @@ describe("findFoulLines on a built picture", () => {
     // The source returns null here although it is typed as a list: either is "none".
     expect(findFoulLines(approach(150, 200, 150, 100), left, right, 150, 10, 0)).toHaveLength(0);
     expect(findFoulLines(makeFrame(200, 200, 0, 120), left, right, 150, 100, 0)).toEqual([]);
+  });
+
+  describe("with gutters", () => {
+    // Lane from x 70 to 230 (160 wide); each gutter a striped channel outside
+    // it, down to row `end` on the left and `end + tilt` on the right, then the flat approach.
+    const L: Line3 = [1, 0, -70];
+    const R: Line3 = [1, 0, -230];
+    const withGutters = (end: number, tilt = 0, band?: number) => {
+      const f = makeFrame(300, 220, 0, 200);
+      for (let y = 0; y < 220; y++) {
+        for (let x = 0; x < 300; x++) {
+          const inLeft = x >= 35 && x < 70 && y < end;
+          const inRight = x > 230 && x <= 265 && y < end + tilt;
+          if (inLeft || inRight) f.data[y * 300 + x] = Math.floor(x / 3) % 2 ? 60 : 190;
+          else if (y >= end + ((x - 50) / 200) * tilt) f.data[y * 300 + x] = 150;
+          else if (band !== undefined && y >= band && x >= 70 && x <= 230) f.data[y * 300 + x] = 120;
+        }
+      }
+      return f;
+    };
+
+    it("gutterEnds finds where each channel stops, to a row, in the channel's middle", () => {
+      const [a, b] = gutterEnds(withGutters(160, 4), L, R, 160, 100, 0.02);
+      expect(Math.abs(a!.y - 159.5)).toBeLessThan(1.2);
+      expect(Math.abs(b!.y - 163.5)).toBeLessThan(1.2);
+      expect(a!.x).toBeGreaterThan(40);
+      expect(a!.x).toBeLessThan(70);
+      expect(b!.x).toBeGreaterThan(230);
+      expect(a!.drop).toBeGreaterThan(GUTTER_DROP);
+    });
+
+    it("gutterEnds is null on a side with no channel, or with no fall in the rows looked at", () => {
+      const plain = makeFrame(300, 220, 0, 200);
+      expect(gutterEnds(plain, L, R, 160, 100, 0)).toEqual([null, null]);
+      // The window ends above the gutters' ends: structure all the way down.
+      expect(gutterEnds(withGutters(210), L, R, 120, 100, 0)).toEqual([null, null]);
+      // Too few rows to look in.
+      expect(gutterEnds(withGutters(160), L, R, 160, 10, 0)).toEqual([null, null]);
+    });
+
+    it("findFoulLines puts the line through both gutter ends first, over a stronger change of brightness up the lane", () => {
+      const f = withGutters(160, 4, 148);
+      const fl = findFoulLines(f, L, R, 160, 100, 0.02);
+      expect(fl[0].gutters).toBe(true);
+      expect(Math.abs(rowOf(fl[0].line, 150) - 161.5)).toBeLessThan(1.5);
+      expect(fl.some((l) => !l.gutters && Math.abs(rowOf(l.line, 150) - 147.5) < 1.5)).toBe(true);
+    });
+
+    it("gutterFoulLine wants both ends, each with channel enough above it, at the slope across the lane", () => {
+      const a = { x: 50, y: 160, drop: 20 };
+      const b = { x: 250, y: 164, drop: 20 };
+      expect(gutterFoulLine([a, b], 0.02)?.points).toEqual([a, b]);
+      expect(gutterFoulLine([a, null], 0.02)).toBeNull();
+      expect(gutterFoulLine([null, b], 0.02)).toBeNull();
+      expect(gutterFoulLine([a, { ...b, drop: GUTTER_DROP - 1 }], 0.02)).toBeNull();
+      expect(gutterFoulLine([a, b], 0.08)).toBeNull();
+    });
   });
 
   it("reads strips that run partly outside the picture", () => {

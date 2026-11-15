@@ -1,19 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { fitCalibration } from "./calibrate";
 import { apply } from "./homography";
-import { LEFT_U, RIGHT_U, BACK_ROW_FT } from "./laneModel";
 import {
-  defaultMarkLines,
+  bandRows,
   droppedBetween,
   frameTimes,
   isNewFrame,
   latestStart,
   lumaOf,
-  MARK_LINES,
   median,
   MIN_RATE,
-  needsTrim,
   pathInPicture,
+  planeCrop,
   playbackRateFor,
   READ_AT_LEAST,
   READ_SECONDS,
@@ -23,48 +20,12 @@ import {
   rotateGray,
   scaledSize,
   slowerRate,
-  toCalMarks,
-  toGray,
-  TRIM_ABOVE,
-  type MarkLines
+  toGray
 } from "./marking";
 import type { Mat3 } from "./types";
 
 // A lane seen from behind: lane (u, v) to pixels, with perspective.
 const H: Mat3 = [9, 4, 120, 0, -5, 600, 0, 0.02, 1];
-
-describe("the lines a bowler drags onto a frame", () => {
-  it("guesses a lane shape inside the picture", () => {
-    const m = defaultMarkLines(800, 600);
-    for (const k of MARK_LINES) for (const p of m[k]) {
-      expect(p.x).toBeGreaterThan(0);
-      expect(p.x).toBeLessThan(800);
-      expect(p.y).toBeGreaterThan(0);
-      expect(p.y).toBeLessThan(600);
-    }
-    // The foul line is below the pin row, and the lane narrows toward it.
-    expect(m.foul[0].y).toBeGreaterThan(m.pinrow[0].y);
-    expect(m.foul[1].x - m.foul[0].x).toBeGreaterThan(m.pinrow[1].x - m.pinrow[0].x);
-  });
-
-  it("gives back the lane mapping when placed on the lane's lines", () => {
-    const at = (u: number, v: number) => apply(H, { x: u, y: v });
-    const lines: MarkLines = {
-      left: [at(LEFT_U, 50), at(LEFT_U, 5)],
-      right: [at(RIGHT_U, 55), at(RIGHT_U, 2)],
-      foul: [at(4, 0), at(36, 0)],
-      pinrow: [at(6, BACK_ROW_FT), at(34, BACK_ROW_FT)]
-    };
-    const marks = toCalMarks(lines);
-    expect(marks.map((m) => m.label)).toEqual(MARK_LINES);
-    const fit = fitCalibration(marks);
-    for (const [u, v] of [[20, 15], [3, 40], [37, 58]]) {
-      const p = apply(fit.H, { x: u, y: v });
-      const q = at(u, v);
-      expect(Math.hypot(p.x - q.x, p.y - q.y)).toBeLessThan(0.01);
-    }
-  });
-});
 
 describe("reading a video", () => {
   it("looks for frames at the rate asked, from a start, up to a limit", () => {
@@ -76,13 +37,36 @@ describe("reading a video", () => {
     expect(frameTimes(0, 1, 0, 5)).toEqual([]);
   });
 
-  it("trims only a video longer than the reader holds", () => {
-    expect(needsTrim(TRIM_ABOVE)).toBe(false);
-    expect(needsTrim(TRIM_ABOVE + 0.1)).toBe(true);
-    expect(needsTrim(4.65)).toBe(false);
-    // A recording that does not know its length is read from the start.
-    expect(needsTrim(Infinity)).toBe(false);
-    expect(needsTrim(Number.NaN)).toBe(false);
+  it("keeps the rows of a band, whole and even, or all of them", () => {
+    expect(bandRows(1920, null)).toEqual({ y: 0, h: 1920 });
+    expect(bandRows(1920, { top: 0.3, bottom: 0.72 })).toEqual({ y: 576, h: 808 });
+    expect(bandRows(1921, { top: 0.331, bottom: 0.771 })).toEqual({ y: 634, h: 848 });
+    expect(bandRows(100, { top: 0.5, bottom: 0.5 })).toEqual({ y: 0, h: 100 });
+    expect(bandRows(100, { top: 1, bottom: 1.2 })).toEqual({ y: 98, h: 2 });
+  });
+
+  it("finds a band of the shown rows in a frame's plane, however it is turned", () => {
+    const band = { top: 0.25, bottom: 0.75 };
+    // Shown as stored: rows.
+    expect(planeCrop(band, 1080, 1920, 0)).toEqual({ x: 0, y: 480, w: 1080, h: 960 });
+    // Upside down: rows from the bottom.
+    expect(planeCrop({ top: 0, bottom: 0.25 }, 1080, 1920, 180)).toEqual({ x: 0, y: 1440, w: 1080, h: 480 });
+    // A phone's portrait video, stored 1920 by 1080 and turned a quarter: the plane's columns.
+    expect(planeCrop({ top: 0, bottom: 0.25 }, 1920, 1080, 90)).toEqual({ x: 0, y: 0, w: 480, h: 1080 });
+    expect(planeCrop({ top: 0, bottom: 0.25 }, 1920, 1080, 270)).toEqual({ x: 1440, y: 0, w: 480, h: 1080 });
+    expect(planeCrop({ top: 0, bottom: 0.25 }, 1920, 1080, -90)).toEqual({ x: 1440, y: 0, w: 480, h: 1080 });
+  });
+
+  it("crops a turned plane to the same picture as cropping it once turned", () => {
+    // 8 by 2 stored, shown turned as 2 by 8; keep the shown rows 2 to 5.
+    const plane = Uint8ClampedArray.from({ length: 16 }, (_, i) => i + 1);
+    for (const turn of [90, 270]) {
+      const shown = rotateGray(plane, 8, 2, turn);
+      const c = planeCrop({ top: 0.25, bottom: 0.75 }, 8, 2, turn);
+      const cut = new Uint8ClampedArray(c.w * c.h);
+      for (let y = 0; y < c.h; y++) for (let x = 0; x < c.w; x++) cut[y * c.w + x] = plane[(y + c.y) * 8 + x + c.x];
+      expect(Array.from(rotateGray(cut, c.w, c.h, turn))).toEqual(Array.from(shown.slice(4, 12)));
+    }
   });
 
   it("reads a stretch from the start chosen, inside the video", () => {
