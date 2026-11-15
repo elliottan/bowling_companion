@@ -390,7 +390,7 @@ function renderCrop(color: Canvas, o: Crop): Canvas {
     const a = at(t.u, t.v - 0.4);
     const b = at(t.u, t.v + 0.4);
     seg(a, b, t.color);
-    if (t.label) text(c, Math.round(Math.max(2, Math.min(c.width - t.label.length * 8 - 2, a.x - (t.label.length * 8 - 2) / 2))), Math.round(Math.min(c.height - 16, Math.max(a.y, b.y) + 4)), t.label, t.color, 1);
+    if (t.label) text(c, Math.round(Math.max(2, Math.min(c.width - t.label.length * 8 - 2, a.x - (t.label.length * 8 - 2) / 2))), Math.round(Math.min(c.height - 14, Math.max(a.y, b.y) + 4)), t.label, t.color, 2);
   }
   if (o.disc) {
     const q = P({ x: o.disc.cx, y: o.disc.cy });
@@ -402,17 +402,21 @@ function renderCrop(color: Canvas, o: Crop): Canvas {
   }
   const w = Math.max(...o.label.map((s) => s.length)) * 8 + 8;
   fill(c, 0, 0, Math.min(c.width, w), o.label.length * 14 + 6);
-  o.label.forEach((s, i) => text(c, 4, 4 + i * 14, s, WHITE, 1));
+  o.label.forEach((s, i) => text(c, 4, 4 + i * 14, s, WHITE, 2));
   return c;
 }
 
 const seconds = (t: Truth, f: number) => t.clip.times[f];
-const stamp = (t: Truth, f: number) => `frame ${f}  ${seconds(t, f).toFixed(3)} s`;
+/** The font has digits and few letters: f is the frame, t its time in seconds, b a board. */
+const stamp = (t: Truth, f: number) => `f${f} t${seconds(t, f).toFixed(3)}`;
 
 /**
  * For the automatic trace only: a picture of the frame each reading is taken
  * on (laydown, touchdown, arrows, breakpoint) and, for the pins, that frame
- * and the four before it. Writes `<dir>/auto-<reading>.jpg` and
+ * and the four before it. The pictures say what they show in digits (the
+ * drawing font has few letters): the corner label is f<frame> t<seconds>, then
+ * the reading's board, then the ball's; magenta is the reading, cyan the board
+ * read off the ball, yellow the ball's circle. Writes `<dir>/auto-<reading>.jpg` and
  * `<dir>/auto-pins-<1..5>.jpg`.
  */
 export function autoFrames(t: Truth, auto: TraceOutput, dir: string, picDir: string): AutoReading[] {
@@ -459,7 +463,6 @@ export function autoFrames(t: Truth, auto: TraceOutput, dir: string, picDir: str
     const ballU = p.ball ? laneU(p.ball.board, hand) : readU;
     const [u0, u1] = span([readU, ballU], 7);
     let v = p.feet;
-    let label = reading as string;
     const ballV = p.ball?.feet ?? p.feet;
     if (reading === "laydown") {
       const rel = debug.release;
@@ -469,14 +472,12 @@ export function autoFrames(t: Truth, auto: TraceOutput, dir: string, picDir: str
       } else if (!rel.reached) {
         notes.unshift("the ball never reached the foul line's row on any frame: this is the frame where it comes lowest, and the laydown is read there");
       }
-      label = "laydown (ball over the foul line, 0 ft)";
     } else if (reading === "touchdown") {
       v = m.touchdownFeet.value ?? p.feet;
       if (result.touchdownFrame === null) {
         extrapolated = true;
         notes.unshift("EXTRAPOLATED: no first-contact frame; shown on the sighting nearest the touchdown distance");
       }
-      label = `touchdown (first contact, ${v.toFixed(1)} ft)`;
     } else if (reading === "arrows") {
       v = 15;
       const gap = Math.abs(ballV - 15);
@@ -484,14 +485,12 @@ export function autoFrames(t: Truth, auto: TraceOutput, dir: string, picDir: str
         extrapolated = true;
         notes.unshift(`ESTIMATED: the ball was seen ${gap.toFixed(1)} ft from the arrows' 15 ft on this frame; the tick is the fitted line's board at 15 ft`);
       }
-      label = "arrows (ball at 15 ft)";
     } else {
       v = m.breakpointFeet.value ?? p.feet;
       if (Math.abs(ballV - v) > 1 || metric.state !== "measured") {
         extrapolated = true;
         notes.unshift(`ESTIMATED: breakpoint comes from the fitted path; the nearest sighting is ${Math.abs(ballV - v).toFixed(1)} ft from ${v.toFixed(1)} ft`);
       }
-      label = `breakpoint (${v.toFixed(1)} ft)`;
     }
     const vlo = Math.min(v, ballV) - (reading === "laydown" ? 3 : 2.5);
     const vhi = Math.max(v, ballV) + (reading === "laydown" ? 3 : 2.5);
@@ -506,7 +505,7 @@ export function autoFrames(t: Truth, auto: TraceOutput, dir: string, picDir: str
       ringAt: asRing ? { u: readU, v } : undefined,
       ticks: asRing ? [] : [{ u: readU, v, color: MARK, label: metric.value.toFixed(1) }],
       row: asRing ? undefined : v,
-      label: [`${stamp(t, p.frame)}`, `${label}: board ${metric.value.toFixed(1)} (${metric.state})`, ...(p.ball ? [`ball on this frame: board ${p.ball.board.toFixed(1)} at ${p.ball.feet.toFixed(1)} ft`] : [])]
+      label: [stamp(t, p.frame), `b${metric.value.toFixed(1)}`, ...(p.ball ? [`b${p.ball.board.toFixed(1)} ${p.ball.feet.toFixed(1)} ft`] : [])]
     });
     const file = `auto-${reading}.jpg`;
     out.push({
@@ -553,7 +552,7 @@ export function autoFrames(t: Truth, auto: TraceOutput, dir: string, picDir: str
           return;
         }
         const board = d ? handedBoard(uAtColumn(H, d.cx, PIN_V), hand) : null;
-        const ticks: NonNullable<Crop["ticks"]> = [{ u: readU, v: PIN_V, color: MARK, label: `reading ${pinsM.value!.toFixed(1)}` }];
+        const ticks: NonNullable<Crop["ticks"]> = [{ u: readU, v: PIN_V, color: MARK, label: pinsM.value!.toFixed(1) }];
         if (board !== null) ticks.push({ u: laneU(board, hand), v: PIN_V, color: TICK, label: board.toFixed(1) });
         const pic = renderCrop(colorOf(f), {
           H,
@@ -565,7 +564,7 @@ export function autoFrames(t: Truth, auto: TraceOutput, dir: string, picDir: str
           foul: false,
           ticks,
           row: PIN_V,
-          label: [`${stamp(t, f)}  (${when}, ${i + 1} of 5)`, d ? `ball ${d.source}: reads board ${board!.toFixed(1)} at the pins` : "ball not seen on this frame", `pins reading ${pinsM.value!.toFixed(1)} (${pinsM.state})`]
+          label: [`${stamp(t, f)} ${i + 1}/5`, `b${pinsM.value!.toFixed(1)}`, ...(board !== null ? [`b${board.toFixed(1)}`] : [])]
         });
         frames.push({
           frame: f,
