@@ -182,10 +182,17 @@ describe("ShotTracerView", () => {
 
   it("reads only the lane's band of a portrait video, round where the ball's run starts", async () => {
     scanning({ width: 1080, height: 1920, duration: 30 });
-    await chooseVideo();
+    await searchFinds({ ...SHOT, run: [{ t: 12, x: 0.5, y: 0.45 }] });
+    await waitFor(() => expect(find()).toBeTruthy());
     const band = readVideoFrames.mock.calls[0][3];
-    expect(band.top).toBeCloseTo(0.3, 9);
-    expect(band.bottom).toBeCloseTo(0.74, 9);
+    expect(band.top).toBeCloseTo(0.15, 9);
+    expect(band.bottom).toBeCloseTo(0.59, 9);
+  });
+
+  it("reads the sample clips' band when the run's is much the same", async () => {
+    scanning({ width: 1080, height: 1920, duration: 30 });
+    await chooseVideo();
+    expect(readVideoFrames.mock.calls[0][3]).toEqual({ top: 0.3, bottom: 0.72 });
   });
 
   it("reads a short video from its start when no shot is found in it", async () => {

@@ -220,7 +220,7 @@ describe("finding the shot", () => {
     expect(findShot(handShot(1, { x: 8 }))).toBeNull();
   });
 
-  it("takes the last run when there are two: the ball's comes after the bowler's slide", () => {
+  it("of two runs as long, takes the later: the ball's comes after the bowler's slide", () => {
     const first = handShot(0.5).slice(0, 20);
     const second = handShot(0).map((f) => ({ ...f, t: f.t + 2 }));
     const found = findShot([...first, ...second])!;
@@ -273,8 +273,8 @@ describe("what to read", () => {
     expect(high.bottom).toBeCloseTo(0.44, 9);
   });
 
-  it("tries the clips' own band after the run's, unless they are much the same", () => {
-    expect(laneBands(1080, 1920, found(0.6))).toEqual([laneBand(1080, 1920, found(0.6))]);
+  it("tries the clips' own band after the run's, and alone when they are much the same", () => {
+    expect(laneBands(1080, 1920, found(0.6))).toEqual([DEFAULT_BAND]);
     const low = laneBands(1080, 1920, found(0.9));
     expect(low).toHaveLength(2);
     expect(low[1]).toEqual(DEFAULT_BAND);

@@ -497,10 +497,12 @@ export class ShotSearch {
     const { w, h } = this.size;
     const runs = ballRuns(this.times, this.blobs, this.shifts, h).filter((r) => isShotRun(r, this.times, this.shifts, w, h));
     if (!runs.length) return null;
-    // The last to start: the ball's run is the last thing to go up the lane
-    // (before it, the bowler's slide can pass for one; after it the bowler
-    // walks back, down the picture). Of two starting together, the longer.
-    const run = runs.reduce((best, r) => (r[0].frame > best[0].frame || (r[0].frame === best[0].frame && r.length > best.length) ? r : best));
+    // The longest; of those as long, the last to start. Before the ball's
+    // run the bowler's slide or swing can pass for one, as long; after it the
+    // follow-through and the walk back are shorter (four looks at shot-05's
+    // original in Chromium: the ball's run had 4 to 7 points, the slide 4 or 5,
+    // the follow-through 4).
+    const run = runs.reduce((best, r) => (r.length > best.length || (r.length === best.length && r[0].frame > best[0].frame) ? r : best));
     const release = this.times[run[0].frame];
     const pinHit = pinsHit(this.small, this.shifts, run, SMALL);
     const rise = riseOf(run, this.shifts, h);
@@ -583,13 +585,16 @@ export function readFrom(duration: number, found: ShotFound | null): number | nu
 
 /**
  * The bands of the picture to look for the lane in, in turn: the run's
- * (`laneBand`), then the sample clips' own, unless the two are much the same.
- * The run can be the bowler's slide rather than the ball, and then its band
- * is too low; the lane finder is the judge. A landscape picture is read whole.
+ * (`laneBand`), then the sample clips' own; only the clips' own when the two
+ * are much the same, since the tracer was tuned on it. On shot-05's original
+ * the run's band (33% to 77%) read the laydown 23.1 and the clips' band 18.7,
+ * as the harness reads it. The run can be the bowler's slide rather than the
+ * ball, and then its band is too low; the lane finder is the judge. A
+ * landscape picture is read whole.
  */
 export function laneBands(width: number, height: number, found: ShotFound | null): (Band | null)[] {
   const first = laneBand(width, height, found);
   if (!first) return [null];
   const shared = Math.min(first.bottom, DEFAULT_BAND.bottom) - Math.max(first.top, DEFAULT_BAND.top);
-  return shared >= 0.8 * (DEFAULT_BAND.bottom - DEFAULT_BAND.top) ? [first] : [first, DEFAULT_BAND];
+  return shared >= 0.8 * (DEFAULT_BAND.bottom - DEFAULT_BAND.top) ? [DEFAULT_BAND] : [first, DEFAULT_BAND];
 }
