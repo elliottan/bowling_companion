@@ -411,6 +411,31 @@ What the clips taught:
   lane's doing: the found edges agree with the hand ones, and the hand trace
   itself fails on this clip without `follow`.
 
+## The app on the per-frame lanes (0.110.0, 2026-11-15)
+
+- The app's find worker calls `findLanes` and its trace worker
+  `trace({ lanes })`; lines dragged by hand are still traced as marks.
+- The reader (`src/shotTracer/videoFrames.ts`) plays the video and copies each
+  frame as it is shown (`VideoFrame.copyTo`), starting at rate 0.5 and only
+  slowing; the seek loop is the fallback. shot-01 as VP9 in the container's
+  Chromium: 41 to 46 s before, 8 to 11 s after, 240 frames both ways, 98% on
+  the exact frame ffmpeg gives for the time.
+- Grey range, measured: ffmpeg's `-pix_fmt gray` is gray = 1.1647 Y - 18.68
+  against the raw luma plane, so the harness is full range and the app video
+  range. Both ways on the six clips: at full size video range is worse on
+  three (shot-03 laydown 13.3 for 14.1, shot-05 loses its breakpoint, shot-04
+  traces to 33.6 and 32.3); at the app's size (962 by 718, 240 frames) full
+  range is worse (shot-03 7.2 and 3.8, shot-05 27.4). Left as it was.
+- The verdict (`laneVerdict.ts`): what separates good from bad on the six
+  clips is the share of found lanes kept (shot-03 at app size: 1 of 20;
+  others 33% to 93%) and the tracer's pins check over a board. Edge support
+  (0.37 to 0.72 on good and bad alike) and camera distance (19.4 to 25.8 ft
+  everywhere) do not.
+- In the browser, three runs of shot-01 read laydown 18.8, 23.8, 23.8. The
+  first had playback slowed to 0.28. Not explained.
+- `review-auto.ts` writes the pictures and readings of the automatic trace
+  for a review page.
+
 ## In the app (0.108.0, 2026-11-14)
 
 The tracer runs in the app, in Settings, Labs (`src/views/ShotTracerView.tsx`,

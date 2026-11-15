@@ -9,6 +9,19 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.110.0: The shot tracer reads faster and follows the lane frame by frame (2026-11-15)
+
+- In Settings, Labs (hidden behind seven taps on the version line): the shot
+  tracer reads a video by playing it, not by seeking a frame at a time, which
+  took minutes on a phone. A video longer than five seconds first asks where
+  the shot starts, so it no longer has to be trimmed beforehand.
+- The lane is found on many frames of the video and each frame uses its own,
+  so a hand-held camera's movement no longer shifts the readings. On the
+  sample clips the laydown and arrows are within half a board of the
+  hand-marked ones on four of six.
+- The result draws the lane it used on the picture, and says so when the lane
+  may be off. A foul line that is hidden is placed from the rest of the video.
+
 ## 0.109.0: The shot tracer finds the lane on its own (2026-11-14)
 
 - In Settings, Labs (hidden behind seven taps on the version line): the shot

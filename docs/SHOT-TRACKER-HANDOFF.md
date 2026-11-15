@@ -8,64 +8,72 @@ development aid, not the product. Read this, then
 then `docs/SHOT-TRACKER-PLAN.md` sections 6 and 7 for the geometry. `CLAUDE.md`
 holds the house rules; the ones that bite here are at the end.
 
-## Where it stands (0.109.0, 2026-11-14)
+## Where it stands (0.110.0, 2026-11-15)
 
-- **The lane is found automatically** (`src/lib/shotTrack/laneFind.ts`,
-  `findLane`). On all six sample clips it finds the bowler's own lane, both
-  edges, the foul line and the back pin row, on a frame it chooses, in 3 to 9
-  seconds in Node (21 for the 120 fps clip, which gives it twice the frames).
+- **The lane is found on many frames, and each frame uses its own.**
+  `findLanes` (`laneFind.ts`) calibrates every frame it is given; `laneTrack.ts`
+  carries each found lane a few frames and blends them, so the tracer
+  (`trace({ lanes })` in `pipeline.ts`) no longer carries one calibration
+  through the clip. How much laydown moved with the choice of calibration
+  frame fell from 1 to 29 boards to under half a board
+  (`scripts/shot-tracker/swing.ts`).
 - **The app uses it** (`src/views/ShotTracerView.tsx`, Settings, Labs, behind
-  seven taps on the version line). A new video is read, the lane is looked for
-  in a worker (`src/shotTracer/find.worker.ts`), and when it is found the
-  trace starts at once: no marking screen. When it is not found the marking
-  screen opens as before, saying so. "Move the lines and trace again" on the
-  result opens the marking screen with the found lines on their frame, which
-  is how a wrong lane is corrected.
-- **It is not yet as good as the hand calibrations.** The readings of the
-  automatic trace against the hand-calibrated one are in the table below: one
-  clip agrees within half a board everywhere, three within about a board, one
-  is two boards off, one has no hand trace to compare with.
-- **The tracer, not the finder, is now the larger error.** The same good lines
-  put on different frames of shot-01 move its laydown by up to 6 boards (see
-  "The next work").
+  seven taps on the version line). A video is read by playing it
+  (`src/shotTracer/videoFrames.ts`; seeking a frame at a time took minutes on
+  a phone), a video over five seconds first asks where the shot starts, the
+  lanes are found in a worker and the trace starts at once. The result draws
+  the lane it used, and says "The lane may be off" when `laneVerdict.ts`
+  doubts it. "Move the lines and trace again" is the way to correct it; lines
+  dragged by hand are traced as marks, as before.
+- **A hidden foul line is guessed** (`guessFoul`) from the camera distance
+  other frames of the clip measured, or a typical 22 ft, and marked as a
+  guess (`LaneFound.guess`). No sample clip needs it on its best frame.
+- **Not yet tried on a real phone.** The reader's fast path (`VideoFrame`
+  copies during playback) is checked in the container's Chromium on VP9 only.
 
 ### The measure (`npx tsx scripts/shot-tracker/auto.ts`)
 
 Automatic, with the hand-calibrated trace in brackets; boards, feet, mph; `e`
-is the tracer's own "estimated".
+is the tracer's own "estimated". The left edge of shot-01 and the right edge
+of shot-05 were re-marked on the owner's ruling (the finder was right).
 
-| clip | frame | laydown | arrows | breakpoint | pins | speed |
-|---|---|---|---|---|---|---|
-| shot-01 | 140 | 23.0 (24.2) | 16.6 (17.3) | 7.3 at 43 (7.2 at 44) | 19.0 (19.7) | 14.9 (15.1) |
-| shot-02 | 140 | 20.6 (18.3) | 15.7 (13.5) | none (8.6 at 44) | 16.1e (16.0e) | 16.1e (15.3e) |
-| shot-03 | 250 | 13.7 (14.2) | 10.5 (10.5) | none (none) | none (none) | 15.6e (16.5) |
-| shot-04 | 180 | 23.7 (none) | 31.9 (none) | none | none | 12.0e (none) |
-| shot-05 | 440 | 18.2 (18.9) | 13.2 (13.7) | none (8.8 at 51) | none (none) | 17.9 (18.0) |
-| shot-06 | 50 | 17.6 (17.7) | 14.7 (14.8) | 12.6 at 35 (12.5 at 36) | 18.8 (19.3) | 17.6 (17.0) |
+| clip | laydown | arrows | breakpoint | pins | speed |
+|---|---|---|---|---|---|
+| shot-01 | 23.8 (23.3) | 16.9 (16.7) | 7.7 at 43 (7.5 at 43) | 16.7 (20.5) | 15.3 (15.3) |
+| shot-02 | 21.9 (18.3) | 15.8 (13.7) | none (8.7 at 45) | 16.1e (16.1e) | 15.9e (15.3e) |
+| shot-03 | 14.1 (14.2) | 10.5 (10.5) | none (none) | none (none) | 18.3 (16.5) |
+| shot-04 | not traced (`too-little-seen`); the hand trace fails too | | | | |
+| shot-05 | 18.7 (18.5) | 13.1 (13.1) | 8.9 at 49 (8.9 at 49) | none (none) | 18.1 (18.1) |
+| shot-06 | 17.8 (17.7) | 14.7 (14.8) | 12.6 at 35 (12.5 at 36) | 18.4 (19.3) | 17.5 (17.0) |
 
 Reading it:
 
-- shot-06: within 0.5 board everywhere, speed 0.6 mph high.
-- shot-01: laydown 1.2 and arrows 0.7 low. The left edge found sits about a
-  board outside the hand marks at the near end; the bowler's leg hides it
-  there on the chosen frame, and the hand marks sit on the lane side of a
-  faint grey strip between the lane and its strong dark line.
-- shot-03: laydown 0.5 low, arrows exact.
-- shot-05: laydown 0.7 and arrows 0.5 low, and the breakpoint is lost. The
-  found right edge is on the dark line at the lane's edge; the hand marks
-  (three points on one straight line, drawn by eye) are about 1.2 boards
-  further out. Which is right is the owner's call on the review page.
-- shot-02: two boards off at the near end. The camera pans hard, is rolled 3
-  degrees, a scoring screen hides the near right edge and the bowler's leg
-  lies along the left one. The hand run needed two calibrations for it.
-- shot-04: the hand trace fails without its `follow` aid, so nothing to
-  compare; the automatic arrows reading (31.9 with a laydown of 23.7) is not
-  believable and is the tracer following the wrong thing, since the found
-  edges agree with the hand ones.
+- Laydown and arrows are within half a board on shot-01, 03, 05 and 06.
+- shot-02's hand column is its single calibration; `run.ts`, with the second
+  calibration for the near end, reads 21.0 and 15.7, so the automatic near
+  end is within a board of that. No breakpoint is found.
+- shot-01's board at the pins (16.7 against 20.5, by eye 19.4):
+  `followForward` loses the ball six frames before the rack moves.
+- shot-03's speed (18.3 against 16.5): the rack's first movement is found 14
+  frames early.
+- shot-04 is not traced; the bowler covers the far end throughout.
 
 The hand calibrations (`scripts/shot-tracker/calibrations/*.json`) are still
-the answer key. They are good to about 0.3 to 0.5 board, not better: do not
-tune the finder to a difference smaller than that.
+the answer key, good to about 0.3 to 0.5 board: do not tune below that.
+
+### What the app sees is not what the harness sees
+
+- **Grey range.** The harness (`clip.ts`, ffmpeg `-pix_fmt gray`) feeds
+  full-range grey (0 to 255); the app feeds video range (16 to 235). Measured
+  on 2026-11-15: at full size, video range is worse on three clips; at the
+  app's size (962 by 718, the first 240 frames) full range is worse. Neither
+  wins, so nothing was changed.
+- **Size and length.** The app scales to 960 by 720 and keeps 240 frames, two
+  seconds of a 120 fps clip. Read that way, shot-03 keeps 1 found lane of 20
+  and reads 13.3 and 9.4 (flagged "check"), and shot-05 reads 18.8 and 13.7.
+- **Repeatability in the browser.** Three runs of shot-01 read laydown 18.8,
+  23.8 and 23.8. The odd one had the reader slow playback to 0.28; which
+  frames are caught seems to move the laydown by boards. Unexplained.
 
 ## How the finder works
 
@@ -114,31 +122,24 @@ function with tests (`laneFind.test.ts`). In one paragraph each:
 
 ## The next work, in order
 
-1. **Stop carrying one calibration through the whole clip.** The tracer
-   (`pipeline.ts`) registers every frame to the calibration frame, and on a
-   hand-held phone that chain is the weak link (README, "Corrections to the
-   plan", 7.3). Now that a calibration costs a third of a second a frame and
-   no hands, find the lane on many frames and use each frame's own (or the
-   nearest one's, carried a few frames only). Start by passing the finder's
-   marks from several frames as `calMarks` with `frame` set, which the
-   pipeline already accepts, and measure; then decide whether the pipeline
-   should take a calibration per frame. This is where shot-01's 6 boards of
-   laydown swing and shot-02's two boards are.
-2. **The near left edge of shot-01 and the right edge of shot-05**: ask the
-   owner which is the lane's edge on enlarged crops (`auto.ts --png` draws
-   found in green over the hand truth in cyan). If the finder is right,
-   re-mark the JSON; if the hand marks are, the first-edge rule needs to
-   prefer the faint inner line (`LaneEdgeOptions.share`).
-3. **Say how sure it is.** `LaneFound` carries each edge's support, the pins
-   used and the camera distance. Turn those into one "trust it or show the
-   lines" decision, and show the found lines over the frame on the result
-   screen, so a wrong lane is seen at a glance. Today a wrong lane is only
-   caught by the tracer's own `calibration-off`.
-4. **When the foul line is off the bottom of the picture** `findLane` returns
-   null. The plan's 6.3 covers the geometry (the arrows, or a default camera
-   distance now that step 7 measures it).
-5. **Speed on a phone.** Not measured in a browser yet. The finder looks at 24
-   frames; the cost is the fan (three frame-widths of columns a frame).
+1. **Try it on a real phone** (iOS Safari, Android Chrome): read time, whether
+   the fast reader path runs, whether the lane and readings are right. The
+   reader prints one `console.info` line a read.
+2. **Make the harness read what the app reads** (app size, 240 frames, video
+   range) or the app what the harness reads, then find why one browser run of
+   shot-01 read 18.8. Tuning on frames the app never sees is how this drifted.
+3. **The far end.** Pins and breakpoint still move with the calibration frame
+   (the empty lane and the search region are built in that frame's pixels),
+   and `followForward` loses the ball over the rack (shot-01 pins, shot-03
+   speed). Build the empty lane per stretch of the clip, or re-register
+   around the ball's run after a first pass.
+4. **shot-04 and shot-02**: a ball follower that copes with the bowler in
+   front of the lane; a breakpoint on the hard pan.
+5. **The verdict's thresholds** (`laneVerdict.ts`) rest on six clips: the 25%
+   kept-share line sits right at shot-03, and "no pins and a faint edge"
+   flags shot-02 alone. Revisit with more clips.
+6. **120 fps clips**: the 240-frame cap is two seconds; `laneTrack`'s reach is
+   in frames, not seconds.
 
 ## Things that cost time
 
@@ -159,8 +160,8 @@ function with tests (`laneFind.test.ts`). In one paragraph each:
 - **The arrows do not show in any of the six clips**, and `checkArrows` is two
   boards out even against the hand truth. Do not depend on them.
 - **The far end is a few pixels.** A foot at the pins is under a pixel.
-- **Grey levels.** Everything reads the video's own grey (16 to 235); `toGray`
-  in `lib/shotTrack/marking.ts` converts a canvas back.
+- **Grey levels.** The app reads the video's own grey (16 to 235; `toGray` in
+  `lib/shotTrack/marking.ts`); the harness reads full range. See above.
 - **Testing the app in a browser.** The container's Chromium cannot play
   H.264; re-encode a clip to VP9 (`ffmpeg -i shot-01.mp4 -c:v libvpx-vp9 -b:v
   6M -deadline realtime -cpu-used 8 -an shot-01.webm`). The app lives at
@@ -175,6 +176,8 @@ function with tests (`laneFind.test.ts`). In one paragraph each:
 |---|---|
 | `npx tsx scripts/shot-tracker/auto.ts` | Finds the lane on every clip, traces with it and with the hand calibration, prints both and writes `out/auto.md`. About 10 minutes; the hand traces are cached in `out/<clip>/hand-trace.json`. |
 | `... auto.ts --no-trace --png shot-03` | The finder alone, a minute for all six; `out/<clip>/auto-lane.png` shows found (green, yellow) over hand (cyan). |
+| `npx tsx scripts/shot-tracker/swing.ts` | How far each reading moves with the calibration frame. |
+| `npx tsx scripts/shot-tracker/review-auto.ts` | Pictures of the automatic trace (lane, near end, pin deck) and a `manifest.json` of its readings, for a review page. |
 | `npx tsx scripts/shot-tracker/run.ts` | The hand-calibrated traces and their review pages, as before. |
 
 ## House rules that apply
