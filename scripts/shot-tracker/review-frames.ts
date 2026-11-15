@@ -29,6 +29,10 @@ export const DIFFERS = 0.5;
 const PIN_V = 60 - CONTACT_IN / 12;
 /** The least size of a board in the enlarged picture, pixels, where the width cap allows. */
 const BOARD_PX = 8;
+/** The least enlargement, so a 25 board crop is readable and the 1 px drawing stays thin against the picture. */
+const MIN_K = 3;
+/** And a crop narrower than this is enlarged until it is about this wide, pixels. */
+const MIN_W = 720;
 
 const EDGE: Color = [60, 255, 80];
 const FOUL: Color = [255, 130, 0];
@@ -202,7 +206,7 @@ function renderPick(color: Canvas, H: Mat3, p: Pick, hand: Handedness): Canvas {
   }
   const box = boxOf(H, [[u0, v0], [u1, v0], [u0, v1], [u1, v1]], W, Hh, 6, extra);
   const boardPx = Math.hypot(...(([a, b]) => [a.x - b.x, a.y - b.y] as [number, number])([apply(H, { x: 20, y: p.feet }), apply(H, { x: 21, y: p.feet })]));
-  const k = Math.max(1, Math.min(BOARD_PX / Math.max(boardPx, 0.1), MAX_W / box.w));
+  const k = Math.min(Math.max(MIN_K, BOARD_PX / Math.max(boardPx, 0.1), MIN_W / box.w), MAX_W / box.w);
   const c = enlarge(color, box.x, box.y, box.w, box.h, k);
   const P = (q: { x: number; y: number }) => ({ x: (q.x - box.x + 0.5) * k - 0.5, y: (q.y - box.y + 0.5) * k - 0.5 });
   const at = (u: number, v: number) => P(apply(H, { x: u, y: v }));
@@ -237,15 +241,16 @@ function renderPick(color: Canvas, H: Mat3, p: Pick, hand: Handedness): Canvas {
   // The cross at the reading.
   if (readU !== null && p.metric.value !== null) {
     const q = at(readU, p.feet);
-    const s = 9;
+    const s = 10;
+    // An x, so its arms are not lost along the tick row.
     for (const [dx, dy] of [[1, 0], [0, 1]]) {
-      rawLine(c, q.x - s + dx, q.y + dy, q.x + s + dx, q.y + dy, [0, 0, 0], { alpha: 0.5 });
-      rawLine(c, q.x + dx, q.y - s + dy, q.x + dx, q.y + s + dy, [0, 0, 0], { alpha: 0.5 });
+      rawLine(c, q.x - s + dx, q.y - s + dy, q.x + s + dx, q.y + s + dy, [0, 0, 0], { alpha: 0.5 });
+      rawLine(c, q.x - s + dx, q.y + s + dy, q.x + s + dx, q.y - s + dy, [0, 0, 0], { alpha: 0.5 });
     }
-    rawLine(c, q.x - s, q.y, q.x + s, q.y, CROSS);
-    rawLine(c, q.x, q.y - s, q.x, q.y + s, CROSS);
+    rawLine(c, q.x - s, q.y - s, q.x + s, q.y + s, CROSS);
+    rawLine(c, q.x - s, q.y + s, q.x + s, q.y - s, CROSS);
     const lab = p.metric.value.toFixed(1);
-    text(c, Math.round(Math.min(c.width - lab.length * 12 - 2, q.x + 8)), Math.round(Math.max(2, q.y - 22)), lab, CROSS, 3);
+    text(c, Math.round(Math.max(2, Math.min(c.width - lab.length * 12 - 2, q.x - (lab.length * 12 - 3) / 2))), Math.round(Math.min(c.height - 18, q.y + 24)), lab, CROSS, 3);
   }
   return c;
 }
