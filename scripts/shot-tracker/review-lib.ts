@@ -5,7 +5,7 @@
  * light wood and the dark pit.
  */
 import { execFileSync } from "node:child_process";
-import { rmSync, writeFileSync } from "node:fs";
+import { rmSync, statSync, writeFileSync } from "node:fs";
 import { apply } from "../../src/lib/shotTrack/homography";
 import type { Mat3 } from "../../src/lib/shotTrack/types";
 import { canvas, circle, line, toPng, type Canvas, type Color } from "./draw";
@@ -48,11 +48,17 @@ export function boxOf(H: Mat3, pts: [number, number][], W: number, Hh: number, m
   return { x: x0, y: y0, w: Math.max(8, x1 - x0), h: Math.max(8, y1 - y0) };
 }
 
-/** A canvas as a JPEG (yuvj444p, q 3), through a temporary PNG. */
-export const jpg = (c: Canvas, file: string): void => {
+/**
+ * A canvas as a JPEG (yuvj444p, q 3), through a temporary PNG. With `maxBytes`
+ * the quality steps down until the file fits.
+ */
+export const jpg = (c: Canvas, file: string, maxBytes?: number): void => {
   const tmp = file + ".png";
   writeFileSync(tmp, toPng(c));
-  execFileSync("ffmpeg", ["-y", "-v", "error", "-i", tmp, "-q:v", "3", "-pix_fmt", "yuvj444p", file]);
+  for (const q of maxBytes ? [3, 5, 8, 12, 18] : [3]) {
+    execFileSync("ffmpeg", ["-y", "-v", "error", "-i", tmp, "-q:v", String(q), "-pix_fmt", "yuvj444p", file]);
+    if (!maxBytes || statSync(file).size <= maxBytes) break;
+  }
   rmSync(tmp);
 };
 
