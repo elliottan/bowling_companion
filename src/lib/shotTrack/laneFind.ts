@@ -812,17 +812,36 @@ export function findFoulLines(f: GrayFrame, left: Line3, right: Line3, near: num
     }
   }
   const out: FoulLine[] = [];
+  // The gutters begin at the foul line: where each channel's lengthwise
+  // structure stops and the flat approach starts is the strongest cue there
+  // is (2026-11-15: the brightness rows alone took the edge of a lighter band
+  // of boards 1 to 1.7 ft up the lane on four of the six sample clips, and the
+  // camera's distance agreed with it on every frame, so the mode could not
+  // catch it). Both gutter ends at the slope across the lane come first.
+  const ends = gutterEnds(f, left, right, near, span, slope);
+  const [gl, gr] = ends;
+  const lineOf = (a: Point, b: Point): Line3 => [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y];
+  const gutterLine: FoulLine | null = gl && gr && Math.abs((gr.y - gl.y) / (gr.x - gl.x) - slope) <= 0.03 ? { line: lineOf(gl, gr), points: [gl, gr], strength: Math.min(gl.drop, gr.drop) } : null;
+  if (gutterLine) out.push(gutterLine);
   if (pairs.length) {
-    // The foul line is where the lane starts: everything nearer the camera is
-    // approach, whose joins, dots and a change of finish a foot or two back
-    // can be sharper than the foul line itself (shot-01 shows one 1.75 ft
-    // back). So of the pairs nearly as strong as the strongest, the one
-    // furthest up the lane comes first.
     pairs.sort((a, b) => b.strength - a.strength);
     const strongest = pairs[0].strength;
     const yOf = (p: FoulLine) => (p.points[0].y + p.points[1].y) / 2;
-    const first = pairs.filter((p) => p.strength >= 0.6 * strongest).reduce((a, b) => (yOf(b) < yOf(a) ? b : a));
+    // With one gutter end seen (the other hidden, or the two disagreeing), the
+    // pair that passes nearest it, if one passes within a few rows.
+    const one = gutterLine ? null : (gl ?? gr);
+    const rowOn = (l: Line3, x: number) => -(l[0] * x + l[2]) / l[1];
+    const nearOne = one ? pairs.filter((p) => Math.abs(rowOn(p.line, one.x) - one.y) <= 0.02 * span).sort((a, b) => Math.abs(rowOn(a.line, one.x) - one.y) - Math.abs(rowOn(b.line, one.x) - one.y))[0] : undefined;
+    // Otherwise, of the pairs nearly as strong as the strongest, the one
+    // furthest up the lane: nearer the camera is approach, whose joins can be
+    // sharper than the foul line.
+    const first = nearOne ?? pairs.filter((p) => p.strength >= 0.6 * strongest).reduce((a, b) => (yOf(b) < yOf(a) ? b : a));
     out.push(first, ...pairs.filter((p) => p !== first));
+  }
+  // A gutter end alone, on the slope across the lane, after the pairs.
+  for (const g of ends) {
+    if (!g || gutterLine) continue;
+    out.push({ line: lineOf(g, { x: g.x + 100, y: g.y + 100 * slope }), points: [g], strength: g.drop / 2 });
   }
   // One side only: its rows, strongest first, on the pin row's slope.
   const ones = [...L.peaks.map((p) => ({ ...p, x: L.x(p.y) })), ...R.peaks.map((p) => ({ ...p, x: R.x(p.y) }))].sort((p, q) => q.g - p.g);
@@ -832,6 +851,83 @@ export function findFoulLines(f: GrayFrame, left: Line3, right: Line3, near: num
     out.push({ line: [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y], points: [a], strength: one.g / 2 });
   }
   return out;
+}
+
+/** Where one gutter's channel ends at the approach: a picture point in the middle of the gutter, and how much lengthwise structure stops there. */
+export interface GutterEnd {
+  x: number;
+  y: number;
+  /** The gutter's structure above the end, mean grey levels per pixel across the gutter. */
+  drop: number;
+}
+
+/**
+ * The near end of each gutter: down a strip in the middle of the channel
+ * (from 0.03 to 0.19 lane widths outside each edge; a gutter is 0.22 wide),
+ * the mean gradient across the strip is high over the channel (its walls,
+ * groove and lip all run along the lane) and falls to nearly nothing on the
+ * flat approach. The end is the row where it falls below half the gutter's
+ * level and stays there, to a fraction of a row; rows `near` - 0.2 `span` to
+ * `near` + 0.08 `span`, sampled along `slope`. Null for a side whose channel
+ * does not show such a fall (hidden, or out of the picture).
+ */
+export function gutterEnds(f: GrayFrame, left: Line3, right: Line3, near: number, span: number, slope: number): [GutterEnd | null, GutterEnd | null] {
+  const X = (l: Line3, y: number) => -(l[1] * y + l[2]) / l[0];
+  const yA = Math.max(1, Math.round(near - 0.2 * span));
+  const yB = Math.min(f.height - 2, Math.round(near + 0.08 * span));
+  const k = Math.max(3, Math.round(0.012 * span));
+  const side = (outside: (y: number) => [number, number]): GutterEnd | null => {
+    if (yB - yA < 4 * k) return null;
+    const E: number[] = [];
+    for (let y = yA; y <= yB; y++) {
+      const [x0, x1] = outside(y);
+      const xm = (x0 + x1) / 2;
+      let s = 0;
+      let n = 0;
+      for (let x = Math.ceil(x0); x <= x1; x++) {
+        const yy = y + slope * (x - xm);
+        const g = Math.abs(sample(f, x + 1, yy) - sample(f, x - 1, yy));
+        if (Number.isFinite(g)) {
+          s += g;
+          n++;
+        }
+      }
+      E.push(n >= 4 && n >= 0.6 * (x1 - x0) ? s / n : NaN);
+    }
+    const mean = (a: number, b: number) => {
+      let s = 0;
+      for (let j = a; j <= b; j++) s += E[j];
+      return s / (b - a + 1);
+    };
+    // The sharpest fall going down: k rows of channel above, k rows of approach below.
+    let best = -1;
+    let bestRatio = 3;
+    for (let j = k; j < E.length - k; j++) {
+      const above = mean(j - k, j - 1);
+      const below = mean(j + 1, j + k);
+      if (!Number.isFinite(above) || !Number.isFinite(below) || above < 4) continue;
+      const r = above / (below + 0.5);
+      if (r > bestRatio) {
+        bestRatio = r;
+        best = j;
+      }
+    }
+    if (best < 0) return null;
+    const level = mean(best - k, best - 1);
+    // The first row from the channel side under half its level, interpolated.
+    let j = best - k;
+    while (j < best + k && !(E[j + 1] < level / 2)) j++;
+    const o = E[j] > E[j + 1] ? Math.max(0, Math.min(1, (E[j] - level / 2) / (E[j] - E[j + 1]))) : 0.5;
+    const y = yA + j + o;
+    const [x0, x1] = outside(y);
+    const xm = (x0 + x1) / 2;
+    return { x: xm, y, drop: level };
+  };
+  const width = (y: number) => X(right, y) - X(left, y);
+  return [
+    side((y) => [X(left, y) - 0.19 * width(y), X(left, y) - 0.03 * width(y)]),
+    side((y) => [X(right, y) + 0.03 * width(y), X(right, y) + 0.19 * width(y)])
+  ];
 }
 
 export interface LaneFound {
