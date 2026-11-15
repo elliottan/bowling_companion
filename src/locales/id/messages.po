@@ -4980,6 +4980,10 @@ msgstr "Lintasan tidak ditemukan secara otomatis. Seret garis-garis ke atasnya."
 msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."
 msgstr "Lintasan tidak bisa dihitung dari garis-garisnya. Pastikan tiap garis berada di tempatnya, lalu lacak lagi."
 
+#: src/views/ShotTracerView.tsx
+msgid "The lane may be off. Check its lines on the picture, and move them if they miss it."
+msgstr "Lintasan mungkin meleset. Periksa garis-garisnya di gambar, dan geser jika tidak pas."
+
 #. A leave is the set of pins left standing after the first ball (bowling term)
 #: src/views/OpenFramesView.tsx
 msgid "The leaves you keep missing rank here, most often first. Finish a game to start the count."

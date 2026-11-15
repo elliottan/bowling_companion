@@ -125,10 +125,15 @@ export function scaledSize(width: number, height: number, maxPixels: number): { 
 
 /**
  * RGBA pixels to grey, one byte a pixel, as the video itself stores it: Rec.
- * 601 luma in video range, 16 for black to 235 for white. The tracer's
- * thresholds were set on clips read that way (ffmpeg's grey); a browser's
- * canvas stretches the video to 0 to 255, and with that stretch the ball was
- * lost at 47 ft on shot-01 where the video's own grey follows it to 58.
+ * 601 luma in video range, 16 for black to 235 for white, as a frame's own
+ * luma plane is. The harness does not read that: ffmpeg's `-pix_fmt gray`
+ * stretches the clips to 0 to 255 (measured on shot-01 and shot-06: grey =
+ * 1.164 Y - 18.6), and the tracer's thresholds were set there. Kept in video
+ * range all the same: on the six clips scaled as the app reads them, video
+ * range read shot-03 and shot-05 right where the stretch did not, while at
+ * full size the stretch did better on shot-03 to 05 (2026-11-14). Neither
+ * wins outright. In a canvas, with the stretch, the ball was lost at 47 ft on
+ * shot-01 where video range followed it to 58.
  */
 export function toGray(rgba: Uint8ClampedArray | Uint8Array, width: number, height: number): Uint8ClampedArray {
   return lumaOf(rgba, width, height, 4 * width, 0, false);

@@ -7,6 +7,9 @@ import { Spinner } from "../components/ui/Spinner";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { formatNumber } from "../lib/format";
 import { apply } from "../lib/shotTrack/homography";
+import { BACK_ROW_FT, LEFT_U, RIGHT_U } from "../lib/shotTrack/laneModel";
+import type { FrameLane } from "../lib/shotTrack/laneTrack";
+import { laneVerdict, type LaneEvidence, type LaneVerdict } from "../lib/shotTrack/laneVerdict";
 import {
   defaultMarkLines,
   latestStart,
@@ -37,9 +40,21 @@ type Step =
   | { kind: "finding" }
   | { kind: "mark"; notFound?: boolean }
   | { kind: "tracing"; fraction: number }
-  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null };
+  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null };
 
-/** How many frames the lane search looks at, spread over the clip. */
+/** The lane as the finder found it: on every frame it could, and what it knows about how sure it is. */
+interface Found {
+  lanes: FrameLane[];
+  evidence: LaneEvidence;
+}
+
+/**
+ * How many frames the lane search looks at, spread over the clip. A full read
+ * (240 frames) is then every 10th frame, as the harness measured the
+ * per-frame lanes on (scripts/shot-tracker/README.md, "The lane on every
+ * frame"): the tracer blends found lanes over about 15 frames, so that is the
+ * two nearest each side, and a frame costs the finder a third of a second.
+ */
 const FIND_FRAMES = 24;
 
 /** Each line's colour on the picture and in its key. */
@@ -124,14 +139,14 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     };
     worker.onmessage = (e: MessageEvent<FindMessage>) => {
       finish();
-      const { frame: found, lines: foundLines } = e.data;
-      if (found === null || !foundLines) {
+      const m = e.data;
+      if (m.frame === null) {
         markByHand();
         return;
       }
-      setFrame(found);
-      setLines(foundLines);
-      traceShot(v, foundLines, found);
+      setFrame(m.frame);
+      setLines(m.lines);
+      traceShot(v, m.lines, m.frame, { lanes: m.lanes, evidence: m.evidence });
     };
     worker.onerror = () => {
       finish();
@@ -157,7 +172,11 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     else void read(f, false, 0);
   }
 
-  function traceShot(video: VideoFrames, lines: MarkLines, frame: number) {
+  /**
+   * Traces with the found lanes, each frame on its own, when the lane was
+   * found; with the lines on `frame` as marks when the bowler placed them.
+   */
+  function traceShot(video: VideoFrames, lines: MarkLines, frame: number, found?: Found) {
     const calib = video.gray[frame];
     setShown({ gray: calib.slice(), width: video.width, height: video.height });
     const request: TraceRequest = {
@@ -165,7 +184,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       height: video.height,
       frames: video.gray.map((g, i) => ({ data: g.buffer as ArrayBuffer, t: video.times[i] })),
       calibFrame: frame,
-      marks: toCalMarks(lines),
+      ...(found ? { lanes: found.lanes } : { marks: toCalMarks(lines) }),
       hand: handedness
     };
     // The frames move to the worker; tracing again reads the video again.
@@ -178,13 +197,15 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       const m = e.data;
       if (m.kind === "progress") setStep({ kind: "tracing", fraction: m.fraction });
       else {
-        setStep({ kind: "done", result: m.result, H: m.H });
+        // How sure the found lane is; the bowler's own lines need no verdict.
+        const verdict = found ? laneVerdict({ ...found.evidence, ...m.evidence }) : null;
+        setStep({ kind: "done", result: m.result, H: m.H, verdict });
         worker.terminate();
         workerRef.current = null;
       }
     };
     worker.onerror = () => {
-      setStep({ kind: "done", result: { ok: false, failure: "unsupported-video", detail: "worker failed" }, H: null });
+      setStep({ kind: "done", result: { ok: false, failure: "unsupported-video", detail: "worker failed" }, H: null, verdict: null });
       worker.terminate();
       workerRef.current = null;
     };
@@ -227,6 +248,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
           <Result
             result={step.result}
             H={step.H}
+            verdict={step.verdict}
             picture={shown}
             onRetrace={file ? () => void read(file, true, start) : undefined}
             onAnother={() => setStep({ kind: "pick" })}
@@ -630,12 +652,14 @@ function failureText(f: TrackFailure): string {
 function Result({
   result,
   H,
+  verdict,
   picture,
   onRetrace,
   onAnother
 }: {
   result: TrackResult | TrackError;
   H: Mat3 | null;
+  verdict: LaneVerdict | null;
   picture: { gray: Uint8ClampedArray; width: number; height: number } | null;
   onRetrace?: () => void;
   onAnother: () => void;
@@ -667,6 +691,7 @@ function Result({
     <div className="space-y-5">
       {picture && (
         <FramePicture gray={picture.gray} width={picture.width} height={picture.height} crop={H ? laneCrop(H, picture.width, picture.height) : undefined}>
+          {H && <LaneLines H={H} width={picture.width} />}
           {dots.map((p, i) => (
             <circle key={i} cx={p.x} cy={p.y} r={Math.max(1.5, picture.width / 400)} className="fill-accent" />
           ))}
@@ -681,6 +706,11 @@ function Result({
           )}
         </FramePicture>
       )}
+      {verdict?.level === "check" && (
+        <p className="text-subhead text-ink-secondary">
+          {t`The lane may be off. Check its lines on the picture, and move them if they miss it.`}
+        </p>
+      )}
       <dl className="overflow-hidden rounded-[26px] bg-surface">
         <Reading label={t`Laydown`} metric={m.laydown} />
         <Reading label={t({ message: "Arrows", comment: "A bowling term: the aiming arrows 15 feet down the lane; here the board the ball crosses there" })} metric={m.arrows} />
@@ -694,6 +724,28 @@ function Result({
       </dl>
       {actions}
     </div>
+  );
+}
+
+/**
+ * The lane the tracer used, drawn quietly under the path: both edges, the
+ * foul line and the back pin row, in the colours the bowler drags them in. A
+ * wrong lane shows at a glance.
+ */
+function LaneLines({ H, width }: { H: Mat3; width: number }) {
+  const ends: Record<MarkLine, [Point, Point]> = {
+    left: [{ x: LEFT_U, y: 0 }, { x: LEFT_U, y: BACK_ROW_FT }],
+    right: [{ x: RIGHT_U, y: 0 }, { x: RIGHT_U, y: BACK_ROW_FT }],
+    foul: [{ x: LEFT_U, y: 0 }, { x: RIGHT_U, y: 0 }],
+    pinrow: [{ x: LEFT_U, y: BACK_ROW_FT }, { x: RIGHT_U, y: BACK_ROW_FT }]
+  };
+  return (
+    <g data-testid="lane-lines" strokeOpacity={0.55} strokeWidth={Math.max(1, width / 700)} strokeLinecap="round">
+      {MARK_LINES.map((k) => {
+        const [a, b] = ends[k].map((p) => apply(H, p));
+        return <line key={k} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className={LINE_TONE[k].stroke} />;
+      })}
+    </g>
   );
 }
 

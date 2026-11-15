@@ -4980,6 +4980,10 @@ msgstr "The lane couldn't be found on its own. Drag the lines onto it."
 msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."
 msgstr "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."
 
+#: src/views/ShotTracerView.tsx
+msgid "The lane may be off. Check its lines on the picture, and move them if they miss it."
+msgstr "The lane may be off. Check its lines on the picture, and move them if they miss it."
+
 #. A leave is the set of pins left standing after the first ball (bowling term)
 #: src/views/OpenFramesView.tsx
 msgid "The leaves you keep missing rank here, most often first. Finish a game to start the count."

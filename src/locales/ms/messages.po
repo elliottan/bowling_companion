@@ -4980,6 +4980,10 @@ msgstr "Lorong tidak dapat ditemui secara automatik. Seret garisan ke atasnya."
 msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."
 msgstr "Lorong tidak dapat dikira daripada garisan. Pastikan setiap garisan berada di tempatnya, kemudian jejak semula."
 
+#: src/views/ShotTracerView.tsx
+msgid "The lane may be off. Check its lines on the picture, and move them if they miss it."
+msgstr "Lorong mungkin tersasar. Semak garisannya pada gambar, dan alihkan jika tidak kena."
+
 #. A leave is the set of pins left standing after the first ball (bowling term)
 #: src/views/OpenFramesView.tsx
 msgid "The leaves you keep missing rank here, most often first. Finish a game to start the count."

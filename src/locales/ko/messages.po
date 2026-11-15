@@ -4980,6 +4980,10 @@ msgstr "레인을 자동으로 찾지 못했습니다. 선을 레인 위로 끌�
 msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."
 msgstr "선으로 레인을 계산하지 못했습니다. 각 선이 제자리에 있는지 확인한 뒤 다시 추적하세요."
 
+#: src/views/ShotTracerView.tsx
+msgid "The lane may be off. Check its lines on the picture, and move them if they miss it."
+msgstr "레인이 어긋났을 수 있습니다. 사진 위의 선을 확인하고, 맞지 않으면 옮기세요."
+
 #. A leave is the set of pins left standing after the first ball (bowling term)
 #: src/views/OpenFramesView.tsx
 msgid "The leaves you keep missing rank here, most often first. Finish a game to start the count."

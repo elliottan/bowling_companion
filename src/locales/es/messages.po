@@ -4980,6 +4980,10 @@ msgstr "No se pudo encontrar la pista por sí sola. Arrastra las líneas sobre e
 msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."
 msgstr "No se pudo calcular la pista a partir de las líneas. Comprueba que cada una esté sobre su línea y vuelve a trazar."
 
+#: src/views/ShotTracerView.tsx
+msgid "The lane may be off. Check its lines on the picture, and move them if they miss it."
+msgstr "Puede que la pista no esté bien. Revisa sus líneas en la imagen y muévelas si no coinciden con ella."
+
 #. A leave is the set of pins left standing after the first ball (bowling term)
 #: src/views/OpenFramesView.tsx
 msgid "The leaves you keep missing rank here, most often first. Finish a game to start the count."

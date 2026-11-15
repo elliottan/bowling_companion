@@ -4980,6 +4980,10 @@ msgstr "無法自動找到球道。請把這些線拖到球道上。"
 msgid "The lane couldn't be worked out from the lines. Check that each sits on its line, then trace again."
 msgstr "無法從這些線算出球道。請確認每條線都在正確位置，再追蹤一次。"
 
+#: src/views/ShotTracerView.tsx
+msgid "The lane may be off. Check its lines on the picture, and move them if they miss it."
+msgstr "球道可能有偏差。請檢查畫面上的線條，沒對準就移動它們。"
+
 #. A leave is the set of pins left standing after the first ball (bowling term)
 #: src/views/OpenFramesView.tsx
 msgid "The leaves you keep missing rank here, most often first. Finish a game to start the count."
