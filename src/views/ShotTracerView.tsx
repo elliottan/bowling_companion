@@ -7,7 +7,7 @@ import { Spinner } from "../components/ui/Spinner";
 import { GROUP_HEADING } from "../components/ui/typography";
 import { formatNumber } from "../lib/format";
 import { apply } from "../lib/shotTrack/homography";
-import { BACK_ROW_FT, LEFT_U, RIGHT_U } from "../lib/shotTrack/laneModel";
+import { BACK_ROW_FT, laneU, LEFT_U, RIGHT_U } from "../lib/shotTrack/laneModel";
 import type { FrameLane } from "../lib/shotTrack/laneTrack";
 import { laneVerdict, type LaneEvidence, type LaneVerdict } from "../lib/shotTrack/laneVerdict";
 import {
@@ -686,18 +686,32 @@ function Result({
   }
   const m = result.metrics;
   const path = H ? pathInPicture(H, result.path, result.from, result.to) : [];
+  // The laydown on the foul line, where the drawn path starts: the ball is
+  // first seen on the lane a foot or two past it.
+  const laydownAt = H && m.laydown.value !== null ? apply(H, { x: laneU(m.laydown.value, result.hand), y: 0 }) : null;
   const dots = H ? result.sightings.filter((s) => !s.airborne).map((s) => apply(H, { x: s.u, y: s.v })) : [];
   return (
     <div className="space-y-5">
       {picture && (
         <FramePicture gray={picture.gray} width={picture.width} height={picture.height} crop={H ? laneCrop(H, picture.width, picture.height) : undefined}>
           {H && <LaneLines H={H} width={picture.width} />}
+          {laydownAt && (
+            // The laydown: the board over the foul line, where the path starts.
+            <circle
+              cx={laydownAt.x}
+              cy={laydownAt.y}
+              r={Math.max(4, picture.width / 160)}
+              fill="none"
+              strokeWidth={Math.max(1.5, picture.width / 450)}
+              className="stroke-danger-600"
+            />
+          )}
           {dots.map((p, i) => (
             <circle key={i} cx={p.x} cy={p.y} r={Math.max(1.5, picture.width / 400)} className="fill-accent" />
           ))}
           {path.length > 1 && (
             <polyline
-              points={path.map((p) => `${p.x},${p.y}`).join(" ")}
+              points={(laydownAt ? [laydownAt, ...path] : path).map((p) => `${p.x},${p.y}`).join(" ")}
               fill="none"
               strokeWidth={Math.max(1.5, picture.width / 450)}
               strokeLinejoin="round"
@@ -713,6 +727,11 @@ function Result({
       )}
       <dl className="overflow-hidden rounded-[26px] bg-surface">
         <Reading label={t`Laydown`} metric={m.laydown} />
+        <Reading
+          label={t({ message: "Touchdown", comment: "Bowling: where the ball first touches the lane after it leaves the hand, as a board and a distance past the foul line" })}
+          metric={m.touchdown}
+          feet={m.touchdownFeet}
+        />
         <Reading label={t({ message: "Arrows", comment: "A bowling term: the aiming arrows 15 feet down the lane; here the board the ball crosses there" })} metric={m.arrows} />
         <Reading
           label={t({ message: "Breakpoint", comment: "Bowling term: the point where the ball turns from skid to hook" })}

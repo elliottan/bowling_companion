@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.111.0: The shot tracer shows the touchdown beside the laydown (2026-11-15)
+
+- In Settings, Labs: the shot tracer's result now lists the touchdown, the
+  board and distance where the ball first touches the lane, under the laydown,
+  which is the board the ball crosses the foul line on. On the picture a ring
+  on the foul line marks the laydown and the path is drawn from it.
+
 ## 0.110.0: The shot tracer reads faster and follows the lane frame by frame (2026-11-15)
 
 - In Settings, Labs (hidden behind seven taps on the version line): the shot

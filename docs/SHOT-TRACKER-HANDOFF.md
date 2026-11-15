@@ -8,7 +8,7 @@ development aid, not the product. Read this, then
 then `docs/SHOT-TRACKER-PLAN.md` sections 6 and 7 for the geometry. `CLAUDE.md`
 holds the house rules; the ones that bite here are at the end.
 
-## Where it stands (0.110.0, 2026-11-15)
+## Where it stands (0.111.0, 2026-11-15)
 
 - **The lane is found on many frames, and each frame uses its own.**
   `findLanes` (`laneFind.ts`) calibrates every frame it is given; `laneTrack.ts`
@@ -25,6 +25,12 @@ holds the house rules; the ones that bite here are at the end.
   the lane it used, and says "The lane may be off" when `laneVerdict.ts`
   doubts it. "Move the lines and trace again" is the way to correct it; lines
   dragged by hand are traced as marks, as before.
+- **Laydown and touchdown are two readings** (the owner, more than once): the
+  laydown is the board the ball crosses the foul line on (0 ft), in the hand
+  or in the air; the touchdown is where it first touches the lane. The result
+  screen shows both, with a ring on the foul line at the laydown. Any picture
+  or page of a trace must show the laydown at the foul line, not at the first
+  sighting.
 - **A hidden foul line is guessed** (`guessFoul`) from the camera distance
   other frames of the clip measured, or a typical 22 ft, and marked as a
   guess (`LaneFound.guess`). No sample clip needs it on its best frame.

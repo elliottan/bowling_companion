@@ -239,11 +239,16 @@ describe("ShotTracerView", () => {
     trace()!.reply(done({ kept: 3, dropped: 1, pinCheck: 0.2 }));
     expect(await screen.findByText("Board 23.8")).toBeTruthy();
     expect(screen.getByText("Board 7.7 at 43 ft")).toBeTruthy();
+    // The touchdown beside the laydown: where the ball first touches the lane.
+    expect(screen.getByText("Touchdown")).toBeTruthy();
+    expect(screen.getByText("Board 23 at 2 ft")).toBeTruthy();
     expect(screen.getByText("15.3 mph")).toBeTruthy();
     // Both edges, the foul line and the pin row, under the path.
     const lane = screen.getByTestId("lane-lines");
     expect(lane.querySelectorAll("line")).toHaveLength(4);
-    expect(lane.nextElementSibling?.tagName).toBe("polyline");
+    // Then the ring on the foul line that marks the laydown, and the path from it.
+    expect(lane.nextElementSibling?.tagName).toBe("circle");
+    expect(lane.parentElement?.querySelector("polyline")).toBeTruthy();
     expect(screen.queryByText(/The lane may be off/)).toBeNull();
   });
 

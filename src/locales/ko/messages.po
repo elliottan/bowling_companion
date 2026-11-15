@@ -5127,6 +5127,11 @@ msgstr "최상위 결과"
 msgid "Top-down"
 msgstr "위에서 보기"
 
+#. Bowling: where the ball first touches the lane after it leaves the hand, as a board and a distance past the foul line
+#: src/views/ShotTracerView.tsx
+msgid "Touchdown"
+msgstr "착지 지점"
+
 #: src/views/ShotTracerView.tsx
 msgid "Trace from here"
 msgstr "여기서부터 추적"
