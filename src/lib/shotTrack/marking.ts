@@ -1,49 +1,18 @@
 import { apply } from "./homography";
-import { namedLine, type CalMark } from "./calibrate";
 import { pathU } from "./pathFit";
 import type { Mat3, PathModel, Point } from "./types";
 
 /**
  * What the app's shot tracer screen needs around the tracer (Settings, Labs):
- * the four lines a bowler drags onto one frame, turned into calibration marks,
- * the frames to read from a video, and the fitted path drawn back onto the
- * picture. Pure, so the screen holds no geometry of its own.
+ * the frames to read from a video, the band of a portrait picture to keep,
+ * and the lane and the fitted path drawn back onto the picture. Pure, so the
+ * screen holds no geometry of its own.
  */
 
-/** The lines the bowler places, each by its two ends, in the frame's pixels. */
+/** The lane's four lines (its edges, the foul line, the back pin row), each by its two ends, in a frame's pixels. */
 export type MarkLine = "left" | "right" | "foul" | "pinrow";
 export type MarkLines = Record<MarkLine, [Point, Point]>;
 export const MARK_LINES: MarkLine[] = ["left", "right", "foul", "pinrow"];
-
-/**
- * A first guess for a lane filmed from behind the bowler: the foul line low in
- * the picture, the back pin row a third of the way down, the edges joining
- * them. The bowler drags each end onto the lane.
- */
-export function defaultMarkLines(width: number, height: number): MarkLines {
-  const foulY = 0.82 * height;
-  const pinY = 0.38 * height;
-  // The ends start apart, so each can be picked up on its own: the edges stop
-  // short of the pins, and the pin row runs wide (it is straight across the
-  // whole house, so its ends can sit on any lane).
-  return {
-    left: [{ x: 0.44 * width, y: pinY + 0.1 * height }, { x: 0.28 * width, y: foulY - 0.04 * height }],
-    right: [{ x: 0.56 * width, y: pinY + 0.1 * height }, { x: 0.72 * width, y: foulY - 0.04 * height }],
-    foul: [{ x: 0.32 * width, y: foulY }, { x: 0.68 * width, y: foulY }],
-    pinrow: [{ x: 0.36 * width, y: pinY }, { x: 0.64 * width, y: pinY }]
-  };
-}
-
-/**
- * The lines as the tracer's calibration marks: each end is a point known to
- * lie on that lane line (an edge, the foul line, the back pin row).
- */
-export function toCalMarks(lines: MarkLines): CalMark[] {
-  return MARK_LINES.map((label) => {
-    const lane = namedLine(label)!;
-    return { kind: "line", label, axis: lane.axis, value: lane.value, at: lines[label].map((p) => ({ ...p })) };
-  });
-}
 
 /**
  * How a video is read: the rate frames are looked for at, and the most frames
@@ -55,20 +24,8 @@ export const READ_MAX_FRAMES = 240;
 /** The longest stretch of a video read, seconds: the most frames at 30 a second. */
 export const READ_SECONDS = READ_MAX_FRAMES / 30;
 
-/**
- * A video longer than this, seconds, is first shown to the bowler to choose
- * where the shot starts. Shorter ones are read from the start. It is the
- * stretch a 60 fps clip fills (four seconds) and one more: past that, a clip
- * read from its start can end before the pins fall, and the bowler cannot tell.
- */
-export const TRIM_ABOVE = 5;
-
 /** The least a read is left to cover, seconds: from a release to the pins is about three. */
 export const READ_AT_LEAST = 3;
-
-export function needsTrim(duration: number): boolean {
-  return Number.isFinite(duration) && duration > TRIM_ABOVE;
-}
 
 /**
  * The stretch of a video of `duration` seconds to read from `start`: at most
@@ -115,6 +72,37 @@ export function readProgress(frames: number, at: number, from: number, to: numbe
  */
 export function isNewFrame(lastKept: number | undefined, at: number): boolean {
   return lastKept === undefined || at - lastKept > 0.75 / READ_FPS;
+}
+
+/**
+ * The rows of a picture `height` pixels tall that a band (fractions of the
+ * height, `laneBand`) keeps, whole and even pixels; all of them for no band.
+ */
+export function bandRows(height: number, band: { top: number; bottom: number } | null): { y: number; h: number } {
+  if (!band || !(band.bottom > band.top)) return { y: 0, h: height };
+  const y = Math.max(0, Math.min(height - 2, 2 * Math.floor((band.top * height) / 2)));
+  const end = Math.min(height, 2 * Math.ceil((band.bottom * height) / 2));
+  return { y, h: Math.max(2, end - y) };
+}
+
+/**
+ * A band of the shown picture's rows (fractions of its height) as a rectangle
+ * of a video frame's plane, `planeW` by `planeH` as stored, which is shown
+ * turned `turn` degrees clockwise: the shown rows are the plane's rows, its
+ * rows from the bottom, or its columns from the left (a quarter turn, as a
+ * phone's portrait video is stored) or from the right.
+ */
+export function planeCrop(
+  band: { top: number; bottom: number },
+  planeW: number,
+  planeH: number,
+  turn: number
+): { x: number; y: number; w: number; h: number } {
+  const t = ((turn % 360) + 360) % 360;
+  const across = t % 180 === 0 ? planeH : planeW;
+  const rows = bandRows(across, band);
+  const from = t === 0 || t === 90 ? rows.y : across - rows.y - rows.h;
+  return t % 180 === 0 ? { x: 0, y: from, w: planeW, h: rows.h } : { x: from, y: 0, w: rows.h, h: planeH };
 }
 
 /** A picture's size scaled down to at most `maxPixels` pixels, whole pixels, never enlarged. */

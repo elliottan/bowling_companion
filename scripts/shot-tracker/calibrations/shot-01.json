@@ -9,8 +9,8 @@
   "lines": [
     ["left", [[468.8, 455.0], [455.2, 475.0], [441.6, 495.0], [427.8, 515.0], [421.1, 525.0], [372.8, 595.0], [366.0, 605.0], [359.2, 615.0]]],
     ["right", [[581.2, 504.0], [585.3, 536.0], [588.7, 560.0], [591.0, 576.0], [593.1, 592.0], [595.3, 608.0], [596.6, 616.0]]],
-    ["foul", [[411.1, 621.0], [570.1, 624.0]]],
+    ["foul", [[330.0, 643.5], [440.0, 644.5], [520.0, 645.8], [630.0, 646.0]]],
     ["pinrow", [[618.8, 411.0], [675.9, 411.0]]]
   ],
-  "notes": "Left edge re-marked on 2026-11-14 on the owner's ruling: the lane's edge is the thin dark line (the finder's first rising edge stepped to the line), not the lane side of the faint grey strip inside it where the earlier marks sat (about 5 pixels in at row 470). Measured as the dark line's middle row by row on frame 150 where it shows, rows 455 to 525 and 595 to 615; the bowler's leg hides it between."
+  "notes": "Left edge re-marked on 2026-11-14 on the owner's ruling: the lane's edge is the thin dark line (the finder's first rising edge stepped to the line), not the lane side of the faint grey strip inside it where the earlier marks sat (about 5 pixels in at row 470). Measured as the dark line's middle row by row on frame 150 where it shows, rows 455 to 525 and 595 to 615; the bowler's leg hides it between. Foul line re-marked on 2026-11-15: the gutters begin at the foul line, and both gutters' near ends (where the channel gives way to the flat approach) lie on rows 643.5 (left) and 646 (right) of frame 150, with a faint step in the lane's brightness between them on the same line. The old marks (rows 621 to 624) were on the top edge of a darker band of boards, about 1.7 ft up the lane, where the finder had also settled."
 }

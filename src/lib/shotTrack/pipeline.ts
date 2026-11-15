@@ -12,6 +12,7 @@ import { BALL_DIAMETER_IN, CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoin
 import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, withoutIslands, type MotionPoint } from "./pathFit";
 import { laneTrack, type FrameLane, type LaneTrack, type LaneTrackOptions } from "./laneTrack";
 import { followForward, overFoulLine, uAtColumn, type OverFoulLine, type ReleaseFrame } from "./release";
+import { followNear, nearSeeds } from "./nearFollow";
 import { alignTo, laneMarksOf, register, registerPlane, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, TrackError, TrackFailure, TrackResult } from "./types";
 
@@ -92,6 +93,10 @@ export interface TraceDebug {
   release?: OverFoulLine | null;
   /** The ball followed by its darkness from its last sighting to just before the rack moves. */
   toPins?: ReleaseFrame[];
+  /** The ball followed by its darkness over the near lane, when the empty lane did not show it (`followNear`). */
+  nearFollow?: Candidate[];
+  /** Seen over the near lane only (`NEAR_FROM_FT`, `NEAR_SPAN_FT`): the far readings are left missing. */
+  nearOnly?: boolean;
 }
 
 export interface TraceOutput {
@@ -103,6 +108,17 @@ const fail = (failure: TrackFailure, detail: string): TrackError => ({ ok: false
 
 /** Fewer sightings than this, or a visible stretch shorter than 10 ft, is too little to draw a line (plan 7.7). */
 export const MIN_SIGHTINGS = 8;
+/** A visible stretch this long, feet, is enough to read the whole lane by. */
+export const MIN_SPAN_FT = 10;
+/**
+ * Shorter than `MIN_SPAN_FT`, a stretch that starts within this many feet of
+ * the foul line and runs at least `NEAR_SPAN_FT` still gives the near
+ * readings (laydown, touchdown, the arrows as estimated); the far ones are
+ * left missing rather than the whole trace refused (shot-04: the bowler hides
+ * the ball from 12 ft on).
+ */
+export const NEAR_FROM_FT = 8;
+export const NEAR_SPAN_FT = 5;
 
 export function trace(input: TraceInput): TraceOutput {
   const { source, hand } = input;
@@ -255,7 +271,29 @@ export function trace(input: TraceInput): TraceOutput {
     const dt = Math.abs(o.t - c.t);
     return dt >= 0.04 && dt <= 0.15 && Math.abs(o.v - c.v) < 0.3 && Math.abs(o.u - c.u) < 0.5;
   }).length < 2);
-  const chosen = associate(moving);
+  let chosen = associate(moving);
+  // Seen over less than a lane's worth: the empty lane may hold a bowler who
+  // never left, with the ball rolling past them unseen. The ball is then
+  // followed by its darkness from where the detector saw it come down, and
+  // kept when that sees it further.
+  // (Over the main group: a stray pair far up the lane is not a stretch seen.)
+  const spanOf = (cs: Candidate[]) => {
+    const g = withoutIslands(cs);
+    return g.length ? Math.max(...g.map((c) => c.v)) - Math.min(...g.map((c) => c.v)) : 0;
+  };
+  if (spanOf(chosen) < MIN_SPAN_FT) {
+    const okFrame = (i: number) => (i >= first && i <= last && geometry[i - first]?.ok ? source.frame(i) : null);
+    const okH = (i: number) => (i >= first && i <= last && geometry[i - first]?.ok ? geometry[i - first].H : null);
+    let best: Candidate[] = [];
+    for (const seed of nearSeeds(cands).slice(0, 6)) {
+      const near = followNear(okFrame, okH, seed, last);
+      if (near.length >= MIN_SIGHTINGS && spanOf(near) > spanOf(best)) best = near;
+    }
+    if (spanOf(best) >= NEAR_SPAN_FT && spanOf(best) > spanOf(chosen)) {
+      chosen = best;
+      debug.nearFollow = best;
+    }
+  }
   debug.associated = chosen;
   if (chosen.length < MIN_SIGHTINGS) return { result: fail("ball-not-found", `${chosen.length} sightings`), debug };
 
@@ -361,9 +399,12 @@ export function trace(input: TraceInput): TraceOutput {
   const seen = withoutIslands(sightings.filter((s) => !s.airborne));
   const svOf = new Map(sightings.map((s, k) => [s.frame, sv[k]]));
   const vs = seen.map((s) => s.v);
-  if (seen.length < MIN_SIGHTINGS || Math.max(...vs) - Math.min(...vs) < 10) {
-    return { result: fail("too-little-seen", `${seen.length} sightings over ${(Math.max(...vs) - Math.min(...vs)).toFixed(1)} ft`), debug };
+  const seenSpan = Math.max(...vs) - Math.min(...vs);
+  const nearOnly = seenSpan < MIN_SPAN_FT && Math.min(...vs) <= NEAR_FROM_FT && seenSpan >= NEAR_SPAN_FT;
+  if (seen.length < MIN_SIGHTINGS || (seenSpan < MIN_SPAN_FT && !nearOnly)) {
+    return { result: fail("too-little-seen", `${seen.length} sightings over ${seenSpan.toFixed(1)} ft`), debug };
   }
+  debug.nearOnly = nearOnly;
 
   // The laydown as the owner reads it: the ball right above the foul line in
   // the picture, followed back from its first sighting on the lane.
@@ -392,7 +433,9 @@ export function trace(input: TraceInput): TraceOutput {
   let pinFrame: number | null = null;
   let pinT: number | undefined;
   let anchoredSpeed: number | undefined;
-  if (contactV !== null) {
+  // Seen over the near lane only, the rack's movement cannot be tied to this
+  // ball: the speed stays the fitted slope, as estimated.
+  if (contactV !== null && !nearOnly) {
     const farT = seen.filter((s) => s.v > 50).map((s) => s.t);
     const found = findPinFrame(source, geometry, motion, fit.path, debug, farT.length ? Math.max(...farT) : -Infinity);
     if (found !== null) {
@@ -472,6 +515,9 @@ export function trace(input: TraceInput): TraceOutput {
     speedMeasured: distance !== "default" && anchoredSpeed !== undefined,
     anchoredSpeed
   });
+  // The arrows are 15 ft out: a near-only trace that stops short of them
+  // reads them off the line through what it saw, as estimated.
+  if (nearOnly && Math.max(...vs) < 15 && met.arrows.state === "measured") met.arrows = { ...met.arrows, state: "estimated" };
   const vAt = (t: number) => motion.v0 + motion.w * t + 0.5 * motion.d * t * t;
   debug.speeds = {
     anchored: anchoredSpeed !== undefined ? anchoredSpeed * FTS_TO_MPH : null,

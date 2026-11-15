@@ -130,7 +130,7 @@ for (const name of names) {
     const line = (r: typeof auto) => (r.ok ? (r as TrackResult).metrics : null);
     const a = line(auto);
     const cache = join(here, "out", name, "hand-trace.json");
-    const key = JSON.stringify(t.cal);
+    const key = JSON.stringify(t.cal) + "near-end-2026-11-15";
     const kept = existsSync(cache) ? (JSON.parse(readFileSync(cache, "utf8")) as { key: string; ok: boolean; failure?: string; metrics: TrackResult["metrics"] | null }) : null;
     let handOk: boolean;
     let handFailure: string | undefined;
@@ -142,6 +142,14 @@ for (const name of names) {
       handOk = hand.ok;
       handFailure = hand.ok ? undefined : hand.failure;
       h = line(hand);
+      // The near end from its own calibration, when the clip has one (shot-02,
+      // as `run.ts` reads it): the main one, on a far frame, is carried back
+      // over a hard pan to the release and puts the laydown boards out.
+      const near = t.cal.near;
+      if (near && h) {
+        const n = trace({ source: t.clip, calibFrame: near.frame, calMarks: toCalMarks({ ...t.cal, points: near.points, lines: near.lines }), hand: t.cal.hand, register: near.register }).result;
+        if (n.ok) h = { ...h, laydown: n.metrics.laydown, touchdown: n.metrics.touchdown, touchdownFeet: n.metrics.touchdownFeet, arrows: n.metrics.arrows, launchAngle: n.metrics.launchAngle };
+      }
       mkdirSync(join(here, "out", name), { recursive: true });
       writeFileSync(cache, JSON.stringify({ key, ok: handOk, failure: handFailure, metrics: h }));
     }

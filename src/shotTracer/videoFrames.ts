@@ -1,9 +1,12 @@
+import { COARSE_FPS, COARSE_WIDTH, type CoarseFrame } from "../lib/shotTrack/shotStart";
 import {
+  bandRows,
   frameTimes,
   droppedBetween,
   isNewFrame,
   lumaOf,
   median,
+  planeCrop,
   playbackRateFor,
   READ_FPS,
   READ_MAX_FRAMES,
@@ -18,9 +21,14 @@ import {
 
 /**
  * Frames read out of a video file in the browser, for the shot tracer
- * (Settings, Labs): a stretch of the file from a start time the bowler chose,
- * at most `MAX_PIXELS` a frame and kept in grey, up to `READ_MAX_FRAMES`
- * frames or `READ_SECONDS` (`lib/shotTrack/marking.ts`).
+ * (Settings, Labs): a stretch of the file from the start the first look found
+ * (`scanVideo`, `lib/shotTrack/shotStart.ts`), at most `MAX_PIXELS` a frame
+ * and kept in grey, up to `READ_MAX_FRAMES` frames or `READ_SECONDS`
+ * (`lib/shotTrack/marking.ts`). A portrait video is cropped to the band of
+ * its height the lane is in before it is scaled (`laneBand`), so the lane
+ * reaches the finder at close to the video's own scale: a 1080 by 1920
+ * original is read at 940 by 735 of its middle rather than 624 by 1109 of the
+ * whole, ceiling and approach floor included, on which the lane was not found.
  *
  * The stretch is read by playing it. Where the browser has
  * `requestVideoFrameCallback`, each frame it presents is kept as it comes, at
@@ -132,6 +140,8 @@ interface Reading {
   ctx: CanvasRenderingContext2D;
   width: number;
   height: number;
+  /** The rows of the shown picture kept, `videoHeight` pixels. */
+  rows: { y: number; h: number };
   /** Each frame kept, by its place; null where its copy failed. */
   gray: (Uint8ClampedArray | null)[];
   times: number[];
@@ -184,20 +194,22 @@ function planeGray(
   const quarter = f.turn % 180 !== 0;
   const outW = quarter ? r.height : r.width;
   const outH = quarter ? r.width : r.height;
+  // The band kept, in the plane's own (unturned) pixels.
+  const c = planeCrop({ top: r.rows.y / r.video.videoHeight, bottom: (r.rows.y + r.rows.h) / r.video.videoHeight }, f.w, f.h, f.turn);
   let grey: Uint8ClampedArray;
   if (LUMA_FIRST.has(f.format)) {
-    grey = resampleGray(buf, f.w, f.h, layout.stride, layout.offset, outW, outH);
+    grey = resampleGray(buf, c.w, c.h, layout.stride, layout.offset + c.y * layout.stride + c.x, outW, outH);
   } else {
     // An RGB frame is in full range like a canvas: to the video's grey first.
-    const luma = lumaOf(buf, f.w, f.h, layout.stride, layout.offset, f.format.startsWith("B"));
-    grey = resampleGray(luma, f.w, f.h, f.w, 0, outW, outH);
+    const luma = lumaOf(buf, c.w, c.h, layout.stride, layout.offset + c.y * layout.stride + 4 * c.x, f.format.startsWith("B"));
+    grey = resampleGray(luma, c.w, c.h, c.w, 0, outW, outH);
   }
   return rotateGray(grey, outW, outH, f.turn);
 }
 
 /** Draws the video's current frame to the canvas and keeps it in grey. */
 function drawn(r: Reading): Uint8ClampedArray {
-  r.ctx.drawImage(r.video, 0, 0, r.width, r.height);
+  r.ctx.drawImage(r.video, 0, r.rows.y, r.video.videoWidth, r.rows.h, 0, 0, r.width, r.height);
   return toGray(r.ctx.getImageData(0, 0, r.width, r.height).data, r.width, r.height);
 }
 
@@ -341,10 +353,16 @@ async function readBySeeking(r: Reading): Promise<void> {
 }
 
 /**
- * Reads the frames of `file` from `start` seconds. `onProgress` is told how
- * far it has got, 0 to 1 and never backwards.
+ * Reads the frames of `file` from `start` seconds, of a portrait video only
+ * the band of its height in `band` (fractions, `laneBand`). `onProgress` is
+ * told how far it has got, 0 to 1 and never backwards.
  */
-export async function readVideoFrames(file: Blob, onProgress: (fraction: number) => void, start = 0): Promise<VideoFrames> {
+export async function readVideoFrames(
+  file: Blob,
+  onProgress: (fraction: number) => void,
+  start = 0,
+  band: { top: number; bottom: number } | null = null
+): Promise<VideoFrames> {
   const url = URL.createObjectURL(file);
   const video: FrameVideo = document.createElement("video");
   video.muted = true;
@@ -366,7 +384,8 @@ export async function readVideoFrames(file: Blob, onProgress: (fraction: number)
     } catch {
       // Autoplay refused: seeking still decodes on the browsers that refuse it.
     }
-    const { width, height } = scaledSize(video.videoWidth, video.videoHeight, MAX_PIXELS);
+    const rows = bandRows(video.videoHeight, band);
+    const { width, height } = scaledSize(video.videoWidth, rows.h, MAX_PIXELS);
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
@@ -378,6 +397,7 @@ export async function readVideoFrames(file: Blob, onProgress: (fraction: number)
       ctx,
       width,
       height,
+      rows,
       gray: [],
       times: [],
       pending: Promise.resolve(),
@@ -410,7 +430,8 @@ export async function readVideoFrames(file: Blob, onProgress: (fraction: number)
     });
     console.info(
       `Shot tracer: read ${gray.length} frames (${played} while playing, ${copied ? "copied" : "drawn"}) ` +
-        `from ${from.toFixed(2)} s to ${(times[times.length - 1] ?? from).toFixed(2)} s ` +
+        `from ${from.toFixed(2)} s to ${(times[times.length - 1] ?? from).toFixed(2)} s, ` +
+        `rows ${rows.y} to ${rows.y + rows.h} of ${video.videoWidth} by ${video.videoHeight} at ${width} by ${height}, ` +
         `in ${((performance.now() - began) / 1000).toFixed(1)} s, rate ${video.playbackRate}`
     );
     return { width, height, gray, times };
@@ -421,16 +442,111 @@ export async function readVideoFrames(file: Blob, onProgress: (fraction: number)
   }
 }
 
-/** A video's length in seconds, as its metadata says (`Infinity` or `NaN` when it does not know). */
-export async function videoDuration(file: Blob): Promise<number> {
+/** The rate the first look plays at. Chromium on a 1080 by 1920 VP9 clip: 4 gave a frame every 0.067 s of video (15 a second) and read 7 s in 4.5. */
+const SCAN_RATE = 2;
+/** The most seeks the first look makes where it cannot play: a frame every `duration / SCAN_SEEKS` seconds at the least. */
+const SCAN_SEEKS = 300;
+
+/** What the first look learned about the video as a whole. */
+export interface ScannedVideo {
+  /** The picture as shown, pixels (`videoWidth` by `videoHeight`). */
+  width: number;
+  height: number;
+  duration: number;
+}
+
+/**
+ * The first look at a whole video (`lib/shotTrack/shotStart.ts`): small grey
+ * frames, `COARSE_WIDTH` wide, about `COARSE_FPS` a second, each handed to
+ * `onFrame` as it is drawn (so they need not all be kept). Read by playing the
+ * video fast, muted, and keeping a frame from each one shown that is far
+ * enough past the last; a frame drawn whole to a small canvas costs 8 to 14
+ * ms in desktop Chromium. Where the browser cannot say which frame it shows,
+ * or playback will not start or stalls, by seeking at coarse steps from where
+ * it got to. `onProgress` is told how far it has got, 0 to 1.
+ */
+export async function scanVideo(
+  file: Blob,
+  onFrame: (frame: CoarseFrame) => void,
+  onProgress: (fraction: number) => void
+): Promise<ScannedVideo> {
   const url = URL.createObjectURL(file);
-  const video = document.createElement("video");
+  const video: FrameVideo = document.createElement("video");
   video.muted = true;
-  video.preload = "metadata";
+  video.playsInline = true;
+  video.preload = "auto";
   video.src = url;
+  const began = performance.now();
   try {
-    if (!(await once(video, "loadedmetadata"))) return Number.NaN;
-    return video.duration;
+    if (!(await once(video, "loadedmetadata"))) throw new Error("no metadata");
+    if (video.readyState < 2 && !(await once(video, "loadeddata"))) throw new Error("no data");
+    const duration = video.duration;
+    if (!(duration > 0) || !Number.isFinite(duration)) throw new Error("no duration");
+    const width = COARSE_WIDTH;
+    const height = Math.max(2, Math.round((COARSE_WIDTH * video.videoHeight) / video.videoWidth));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) throw new Error("no canvas");
+    let last = -Infinity;
+    let count = 0;
+    const take = (t: number) => {
+      ctx.drawImage(video, 0, 0, width, height);
+      onFrame({ width, height, data: toGray(ctx.getImageData(0, 0, width, height).data, width, height), t });
+      last = t;
+      count++;
+      onProgress(Math.min(1, t / duration));
+    };
+    const step = 0.75 / COARSE_FPS;
+    if (hasFrameCallback(video)) {
+      await new Promise<void>((resolve) => {
+        let handle = 0;
+        let over = false;
+        let stall: ReturnType<typeof setTimeout> | undefined;
+        const stop = () => {
+          if (over) return;
+          over = true;
+          clearTimeout(stall);
+          clearTimeout(overrun);
+          video.cancelVideoFrameCallback?.(handle);
+          video.removeEventListener("ended", stop);
+          video.pause();
+          resolve();
+        };
+        const watch = (ms: number) => {
+          clearTimeout(stall);
+          stall = setTimeout(stop, ms);
+        };
+        const onShown = (_: number, meta: FrameMeta) => {
+          if (over) return;
+          if (meta.mediaTime - last >= step) {
+            take(meta.mediaTime);
+            watch(STALL_MS);
+          }
+          handle = video.requestVideoFrameCallback!(onShown);
+        };
+        // However the frames come, it ends: the video at real time, and a margin.
+        const overrun = setTimeout(stop, duration * 1000 + FIRST_FRAME_MS);
+        video.addEventListener("ended", stop);
+        handle = video.requestVideoFrameCallback!(onShown);
+        watch(FIRST_FRAME_MS);
+        video.playbackRate = SCAN_RATE;
+        video.play().catch(stop);
+      });
+    }
+    else {
+      // iOS Safari draws nothing from a video that has never played.
+      await video.play().then(() => video.pause(), () => {});
+    }
+    // What playing did not reach, by seeking.
+    const stride = Math.max(1 / COARSE_FPS, duration / SCAN_SEEKS);
+    for (let t = Math.max(0, last + stride); t < duration - 1e-3; t += stride) {
+      const at = await seekTo(video, t);
+      if (at - last >= step) take(at);
+    }
+    console.info(`Shot tracer: looked at ${count} frames of ${duration.toFixed(1)} s in ${((performance.now() - began) / 1000).toFixed(1)} s`);
+    return { width: video.videoWidth, height: video.videoHeight, duration };
   } finally {
     video.removeAttribute("src");
     video.load();

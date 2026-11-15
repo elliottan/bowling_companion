@@ -16,6 +16,7 @@ npx tsx scripts/shot-tracker/synthetic-grid.ts  # the full-size synthetic grid (
 npx tsx scripts/shot-tracker/look.ts <clip> <frame> <x0> <y0> <w> <h> <scale> <out.png> [--cal] [--median]
 npx tsx scripts/shot-tracker/diff.ts <clip> <first> <last> <step> <x0> <y0> <w> <h> <scale> <out.png>
 npx tsx scripts/shot-tracker/foul.ts <clip> <out.png> <frame> [<frame> ...]
+npx tsx scripts/shot-tracker/foul-look.ts <clip> <outDir> [<frame> ...]   # the foul line's region, found, hand and every candidate
 ```
 
 `foul.ts` is the release aid: the near end of each frame named, with the foul
@@ -150,6 +151,159 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
 - 7.5: a handful of sightings past a long unseen stretch (more than 15 ft,
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
+
+## The foul line, and shot-04 (2026-11-15)
+
+Two questions from the owner after the review pictures of the automatic trace:
+why the orange line is not on the foul line, and why shot-04 is not traced.
+
+### Where the foul line is
+
+The gutters begin at the foul line, so where each channel gives way to the
+flat approach lies on it, and on these clips a thin dark line usually runs
+across the lane there. `foul-look.ts <clip> <outDir> [<frame> ...]` draws the
+found foul line (orange), the hand one (cyan) and every candidate the finder
+weighed (magenta, in `*-cands.jpg`) on 4x and 10x colour crops, and prints
+each candidate's row, its distance from the hand line in feet and the camera
+distance it implies. Read on those crops and on columns of the frames
+(darkest row of the thin line, the row where the gutter's structure stops);
+feet are along the lane, positive up the lane:
+
+| clip, frame | true foul line | found, before | hand, before | found, after |
+|---|---|---|---|---|
+| shot-01, 150 | gutter ends at rows 643.5 (left) and 646 (right) | +1.7 ft (the top of a darker band of boards) | +1.7 ft, the same band | +0.05 |
+| shot-02, 140 and 192 | the step to the brighter approach, meeting the left gutter's end; the console hides the right | +0.63 ft | within 1 px (0.1 ft) | +0.63, unchanged |
+| shot-03, 250 and 40 | gutter ends and the thin line, on the hand line | +1.67 ft | right | -0.06 |
+| shot-04, 88 | the thin dark line, rows 538 to 539, meeting both gutter ends | +1.1 ft (the top of a lighter band) | +1.1 ft, the same band | 0.00 |
+| shot-05, 230 | the thin line from row 505 at x 350 to 514 at x 675 | +0.13 ft | right in the middle, 4 px off at each side (drawn level, the line is not) | -0.08 |
+| shot-06, 20 and 50 | gutter ends, on the hand line | right (-0.02 ft) | right | -0.02 |
+
+The owner was right on four clips. The finder read the rows where the
+brightness changes just inside the edges and, among pairs nearly as strong as
+the strongest, took the one furthest up the lane (meant to skip a join in the
+approach on shot-01, which was in fact the foul line). On shot-01, 03 and 04
+that is the edge of a band of boards 1 to 1.7 ft up the lane, where the lane
+edge's dark line also has a small hook, and the same band is on every frame,
+so the camera distance (the mode over frames) agreed with it and could not
+catch it. The true line was among the candidates on every frame. The hand
+lines on shot-01 and shot-04 sat on the same band (the finder had been tuned
+to agree with them). The owner's uncropped original of shot-05 (IMG_1996)
+shows the approach in front of the line: the thin line where the gutters end
+is the foul line there too, and it slopes about 0.028 in the picture where the
+pin row is level (the camera is turned off the lane's axis).
+
+What changed (`laneFind.ts`):
+
+- `gutterEnds`: down a strip in the middle of each gutter (0.04 to 0.15 lane
+  widths outside the edge; the foul light's housing stands over the outer
+  part) the mean gradient across the strip is high over the channel and falls
+  to almost nothing on the approach; the end is the sharpest such fall, to a
+  fraction of a row.
+- `gutterFoulLine`: both ends, each with structure above it of at least
+  `GUTTER_DROP` (6) grey levels, on a line within 0.04 of the slope across the
+  lane, become the first foul line candidate (`FoulLine.gutters`). One end
+  alone is not used: a scoring console's bottom (shot-02), a shoe (shot-05,
+  frame 230) or the foul light's housing ends as sharply.
+- `laneAttempts`: when three or more frames show both gutter ends, they alone
+  set the camera distance; each frame then takes its candidate nearest it as
+  before.
+
+Camera distance before and after: shot-01 24.3 to 21.9 ft, shot-03 25.8 to
+23.5, shot-04 20.8 to 19.6; the others moved under 0.6 ft.
+
+Still wrong: shot-02's chosen frame (140) shows only the left gutter, and its
+brightness pair on the band (+0.63 ft) puts the camera within 0.5 ft of the
+distance the two frames that show both gutters give (22.9 ft), closer than the
+true line does (22.2): the camera distance cannot tell 0.6 ft of foul line
+apart on this clip.
+
+### Hand calibrations re-marked
+
+- shot-01 (frame 150): foul line from rows 621 to 624 to the gutter ends and
+  the faint step between them, rows 643.5 to 646.
+- shot-04 (frame 88): foul line from rows 518 to 521.5 to the thin dark line,
+  rows 534.3 to 539.2.
+- shot-05 (frame 230): foul line from a level row 510 to the thin line as
+  measured, rows 505 to 514.
+- shot-02: the owner ruled (2026-11-15) that the automatic laydown and arrows
+  (21.9 and 15.8) are right and the hand column's 18.3 and 13.7 wrong. The
+  marks are not what was wrong: the hand column of `auto.ts` traced only the
+  main calibration, made on frame 192 at the far end, and the camera pans hard
+  between there and the release, so the carry back put the near end boards
+  out. `auto.ts` now reads laydown, touchdown, arrows and launch angle from
+  the clip's own near-end calibration (frame 66, `near`), as `run.ts` always
+  did: 21.0 and 15.7. Its foul line, measured on frame 66, is within a pixel.
+
+Owner rulings recorded as targets, not tuned to: shot-01's board at the pins
+is about 18.5 to 19; shot-06's 18.4 (automatic) was right, the hand trace's
+19.3 being read after the pins had started to move.
+
+### shot-04: why nothing was traced, and what it returns now
+
+The ball is plain to the eye from the release (frame 83) to about 13 ft
+(frame 108), then goes behind the bowler, who stays in front of the lane for
+the whole clip. The empty lane is the median of the clip, so it holds the
+bowler; the dark ball rolling past dark trousers changes nothing there and was
+never a candidate between frames 83 and 97. The detector did see it coming
+down to the lane (frames 78 to 82, ball and hand against the approach); what
+`associate` kept was 7 candidates of something else at 14 to 15 ft.
+
+`nearFollow.ts`: when the stretch seen (its main group, a stray pair far up
+the lane not counted) is under 10 ft, runs of candidates on the near lane that
+move up it (`nearSeeds`: 3 or more in consecutive frames, at least 0.3 ft up
+the lane; a shoe stays put) seed `followNear`, which follows the ball by its
+darkness (`followForward`, as the laydown is followed back) and stops where its
+disc shrinks under 85% of the lane's radius (going behind a leg) or it moves
+back down the lane or faster than a ball. The longest such follow replaces the
+candidates when it sees further. It runs on shot-04 only: every other clip
+sees more than 10 ft.
+
+`trace` then accepts a near-only stretch (`NEAR_FROM_FT` 8, `NEAR_SPAN_FT` 5):
+seen from within 8 ft of the foul line over at least 5 ft. Such a trace does
+not tie the rack's movement to the ball (the speed stays the fitted slope, as
+estimated), and reads the arrows as estimated when it stops short of 15 ft;
+breakpoint, pins and speed at the pins come back missing from `metrics` as
+they would for any trace that does not reach them. shot-04 is followed from
+frame 83 to 108 (3.1 to 13.1 ft) and returns laydown 6.4 (the hand
+calibration's trace 6.5), touchdown 5.8 at 3.7 ft, arrows 5.1 estimated, speed
+16.8 mph estimated; breakpoint and pins missing. The arrows are 2 ft past the
+last sighting: an estimate. Past 13 ft the ball is behind the bowler on every
+frame; nothing finds it there.
+
+### The table (`auto.ts --fresh-hand`), before and after
+
+Automatic, hand-calibrated trace in brackets. Before: the handoff's table
+(0.111.0). After: the gutter ends, the near follow, the re-marked hand foul
+lines, and shot-02's hand near end from its near calibration.
+
+| clip | laydown | arrows | breakpoint | pins | speed |
+|---|---|---|---|---|---|
+| shot-01 before | 23.8 (23.3) | 16.9 (16.7) | 7.7 at 43 (7.5 at 43) | 16.7 (20.5) | 15.3 (15.3) |
+| shot-01 after | 24.8 (24.2) | 17.4 (17.2) | 7.3 at 44 (7.6 at 43) | 17.2 (16.2) | 14.4 (14.6) |
+| shot-02 before | 21.9 (18.3) | 15.8 (13.7) | none (8.7 at 45) | 16.1e (16.1e) | 15.9e (15.3e) |
+| shot-02 after | 21.7 (21.0) | 15.9 (15.7) | none (8.7 at 45) | 16.1e (16.1e) | 15.7e (15.3e) |
+| shot-03 before | 14.1 (14.2) | 10.5 (10.5) | none (none) | none (none) | 18.3 (16.5) |
+| shot-03 after | 13.8 (14.2) | 10.6 (10.5) | none (none) | none (none) | 18.2 (16.5) |
+| shot-04 before | not traced | | | | |
+| shot-04 after | 6.4 (6.5) | 5.1e (5.1e) | none (none) | none (none) | 16.8e (17.1e) |
+| shot-05 before | 18.7 (18.5) | 13.1 (13.1) | 8.9 at 49 (8.9 at 49) | none (none) | 18.1 (18.1) |
+| shot-05 after | 18.6 (18.3) | 13.1 (13.0) | 9.0 at 49 (8.9 at 49) | none (none) | 18.1 (18.1) |
+| shot-06 before | 17.8 (17.7) | 14.7 (14.8) | 12.6 at 35 (12.5 at 36) | 18.4 (19.3) | 17.5 (17.0) |
+| shot-06 after | 17.8 (17.7) | 14.7 (14.8) | 12.6 at 35 (12.5 at 36) | 18.0 (19.3) | 17.5 (17.0) |
+
+Reading it:
+
+- Laydown and arrows: within 0.7 board of the hand trace everywhere. shot-01
+  moved a board with the foul line 1.7 ft nearer the camera (the laydown is
+  read where the ball is over the line): 24.8, where the owner read 24 or 25.
+- Speed: shot-01 0.9 mph slower (the distances shrank with the camera 2.4 ft
+  nearer); the rest within 0.2.
+- shot-01's pins: 17.2 automatic, 16.2 hand, against the owner's 18.5 to 19.
+  Both still lose the ball over the rack (`followForward`); the hand trace
+  moved from 20.5 with its new foul line. The far-end work's target.
+- shot-06's pins: 18.0 against the owner's 18.4, 0.4 lower than before.
+- shot-03's speed is still 1.7 mph off the hand trace (the rack's movement
+  found early).
 
 ## The lane on every frame (2026-11-14, second round)
 

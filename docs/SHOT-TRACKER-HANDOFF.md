@@ -8,7 +8,35 @@ development aid, not the product. Read this, then
 then `docs/SHOT-TRACKER-PLAN.md` sections 6 and 7 for the geometry. `CLAUDE.md`
 holds the house rules; the ones that bite here are at the end.
 
-## Where it stands (0.111.0, 2026-11-15)
+## Where it stands (0.112.0, 2026-11-15)
+
+- **0.112.0 made the app all automatic**, on the owner's word: no marking
+  screen, no dragged lines, no trim step. `shotStart.ts` finds the ball's run
+  up the lane in a coarse first look (`scanVideo`, `search.worker.ts`), the
+  read starts 0.6 s before it, and a portrait original is cropped to the
+  lane's band before scaling (the sample clips are crops; a phone's original
+  arrived at 58% of their scale and the lane was not found). Read the dated
+  README sections "The foul line, and shot-04" and the app agent's notes
+  there before changing either. Where the bullets below mention the trim
+  step or "Move the lines and trace again", those are gone.
+- **The foul line goes through both gutter ends** (`gutterEnds`,
+  `gutterFoulLine` in `laneFind.ts`). It used to take the edge of a band of
+  boards 1 to 1.7 ft up the lane on four of six clips, and the hand marks
+  had copied the same band on three. shot-02's is still 0.63 ft up (the
+  console hides the right gutter).
+- **shot-04 traces its near end** (`nearFollow.ts`): laydown 6.4, touchdown
+  5.8 at 3.7 ft, arrows estimated. The ball is behind the bowler past 13 ft.
+- **The owner's readings from the frames (2026-11-15)**: shot-02 laydown
+  21.9 and arrows 15.8 are right; shot-01 at the pins is 18.5 to 19 (auto
+  reads 17.2, the hand trace 16.2); shot-06 at the pins is 18.4 (auto now
+  18.0; the hand trace's 19.3 is read after impact).
+- **Known weak points of 0.112.0**: the shot's start was right on the one
+  real original (IMG_1996, kept only in the session's scratchpad) and on two
+  of four padded stand-ins; the laydown on IMG_1996 read 18.7 on one browser
+  run and 27.3 on another (the reader dropped frames); nothing was run on an
+  iPhone (rotation, 10-bit HLG).
+
+## Where it stood before that (0.111.0)
 
 - **The lane is found on many frames, and each frame uses its own.**
   `findLanes` (`laneFind.ts`) calibrates every frame it is given; `laneTrack.ts`
@@ -139,8 +167,9 @@ function with tests (`laneFind.test.ts`). In one paragraph each:
    and `followForward` loses the ball over the rack (shot-01 pins, shot-03
    speed). Build the empty lane per stretch of the clip, or re-register
    around the ball's run after a first pass.
-4. **shot-04 and shot-02**: a ball follower that copes with the bowler in
-   front of the lane; a breakpoint on the hard pan.
+4. **The shot's start on real untrimmed videos** (`shotStart.ts`): its
+   thresholds rest on one video; a backswing or the slide can win. Then
+   shot-02: a breakpoint on the hard pan, and its foul line.
 5. **The verdict's thresholds** (`laneVerdict.ts`) rest on six clips: the 25%
    kept-share line sits right at shot-03, and "no pins and a faint edge"
    flags shot-02 alone. Revisit with more clips.
