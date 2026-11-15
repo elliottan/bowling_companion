@@ -1,6 +1,7 @@
 import type { Handedness } from "../../types/bowling";
 import { BOARD_FT, CONTACT_IN, handedBoard, hookSlope, hookU, type HookShape } from "./laneModel";
 import { PIN_POSITIONS } from "../pinGeometry";
+import { entrySpeed, launchSpeed } from "./speeds";
 import type { Metric, MetricState, PathModel, TrackMetrics } from "./types";
 
 /** Fitting the path, the distance against time, and the metrics (plan 7.5, 7.6). */
@@ -504,5 +505,13 @@ export function metrics(inp: MetricInput): TrackMetrics {
   const t60 = timeAtFeet(m, 60);
   const endSpeed = t60 !== null ? (m.w + m.d * t60) * FTS_TO_MPH : NaN;
   const speedAtPins = to >= 52 && sane(endSpeed) ? M(endSpeed, spState) : M(null, "missing");
-  return { laydown, touchdown, touchdownFeet, arrows, breakpoint, breakpointFeet, pins, entryAngle, launchAngle, speed, speedAtPins };
+  // The launch and entry speeds from the sightings in their own stretches,
+  // each at its own time (`speeds.ts`); none without timed sightings.
+  const timed = pts.flatMap((p) => (p.t !== undefined ? [{ t: p.t, v: p.v, w: p.w }] : []));
+  const launchSpeedM = launchSpeed(timed);
+  const entrySpeedM = entrySpeed(timed, inp.rackMovesAt);
+  return {
+    laydown, touchdown, touchdownFeet, arrows, breakpoint, breakpointFeet, pins, entryAngle, launchAngle, speed, speedAtPins,
+    launchSpeed: launchSpeedM, entrySpeed: entrySpeedM
+  };
 }

@@ -121,9 +121,13 @@ export interface TrackMetrics {
   pins: Metric;
   entryAngle: Metric;
   launchAngle: Metric;
-  /** Miles an hour. */
+  /** Miles an hour: the average over the lane, and the fitted motion's at the pins. */
   speed: Metric;
   speedAtPins: Metric;
+  /** Miles an hour over the first 15 ft past the foul line, from the sightings there (`speeds.ts`). */
+  launchSpeed: Metric;
+  /** Miles an hour over the last 15 ft seen before the head pin, only when the ball was seen there. */
+  entrySpeed: Metric;
 }
 
 export type TrackFailure =

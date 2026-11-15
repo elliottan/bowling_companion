@@ -758,6 +758,8 @@ export interface FoulLine {
   strength: number;
   /** Through both gutters' near ends (`gutterEnds`) rather than a change of brightness. */
   gutters?: boolean;
+  /** Through one gutter's near end and a change of brightness that passes through it (`oneGutterFoulLine`). */
+  oneGutter?: boolean;
 }
 
 /** A gutter's structure above its end at least this, grey levels per pixel, for the end to count. */
@@ -776,6 +778,40 @@ export function gutterFoulLine(ends: [GutterEnd | null, GutterEnd | null], slope
   if (Math.abs((b.y - a.y) / (b.x - a.x) - slope) > 0.04) return null;
   return { line: [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y], points: [a, b], strength: Math.min(a.drop, b.drop), gutters: true };
 }
+
+/**
+ * The foul line from one gutter's end, when the other end is hidden (a
+ * scoring console over it on shot-02) or too faint to count. One end alone
+ * is never enough: a console's bottom, a shoe or the foul light's housing
+ * ends as sharply. So it must be corroborated by a change of brightness read
+ * on both sides of the lane (`pairs`, the thin dark line or the step to the
+ * approach) whose line passes within `tol` rows of the end; the nearest such
+ * pair is taken, and the foul line runs from the gutter end to that pair's
+ * point on the far side, within 0.04 of `slope` as for two ends. Null when
+ * nothing corroborates the end.
+ */
+export function oneGutterFoulLine(ends: [GutterEnd | null, GutterEnd | null], pairs: FoulLine[], slope: number, tol: number): FoulLine | null {
+  const ok = ends.map((e) => (e && e.drop >= GUTTER_DROP ? e : null));
+  if (ok[0] && ok[1]) return null;
+  const i = ok[0] ? 0 : ok[1] ? 1 : -1;
+  if (i < 0) return null;
+  const end = ok[i]!;
+  let best: { far: Point; off: number } | null = null;
+  for (const p of pairs) {
+    if (p.points.length !== 2) continue;
+    const off = Math.abs(-(p.line[0] * end.x + p.line[2]) / p.line[1] - end.y);
+    if (off > tol || (best && off >= best.off)) continue;
+    const far = p.points[1 - i];
+    if (Math.abs((far.y - end.y) / (far.x - end.x) - slope) > 0.04) continue;
+    best = { far, off };
+  }
+  if (!best) return null;
+  const [a, b] = i === 0 ? [end, best.far] : [best.far, end];
+  return { line: [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y], points: [a, b], strength: end.drop / 2, oneGutter: true };
+}
+
+/** How near a change of brightness on both sides must pass to a lone gutter end to back it, as a share of the lane's span in rows (about 0.15 ft at the foul line on the sample clips). */
+export const ONE_GUTTER_TOL = 0.008;
 
 /**
  * Every foul line `findFoulLine` weighs, its choice first: then the other
@@ -836,10 +872,12 @@ export function findFoulLines(f: GrayFrame, left: Line3, right: Line3, near: num
   // is (2026-11-15: the brightness rows alone took the edge of a band of
   // boards 1 to 1.7 ft up the lane on four of the six sample clips, and the
   // camera's distance agreed with it on every frame, so the mode could not
-  // catch it). Both gutter ends, as a line, come first. One end alone is not
-  // used: the bottom of a scoring console, a shoe or the foul light's housing
-  // beside the gutter end it as sharply.
-  const gutterLine = gutterFoulLine(gutterEnds(f, left, right, near, span, slope), slope);
+  // catch it). Both gutter ends, as a line, come first. One end alone comes
+  // first only when a change of brightness across the lane passes through it
+  // (`oneGutterFoulLine`): the bottom of a scoring console, a shoe or the foul
+  // light's housing beside the gutter end it as sharply.
+  const ends = gutterEnds(f, left, right, near, span, slope);
+  const gutterLine = gutterFoulLine(ends, slope) ?? oneGutterFoulLine(ends, pairs, slope, Math.max(1.5, ONE_GUTTER_TOL * span));
   if (gutterLine) out.push(gutterLine);
   if (pairs.length) {
     // Then, of the pairs nearly as strong as the strongest, the one furthest
@@ -888,33 +926,40 @@ export function gutterEnds(f: GrayFrame, left: Line3, right: Line3, near: number
   const k = Math.max(3, Math.round(0.012 * span));
   const side = (outside: (y: number) => [number, number]): GutterEnd | null => {
     if (yB - yA < 4 * k) return null;
-    const E: number[] = [];
-    for (let y = yA; y <= yB; y++) {
-      const [x0, x1] = outside(y);
-      const xm = (x0 + x1) / 2;
-      let s = 0;
-      let n = 0;
-      for (let x = Math.ceil(x0); x <= x1; x++) {
-        const yy = y + slope * (x - xm);
-        const g = Math.abs(sample(f, x + 1, yy) - sample(f, x - 1, yy));
-        if (Number.isFinite(g)) {
-          s += g;
-          n++;
+    // The structure down the strip, or down the part of it from p0 to p1 of its width.
+    const energy = (p0: number, p1: number): number[] => {
+      const E: number[] = [];
+      for (let y = yA; y <= yB; y++) {
+        const [s0, s1] = outside(y);
+        const xm = (s0 + s1) / 2;
+        const x0 = s0 + p0 * (s1 - s0);
+        const x1 = s0 + p1 * (s1 - s0);
+        let s = 0;
+        let n = 0;
+        for (let x = Math.ceil(x0); x <= x1; x++) {
+          const yy = y + slope * (x - xm);
+          const g = Math.abs(sample(f, x + 1, yy) - sample(f, x - 1, yy));
+          if (Number.isFinite(g)) {
+            s += g;
+            n++;
+          }
         }
+        E.push(n >= 3 && n >= 0.6 * (x1 - x0) ? s / n : NaN);
       }
-      E.push(n >= 4 && n >= 0.6 * (x1 - x0) ? s / n : NaN);
-    }
-    const mean = (a: number, b: number) => {
+      return E;
+    };
+    const E = energy(0, 1);
+    const mean = (P: number[], a: number, b: number) => {
       let s = 0;
-      for (let j = a; j <= b; j++) s += E[j];
+      for (let j = a; j <= b; j++) s += P[j];
       return s / (b - a + 1);
     };
     // The sharpest fall going down: k rows of channel above, k rows of approach below.
     let best = -1;
     let bestRatio = 3;
     for (let j = k; j < E.length - k; j++) {
-      const above = mean(j - k, j - 1);
-      const below = mean(j + 1, j + k);
+      const above = mean(E, j - k, j - 1);
+      const below = mean(E, j + 1, j + k);
       if (!Number.isFinite(above) || !Number.isFinite(below) || above < 4) continue;
       const r = above / (below + 0.5);
       if (r > bestRatio) {
@@ -923,12 +968,28 @@ export function gutterEnds(f: GrayFrame, left: Line3, right: Line3, near: number
       }
     }
     if (best < 0) return null;
-    const level = mean(best - k, best - 1);
+    const level = mean(E, best - k, best - 1);
     // The first row from the channel side under half its level, interpolated.
-    let j = best - k;
-    while (j < best + k && !(E[j + 1] < level / 2)) j++;
-    const o = E[j] > E[j + 1] ? Math.max(0, Math.min(1, (E[j] - level / 2) / (E[j] - E[j + 1]))) : 0.5;
-    const y = yA + j + o;
+    const halfDown = (P: number[], lv: number): number | null => {
+      let j = best - k;
+      while (j < best + k && !(P[j + 1] < lv / 2)) j++;
+      if (!(P[j + 1] < lv / 2)) return null;
+      const o = P[j] > P[j + 1] ? Math.max(0, Math.min(1, (P[j] - lv / 2) / (P[j] - P[j + 1]))) : 0.5;
+      return j + o;
+    };
+    // The same fall in each third of the strip, and the middle one of them
+    // (2026-11-15: a lace hanging from the slide shoe over one part of the
+    // gutter kept the whole strip's structure up for two rows below the
+    // channel's end on shot-05, so the foul line's left end sat low).
+    const thirds: number[] = [];
+    for (let i = 0; i < 3; i++) {
+      const P = energy(i / 3, (i + 1) / 3);
+      const lv = mean(P, best - k, best - 1);
+      const at = Number.isFinite(lv) && lv >= 4 ? halfDown(P, lv) : null;
+      if (at !== null) thirds.push(at);
+    }
+    const whole = halfDown(E, level) ?? best + 0.5;
+    const y = yA + (thirds.length >= 2 ? median(thirds) : whole);
     const [x0, x1] = outside(y);
     const xm = (x0 + x1) / 2;
     return { x: xm, y, drop: level };
