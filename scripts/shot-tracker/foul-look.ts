@@ -15,7 +15,7 @@
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { apply, intersect, invert, lineThrough, mapLine, multiply, normalize, type Line3 } from "../../src/lib/shotTrack/homography";
-import { findFoulLines, laneAttempts, lanesOnFrame, rankLanes, steadyProfiles } from "../../src/lib/shotTrack/laneFind";
+import { findFoulLines, gutterEnds, laneAttempts, lanesOnFrame, rankLanes, steadyProfiles } from "../../src/lib/shotTrack/laneFind";
 import { focalFromPlane } from "../../src/lib/shotTrack/calibrate";
 import { register, registerPlane } from "../../src/lib/shotTrack/registration";
 import { BACK_ROW_FT } from "../../src/lib/shotTrack/laneModel";
@@ -70,6 +70,8 @@ for (const frame of frames) {
     const mid = (y: number) => (X(a.measured.left, y) + X(a.measured.right, y)) / 2;
     const yPin = rowAt(a.measured.pinRow, mid(pick.far));
     console.log(`   pick near row ${pick.near.toFixed(1)}, far ${pick.far.toFixed(1)}, span ${span.toFixed(1)}; search rows ${Math.round(pick.near - 0.18 * span)} to ${Math.round(pick.near + 0.04 * span)}`);
+    const ge = gutterEnds(gray[k], a.measured.left, a.measured.right, pick.near, span, slope);
+    console.log(`   gutter ends: ${ge.map((g) => (g ? `(${g.x.toFixed(1)}, ${g.y.toFixed(2)}) drop ${g.drop.toFixed(1)}` : "none")).join("; ")}; slope ${slope.toFixed(4)}${ge[0] && ge[1] ? `, theirs ${((ge[1].y - ge[0].y) / (ge[1].x - ge[0].x)).toFixed(4)}` : ""}`);
     const list = findFoulLines(gray[k], a.measured.left, a.measured.right, pick.near, span, slope);
     for (const [i, c] of list.entries()) {
       const y = rowAt(c.line, mid(pick.near));
