@@ -9,6 +9,20 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.112.0: The shot tracer is all automatic (2026-11-15)
+
+- In Settings, Labs: the shot tracer no longer asks for lines to be dragged or
+  for the video to be trimmed. It looks through the whole video for the ball's
+  run up the lane, reads that part, finds the lane and traces the shot. When it
+  cannot, it says which step failed and asks for another video.
+- A video filmed upright on a phone is cropped to the lane before it is read,
+  so the lane is found on an untrimmed original and not only on a cropped clip.
+- The foul line is placed where the gutters end. It used to sit one to two feet
+  up the lane on some videos, on the edge of a band of lighter boards.
+- A shot whose ball is hidden by the bowler past the first few feet now gives
+  its laydown and touchdown, with the arrows estimated, where it used to give
+  nothing.
+
 ## 0.111.0: The shot tracer shows the touchdown beside the laydown (2026-11-15)
 
 - In Settings, Labs: the shot tracer's result now lists the touchdown, the
