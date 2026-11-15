@@ -24,3 +24,13 @@ little better than a trace of these. Do not re-encode them again.
 
 The people in them agreed to their use here. Do not use them outside this
 repository's tests.
+
+## Originals
+
+`originals/IMG_1996.mov` is shot-05 exactly as the phone recorded it (HEVC,
+1080 x 1920 stored rotated, 10-bit HLG, 120 frames a second, 7.1 s, 25 MB),
+kept on the owner's word (2026-11-15) because it is the only untrimmed,
+uncropped phone video there is to test on. The app receives videos like this
+one, not like the clips above. Chromium in CI and in the cloud container cannot
+play it; re-encode a copy to VP9 to run it through the app there. The same
+terms of use apply.
