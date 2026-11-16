@@ -1524,31 +1524,91 @@ const PIN_WEIGHT = 4;
  * then on each frame the candidate nearest it.
  */
 export function laneAttempts(frames: GrayFrame[], tries = 10): { attempts: Attempt[]; camera: number } {
-  const per = frames.map((f) => lanesOnFrame(f));
-  steadyProfiles(per);
-  const ranked = rankLanes(per, frames[0].width);
-  const measured = ranked.slice(0, tries).map((pick) => measure(frames[pick.index], per[pick.index]!, pick)).filter((m): m is Measured => !!m);
-  if (!measured.length) return { attempts: [], camera: NaN };
-  const seen = measured.filter((m) => m.ends.length);
-  // The frames that show both gutters' near ends say where the foul line is
-  // best, so when there are a few of them they alone set the distance; with
-  // no frame showing the foul line, a typical camera distance.
-  const byGutters = seen.filter((m) => m.ends[0].foul.gutters);
-  const camera = seen.length ? modeOf((byGutters.length >= MIN_GUTTER_FRAMES ? byGutters : seen).map((m) => m.ends[0].camera), CAMERA_SPREAD_FT) : TYPICAL_CAMERA_FT;
-  const attempts = measured
-    .map((m) => {
+  const store: LaneStore = { per: new Map(), measured: new Map() };
+  const steps = laneSteps(frames.length, frames[0].width, tries);
+  let next = steps.next();
+  while (!next.done) next = steps.next(next.value.map((job) => runLaneJob(job, frames[job.index], store)));
+  return next.value;
+}
+
+/**
+ * The lane search's work on each frame, as jobs (see `laneSteps`): `index`
+ * is the frame's place among the frames searched. A frame's three jobs keep
+ * what they find in a `LaneStore` for the next, so they run where its first
+ * ran; what they hand back is all the search needs across frames.
+ */
+export type LaneJob =
+  | { kind: "lanes"; index: number }
+  | { kind: "measure"; index: number; pick: LanePick }
+  | { kind: "attempt"; index: number; camera: number; seen: boolean };
+
+/** What a frame's lane jobs keep between them. */
+export interface LaneStore {
+  per: Map<number, FrameLanes | null>;
+  measured: Map<number, Measured | null>;
+}
+
+/** A frame's `lanesOnFrame` without the fan's pictures, which nothing after it reads: what `steadyProfiles` and `rankLanes` take. */
+export function laneSummary(r: FrameLanes | null): FrameLanes | null {
+  return r && { ...r, fan: { ...r.fan, F: new Float32Array(0), G: new Float32Array(0) } };
+}
+
+/** What `laneSteps` needs of a frame's `measure`: whether it saw ends, and the first one's camera and gutters. */
+export interface MeasureSummary {
+  ends: number;
+  camera: number;
+  gutters: boolean;
+}
+
+/** One lane job on its frame `f`. */
+export function runLaneJob(job: LaneJob, f: GrayFrame, store: LaneStore): FrameLanes | MeasureSummary | Attempt | null {
+  switch (job.kind) {
+    case "lanes": {
+      const r = laneSummary(lanesOnFrame(f));
+      store.per.set(job.index, r);
+      return r;
+    }
+    case "measure": {
+      const m = measure(f, store.per.get(job.index)!, job.pick);
+      store.measured.set(job.index, m);
+      return m && { ends: m.ends.length, camera: m.ends[0]?.camera ?? NaN, gutters: !!m.ends[0]?.foul.gutters };
+    }
+    case "attempt": {
+      const m = store.measured.get(job.index)!;
+      const { camera } = job;
       if (!m.ends.length) {
         // The foul line not seen on this frame (the bowler over it, or below
         // the picture): placed where the camera's distance puts it.
         const pin = m.pins[0];
         const foul = guessFoul(m.vp, m.sl.line, m.sr.line, pin.line, m.slope, camera);
-        return attempt(m, { pin, foul, camera, guess: seen.length ? "camera-from-frames" : "typical-camera" });
+        return attempt(m, { pin, foul, camera, guess: job.seen ? "camera-from-frames" : "typical-camera" });
       }
       const near = m.ends.filter((e) => Math.abs(e.camera - camera) <= 2 * CAMERA_SPREAD_FT);
       return attempt(m, near[0] ?? m.ends[0]);
-    })
-    .filter((a): a is Attempt => !!a);
-  return { attempts, camera };
+    }
+  }
+}
+
+/**
+ * `laneAttempts` as three batches of jobs over `count` frames `width` pixels
+ * wide: every frame's lanes, then the `tries` best frames measured, then each
+ * of those calibrated with the camera distance they agree on.
+ */
+export function* laneSteps(count: number, width: number, tries: number): Generator<LaneJob[], { attempts: Attempt[]; camera: number }, unknown[]> {
+  const per = (yield Array.from({ length: count }, (_, index) => ({ kind: "lanes" as const, index }))) as (FrameLanes | null)[];
+  steadyProfiles(per);
+  const ranked = rankLanes(per, width).slice(0, tries);
+  const sums = (yield ranked.map((pick) => ({ kind: "measure" as const, index: pick.index, pick }))) as (MeasureSummary | null)[];
+  const measured = ranked.map((pick, k) => ({ index: pick.index, m: sums[k] })).filter((x): x is { index: number; m: MeasureSummary } => !!x.m);
+  if (!measured.length) return { attempts: [], camera: NaN };
+  const seen = measured.filter((x) => x.m.ends);
+  // The frames that show both gutters' near ends say where the foul line is
+  // best, so when there are a few of them they alone set the distance; with
+  // no frame showing the foul line, a typical camera distance.
+  const byGutters = seen.filter((x) => x.m.gutters);
+  const camera = seen.length ? modeOf((byGutters.length >= MIN_GUTTER_FRAMES ? byGutters : seen).map((x) => x.m.camera), CAMERA_SPREAD_FT) : TYPICAL_CAMERA_FT;
+  const attempts = (yield measured.map((x) => ({ kind: "attempt" as const, index: x.index, camera, seen: seen.length > 0 }))) as (Attempt | null)[];
+  return { attempts: attempts.filter((a): a is Attempt => !!a), camera };
 }
 
 /** Frames showing both gutter ends needed for them alone to set the camera's distance (`laneAttempts`). */

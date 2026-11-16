@@ -596,7 +596,7 @@ export function laneMarksOf(H: Mat3): LaneMarks {
 }
 
 /** One frame's patch matches against the calibration frame. */
-interface Matches {
+export interface Matches {
   index: number;
   P: Point[];
   Q: Point[];
@@ -604,6 +604,117 @@ interface Matches {
   p: TurnParams;
   ok: boolean;
   reason?: FrameGeometry["reason"];
+}
+
+/** The frames a pass from the calibration frame visits, in order: `dir` 1 forward to `last`, -1 back to `first`. */
+export function passFrames(calibFrame: number, dir: 1 | -1, first: number, last: number): number[] {
+  const out: number[] = [];
+  for (let i = calibFrame + dir; i >= first && i <= last; i += dir) out.push(i);
+  return out;
+}
+
+/** The lens `register` starts from: the given focal length, or one and a half times the picture's larger side. */
+function startLens(width: number, height: number, opts: RegisterOptions): Lens {
+  return { f: opts.focal ?? 1.5 * Math.max(width, height), cx: (width - 1) / 2, cy: (height - 1) / 2 };
+}
+
+/**
+ * One direction of `register`, a frame at a time: forward (`dir` 1) or back
+ * from the calibration frame, each frame matched around where the frame
+ * before it in the pass and the coarse shift put the patches. The two
+ * directions share nothing, so they can run side by side (in two workers);
+ * `step` must be given the frames in `passFrames` order.
+ */
+export class RegisterPass {
+  private readonly c0: GrayFrame;
+  private readonly lens0: Lens;
+  private readonly patches: Patch[];
+  private readonly tol: number;
+  private readonly maxJump: number;
+  private prev: TurnParams = [0, 0, 0, 0];
+  private prevFrame: GrayFrame;
+  private qPrev: GrayFrame;
+
+  constructor(c0: GrayFrame, opts: RegisterOptions = {}) {
+    this.c0 = c0;
+    this.lens0 = startLens(c0.width, c0.height, opts);
+    this.patches = choosePatches(c0);
+    this.tol = opts.tolerance ?? 1.5;
+    this.maxJump = opts.maxJump ?? 0.05;
+    this.prevFrame = c0;
+    // Each frame at a quarter of the resolution, made once for the shifts from it and to it.
+    this.qPrev = downsample(c0, 4);
+  }
+
+  /** The next frame of the pass, `i` its index: its matches and turn. */
+  step(i: number, f: GrayFrame): Matches {
+    const { c0, lens0, patches, prev } = this;
+    const q = downsample(f, 4);
+    const g = globalShift(this.prevFrame, f, 40, this.qPrev, q);
+    this.qPrev = q;
+    this.prevFrame = f;
+    const prevH = turnHomography(lens0, prev);
+    // The coarse shift as a small pan and tilt on top of the last frame's turn.
+    const guess: TurnParams = [prev[0] - g.y / lens0.f, prev[1] + g.x / lens0.f, prev[2], prev[3]];
+    const guessH = multiply([1, 0, g.x, 0, 1, g.y, 0, 0, 1], prevH);
+    const P: Point[] = [];
+    const Q: Point[] = [];
+    for (const pt of patches) {
+      const m = matchPatch(c0, f, pt, apply(guessH, pt));
+      if (m) {
+        P.push(pt);
+        Q.push(m);
+      }
+    }
+    const fit = robustTurn(lens0, guess, P, Q, this.tol);
+    const share = fit ? fit.inliers.length / Math.max(1, patches.length) : 0;
+    if (!fit || fit.inliers.length < 8 || share < 0.15) {
+      this.prev = guess;
+      return { index: i, P, Q, inliers: fit?.inliers ?? [], p: guess, ok: false, reason: "lane-lost" };
+    }
+    const bad = jumpedTurn(prev, fit.p, lens0.f, c0.width, c0.height, this.maxJump);
+    this.prev = fit.p;
+    return { index: i, P, Q, inliers: fit.inliers, p: fit.p, ok: !bad, reason: bad ? "jump" : undefined };
+  }
+
+  /** How many patches each frame is matched by. */
+  get patchCount(): number {
+    return this.patches.length;
+  }
+}
+
+/**
+ * `register`'s end, once both passes are done: the lens's focal length fitted
+ * over every frame's matches (unless given), each frame's turn refitted with
+ * it, and the geometry. `forward` and `back` are the two passes' matches in
+ * the order they were made.
+ */
+export function finishRegister(
+  size: { width: number; height: number },
+  calibFrame: number,
+  H0: Mat3,
+  first: number,
+  forward: Matches[],
+  back: Matches[],
+  patchCount: number,
+  opts: RegisterOptions = {}
+): FrameGeometry[] {
+  const lens0 = startLens(size.width, size.height, opts);
+  const all: Matches[] = [{ index: calibFrame, P: [], Q: [], inliers: [], p: [0, 0, 0, 0], ok: true }, ...forward, ...back];
+  const lens = opts.focal ? lens0 : fitFocal(lens0, all);
+  const out: FrameGeometry[] = [];
+  for (const m of all) {
+    let p = m.p;
+    if (lens !== lens0 && m.inliers.length >= 4) p = fitTurn(lens, p, m.inliers.map((k) => m.P[k]), m.inliers.map((k) => m.Q[k])).p;
+    const S = m.index === calibFrame ? ([1, 0, 0, 0, 1, 0, 0, 0, 1] as Mat3) : turnHomography(lens, p);
+    const H = normalize(multiply(S, H0));
+    out[m.index - first] = {
+      index: m.index, ok: m.ok, reason: m.reason, S, H, marks: laneMarksOf(H),
+      share: m.index === calibFrame ? 1 : m.inliers.length / Math.max(1, patchCount),
+      turn: [p[0], p[1], p[2]], zoom: Math.exp(p[3]), lens
+    };
+  }
+  return out;
 }
 
 /**
@@ -625,64 +736,12 @@ export function register(
   last: number,
   opts: RegisterOptions = {}
 ): FrameGeometry[] {
-  const maxJump = opts.maxJump ?? 0.05;
-  const tol = opts.tolerance ?? 1.5;
   const c0 = source.frame(calibFrame);
-  const W = c0.width;
-  const Hh = c0.height;
-  const lens0: Lens = { f: opts.focal ?? 1.5 * Math.max(W, Hh), cx: (W - 1) / 2, cy: (Hh - 1) / 2 };
-  const patches = choosePatches(c0);
-  const zero: TurnParams = [0, 0, 0, 0];
-  const all: Matches[] = [{ index: calibFrame, P: [], Q: [], inliers: [], p: zero, ok: true }];
-  // Each frame at a quarter of the resolution, made once for the shifts from it and to it.
-  const q0 = downsample(c0, 4);
-  for (const dir of [1, -1]) {
-    let prev = zero;
-    let qPrev = q0;
-    for (let i = calibFrame + dir; i >= first && i <= last; i += dir) {
-      const f = source.frame(i);
-      const q = downsample(f, 4);
-      const g = globalShift(source.frame(i - dir), f, 40, qPrev, q);
-      qPrev = q;
-      const prevH = turnHomography(lens0, prev);
-      // The coarse shift as a small pan and tilt on top of the last frame's turn.
-      const guess: TurnParams = [prev[0] - g.y / lens0.f, prev[1] + g.x / lens0.f, prev[2], prev[3]];
-      const guessH = multiply([1, 0, g.x, 0, 1, g.y, 0, 0, 1], prevH);
-      const P: Point[] = [];
-      const Q: Point[] = [];
-      for (const pt of patches) {
-        const m = matchPatch(c0, f, pt, apply(guessH, pt));
-        if (m) {
-          P.push(pt);
-          Q.push(m);
-        }
-      }
-      const fit = robustTurn(lens0, guess, P, Q, tol);
-      const share = fit ? fit.inliers.length / Math.max(1, patches.length) : 0;
-      if (!fit || fit.inliers.length < 8 || share < 0.15) {
-        all.push({ index: i, P, Q, inliers: fit?.inliers ?? [], p: guess, ok: false, reason: "lane-lost" });
-        prev = guess;
-        continue;
-      }
-      const bad = jumpedTurn(prev, fit.p, lens0.f, W, Hh, maxJump);
-      all.push({ index: i, P, Q, inliers: fit.inliers, p: fit.p, ok: !bad, reason: bad ? "jump" : undefined });
-      prev = fit.p;
-    }
-  }
-  const lens = opts.focal ? lens0 : fitFocal(lens0, all);
-  const out: FrameGeometry[] = [];
-  for (const m of all) {
-    let p = m.p;
-    if (lens !== lens0 && m.inliers.length >= 4) p = fitTurn(lens, p, m.inliers.map((k) => m.P[k]), m.inliers.map((k) => m.Q[k])).p;
-    const S = m.index === calibFrame ? ([1, 0, 0, 0, 1, 0, 0, 0, 1] as Mat3) : turnHomography(lens, p);
-    const H = normalize(multiply(S, H0));
-    out[m.index - first] = {
-      index: m.index, ok: m.ok, reason: m.reason, S, H, marks: laneMarksOf(H),
-      share: m.index === calibFrame ? 1 : m.inliers.length / Math.max(1, patches.length),
-      turn: [p[0], p[1], p[2]], zoom: Math.exp(p[3]), lens
-    };
-  }
-  return out;
+  const [forward, back] = ([1, -1] as const).map((dir) => {
+    const pass = new RegisterPass(c0, opts);
+    return { matches: passFrames(calibFrame, dir, first, last).map((i) => pass.step(i, source.frame(i))), patches: pass.patchCount };
+  });
+  return finishRegister(c0, calibFrame, H0, first, forward.matches, back.matches, forward.patches, opts);
 }
 
 function jumpedTurn(prev: TurnParams, next: TurnParams, f: number, w: number, h: number, maxJump: number): boolean {
@@ -760,93 +819,130 @@ export function registerPlane(
   H0: Mat3,
   pictures: FrameGeometry[],
   first: number,
-  opts: { tolerance?: number; minPatches?: number; focal?: number } = {}
+  opts: PlaneOptions = {}
 ): FrameGeometry[] {
-  const tol = opts.tolerance ?? 1.5;
-  const minPatches = opts.minPatches ?? 12;
   const c0 = source.frame(calibFrame);
-  const G0 = invert(H0);
-  const horizonSide = (p: Point) => {
-    const w = G0[6] * p.x + G0[7] * p.y + G0[8];
-    const w0 = G0[6] * apply(H0, { x: 20, y: 0 }).x + G0[7] * apply(H0, { x: 20, y: 0 }).y + G0[8];
-    return w * w0 > 0;
-  };
-  const onFloor = (p: Point) => {
-    if (!horizonSide(p)) return false;
-    const q = apply(G0, p);
-    // Four lanes either side, from behind the foul line to past the pin deck.
-    return q.y > -12 && q.y < 64 && q.x > -260 && q.x < 300;
-  };
-  const patches = choosePatches(c0, undefined, onFloor, 260);
-  const a = apply(H0, { x: 20, y: 0 });
-  const b = apply(H0, { x: 21, y: 0 });
-  const travelled = Math.max(1.5, 0.25 * Math.hypot(b.x - a.x, b.y - a.y));
-  const laneV = patches.map((p) => apply(G0, p).y);
   const out: FrameGeometry[] = pictures.map((g) => ({ ...g }));
-  for (const dir of [1, -1]) {
-    // The guess for each frame: the last frame's transform, moved as the whole
-    // picture moved since...
-    let prevPlane: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-    let prevPic: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-    // ...and, after a frame whose floor could not be measured, also the last
-    // floor that was. On a camera that travels the turn puts the near floor
-    // 20 pixels out (shot-01 from frame 210, a hand over a third of the
-    // floor's patches), beyond the patch search, and chained from the turn the
-    // floor was never found again; the guess that finds more patches is used.
-    let lastFloor: { S: Mat3; pic: Mat3 } | null = null;
-    for (let k = calibFrame - first + dir; k >= 0 && k < pictures.length; k += dir) {
-      const g = pictures[k];
-      if (!g) continue;
-      const f = source.frame(g.index);
-      const matchFrom = (guess: Mat3) => {
-        const P: Point[] = [];
-        const Q: Point[] = [];
-        const V: number[] = [];
-        patches.forEach((pt, n) => {
-          const m = matchPatch(c0, f, pt, apply(guess, pt));
-          if (m) {
-            P.push(pt);
-            Q.push(m);
-            V.push(laneV[n]);
-          }
-        });
-        return { P, Q, V };
-      };
-      let { P, Q, V } = matchFrom(normalize(multiply(multiply(g.S, invert(prevPic)), prevPlane)));
-      // (Only after such a frame: right after a measured floor the two guesses are one.)
-      if (lastFloor && lastFloor.pic !== prevPic) {
-        const other = matchFrom(normalize(multiply(multiply(g.S, invert(lastFloor.pic)), lastFloor.S)));
-        if (other.P.length > P.length) ({ P, Q, V } = other);
-      }
-      const fit = robustHomography(P, Q, tol);
-      const span = fit ? Math.max(...fit.inliers.map((i) => V[i])) - Math.min(...fit.inliers.map((i) => V[i])) : 0;
-      // The turn (a camera that does not travel) is the simpler model, so it
-      // is fitted to the same floor patches and kept unless the floor's own
-      // homography moves the lane by more than a quarter of a board at the foul
-      // line from where the turn puts it (a camera that travelled), with
-      // enough agreeing patches spread along the lane to be trusted.
-      const lens = opts.focal ? { ...g.lens, f: opts.focal } : g.lens;
-      const turn = robustTurn(lens, [g.turn[0], g.turn[1], g.turn[2], Math.log(g.zoom)], P, Q, tol);
-      const St = turn && turn.inliers.length >= minPatches ? turnHomography(lens, turn.p) : g.S;
-      // With four more unknowns than the turn, the floor fit must earn them:
-      // it must agree with clearly more patches (a third more), or it has
-      // only bent itself around noise and repeating patterns.
-      const planeOk = fit !== null && fit.inliers.length >= minPatches && span >= 20 && fit.inliers.length >= 1.3 * (turn?.inliers.length ?? 0);
-      prevPic = g.S;
-      if (!planeOk || disagreement(St, fit.H, H0) < travelled) {
-        const H = normalize(multiply(St, H0));
-        out[k] = { ...g, S: St, H, marks: laneMarksOf(H), lens };
-        prevPlane = St;
-        if (planeOk) lastFloor = null;
-        continue;
-      }
-      prevPlane = fit.H;
-      lastFloor = { S: fit.H, pic: g.S };
-      const H = normalize(multiply(fit.H, H0));
-      out[k] = { ...g, S: fit.H, H, marks: laneMarksOf(H), plane: fit.inliers.length };
-    }
+  for (const dir of [1, -1] as const) {
+    const pass = new PlanePass(c0, H0, opts);
+    for (const k of planeSlots(calibFrame, dir, first, pictures)) out[k] = pass.step(pictures[k], source.frame(pictures[k].index));
   }
   return out;
+}
+
+/** `registerPlane`'s tuning. */
+export interface PlaneOptions {
+  tolerance?: number;
+  minPatches?: number;
+  focal?: number;
+}
+
+/** The slots of `pictures` a `registerPlane` pass visits, in order, those with a frame only. */
+export function planeSlots(calibFrame: number, dir: 1 | -1, first: number, pictures: readonly (FrameGeometry | undefined)[]): number[] {
+  const out: number[] = [];
+  for (let k = calibFrame - first + dir; k >= 0 && k < pictures.length; k += dir) if (pictures[k]) out.push(k);
+  return out;
+}
+
+/**
+ * One direction of `registerPlane`, a frame at a time, each frame's guess
+ * chained from the frame before it in the pass: `step` takes the frames in
+ * `planeSlots` order. The two directions share nothing.
+ */
+export class PlanePass {
+  private readonly c0: GrayFrame;
+  private readonly H0: Mat3;
+  private readonly tol: number;
+  private readonly minPatches: number;
+  private readonly focal?: number;
+  private readonly patches: Patch[];
+  private readonly laneV: number[];
+  private readonly travelled: number;
+  // The guess for each frame: the last frame's transform, moved as the whole
+  // picture moved since...
+  private prevPlane: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+  private prevPic: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+  // ...and, after a frame whose floor could not be measured, also the last
+  // floor that was. On a camera that travels the turn puts the near floor
+  // 20 pixels out (shot-01 from frame 210, a hand over a third of the
+  // floor's patches), beyond the patch search, and chained from the turn the
+  // floor was never found again; the guess that finds more patches is used.
+  private lastFloor: { S: Mat3; pic: Mat3 } | null = null;
+
+  constructor(c0: GrayFrame, H0: Mat3, opts: PlaneOptions = {}) {
+    this.c0 = c0;
+    this.H0 = H0;
+    this.tol = opts.tolerance ?? 1.5;
+    this.minPatches = opts.minPatches ?? 12;
+    this.focal = opts.focal;
+    const G0 = invert(H0);
+    const horizonSide = (p: Point) => {
+      const w = G0[6] * p.x + G0[7] * p.y + G0[8];
+      const w0 = G0[6] * apply(H0, { x: 20, y: 0 }).x + G0[7] * apply(H0, { x: 20, y: 0 }).y + G0[8];
+      return w * w0 > 0;
+    };
+    const onFloor = (p: Point) => {
+      if (!horizonSide(p)) return false;
+      const q = apply(G0, p);
+      // Four lanes either side, from behind the foul line to past the pin deck.
+      return q.y > -12 && q.y < 64 && q.x > -260 && q.x < 300;
+    };
+    this.patches = choosePatches(c0, undefined, onFloor, 260);
+    const a = apply(H0, { x: 20, y: 0 });
+    const b = apply(H0, { x: 21, y: 0 });
+    this.travelled = Math.max(1.5, 0.25 * Math.hypot(b.x - a.x, b.y - a.y));
+    this.laneV = this.patches.map((p) => apply(G0, p).y);
+  }
+
+  /** The next frame of the pass: `g` its picture's registration, `f` the frame. */
+  step(g: FrameGeometry, f: GrayFrame): FrameGeometry {
+    const { c0, H0, tol, minPatches, patches, laneV } = this;
+    const matchFrom = (guess: Mat3) => {
+      const P: Point[] = [];
+      const Q: Point[] = [];
+      const V: number[] = [];
+      patches.forEach((pt, n) => {
+        const m = matchPatch(c0, f, pt, apply(guess, pt));
+        if (m) {
+          P.push(pt);
+          Q.push(m);
+          V.push(laneV[n]);
+        }
+      });
+      return { P, Q, V };
+    };
+    let { P, Q, V } = matchFrom(normalize(multiply(multiply(g.S, invert(this.prevPic)), this.prevPlane)));
+    // (Only after such a frame: right after a measured floor the two guesses are one.)
+    if (this.lastFloor && this.lastFloor.pic !== this.prevPic) {
+      const other = matchFrom(normalize(multiply(multiply(g.S, invert(this.lastFloor.pic)), this.lastFloor.S)));
+      if (other.P.length > P.length) ({ P, Q, V } = other);
+    }
+    const fit = robustHomography(P, Q, tol);
+    const span = fit ? Math.max(...fit.inliers.map((i) => V[i])) - Math.min(...fit.inliers.map((i) => V[i])) : 0;
+    // The turn (a camera that does not travel) is the simpler model, so it
+    // is fitted to the same floor patches and kept unless the floor's own
+    // homography moves the lane by more than a quarter of a board at the foul
+    // line from where the turn puts it (a camera that travelled), with
+    // enough agreeing patches spread along the lane to be trusted.
+    const lens = this.focal ? { ...g.lens, f: this.focal } : g.lens;
+    const turn = robustTurn(lens, [g.turn[0], g.turn[1], g.turn[2], Math.log(g.zoom)], P, Q, tol);
+    const St = turn && turn.inliers.length >= minPatches ? turnHomography(lens, turn.p) : g.S;
+    // With four more unknowns than the turn, the floor fit must earn them:
+    // it must agree with clearly more patches (a third more), or it has
+    // only bent itself around noise and repeating patterns.
+    const planeOk = fit !== null && fit.inliers.length >= minPatches && span >= 20 && fit.inliers.length >= 1.3 * (turn?.inliers.length ?? 0);
+    this.prevPic = g.S;
+    if (!planeOk || disagreement(St, fit.H, H0) < this.travelled) {
+      const H = normalize(multiply(St, H0));
+      this.prevPlane = St;
+      if (planeOk) this.lastFloor = null;
+      return { ...g, S: St, H, marks: laneMarksOf(H), lens };
+    }
+    this.prevPlane = fit.H;
+    this.lastFloor = { S: fit.H, pic: g.S };
+    const H = normalize(multiply(fit.H, H0));
+    return { ...g, S: fit.H, H, marks: laneMarksOf(H), plane: fit.inliers.length };
+  }
 }
 
 /** The largest distance in pixels between where two transforms put the lane's foul line ends and middle. */

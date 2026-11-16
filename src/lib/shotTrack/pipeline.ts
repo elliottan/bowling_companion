@@ -1,6 +1,6 @@
 import type { Handedness } from "../../types/bowling";
 import { associate } from "./associate";
-import { laneRoi, medianBackground, steady, type Roi } from "./background";
+import { laneRoi, medianBackground, steady, type Background, type Roi } from "./background";
 import { findCandidates, refineCircle, type Candidate, type CircleFit } from "./ballDetect";
 import { calibrationReport, type CalibrationReport } from "./calibrationCheck";
 import { fitCalibration, focalFromPlane, type CalibrationFit, type CalMark } from "./calibrate";
@@ -13,7 +13,7 @@ import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtF
 import { laneTrack, type FrameLane, type LaneTrack, type LaneTrackOptions } from "./laneTrack";
 import { atFoulLineTime, followForward, overFoulLine, uAtColumn, type FollowPrediction, type OverFoulLine, type ReleaseFrame } from "./release";
 import { followNear, nearSeeds } from "./nearFollow";
-import { alignTo, laneMarksOf, register, registerPlane, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
+import { alignTo, finishRegister, laneMarksOf, passFrames, PlanePass, planeSlots, RegisterPass, type FrameGeometry, type FrameSource, type Matches, type PlaneOptions, type RegisterOptions } from "./registration";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, TrackError, TrackFailure, TrackResult } from "./types";
 
 /**
@@ -123,7 +123,117 @@ export const NEAR_FROM_FT = 8;
 export const NEAR_SPAN_FT = 5;
 
 export function trace(input: TraceInput): TraceOutput {
-  const { source, hand } = input;
+  const steps = traceSteps(input);
+  let next = steps.next();
+  while (!next.done) next = steps.next(next.value.map((job) => runTraceJob(job, input.source, input.onProgress)));
+  return next.value;
+}
+
+/**
+ * The tracer's work that runs frame by frame, or pass by pass, as jobs: each
+ * a pure function of what it carries and the frames it names
+ * (`runTraceJob`), so the jobs of one batch can run side by side in workers
+ * and give what one thread gives, bit for bit.
+ */
+export type TraceJob =
+  /** One direction of the picture's registration (`RegisterPass`), over `frames` in order. */
+  | { kind: "register"; calibFrame: number; frames: number[]; opts: RegisterOptions }
+  /** One direction of the floor's registration (`PlanePass`): each of `geos` in order. */
+  | { kind: "plane"; calibFrame: number; H0: Mat3; geos: FrameGeometry[]; opts: PlaneOptions }
+  /** A frame's lane region steadied onto the calibration frame (`steady`). */
+  | { kind: "steady"; index: number; S: Mat3; roi: Roi }
+  /** The per-pixel median and spread of steadied frames (`medianBackground`); any band of rows on its own gives the same. */
+  | { kind: "median"; frames: GrayFrame[] }
+  /**
+   * A frame steadied onto the empty lane (`align` in `traceSteps`), and with
+   * `bg` its ball candidates on it (`findCandidates`). `picture` is the
+   * frame's region already steadied by `S`, when at hand.
+   */
+  | { kind: "align"; index: number; S: Mat3; H: Mat3; plane: boolean; roi: Roi; bg0: GrayFrame; bg?: Background; picture?: GrayFrame }
+  /** Everything after the candidates (`traceTail`): the ball's sightings, path and readings. */
+  | { kind: "tail"; state: TailState };
+
+/** What an `align` job gives: the frame's transform onto the empty lane, the frame steadied by it, and its candidates when asked. */
+export interface Aligned {
+  S: Mat3;
+  steadied: GrayFrame;
+  candidates?: Candidate[];
+}
+
+/** What the tracer has by the time it has every frame's candidates: `traceTail` reads the ball from it. */
+export interface TailState {
+  hand: Handedness;
+  distance?: DistanceSource;
+  first: number;
+  last: number;
+  calibFrame: number;
+  H0: Mat3;
+  geometry: FrameGeometry[];
+  cands: Candidate[];
+  debug: TraceDebug;
+}
+
+/** One job of `traceSteps`, run on `source`'s frames. */
+export function runTraceJob(job: TraceJob, source: FrameSource, onProgress?: (stage: string, fraction: number) => void): unknown {
+  switch (job.kind) {
+    case "register": {
+      const pass = new RegisterPass(source.frame(job.calibFrame), job.opts);
+      return { matches: job.frames.map((i) => pass.step(i, source.frame(i))), patches: pass.patchCount };
+    }
+    case "plane": {
+      const pass = new PlanePass(source.frame(job.calibFrame), job.H0, job.opts);
+      return job.geos.map((g) => pass.step(g, source.frame(g.index)));
+    }
+    case "steady":
+      return steady(source.frame(job.index), job.S, job.roi);
+    case "median":
+      return medianBackground(job.frames);
+    case "align":
+      return alignFrame(job, source);
+    case "tail":
+      return traceTail(job.state, source, onProgress ?? (() => {}));
+  }
+}
+
+/** What a `register` job gives: the pass's matches, and how many patches each frame was matched by. */
+export interface RegisterPassResult {
+  matches: Matches[];
+  patches: number;
+}
+
+/**
+ * A frame steadied onto the empty lane `bg0`: its transform, and its picture
+ * through it (the picture it was aligned on, when the alignment left the
+ * transform as it was); with `bg`, its ball candidates.
+ */
+export function alignFrame(job: Extract<TraceJob, { kind: "align" }>, source: FrameSource): Aligned {
+  const { roi } = job;
+  const toRoi: Mat3 = [1, 0, roi.x0, 0, 1, roi.y0, 0, 0, 1];
+  const fromRoi: Mat3 = [1, 0, -roi.x0, 0, 1, -roi.y0, 0, 0, 1];
+  const frame = source.frame(job.index);
+  const picture = job.picture ?? steady(frame, job.S, roi);
+  let out: Aligned = { S: job.S, steadied: picture };
+  // Only frames registered on the floor's own homography: a turn is exact
+  // for the camera it models, and aligning those adds only noise.
+  if (job.plane) {
+    const R = alignTo(job.bg0, picture);
+    if (R) {
+      const S = normalize(multiply(job.S, multiply(toRoi, multiply(R, fromRoi))));
+      out = { S, steadied: steady(frame, S, roi) };
+    }
+  }
+  if (job.bg) out.candidates = findCandidates(out.steadied, job.bg, roi, out.S, job.H, job.index);
+  return out;
+}
+
+/**
+ * The tracer as batches of jobs (`TraceJob`): each `yield` hands out jobs
+ * that do not depend on one another and takes their results back in the same
+ * order. `trace` runs them one after another; a pool of workers can run each
+ * batch side by side.
+ */
+export function* traceSteps(input: TraceInput): Generator<TraceJob[], TraceOutput, unknown[]> {
+  const { source } = input;
   const first = input.first ?? 0;
   const last = input.last ?? source.count - 1;
   const progress = input.onProgress ?? (() => {});
@@ -135,7 +245,12 @@ export function trace(input: TraceInput): TraceOutput {
   const I: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
   progress("registration", 0);
   // The picture's transforms first: they carry marks made on other frames.
-  const pictures = register(source, input.calibFrame, I, first, last, input.register);
+  // Forward and back from the calibration frame, the two passes side by side.
+  const regOpts = input.register ?? {};
+  const [ahead, behind] = (yield ([1, -1] as const).map((dir) => ({
+    kind: "register" as const, calibFrame: input.calibFrame, frames: passFrames(input.calibFrame, dir, first, last), opts: regOpts
+  }))) as RegisterPassResult[];
+  const pictures = finishRegister(calibFrame, input.calibFrame, I, first, ahead.matches, behind.matches, ahead.patches, regOpts);
   let marks: CalMark[] = [];
   const carry = (geo: FrameGeometry[]) =>
     input.calMarks!.map((m) => {
@@ -196,7 +311,15 @@ export function trace(input: TraceInput): TraceOutput {
   // turn's fit at the bottom of the picture depends on it, and the picture's
   // own small turns fix it poorly.
   const focal = focalFromPlane(H0, calibFrame.width, calibFrame.height) ?? undefined;
-  const geometry = registerPlane(source, input.calibFrame, H0, pictures, first, { focal });
+  const geometry: FrameGeometry[] = pictures.map((g) => ({ ...g }));
+  {
+    // Forward and back again, side by side (`registerPlane`).
+    const slots = ([1, -1] as const).map((dir) => planeSlots(input.calibFrame, dir, first, pictures));
+    const passes = (yield slots.map((ks) => ({
+      kind: "plane" as const, calibFrame: input.calibFrame, H0, geos: ks.map((k) => pictures[k]), opts: { focal }
+    }))) as FrameGeometry[][];
+    slots.forEach((ks, d) => ks.forEach((k, j) => (geometry[k] = passes[d][j])));
+  }
   if (input.calMarks && input.calMarks.some((m) => m.frame !== undefined && m.frame !== input.calibFrame)) {
     marks = carry(geometry);
     debug.fitMarks = marks;
@@ -243,36 +366,40 @@ export function trace(input: TraceInput): TraceOutput {
   // steadied picture is aligned to the empty lane by its own textured
   // patches (`alignTo`); the lane's mapping is not changed by it.
   const sampled = usable.filter((_, k) => k % 4 === 0);
-  const bgFrames0 = sampled.map((g) => steady(source.frame(g.index), g.S, roi));
-  const bg0 = medianBackground(bgFrames0);
-  const toRoi: Mat3 = [1, 0, roi.x0, 0, 1, roi.y0, 0, 0, 1];
-  const fromRoi: Mat3 = [1, 0, -roi.x0, 0, 1, -roi.y0, 0, 0, 1];
+  const bgFrames0 = (yield sampled.map((g) => ({ kind: "steady" as const, index: g.index, S: g.S, roi }))) as GrayFrame[];
+  const [bg0] = (yield [{ kind: "median" as const, frames: bgFrames0 }]) as Background[];
   const steadyS = debug.steady;
-  // A frame steadied onto the empty lane: its transform, and its picture
-  // through it (the picture it was aligned on, when the alignment left the
-  // transform as it was).
-  const align = (g: FrameGeometry, picture?: GrayFrame): { S: Mat3; steadied: GrayFrame } => {
-    // Only frames registered on the floor's own homography: a turn is exact
-    // for the camera it models, and aligning those adds only noise.
-    if (!g.plane) return { S: g.S, steadied: picture ?? steady(source.frame(g.index), g.S, roi) };
-    const first = picture ?? steady(source.frame(g.index), g.S, roi);
-    const R = alignTo(bg0, first);
-    if (!R) return { S: g.S, steadied: first };
-    const S = normalize(multiply(g.S, multiply(toRoi, multiply(R, fromRoi))));
-    return { S, steadied: steady(source.frame(g.index), S, roi) };
-  };
-  // The empty lane again from every fourth frame, each steadied.
-  const sampledAligned = new Map(sampled.map((g, j) => [g.index, align(g, bgFrames0[j])]));
-  const bg = medianBackground(sampled.map((g) => sampledAligned.get(g.index)!.steadied));
+  // The empty lane again from every fourth frame, each steadied (`alignFrame`).
+  const alignJob = (g: FrameGeometry, picture?: GrayFrame) => ({ kind: "align" as const, index: g.index, S: g.S, H: g.H, plane: !!g.plane, roi, bg0, picture });
+  const sampledAligned = new Map(((yield sampled.map((g, j) => alignJob(g, bgFrames0[j]))) as Aligned[]).map((a, j) => [sampled[j].index, a]));
+  const [bg] = (yield [{ kind: "median" as const, frames: sampled.map((g) => sampledAligned.get(g.index)!.steadied) }]) as Background[];
   debug.background = bg;
 
   progress("ball", 0.45);
+  // Every frame steadied onto the empty lane and its candidates found; the
+  // frames already steadied keep their transform (taken as is: no `plane`).
+  const found = (yield usable.map((g) => {
+    const known = sampledAligned.get(g.index);
+    return known ? { ...alignJob(g, known.steadied), S: known.S, plane: false, bg } : { ...alignJob(g), bg };
+  })) as Aligned[];
   const cands: Candidate[] = [];
-  for (const g of usable) {
-    const { S: Sg, steadied } = sampledAligned.get(g.index) ?? align(g);
-    steadyS.set(g.index, Sg);
-    cands.push(...findCandidates(steadied, bg, roi, Sg, g.H, g.index));
-  }
+  usable.forEach((g, k) => {
+    steadyS.set(g.index, found[k].S);
+    cands.push(...found[k].candidates!);
+  });
+  const [out] = (yield [{ kind: "tail" as const, state: { hand: input.hand, distance: input.distance, first, last, calibFrame: input.calibFrame, H0, geometry, cands, debug } }]) as TraceOutput[];
+  return out;
+}
+
+/**
+ * The tracer from every frame's ball candidates on (`traceSteps`): the one
+ * physical ball, each sighting's circle, the path and the distance against
+ * time, and the readings off them.
+ */
+export function traceTail(state: TailState, source: FrameSource, progress: (stage: string, fraction: number) => void): TraceOutput {
+  const { hand, first, last, H0, geometry, cands, debug } = state;
+  const calibFrame = source.frame(state.calibFrame);
+  const usable = geometry.filter((g) => g && g.ok);
   debug.candidates = cands;
   // A candidate that does not move is background (a reflection, a mark the
   // median missed): one that has company at the same lane spot in two or
@@ -574,7 +701,7 @@ export function trace(input: TraceInput): TraceOutput {
 
   const tFirst = seen[0].t;
   const tLast = seen[seen.length - 1].t;
-  const distance = input.distance ?? "foul";
+  const distance = state.distance ?? "foul";
   const met = metrics({
     path: fit.path, hand, seen: vs, points: pathPts, touchdown, motion, tFirst, tLast, rackMovesAt: pinT,
     overFoulLineU: debug.release?.u,
