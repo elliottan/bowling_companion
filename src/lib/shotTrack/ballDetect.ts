@@ -59,8 +59,17 @@ export function changeMap(
     // pin's body a narrow one).
     const p = data[i];
     const sp = spread?.[i];
-    const own = sp !== undefined && Number.isFinite(sp) ? Math.abs(p - bgData[i]) - K_SPREAD * Math.max(sp, 2) : 0;
-    const d = Math.max(0, p - hi[i], lo[i] - p, own);
+    const own = sp !== undefined && Number.isFinite(sp) ? Math.abs(p - bgData[i]) - K_SPREAD * (sp > 2 ? sp : 2) : 0;
+    // The largest of the four, written out; NaN anywhere (a pixel not seen) counts as no change.
+    let d = 0;
+    if (p !== p || own !== own) d = NaN;
+    else {
+      const up = p - hi[i];
+      const down = lo[i] - p;
+      if (up > d) d = up;
+      if (down > d) d = down;
+      if (own > d) d = own;
+    }
     diff[i] = Number.isFinite(d) ? d : 0;
     if (i % 7 === 0) probe[probed++] = diff[i];
   }
@@ -211,28 +220,70 @@ export function closeGaps(mask: Uint8Array, w: number, h: number, radius: number
   // A square is a row of the square's width swept down its height, so each
   // pass is one along the rows and one down the columns. Outside the picture
   // is clear, so nothing near the border comes out larger than it went in.
-  const pass = (src: Uint8Array, grow: boolean, dx: number, dy: number, n: number, len: number, stride: number) => {
+  // The change is a few blobs on an empty lane: rows with nothing set are
+  // passed over.
+  const full = 2 * radius + 1;
+  const anyIn = (src: Uint8Array) => {
+    const any = new Uint8Array(h);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0, i = y * w; x < w; x++, i++) {
+        if (src[i]) {
+          any[y] = 1;
+          break;
+        }
+      }
+    }
+    return any;
+  };
+  // Along each row: how many set pixels lie within the radius (the window cut by the border counts fewer).
+  const rows = (src: Uint8Array, any: Uint8Array, grow: boolean) => {
     const out = new Uint8Array(w * h);
-    // Along each line of `len` pixels (`stride` apart), lines starting `dx`/`dy` apart: how many set pixels lie within the radius.
-    for (let line = 0; line < n; line++) {
-      const base = line * (dx || dy);
+    for (let y = 0; y < h; y++) {
+      if (!any[y]) continue;
+      const base = y * w;
       let count = 0;
-      for (let k = 0; k < Math.min(radius, len); k++) count += src[base + k * stride];
-      for (let k = 0; k < len; k++) {
-        if (k + radius < len) count += src[base + (k + radius) * stride];
-        if (k - radius - 1 >= 0) count -= src[base + (k - radius - 1) * stride];
-        const lo = Math.max(0, k - radius);
-        const hi = Math.min(len - 1, k + radius);
-        // Growing: any set within reach. Shrinking: all of the reach set, and all of it inside the picture.
-        const hit = grow ? count > 0 : count === 2 * radius + 1 && hi - lo === 2 * radius;
-        out[base + k * stride] = hit ? 1 : 0;
+      for (let k = 0; k < Math.min(radius, w); k++) count += src[base + k];
+      for (let k = 0; k < w; k++) {
+        if (k + radius < w) count += src[base + k + radius];
+        if (k - radius - 1 >= 0) count -= src[base + k - radius - 1];
+        // Growing: any set within reach. Shrinking: all of the reach set, which a window cut by the border cannot be.
+        if (grow ? count > 0 : count === full) out[base + k] = 1;
       }
     }
     return out;
   };
-  const rows = (src: Uint8Array, grow: boolean) => pass(src, grow, w, 0, h, w, 1);
-  const cols = (src: Uint8Array, grow: boolean) => pass(src, grow, 0, 1, w, h, w);
-  return cols(rows(cols(rows(mask, true), true), false), false);
+  // Down the columns, a row at a time: each pixel from the rows within the radius.
+  const cols = (src: Uint8Array, any: Uint8Array, grow: boolean) => {
+    const out = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) {
+      const lo = y - radius;
+      const hi = y + radius;
+      let need = false;
+      if (grow) {
+        for (let j = Math.max(0, lo); j <= Math.min(h - 1, hi) && !need; j++) need = any[j] === 1;
+      } else {
+        need = lo >= 0 && hi < h;
+        for (let j = lo; j <= hi && need; j++) need = any[j] === 1;
+      }
+      if (!need) continue;
+      const base = y * w;
+      for (let x = 0; x < w; x++) {
+        let hit = !grow;
+        for (let j = Math.max(0, lo); j <= Math.min(h - 1, hi); j++) {
+          if ((src[j * w + x] === 1) === grow) {
+            hit = grow;
+            break;
+          }
+        }
+        if (hit) out[base + x] = 1;
+      }
+    }
+    return out;
+  };
+  const grownRows = rows(mask, anyIn(mask), true);
+  const grown = cols(grownRows, anyIn(grownRows), true);
+  const shrunkRows = rows(grown, anyIn(grown), false);
+  return cols(shrunkRows, anyIn(shrunkRows), false);
 }
 
 interface Blob {

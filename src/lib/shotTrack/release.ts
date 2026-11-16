@@ -53,11 +53,19 @@ export interface OverFoulLine {
 }
 
 /** Mean of the picture over a set of offsets around (x, y); NaN when any falls outside. */
-function meanAt(f: GrayFrame, x: number, y: number, offs: Int16Array): number {
+function meanAt(f: GrayFrame, x: number, y: number, offs: Int16Array, reach = Infinity): number {
   let s = 0;
   const n = offs.length / 2;
   const xi = Math.round(x);
   const yi = Math.round(y);
+  if (xi - reach >= 0 && yi - reach >= 0 && xi + reach < f.width && yi + reach < f.height) {
+    // Every offset within `reach` of the middle, and all of those inside the picture.
+    const d = f.data;
+    const w = f.width;
+    const at = yi * w + xi;
+    for (let k = 0; k < offs.length; k += 2) s += d[at + offs[k + 1] * w + offs[k]];
+    return s / n;
+  }
   for (let k = 0; k < offs.length; k += 2) {
     const px = xi + offs[k];
     const py = yi + offs[k + 1];
@@ -67,10 +75,10 @@ function meanAt(f: GrayFrame, x: number, y: number, offs: Int16Array): number {
   return s / n;
 }
 
-const offsetCache = new Map<string, { inner: Int16Array; ring: Int16Array }>();
+const offsetCache = new Map<string, { inner: Int16Array; ring: Int16Array; reach: number }>();
 
 /** Pixel offsets inside 0.8 r, and in the ring 1.2 r to 1.6 r below and beside the centre (not the top third). */
-function offsets(r: number): { inner: Int16Array; ring: Int16Array } {
+function offsets(r: number): { inner: Int16Array; ring: Int16Array; reach: number } {
   const key = r.toFixed(1);
   const known = offsetCache.get(key);
   if (known) return known;
@@ -84,7 +92,8 @@ function offsets(r: number): { inner: Int16Array; ring: Int16Array } {
       else if (d >= 1.2 * r && d <= 1.6 * r && j > -0.5 * d) ring.push(i, j);
     }
   }
-  const out = { inner: Int16Array.from(inner), ring: Int16Array.from(ring) };
+  // How far any offset reaches from the middle, pixels.
+  const out = { inner: Int16Array.from(inner), ring: Int16Array.from(ring), reach: R };
   offsetCache.set(key, out);
   return out;
 }
@@ -96,7 +105,7 @@ export function findDisc(f: GrayFrame, near: Point, radii: number[], reach: numb
     const o = offsets(r);
     for (let y = Math.round(near.y - reachY); y <= Math.round(near.y + reachY); y++) {
       for (let x = Math.round(near.x - reach); x <= Math.round(near.x + reach); x++) {
-        const c = meanAt(f, x, y, o.ring) - meanAt(f, x, y, o.inner);
+        const c = meanAt(f, x, y, o.ring, o.reach) - meanAt(f, x, y, o.inner, o.reach);
         if (Number.isFinite(c) && (!best || c > best.contrast)) best = { cx: x, cy: y, r, contrast: c };
       }
     }

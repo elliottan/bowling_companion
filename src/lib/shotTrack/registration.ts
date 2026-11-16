@@ -284,41 +284,33 @@ function searchOrder(r: number): number[] {
   return order;
 }
 
-/** Where a calibration patch lies in frame f, searched +-r around `guess`, sub-pixel; null when not found. */
-export function matchPatch(c0: GrayFrame, f: GrayFrame, p: Patch, guess: Point, r = 6): Point | null {
-  const gx = Math.round(guess.x);
-  const gy = Math.round(guess.y);
-  if (gx - p.h - r < 1 || gy - p.h - r < 1 || gx + p.h + r >= f.width - 1 || gy + p.h + r >= f.height - 1) return null;
+/** A patch of the calibration frame as `matchPatch` reads it, made once for every frame it is matched in. */
+interface Prepared {
+  data: GrayFrame["data"];
+  /** Bytes, so whole-number sums. */
+  ints: boolean;
+  /** The patch, row after row. */
+  tpl: Int32Array | Float64Array;
+  /** Block edges from the patch's middle, and each block's sum and size; the same in quarters. */
+  edges: number[];
+  sumsA: Float64Array;
+  sizes: Float64Array;
+  sumsA2: Float64Array;
+  sizes2: Float64Array;
+}
+
+const prepared = new WeakMap<Patch, Prepared>();
+
+function prepare(c0: GrayFrame, p: Patch): Prepared {
+  const known = prepared.get(p);
+  if (known && known.data === c0.data) return known;
   const a = c0.data;
-  const b = f.data;
   const aw = c0.width;
-  const bw = f.width;
   const h = p.h;
-  // Squared differences: a smooth cost surface, so the parabola through its
-  // minimum gives the sub-pixel part (absolute differences make a V). A
-  // shift's sum is given up once it passes the best so far (it only grows),
-  // so only the best and its four neighbors are ever summed in full; the
-  // best is the first smallest in the order the shifts are listed, as a full
-  // search finds it.
-  const err = (dx: number, dy: number, bound: number) => {
-    let e = 0;
-    for (let j = -h; j < h; j++) {
-      const r0 = (p.y + j) * aw + p.x;
-      const r1 = (gy + dy + j) * bw + gx + dx;
-      for (let i = -h; i < h; i++) {
-        const d = a[r0 + i] - b[r1 + i];
-        e += d * d;
-      }
-      if (e > bound) return e;
-    }
-    return e;
-  };
-  // A shift is not summed at all when it cannot beat the best: over each
-  // block of the patch the squared differences are at least the square of the
-  // summed difference over the block's size (Cauchy-Schwarz), and the frame's
-  // block sums come from its running sums in four reads.
-  const I = integral(f);
-  const IW = bw + 1;
+  const side = 2 * h;
+  const ints = !(a instanceof Float32Array) && side * side * 255 * 255 < 2 ** 31;
+  const tpl = ints ? new Int32Array(side * side) : new Float64Array(side * side);
+  for (let j = 0; j < side; j++) for (let i = 0; i < side; i++) tpl[j * side + i] = a[(p.y - h + j) * aw + p.x - h + i];
   const edges: number[] = [];
   for (let k = 0; k <= BLOCKS; k++) edges.push(-h + Math.round((2 * h * k) / BLOCKS));
   const sumsA = new Float64Array(BLOCKS * BLOCKS);
@@ -340,6 +332,73 @@ export function matchPatch(c0: GrayFrame, f: GrayFrame, p: Patch, guess: Point, 
     sumsA2[q] += sumsA[k];
     sizes2[q] += sizes[k];
   }
+  const out = { data: a, ints, tpl, edges, sumsA, sizes, sumsA2, sizes2 };
+  prepared.set(p, out);
+  return out;
+}
+
+/**
+ * The squared differences of a patch (`side` by `side`, row after row) and
+ * the picture from `at` (`width` a row), given up after the first row that
+ * takes them past `bound`. Bytes: each row's sum is a whole number, exact in
+ * 32 bits.
+ */
+function ssdBytes(tpl: Int32Array, b: Uint8Array | Uint8ClampedArray, side: number, at: number, width: number, bound: number): number {
+  let e = 0;
+  for (let j = 0, r0 = 0, r1 = at; j < side; j++, r0 += side, r1 += width) {
+    let row = 0;
+    for (let i = 0; i < side; i++) {
+      const d = tpl[r0 + i] - b[r1 + i];
+      row = (row + d * d) | 0;
+    }
+    e += row;
+    if (e > bound) return e;
+  }
+  return e;
+}
+
+/** `ssdBytes` for any picture, summed one pixel at a time in row order. */
+function ssdFloats(tpl: Int32Array | Float64Array, b: GrayFrame["data"], side: number, at: number, width: number, bound: number): number {
+  let e = 0;
+  for (let j = 0, r0 = 0, r1 = at; j < side; j++, r0 += side, r1 += width) {
+    for (let i = 0; i < side; i++) {
+      const d = tpl[r0 + i] - b[r1 + i];
+      e += d * d;
+    }
+    if (e > bound) return e;
+  }
+  return e;
+}
+
+/** Where a calibration patch lies in frame f, searched +-r around `guess`, sub-pixel; null when not found. */
+export function matchPatch(c0: GrayFrame, f: GrayFrame, p: Patch, guess: Point, r = 6): Point | null {
+  const gx = Math.round(guess.x);
+  const gy = Math.round(guess.y);
+  if (gx - p.h - r < 1 || gy - p.h - r < 1 || gx + p.h + r >= f.width - 1 || gy + p.h + r >= f.height - 1) return null;
+  const b = f.data;
+  const bw = f.width;
+  const h = p.h;
+  const prep = prepare(c0, p);
+  const { tpl, edges, sumsA, sizes, sumsA2, sizes2 } = prep;
+  const ints = prep.ints && !(b instanceof Float32Array);
+  // Squared differences: a smooth cost surface, so the parabola through its
+  // minimum gives the sub-pixel part (absolute differences make a V). A
+  // shift's sum is given up once it passes the best so far (it only grows),
+  // so only the best and its four neighbors are ever summed in full; the
+  // best is the first smallest in the order the shifts are listed, as a full
+  // search finds it.
+  const side = 2 * h;
+  const err = (dx: number, dy: number, bound: number) =>
+    ints
+      ? ssdBytes(tpl as Int32Array, b as Uint8Array, side, (gy + dy - h) * bw + gx + dx - h, bw, bound)
+      : ssdFloats(tpl, b, side, (gy + dy - h) * bw + gx + dx - h, bw, bound);
+  // A shift is not summed at all when it cannot beat the best: over each
+  // block of the patch the squared differences are at least the square of the
+  // summed difference over the block's size (Cauchy-Schwarz), and the frame's
+  // block sums come from its running sums in four reads.
+  const I = integral(f);
+  const IW = bw + 1;
+  const H2 = BLOCKS / 2;
   // A hair under, for the rounding of the sums of fractional pictures.
   const under = (lb: number) => lb * (1 - 1e-9) - 1e-6;
   const lowest = (dx: number, dy: number, bound: number) => {
