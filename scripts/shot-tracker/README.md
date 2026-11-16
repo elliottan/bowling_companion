@@ -590,6 +590,49 @@ What the clips taught:
 - `review-auto.ts` writes the pictures and readings of the automatic trace
   for a review page.
 
+## Speed (2026-11-16, not released)
+
+```
+npx tsx scripts/shot-tracker/bench.ts [shot-0N | IMG_1996 ...] [--out run.json] [--compare base.json]
+FIND_FRAMES=12 npx tsx scripts/shot-tracker/bench.ts    # the view's frame counts changed
+```
+
+`bench.ts` runs the app's compute on what the app reads (frames scaled to
+960 by 720 at most, 60 a second; IMG_1996 cropped to the clips' band over
+the window the app chose, 3.467 to 7.083 s): the lane on 8 frames of the
+first two seconds, the lane on 24 frames spread over the read, then the
+trace, each stage timed, every reading kept to 4 places. `--compare` lists
+every reading that moved. Run one clip a process to time it as the app's
+fresh worker does.
+
+The lane finder and the tracer were made about three times faster with
+every reading the same (Node, this container, one clip a process):
+
+| input | frames | lane, 8 + 24 frames | trace | of which registration | ball | total |
+|---|---|---|---|---|---|---|
+| shot-01 | 279 | 13.1 to 2.5 s | 41.5 to 14.9 s | 23.1 to 8.1 s | 7.0 to 5.0 s | 54.6 to 17.4 s |
+| shot-02 | 242 | 10.1 to 2.3 s | 31.7 to 11.2 s | 20.6 to 6.9 s | 6.0 to 3.0 s | 41.8 to 13.4 s |
+| shot-03 | 284 | 11.0 to 2.4 s | 30.3 to 10.4 s | 23.0 to 7.0 s | 6.0 to 2.5 s | 41.4 to 12.8 s |
+| shot-04 | 203 | 14.4 to 2.7 s | 27.9 to 10.4 s | 18.3 to 5.4 s | 7.5 to 3.5 s | 42.3 to 13.1 s |
+| shot-05 | 277 | 15.6 to 2.9 s | 38.2 to 13.5 s | 23.2 to 7.3 s | 9.9 to 4.1 s | 53.8 to 16.4 s |
+| shot-06 | 126 | 8.4 to 1.6 s | 8.7 to 3.7 s | 5.4 to 2.2 s | 2.8 to 1.1 s | 17.2 to 5.3 s |
+| IMG_1996 | 218 | 14.9 to 2.8 s | 32.0 to 11.1 s | 19.5 to 5.6 s | 7.4 to 3.9 s | 46.9 to 13.9 s |
+
+The finder's third of a second a frame was not a regression: 0.112.0 takes
+the same on the same frames (0.41 against 0.40 s a frame at the clips' full
+size). It went on medians: thousands a frame by sorting, three profiles a
+frame where two are read. It is now about 70 ms a frame.
+
+What is left is the patch matching that carries the lane from frame to
+frame (`register`, `registerPlane`, `alignTo`: about 150,000 patches a clip,
+each searched over 169 shifts) and the per-pixel work on every frame's lane
+(warp, change map, blobs). Both are now cut as far as an exact search
+allows: a shift is skipped when its block sums show it cannot win, and a
+sum is given up once it passes the best. Anything that changes the
+registration at all moves the readings: half the patches put IMG_1996's
+breakpoint at 52 ft against 45, and 12 frames for the lane search instead
+of 24 put shot-01's laydown at 19.4 against 24.3.
+
 ## The shot window and the reader (2026-11-16, not released)
 
 The owner's ruling: no fixed four seconds; read from the ball on the foul line

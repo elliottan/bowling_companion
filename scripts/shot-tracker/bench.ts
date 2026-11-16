@@ -34,8 +34,8 @@ const compareFile = opt("--compare");
 const names = args.length ? args : ["shot-01", "shot-02", "shot-03", "shot-04", "shot-05", "shot-06", "IMG_1996"];
 
 /** As `ShotTracerView`. */
-const FIND_FRAMES = 24;
-const FIRST_FIND_FRAMES = 8;
+const FIND_FRAMES = Number(process.env.FIND_FRAMES ?? 24);
+const FIRST_FIND_FRAMES = Number(process.env.FIRST_FIND_FRAMES ?? 8);
 /** The read's first part, seconds (`shotWindow.ts`: 0.4 before the run, 1.6 after). */
 const FIRST_PART_S = 2;
 
