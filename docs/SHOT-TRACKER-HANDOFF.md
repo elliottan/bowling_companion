@@ -8,84 +8,63 @@ development aid, not the product. Read this, then
 then `docs/SHOT-TRACKER-PLAN.md` sections 6 and 7 for the geometry. `CLAUDE.md`
 holds the house rules; the ones that bite here are at the end.
 
-## Stopped mid-round (2026-11-16): what is saved and what is not
+## Where it stands (0.113.0, 2026-11-16)
 
-Two jobs were running on the branch `claude/bold-hypatia-m1z17k` (on top of
-0.112.0) when the owner stopped them. Nothing here is released, no PR is open,
-and the version is not bumped (next is 0.113.0). The tree type-checks, lints
-and passes the 223 `src/lib/shotTrack` tests; the full `npm run verify` was
-not run.
+On draft PR 219, not merged: the owner merges by saying so. The owner reads
+only the review page (https://claude.ai/artifact/6ioRbhBs4oUo34nS6v67N6); its
+six questions are open.
 
-**The owner's rulings this round. They are the spec.**
+**The owner's rulings. They are the spec.**
 
-- The app must work with no hand-drawn lines. Hand lines are a review and
-  calibration reference only.
-- Do not hardcode 4 seconds. The clip kept is from the moment the ball is on
-  the foul line until it leaves the pin deck, and everything outside is
-  cropped.
-- Laydown is read on the frame the ball is right on the foul line. Review
-  pictures must start from that frame, and every reading must show the frame
-  it was read on.
-- A hidden foul-line end gets a best guess (the other end, the gutter's line,
-  the thin foul line itself, other frames). On shot-02 the right end is
-  visible, barely.
-- shot-01 pins is 18.5 to 19; the frame used (241) is a little late, the ball
-  is already among the pins. When unsure, show the frame chosen and the few
-  before it and the owner picks.
-- shot-05: the left foul-line corner sits a little down and left of the real
-  one. shot-02's whole-lane view is off.
-- shot-06 pins 18.0 is acceptable.
-- Two speeds: launch (first 10 to 15 ft) and at the pins. The owner is not
-  checking speed for now.
-- The owner did not know what the review page's "Hand" column was. It is the
-  same tracer run on lane lines marked by hand on one frame. Label it so, or
-  drop it.
+- The app works with no hand-drawn lines. Hand lines are a review reference.
+- No fixed clip length: keep from the ball at the foul line to the pin deck.
+- Laydown is the board the ball is over as it crosses the foul line, and must
+  not depend on where the bowler finishes. Every reading shows its frame.
+- A hidden foul-line end gets a best guess from the rest of the picture.
+- The pins board is read on the last frame before the ball touches a pin. A
+  right-hander's board cannot fall there.
+- The ball's outline must sit on the ball on every shot; where it cannot, say
+  so and mark the reading.
+- Two speeds: launch and at the pins. The owner is not checking speed yet.
 
-**Job 1, the foul line from one gutter end (half done, committed).**
-`laneFind.ts` has `oneGutterFoulLine(ends, pairs, slope, tol)`, used when
-`gutterFoulLine` finds only one end. Not done: tests for `gutterEnds` and
-`oneGutterFoulLine` (coverage floors will bite), and no check yet that it moves
-shot-02 (was 0.6 ft up the lane) without moving the other clips more than
-0.1 ft. Check with `scripts/shot-tracker/foul-look.ts`. shot-01 pins and the
-shot-05 corner were not started.
+**Done in 0.113.0** (see the changelog): the shot window (`shotWindow.ts`,
+`src/shotTracer/readShot.ts`), the repeatable reader (`marking.ts`,
+`videoFrames.ts`), run choice judged in feet on the first part's lane
+(`shotStart.ts`), launch and entry speed (`speeds.ts`), laydown by time
+(`atFoulLineTime` in `release.ts`), the pins follower that keeps the ball's
+size and matches its face, the foul line from the edge line's end
+(`edgeEnds`, `foulEnds`, `loneEndFoulLine` in `laneFind.ts`), and
+`scripts/shot-tracker/circles.ts`, a check of every circle against the ball's
+real outline.
 
-**Job 2, the shot window, speeds and the reader (half done).**
+**The measure after it** (auto, boards): shot-01 laydown 24.3, arrows 17.4,
+pins 18.8 (frame 235; owner reads 18.5 to 19); shot-02 21.3, 15.9, pins 16.7
+estimated; shot-03 13.8, 10.6; shot-04 6.2, arrows 5.1 estimated; shot-05
+18.5, 13.1, breakpoint 8.9 at 50 ft; shot-06 17.5, 14.8, pins 18.4. On
+IMG_1996 in headless Chromium four runs gave the same window and laydown
+18.6, arrows 13.4, in about 70 s (trace 31 s, reading 17 s, lane 11 s).
 
-- Committed: `speeds.ts` and `speeds.test.ts` (launch and entry speed). Not
-  wired into `auto.ts`, the result screen or the translations.
-- Not committed as code: the reader rewrite is saved as
-  `scripts/shot-tracker/wip/shot-window.patch` (applies cleanly to this
-  commit with `git apply`). It touches `marking.ts` (`READ_SECONDS`,
-  `readWindow`), `shotStart.ts`, `videoFrames.ts` and adds `shotWindow.ts`.
-  It does **not** type-check: `marking.test.ts` expects the old exports and
-  `ShotTracerView.tsx` line 154 passes 4 arguments where 3 are now taken.
-  Treat it as a draft to read, not as code to trust.
-- Not started: the reader's repeatability. On IMG_1996 laydown read 18.7 on
-  one browser run and 27.3 on another, because play-and-copy dropped frames
-  (237 frames over 4.6 s). The idea: find gaps from the media timestamps,
-  re-read them by seeking, and give each frame its own media time.
+**Known wrong or unproven.**
 
-**A finding to carry.** On five of the six clips the ball is never on the foul
-line in the video: it crosses in the bowler's hand, about a ball radius above
-the lane ("the ball's bottom never reached the foul line's row"; only shot-06
-reaches it). So "the frame the ball is on the foul line" is the frame the ball
-comes lowest, with the board read straight below its center. The owner has not
-been asked to confirm this reading of their rule; put it on the review page.
+- Circles: shot-04 frames 107 to 108 (leg over the ball, 7% large) and shot-02
+  near the pins (no top edge against the pit, circle a quarter ball low).
+  shot-06 pins frames 102 to 103 and the breakpoint frames of shot-01 and
+  shot-05 were not checked closely.
+- shot-02 laydown reads 21.3 down the lane's upright and 21.7 down the
+  picture; the owner called 21.9 right and has been asked which to use.
+- shot-03's foul line moved 0.2 ft with the edge-line change.
+- A video padded with another bowler's shots (shot-01 with 14 s of lead)
+  still falls back to the slowest-ball window at 30 fps and reads laydown
+  20.5 against 24.3.
+- The hang on "Looking for the shot" was not reproduced; a 60 s timeout now
+  ends it.
+- The lane finder takes about 0.35 s a frame, three times what it took at
+  0.112.0. Not looked into.
+- The run-judging rules rest on IMG_1996 and two padded clips.
+- Nothing has run on a real phone: rotated HEVC, HLG, Safari's frame
+  timestamps and memory are all untested.
 
-**The review page** (https://claude.ai/artifact/6ioRbhBs4oUo34nS6v67N6, the
-only thing the owner reads) still shows the 0.112.0 questions.
-`scripts/shot-tracker/review-auto.ts` and `review-frames.ts` now write a
-picture of the frame behind every automatic reading, and for pins the reading
-frame plus the four before it (`frames.json`, key `auto`). The page has not
-been rebuilt to show them. The page's build files lived in a session scratch
-folder and may be gone; rebuild from those scripts.
-
-**Order to pick up in:** finish job 1 with tests; shot-01 pins; job 2 (window,
-reader, speeds on screen, 7 locales); rebuild the review page with the frames,
-the Hand column explained and the new questions; then bump to 0.113.0, write
-the changelog, open a draft PR. Merge only when the owner says.
-
-## Where it stands (0.112.0, 2026-11-15)
+## Where it stood before that (0.112.0, 2026-11-15)
 
 - **0.112.0 made the app all automatic**, on the owner's word: no marking
   screen, no dragged lines, no trim step. `shotStart.ts` finds the ball's run

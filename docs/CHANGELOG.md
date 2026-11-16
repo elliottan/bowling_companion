@@ -9,6 +9,26 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.113.0: The shot tracer reads only the shot, and reads it the same every time (2026-11-16)
+
+- In Settings, Labs: the shot tracer no longer keeps a fixed four seconds. It
+  keeps the video from just before the ball crosses the foul line to when it
+  should reach the pins. A slow shot is kept whole at a lower frame rate.
+- Reading the same video twice gives the same frames, so the same readings.
+  When the browser skips frames while the video plays, they are read again.
+- The result lists two speeds: the launch speed over the first feet of the
+  lane, and the entry speed at the pins, in place of one speed.
+- The laydown is the board the ball is over at the moment it crosses the foul
+  line, timed back from where it lands. It no longer depends on where the
+  bowler finishes.
+- The board at the pins is read on the last frame before the ball touches a
+  pin. It used to be read several frames late, on a circle that had grown and
+  slid onto a pin or the ball's reflection.
+- The foul line is found where the lane's edge line stops when a gutter end is
+  hidden, by a ball return for example.
+- A search for the shot or the lane that never answers now ends with a
+  sentence asking for another video, where it could wait forever.
+
 ## 0.112.0: The shot tracer is all automatic (2026-11-15)
 
 - In Settings, Labs: the shot tracer no longer asks for lines to be dragged or
