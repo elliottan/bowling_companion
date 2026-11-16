@@ -1931,6 +1931,11 @@ msgstr "Enable Live Activity"
 msgid "Enter whole numbers for both lanes."
 msgstr "Enter whole numbers for both lanes."
 
+#. Bowling: the ball's speed over the last feet before it meets the pins, in miles an hour
+#: src/views/ShotTracerView.tsx
+msgid "Entry speed"
+msgstr "Entry speed"
+
 #. The tracer worked it out from where the ball was seen nearby
 #: src/views/ShotTracerView.tsx
 msgid "Estimated"
@@ -2759,6 +2764,11 @@ msgstr "Late and angular"
 #: src/views/DashboardView.tsx
 msgid "Later"
 msgstr "Later"
+
+#. Bowling: the ball's speed over the first 15 feet past the foul line, in miles an hour
+#: src/views/ShotTracerView.tsx
+msgid "Launch speed"
+msgstr "Launch speed"
 
 #. Bowling term: the board the ball first touches the lane
 #. Bowling term: the board the ball first touches the lane
@@ -4568,10 +4578,6 @@ msgstr "Specs and pictures of current balls"
 #: src/views/CatalogView.tsx
 msgid "Specs at {weight}"
 msgstr "Specs at {weight}"
-
-#: src/views/ShotTracerView.tsx
-msgid "Speed"
-msgstr "Speed"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins

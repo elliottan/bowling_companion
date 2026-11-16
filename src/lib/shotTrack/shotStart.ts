@@ -62,6 +62,14 @@ export interface ShotFound {
   confidence: number;
   /** The ball's run, as found. */
   run: RunPoint[];
+  /**
+   * The other runs that passed for the ball's, most likely first, up to
+   * `OTHER_RUNS`: the bowler's slide or swing can win on length (IMG_1996:
+   * the run chosen was the approach, 13 ft behind the foul line, on some
+   * looks), and once the lane is found the run that is on it says where the
+   * shot is (`shotWindow.ts`).
+   */
+  others?: RunPoint[][];
 }
 
 /** The width the first look reads a video at, pixels, and how many frames a second it wants. */
@@ -69,13 +77,17 @@ export const COARSE_WIDTH = 192;
 export const COARSE_FPS = 15;
 
 /**
- * How far before the ball is first seen the full read starts, seconds. The
- * tracer follows the ball back to the foul line from its first sighting and
- * wants a third to a half of a second before it (`release.ts`). The run is
- * first seen anywhere from the bottom of the swing (shot-05's original, a
- * tenth of a second before the release) to a few feet down the lane.
+ * How far before the ball is first seen the full read starts, seconds. The run
+ * is first seen anywhere from the bottom of the swing (shot-05's original, a
+ * tenth of a second before the release) to a few feet down the lane (at 25
+ * ft/s, 5 ft is a fifth of a second), at 15 frames a second: this covers the
+ * foul line in every case. The tracer itself needs only a few frames before
+ * the crossing (`shotWindow.ts`, which drops the rest once the lane is found).
  */
-export const LEAD_SECONDS = 0.6;
+export const LEAD_SECONDS = 0.4;
+
+/** The most other runs a look reports beside the one chosen (`ShotFound.others`). */
+export const OTHER_RUNS = 3;
 
 /** A pixel has changed when its grey moved this much (video range), the same way, against both neighbours. */
 export const CHANGE = 12;
@@ -502,7 +514,8 @@ export class ShotSearch {
     // follow-through and the walk back are shorter (four looks at shot-05's
     // original in Chromium: the ball's run had 4 to 7 points, the slide 4 or 5,
     // the follow-through 4).
-    const run = runs.reduce((best, r) => (r.length > best.length || (r.length === best.length && r[0].frame > best[0].frame) ? r : best));
+    const ranked = [...runs].sort((a, b) => b.length - a.length || b[0].frame - a[0].frame);
+    const run = ranked[0];
     const release = this.times[run[0].frame];
     const pinHit = pinsHit(this.small, this.shifts, run, SMALL);
     const rise = riseOf(run, this.shifts, h);
@@ -512,8 +525,15 @@ export class ShotSearch {
       release,
       pinHit,
       confidence,
-      run: run.map((b) => ({ t: this.times[b.frame], x: b.x / w, y: b.y / h }))
+      run: this.points(run),
+      others: ranked.slice(1, 1 + OTHER_RUNS).map((r) => this.points(r))
     };
+  }
+
+  /** A run as the first look reports it: seconds and picture fractions. */
+  private points(run: Blob[]): RunPoint[] {
+    const { w, h } = this.size!;
+    return run.map((b) => ({ t: this.times[b.frame], x: b.x / w, y: b.y / h }));
   }
 }
 
@@ -562,21 +582,16 @@ export function laneBand(width: number, height: number, found: ShotFound | null)
 }
 
 /**
- * A video no longer than this, seconds, is read from its start when no shot
- * is found in it: about what the reader holds of a 60 fps video, and one
- * more. A longer one is not guessed at.
+ * A video no longer than this, seconds, is read whole when no shot is found
+ * in it: a shot and a little more. A longer one is not guessed at.
  */
 export const SHORT_VIDEO = 5;
 
 /**
  * Where the full read of a video `duration` seconds long starts: a little
  * before the release when the shot was found, the start of a short video
- * when it was not, and null for a long one with no shot found.
- *
- * At 60 fps the read holds 4 seconds, and a slow ball (10 mph is 4.1 s to
- * the pins) does not fit with its lead. The release end is kept: it is where
- * the laydown, the touchdown and the arrows are read, and the tracer reports
- * the pins as not seen.
+ * when it was not, and null for a long one with no shot found. Where it ends
+ * is `shotWindow` (`shotWindow.ts`): when the ball has left the deck.
  */
 export function readFrom(duration: number, found: ShotFound | null): number | null {
   if (found) return found.start;

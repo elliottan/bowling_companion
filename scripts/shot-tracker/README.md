@@ -590,6 +590,43 @@ What the clips taught:
 - `review-auto.ts` writes the pictures and readings of the automatic trace
   for a review page.
 
+## The shot window and the reader (2026-11-16, not released)
+
+The owner's ruling: no fixed four seconds; read from the ball on the foul line
+until it leaves the pin deck, and nothing else. `src/shotTracer/readShot.ts`
+does it in two parts (the decisions are in `src/lib/shotTrack/shotWindow.ts`):
+
+1. The first part, from 0.4 s before the first look's run to 1.6 s after, at
+   60 a second. The lane is looked for on 8 of its frames.
+2. Each of the first look's runs (the one chosen and up to three others,
+   `ShotFound.others`) is put through that lane into feet. The first that gives
+   a believable speed and crosses the foul line inside the part sets the
+   window: from 0.2 s before the crossing to the deck end at that speed (no
+   faster than 27 mph) times 1.4, plus 0.25 s. Both edges sit on the first
+   look's 1/15 s grid: the tracer's readings move with its first frame.
+3. No run does: the end is the pins seen hit (when believable) or the time a
+   10 mph ball takes, from the read's start.
+4. The rest is read to the end. The whole window is kept at the highest rate
+   that fits 240 frames of 960 by 720 (60, 30, 20, 15): a slow shot is read at
+   a lower rate, never cut.
+
+The reader keeps every `m`th frame of the video counted from its start
+(`FrameSlots`), each at its own media time; a frame the browser passed over is
+found from the gap in the times and read again by playing that stretch more
+slowly. On IMG_1996 (VP9 copy, headless Chromium) three reads with the main
+thread kept busy passed over 44 to 75 frames each and came out with the same
+204 frames, pixel for pixel, as a clean read.
+
+What still moves the readings: the first look. It still picks the bowler's
+approach instead of the ball on some looks (IMG_1996: the run at 3.07 s, 13 ft
+behind the foul line, or the ball's at 3.53 s), and when the ball's run is not
+among its runs at all the window falls back to the slowest ball. Four app runs
+of IMG_1996 read laydown 18.6, 19.9, 19.9, 18.4 and arrows 13.4 to 13.5;
+identical windows gave identical readings. The first look now plays at a rate
+that should show every frame on a 60 Hz phone (`scanRate`), which is two to
+four times slower than before; headless Chromium hands over only about 30
+frames a second, so it was not shown to repeat there.
+
 ## In the app (0.108.0, 2026-11-14)
 
 The tracer runs in the app, in Settings, Labs (`src/views/ShotTracerView.tsx`,

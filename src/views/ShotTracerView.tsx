@@ -13,7 +13,8 @@ import { MARK_LINES, pathInPicture, type MarkLine } from "../lib/shotTrack/marki
 import { laneBands, readFrom, type Band, type ShotFound } from "../lib/shotTrack/shotStart";
 import type { Mat3, Metric, Point, TrackError, TrackFailure, TrackResult } from "../lib/shotTrack/types";
 import type { FindMessage, FindRequest, SearchMessage, SearchRequest, TraceMessage, TraceRequest } from "../shotTracer/protocol";
-import { readVideoFrames, scanVideo, type VideoFrames } from "../shotTracer/videoFrames";
+import { readShot } from "../shotTracer/readShot";
+import { scanVideo, type VideoFrames } from "../shotTracer/videoFrames";
 import type { Handedness } from "../types/bowling";
 
 /**
@@ -21,9 +22,10 @@ import type { Handedness } from "../types/bowling";
  * a video recorded or chosen, with nothing more asked of the bowler. A first
  * look over the whole video finds the shot (the ball's run up the lane,
  * `lib/shotTrack/shotStart.ts`) and, in a portrait video, the band of the
- * picture the lane is in; those few seconds are read at full quality, the lane
- * is found in a worker, and the tracer (`lib/shotTrack`) runs in another, its
- * readings shown on the frame. For the owner to try on real shots before it
+ * picture the lane is in; the shot alone, from the foul line until the ball
+ * has left the pin deck (`shotTracer/readShot.ts`), is read at full quality,
+ * the lane is found in a worker, and the tracer (`lib/shotTrack`) runs in
+ * another, its readings shown on the frame. For the owner to try on real shots before it
  * is part of a session.
  */
 
@@ -51,6 +53,8 @@ interface Found {
  * two nearest each side, and a frame costs the finder a third of a second.
  */
 const FIND_FRAMES = 24;
+/** How many of the read's first part's frames the lane is looked for on, to say where the shot ends. */
+const FIRST_FIND_FRAMES = 8;
 
 /** Each line's colour on the picture. */
 const LINE_TONE: Record<MarkLine, string> = {
@@ -119,82 +123,89 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     for (const w of workers.current) w.terminate();
     workers.current.clear();
     setStep({ kind: "searching", fraction: 0 });
-    let found: ShotFound | null;
+    let looked: Awaited<ReturnType<typeof search>>;
     let from: number | null;
     let bands: (Band | null)[];
     try {
-      const looked = await search(f, mine);
-      found = looked.found;
-      from = readFrom(looked.duration, found);
-      bands = laneBands(looked.width, looked.height, found);
+      looked = await search(f, mine);
+      from = readFrom(looked.duration, looked.found);
+      bands = laneBands(looked.width, looked.height, looked.found);
     } catch {
       if (attempt.current === mine) setStep({ kind: "pick", unreadable: true });
       return;
     }
     if (attempt.current !== mine) return;
+    const found = looked.found;
     console.info(
       `Shot tracer: ${found ? `ball seen from ${found.release.toFixed(2)} s, pins ${found.pinHit?.toFixed(2) ?? "not seen"}, confidence ${found.confidence.toFixed(2)}` : "no shot found"}; ` +
         `reading from ${from?.toFixed(2) ?? "nowhere"} s, rows ${bands.map((b) => (b ? `${b.top.toFixed(2)} to ${b.bottom.toFixed(2)}` : "all")).join(", then ")}`
     );
     if (from === null) setStep({ kind: "failed", missing: "shot" });
-    else void readBand(f, from, bands, mine);
+    else void readBand(f, looked, bands, mine);
   }
 
-  /** Reads the shot's few seconds in the first band left, then looks for the lane there. */
-  async function readBand(f: File, from: number, bands: (Band | null)[], mine: number) {
+  /** Reads the shot in the first band left, then looks for the lane there. */
+  async function readBand(f: File, looked: { found: ShotFound | null; width: number; height: number; duration: number }, bands: (Band | null)[], mine: number) {
     setStep({ kind: "reading", fraction: 0 });
     let v: VideoFrames;
     try {
-      v = await readVideoFrames(
+      const read = await readShot(
         f,
+        looked.found,
+        looked,
+        bands[0],
+        // The lane on a few of the first part's frames, for where the shot ends.
+        async (first) => {
+          const m = await findOn(first, FIRST_FIND_FRAMES);
+          return m.frame === null ? null : m.lanes;
+        },
         (fraction) => {
           if (attempt.current === mine) setStep({ kind: "reading", fraction });
-        },
-        from,
-        bands[0]
+        }
       );
+      v = read.frames;
       if (v.gray.length < 10) throw new Error("too short");
     } catch {
       if (attempt.current === mine) setStep({ kind: "pick", unreadable: true });
       return;
     }
     if (attempt.current !== mine) return;
+    setStep({ kind: "finding" });
+    const m = await findOn(v, FIND_FRAMES);
+    if (attempt.current !== mine) return;
+    if (m.frame !== null) traceShot(v, m.frame, { lanes: m.lanes, evidence: m.evidence }, mine);
     // Not found in this band: the next, read again, or nothing to trace.
-    findLane(v, mine, () => {
-      if (attempt.current !== mine) return;
-      if (bands.length > 1) void readBand(f, from, bands.slice(1), mine);
-      else setStep({ kind: "failed", missing: "lane" });
-    });
+    else if (bands.length > 1) void readBand(f, looked, bands.slice(1), mine);
+    else setStep({ kind: "failed", missing: "lane" });
   }
 
-  /** Looks for the lane on a few frames, then traces with it; `lost` when it is not found. */
-  function findLane(v: VideoFrames, mine: number, lost: () => void) {
-    setStep({ kind: "finding" });
-    const stride = Math.max(1, Math.floor(v.gray.length / FIND_FRAMES));
+  /** Looks for the lane on about `count` frames spread over `v`, in a worker; a null frame when it is not found or the worker fails. */
+  function findOn(v: VideoFrames, count: number): Promise<FindMessage> {
+    const stride = Math.max(1, Math.floor(v.gray.length / count));
     const request: FindRequest = {
       width: v.width,
       height: v.height,
       // Copies: the frames are still needed to trace.
       frames: v.gray.flatMap((g, index) => (index % stride === 0 ? [{ data: g.slice().buffer as ArrayBuffer, index }] : []))
     };
-    let worker: Worker;
-    try {
-      worker = startWorker(new URL("../shotTracer/find.worker.ts", import.meta.url));
-    } catch {
-      lost();
-      return;
-    }
-    worker.onmessage = (e: MessageEvent<FindMessage>) => {
-      stopWorker(worker);
-      const m = e.data;
-      if (m.frame === null) lost();
-      else if (attempt.current === mine) traceShot(v, m.frame, { lanes: m.lanes, evidence: m.evidence }, mine);
-    };
-    worker.onerror = () => {
-      stopWorker(worker);
-      lost();
-    };
-    worker.postMessage(request, request.frames.map((f) => f.data));
+    return new Promise((resolve) => {
+      let worker: Worker;
+      try {
+        worker = startWorker(new URL("../shotTracer/find.worker.ts", import.meta.url));
+      } catch {
+        resolve({ frame: null });
+        return;
+      }
+      worker.onmessage = (e: MessageEvent<FindMessage>) => {
+        stopWorker(worker);
+        resolve(e.data);
+      };
+      worker.onerror = () => {
+        stopWorker(worker);
+        resolve({ frame: null });
+      };
+      worker.postMessage(request, request.frames.map((f) => f.data));
+    });
   }
 
   /** Traces with the found lanes, each frame on its own. */
@@ -457,7 +468,16 @@ function Result({
           feet={m.breakpointFeet}
         />
         <Reading label={t({ message: "At the pins", comment: "The board the ball is on where it meets the pins" })} metric={m.pins} />
-        <Reading label={t`Speed`} metric={m.speed} speed />
+        <Reading
+          label={t({ message: "Launch speed", comment: "Bowling: the ball's speed over the first 15 feet past the foul line, in miles an hour" })}
+          metric={m.launchSpeed}
+          speed
+        />
+        <Reading
+          label={t({ message: "Entry speed", comment: "Bowling: the ball's speed over the last feet before it meets the pins, in miles an hour" })}
+          metric={m.entrySpeed}
+          speed
+        />
       </dl>
       <div className="flex flex-wrap gap-3">
         <Button onClick={onAnother}>{t`Another video`}</Button>

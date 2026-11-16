@@ -42,13 +42,21 @@ const trace = () => worker("trace");
 
 const W = 8;
 const H = 6;
-const COUNT = 60;
-const fakeVideo = () => ({
-  width: W,
-  height: H,
-  gray: Array.from({ length: COUNT }, () => new Uint8ClampedArray(W * H).fill(100)),
-  times: Array.from({ length: COUNT }, (_, i) => i / 30)
-});
+/** What the reader gives for a plan: a frame every `1 / fps` seconds of the stretch, with their own times. */
+const fakeVideo = (plan: { from: number; to: number; fps: number }) => {
+  const count = Math.max(0, Math.ceil((plan.to - plan.from) * plan.fps - 1e-9));
+  return {
+    width: W,
+    height: H,
+    gray: Array.from({ length: count }, () => new Uint8ClampedArray(W * H).fill(100)),
+    times: Array.from({ length: count }, (_, i) => plan.from + i / plan.fps),
+    src: 1 / plan.fps,
+    step: 1 / plan.fps,
+    missing: 0
+  };
+};
+/** The plan of the `n`th read. */
+const plan = (n: number) => readVideoFrames.mock.calls[n][2] as { from: number; to: number; fps: number; band: unknown; after?: { t: number; src: number } };
 
 /** The first look: two small frames, then the video's size and length. */
 function scanning(video: { width: number; height: number; duration: number }) {
@@ -92,7 +100,9 @@ const TRACED: TrackResult = {
     breakpoint: metric(7.7),
     breakpointFeet: metric(43),
     pins: metric(16.7),
-    speed: metric(15.3)
+    speed: metric(15.3),
+    launchSpeed: metric(17.4),
+    entrySpeed: metric(14.6)
   } as TrackResult["metrics"],
   motion: { v0: 0, w: 20, d: 0 },
   touchdownFrame: null,
@@ -119,10 +129,17 @@ async function searchFinds(shot: ShotFound | null) {
   searcher()!.reply({ found: shot });
 }
 
+/** The lane looked for on the read's first part, to say where the shot ends: answered, and the rest read. */
+async function firstFind(answer: FindMessage = { frame: null }) {
+  await waitFor(() => expect(find()).toBeTruthy());
+  find()!.reply(answer);
+  await waitFor(() => expect(FakeWorker.all.filter((w) => w.name === "find")).toHaveLength(2));
+}
+
 /** Picks a video, the shot is found, the video read and the lane search started. */
 async function chooseVideo() {
   await searchFinds(SHOT);
-  await waitFor(() => expect(find()).toBeTruthy());
+  await firstFind();
 }
 
 describe("ShotTracerView", () => {
@@ -133,7 +150,7 @@ describe("ShotTracerView", () => {
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
     vi.spyOn(console, "info").mockImplementation(() => {});
     readVideoFrames.mockReset();
-    readVideoFrames.mockResolvedValue(fakeVideo());
+    readVideoFrames.mockImplementation(async (_f: Blob, _p: unknown, p: { from: number; to: number; fps: number }) => fakeVideo(p));
     scanVideo.mockReset();
     scanning({ width: 1920, height: 1080, duration: 30 });
   });
@@ -170,21 +187,41 @@ describe("ShotTracerView", () => {
     await waitFor(() => expect(searcher()!.posted[searcher()!.posted.length - 1]).toEqual({ kind: "done" }));
   });
 
-  it("reads from just before the shot it found, with no trim step, and stops the search", async () => {
-    await chooseVideo();
+  it("reads from just before the shot it found to when the ball has left the deck, with no trim step", async () => {
+    await searchFinds(SHOT);
+    await waitFor(() => expect(find()).toBeTruthy());
     expect(readVideoFrames).toHaveBeenCalledTimes(1);
-    expect(readVideoFrames.mock.calls[0][2]).toBe(11.4);
-    // A landscape video is read whole.
-    expect(readVideoFrames.mock.calls[0][3]).toBeNull();
+    // The first part, at 60 a second; a landscape video is read whole.
+    expect(plan(0)).toMatchObject({ from: 11.6, fps: 60, band: null });
+    expect(plan(0).to).toBeCloseTo(13.2, 9);
     expect(searcher()!.terminated).toBe(true);
+    // The lane looked for on a few of its frames.
+    expect((find()!.posted[0] as FindRequest).frames.length).toBeLessThanOrEqual(10);
+    find()!.reply({ frame: null });
+    // No lane there: the window ends where the pins were seen hit, and the rest is read to it.
+    await waitFor(() => expect(readVideoFrames).toHaveBeenCalledTimes(2));
+    expect(plan(1).from).toBeCloseTo(13.2, 9);
+    expect(plan(1).to).toBeCloseTo(14.6 + 0.4, 9);
+    expect(plan(1).fps).toBe(60);
+    expect(plan(1).after?.t).toBeCloseTo(11.6 + 95 / 60, 9);
     expect(screen.queryByRole("slider")).toBeNull();
+  });
+
+  it("traces the frames from the first part's start to the end, each with its own time", async () => {
+    await chooseVideo();
+    find()!.reply(found());
+    await waitFor(() => expect(trace()).toBeTruthy());
+    const t = (trace()!.posted[0] as TraceRequest).frames.map((f) => f.t);
+    expect(t[0]).toBeCloseTo(11.6, 9);
+    expect(t[t.length - 1]).toBeLessThan(15);
+    expect(t.slice(1).every((x, i) => x > t[i])).toBe(true);
   });
 
   it("reads only the lane's band of a portrait video, round where the ball's run starts", async () => {
     scanning({ width: 1080, height: 1920, duration: 30 });
     await searchFinds({ ...SHOT, run: [{ t: 12, x: 0.5, y: 0.45 }] });
     await waitFor(() => expect(find()).toBeTruthy());
-    const band = readVideoFrames.mock.calls[0][3];
+    const band = plan(0).band as { top: number; bottom: number };
     expect(band.top).toBeCloseTo(0.15, 9);
     expect(band.bottom).toBeCloseTo(0.59, 9);
   });
@@ -192,14 +229,17 @@ describe("ShotTracerView", () => {
   it("reads the sample clips' band when the run's is much the same", async () => {
     scanning({ width: 1080, height: 1920, duration: 30 });
     await chooseVideo();
-    expect(readVideoFrames.mock.calls[0][3]).toEqual({ top: 0.3, bottom: 0.72 });
+    expect(plan(0).band).toEqual({ top: 0.3, bottom: 0.72 });
   });
 
-  it("reads a short video from its start when no shot is found in it", async () => {
+  it("reads a short video whole when no shot is found in it", async () => {
     scanning({ width: 1920, height: 1080, duration: 4.65 });
     await searchFinds(null);
     await waitFor(() => expect(find()).toBeTruthy());
-    expect(readVideoFrames.mock.calls[0][2]).toBe(0);
+    expect(readVideoFrames).toHaveBeenCalledTimes(1);
+    expect(plan(0)).toMatchObject({ from: 0, to: 4.65 });
+    // 4.65 s does not fit at 60: read at 30.
+    expect(plan(0).fps).toBe(30);
   });
 
   it("says the shot couldn't be found in a long video, what to try, and offers another", async () => {
@@ -219,7 +259,7 @@ describe("ShotTracerView", () => {
   });
 
   it("says a video is unreadable when too little of it could be read", async () => {
-    readVideoFrames.mockResolvedValue({ ...fakeVideo(), gray: [], times: [] });
+    readVideoFrames.mockImplementation(async (_f: Blob, _p: unknown, p: { from: number; to: number; fps: number }) => ({ ...fakeVideo(p), gray: [], times: [] }));
     await searchFinds(SHOT);
     expect((await screen.findByRole("alert")).textContent).toMatch(/couldn't be read/);
   });
@@ -228,8 +268,8 @@ describe("ShotTracerView", () => {
     await chooseVideo();
     expect(screen.getByText("Finding the lane…")).toBeTruthy();
     const request = find()!.posted[0] as FindRequest;
-    // 60 frames, so every 2nd: 30 of them, each with its clip index.
-    expect(request.frames.map((f) => f.index)).toEqual(Array.from({ length: 30 }, (_, i) => i * 2));
+    // 11.6 to 15.0 s at 60: 204 frames, so every 8th, each with its clip index.
+    expect(request.frames.map((f) => f.index)).toEqual(Array.from({ length: 26 }, (_, i) => i * 8));
     expect(request.frames[0].data.byteLength).toBe(W * H);
   });
 
@@ -255,7 +295,12 @@ describe("ShotTracerView", () => {
     // The touchdown beside the laydown: where the ball first touches the lane.
     expect(screen.getByText("Touchdown")).toBeTruthy();
     expect(screen.getByText("Board 23 at 2 ft")).toBeTruthy();
-    expect(screen.getByText("15.3 mph")).toBeTruthy();
+    // Two speeds, at the foul line and at the pins, in place of one.
+    expect(screen.getByText("Launch speed")).toBeTruthy();
+    expect(screen.getByText("17.4 mph")).toBeTruthy();
+    expect(screen.getByText("Entry speed")).toBeTruthy();
+    expect(screen.getByText("14.6 mph")).toBeTruthy();
+    expect(screen.queryByText("15.3 mph")).toBeNull();
     // Both edges, the foul line and the pin row, under the path.
     const lane = screen.getByTestId("lane-lines");
     expect(lane.querySelectorAll("line")).toHaveLength(4);
@@ -276,6 +321,18 @@ describe("ShotTracerView", () => {
     expect(screen.getByText("Board 23.8")).toBeTruthy();
     expect(screen.queryByText(/move/i)).toBeNull();
     expect(screen.getAllByRole("button").map((b) => b.textContent)).not.toContain("Move the lines and trace again");
+  });
+
+  it("says the entry speed was not seen when the ball was not followed to the pins", async () => {
+    await chooseVideo();
+    find()!.reply(found());
+    await waitFor(() => expect(trace()).toBeTruthy());
+    const metrics = { ...TRACED.metrics, entrySpeed: { value: null, state: "missing" as const } };
+    trace()!.reply({ ...done(), result: { ...TRACED, metrics } });
+    const row = (await screen.findByText("Entry speed")).closest("div")!;
+    expect(row.textContent).toContain("Not seen");
+    expect(row.textContent).not.toContain("mph");
+    expect(screen.getByText("17.4 mph")).toBeTruthy();
   });
 
   it("says the lane may be off when the finder guessed the foul line", async () => {
@@ -322,11 +379,13 @@ describe("ShotTracerView", () => {
   it("tries the sample clips' band of a portrait video when the run's band holds no lane", async () => {
     scanning({ width: 1080, height: 1920, duration: 30 });
     await searchFinds({ ...SHOT, run: [{ t: 12, x: 0.5, y: 0.95 }] });
-    await waitFor(() => expect(find()).toBeTruthy());
+    await firstFind();
     act(() => find()!.onerror?.());
-    await waitFor(() => expect(readVideoFrames).toHaveBeenCalledTimes(2));
-    expect(readVideoFrames.mock.calls[1][3]).toEqual({ top: 0.3, bottom: 0.72 });
-    await waitFor(() => expect(FakeWorker.all.filter((w) => w.name === "find")).toHaveLength(2));
+    await waitFor(() => expect(readVideoFrames).toHaveBeenCalledTimes(3));
+    expect(plan(2).band).toEqual({ top: 0.3, bottom: 0.72 });
+    await waitFor(() => expect(FakeWorker.all.filter((w) => w.name === "find")).toHaveLength(3));
+    find()!.reply({ frame: null } satisfies FindMessage);
+    await waitFor(() => expect(FakeWorker.all.filter((w) => w.name === "find")).toHaveLength(4));
     find()!.reply({ frame: null } satisfies FindMessage);
     expect((await screen.findByRole("alert")).textContent).toBe("The lane couldn't be found in this video.");
   });

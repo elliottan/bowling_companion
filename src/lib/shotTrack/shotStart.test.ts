@@ -14,6 +14,7 @@ import {
   laneBand,
   laneBands,
   LEAD_SECONDS,
+  OTHER_RUNS,
   readFrom,
   ShotSearch,
   SHORT_VIDEO,
@@ -225,6 +226,10 @@ describe("finding the shot", () => {
     const second = handShot(0).map((f) => ({ ...f, t: f.t + 2 }));
     const found = findShot([...first, ...second])!;
     expect(found.release).toBeCloseTo(2, 1);
+    // The other run is reported beside it, for the lane to judge.
+    expect(found.others).toHaveLength(1);
+    expect(found.others![0][0].t).toBeCloseTo(0.5, 1);
+    expect(OTHER_RUNS).toBeGreaterThanOrEqual(1);
   });
 
   it("ignores a frame of another size", () => {
