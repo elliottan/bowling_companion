@@ -206,20 +206,66 @@ export function buildFan(f: GrayFrame, vp: Point, roll = 0): Fan {
   const cols = 3 * W;
   const y0 = Math.ceil(Math.max(0, vp.y + 0.02 * f.height));
   const rows = Math.max(0, f.height - y0);
-  const F = new Float32Array(cols * rows);
+  const F = new Float32Array(cols * rows).fill(NaN);
   const G = new Float32Array(cols * rows).fill(NaN);
   // Column i is the ray through (x, yRef + roll (x - vp.x)): the reference line
   // runs parallel to the horizon, a line of one distance down the lane, so
   // every lane is the same number of columns wide.
   const yr = new Float64Array(cols);
-  for (let i = 0; i < cols; i++) yr[i] = yRef + roll * (x0 + i - vp.x) - vp.y;
+  const cx = new Float64Array(cols);
+  for (let i = 0; i < cols; i++) {
+    cx[i] = x0 + i - vp.x;
+    yr[i] = yRef + roll * (x0 + i - vp.x) - vp.y;
+  }
+  // Where a row's rays meet the picture, `sampleRow` written out: picture x
+  // grows with the column (the reference line lies below the vanishing
+  // point), so each row reads from the first column inside to the last,
+  // found by bisection and then checked a few columns either side.
+  const d = f.data;
+  const xMax = W - 1;
+  // (With a reference line that crosses the horizon somewhere, every column is read.)
+  let rising = true;
+  for (let i = 0; i < cols; i++) if (!(yr[i] > 0)) rising = false;
   for (let j = 0; j < rows; j++) {
     const y = y0 + j;
     const dy = y - vp.y;
-    for (let i = 0; i < cols; i++) F[j * cols + i] = sampleRow(f, vp.x + ((x0 + i - vp.x) * dy) / yr[i], y);
-    for (let i = 2; i < cols - 2; i++) G[j * cols + i] = (F[j * cols + i + 2] - F[j * cols + i - 2]) / ((4 * dy) / yr[i]);
+    const at = (i: number) => vp.x + (cx[i] * dy) / yr[i];
+    const [lo, hi] = rising ? insideColumns(at, cols, xMax) : [0, cols - 1];
+    const r = y * W;
+    for (let i = lo; i <= hi; i++) {
+      const x = at(i);
+      if (!(x >= 0 && x <= xMax)) continue;
+      const k = Math.min(Math.floor(x), W - 2);
+      const t = x - k;
+      F[j * cols + i] = d[r + k] * (1 - t) + d[r + k + 1] * t;
+    }
+    for (let i = Math.max(2, lo); i <= Math.min(cols - 3, hi); i++) G[j * cols + i] = (F[j * cols + i + 2] - F[j * cols + i - 2]) / ((4 * dy) / yr[i]);
   }
   return { vp, yRef, roll, x0, cols, y0, rows, F, G };
+}
+
+/**
+ * The columns a fan row reads, for a picture x that grows with the column
+ * (`at`): from the first at or past 0 to the last at or before `xMax`, found
+ * by bisection, with three more either side for the rounding.
+ */
+function insideColumns(at: (i: number) => number, cols: number, xMax: number): [number, number] {
+  let a = 0;
+  let b = cols - 1;
+  while (a < b) {
+    const m = (a + b) >> 1;
+    if (at(m) >= 0) b = m;
+    else a = m + 1;
+  }
+  const lo = Math.max(0, a - 3);
+  a = 0;
+  b = cols - 1;
+  while (a < b) {
+    const m = (a + b + 1) >> 1;
+    if (at(m) <= xMax) a = m;
+    else b = m - 1;
+  }
+  return [lo, Math.min(cols - 1, a + 3)];
 }
 
 /**
@@ -239,15 +285,6 @@ export function estimateRoll(lines: HoughLine[]): number {
     if (acc >= total / 2) return x.s;
   }
   return 0;
-}
-
-/** Linear sample along a row; NaN outside the picture. */
-function sampleRow(f: GrayFrame, x: number, y: number): number {
-  if (!(x >= 0 && x <= f.width - 1)) return NaN;
-  const i = Math.min(Math.floor(x), f.width - 2);
-  const t = x - i;
-  const r = y * f.width;
-  return f.data[r + i] * (1 - t) + f.data[r + i + 1] * t;
 }
 
 /** The picture line of fan column `x` (picture x at yRef). */
@@ -434,7 +471,8 @@ export function lanesOnFrame(f: GrayFrame): FrameLanes | null {
   const { far, near } = laneRows(fan);
   const span = near - far;
   if (span < 0.15 * f.height) return null;
-  const prof = columnProfile(fan, far + 0.08 * span, near - 0.04 * span);
+  // (The finder reads the gradient's medians only; the level's are left out.)
+  const prof = columnProfile(fan, far + 0.08 * span, near - 0.04 * span, false);
   // The bowler, the ball return and a scoring screen stand near the camera and
   // hide the near half of an edge far more often than the far half: each
   // column keeps the stronger of its whole-length and far-half medians.
