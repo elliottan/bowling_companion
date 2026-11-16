@@ -42,8 +42,13 @@ export function changeMap(
   const { width: w, height: h } = steadied;
   const n = w * h;
   const diff = new Float32Array(n);
-  const probe: number[] = [];
+  const probe = new Float64Array(Math.ceil(n / 7));
+  let probed = 0;
   const env = envelope(bg);
+  const { lo, hi } = env;
+  const data = steadied.data;
+  const bgData = bg.data;
+  const spread = bg.spread;
   for (let i = 0; i < n; i++) {
     // Outside the empty lane's 3 by 3 range: a strong static edge that the
     // steadying misses by a fraction of a pixel does not count as change.
@@ -52,14 +57,14 @@ export function changeMap(
     // also counts as changed when it leaves its own range over time: five
     // spreads from its median (a jittering edge has a wide spread, a still
     // pin's body a narrow one).
-    const p = steadied.data[i];
-    const sp = bg.spread?.[i];
-    const own = sp !== undefined && Number.isFinite(sp) ? Math.abs(p - bg.data[i]) - K_SPREAD * Math.max(sp, 2) : 0;
-    const d = Math.max(0, p - env.hi[i], env.lo[i] - p, own);
+    const p = data[i];
+    const sp = spread?.[i];
+    const own = sp !== undefined && Number.isFinite(sp) ? Math.abs(p - bgData[i]) - K_SPREAD * Math.max(sp, 2) : 0;
+    const d = Math.max(0, p - hi[i], lo[i] - p, own);
     diff[i] = Number.isFinite(d) ? d : 0;
-    if (i % 7 === 0) probe.push(diff[i]);
+    if (i % 7 === 0) probe[probed++] = diff[i];
   }
-  const noise = 1.4826 * median(probe);
+  const noise = 1.4826 * median(probe.subarray(0, probed));
   return { diff, threshold: Math.max((opts.k ?? 4) * noise, opts.floor ?? 14) };
 }
 
@@ -147,11 +152,22 @@ export function findCandidates(
         if (y < y0) y0 = y;
         if (y > y1) y1 = y;
         (rowsX[y] ??= []).push(x);
-        for (const q of [p - 1, p + 1, p - w, p + w]) {
-          if (q < 0 || q >= n || label[q] || !mask[q]) continue;
-          if ((q === p - 1 && x === 0) || (q === p + 1 && x === w - 1)) continue;
-          label[q] = next;
-          stack.push(q);
+        // The four neighbors, in the order left, right, up, down.
+        if (x > 0 && !label[p - 1] && mask[p - 1]) {
+          label[p - 1] = next;
+          stack.push(p - 1);
+        }
+        if (x < w - 1 && !label[p + 1] && mask[p + 1]) {
+          label[p + 1] = next;
+          stack.push(p + 1);
+        }
+        if (p - w >= 0 && !label[p - w] && mask[p - w]) {
+          label[p - w] = next;
+          stack.push(p - w);
+        }
+        if (p + w < n && !label[p + w] && mask[p + w]) {
+          label[p + w] = next;
+          stack.push(p + w);
         }
       }
       if (area >= MIN_PIECE) blobs.push({ x0, x1, y0, y1, area, rowsX });

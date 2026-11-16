@@ -84,26 +84,83 @@ function sad(a: GrayFrame, b: GrayFrame, dx: number, dy: number, x0: number, x1:
   return s / n;
 }
 
-/** The shift of least `sad` within +-r of (cx, cy), the first in row order on a tie, and every shift's cost (NaN where given up). */
+/** Side of the blocks `bestShift` bounds a shift's cost by, pixels. */
+const SHIFT_BLOCK = 8;
+
+/**
+ * The shift of least `sad` within +-r of (cx, cy), the first in row order on
+ * a tie, and every shift's cost (NaN where given up). With `stride` 1, a
+ * shift whose box lies inside `b` is skipped when its blocks' sums show it
+ * cannot beat the best (the absolute differences over a block are at least
+ * the difference of its sums), read from `b`'s running sums.
+ */
 function bestShift(a: GrayFrame, b: GrayFrame, cx: number, cy: number, r: number, box: [number, number, number, number], stride: number) {
-  let best = { dx: cx, dy: cy, e: Infinity };
+  const [x0, x1, y0, y1] = box;
   const w = 2 * r + 1;
   const grid = new Float64Array(w * w).fill(NaN);
+  let bound: ((dx: number, dy: number) => number) | null = null;
+  if (stride === 1 && x1 > x0 && y1 > y0) {
+    const xs: number[] = [];
+    for (let x = x0; x < x1; x += SHIFT_BLOCK) xs.push(x);
+    xs.push(x1);
+    const ys: number[] = [];
+    for (let y = y0; y < y1; y += SHIFT_BLOCK) ys.push(y);
+    ys.push(y1);
+    const sums: number[] = [];
+    for (let j = 0; j + 1 < ys.length; j++) {
+      for (let i = 0; i + 1 < xs.length; i++) {
+        let t = 0;
+        for (let y = ys[j]; y < ys[j + 1]; y++) for (let x = xs[i]; x < xs[i + 1]; x++) t += a.data[y * a.width + x];
+        sums.push(t);
+      }
+    }
+    const I = new Float64Array((b.width + 1) * (b.height + 1));
+    const IW = b.width + 1;
+    for (let y = 0; y < b.height; y++) {
+      let row = 0;
+      for (let x = 0; x < b.width; x++) {
+        row += b.data[y * b.width + x];
+        I[(y + 1) * IW + x + 1] = I[y * IW + x + 1] + row;
+      }
+    }
+    const n = (x1 - x0) * (y1 - y0);
+    bound = (dx, dy) => {
+      if (x0 + dx < 0 || x1 + dx > b.width || y0 + dy < 0 || y1 + dy > b.height) return -Infinity;
+      let lb = 0;
+      let k = 0;
+      for (let j = 0; j + 1 < ys.length; j++) {
+        const top = (ys[j] + dy) * IW;
+        const bottom = (ys[j + 1] + dy) * IW;
+        for (let i = 0; i + 1 < xs.length; i++, k++) {
+          const left = xs[i] + dx;
+          const right = xs[i + 1] + dx;
+          lb += Math.abs(sums[k] - (I[bottom + right] - I[top + right] - I[bottom + left] + I[top + left]));
+        }
+      }
+      // A hair under, for the rounding of the sums.
+      return (lb / n) * (1 - 1e-9) - 1e-9;
+    };
+  }
+  // The middle first: near the answer, it makes a low bound early.
+  let best = { dx: cx, dy: cy, e: sad(a, b, cx, cy, x0, x1, y0, y1, stride), k: r * w + r };
+  grid[best.k] = best.e;
   for (let dy = cy - r; dy <= cy + r; dy++) {
     for (let dx = cx - r; dx <= cx + r; dx++) {
-      const e = sad(a, b, dx, dy, box[0], box[1], box[2], box[3], stride, best.e);
-      if (e <= best.e) grid[(dy - cy + r) * w + dx - cx + r] = e;
-      if (e < best.e) best = { dx, dy, e };
+      const k = (dy - cy + r) * w + dx - cx + r;
+      if (k === r * w + r || (bound && bound(dx, dy) > best.e)) continue;
+      const e = sad(a, b, dx, dy, x0, x1, y0, y1, stride, best.e);
+      if (e <= best.e) grid[k] = e;
+      if (e < best.e || (e === best.e && e < Infinity && k < best.k)) best = { dx, dy, e, k };
     }
   }
   /** A shift's cost, summed in full when it was given up; undefined outside the search. */
   const cost = (dx: number, dy: number): number | undefined => {
     if (Math.abs(dx - cx) > r || Math.abs(dy - cy) > r) return undefined;
     const k = (dy - cy + r) * w + dx - cx + r;
-    if (Number.isNaN(grid[k])) grid[k] = sad(a, b, dx, dy, box[0], box[1], box[2], box[3], stride);
+    if (Number.isNaN(grid[k])) grid[k] = sad(a, b, dx, dy, x0, x1, y0, y1, stride);
     return grid[k];
   };
-  return { ...best, cost };
+  return { dx: best.dx, dy: best.dy, e: best.e, cost };
 }
 
 /**
@@ -182,14 +239,19 @@ export function choosePatches(f: GrayFrame, size?: number, keep?: (p: Point) => 
 const BLOCKS = 4;
 
 /** The last picture's running sums (`integral`): every patch of one frame is matched in turn. */
-let summed: { data: GrayFrame["data"]; I: Float64Array } | null = null;
+let summed: { data: GrayFrame["data"]; I: Float64Array | Int32Array } | null = null;
 
-/** The picture's sums over every rectangle from its top left corner, (width + 1) by (height + 1). */
-function integral(f: GrayFrame): Float64Array {
+/**
+ * The picture's sums over every rectangle from its top left corner, (width +
+ * 1) by (height + 1): whole numbers for a picture of bytes (exact, and
+ * quicker to write), else doubles.
+ */
+function integral(f: GrayFrame): Float64Array | Int32Array {
   if (summed && summed.data === f.data) return summed.I;
   const w = f.width;
   const W = w + 1;
-  const I = new Float64Array(W * (f.height + 1));
+  const n = W * (f.height + 1);
+  const I = !(f.data instanceof Float32Array) && f.width * f.height * 255 < 2 ** 31 ? new Int32Array(n) : new Float64Array(n);
   const d = f.data;
   for (let y = 0; y < f.height; y++) {
     let row = 0;
@@ -200,6 +262,26 @@ function integral(f: GrayFrame): Float64Array {
   }
   summed = { data: f.data, I };
   return I;
+}
+
+const orders = new Map<number, number[]>();
+
+/** The shifts of a +-r search but its middle, as indices in row order: the eight around the middle first, then the rest in row order. */
+function searchOrder(r: number): number[] {
+  const known = orders.get(r);
+  if (known) return known;
+  const w = 2 * r + 1;
+  const ring: number[] = [];
+  const rest: number[] = [];
+  for (let k = 0; k < w * w; k++) {
+    const dx = (k % w) - r;
+    const dy = Math.floor(k / w) - r;
+    if (!dx && !dy) continue;
+    (Math.abs(dx) <= 1 && Math.abs(dy) <= 1 ? ring : rest).push(k);
+  }
+  const order = [...ring, ...rest];
+  orders.set(r, order);
+  return order;
 }
 
 /** Where a calibration patch lies in frame f, searched +-r around `guess`, sub-pixel; null when not found. */
@@ -249,36 +331,58 @@ export function matchPatch(c0: GrayFrame, f: GrayFrame, p: Patch, guess: Point, 
       sizes[by * BLOCKS + bx] = (edges[by + 1] - edges[by]) * (edges[bx + 1] - edges[bx]);
     }
   }
-  const lowest = (dx: number, dy: number) => {
+  // The same in quarters (2 by 2 of the blocks), a quarter of the reads: tried first.
+  const H2 = BLOCKS / 2;
+  const sumsA2 = new Float64Array(4);
+  const sizes2 = new Float64Array(4);
+  for (let k = 0; k < BLOCKS * BLOCKS; k++) {
+    const q = (Math.floor(k / BLOCKS) >= H2 ? 2 : 0) + ((k % BLOCKS) >= H2 ? 1 : 0);
+    sumsA2[q] += sumsA[k];
+    sizes2[q] += sizes[k];
+  }
+  // A hair under, for the rounding of the sums of fractional pictures.
+  const under = (lb: number) => lb * (1 - 1e-9) - 1e-6;
+  const lowest = (dx: number, dy: number, bound: number) => {
+    const x0 = gx + dx;
+    const y0 = gy + dy;
     let lb = 0;
+    for (let qy = 0; qy < 2; qy++) {
+      const top = (y0 + edges[qy * H2]) * IW;
+      const bottom = (y0 + edges[qy * H2 + H2]) * IW;
+      for (let qx = 0; qx < 2; qx++) {
+        const left = x0 + edges[qx * H2];
+        const right = x0 + edges[qx * H2 + H2];
+        const diff = sumsA2[qy * 2 + qx] - (I[bottom + right] - I[top + right] - I[bottom + left] + I[top + left]);
+        lb += (diff * diff) / sizes2[qy * 2 + qx];
+      }
+    }
+    if (under(lb) > bound) return lb;
+    lb = 0;
     for (let by = 0; by < BLOCKS; by++) {
-      const top = (gy + dy + edges[by]) * IW;
-      const bottom = (gy + dy + edges[by + 1]) * IW;
+      const top = (y0 + edges[by]) * IW;
+      const bottom = (y0 + edges[by + 1]) * IW;
       for (let bx = 0; bx < BLOCKS; bx++) {
-        const left = gx + dx + edges[bx];
-        const right = gx + dx + edges[bx + 1];
-        const sb = I[bottom + right] - I[top + right] - I[bottom + left] + I[top + left];
+        const left = x0 + edges[bx];
+        const right = x0 + edges[bx + 1];
         const k = by * BLOCKS + bx;
-        const diff = sumsA[k] - sb;
+        const diff = sumsA[k] - (I[bottom + right] - I[top + right] - I[bottom + left] + I[top + left]);
         lb += (diff * diff) / sizes[k];
       }
     }
-    // A hair under, for the rounding of the sums of fractional pictures.
-    return lb * (1 - 1e-9) - 1e-6;
+    return under(lb);
   };
   const w = 2 * r + 1;
-  // The guess first: near the answer, it makes a low bound early.
+  // The guess and the shifts around it first: near the answer, they make a low bound early.
   let best = r * w + r;
   let bestE = err(0, 0, Infinity);
-  for (let dy = -r; dy <= r; dy++) {
-    for (let dx = -r; dx <= r; dx++) {
-      const k = (dy + r) * w + dx + r;
-      if (k === r * w + r || lowest(dx, dy) > bestE) continue;
-      const e = err(dx, dy, bestE);
-      if (e < bestE || (e === bestE && k < best)) {
-        bestE = e;
-        best = k;
-      }
+  for (const k of searchOrder(r)) {
+    const dx = (k % w) - r;
+    const dy = Math.floor(k / w) - r;
+    if (lowest(dx, dy, bestE) > bestE) continue;
+    const e = err(dx, dy, bestE);
+    if (e < bestE || (e === bestE && k < best)) {
+      bestE = e;
+      best = k;
     }
   }
   const bx = (best % w) - r;

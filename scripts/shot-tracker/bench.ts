@@ -115,6 +115,8 @@ interface Run {
   name: string;
   frames: number;
   ms: { firstFind: number; find: number; trace: number };
+  /** The trace's stages, ms (`TraceInput.onProgress`). */
+  stages?: Record<string, number>;
   first: ReturnType<typeof lanesReading>;
   lane: ReturnType<typeof lanesReading>;
   trace: Record<string, unknown> | null;
@@ -132,15 +134,24 @@ function run(input: Input): Run {
   const all = findLanes(idx.map((i) => input.frames[i]));
   const findMs = performance.now() - t0;
   let traced: Record<string, unknown> | null = null;
+  const stages: Record<string, number> = {};
   let traceMs = 0;
   if (all.best) {
     t0 = performance.now();
-    const out = trace({ source: { count: n, frame: (i) => input.frames[i] }, calibFrame: idx[all.best.index], lanes: frameLanes(all, (i) => idx[i]), hand: input.hand });
+    let stage = "";
+    let since = t0;
+    const onProgress = (next: string) => {
+      const now = performance.now();
+      if (stage) stages[stage] = Math.round(now - since);
+      stage = next;
+      since = now;
+    };
+    const out = trace({ source: { count: n, frame: (i) => input.frames[i] }, calibFrame: idx[all.best.index], lanes: frameLanes(all, (i) => idx[i]), hand: input.hand, onProgress });
     traceMs = performance.now() - t0;
     const res = out.result;
     if (res.ok) {
       const m = (res as TrackResult).metrics;
-      const v = (k: keyof TrackResult["metrics"]) => (m[k].value === null ? null : `${m[k].value!.toFixed(2)}${m[k].state === "estimated" ? "e" : ""}`);
+      const v = (k: keyof TrackResult["metrics"]) => (m[k].value === null ? null : `${m[k].value!.toFixed(4)}${m[k].state === "estimated" ? "e" : ""}`);
       traced = {
         laydown: v("laydown"), touchdown: v("touchdown"), touchdownFeet: v("touchdownFeet"), arrows: v("arrows"), breakpoint: v("breakpoint"), breakpointFeet: v("breakpointFeet"),
         pins: v("pins"), entryAngle: v("entryAngle"), launchAngle: v("launchAngle"), speed: v("speed"), speedAtPins: v("speedAtPins"), launchSpeed: v("launchSpeed"), entrySpeed: v("entrySpeed"),
@@ -150,8 +161,8 @@ function run(input: Input): Run {
       };
     } else traced = { failure: res.failure, detail: res.detail };
   }
-  const r: Run = { name: input.name, frames: n, ms: { firstFind: Math.round(firstMs), find: Math.round(findMs), trace: Math.round(traceMs) }, first: lanesReading(first, firstIdx), lane: lanesReading(all, idx), trace: traced };
-  console.log(`${input.name}: first find ${r.ms.firstFind} ms (${firstIdx.length} frames), find ${r.ms.find} ms (${idx.length} frames), trace ${r.ms.trace} ms`);
+  const r: Run = { name: input.name, frames: n, ms: { firstFind: Math.round(firstMs), find: Math.round(findMs), trace: Math.round(traceMs) }, first: lanesReading(first, firstIdx), lane: lanesReading(all, idx), trace: traced, stages };
+  console.log(`${input.name}: first find ${r.ms.firstFind} ms (${firstIdx.length} frames), find ${r.ms.find} ms (${idx.length} frames), trace ${r.ms.trace} ms (${Object.entries(stages).map(([k, v]) => `${k} ${v}`).join(", ")})`);
   console.log(`   ${JSON.stringify({ lane: r.lane && { frame: r.lane.frame, camera: r.lane.camera }, ...(traced && { laydown: traced.laydown, arrows: traced.arrows, breakpoint: traced.breakpoint, at: traced.breakpointFeet, pins: traced.pins, pinsReadFrame: traced.pinsReadFrame, launch: traced.launchSpeed, entry: traced.entrySpeed, failure: traced.failure }) })}`);
   return r;
 }
@@ -187,7 +198,7 @@ function compare(a: unknown, b: unknown, path: string, out: string[], tol = 0.1)
       return;
     }
     for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
-      if (path === "" && (k === "ms" || k === "name")) continue;
+      if (path === "" && (k === "ms" || k === "name" || k === "stages")) continue;
       compare((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k], path ? `${path}.${k}` : k, out, tol);
     }
     return;

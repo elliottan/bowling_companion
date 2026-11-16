@@ -242,27 +242,36 @@ export function trace(input: TraceInput): TraceOutput {
   // between seeing the ball and seeing the pins' outlines. Each frame's
   // steadied picture is aligned to the empty lane by its own textured
   // patches (`alignTo`); the lane's mapping is not changed by it.
-  const bgFrames0 = usable.filter((_, k) => k % 4 === 0).map((g) => steady(source.frame(g.index), g.S, roi));
+  const sampled = usable.filter((_, k) => k % 4 === 0);
+  const bgFrames0 = sampled.map((g) => steady(source.frame(g.index), g.S, roi));
   const bg0 = medianBackground(bgFrames0);
   const toRoi: Mat3 = [1, 0, roi.x0, 0, 1, roi.y0, 0, 0, 1];
   const fromRoi: Mat3 = [1, 0, -roi.x0, 0, 1, -roi.y0, 0, 0, 1];
   const steadyS = debug.steady;
-  for (const g of usable) {
+  // A frame steadied onto the empty lane: its transform, and its picture
+  // through it (the picture it was aligned on, when the alignment left the
+  // transform as it was).
+  const align = (g: FrameGeometry, picture?: GrayFrame): { S: Mat3; steadied: GrayFrame } => {
     // Only frames registered on the floor's own homography: a turn is exact
     // for the camera it models, and aligning those adds only noise.
-    const R = g.plane ? alignTo(bg0, steady(source.frame(g.index), g.S, roi)) : null;
-    steadyS.set(g.index, R ? normalize(multiply(g.S, multiply(toRoi, multiply(R, fromRoi)))) : g.S);
-  }
-  const bgFrames = usable.filter((_, k) => k % 4 === 0).map((g) => steady(source.frame(g.index), steadyS.get(g.index)!, roi));
-  const bg = medianBackground(bgFrames);
+    if (!g.plane) return { S: g.S, steadied: picture ?? steady(source.frame(g.index), g.S, roi) };
+    const first = picture ?? steady(source.frame(g.index), g.S, roi);
+    const R = alignTo(bg0, first);
+    if (!R) return { S: g.S, steadied: first };
+    const S = normalize(multiply(g.S, multiply(toRoi, multiply(R, fromRoi))));
+    return { S, steadied: steady(source.frame(g.index), S, roi) };
+  };
+  // The empty lane again from every fourth frame, each steadied.
+  const sampledAligned = new Map(sampled.map((g, j) => [g.index, align(g, bgFrames0[j])]));
+  const bg = medianBackground(sampled.map((g) => sampledAligned.get(g.index)!.steadied));
   debug.background = bg;
 
   progress("ball", 0.45);
   const cands: Candidate[] = [];
   for (const g of usable) {
-    const f = source.frame(g.index);
-    const Sg = steadyS.get(g.index)!;
-    cands.push(...findCandidates(steady(f, Sg, roi), bg, roi, Sg, g.H, g.index));
+    const { S: Sg, steadied } = sampledAligned.get(g.index) ?? align(g);
+    steadyS.set(g.index, Sg);
+    cands.push(...findCandidates(steadied, bg, roi, Sg, g.H, g.index));
   }
   debug.candidates = cands;
   // A candidate that does not move is background (a reflection, a mark the
