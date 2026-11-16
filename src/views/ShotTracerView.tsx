@@ -11,8 +11,13 @@ import type { FrameLane } from "../lib/shotTrack/laneTrack";
 import { laneVerdict, type LaneEvidence, type LaneVerdict } from "../lib/shotTrack/laneVerdict";
 import { MARK_LINES, pathInPicture, type MarkLine } from "../lib/shotTrack/marking";
 import { laneBands, readFrom, type Band, type ShotFound } from "../lib/shotTrack/shotStart";
-import type { Mat3, Metric, Point, TrackError, TrackFailure, TrackResult } from "../lib/shotTrack/types";
-import type { FindMessage, FindRequest, SearchMessage, SearchRequest, TraceMessage, TraceRequest } from "../shotTracer/protocol";
+import type { GrayFrame, Mat3, Metric, Point, TrackError, TrackFailure, TrackResult } from "../lib/shotTrack/types";
+import { frameLanes } from "../lib/shotTrack/laneFind";
+import type { TraceOutput } from "../lib/shotTrack/pipeline";
+import { poolSize } from "../lib/shotTrack/workers";
+import { isIOSApp } from "../lib/platform";
+import { findInPool, Pool, traceInPool } from "../shotTracer/pool";
+import type { FindMessage, SearchMessage, SearchRequest } from "../shotTracer/protocol";
 import { readShot } from "../shotTracer/readShot";
 import { scanVideo, type VideoFrames } from "../shotTracer/videoFrames";
 import type { Handedness } from "../types/bowling";
@@ -92,6 +97,9 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   // themselves go to the worker.
   const [shown, setShown] = useState<{ gray: Uint8ClampedArray; width: number; height: number } | null>(null);
   const workers = useRef(new Set<Worker>());
+  const pool = useRef<Pool | null>(null);
+  // The attempt the pool was made for.
+  const poolOf = useRef(0);
   // Each video chosen is a new attempt; an older one's late answers are dropped.
   const attempt = useRef(0);
   // This attempt's stage times so far, milliseconds.
@@ -101,6 +109,8 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     () => () => {
       for (const w of workers.current) w.terminate();
       workers.current.clear();
+      pool.current?.terminate();
+      pool.current = null;
     },
     []
   );
@@ -155,6 +165,8 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     const mine = ++attempt.current;
     for (const w of workers.current) w.terminate();
     workers.current.clear();
+    pool.current?.terminate();
+    pool.current = null;
     setStep({ kind: "searching", fraction: 0 });
     timing.current = { via: "", look: 0, read: 0, lane: 0, trace: 0 };
     const began = now();
@@ -200,7 +212,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         bands[0],
         // The lane on a few of the first part's frames, for where the shot ends.
         async (first) => {
-          const m = await findOn(first, FIRST_FIND_FRAMES);
+          const m = await findOn(first, FIRST_FIND_FRAMES, mine);
           return m.frame === null ? null : m.lanes;
         },
         (fraction) => {
@@ -229,68 +241,73 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     timing.current.via = v.via ?? "";
     setStep({ kind: "finding" });
     const finding = now();
-    const m = await findOn(v, FIND_FRAMES);
+    const m = await findOn(v, FIND_FRAMES, mine);
     if (attempt.current !== mine) return;
     timing.current.lane += now() - finding;
-    if (m.frame !== null) traceShot(v, m.frame, { lanes: m.lanes, evidence: m.evidence }, mine);
+    if (m.frame !== null) void traceShot(v, m.frame, { lanes: m.lanes, evidence: m.evidence }, mine);
     // Not found in this band: the next, read again, or nothing to trace.
     else if (bands.length > 1) void readBand(f, looked, bands.slice(1), mine);
     else setStep({ kind: "failed", missing: "lane" });
   }
 
-  /** Looks for the lane on about `count` frames spread over `v`, in a worker; a null frame when it is not found or the worker fails. */
-  function findOn(v: VideoFrames, count: number): Promise<FindMessage> {
-    const stride = Math.max(1, Math.floor(v.gray.length / count));
-    const request: FindRequest = {
-      width: v.width,
-      height: v.height,
-      // Copies: the frames are still needed to trace.
-      frames: v.gray.flatMap((g, index) => (index % stride === 0 ? [{ data: g.slice().buffer as ArrayBuffer, index }] : []))
-    };
-    return new Promise((resolve) => {
-      let worker: Worker;
-      try {
-        worker = startWorker(new URL("../shotTracer/find.worker.ts", import.meta.url));
-      } catch {
-        resolve({ frame: null });
-        return;
-      }
-      // A finder that never answers is a lane not found, not a screen that waits for ever.
-      const timer = setTimeout(() => {
-        stopWorker(worker);
-        console.info(`Shot tracer: the lane search did not answer in ${WORKER_WAIT_MS / 1000} s`);
-        resolve({ frame: null });
-      }, WORKER_WAIT_MS);
-      worker.onmessage = (e: MessageEvent<FindMessage>) => {
-        clearTimeout(timer);
-        stopWorker(worker);
-        resolve(e.data);
-      };
-      worker.onerror = () => {
-        clearTimeout(timer);
-        stopWorker(worker);
-        resolve({ frame: null });
-      };
-      worker.postMessage(request, request.frames.map((f) => f.data));
-    });
+  /**
+   * The pool of workers the lane search and the trace share (`shotTracer/pool.ts`):
+   * one per attempt, made when first needed. `?tracerWorkers=N` in the
+   * address sets how many (the harness's runs with 1, 2 and 4).
+   */
+  function poolFor(mine: number): Pool {
+    if (pool.current && poolOf.current === mine) return pool.current;
+    pool.current?.terminate();
+    const asked = Number(new URLSearchParams(window.location.search).get("tracerWorkers") ?? NaN);
+    const ios = isIOSApp() || /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const size = poolSize(navigator.hardwareConcurrency, ios, Number.isFinite(asked) ? asked : null);
+    pool.current = new Pool(size, () => new Worker(new URL("../shotTracer/pool.worker.ts", import.meta.url), { type: "module" }));
+    poolOf.current = mine;
+    console.info(`Shot tracer: ${size} worker${size === 1 ? "" : "s"} (${navigator.hardwareConcurrency ?? "?"} cores reported)`);
+    return pool.current;
   }
 
-  /** Traces with the found lanes, each frame on its own. */
-  function traceShot(video: VideoFrames, frame: number, found: Found, mine: number) {
+  /** The read's frames as the tracer takes them. */
+  const framesOf = (v: VideoFrames): GrayFrame[] => v.gray.map((data, i) => ({ width: v.width, height: v.height, data, t: v.times[i] }));
+
+  /** Looks for the lane on about `count` frames spread over `v`, in the pool; a null frame when it is not found or the pool fails. */
+  async function findOn(v: VideoFrames, count: number, mine: number): Promise<FindMessage> {
+    const stride = Math.max(1, Math.floor(v.gray.length / count));
+    const all = framesOf(v);
+    const idx = all.map((_, i) => i).filter((i) => i % stride === 0);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    // A search that never answers is a lane not found, not a screen that waits for ever.
+    const late = new Promise<"late">((resolve) => (timer = setTimeout(() => resolve("late"), WORKER_WAIT_MS)));
+    try {
+      const found = await Promise.race([findInPool(poolFor(mine), idx.map((i) => all[i])), late]);
+      if (found === "late") {
+        console.info(`Shot tracer: the lane search did not answer in ${WORKER_WAIT_MS / 1000} s`);
+        // Its workers may be stuck: the next search or trace starts a new pool.
+        pool.current?.terminate();
+        pool.current = null;
+        return { frame: null };
+      }
+      const best = found.best;
+      if (!best) return { frame: null };
+      return {
+        frame: idx[best.index],
+        lanes: frameLanes(found, (i) => idx[i]),
+        evidence: { guess: best.guess, support: best.support, pinsUsed: best.pinsUsed, camera: best.camera }
+      };
+    } catch (e) {
+      console.info(`Shot tracer: the lane search failed: ${e instanceof Error ? e.message : String(e)}`);
+      return { frame: null };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  /** Traces with the found lanes, each frame on its own, in the pool. */
+  async function traceShot(video: VideoFrames, frame: number, found: Found, mine: number) {
     setShown({ gray: video.gray[frame].slice(), width: video.width, height: video.height });
-    const request: TraceRequest = {
-      width: video.width,
-      height: video.height,
-      frames: video.gray.map((g, i) => ({ data: g.buffer as ArrayBuffer, t: video.times[i] })),
-      calibFrame: frame,
-      lanes: found.lanes,
-      hand: handedness
-    };
     setStep({ kind: "tracing", fraction: 0 });
     const began = now();
-    const worker = startWorker(new URL("../shotTracer/trace.worker.ts", import.meta.url));
     const finish = (next: Step & { kind: "done" }) => {
-      stopWorker(worker);
       if (attempt.current !== mine) return;
       const ms = timing.current;
       ms.trace = now() - began;
@@ -301,22 +318,36 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       );
       setStep({ ...next, timing: took });
     };
-    worker.onmessage = (e: MessageEvent<TraceMessage>) => {
-      const m = e.data;
-      if (m.kind === "progress") {
-        if (attempt.current === mine) setStep({ kind: "tracing", fraction: m.fraction });
-      } else finish({ kind: "done", result: m.result, H: m.H, verdict: laneVerdict({ ...found.evidence, ...m.evidence }) });
-    };
-    worker.onerror = () =>
-      finish({ kind: "done", result: { ok: false, failure: "unsupported-video", detail: "worker failed" }, H: null, verdict: null });
-    // The frames move to the worker; the screen keeps only the one it shows.
-    worker.postMessage(request, request.frames.map((f) => f.data));
+    let out: TraceOutput;
+    try {
+      // The frames move to the pool's last job; the screen keeps only the one it shows.
+      out = await traceInPool(poolFor(mine), framesOf(video), {
+        calibFrame: frame,
+        // The found lanes, each frame traced on its own.
+        lanes: found.lanes,
+        hand: handedness,
+        onProgress: (_stage, fraction) => {
+          if (attempt.current === mine) setStep({ kind: "tracing", fraction });
+        }
+      });
+    } catch (e) {
+      const why = e instanceof Error ? e.message : String(e);
+      console.info(`Shot tracer: the trace failed: ${why}`);
+      finish({ kind: "done", result: { ok: false, failure: "unsupported-video", detail: `worker failed: ${why}` }, H: null, verdict: null });
+      return;
+    }
+    const lanesUsed = out.debug.lanes;
+    const evidence = { kept: lanesUsed?.kept.length, dropped: lanesUsed?.dropped.length, pinCheck: out.debug.calibration?.pinError ?? null };
+    // The calibration frame's mapping as traced: the found lanes' blend there.
+    finish({ kind: "done", result: out.result, H: out.debug.H0 ?? null, verdict: laneVerdict({ ...found.evidence, ...evidence }) });
   }
 
   const another = () => {
     attempt.current++;
     for (const w of workers.current) w.terminate();
     workers.current.clear();
+    pool.current?.terminate();
+    pool.current = null;
     setStep({ kind: "pick" });
   };
 

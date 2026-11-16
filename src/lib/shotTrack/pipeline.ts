@@ -176,13 +176,11 @@ export interface TailState {
 /** One job of `traceSteps`, run on `source`'s frames. */
 export function runTraceJob(job: TraceJob, source: FrameSource, onProgress?: (stage: string, fraction: number) => void): unknown {
   switch (job.kind) {
-    case "register": {
-      const pass = new RegisterPass(source.frame(job.calibFrame), job.opts);
-      return { matches: job.frames.map((i) => pass.step(i, source.frame(i))), patches: pass.patchCount };
-    }
+    case "register":
     case "plane": {
-      const pass = new PlanePass(source.frame(job.calibFrame), job.H0, job.opts);
-      return job.geos.map((g) => pass.step(g, source.frame(g.index)));
+      const pass = passOf(job);
+      for (const i of pass.frames) pass.feed(source.frame(i));
+      return pass.result();
     }
     case "steady":
       return steady(source.frame(job.index), job.S, job.roi);
@@ -193,6 +191,31 @@ export function runTraceJob(job: TraceJob, source: FrameSource, onProgress?: (st
     case "tail":
       return traceTail(job.state, source, onProgress ?? (() => {}));
   }
+}
+
+/**
+ * A `register` or `plane` job as a pass fed a frame at a time: `frames` is
+ * the order it wants them in (the calibration frame first), so a worker can
+ * be sent them one by one rather than all at once.
+ */
+export function passOf(job: Extract<TraceJob, { kind: "register" | "plane" }>): { frames: number[]; feed: (f: GrayFrame) => void; result: () => unknown } {
+  const frames = [job.calibFrame, ...(job.kind === "register" ? job.frames : job.geos.map((g) => g.index))];
+  const out: unknown[] = [];
+  let reg: RegisterPass | null = null;
+  let plane: PlanePass | null = null;
+  let k = 0;
+  return {
+    frames,
+    feed(f) {
+      if (k === 0) {
+        if (job.kind === "register") reg = new RegisterPass(f, job.opts);
+        else plane = new PlanePass(f, job.H0, job.opts);
+      } else if (job.kind === "register") out.push(reg!.step(frames[k], f));
+      else out.push(plane!.step(job.geos[k - 1], f));
+      k++;
+    },
+    result: () => (job.kind === "register" ? ({ matches: out as Matches[], patches: reg!.patchCount } satisfies RegisterPassResult) : out)
+  };
 }
 
 /** What a `register` job gives: the pass's matches, and how many patches each frame was matched by. */

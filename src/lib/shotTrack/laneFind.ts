@@ -1719,6 +1719,11 @@ export interface LanesFound {
  */
 export function findLanes(frames: GrayFrame[], tries = frames.length): LanesFound {
   const { attempts, camera } = laneAttempts(frames, tries);
+  return lanesFrom(attempts, camera);
+}
+
+/** `findLanes` from `laneAttempts`' answer (or `laneSteps`', run elsewhere). */
+export function lanesFrom(attempts: Attempt[], camera: number): LanesFound {
   const lanes = attempts.filter((a) => Math.abs(a.found.camera - camera) <= CAMERA_OFF_FT).sort((a, b) => a.found.index - b.found.index);
   return { lanes, best: bestAttempt(attempts, camera)?.found ?? null, camera };
 }

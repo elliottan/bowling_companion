@@ -3,7 +3,7 @@
  * reading it gives, so a change to the lane finder or the tracer can be held
  * to the same readings (`--compare`).
  *
- *   npx tsx scripts/shot-tracker/bench.ts [shot-0N | IMG_1996 ...] [--out file.json] [--compare base.json]
+ *   npx tsx scripts/shot-tracker/bench.ts [shot-0N | IMG_1996 ...] [--out file.json] [--compare base.json] [--dump dir]
  *
  * The frames are what the app reads (`marking.ts`): scaled to fit
  * `MAX_PIXELS`, at 60 a second. The clips are read whole (shot-01 is 279
@@ -14,13 +14,13 @@
  * the lane on `FIND_FRAMES` frames spread over the read, and the trace.
  */
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { apply } from "../../src/lib/shotTrack/homography";
-import { findLanes, frameLanes, type LanesFound } from "../../src/lib/shotTrack/laneFind";
+import { findLanes, frameLanes } from "../../src/lib/shotTrack/laneFind";
 import { bandRows, keptFps, MAX_PIXELS, READ_RATES, scaledSize } from "../../src/lib/shotTrack/marking";
 import { trace } from "../../src/lib/shotTrack/pipeline";
-import type { GrayFrame, TrackResult } from "../../src/lib/shotTrack/types";
+import type { GrayFrame } from "../../src/lib/shotTrack/types";
+import { lanesReading, spread, tracedReading, type Run } from "./bench-readings";
 import type { Handedness } from "../../src/types/bowling";
 
 const here = new URL(".", import.meta.url).pathname;
@@ -31,6 +31,7 @@ const opt = (k: string) => {
 };
 const outFile = opt("--out");
 const compareFile = opt("--compare");
+const dumpDir = opt("--dump");
 const names = args.length ? args : ["shot-01", "shot-02", "shot-03", "shot-04", "shot-05", "shot-06", "IMG_1996"];
 
 /** As `ShotTracerView`. */
@@ -90,36 +91,12 @@ function load(name: string): Input {
   return { name, hand: cal?.hand ?? "right", width: size.width, height: size.height, frames };
 }
 
-/** The frames `findOn` in the view sends: every `stride`th. */
-const spread = (n: number, count: number) => {
-  const stride = Math.max(1, Math.floor(n / count));
-  return Array.from({ length: n }, (_, i) => i).filter((i) => i % stride === 0);
-};
-
-const r2 = (x: number | null | undefined, d = 2) => (x === null || x === undefined || !Number.isFinite(x) ? null : Number(x.toFixed(d)));
-
-function lanesReading(all: LanesFound, idx: number[]) {
-  const b = all.best;
-  if (!b) return null;
-  const at = (u: number, v: number) => {
-    const p = apply(b.H, { x: u, y: v });
-    return [r2(p.x), r2(p.y)];
-  };
-  return {
-    frame: idx[b.index], camera: r2(b.camera), guess: b.guess?.foul ?? null, pinsUsed: b.pinsUsed, found: all.lanes.map((l) => idx[l.found.index]),
-    corners: { nearLeft: at(0.5, 0), nearRight: at(39.5, 0), farLeft: at(0.5, 60), farRight: at(39.5, 60) }
-  };
-}
-
-interface Run {
-  name: string;
-  frames: number;
-  ms: { firstFind: number; find: number; trace: number };
-  /** The trace's stages, ms (`TraceInput.onProgress`). */
-  stages?: Record<string, number>;
-  first: ReturnType<typeof lanesReading>;
-  lane: ReturnType<typeof lanesReading>;
-  trace: Record<string, unknown> | null;
+/** The frames as read, for `pool-bench.ts` to run the same compute in a browser: raw grey, one after another, and what they are. */
+function dump(input: Input, dir: string) {
+  mkdirSync(dir, { recursive: true });
+  const raw = Buffer.concat(input.frames.map((f) => Buffer.from(f.data.buffer, f.data.byteOffset, f.data.byteLength)));
+  writeFileSync(join(dir, `${input.name}.gray`), raw);
+  writeFileSync(join(dir, `${input.name}.json`), JSON.stringify({ name: input.name, hand: input.hand, width: input.width, height: input.height, times: input.frames.map((f) => f.t), FIND_FRAMES, FIRST_FIND_FRAMES, FIRST_PART_S }));
 }
 
 function run(input: Input): Run {
@@ -148,18 +125,7 @@ function run(input: Input): Run {
     };
     const out = trace({ source: { count: n, frame: (i) => input.frames[i] }, calibFrame: idx[all.best.index], lanes: frameLanes(all, (i) => idx[i]), hand: input.hand, onProgress });
     traceMs = performance.now() - t0;
-    const res = out.result;
-    if (res.ok) {
-      const m = (res as TrackResult).metrics;
-      const v = (k: keyof TrackResult["metrics"]) => (m[k].value === null ? null : `${m[k].value!.toFixed(4)}${m[k].state === "estimated" ? "e" : ""}`);
-      traced = {
-        laydown: v("laydown"), touchdown: v("touchdown"), touchdownFeet: v("touchdownFeet"), arrows: v("arrows"), breakpoint: v("breakpoint"), breakpointFeet: v("breakpointFeet"),
-        pins: v("pins"), entryAngle: v("entryAngle"), launchAngle: v("launchAngle"), speed: v("speed"), speedAtPins: v("speedAtPins"), launchSpeed: v("launchSpeed"), entrySpeed: v("entrySpeed"),
-        pinFrame: res.pinFrame, touchdownFrame: res.touchdownFrame, releaseFrame: r2(out.debug.release?.frame ?? null), pinsReadFrame: out.debug.pinsRead?.frame ?? null,
-        sightings: res.sightings.filter((s) => !s.airborne).map((s) => s.frame), airborne: res.sightings.filter((s) => s.airborne).map((s) => s.frame),
-        lanesKept: out.debug.lanes?.kept.length, lanesDropped: out.debug.lanes?.dropped.length, H0: out.debug.H0?.map((x) => Number(x.toPrecision(6)))
-      };
-    } else traced = { failure: res.failure, detail: res.detail };
+    traced = tracedReading(out);
   }
   const r: Run = { name: input.name, frames: n, ms: { firstFind: Math.round(firstMs), find: Math.round(findMs), trace: Math.round(traceMs) }, first: lanesReading(first, firstIdx), lane: lanesReading(all, idx), trace: traced, stages };
   console.log(`${input.name}: first find ${r.ms.firstFind} ms (${firstIdx.length} frames), find ${r.ms.find} ms (${idx.length} frames), trace ${r.ms.trace} ms (${Object.entries(stages).map(([k, v]) => `${k} ${v}`).join(", ")})`);
@@ -207,7 +173,11 @@ function compare(a: unknown, b: unknown, path: string, out: string[], tol = 0.1)
 }
 
 const runs: Run[] = [];
-for (const name of names) runs.push(run(load(name)));
+for (const name of names) {
+  const input = load(name);
+  if (dumpDir) dump(input, dumpDir);
+  runs.push(run(input));
+}
 console.log("\n| input | frames | first find | find | trace | total |\n|---|---|---|---|---|---|");
 for (const r of runs) console.log(`| ${r.name} | ${r.frames} | ${(r.ms.firstFind / 1000).toFixed(2)} s | ${(r.ms.find / 1000).toFixed(2)} s | ${(r.ms.trace / 1000).toFixed(2)} s | ${((r.ms.firstFind + r.ms.find + r.ms.trace) / 1000).toFixed(2)} s |`);
 if (outFile) writeFileSync(outFile, JSON.stringify(runs, null, 1) + "\n");
