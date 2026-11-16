@@ -11,6 +11,12 @@ import {
   gutterEnds,
   gutterFoulLine,
   GUTTER_DROP,
+  edgeEnds,
+  EDGE_LINE_DEPTH,
+  foulEnds,
+  oneGutterFoulLine,
+  loneEndFoulLine,
+  type FoulLine,
   findLane,
   findLanes,
   frameLanes,
@@ -660,6 +666,137 @@ describe("findFoulLines on a built picture", () => {
       expect(gutterFoulLine([null, b], 0.02)).toBeNull();
       expect(gutterFoulLine([a, { ...b, drop: GUTTER_DROP - 1 }], 0.02)).toBeNull();
       expect(gutterFoulLine([a, b], 0.08)).toBeNull();
+    });
+
+    it("gutterFoulLine takes one end seen only by its edge line, never two", () => {
+      const a = { x: 50, y: 160, drop: 20 };
+      const e = { x: 230, y: 163.6, drop: 0, edgeOnly: true };
+      const fl = gutterFoulLine([a, e], 0.02)!;
+      expect(fl.gutters).toBe(true);
+      expect(fl.strength).toBe(20);
+      expect(gutterFoulLine([{ ...a, edgeOnly: true, drop: 0 }, e], 0.02)).toBeNull();
+    });
+
+    // The picture of shot-02 and shot-05 in miniature: lane 200 from x 70 to
+    // 230 with a thin dark edge line (90) on each side down to row `edgeEnd`,
+    // striped gutters outside down to `gutterEnd`, and the approach as light
+    // as the lane below. `console` paints a dark block (20) over the right
+    // gutter from that row down (or from the top with 0), clear of the line.
+    const withEdges = (o: { edgeEnd: number; gutterEnd: number; tilt?: number; console?: number; band?: number; edgeGrey?: number }) => {
+      const tilt = o.tilt ?? 0;
+      const f = makeFrame(300, 220, 0, 200);
+      for (let y = 0; y < 220; y++) {
+        for (let x = 0; x < 300; x++) {
+          const right = x > 150;
+          const dy = right ? tilt : 0;
+          const i = y * 300 + x;
+          if (((x >= 35 && x < 68) || (x > 232 && x <= 265)) && y < o.gutterEnd + dy) f.data[i] = Math.floor(x / 3) % 2 ? 60 : 190;
+          if ((x === 70 || x === 230) && y < o.edgeEnd + dy) f.data[i] = o.edgeGrey ?? 90;
+          if (o.band !== undefined && x > 70 && x < 230 && y >= o.band && y < o.band + 2) f.data[i] = 150;
+          if (o.console !== undefined && x >= 233 && y >= o.console) f.data[i] = 20;
+        }
+      }
+      return f;
+    };
+
+    it("edgeEnds finds where each edge's dark line stops, to a row, on the edge", () => {
+      const [a, b] = edgeEnds(withEdges({ edgeEnd: 158, gutterEnd: 160, tilt: 3 }), L, R, 160, 100);
+      expect(Math.abs(a!.y - 157.5)).toBeLessThan(1);
+      expect(Math.abs(b!.y - 160.5)).toBeLessThan(1);
+      expect(a!.x).toBeCloseTo(70, 5);
+      expect(b!.x).toBeCloseTo(230, 5);
+      expect(a!.depth).toBeGreaterThan(EDGE_LINE_DEPTH);
+    });
+
+    it("edgeEnds finds the line a few pixels off the fitted edge", () => {
+      const [a] = edgeEnds(withEdges({ edgeEnd: 158, gutterEnd: 160 }), [1, 0, -68], R, 160, 100);
+      expect(Math.abs(a!.y - 157.5)).toBeLessThan(1);
+    });
+
+    it("edgeEnds is null with no line, too faint a line, too few rows, or something dark over the lane below", () => {
+      expect(edgeEnds(makeFrame(300, 220, 0, 200), L, R, 160, 100)).toEqual([null, null]);
+      expect(edgeEnds(withEdges({ edgeEnd: 158, gutterEnd: 160, edgeGrey: 196 }), L, R, 160, 100)).toEqual([null, null]);
+      expect(edgeEnds(withEdges({ edgeEnd: 158, gutterEnd: 160 }), L, R, 160, 10)).toEqual([null, null]);
+      // A shoe across the left edge from row 158 down: the line stops under it, but so does the lane.
+      const f = withEdges({ edgeEnd: 158, gutterEnd: 160 });
+      for (let y = 158; y < 220; y++) for (let x = 60; x < 90; x++) f.data[y * 300 + x] = 30;
+      expect(edgeEnds(f, L, R, 160, 100)[0]).toBeNull();
+    });
+
+    it("gutterEnds does not take a gutter running into a dark console for its end", () => {
+      const [a, b] = gutterEnds(withEdges({ edgeEnd: 160, gutterEnd: 160, console: 150 }), L, R, 160, 100, 0);
+      expect(Math.abs(a!.y - 159.5)).toBeLessThan(1.2);
+      expect(b).toBeNull();
+    });
+
+    it("foulEnds takes the edge line's corner when it agrees with the gutter's end, the gutter's end when not, and the line alone marked", () => {
+      const g = { x: 50, y: 161, drop: 20 };
+      const e = { x: 70, y: 159, depth: 60 };
+      expect(foulEnds([g, null], [e, null], 0, 3)).toEqual([{ x: 70, y: 159, drop: 20 }, null]);
+      // Carried along the slope: 20 px at 0.05 is a row.
+      expect(foulEnds([g, null], [{ ...e, y: 164.5 }, null], 0.05, 3)[0]).toEqual({ x: 70, y: 164.5, drop: 20 });
+      expect(foulEnds([g, null], [{ ...e, y: 164.5 }, null], 0, 3)[0]).toBe(g);
+      expect(foulEnds([g, null], [{ ...e, y: 150 }, null], 0, 3)[0]).toBe(g);
+      expect(foulEnds([null, null], [null, e], 0, 3)).toEqual([null, { x: 70, y: 159, drop: 0, edgeOnly: true }]);
+      // A gutter end too faint to count gives way to the line alone.
+      expect(foulEnds([{ ...g, drop: GUTTER_DROP - 1 }, null], [e, null], 0, 3)[0]?.edgeOnly).toBe(true);
+      expect(foulEnds([g, null], [null, null], 0, 3)[0]).toBe(g);
+    });
+
+    it("findFoulLines goes through the left gutter's corner and the right edge line's end beside a console", () => {
+      const f = withEdges({ edgeEnd: 159, gutterEnd: 160, tilt: 3, console: 0 });
+      const fl = findFoulLines(f, L, R, 160, 100, 0.02);
+      expect(fl[0].gutters).toBe(true);
+      expect(Math.abs(rowOf(fl[0].line, 70) - 158.5)).toBeLessThan(1);
+      expect(Math.abs(rowOf(fl[0].line, 230) - 161.5)).toBeLessThan(1);
+    });
+
+    it("findFoulLines falls back to one end at the slope when nothing on the far side backs it", () => {
+      // The right edge line and gutter both hidden under the console.
+      const f = withEdges({ edgeEnd: 159, gutterEnd: 160, console: 0 });
+      for (let y = 0; y < 220; y++) for (let x = 226; x < 300; x++) f.data[y * 300 + x] = 20;
+      const fl = findFoulLines(f, L, R, 160, 100, 0.02);
+      expect(fl.some((l) => l.points.length === 2)).toBe(false);
+      const lone = fl.find((l) => l.points.length === 1 && Math.abs(l.points[0].x - 70) < 1e-6)!;
+      expect(lone).toBeDefined();
+      expect(Math.abs(lone.points[0].y - 158.5)).toBeLessThan(1);
+      expect(-lone.line[0] / lone.line[1]).toBeCloseTo(0.02, 6);
+    });
+
+    it("oneGutterFoulLine wants a pair across the lane through the end, the nearest, at the slope", () => {
+      const end = { x: 50, y: 160, drop: 20 };
+      const pair = (yl: number, yr: number): FoulLine => {
+        const a = { x: 80, y: yl };
+        const b = { x: 220, y: yr };
+        return { line: [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y], points: [a, b], strength: 10 };
+      };
+      const near = pair(160.5, 163.3);
+      const fl = oneGutterFoulLine([end, null], [pair(158.6, 161.4), near], 0.02, 2)!;
+      expect(fl.oneGutter).toBe(true);
+      expect(fl.points).toEqual([end, near.points[1]]);
+      expect(fl.strength).toBe(10);
+      // The right end alone, the pair's left point for the far side.
+      const r = { x: 250, y: 164, drop: 20 };
+      expect(oneGutterFoulLine([null, r], [pair(160, 163.4)], 0.02, 2)!.points).toEqual([{ x: 80, y: 160 }, r]);
+      // Both ends seen (they did not line up): the end nearer a pair wins.
+      expect(oneGutterFoulLine([end, { ...r, y: 190 }], [near], 0.02, 2)!.points[0]).toBe(end);
+      // Nothing near enough, a pair off the slope, one-sided pairs, or no end that counts.
+      expect(oneGutterFoulLine([end, null], [pair(170, 173)], 0.02, 2)).toBeNull();
+      expect(oneGutterFoulLine([end, null], [pair(160.5, 175)], 0.02, 2)).toBeNull();
+      expect(oneGutterFoulLine([end, null], [{ ...near, points: [near.points[0]] }], 0.02, 2)).toBeNull();
+      expect(oneGutterFoulLine([{ ...end, drop: 1 }, { x: 230, y: 163, drop: 0, edgeOnly: true }], [near], 0.02, 2)).toBeNull();
+    });
+
+    it("loneEndFoulLine runs through the stronger gutter end at the slope, never an edge line's alone", () => {
+      const g = { x: 50, y: 160, drop: 20 };
+      const e = { x: 230, y: 163, drop: 0, edgeOnly: true };
+      const fl = loneEndFoulLine([g, e], 0.02)!;
+      expect(fl.points).toEqual([g]);
+      expect(fl.strength).toBe(5);
+      expect(rowOf(fl.line, 150)).toBeCloseTo(162, 6);
+      expect(loneEndFoulLine([{ ...g, drop: 10 }, { ...g, x: 250, drop: 30 }], 0)!.points[0].x).toBe(250);
+      expect(loneEndFoulLine([null, e], 0)).toBeNull();
+      expect(loneEndFoulLine([{ ...g, drop: 1 }, null], 0)).toBeNull();
     });
   });
 

@@ -5,7 +5,8 @@
  * finder weighed on that frame (magenta, dashed, in `cands-*.jpg`), and a
  * table of the candidates: their row at the lane's middle, how far each sits
  * from the hand line and the found one in feet, and where each puts the
- * camera with the frame's pin row.
+ * camera with the frame's pin row. The lane's edges, found and hand, are
+ * drawn dashed in the same colours.
  *
  *   npx tsx scripts/shot-tracker/foul-look.ts <clip> <outDir> [<frame> ...]
  *
@@ -107,9 +108,17 @@ for (const frame of frames) {
         const q = P({ x: b.x + b.w + 5, y: rowAt(l, b.x + b.w + 5) });
         thin(out, p.x, p.y, q.x, q.y, col, dash);
       };
+      // The edges, steep: drawn from the crop's top row to its bottom row.
+      const drawEdge = (l: Line3, col: Color, dash?: number) => {
+        const p = P({ x: X(l, b.y - 5), y: b.y - 5 });
+        const q = P({ x: X(l, b.y + b.h + 5), y: b.y + b.h + 5 });
+        thin(out, p.x, p.y, q.x, q.y, col, dash);
+      };
       if (withCands) for (const l of cands) draw(l, CAND, 6);
       draw(handFoul, HAND);
+      for (const u of [0.5, 39.5]) drawEdge(mapLine(H, [1, 0, -u]), HAND, 4);
       if (a?.foul) draw(a.foul, FOUND);
+      if (a) for (const l of [a.left, a.right]) drawEdge(l, FOUND, 4);
       jpg(out, join(outDir, `${name}-f${frame}-${tag}${withCands ? "-cands" : ""}.jpg`));
     }
   }

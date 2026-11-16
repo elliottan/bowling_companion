@@ -765,49 +765,98 @@ export interface FoulLine {
 /** A gutter's structure above its end at least this, grey levels per pixel, for the end to count. */
 export const GUTTER_DROP = 6;
 
+/** One end of the foul line, for `gutterFoulLine`: a gutter's end (`gutterEnds`), the corner where the lane's edge line stops (`edgeEnds`), or both agreeing. */
+export interface FoulEnd extends GutterEnd {
+  /** Only the edge line's end was seen, no gutter end with it: never enough alone. */
+  edgeOnly?: boolean;
+}
+
+/** How near a gutter's end and its edge line's end must lie to count as one corner, as a share of the lane's span in rows (about 3 rows on the sample clips). */
+export const EDGE_AGREE = 0.012;
+
 /**
- * The foul line through both gutters' near ends, when both are seen with
- * channel enough above them and the line between them runs within 0.04 of
- * `slope` across the lane (looser than the brightness pairs: the foul line is
- * near the camera, and on a camera turned off the lane's axis its slope
- * differs from the pin row's by up to 0.03 on the sample clips).
+ * Each side's end of the foul line from its gutter's end and its edge line's
+ * end. The edge line's end is the corner itself and is taken when the
+ * gutter's end, carried along `slope` to it, lies within `tol` rows: the
+ * gutter strip's structure can run on a row or more past the corner (a lace
+ * or a shoe over the gutter; 2026-11-16: shot-05's left corner sat 1.5 rows
+ * low on every frame, 3.4 on the owner's frame). When the two disagree the
+ * gutter's end is kept, as before; with no gutter end, the edge line's end
+ * alone, marked `edgeOnly`.
  */
-export function gutterFoulLine(ends: [GutterEnd | null, GutterEnd | null], slope: number): FoulLine | null {
+export function foulEnds(gutters: [GutterEnd | null, GutterEnd | null], edges: [EdgeEnd | null, EdgeEnd | null], slope: number, tol: number): [FoulEnd | null, FoulEnd | null] {
+  const one = (g: GutterEnd | null, e: EdgeEnd | null): FoulEnd | null => {
+    const gOk = g && g.drop >= GUTTER_DROP ? g : null;
+    if (gOk && e) return Math.abs(e.y - (gOk.y + slope * (e.x - gOk.x))) <= tol ? { x: e.x, y: e.y, drop: gOk.drop } : gOk;
+    if (gOk) return gOk;
+    return e ? { x: e.x, y: e.y, drop: 0, edgeOnly: true } : null;
+  };
+  return [one(gutters[0], edges[0]), one(gutters[1], edges[1])];
+}
+
+const counts = (e: FoulEnd | null): e is FoulEnd => !!e && (e.edgeOnly || e.drop >= GUTTER_DROP);
+
+/**
+ * The foul line through both ends (`foulEnds`), when both are seen, at most
+ * one of them by its edge line alone (a scoring console over the right gutter
+ * of shot-02 leaves only the line), and the line between them runs within
+ * 0.04 of `slope` across the lane (looser than the brightness pairs: the foul
+ * line is near the camera, and on a camera turned off the lane's axis its
+ * slope differs from the pin row's by up to 0.03 on the sample clips).
+ */
+export function gutterFoulLine(ends: [FoulEnd | null, FoulEnd | null], slope: number): FoulLine | null {
   const [a, b] = ends;
-  if (!a || !b || a.drop < GUTTER_DROP || b.drop < GUTTER_DROP) return null;
+  if (!counts(a) || !counts(b) || (a.edgeOnly && b.edgeOnly)) return null;
   if (Math.abs((b.y - a.y) / (b.x - a.x) - slope) > 0.04) return null;
-  return { line: [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y], points: [a, b], strength: Math.min(a.drop, b.drop), gutters: true };
+  const strength = Math.min(...[a, b].filter((e) => !e.edgeOnly).map((e) => e.drop));
+  return { line: [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y], points: [a, b], strength, gutters: true };
 }
 
 /**
  * The foul line from one gutter's end, when the other end is hidden (a
- * scoring console over it on shot-02) or too faint to count. One end alone
- * is never enough: a console's bottom, a shoe or the foul light's housing
- * ends as sharply. So it must be corroborated by a change of brightness read
- * on both sides of the lane (`pairs`, the thin dark line or the step to the
- * approach) whose line passes within `tol` rows of the end; the nearest such
- * pair is taken, and the foul line runs from the gutter end to that pair's
- * point on the far side, within 0.04 of `slope` as for two ends. Null when
- * nothing corroborates the end.
+ * scoring console over it on shot-02) or too faint to count, or the two do
+ * not line up (one of them is something else). One end alone is never
+ * enough: a console's bottom, a shoe or the foul light's housing ends as
+ * sharply. So it must be corroborated by a change of brightness read on both
+ * sides of the lane (`pairs`, the thin dark line or the step to the approach)
+ * whose line passes within `tol` rows of the end; the nearest such pair is
+ * taken (over either end, when both are seen), and the foul line runs from
+ * the gutter end to that pair's point on the far side, within 0.04 of
+ * `slope` as for two ends. Null when nothing corroborates an end.
  */
-export function oneGutterFoulLine(ends: [GutterEnd | null, GutterEnd | null], pairs: FoulLine[], slope: number, tol: number): FoulLine | null {
-  const ok = ends.map((e) => (e && e.drop >= GUTTER_DROP ? e : null));
-  if (ok[0] && ok[1]) return null;
-  const i = ok[0] ? 0 : ok[1] ? 1 : -1;
-  if (i < 0) return null;
-  const end = ok[i]!;
-  let best: { far: Point; off: number } | null = null;
-  for (const p of pairs) {
-    if (p.points.length !== 2) continue;
-    const off = Math.abs(-(p.line[0] * end.x + p.line[2]) / p.line[1] - end.y);
-    if (off > tol || (best && off >= best.off)) continue;
-    const far = p.points[1 - i];
-    if (Math.abs((far.y - end.y) / (far.x - end.x) - slope) > 0.04) continue;
-    best = { far, off };
-  }
+export function oneGutterFoulLine(ends: [FoulEnd | null, FoulEnd | null], pairs: FoulLine[], slope: number, tol: number): FoulLine | null {
+  let best: { i: number; end: FoulEnd; far: Point; off: number } | null = null;
+  ends.forEach((end, i) => {
+    if (!end || end.edgeOnly || end.drop < GUTTER_DROP) return;
+    for (const p of pairs) {
+      if (p.points.length !== 2) continue;
+      const off = Math.abs(-(p.line[0] * end.x + p.line[2]) / p.line[1] - end.y);
+      if (off > tol || (best && off >= best.off)) continue;
+      const far = p.points[1 - i];
+      if (Math.abs((far.y - end.y) / (far.x - end.x) - slope) > 0.04) continue;
+      best = { i, end, far, off };
+    }
+  });
   if (!best) return null;
-  const [a, b] = i === 0 ? [end, best.far] : [best.far, end];
+  const { i, end, far } = best as { i: number; end: FoulEnd; far: Point };
+  const [a, b] = i === 0 ? [end, far] : [far, end];
   return { line: [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y], points: [a, b], strength: end.drop / 2, oneGutter: true };
+}
+
+/**
+ * The best guess from one end alone, when nothing on the far side backs it:
+ * the line through the stronger gutter end at `slope`, the camera's roll or
+ * the pin row's. An edge line's end alone does not count here (on rendered
+ * pictures with the foul line below the frame the line "ends" where the
+ * picture does). One-sided, so it is weighed after every pair; across the
+ * clip the camera's distance (`laneAttempts`) decides whether it is taken.
+ */
+export function loneEndFoulLine(ends: [FoulEnd | null, FoulEnd | null], slope: number): FoulLine | null {
+  const ok = ends.filter((e): e is FoulEnd => !!e && !e.edgeOnly && e.drop >= GUTTER_DROP).sort((p, q) => q.drop - p.drop);
+  const end = ok[0];
+  if (!end) return null;
+  const b = { x: end.x + 100, y: end.y + 100 * slope };
+  return { line: [end.y - b.y, b.x - end.x, end.x * b.y - b.x * end.y], points: [end], strength: end.drop / 4 };
 }
 
 /** How near a change of brightness on both sides must pass to a lone gutter end to back it, as a share of the lane's span in rows (about 0.15 ft at the foul line on the sample clips). */
@@ -876,7 +925,9 @@ export function findFoulLines(f: GrayFrame, left: Line3, right: Line3, near: num
   // first only when a change of brightness across the lane passes through it
   // (`oneGutterFoulLine`): the bottom of a scoring console, a shoe or the foul
   // light's housing beside the gutter end it as sharply.
-  const ends = gutterEnds(f, left, right, near, span, slope);
+  // Each end is the gutter's end, or the corner where the lane's edge line
+  // stops when the two agree (`foulEnds`).
+  const ends = foulEnds(gutterEnds(f, left, right, near, span, slope), edgeEnds(f, left, right, near, span), slope, Math.max(1.5, EDGE_AGREE * span));
   const gutterLine = gutterFoulLine(ends, slope) ?? oneGutterFoulLine(ends, pairs, slope, Math.max(1.5, ONE_GUTTER_TOL * span));
   if (gutterLine) out.push(gutterLine);
   if (pairs.length) {
@@ -890,6 +941,10 @@ export function findFoulLines(f: GrayFrame, left: Line3, right: Line3, near: num
     const first = pairs.filter((p) => p.strength >= 0.6 * strongest).reduce((a, b) => (yOf(b) < yOf(a) ? b : a));
     out.push(first, ...pairs.filter((p) => p !== first));
   }
+  // With no line through the ends, one end alone at the slope, before the
+  // brightness rows of one side.
+  const lone = gutterLine ? null : loneEndFoulLine(ends, slope);
+  if (lone) out.push(lone);
   // One side only: its rows, strongest first, on the pin row's slope.
   const ones = [...L.peaks.map((p) => ({ ...p, x: L.x(p.y) })), ...R.peaks.map((p) => ({ ...p, x: R.x(p.y) }))].sort((p, q) => q.g - p.g);
   for (const one of ones) {
@@ -990,15 +1045,149 @@ export function gutterEnds(f: GrayFrame, left: Line3, right: Line3, near: number
     }
     const whole = halfDown(E, level) ?? best + 0.5;
     const y = yA + (thirds.length >= 2 ? median(thirds) : whole);
+    // Below a real end is the approach, as light as the lane; below the
+    // bottom of a scoring console or a shoe over the gutter it is dark
+    // (2026-11-16: the console on shot-02 hides the right gutter, and the
+    // strip running into its black face fell like an end 0.3 to 1 ft up the
+    // lane on five frames).
+    if (grey(outside, y + 1, y + k) < GUTTER_BELOW * grey(inside(outside), y + 1, y + k)) return null;
     const [x0, x1] = outside(y);
     const xm = (x0 + x1) / 2;
     return { x: xm, y, drop: level };
   };
+  // Mean grey over a strip from row a to row b, sampled along `slope`.
+  const grey = (strip: (y: number) => [number, number], a: number, b: number): number => {
+    let s = 0;
+    let n = 0;
+    for (let y = Math.ceil(a); y <= b; y++) {
+      const [s0, s1] = strip(y);
+      const xm = (s0 + s1) / 2;
+      for (let x = Math.ceil(s0); x <= s1; x++) {
+        const v = sample(f, x, y + slope * (x - xm));
+        if (Number.isFinite(v)) {
+          s += v;
+          n++;
+        }
+      }
+    }
+    return n ? s / n : NaN;
+  };
   const width = (y: number) => X(right, y) - X(left, y);
-  return [
-    side((y) => [X(left, y) - 0.15 * width(y), X(left, y) - 0.04 * width(y)]),
-    side((y) => [X(right, y) + 0.04 * width(y), X(right, y) + 0.15 * width(y)])
-  ];
+  const leftStrip = (y: number): [number, number] => [X(left, y) - 0.15 * width(y), X(left, y) - 0.04 * width(y)];
+  const rightStrip = (y: number): [number, number] => [X(right, y) + 0.04 * width(y), X(right, y) + 0.15 * width(y)];
+  // The same strip mirrored onto the lane, just inside its edge.
+  const inside = (strip: (y: number) => [number, number]) =>
+    strip === leftStrip
+      ? (y: number): [number, number] => [X(left, y) + 0.04 * width(y), X(left, y) + 0.15 * width(y)]
+      : (y: number): [number, number] => [X(right, y) - 0.15 * width(y), X(right, y) - 0.04 * width(y)];
+  return [side(leftStrip), side(rightStrip)];
+}
+
+/** Below a gutter's end the strip must be at least this share of the lane's grey beside it (the approach is as light as the lane; a console's face is not). */
+export const GUTTER_BELOW = 0.6;
+
+/** Where the lane's own edge, the thin dark line between the lane and its gutter, stops at the approach. */
+export interface EdgeEnd {
+  x: number;
+  y: number;
+  /** How much darker the line is than the lane beside it above the end, grey levels. */
+  depth: number;
+}
+
+/** The edge's dark line must be at least this much darker than the lane beside it, grey levels, for its end to count. */
+export const EDGE_LINE_DEPTH = 8;
+
+/**
+ * The near end of each of the lane's edges: the thin dark line the edge
+ * finder snaps to (`snapLaneEdge`) runs from the pins to the foul line and
+ * stops there, where the flat approach begins. Down the edge line, how much
+ * darker the line (the deepest narrow dip near the fitted edge) is than the
+ * lane just inside it, from 0.006 to 0.014 lane widths
+ * in; the end is where that falls below half its level above and stays
+ * there, rows `near` - 0.2 `span` to `near` + 0.08 `span`, to a fraction of a
+ * row. It is the corner itself, so it needs nothing of the gutter beyond the
+ * line: on shot-02 a scoring console covers the right gutter to within three
+ * pixels of the edge, and only the line shows where it stops. Null for a
+ * side whose line does not fall so (hidden, out of the picture), and when the
+ * lane just inside is much darker below the fall than above it (a shoe or a
+ * leg over the line, not the approach).
+ */
+export function edgeEnds(f: GrayFrame, left: Line3, right: Line3, near: number, span: number): [EdgeEnd | null, EdgeEnd | null] {
+  const X = (l: Line3, y: number) => -(l[1] * y + l[2]) / l[0];
+  const yA = Math.max(1, Math.round(near - 0.2 * span));
+  const yB = Math.min(f.height - 2, Math.round(near + 0.08 * span));
+  const k = Math.max(3, Math.round(0.012 * span));
+  const side = (l: Line3, s: 1 | -1): EdgeEnd | null => {
+    if (yB - yA < 4 * k) return null;
+    const D: number[] = [];
+    const I: number[] = [];
+    for (let y = yA; y <= yB; y++) {
+      const w = X(right, y) - X(left, y);
+      // The line itself: the deepest narrow dip across the fitted edge, within
+      // 0.012 lane widths of it (the fitted ray can be a few pixels off the
+      // line near the camera, 3.5 on shot-02's right edge), darker than the
+      // picture a pixel and a half out on both sides, so the step to a dark
+      // console beside the gutter is not taken for it.
+      const x0 = X(l, y);
+      const reach = Math.max(1.5, 0.012 * w);
+      let x = x0;
+      let line = NaN;
+      let deepest = 0;
+      for (let o = -reach; o <= reach; o += 0.5) {
+        const v = sample(f, x0 + o, y);
+        const d = Math.min(sample(f, x0 + o - 1.5, y), sample(f, x0 + o + 1.5, y)) - v;
+        if (d > deepest) {
+          deepest = d;
+          x = x0 + o;
+          line = v;
+        }
+      }
+      if (!Number.isFinite(line)) line = sample(f, x0, y);
+      const a = Math.max(2, 0.006 * w);
+      const b = Math.max(a + 2, 0.014 * w);
+      let sum = 0;
+      let n = 0;
+      for (let o = a; o <= b; o += 0.5) {
+        const v = sample(f, x + s * o, y);
+        if (Number.isFinite(v)) {
+          sum += v;
+          n++;
+        }
+      }
+      const inside = n >= 3 ? sum / n : NaN;
+      I.push(inside);
+      D.push(Number.isFinite(line) ? Math.max(0, inside - line) : NaN);
+    }
+    const mean = (P: number[], a: number, b: number) => {
+      let t = 0;
+      for (let j = a; j <= b; j++) t += P[j];
+      return t / (b - a + 1);
+    };
+    // The sharpest fall going down: k rows of line above, k rows without below.
+    let best = -1;
+    let bestRatio = 3;
+    for (let j = k; j < D.length - k; j++) {
+      const above = mean(D, j - k, j - 1);
+      const below = mean(D, j + 1, j + k);
+      if (!Number.isFinite(above) || !Number.isFinite(below) || above < EDGE_LINE_DEPTH) continue;
+      const r = above / (below + 1);
+      if (r > bestRatio) {
+        bestRatio = r;
+        best = j;
+      }
+    }
+    if (best < 0) return null;
+    const level = mean(D, best - k, best - 1);
+    if (mean(I, best + 1, best + k) < 0.75 * mean(I, best - k, best - 1)) return null;
+    // The first row from the lane side under half the level, interpolated.
+    let j = best - k;
+    while (j < best + k && !(D[j + 1] < level / 2)) j++;
+    if (!(D[j + 1] < level / 2)) return null;
+    const o = D[j] > D[j + 1] ? Math.max(0, Math.min(1, (D[j] - level / 2) / (D[j] - D[j + 1]))) : 0.5;
+    const y = yA + j + o;
+    return { x: X(l, y), y, depth: level };
+  };
+  return [side(left, 1), side(right, -1)];
 }
 
 export interface LaneFound {
