@@ -62,19 +62,31 @@ export interface SnapResult {
 /** Robust line through points: RANSAC on pairs, then least squares on the agreeing ones. */
 export function robustLine(pts: Point[], tolerance: number): { line: Line3; inliers: Point[]; rms: number } | null {
   if (pts.length < 2) return null;
-  let best: Point[] = [];
   const n = pts.length;
   // Deterministic: every pair among an evenly spread subset of at most 40 points.
   const pick = n <= 40 ? pts : Array.from({ length: 40 }, (_, i) => pts[Math.floor((i * n) / 40)]);
+  const xs = Float64Array.from(pts, (p) => p.x);
+  const ys = Float64Array.from(pts, (p) => p.y);
+  // Each pair's agreeing points counted (as `lineDistance` measures them), and only the best pair's gathered.
+  let bestCount = 0;
+  let bestLine: Line3 | null = null;
   for (let i = 0; i < pick.length; i++) {
     for (let j = i + 1; j < pick.length; j++) {
       if (Math.hypot(pick[i].x - pick[j].x, pick[i].y - pick[j].y) < 1e-9) continue;
       const l = lineThrough(pick[i], pick[j]);
-      const inl = pts.filter((p) => Math.abs(lineDistance(l, p)) <= tolerance);
-      if (inl.length > best.length) best = inl;
+      const [a, b, c] = l;
+      const h = Math.hypot(a, b);
+      let count = 0;
+      for (let k = 0; k < n; k++) if (Math.abs((a * xs[k] + b * ys[k] + c) / h) <= tolerance) count++;
+      if (count > bestCount) {
+        bestCount = count;
+        bestLine = l;
+      }
     }
   }
-  if (best.length < 2) return null;
+  if (bestCount < 2 || !bestLine) return null;
+  const l0 = bestLine;
+  const best = pts.filter((p) => Math.abs(lineDistance(l0, p)) <= tolerance);
   let line = fitLine(best);
   let inliers = best;
   for (let it = 0; it < 3; it++) {

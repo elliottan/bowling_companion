@@ -1,4 +1,3 @@
-import { apply } from "./homography";
 import type { GrayFrame, Mat3 } from "./types";
 
 /** Small, dull pixel helpers (plan 5.2). Every function takes a `GrayFrame`. */
@@ -67,10 +66,31 @@ export function gradient(f: GrayFrame): { gx: Float32Array; gy: Float32Array } {
  */
 export function warp(src: GrayFrame, M: Mat3, x0: number, y0: number, width: number, height: number): GrayFrame {
   const out = new Float32Array(width * height);
+  // `apply` and `sample` written out, as they compute: this runs on every pixel of every frame's lane.
+  const [m0, m1, m2, m3, m4, m5, m6, m7, m8] = M;
+  const d = src.data;
+  const sw = src.width;
+  const xMax = sw - 1;
+  const yMax = src.height - 1;
   for (let y = 0; y < height; y++) {
+    const py = y + y0;
     for (let x = 0; x < width; x++) {
-      const p = apply(M, { x: x + x0, y: y + y0 });
-      out[y * width + x] = sample(src, p.x, p.y);
+      const px = x + x0;
+      const w = m6 * px + m7 * py + m8;
+      const sx = (m0 * px + m1 * py + m2) / w;
+      const sy = (m3 * px + m4 * py + m5) / w;
+      if (!(sx >= 0 && sy >= 0 && sx <= xMax && sy <= yMax)) {
+        out[y * width + x] = NaN;
+        continue;
+      }
+      const ix = Math.min(Math.floor(sx), sw - 2);
+      const iy = Math.min(Math.floor(sy), src.height - 2);
+      const fx = sx - ix;
+      const fy = sy - iy;
+      const i = iy * sw + ix;
+      const top = d[i] + (d[i + 1] - d[i]) * fx;
+      const bot = d[i + sw] + (d[i + sw + 1] - d[i + sw]) * fx;
+      out[y * width + x] = top + (bot - top) * fy;
     }
   }
   return { width, height, data: out, t: src.t };
@@ -91,14 +111,69 @@ export function downsample(f: GrayFrame, k: number): GrayFrame {
   return { width: w, height: h, data: out, t: f.t };
 }
 
-/** Median of the finite values; NaN when there are none. Sorts a copy. */
+/** The working copy `median` selects in, grown as needed and reused (the finder takes thousands of medians a frame). */
+let scratch = new Float64Array(256);
+
+/** Median of the finite values; NaN when there are none. Works on a copy. */
 export function median(values: ArrayLike<number>): number {
-  const a: number[] = [];
-  for (let i = 0; i < values.length; i++) if (Number.isFinite(values[i])) a.push(values[i]);
-  if (!a.length) return NaN;
-  a.sort((p, q) => p - q);
-  const m = a.length >> 1;
-  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+  if (scratch.length < values.length) scratch = new Float64Array(Math.max(values.length, 2 * scratch.length));
+  const a = scratch;
+  let n = 0;
+  for (let i = 0; i < values.length; i++) {
+    const v = values[i];
+    if (Number.isFinite(v)) a[n++] = v;
+  }
+  return n ? medianOf(a, n) : NaN;
+}
+
+/**
+ * Median of the first `n` values of `a` (all finite, `n` at least 1),
+ * reordering them: the same value a sort gives, found by selection in linear
+ * time.
+ */
+export function medianOf(a: Float64Array | Float32Array, n: number): number {
+  const m = n >> 1;
+  select(a, n, m);
+  if (n % 2) return a[m];
+  // Below the m-th value after the selection are the m smallest: the largest of them is the other middle value.
+  let below = a[0];
+  for (let i = 1; i < m; i++) if (a[i] > below) below = a[i];
+  return (below + a[m]) / 2;
+}
+
+/** Reorders the first `n` values of `a` so that `a[k]` is the k-th smallest, the smaller before it and the larger after (Hoare's selection). */
+function select(a: Float64Array | Float32Array, n: number, k: number): void {
+  let lo = 0;
+  let hi = n - 1;
+  while (hi > lo) {
+    // The middle of three as the pivot, moved to `lo`.
+    const mid = (lo + hi) >> 1;
+    if (a[mid] < a[lo]) swap(a, mid, lo);
+    if (a[hi] < a[lo]) swap(a, hi, lo);
+    if (a[hi] < a[mid]) swap(a, hi, mid);
+    swap(a, lo, mid);
+    const p = a[lo];
+    let i = lo;
+    let j = hi + 1;
+    for (;;) {
+      do i++;
+      while (i <= hi && a[i] < p);
+      do j--;
+      while (a[j] > p);
+      if (i >= j) break;
+      swap(a, i, j);
+    }
+    swap(a, lo, j);
+    if (j === k) return;
+    if (j < k) lo = j + 1;
+    else hi = j - 1;
+  }
+}
+
+function swap(a: Float64Array | Float32Array, i: number, j: number): void {
+  const t = a[i];
+  a[i] = a[j];
+  a[j] = t;
 }
 
 /**

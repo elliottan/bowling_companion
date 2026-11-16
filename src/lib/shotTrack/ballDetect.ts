@@ -84,12 +84,29 @@ export function findCandidates(
   const n = w * h;
   const { diff, threshold: thr } = changeMap(steadied, bg, opts);
   // Smooth the difference over 3 by 3 so a ball's highlights do not split it.
+  // A mean over the threshold needs a pixel near it at the threshold (a hair
+  // under, for the sum's rounding), and most of the lane has none: the rows
+  // with one are found first, and only around those pixels is the mean taken.
+  const near = thr * (1 - 1e-9);
   const mask = new Uint8Array(n);
+  const hot = new Uint8Array(n);
+  const hotRow = new Uint8Array(h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0, i = y * w; x < w; x++, i++) {
+      if (diff[i] >= near) {
+        hot[i] = 1;
+        hotRow[y] = 1;
+      }
+    }
+  }
   for (let y = 1; y < h - 1; y++) {
+    if (!hotRow[y - 1] && !hotRow[y] && !hotRow[y + 1]) continue;
     for (let x = 1; x < w - 1; x++) {
+      const c = y * w + x;
+      if (!(hot[c - w - 1] | hot[c - w] | hot[c - w + 1] | hot[c - 1] | hot[c] | hot[c + 1] | hot[c + w - 1] | hot[c + w] | hot[c + w + 1])) continue;
       let s = 0;
       for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) s += diff[(y + j) * w + x + i];
-      if (s / 9 > thr) mask[y * w + x] = 1;
+      if (s / 9 > thr) mask[c] = 1;
     }
   }
   const tol = opts.widthTolerance ?? 0.35;
@@ -175,29 +192,31 @@ export function findCandidates(
 
 /** A mask with gaps up to `2 * radius` pixels wide closed: grown by `radius`, then shrunk by it. */
 export function closeGaps(mask: Uint8Array, w: number, h: number, radius: number): Uint8Array {
-  const pass = (src: Uint8Array, grow: boolean) => {
+  // A square is a row of the square's width swept down its height, so each
+  // pass is one along the rows and one down the columns. Outside the picture
+  // is clear, so nothing near the border comes out larger than it went in.
+  const pass = (src: Uint8Array, grow: boolean, dx: number, dy: number, n: number, len: number, stride: number) => {
     const out = new Uint8Array(w * h);
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        let hit = !grow;
-        for (let j = -radius; j <= radius && hit !== grow; j++) {
-          for (let i = -radius; i <= radius; i++) {
-            const xx = x + i;
-            const yy = y + j;
-            // Outside the picture is clear, so nothing near the border comes out larger than it went in.
-            const v = xx >= 0 && yy >= 0 && xx < w && yy < h && src[yy * w + xx] === 1;
-            if (v === grow) {
-              hit = grow;
-              break;
-            }
-          }
-        }
-        out[y * w + x] = hit ? 1 : 0;
+    // Along each line of `len` pixels (`stride` apart), lines starting `dx`/`dy` apart: how many set pixels lie within the radius.
+    for (let line = 0; line < n; line++) {
+      const base = line * (dx || dy);
+      let count = 0;
+      for (let k = 0; k < Math.min(radius, len); k++) count += src[base + k * stride];
+      for (let k = 0; k < len; k++) {
+        if (k + radius < len) count += src[base + (k + radius) * stride];
+        if (k - radius - 1 >= 0) count -= src[base + (k - radius - 1) * stride];
+        const lo = Math.max(0, k - radius);
+        const hi = Math.min(len - 1, k + radius);
+        // Growing: any set within reach. Shrinking: all of the reach set, and all of it inside the picture.
+        const hit = grow ? count > 0 : count === 2 * radius + 1 && hi - lo === 2 * radius;
+        out[base + k * stride] = hit ? 1 : 0;
       }
     }
     return out;
   };
-  return pass(pass(mask, true), false);
+  const rows = (src: Uint8Array, grow: boolean) => pass(src, grow, w, 0, h, w, 1);
+  const cols = (src: Uint8Array, grow: boolean) => pass(src, grow, 0, 1, w, h, w);
+  return cols(rows(cols(rows(mask, true), true), false), false);
 }
 
 interface Blob {

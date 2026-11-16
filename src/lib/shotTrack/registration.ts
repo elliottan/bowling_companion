@@ -52,49 +52,73 @@ export interface RegisterOptions {
   focal?: number;
 }
 
-function sad(a: GrayFrame, b: GrayFrame, dx: number, dy: number, x0: number, x1: number, y0: number, y1: number, stride: number): number {
+/**
+ * The mean absolute difference of `a` and `b` shifted by (dx, dy) over the
+ * box, every `stride`th pixel; Infinity when no pixel falls inside `b`. Given
+ * up (returning more than `bound`, never less) once the sum alone is past
+ * `bound` of the mean: it only grows.
+ */
+function sad(a: GrayFrame, b: GrayFrame, dx: number, dy: number, x0: number, x1: number, y0: number, y1: number, stride: number, bound = Infinity): number {
+  // The pixels counted, worked out first so the running sum can be judged as a mean.
+  let ny = 0;
+  for (let y = y0; y < y1; y += stride) if (y + dy >= 0 && y + dy < b.height) ny++;
+  let nx = 0;
+  for (let x = x0; x < x1; x += stride) if (x + dx >= 0 && x + dx < b.width) nx++;
+  const n = nx * ny;
+  if (!n) return Infinity;
+  const ad = a.data;
+  const bd = b.data;
   let s = 0;
-  let n = 0;
   for (let y = y0; y < y1; y += stride) {
     const yb = y + dy;
     if (yb < 0 || yb >= b.height) continue;
+    const ra = y * a.width;
+    const rb = yb * b.width + dx;
     for (let x = x0; x < x1; x += stride) {
       const xb = x + dx;
       if (xb < 0 || xb >= b.width) continue;
-      s += Math.abs(a.data[y * a.width + x] - b.data[yb * b.width + xb]);
-      n++;
+      s += Math.abs(ad[ra + x] - bd[rb + x]);
     }
+    if (s / n > bound) return s / n;
   }
-  return n ? s / n : Infinity;
+  return s / n;
 }
 
+/** The shift of least `sad` within +-r of (cx, cy), the first in row order on a tie, and every shift's cost (NaN where given up). */
 function bestShift(a: GrayFrame, b: GrayFrame, cx: number, cy: number, r: number, box: [number, number, number, number], stride: number) {
   let best = { dx: cx, dy: cy, e: Infinity };
-  const grid = new Map<string, number>();
+  const w = 2 * r + 1;
+  const grid = new Float64Array(w * w).fill(NaN);
   for (let dy = cy - r; dy <= cy + r; dy++) {
     for (let dx = cx - r; dx <= cx + r; dx++) {
-      const e = sad(a, b, dx, dy, box[0], box[1], box[2], box[3], stride);
-      grid.set(`${dx},${dy}`, e);
+      const e = sad(a, b, dx, dy, box[0], box[1], box[2], box[3], stride, best.e);
+      if (e <= best.e) grid[(dy - cy + r) * w + dx - cx + r] = e;
       if (e < best.e) best = { dx, dy, e };
     }
   }
-  return { ...best, grid };
+  /** A shift's cost, summed in full when it was given up; undefined outside the search. */
+  const cost = (dx: number, dy: number): number | undefined => {
+    if (Math.abs(dx - cx) > r || Math.abs(dy - cy) > r) return undefined;
+    const k = (dy - cy + r) * w + dx - cx + r;
+    if (Number.isNaN(grid[k])) grid[k] = sad(a, b, dx, dy, box[0], box[1], box[2], box[3], stride);
+    return grid[k];
+  };
+  return { ...best, cost };
 }
 
 /**
  * The shift of the picture from `a` to `b`, by block matching the top third
  * (the ceiling and the masking units: static, textured, and above the bowler),
  * coarse at a quarter of the resolution and then at full resolution, with a
- * parabola for the sub-pixel part (plan 7.1).
+ * parabola for the sub-pixel part (plan 7.1). `qa` and `qb` are the two
+ * pictures at a quarter of the resolution, when already made.
  */
-export function globalShift(a: GrayFrame, b: GrayFrame, range = 40): Point {
-  const qa = downsample(a, 4);
-  const qb = downsample(b, 4);
+export function globalShift(a: GrayFrame, b: GrayFrame, range = 40, qa = downsample(a, 4), qb = downsample(b, 4)): Point {
   const qbox: [number, number, number, number] = [Math.round(qa.width * 0.1), Math.round(qa.width * 0.9), 2, Math.round(qa.height / 3)];
   const coarse = bestShift(qa, qb, 0, 0, Math.ceil(range / 4), qbox, 1);
   const box: [number, number, number, number] = [Math.round(a.width * 0.1), Math.round(a.width * 0.9), 8, Math.round(a.height / 3)];
   const fine = bestShift(a, b, coarse.dx * 4, coarse.dy * 4, 4, box, 3);
-  const e = (dx: number, dy: number) => fine.grid.get(`${dx},${dy}`) ?? fine.e;
+  const e = (dx: number, dy: number) => fine.cost(dx, dy) ?? fine.e;
   const sub = (l: number, m: number, r: number) => {
     const den = l - 2 * m + r;
     return den > 0 ? Math.max(-0.5, Math.min(0.5, (0.5 * (l - r)) / den)) : 0;
@@ -154,42 +178,116 @@ export function choosePatches(f: GrayFrame, size?: number, keep?: (p: Point) => 
   return out.filter((p) => p.e > Math.max(4, 1.5 * typical)).sort((a, b) => b.e - a.e).slice(0, max);
 }
 
+/** Blocks a patch is cut into across and down for `matchPatch`'s bound. */
+const BLOCKS = 4;
+
+/** The last picture's running sums (`integral`): every patch of one frame is matched in turn. */
+let summed: { data: GrayFrame["data"]; I: Float64Array } | null = null;
+
+/** The picture's sums over every rectangle from its top left corner, (width + 1) by (height + 1). */
+function integral(f: GrayFrame): Float64Array {
+  if (summed && summed.data === f.data) return summed.I;
+  const w = f.width;
+  const W = w + 1;
+  const I = new Float64Array(W * (f.height + 1));
+  const d = f.data;
+  for (let y = 0; y < f.height; y++) {
+    let row = 0;
+    for (let x = 0; x < w; x++) {
+      row += d[y * w + x];
+      I[(y + 1) * W + x + 1] = I[y * W + x + 1] + row;
+    }
+  }
+  summed = { data: f.data, I };
+  return I;
+}
+
 /** Where a calibration patch lies in frame f, searched +-r around `guess`, sub-pixel; null when not found. */
 export function matchPatch(c0: GrayFrame, f: GrayFrame, p: Patch, guess: Point, r = 6): Point | null {
   const gx = Math.round(guess.x);
   const gy = Math.round(guess.y);
   if (gx - p.h - r < 1 || gy - p.h - r < 1 || gx + p.h + r >= f.width - 1 || gy + p.h + r >= f.height - 1) return null;
-  const err = (dx: number, dy: number) => {
+  const a = c0.data;
+  const b = f.data;
+  const aw = c0.width;
+  const bw = f.width;
+  const h = p.h;
+  // Squared differences: a smooth cost surface, so the parabola through its
+  // minimum gives the sub-pixel part (absolute differences make a V). A
+  // shift's sum is given up once it passes the best so far (it only grows),
+  // so only the best and its four neighbors are ever summed in full; the
+  // best is the first smallest in the order the shifts are listed, as a full
+  // search finds it.
+  const err = (dx: number, dy: number, bound: number) => {
     let e = 0;
-    // Squared differences: a smooth cost surface, so the parabola through its
-    // minimum gives the sub-pixel part (absolute differences make a V).
-    for (let j = -p.h; j < p.h; j++) {
-      const r0 = (p.y + j) * c0.width + p.x;
-      const r1 = (gy + dy + j) * f.width + gx + dx;
-      for (let i = -p.h; i < p.h; i++) {
-        const d = c0.data[r0 + i] - f.data[r1 + i];
+    for (let j = -h; j < h; j++) {
+      const r0 = (p.y + j) * aw + p.x;
+      const r1 = (gy + dy + j) * bw + gx + dx;
+      for (let i = -h; i < h; i++) {
+        const d = a[r0 + i] - b[r1 + i];
         e += d * d;
       }
+      if (e > bound) return e;
     }
     return e;
   };
-  const grid: number[] = [];
-  let best = 0;
+  // A shift is not summed at all when it cannot beat the best: over each
+  // block of the patch the squared differences are at least the square of the
+  // summed difference over the block's size (Cauchy-Schwarz), and the frame's
+  // block sums come from its running sums in four reads.
+  const I = integral(f);
+  const IW = bw + 1;
+  const edges: number[] = [];
+  for (let k = 0; k <= BLOCKS; k++) edges.push(-h + Math.round((2 * h * k) / BLOCKS));
+  const sumsA = new Float64Array(BLOCKS * BLOCKS);
+  const sizes = new Float64Array(BLOCKS * BLOCKS);
+  for (let by = 0; by < BLOCKS; by++) {
+    for (let bx = 0; bx < BLOCKS; bx++) {
+      let t = 0;
+      for (let j = edges[by]; j < edges[by + 1]; j++) for (let i = edges[bx]; i < edges[bx + 1]; i++) t += a[(p.y + j) * aw + p.x + i];
+      sumsA[by * BLOCKS + bx] = t;
+      sizes[by * BLOCKS + bx] = (edges[by + 1] - edges[by]) * (edges[bx + 1] - edges[bx]);
+    }
+  }
+  const lowest = (dx: number, dy: number) => {
+    let lb = 0;
+    for (let by = 0; by < BLOCKS; by++) {
+      const top = (gy + dy + edges[by]) * IW;
+      const bottom = (gy + dy + edges[by + 1]) * IW;
+      for (let bx = 0; bx < BLOCKS; bx++) {
+        const left = gx + dx + edges[bx];
+        const right = gx + dx + edges[bx + 1];
+        const sb = I[bottom + right] - I[top + right] - I[bottom + left] + I[top + left];
+        const k = by * BLOCKS + bx;
+        const diff = sumsA[k] - sb;
+        lb += (diff * diff) / sizes[k];
+      }
+    }
+    // A hair under, for the rounding of the sums of fractional pictures.
+    return lb * (1 - 1e-9) - 1e-6;
+  };
   const w = 2 * r + 1;
+  // The guess first: near the answer, it makes a low bound early.
+  let best = r * w + r;
+  let bestE = err(0, 0, Infinity);
   for (let dy = -r; dy <= r; dy++) {
     for (let dx = -r; dx <= r; dx++) {
-      const e = err(dx, dy);
-      grid.push(e);
-      if (e < grid[best]) best = grid.length - 1;
+      const k = (dy + r) * w + dx + r;
+      if (k === r * w + r || lowest(dx, dy) > bestE) continue;
+      const e = err(dx, dy, bestE);
+      if (e < bestE || (e === bestE && k < best)) {
+        bestE = e;
+        best = k;
+      }
     }
   }
   const bx = (best % w) - r;
   const by = Math.floor(best / w) - r;
   if (Math.abs(bx) === r || Math.abs(by) === r) return null;
-  const at = (dx: number, dy: number) => grid[(dy + r) * w + dx + r];
+  const at = (dx: number, dy: number) => err(dx, dy, Infinity);
   return {
-    x: gx + bx + parabolaPeak(-at(bx - 1, by), -at(bx, by), -at(bx + 1, by)),
-    y: gy + by + parabolaPeak(-at(bx, by - 1), -at(bx, by), -at(bx, by + 1))
+    x: gx + bx + parabolaPeak(-at(bx - 1, by), -bestE, -at(bx + 1, by)),
+    y: gy + by + parabolaPeak(-at(bx, by - 1), -bestE, -at(bx, by + 1))
   };
 }
 
@@ -373,11 +471,16 @@ export function register(
   const patches = choosePatches(c0);
   const zero: TurnParams = [0, 0, 0, 0];
   const all: Matches[] = [{ index: calibFrame, P: [], Q: [], inliers: [], p: zero, ok: true }];
+  // Each frame at a quarter of the resolution, made once for the shifts from it and to it.
+  const q0 = downsample(c0, 4);
   for (const dir of [1, -1]) {
     let prev = zero;
+    let qPrev = q0;
     for (let i = calibFrame + dir; i >= first && i <= last; i += dir) {
       const f = source.frame(i);
-      const g = globalShift(source.frame(i - dir), f);
+      const q = downsample(f, 4);
+      const g = globalShift(source.frame(i - dir), f, 40, qPrev, q);
+      qPrev = q;
       const prevH = turnHomography(lens0, prev);
       // The coarse shift as a small pan and tilt on top of the last frame's turn.
       const guess: TurnParams = [prev[0] - g.y / lens0.f, prev[1] + g.x / lens0.f, prev[2], prev[3]];
@@ -644,18 +747,8 @@ export function robustHomography(P: Point[], Q: Point[], tol: number): { H: Mat3
  * NaN and patches touching them are skipped.
  */
 export function alignTo(ref: GrayFrame, img: GrayFrame, tol = 0.8): Mat3 | null {
-  const clean = (f: GrayFrame): GrayFrame => ({ ...f, data: Float32Array.from(f.data, (v) => (Number.isFinite(v) ? v : -1000)) });
-  const a = clean(ref);
-  const b = clean(img);
-  const size = Math.max(8, Math.min(16, Math.round(Math.min(ref.width, ref.height) / 12)));
-  const patches = choosePatches(a, size, (p) => {
-    const h = size / 2 + 1;
-    for (const [dx, dy] of [[-h, -h], [h, -h], [-h, h], [h, h]]) {
-      const v = ref.data[Math.round(p.y + dy) * ref.width + Math.round(p.x + dx)];
-      if (!Number.isFinite(v)) return false;
-    }
-    return true;
-  }, 160);
+  const { a, patches } = refPatches(ref);
+  const b = cleaned(img);
   const P: Point[] = [];
   const Q: Point[] = [];
   for (const pt of patches) {
@@ -675,4 +768,36 @@ export function alignTo(ref: GrayFrame, img: GrayFrame, tol = 0.8): Mat3 | null 
     most = Math.max(most, Math.hypot(q.x - x, q.y - y));
   }
   return most < 0.5 ? null : fit.H;
+}
+
+/** A picture with NaN (outside what was seen) as -1000, so a patch over it cannot match. */
+function cleaned(f: GrayFrame): GrayFrame {
+  const data = new Float32Array(f.data.length);
+  const d = f.data;
+  for (let i = 0; i < data.length; i++) {
+    const v = d[i];
+    data[i] = Number.isFinite(v) ? v : -1000;
+  }
+  return { ...f, data };
+}
+
+/** `alignTo`'s reference, cleaned, and its patches: the same empty lane is every frame's reference, so they are made once. */
+const refs = new WeakMap<GrayFrame, { a: GrayFrame; patches: Patch[] }>();
+
+function refPatches(ref: GrayFrame): { a: GrayFrame; patches: Patch[] } {
+  const known = refs.get(ref);
+  if (known) return known;
+  const a = cleaned(ref);
+  const size = Math.max(8, Math.min(16, Math.round(Math.min(ref.width, ref.height) / 12)));
+  const patches = choosePatches(a, size, (p) => {
+    const h = size / 2 + 1;
+    for (const [dx, dy] of [[-h, -h], [h, -h], [-h, h], [h, h]]) {
+      const v = ref.data[Math.round(p.y + dy) * ref.width + Math.round(p.x + dx)];
+      if (!Number.isFinite(v)) return false;
+    }
+    return true;
+  }, 160);
+  const out = { a, patches };
+  refs.set(ref, out);
+  return out;
 }

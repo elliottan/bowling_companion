@@ -1,5 +1,5 @@
 import { apply, intersect, lineDistance, mapLine, type Line3 } from "./homography";
-import { boxBlur, downsample, gradient, median, parabolaPeak, sample } from "./image";
+import { boxBlur, downsample, gradient, median, medianOf, parabolaPeak, sample } from "./image";
 import { robustLine, snapEdge } from "./edgeSnap";
 import { fitCalibration, type CalibrationFit, type CalMark } from "./calibrate";
 import { checkPins, type LandmarkError } from "./calibrationCheck";
@@ -318,29 +318,34 @@ export interface ColumnProfile {
   level: Float32Array;
 }
 
-/** Medians down each fan column between picture rows `from` and `to`. */
-export function columnProfile(fan: Fan, from: number, to: number): ColumnProfile {
+/**
+ * Medians down each fan column between picture rows `from` and `to`; without
+ * `withLevel`, the gradient's only (`level` is left NaN).
+ */
+export function columnProfile(fan: Fan, from: number, to: number, withLevel = true): ColumnProfile {
   const ja = Math.max(0, Math.round(from - fan.y0));
   const jb = Math.min(fan.rows - 1, Math.round(to - fan.y0));
   const grad = new Float32Array(fan.cols).fill(NaN);
   const level = new Float32Array(fan.cols).fill(NaN);
   const n = jb - ja + 1;
   if (n < 3) return { grad, level };
-  const g = new Float32Array(n);
-  const l = new Float32Array(n);
-  for (let i = 0; i < fan.cols; i++) {
+  const g = new Float64Array(n);
+  const l = new Float64Array(n);
+  const { G, F, cols } = fan;
+  for (let i = 0; i < cols; i++) {
     let k = 0;
-    for (let j = ja; j <= jb; j++) {
-      const v = fan.G[j * fan.cols + i];
+    let m = 0;
+    for (let j = ja, at = ja * cols + i; j <= jb; j++, at += cols) {
+      const v = G[at];
       if (!Number.isFinite(v)) continue;
-      g[k] = v;
-      l[k] = fan.F[j * fan.cols + i];
-      k++;
+      g[k++] = v;
+      const w = F[at];
+      if (Number.isFinite(w)) l[m++] = w;
     }
     // Columns mostly outside the picture say nothing.
     if (k < 0.6 * n) continue;
-    grad[i] = median(g.subarray(0, k));
-    level[i] = median(l.subarray(0, k));
+    grad[i] = medianOf(g, k);
+    if (withLevel && m) level[i] = medianOf(l, m);
   }
   return { grad, level };
 }
@@ -409,6 +414,8 @@ export interface FrameLanes {
   candidates: LaneCandidate[];
   fan: Fan;
   profile: ColumnProfile;
+  /** The whole length's profile as measured (`profile` is changed by `steadyProfiles`), kept for `refineVanishingPoint`. */
+  whole?: ColumnProfile;
 }
 
 /** Vanishing point, fan and lane candidates on one frame (full resolution, video-range grey). */
@@ -431,10 +438,10 @@ export function lanesOnFrame(f: GrayFrame): FrameLanes | null {
   // The bowler, the ball return and a scoring screen stand near the camera and
   // hide the near half of an edge far more often than the far half: each
   // column keeps the stronger of its whole-length and far-half medians.
-  const farHalf = columnProfile(fan, far + 0.08 * span, far + 0.5 * span);
+  const farHalf = columnProfile(fan, far + 0.08 * span, far + 0.5 * span, false);
   const grad = prof.grad.map((g, i) => (Math.abs(farHalf.grad[i]) > Math.abs(g) && Math.sign(farHalf.grad[i]) === Math.sign(g || farHalf.grad[i]) ? farHalf.grad[i] : g));
   const profile = { grad: Float32Array.from(grad), level: prof.level };
-  return { vp, far, near, candidates: laneCandidates(prof, fan.x0, 0.08 * f.width), fan, profile };
+  return { vp, far, near, candidates: laneCandidates(prof, fan.x0, 0.08 * f.width), fan, profile, whole: prof };
 }
 
 /**
@@ -543,7 +550,7 @@ export function rankLanes(all: (FrameLanes | null)[], frameWidth: number): LaneP
  */
 export function refineVanishingPoint(f: GrayFrame, r: FrameLanes): { vp: Point; lines: number } {
   const span = r.near - r.far;
-  const prof = columnProfile(r.fan, r.far + 0.08 * span, r.near - 0.04 * span);
+  const prof = r.whole ?? columnProfile(r.fan, r.far + 0.08 * span, r.near - 0.04 * span);
   const g = prof.grad;
   const abs: number[] = [];
   for (let i = 0; i < g.length; i++) if (Number.isFinite(g[i])) abs.push(Math.abs(g[i]));
