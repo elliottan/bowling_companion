@@ -8,6 +8,83 @@ development aid, not the product. Read this, then
 then `docs/SHOT-TRACKER-PLAN.md` sections 6 and 7 for the geometry. `CLAUDE.md`
 holds the house rules; the ones that bite here are at the end.
 
+## Stopped mid-round (2026-11-16): what is saved and what is not
+
+Two jobs were running on the branch `claude/bold-hypatia-m1z17k` (on top of
+0.112.0) when the owner stopped them. Nothing here is released, no PR is open,
+and the version is not bumped (next is 0.113.0). The tree type-checks, lints
+and passes the 223 `src/lib/shotTrack` tests; the full `npm run verify` was
+not run.
+
+**The owner's rulings this round. They are the spec.**
+
+- The app must work with no hand-drawn lines. Hand lines are a review and
+  calibration reference only.
+- Do not hardcode 4 seconds. The clip kept is from the moment the ball is on
+  the foul line until it leaves the pin deck, and everything outside is
+  cropped.
+- Laydown is read on the frame the ball is right on the foul line. Review
+  pictures must start from that frame, and every reading must show the frame
+  it was read on.
+- A hidden foul-line end gets a best guess (the other end, the gutter's line,
+  the thin foul line itself, other frames). On shot-02 the right end is
+  visible, barely.
+- shot-01 pins is 18.5 to 19; the frame used (241) is a little late, the ball
+  is already among the pins. When unsure, show the frame chosen and the few
+  before it and the owner picks.
+- shot-05: the left foul-line corner sits a little down and left of the real
+  one. shot-02's whole-lane view is off.
+- shot-06 pins 18.0 is acceptable.
+- Two speeds: launch (first 10 to 15 ft) and at the pins. The owner is not
+  checking speed for now.
+- The owner did not know what the review page's "Hand" column was. It is the
+  same tracer run on lane lines marked by hand on one frame. Label it so, or
+  drop it.
+
+**Job 1, the foul line from one gutter end (half done, committed).**
+`laneFind.ts` has `oneGutterFoulLine(ends, pairs, slope, tol)`, used when
+`gutterFoulLine` finds only one end. Not done: tests for `gutterEnds` and
+`oneGutterFoulLine` (coverage floors will bite), and no check yet that it moves
+shot-02 (was 0.6 ft up the lane) without moving the other clips more than
+0.1 ft. Check with `scripts/shot-tracker/foul-look.ts`. shot-01 pins and the
+shot-05 corner were not started.
+
+**Job 2, the shot window, speeds and the reader (half done).**
+
+- Committed: `speeds.ts` and `speeds.test.ts` (launch and entry speed). Not
+  wired into `auto.ts`, the result screen or the translations.
+- Not committed as code: the reader rewrite is saved as
+  `scripts/shot-tracker/wip/shot-window.patch` (applies cleanly to this
+  commit with `git apply`). It touches `marking.ts` (`READ_SECONDS`,
+  `readWindow`), `shotStart.ts`, `videoFrames.ts` and adds `shotWindow.ts`.
+  It does **not** type-check: `marking.test.ts` expects the old exports and
+  `ShotTracerView.tsx` line 154 passes 4 arguments where 3 are now taken.
+  Treat it as a draft to read, not as code to trust.
+- Not started: the reader's repeatability. On IMG_1996 laydown read 18.7 on
+  one browser run and 27.3 on another, because play-and-copy dropped frames
+  (237 frames over 4.6 s). The idea: find gaps from the media timestamps,
+  re-read them by seeking, and give each frame its own media time.
+
+**A finding to carry.** On five of the six clips the ball is never on the foul
+line in the video: it crosses in the bowler's hand, about a ball radius above
+the lane ("the ball's bottom never reached the foul line's row"; only shot-06
+reaches it). So "the frame the ball is on the foul line" is the frame the ball
+comes lowest, with the board read straight below its center. The owner has not
+been asked to confirm this reading of their rule; put it on the review page.
+
+**The review page** (https://claude.ai/artifact/6ioRbhBs4oUo34nS6v67N6, the
+only thing the owner reads) still shows the 0.112.0 questions.
+`scripts/shot-tracker/review-auto.ts` and `review-frames.ts` now write a
+picture of the frame behind every automatic reading, and for pins the reading
+frame plus the four before it (`frames.json`, key `auto`). The page has not
+been rebuilt to show them. The page's build files lived in a session scratch
+folder and may be gone; rebuild from those scripts.
+
+**Order to pick up in:** finish job 1 with tests; shot-01 pins; job 2 (window,
+reader, speeds on screen, 7 locales); rebuild the review page with the frames,
+the Hand column explained and the new questions; then bump to 0.113.0, write
+the changelog, open a draft PR. Merge only when the owner says.
+
 ## Where it stands (0.112.0, 2026-11-15)
 
 - **0.112.0 made the app all automatic**, on the owner's word: no marking

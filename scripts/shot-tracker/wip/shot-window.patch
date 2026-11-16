@@ -1,0 +1,954 @@
+diff --git a/src/lib/shotTrack/marking.ts b/src/lib/shotTrack/marking.ts
+index bf336516..50198acc 100644
+--- a/src/lib/shotTrack/marking.ts
++++ b/src/lib/shotTrack/marking.ts
+@@ -15,32 +15,36 @@ export type MarkLines = Record<MarkLine, [Point, Point]>;
+ export const MARK_LINES: MarkLine[] = ["left", "right", "foul", "pinrow"];
+ 
+ /**
+- * How a video is read: the rate frames are looked for at, and the most frames
+- * kept, four seconds at 60 frames a second and eight at 30 (the board at the
+- * pins needs the 60: shot-01 read 14.8 at 30 and 19.2 at 60, by eye 19.4).
++ * How a video is read (Settings, Labs, the shot tracer): the stretch from just
++ * before the ball crosses the foul line to just after it leaves the pin deck
++ * (`shotWindow.ts`), however long that is, at `READ_FPS` frames a second where
++ * the memory allows (the board at the pins needs the 60: shot-01 read 14.8 at
++ * 30 and 19.2 at 60, by eye 19.4), and at the next rate down in
++ * `READ_RATES` where it does not, rather than cutting the shot short.
+  */
+ export const READ_FPS = 60;
+-export const READ_MAX_FRAMES = 240;
+-/** The longest stretch of a video read, seconds: the most frames at 30 a second. */
+-export const READ_SECONDS = READ_MAX_FRAMES / 30;
+-
+-/** The least a read is left to cover, seconds: from a release to the pins is about three. */
+-export const READ_AT_LEAST = 3;
++export const READ_RATES = [60, 30, 20, 15];
+ 
+ /**
+- * The stretch of a video of `duration` seconds to read from `start`: at most
+- * `READ_SECONDS` long and inside the video. A start in the last
+- * `READ_AT_LEAST` seconds is pulled back to leave that much.
++ * The most bytes of frames one read keeps: 240 frames of 960 by 720 grey, 166
++ * MB, what 0.112.0 held (four seconds at 60). The frames are the whole of the
++ * read's memory and are held twice for a moment (the lane search gets copies
++ * of a tenth of them; the tracer gets the rest moved, not copied), so this
++ * keeps the peak under about 200 MB, well inside what a phone's browser gives
++ * a page. A 17 mph shot (about 3.3 s with its margins) fits at 60; a 10 mph
++ * one (about 5.4 s) is read at 30.
+  */
+-export function readWindow(duration: number, start: number): { from: number; to: number } {
+-  if (!(duration > 0)) return { from: 0, to: 0 };
+-  const from = Math.min(Math.max(0, Number.isFinite(start) ? start : 0), latestStart(duration));
+-  return { from, to: Math.min(duration, from + READ_SECONDS) };
+-}
++export const READ_BUDGET = 240 * 960 * 720;
+ 
+-/** The furthest a read can start in a video of `duration` seconds. */
+-export function latestStart(duration: number): number {
+-  return Math.max(0, duration - READ_AT_LEAST);
++/**
++ * The frames a second a read of `seconds` keeps, frames `frameBytes` each,
++ * within `budget`: the first of `READ_RATES` that fits, else as many as fit.
++ */
++export function keptFps(seconds: number, frameBytes: number, budget = READ_BUDGET): number {
++  const most = Math.floor(budget / Math.max(1, frameBytes));
++  if (!(seconds > 0)) return READ_FPS;
++  for (const fps of READ_RATES) if (Math.ceil(seconds * fps - 1e-9) <= most) return fps;
++  return Math.max(1, most) / seconds;
+ }
+ 
+ /**
+@@ -53,25 +57,128 @@ export function frameTimes(from: number, to: number, fps: number, maxFrames: num
+   return Array.from({ length: count }, (_, i) => from + i / fps);
+ }
+ 
++/** How far a read has got, 0 to 1: the time reached against the stretch. */
++export function readProgress(at: number, from: number, to: number): number {
++  const byTime = to > from ? (at - from) / (to - from) : 1;
++  return Math.min(1, Math.max(0, byTime));
++}
++
+ /**
+- * How far a read has got, 0 to 1: the frames kept against the most kept, or
+- * the time reached against the stretch, whichever is further. A 60 fps clip
+- * fills its frames before the stretch ends, a 24 fps one the other way round.
++ * The video's own step between frames, seconds, from the steps between frames
++ * shown one after another: the smallest, averaged with those close to it. A
++ * WebM stores times to the millisecond, so a 120 fps clip steps 8, 8, 9 ms,
++ * and its step is their mean, not the smallest. A frame passed over makes a
++ * step twice as long, which is left out. Null for fewer than two steps.
+  */
+-export function readProgress(frames: number, at: number, from: number, to: number, maxFrames: number): number {
+-  const byTime = to > from ? (at - from) / (to - from) : 1;
+-  return Math.min(1, Math.max(0, frames / maxFrames, byTime));
++export function sourceStep(steps: readonly number[]): number | null {
++  const ok = steps.filter((d) => d > 5e-4);
++  if (ok.length < 2) return null;
++  const least = Math.min(...ok);
++  const near = ok.filter((d) => d < 1.45 * least);
++  return near.reduce((a, b) => a + b, 0) / near.length;
+ }
+ 
+ /**
+- * Whether a frame shown at `at` seconds is kept: it is at least most of a
+- * `READ_FPS` frame after the last kept. A frame seen twice (a paused video
+- * presenting again, a clip slower than the reading rate) is kept once, and a
+- * 120 fps clip is kept at 60, as its seeks were: the frames would otherwise
+- * fill in two seconds, before the pins.
++ * Which of the frames a video shows a read keeps, so that two reads of the
++ * same video keep the same frames however many the browser passes over: every
++ * `m`th frame of the video (`m` = its frame rate over the rate kept, at least
++ * 1) from the first at or after `from`, until `to`. A frame is judged by how
++ * many of the video's own frames it is after the last one kept (its time over
++ * `src`, rounded), not by its time alone: a frame shown late, or one in place
++ * of another passed over, is not kept in its place. Each frame the read should
++ * have kept and did not see is listed in `missing`, for the read to go back
++ * for (`claimFrame`). Pure.
+  */
+-export function isNewFrame(lastKept: number | undefined, at: number): boolean {
+-  return lastKept === undefined || at - lastKept > 0.75 / READ_FPS;
++export class FrameSlots {
++  readonly step: number;
++  readonly m: number;
++  /** The instants of frames to keep that were passed over, seconds, in order. */
++  readonly missing: number[] = [];
++  private last: number;
++
++  /**
++   * @param seen the time of any frame of the video, to know where its frames fall
++   * @param after the time of a frame already kept on this read's grid (a read
++   *   in parts), which then carries on from it; else from the first frame at or
++   *   after `from`
++   */
++  constructor(
++    readonly from: number,
++    readonly to: number,
++    fps: number,
++    readonly src: number,
++    seen: number,
++    after?: number
++  ) {
++    this.m = Math.max(1, Math.round(1 / (fps * src)));
++    this.step = this.m * src;
++    if (after !== undefined) this.last = after;
++    else this.last = seen + Math.ceil((from - 0.25 * src - seen) / src) * src - this.step;
++  }
++
++  /** Whether a frame shown at `t` seconds is kept. Frames must come in time order. */
++  offer(t: number): boolean {
++    if (t < this.from - 0.25 * this.src || t >= this.to - 0.25 * this.src) return false;
++    const n = Math.round((t - this.last) / this.src);
++    if (n < this.m) return false;
++    const whole = Math.floor(n / this.m);
++    const on = n % this.m === 0;
++    for (let j = 1; j < (on ? whole : whole + 1); j++) this.missing.push(this.last + j * this.step);
++    if (!on) {
++      this.last += whole * this.step;
++      return false;
++    }
++    this.last = t;
++    return true;
++  }
++
++  /** The read stopped: the frames after the last one kept, to `to`, are missing too. */
++  close(): void {
++    for (let g = this.last + this.step; g < this.to - 0.25 * this.src; g += this.step) this.missing.push(g);
++    this.last = Infinity;
++  }
++}
++
++/**
++ * Which of `instants` (frames to keep, seconds) a frame shown at `t` is: the
++ * index of the one within 0.4 of a video frame `src`, or -1.
++ */
++export function claimFrame(instants: readonly number[], t: number, src: number): number {
++  let best = -1;
++  for (let i = 0; i < instants.length; i++) {
++    if (Math.abs(instants[i] - t) <= 0.4 * src && (best < 0 || Math.abs(instants[i] - t) < Math.abs(instants[best] - t))) best = i;
++  }
++  return best;
++}
++
++/**
++ * Missing frames (seconds, in order) gathered into stretches to read again:
++ * those no more than `join` seconds apart go together, each stretch from a
++ * little before its first to a little after its last.
++ */
++export function missingRuns(instants: readonly number[], src: number, join: number): { from: number; to: number; instants: number[] }[] {
++  const out: { from: number; to: number; instants: number[] }[] = [];
++  for (const t of instants) {
++    const run = out[out.length - 1];
++    if (run && t - run.instants[run.instants.length - 1] <= join) {
++      run.instants.push(t);
++      run.to = t + 0.5 * src;
++    } else out.push({ from: t - 0.5 * src, to: t + 0.5 * src, instants: [t] });
++  }
++  return out;
++}
++
++/**
++ * The frames of a read kept at a lower rate: of `times` (seconds, kept every
++ * `step` seconds), every `k`th, counted from the first.
++ */
++export function thinFrames(times: readonly number[], step: number, k: number): number[] {
++  if (k <= 1 || !times.length) return times.map((_, i) => i);
++  const out: number[] = [];
++  times.forEach((t, i) => {
++    if (Math.round((t - times[0]) / step) % k === 0) out.push(i);
++  });
++  return out;
+ }
+ 
+ /**
+@@ -246,30 +353,26 @@ export function rotateGray(src: Uint8ClampedArray, width: number, height: number
+ }
+ 
+ /**
+- * The playback rate to read at, given the milliseconds each frame kept has
+- * taken: slow enough that a 60 fps clip shows a new frame no faster than they
+- * are kept, with a margin, never faster than real time and never slower than
+- * `MIN_RATE`. A frame the reader is too busy for is skipped by the browser,
+- * so on a slow phone this is the difference between every frame and half.
+- */
+-export const MIN_RATE = 0.25;
+-export function playbackRateFor(msPerFrame: number): number {
+-  if (!(msPerFrame > 0)) return 1;
+-  return Math.min(1, Math.max(MIN_RATE, (0.7 * (1000 / READ_FPS)) / msPerFrame));
+-}
+-
+-/**
+- * Whether a step of `step` seconds between two frames kept passed over one:
+- * longer than the clip's own step (the shortest seen) by half again, less a
+- * little for a clip whose steps wobble.
++ * The playback rate to read at: slow enough that the video shows no more than
++ * `SHOWN_PER_SECOND` frames a second (`src` its own step; the browser hands
++ * over at most one frame a screen refresh, 60 a second, and passes over the
++ * rest: a 120 fps clip read at a half lost a fifth of its frames in
++ * Chromium, and one in eight came out a frame later than the time it was
++ * announced at), and that each frame kept (`step` apart) is kept with time to
++ * spare, given the milliseconds each has taken; never faster than real time
++ * and never slower than `MIN_RATE`.
+  */
+-export function droppedBetween(step: number, shortest: number): boolean {
+-  return Number.isFinite(shortest) && step > 1.4 * shortest;
++export const MIN_RATE = 0.0625;
++export const SHOWN_PER_SECOND = 30;
++export function playbackRateFor(msPerFrame: number, src = 1 / READ_FPS, step = 1 / READ_FPS): number {
++  const shown = SHOWN_PER_SECOND * src;
++  const busy = msPerFrame > 0 ? (0.6 * step * 1000) / msPerFrame : Infinity;
++  return Math.min(1, Math.max(MIN_RATE, Math.min(shown, busy)));
+ }
+ 
+-/** The next rate down after a dropped frame, no slower than `MIN_RATE`. */
++/** The next rate down, for frames passed over, no slower than `MIN_RATE`. */
+ export function slowerRate(rate: number): number {
+-  return Math.max(MIN_RATE, rate * 0.75);
++  return Math.max(MIN_RATE, rate * 0.5);
+ }
+ 
+ /** The middle value of a few numbers (the upper middle of an even count). */
+diff --git a/src/lib/shotTrack/shotStart.ts b/src/lib/shotTrack/shotStart.ts
+index 873682fc..c0933de4 100644
+--- a/src/lib/shotTrack/shotStart.ts
++++ b/src/lib/shotTrack/shotStart.ts
+@@ -69,13 +69,14 @@ export const COARSE_WIDTH = 192;
+ export const COARSE_FPS = 15;
+ 
+ /**
+- * How far before the ball is first seen the full read starts, seconds. The
+- * tracer follows the ball back to the foul line from its first sighting and
+- * wants a third to a half of a second before it (`release.ts`). The run is
+- * first seen anywhere from the bottom of the swing (shot-05's original, a
+- * tenth of a second before the release) to a few feet down the lane.
++ * How far before the ball is first seen the full read starts, seconds. The run
++ * is first seen anywhere from the bottom of the swing (shot-05's original, a
++ * tenth of a second before the release) to a few feet down the lane (at 25
++ * ft/s, 5 ft is a fifth of a second), at 15 frames a second: this covers the
++ * foul line in every case. The tracer itself needs only a few frames before
++ * the crossing (`shotWindow.ts`, which drops the rest once the lane is found).
+  */
+-export const LEAD_SECONDS = 0.6;
++export const LEAD_SECONDS = 0.4;
+ 
+ /** A pixel has changed when its grey moved this much (video range), the same way, against both neighbours. */
+ export const CHANGE = 12;
+@@ -562,21 +563,16 @@ export function laneBand(width: number, height: number, found: ShotFound | null)
+ }
+ 
+ /**
+- * A video no longer than this, seconds, is read from its start when no shot
+- * is found in it: about what the reader holds of a 60 fps video, and one
+- * more. A longer one is not guessed at.
++ * A video no longer than this, seconds, is read whole when no shot is found
++ * in it: a shot and a little more. A longer one is not guessed at.
+  */
+ export const SHORT_VIDEO = 5;
+ 
+ /**
+  * Where the full read of a video `duration` seconds long starts: a little
+  * before the release when the shot was found, the start of a short video
+- * when it was not, and null for a long one with no shot found.
+- *
+- * At 60 fps the read holds 4 seconds, and a slow ball (10 mph is 4.1 s to
+- * the pins) does not fit with its lead. The release end is kept: it is where
+- * the laydown, the touchdown and the arrows are read, and the tracer reports
+- * the pins as not seen.
++ * when it was not, and null for a long one with no shot found. Where it ends
++ * is `shotWindow` (`shotWindow.ts`): when the ball has left the deck.
+  */
+ export function readFrom(duration: number, found: ShotFound | null): number | null {
+   if (found) return found.start;
+diff --git a/src/lib/shotTrack/shotWindow.ts b/src/lib/shotTrack/shotWindow.ts
+new file mode 100644
+index 00000000..0b3aab66
+--- /dev/null
++++ b/src/lib/shotTrack/shotWindow.ts
+@@ -0,0 +1,129 @@
++import { DECK_END_FT, imageToLane } from "./laneModel";
++import type { FrameLane } from "./laneTrack";
++import { LEAD_SECONDS, type Band, type RunPoint, type ShotFound } from "./shotStart";
++import { lineSpeed } from "./speeds";
++
++/**
++ * The stretch of a video the tracer reads (Settings, Labs; the owner,
++ * 2026-11-15: "Detect the moment the ball is right on the foul line, until it
++ * hits the pins (exits the pin deck). That is the minimal time required. Crop
++ * out everything outside of that."):
++ *
++ * 1. The first look (`shotStart.ts`) finds the ball's run up the lane, a few
++ *    frames at 15 a second over its first few feet, in picture fractions.
++ * 2. The read's first part (`firstPart`) runs from a little before the run to
++ *    `FIRST_SECONDS` after it, and the lane is found on it.
++ * 3. The run, put through the found lane, is in feet against time: the straight
++ *    line through it says when the ball crossed the foul line and how fast it
++ *    went (`runFeet`, `shotWindow`). It leaves the deck by the time that speed,
++ *    less what a ball loses down the lane, covers `DECK_END_FT`.
++ * 4. The rest is read to there, and the frames before the foul line are
++ *    dropped: the tracer gets the shot and only the shot.
++ *
++ * Without a speed (the run is not on the found lane, or it gives no believable
++ * speed) the end is the pins seen hit in the first look, where that is
++ * believable, else the time the slowest ball (`SLOWEST_FTS`) takes to the deck
++ * end.
++ *
++ * What the tracer needs at either end, from `pipeline.ts`: the laydown is read
++ * by following the ball back from its first sighting to the frame it sits on
++ * the foul line (`release.ts`), so a few frames before the crossing
++ * (`FOUL_LEAD`); the empty lane is the median of the read's own frames, in
++ * which the ball is at any spot for a few frames only, so no frames before the
++ * release are needed for it; the board at the pins and the pins' movement are
++ * read in the frames up to and just after the ball meets the head pin, inside
++ * the deck. Pure.
++ */
++
++/** The read's first part, seconds after its start: the run and a second more, the lane found on it. */
++export const FIRST_SECONDS = 1.6;
++/** Kept before the ball crosses the foul line, seconds: the frames the laydown is followed back over. */
++export const FOUL_LEAD = 0.15;
++/** Kept after it leaves the deck, seconds: the coarse run's own uncertainty. */
++export const END_MARGIN = 0.25;
++/**
++ * The run's speed is measured over its first feet; a ball loses 5 to 15% of it
++ * by the pins. The deck end is reached by `DECK_END_FT` over the speed, this
++ * much longer.
++ */
++export const END_SLACK = 1.2;
++/** The slowest ball read without a speed: 10 mph, 14.7 ft/s (4.3 s to the deck end). */
++export const SLOWEST_FTS = 10 * (5280 / 3600);
++/** The fastest believable ball, ft/s: 27 mph. */
++export const FASTEST_FTS = 27 * (5280 / 3600);
++/** The pins seen hit count only this long after the release, seconds: a 27 mph to an 8 mph ball. */
++const PINS_FROM = 60 / FASTEST_FTS;
++const PINS_TO = 60 / (8 * (5280 / 3600));
++
++/** The read's first part: from `LEAD_SECONDS` before the run to `FIRST_SECONDS` later, inside the video. */
++export function firstPart(found: ShotFound, duration: number): { from: number; to: number } {
++  const from = Math.max(0, found.release - LEAD_SECONDS);
++  return { from, to: Math.min(Number.isFinite(duration) ? duration : Infinity, from + FIRST_SECONDS) };
++}
++
++/**
++ * The run's points in a read frame's pixels: the frame is `frame` pixels, the
++ * picture's rows in `band` (fractions of its height, null for all) scaled to
++ * it. The run is in fractions of the whole picture.
++ */
++export function runInFrame(run: readonly RunPoint[], band: Band | null, frame: { width: number; height: number }): { t: number; x: number; y: number }[] {
++  const top = band?.top ?? 0;
++  const tall = (band?.bottom ?? 1) - top;
++  return run.map((p) => ({ t: p.t, x: p.x * frame.width, y: ((p.y - top) / tall) * frame.height }));
++}
++
++/**
++ * The run in lane feet: each point through the found lane nearest it in time
++ * (`lanes` on frames whose times are `times`). The run's points are the
++ * ball's middle, not the spot under it; a few tenths of a foot further on, the
++ * same for every point near the foul line.
++ */
++export function runFeet(points: readonly { t: number; x: number; y: number }[], lanes: readonly FrameLane[], times: readonly number[]): { t: number; u: number; v: number }[] {
++  if (!lanes.length) return [];
++  return points.map((p) => {
++    const lane = lanes.reduce((best, l) => (Math.abs(times[l.frame] - p.t) < Math.abs(times[best.frame] - p.t) ? l : best));
++    const q = imageToLane(lane.H, { x: p.x, y: p.y });
++    return { t: p.t, u: q.u, v: q.v };
++  });
++}
++
++export interface ShotWindow {
++  /** When the ball crossed the foul line, seconds, when the run gave it. */
++  foul: number | null;
++  /** When the read ends: the ball has left the deck. */
++  end: number;
++  /** What the end came from. */
++  by: "speed" | "pins" | "slowest";
++  /** The run's speed, ft/s, when it gave one. */
++  speed: number | null;
++}
++
++/**
++ * Where the shot is, from the run in feet (`runFeet`; empty when the lane was
++ * not found) and the first look. Points off the lane (the approach, past 45
++ * ft) are left out; at least three over 3 ft are needed for a speed.
++ */
++export function shotWindow(feet: readonly { t: number; v: number }[], found: ShotFound, duration: number): ShotWindow {
++  const cap = (t: number) => Math.min(Number.isFinite(duration) ? duration : Infinity, t);
++  const on = feet.filter((p) => p.v >= -3 && p.v <= 45);
++  const vs = on.map((p) => p.v);
++  const speed = on.length >= 3 && Math.max(...vs) - Math.min(...vs) >= 3 ? lineSpeed(on) : null;
++  if (speed !== null && speed >= SLOWEST_FTS * 0.8 && speed <= FASTEST_FTS) {
++    const mt = on.reduce((a, p) => a + p.t, 0) / on.length;
++    const mv = on.reduce((a, p) => a + p.v, 0) / on.length;
++    const foul = mt - mv / speed;
++    return { foul, end: cap(foul + (DECK_END_FT / speed) * END_SLACK + END_MARGIN), by: "speed", speed };
++  }
++  const after = found.pinHit !== null ? found.pinHit - found.release : NaN;
++  if (after >= PINS_FROM && after <= PINS_TO) return { foul: null, end: cap(found.pinHit! + END_MARGIN + 0.15), by: "pins", speed: null };
++  return { foul: null, end: cap(found.release + DECK_END_FT / SLOWEST_FTS + END_MARGIN), by: "slowest", speed: null };
++}
++
++/**
++ * The frames of a read to give the tracer: from `FOUL_LEAD` before the ball
++ * crossed the foul line, when that is known, to the end.
++ */
++export function shotFrames(times: readonly number[], w: ShotWindow): number[] {
++  const from = w.foul !== null ? w.foul - FOUL_LEAD : -Infinity;
++  return times.flatMap((t, i) => (t >= from && t <= w.end ? [i] : []));
++}
+diff --git a/src/shotTracer/videoFrames.ts b/src/shotTracer/videoFrames.ts
+index c51f4686..3818fea8 100644
+--- a/src/shotTracer/videoFrames.ts
++++ b/src/shotTracer/videoFrames.ts
+@@ -1,21 +1,20 @@
+ import { COARSE_FPS, COARSE_WIDTH, type CoarseFrame } from "../lib/shotTrack/shotStart";
+ import {
+   bandRows,
++  claimFrame,
++  FrameSlots,
+   frameTimes,
+-  droppedBetween,
+-  isNewFrame,
+   lumaOf,
+   median,
++  missingRuns,
+   planeCrop,
+   playbackRateFor,
+-  READ_FPS,
+-  READ_MAX_FRAMES,
+   readProgress,
+-  readWindow,
+   resampleGray,
+   rotateGray,
+   scaledSize,
+   slowerRate,
++  sourceStep,
+   toGray
+ } from "../lib/shotTrack/marking";
+ 
+@@ -58,7 +57,14 @@ export interface VideoFrames {
+   height: number;
+   /** Grey frames, one byte a pixel. */
+   gray: Uint8ClampedArray[];
++  /** Each frame's own time in the video, seconds. */
+   times: number[];
++  /** The video's own step between frames, seconds, when it was seen. */
++  src: number | null;
++  /** The step between the frames kept, seconds. */
++  step: number;
++  /** Frames the read should have kept and could not get, after going back for them. */
++  missing: number;
+ }
+ 
+ interface FrameMeta {
+@@ -125,15 +131,29 @@ const STALL_MS = 2000;
+ /** The first frame may take longer: the decoder starts up. */
+ const FIRST_FRAME_MS = 4000;
+ /**
+- * The rate playback starts at. It only slows from there: when a frame goes
+- * by unkept (`droppedBetween`), and to what the frames kept so far say this
+- * phone can keep up with (`playbackRateFor`). In desktop Chromium with every
+- * core busy, shot-01 dropped 27 of its first 267 frames at 1, 2 at a half and
+- * none at a quarter; a half reads the four seconds in eight.
++ * The rate playback starts at, before the video's own frame rate is known:
++ * a 120 fps clip shows 30 frames a second at it, which the browser hands over
++ * whole (`playbackRateFor`). It only slows from there.
+  */
+-const START_RATE = 0.5;
++const START_RATE = 0.25;
+ /** Frames kept between each new choice of rate. */
+ const RATE_EVERY = 8;
++/** How far before a stretch each pass starts playing, seconds: the frames before it say where the video's frames fall. */
++const PREROLL = 0.1;
++/** Passes over the frames the first one missed, each at half the rate of the one before. */
++const REFILL_PASSES = 3;
++
++/** What one read of a stretch asks for. */
++export interface ReadPlan {
++  from: number;
++  to: number;
++  /** Frames a second to keep (`keptFps`). */
++  fps: number;
++  /** The band of a portrait picture's height to keep (`laneBand`), null for all of it. */
++  band: { top: number; bottom: number } | null;
++  /** A read in parts: a frame the part before kept, and the video's own step, which this part carries on from. */
++  after?: { t: number; src: number };
++}
+ 
+ interface Reading {
+   video: FrameVideo;
+@@ -142,17 +162,24 @@ interface Reading {
+   height: number;
+   /** The rows of the shown picture kept, `videoHeight` pixels. */
+   rows: { y: number; h: number };
+-  /** Each frame kept, by its place; null where its copy failed. */
++  /** Each frame kept, by its place; null where its copy failed or it was let go. */
+   gray: (Uint8ClampedArray | null)[];
+   times: number[];
++  /** Frames kept before the video's step was known, let go once it was. */
++  dropped: Set<number>;
+   /** Frames copied out and still being turned to grey, in order. */
+   pending: Promise<void>;
+   /** Whether frames are copied out of the decoder (`VideoFrame`), drawn to the canvas, or not yet known. */
+   planes: boolean | undefined;
+   /** Milliseconds each recent frame took to keep. */
+   cost: number[];
+-  from: number;
+-  to: number;
++  plan: ReadPlan;
++  /** Which frames to keep, once the video's step is known. */
++  slots: FrameSlots | null;
++  /** The times of the frames shown before then. */
++  early: number[];
++  /** Frames shown whose copy came out at another time than announced (`VideoFrame.timestamp`). */
++  late: number;
+   onProgress: (fraction: number) => void;
+ }
+ 
+@@ -161,6 +188,8 @@ interface Frame {
+   visibleRect: { width: number; height: number } | null;
+   rotation?: number;
+   flip?: boolean;
++  /** Microseconds into the video: the frame's own time. */
++  timestamp?: number | null;
+   allocationSize(): number;
+   copyTo(dest: Uint8Array): Promise<{ offset: number; stride: number }[]>;
+   close(): void;
+@@ -213,32 +242,38 @@ function drawn(r: Reading): Uint8ClampedArray {
+   return toGray(r.ctx.getImageData(0, 0, r.width, r.height).data, r.width, r.height);
+ }
+ 
+-/** Keeps the frame the video is showing, at `at` seconds. */
+-function keep(r: Reading, at: number): void {
++/**
++ * The frame the video is showing, copied out of the decoder where it can be
++ * (`VideoFrame`), with its own time. The time the browser announces a frame
++ * at is not always the frame a copy gets: at a half, one copy in eight of a
++ * 120 fps clip was the next frame. Null where frames are drawn instead.
++ */
++function grab(r: Reading): Frame | null {
++  const Ctor = (globalThis as { VideoFrame?: FrameCtor }).VideoFrame;
++  if (!Ctor || r.planes === false) return null;
++  let frame: Frame | null = null;
++  try {
++    frame = new Ctor(r.video);
++    if (r.planes === undefined) r.planes = planesFit(frame, r.video);
++    if (r.planes) return frame;
++    frame.close();
++  } catch {
++    frame?.close();
++    r.planes = false;
++  }
++  return null;
++}
++
++/** Keeps a frame at `at` seconds: the one copied out (`grab`), or else drawn from the video now. */
++function keep(r: Reading, at: number, frame: Frame | null): number {
+   const started = performance.now();
+   const index = r.times.length;
+   r.times.push(at);
+   r.gray.push(null);
+-  const Ctor = (globalThis as { VideoFrame?: FrameCtor }).VideoFrame;
+-  let frame: Frame | null = null;
+-  if (Ctor && r.planes !== false) {
+-    try {
+-      frame = new Ctor(r.video);
+-      if (r.planes === undefined) r.planes = planesFit(frame, r.video);
+-      if (!r.planes) {
+-        frame.close();
+-        frame = null;
+-      }
+-    } catch {
+-      frame?.close();
+-      frame = null;
+-      r.planes = false;
+-    }
+-  }
+   if (!frame) {
+     r.gray[index] = drawn(r);
+     r.cost.push(performance.now() - started);
+-    return;
++    return index;
+   }
+   const f = frame;
+   const shape = { format: f.format!, w: f.visibleRect!.width, h: f.visibleRect!.height, turn: f.rotation ?? 0 };
+@@ -249,6 +284,7 @@ function keep(r: Reading, at: number): void {
+   r.pending = r.pending.then(async () => {
+     try {
+       const layout = await copied;
++      if (r.dropped.has(index)) return;
+       const t0 = performance.now();
+       r.gray[index] = planeGray(r, shape, buf, layout[0]);
+       r.cost.push(before + performance.now() - t0);
+@@ -257,14 +293,17 @@ function keep(r: Reading, at: number): void {
+       r.planes = false;
+     }
+   });
++  return index;
+ }
+ 
+ /**
+- * Plays the stretch and keeps each frame presented. Resolves when it is read,
+- * or when playback will not start, stalls or overruns; the caller seeks for
+- * what is left.
++ * Plays from a little before `from` and offers each frame shown to `judge`,
++ * by its own time; a frame judged kept is kept, and the last one ends the
++ * pass. Resolves true when a frame at or past `to` is shown or the last is
++ * kept, false when playback will not start, stalls, runs past its time or
++ * ends.
+  */
+-async function readByPlaying(r: Reading): Promise<boolean> {
++async function playPass(r: Reading, from: number, to: number, rate: number, judge: (t: number) => "keep" | "skip" | "last"): Promise<boolean> {
+   const video = r.video;
+   const request = video.requestVideoFrameCallback!.bind(video);
+   let handle = 0;
+@@ -272,9 +311,7 @@ async function readByPlaying(r: Reading): Promise<boolean> {
+   let finish!: (whole: boolean) => void;
+   const finished = new Promise<boolean>((resolve) => (finish = resolve));
+   let over = false;
+-  // The clip's own step between frames kept, seconds, as far as seen.
+-  let shortest = Infinity;
+-  // Whether it read to the end (of the stretch, the video or the frames kept).
++  let last = -Infinity;
+   const stop = (whole: boolean) => {
+     if (over) return;
+     over = true;
+@@ -285,7 +322,7 @@ async function readByPlaying(r: Reading): Promise<boolean> {
+     video.pause();
+     finish(whole);
+   };
+-  const ended = () => stop(true);
++  const ended = () => stop(false);
+   const stalled = () => stop(false);
+   const watch = (ms: number) => {
+     clearTimeout(stall);
+@@ -293,37 +330,40 @@ async function readByPlaying(r: Reading): Promise<boolean> {
+   };
+   const onFrame = (_: number, meta: FrameMeta) => {
+     if (over) return;
+-    const at = meta.mediaTime;
+-    if (at >= r.to - 1e-4) return stop(true);
+-    // The frame the seek lands on may start a little before the time asked.
+-    const prev = r.times[r.times.length - 1];
+-    if (at >= r.from - 0.05 && isNewFrame(prev, at)) {
+-      if (prev !== undefined) {
+-        shortest = Math.min(shortest, at - prev);
+-        // A frame went by unkept: slower, so the rest are not.
+-        if (droppedBetween(at - prev, shortest)) video.playbackRate = slowerRate(video.playbackRate);
+-      }
+-      keep(r, at);
+-      r.onProgress(readProgress(r.times.length, at, r.from, r.to, READ_MAX_FRAMES));
+-      if (r.times.length >= READ_MAX_FRAMES) return stop(true);
+-      if (r.times.length % RATE_EVERY === 0) {
+-        video.playbackRate = Math.min(video.playbackRate, playbackRateFor(median(r.cost.slice(-2 * RATE_EVERY))));
+-      }
+-      watch(STALL_MS);
++    const frame = grab(r);
++    const own = frame?.timestamp;
++    const at = typeof own === "number" && Number.isFinite(own) ? own / 1e6 : meta.mediaTime;
++    if (frame && Math.abs(at - meta.mediaTime) > 1e-4) r.late++;
++    if (at <= last + 1e-5) {
++      // The same frame shown again.
++      frame?.close();
++      handle = request(onFrame);
++      return;
+     }
++    last = at;
++    if (at >= to - 1e-4) {
++      frame?.close();
++      return stop(true);
++    }
++    const said = judge(at);
++    if (said === "skip") frame?.close();
++    else keep(r, at, frame);
++    if (said === "last") return stop(true);
++    watch(STALL_MS);
+     handle = request(onFrame);
+   };
+   // However the frames come, it ends: the stretch at the slowest rate, and a margin.
+-  const overrun = setTimeout(stalled, ((r.to - r.from) / 0.25) * 1000 + FIRST_FRAME_MS);
++  const overrun = setTimeout(stalled, ((to - from + PREROLL) / Math.min(rate, START_RATE)) * 1000 + FIRST_FRAME_MS);
+   video.addEventListener("ended", ended);
+   watch(FIRST_FRAME_MS);
+-  // Asked before the seek, so the frame the seek lands on is kept too.
++  // Asked before the seek, so the frame the seek lands on is offered too.
+   handle = request(onFrame);
+-  if (Math.abs(video.currentTime - r.from) > 1e-4) {
+-    video.currentTime = r.from;
++  const start = Math.max(0, from - PREROLL);
++  if (Math.abs(video.currentTime - start) > 1e-4) {
++    video.currentTime = start;
+     await once(video, "seeked", FIRST_FRAME_MS).catch(() => false);
+   }
+-  video.playbackRate = START_RATE;
++  video.playbackRate = rate;
+   try {
+     if (!over) await video.play();
+   } catch {
+@@ -332,6 +372,90 @@ async function readByPlaying(r: Reading): Promise<boolean> {
+   return finished;
+ }
+ 
++/**
++ * The first pass over the stretch: every frame shown is offered to the grid
++ * of frames to keep (`FrameSlots`), which is laid once the video's own step
++ * is known from the first few frames shown (until then each is kept, and those
++ * off the grid let go). The rate slows to what the video's frame rate and the
++ * cost of keeping a frame allow, and further when frames are passed over.
++ */
++async function firstPass(r: Reading): Promise<boolean> {
++  const { from, to, fps, after } = r.plan;
++  let rate = after ? playbackRateFor(0, after.src, after.src * Math.max(1, Math.round(1 / (fps * after.src)))) : START_RATE;
++  const lay = (src: number, seen: number) => {
++    r.slots = new FrameSlots(from, to, fps, src, seen, after?.t);
++    // Those kept before the grid was known, judged again.
++    r.times.forEach((t, i) => {
++      if (!r.slots!.offer(t)) {
++        r.dropped.add(i);
++        r.gray[i] = null;
++      }
++    });
++    rate = Math.min(rate, playbackRateFor(0, src, r.slots.step));
++    r.video.playbackRate = rate;
++  };
++  if (after) r.slots = new FrameSlots(from, to, fps, after.src, after.t, after.t);
++  let missed = 0;
++  return playPass(r, from, to, rate, (t) => {
++    r.onProgress(0.85 * readProgress(t, from, to));
++    if (!r.slots) {
++      r.early.push(t);
++      const steps = r.early.slice(1).map((x, i) => x - r.early[i]);
++      const src = steps.length >= 3 ? sourceStep(steps) : null;
++      if (src === null) return t >= from - 0.004 ? "keep" : "skip";
++      lay(src, r.early[0]);
++    }
++    const slots = r.slots!;
++    if (!slots.offer(t)) return "skip";
++    if (slots.missing.length > missed) {
++      // Frames went by unkept: slower, so the rest are not.
++      missed = slots.missing.length;
++      rate = slowerRate(rate);
++      r.video.playbackRate = rate;
++    }
++    const kept = r.times.length - r.dropped.size + 1;
++    if (kept % RATE_EVERY === 0) {
++      rate = Math.min(rate, playbackRateFor(median(r.cost.slice(-2 * RATE_EVERY)), slots.src, slots.step));
++      r.video.playbackRate = rate;
++    }
++    return "keep";
++  });
++}
++
++/**
++ * Goes back for the frames the first pass missed, by playing each stretch of
++ * them again at half the rate, then a quarter: the frames are the same
++ * whichever were passed over the first time, so two reads keep the same
++ * frames. Returns how many are still missing after the last pass.
++ */
++async function refill(r: Reading): Promise<{ passes: number; left: number }> {
++  const slots = r.slots;
++  if (!slots) return { passes: 0, left: 0 };
++  let wanted = [...slots.missing];
++  const total = wanted.length;
++  let found = 0;
++  let rate = r.video.playbackRate;
++  let passes = 0;
++  for (; passes < REFILL_PASSES && wanted.length; passes++) {
++    rate = slowerRate(rate);
++    const still: number[] = [];
++    for (const run of missingRuns(wanted, slots.src, 0.25)) {
++      const left = [...run.instants];
++      await playPass(r, run.from, run.to, rate, (t) => {
++        const k = claimFrame(left, t, slots.src);
++        if (k < 0) return "skip";
++        left.splice(k, 1);
++        r.onProgress(0.85 + 0.15 * (++found / Math.max(1, total)));
++        return left.length ? "keep" : "last";
++      });
++      still.push(...left);
++    }
++    wanted = still;
++  }
++  await r.pending;
++  return { passes, left: wanted.length };
++}
++
+ /**
+  * Seeks a frame at a time from where the reading got to. Drawn, not copied:
+  * a frame copied from a paused video after a seek was the first frame again
+@@ -340,29 +464,28 @@ async function readByPlaying(r: Reading): Promise<boolean> {
+ async function readBySeeking(r: Reading): Promise<void> {
+   await r.pending;
+   r.planes = false;
+-  const last = r.times[r.times.length - 1];
+-  const start = last === undefined ? r.from : last + 1 / READ_FPS;
+-  const times = frameTimes(start, r.to, READ_FPS, 2 * (READ_MAX_FRAMES - r.times.length));
+-  for (let i = 0; i < times.length && r.times.length < READ_MAX_FRAMES; i++) {
+-    const at = await seekTo(r.video, Math.min(times[i] + SEEK_INTO, r.video.duration));
+-    r.onProgress(readProgress(r.times.length, times[i], r.from, r.to, READ_MAX_FRAMES));
+-    if (!isNewFrame(r.times[r.times.length - 1], at)) continue;
+-    keep(r, at);
++  const { from, to, fps } = r.plan;
++  const kept = r.times.filter((_, i) => !r.dropped.has(i));
++  const last = kept[kept.length - 1];
++  const start = last === undefined ? from : last + 1 / fps;
++  const times = frameTimes(start, to, fps, 4000);
++  for (const want of times) {
++    const at = await seekTo(r.video, Math.min(want + SEEK_INTO, r.video.duration));
++    r.onProgress(readProgress(want, from, to));
++    const prev = r.times[r.times.length - 1];
++    if (prev !== undefined && at - prev <= 0.75 / fps) continue;
++    keep(r, at, null);
+     await r.pending;
+   }
+ }
+ 
+ /**
+- * Reads the frames of `file` from `start` seconds, of a portrait video only
+- * the band of its height in `band` (fractions, `laneBand`). `onProgress` is
+- * told how far it has got, 0 to 1 and never backwards.
++ * Reads the frames of `file` the plan asks for: from `from` to `to` seconds,
++ * `fps` a second, of a portrait video only the band of its height in `band`
++ * (fractions, `laneBand`). Each frame carries its own time in the video.
++ * `onProgress` is told how far it has got, 0 to 1 and never backwards.
+  */
+-export async function readVideoFrames(
+-  file: Blob,
+-  onProgress: (fraction: number) => void,
+-  start = 0,
+-  band: { top: number; bottom: number } | null = null
+-): Promise<VideoFrames> {
++export async function readVideoFrames(file: Blob, onProgress: (fraction: number) => void, plan: ReadPlan): Promise<VideoFrames> {
+   const url = URL.createObjectURL(file);
+   const video: FrameVideo = document.createElement("video");
+   video.muted = true;
+@@ -384,14 +507,16 @@ export async function readVideoFrames(
+     } catch {
+       // Autoplay refused: seeking still decodes on the browsers that refuse it.
+     }
+-    const rows = bandRows(video.videoHeight, band);
++    const rows = bandRows(video.videoHeight, plan.band);
+     const { width, height } = scaledSize(video.videoWidth, rows.h, MAX_PIXELS);
+     const canvas = document.createElement("canvas");
+     canvas.width = width;
+     canvas.height = height;
+     const ctx = canvas.getContext("2d", { willReadFrequently: true });
+     if (!ctx) throw new Error("no canvas");
+-    const { from, to } = readWindow(video.duration, start);
++    const duration = Number.isFinite(video.duration) ? video.duration : plan.to;
++    const from = Math.max(0, Math.min(plan.from, duration));
++    const to = Math.min(duration, plan.to);
+     const r: Reading = {
+       video,
+       ctx,
+@@ -400,41 +525,55 @@ export async function readVideoFrames(
+       rows,
+       gray: [],
+       times: [],
++      dropped: new Set(),
+       pending: Promise.resolve(),
+       planes: undefined,
+       cost: [],
+-      from,
+-      to,
++      plan: { ...plan, from, to },
++      slots: null,
++      early: [],
++      late: 0,
+       onProgress: progress
+     };
+-    const whole = hasFrameCallback(video) ? await readByPlaying(r) : false;
++    let whole = false;
++    let fill = { passes: 0, left: 0 };
++    if (hasFrameCallback(video) && to > from) {
++      whole = await firstPass(r);
++      await r.pending;
++      if (!whole) r.slots?.close();
++      const kept = r.times.length - r.dropped.size;
++      // Playing gave something: go back for what it missed. Nothing at all: seek.
++      if (kept > 0 && r.slots) {
++        fill = await refill(r);
++        whole = true;
++      }
++    }
+     await r.pending;
+-    const played = r.times.length;
++    const played = r.times.length - r.dropped.size;
+     const copied = r.planes === true;
+-    if (!whole) {
++    if (!whole && to > from) {
+       // Copied frames of an HDR clip are brighter than drawn ones (the canvas
+       // tone-maps it): one read is all one or all the other.
+       if (copied) {
+         r.times = [];
+         r.gray = [];
++        r.dropped.clear();
+       }
+       await readBySeeking(r);
+     }
+-    const gray: Uint8ClampedArray[] = [];
+-    const times: number[] = [];
+-    r.gray.forEach((g, i) => {
+-      if (g) {
+-        gray.push(g);
+-        times.push(r.times[i]);
+-      }
+-    });
++    // In time order: the passes after the first fill in between.
++    const order = r.times.map((t, i) => ({ t, g: r.gray[i] })).filter((x) => x.g).sort((a, b) => a.t - b.t);
++    const gray = order.map((x) => x.g!);
++    const times = order.map((x) => x.t);
++    const src = r.slots?.src ?? plan.after?.src ?? null;
+     console.info(
+-      `Shot tracer: read ${gray.length} frames (${played} while playing, ${copied ? "copied" : "drawn"}) ` +
+-        `from ${from.toFixed(2)} s to ${(times[times.length - 1] ?? from).toFixed(2)} s, ` +
++      `Shot tracer: read ${gray.length} frames (${played} while playing, ${copied ? "copied" : "drawn"}, ` +
++        `${fill.passes} passes back for ${r.slots?.missing.length ?? 0} missed, ${fill.left} still missing, ${r.late} shown late) ` +
++        `from ${from.toFixed(3)} s to ${(times[times.length - 1] ?? from).toFixed(3)} s at ${plan.fps.toFixed(0)} fps of a ${src ? (1 / src).toFixed(1) : "?"} fps video, ` +
+         `rows ${rows.y} to ${rows.y + rows.h} of ${video.videoWidth} by ${video.videoHeight} at ${width} by ${height}, ` +
+-        `in ${((performance.now() - began) / 1000).toFixed(1)} s, rate ${video.playbackRate}`
++        `in ${((performance.now() - began) / 1000).toFixed(1)} s, rate ${video.playbackRate}, ${median(r.cost).toFixed(1)} ms a frame`
+     );
+-    return { width, height, gray, times };
++    return { width, height, gray, times, src, step: r.slots?.step ?? 1 / plan.fps, missing: fill.left };
+   } finally {
+     video.removeAttribute("src");
+     video.load();
