@@ -14,6 +14,7 @@ import {
   laneBand,
   laneBands,
   LEAD_SECONDS,
+  OTHER_RUN_POINTS,
   OTHER_RUNS,
   readFrom,
   ShotSearch,
@@ -218,7 +219,11 @@ describe("finding the shot", () => {
     expect(findShot(Array.from({ length: 40 }, (_, i) => frame(i / 15)))).toBeNull();
     expect(findShot(handShot(0).slice(0, 4))).toBeNull();
     expect(findShot([])).toBeNull();
-    expect(findShot(handShot(1, { x: 8 }))).toBeNull();
+    // A run up the side does not pass for the ball's: reported as a guess, for the lane to judge.
+    const side = findShot(handShot(1, { x: 8 }))!;
+    expect(side.guessed).toBe(true);
+    expect(side.run.length).toBeGreaterThanOrEqual(OTHER_RUN_POINTS);
+    expect(findShot(handShot(1))!.guessed).toBeUndefined();
   });
 
   it("of two runs as long, takes the later: the ball's comes after the bowler's slide", () => {
@@ -278,11 +283,12 @@ describe("what to read", () => {
     expect(high.bottom).toBeCloseTo(0.44, 9);
   });
 
-  it("tries the clips' own band after the run's, and alone when they are much the same", () => {
+  it("tries the clips' own band before the run's, and alone when they are much the same", () => {
     expect(laneBands(1080, 1920, found(0.6))).toEqual([DEFAULT_BAND]);
     const low = laneBands(1080, 1920, found(0.9));
     expect(low).toHaveLength(2);
-    expect(low[1]).toEqual(DEFAULT_BAND);
+    expect(low[0]).toEqual(DEFAULT_BAND);
+    expect(low[1]!.bottom).toBe(1);
     expect(laneBands(1920, 1080, found(0.6))).toEqual([null]);
   });
 });

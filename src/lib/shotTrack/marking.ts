@@ -76,23 +76,6 @@ export function gridSlot(t: number, next: number, fps: number): number | null {
   return Math.floor((t + GRID_EARLY) * fps) + 1;
 }
 
-/**
- * The rate the first look plays a video at once its own step `src` is known
- * (`sourceStep`): slow enough that the browser, which hands over at most one
- * frame a screen refresh (60 a second), sees every frame, so the frames on
- * the grid (`gridSlot`) are the same ones every time; never faster than
- * `SCAN_FASTEST`. A 30 fps video plays at 1.8, 60 at 0.9 and a 120 fps slow
- * motion one at 0.45. At 2 for all of them, three looks at IMG_1996 (120 fps)
- * found the ball's run at 3.06, 3.56 and 4.96 s.
- */
-export const SCAN_FASTEST = 2;
-export function scanRate(src: number | null): number {
-  if (src === null || !(src > 0)) return SCAN_START_RATE;
-  return Math.min(SCAN_FASTEST, Math.max(SCAN_START_RATE / 2, 0.9 * 60 * src));
-}
-/** The rate the first look starts at, before the video's step is known: slow enough for a 120 fps video's every frame. */
-export const SCAN_START_RATE = 0.25;
-
 /** How far a read has got, 0 to 1: the time reached against the stretch. */
 export function readProgress(at: number, from: number, to: number): number {
   const byTime = to > from ? (at - from) / (to - from) : 1;

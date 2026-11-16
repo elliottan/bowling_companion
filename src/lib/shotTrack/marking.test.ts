@@ -22,9 +22,6 @@ import {
   resampleGray,
   rotateGray,
   scaledSize,
-  SCAN_FASTEST,
-  SCAN_START_RATE,
-  scanRate,
   slowerRate,
   sourceStep,
   thinFrames,
@@ -148,15 +145,6 @@ describe("reading a video", () => {
     expect(sourceStep([0.0205, 0.0205])).toBeCloseTo(1 / 48, 12);
   });
 
-  it("plays the first look slowly enough for every frame to be seen", () => {
-    expect(scanRate(1 / 120)).toBeCloseTo(0.45, 12);
-    expect(scanRate(1 / 60)).toBeCloseTo(0.9, 12);
-    expect(scanRate(1 / 30)).toBeCloseTo(1.8, 12);
-    expect(scanRate(1 / 24)).toBe(SCAN_FASTEST);
-    expect(scanRate(1 / 1000)).toBeCloseTo(SCAN_START_RATE / 2, 12);
-    expect(scanRate(null)).toBe(SCAN_START_RATE);
-    expect(scanRate(0)).toBe(SCAN_START_RATE);
-  });
 
   it("keeps every other frame of a 120 fps video at 60, from the first at the start", () => {
     const src = 1 / 120;

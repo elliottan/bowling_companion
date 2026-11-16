@@ -63,13 +63,20 @@ export interface ShotFound {
   /** The ball's run, as found. */
   run: RunPoint[];
   /**
-   * The other runs that passed for the ball's, most likely first, up to
-   * `OTHER_RUNS`: the bowler's slide or swing can win on length (IMG_1996:
-   * the run chosen was the approach, 13 ft behind the foul line, on some
-   * looks), and once the lane is found the run that is on it says where the
-   * shot is (`shotWindow.ts`).
+   * Every other run of three points or more, those that pass for the ball's
+   * first (longest first), up to `OTHER_RUNS`: the bowler's approach can win
+   * on length (IMG_1996: the run chosen was the approach, 13 ft behind the
+   * foul line, on most looks), and the ball's own run can fail the picture's
+   * tests on a look (seen for 4 frames rather than 5, it did not slow enough).
+   * Once the lane is found, the runs are judged in feet (`shotWindow.ts`).
    */
   others?: RunPoint[][];
+  /**
+   * No run passed for the ball's in the picture (`isShotRun`): `run` is only
+   * the longest seen. The shot is taken as found only if the lane then shows
+   * one of the runs is the ball's (`readShot.ts`).
+   */
+  guessed?: boolean;
 }
 
 /** The width the first look reads a video at, pixels, and how many frames a second it wants. */
@@ -86,8 +93,9 @@ export const COARSE_FPS = 15;
  */
 export const LEAD_SECONDS = 0.4;
 
-/** The most other runs a look reports beside the one chosen (`ShotFound.others`). */
-export const OTHER_RUNS = 3;
+/** The most other runs a look reports beside the one chosen (`ShotFound.others`), and the fewest points each has. */
+export const OTHER_RUNS = 16;
+export const OTHER_RUN_POINTS = 3;
 
 /** A pixel has changed when its grey moved this much (video range), the same way, against both neighbours. */
 export const CHANGE = 12;
@@ -507,7 +515,12 @@ export class ShotSearch {
   finish(): ShotFound | null {
     if (!this.size || this.times.length < MIN_RUN_POINTS + 2) return null;
     const { w, h } = this.size;
-    const runs = ballRuns(this.times, this.blobs, this.shifts, h).filter((r) => isShotRun(r, this.times, this.shifts, w, h));
+    const all = ballRuns(this.times, this.blobs, this.shifts, h);
+    const shot = new Set(all.filter((r) => isShotRun(r, this.times, this.shifts, w, h)));
+    // No run passes for the ball's: the longest of three points or more,
+    // flagged, for the lane to judge (IMG_1996: one look in four).
+    const guessed = shot.size === 0;
+    const runs = guessed ? all.filter((r) => r.length >= OTHER_RUN_POINTS) : all.filter((r) => shot.has(r));
     if (!runs.length) return null;
     // The longest; of those as long, the last to start. Before the ball's
     // run the bowler's slide or swing can pass for one, as long; after it the
@@ -526,7 +539,10 @@ export class ShotSearch {
       pinHit,
       confidence,
       run: this.points(run),
-      others: ranked.slice(1, 1 + OTHER_RUNS).map((r) => this.points(r))
+      others: (guessed ? ranked.slice(1) : [...ranked.slice(1), ...all.filter((r) => !shot.has(r) && r.length >= OTHER_RUN_POINTS)])
+        .slice(0, OTHER_RUNS)
+        .map((r) => this.points(r)),
+      ...(guessed ? { guessed: true } : {})
     };
   }
 
@@ -599,17 +615,19 @@ export function readFrom(duration: number, found: ShotFound | null): number | nu
 }
 
 /**
- * The bands of the picture to look for the lane in, in turn: the run's
- * (`laneBand`), then the sample clips' own; only the clips' own when the two
- * are much the same, since the tracer was tuned on it. On shot-05's original
- * the run's band (33% to 77%) read the laydown 23.1 and the clips' band 18.7,
- * as the harness reads it. The run can be the bowler's slide rather than the
- * ball, and then its band is too low; the lane finder is the judge. A
+ * The bands of the picture to look for the lane in, in turn: the sample
+ * clips' own, which the tracer was tuned on, then the run's (`laneBand`)
+ * when it is not much the same. On shot-05's original the run's band (33% to
+ * 77%) read the laydown 23.1 and the clips' band 18.7, as the harness reads
+ * it. The run is often the bowler's approach rather than the ball, and then
+ * its band is too low: tried first, it cost a read on most looks at IMG_1996,
+ * and which band was read depended on which run the look chose. The lane
+ * finder on the first part of the read is the judge (`readShot.ts`). A
  * landscape picture is read whole.
  */
 export function laneBands(width: number, height: number, found: ShotFound | null): (Band | null)[] {
   const first = laneBand(width, height, found);
   if (!first) return [null];
   const shared = Math.min(first.bottom, DEFAULT_BAND.bottom) - Math.max(first.top, DEFAULT_BAND.top);
-  return shared >= 0.8 * (DEFAULT_BAND.bottom - DEFAULT_BAND.top) ? [DEFAULT_BAND] : [first, DEFAULT_BAND];
+  return shared >= 0.8 * (DEFAULT_BAND.bottom - DEFAULT_BAND.top) ? [DEFAULT_BAND] : [DEFAULT_BAND, first];
 }

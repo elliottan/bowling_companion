@@ -53,6 +53,13 @@ interface Found {
  * two nearest each side, and a frame costs the finder a third of a second.
  */
 const FIND_FRAMES = 24;
+/**
+ * The longest the screen waits for the shot search's answer once it has every
+ * frame, or for a lane search, milliseconds. Each takes seconds (the search
+ * one or two after its last frame, the lane a third of a second a frame on a
+ * phone, 24 frames); past this the worker is taken to have failed.
+ */
+const WORKER_WAIT_MS = 60_000;
 /** How many of the read's first part's frames the lane is looked for on, to say where the shot ends. */
 const FIRST_FIND_FRAMES = 8;
 
@@ -96,10 +103,10 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   async function search(f: File, mine: number): Promise<{ found: ShotFound | null; width: number; height: number; duration: number }> {
     const worker = startWorker(new URL("../shotTracer/search.worker.ts", import.meta.url));
     try {
-      const answer = new Promise<ShotFound | null>((resolve) => {
-        worker.onmessage = (e: MessageEvent<SearchMessage>) => resolve(e.data.found);
-        worker.onerror = () => resolve(null);
-      });
+      let answered!: (found: ShotFound | null | "late") => void;
+      const answer = new Promise<ShotFound | null | "late">((resolve) => (answered = resolve));
+      worker.onmessage = (e: MessageEvent<SearchMessage>) => answered(e.data.found);
+      worker.onerror = () => answered(null);
       const video = await scanVideo(
         f,
         (frame) => {
@@ -111,7 +118,16 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         }
       );
       worker.postMessage({ kind: "done" } satisfies SearchRequest);
-      return { ...video, found: await answer };
+      // The search has every frame by now and answers in a second or two; a
+      // worker that never answers (seen once, after four minutes) is a video
+      // that couldn't be read, not a screen that waits for ever.
+      const asked = performance.now();
+      const timer = setTimeout(() => answered("late"), WORKER_WAIT_MS);
+      const found = await answer;
+      clearTimeout(timer);
+      console.info(`Shot tracer: the search answered ${found === "late" ? "nothing" : "in"} ${((performance.now() - asked) / 1000).toFixed(1)} s after its last frame`);
+      if (found === "late") throw new Error("the search did not answer");
+      return { ...video, found };
     } finally {
       stopWorker(worker);
     }
@@ -161,8 +177,18 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         },
         (fraction) => {
           if (attempt.current === mine) setStep({ kind: "reading", fraction });
-        }
+        },
+        bands.length === 1
       );
+      if (read === "no-shot") {
+        if (attempt.current === mine) setStep({ kind: "failed", missing: "shot" });
+        return;
+      }
+      if (read === "no-lane") {
+        // No lane on the first part in this band: the next, read again.
+        if (attempt.current === mine) void readBand(f, looked, bands.slice(1), mine);
+        return;
+      }
       v = read.frames;
       if (v.gray.length < 10) throw new Error("too short");
     } catch {
@@ -196,11 +222,19 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         resolve({ frame: null });
         return;
       }
+      // A finder that never answers is a lane not found, not a screen that waits for ever.
+      const timer = setTimeout(() => {
+        stopWorker(worker);
+        console.info(`Shot tracer: the lane search did not answer in ${WORKER_WAIT_MS / 1000} s`);
+        resolve({ frame: null });
+      }, WORKER_WAIT_MS);
       worker.onmessage = (e: MessageEvent<FindMessage>) => {
+        clearTimeout(timer);
         stopWorker(worker);
         resolve(e.data);
       };
       worker.onerror = () => {
+        clearTimeout(timer);
         stopWorker(worker);
         resolve({ frame: null });
       };

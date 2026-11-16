@@ -7,13 +7,20 @@ import { LEAD_SECONDS, type ShotFound } from "./shotStart";
 import {
   END_MARGIN,
   EDGE_GRID,
+  END_FTS,
   END_SLACK,
-  FASTEST_FTS,
+  HAND_FAST,
   FIRST_SECONDS,
   firstPart,
   FOUL_LEAD,
+  ACROSS,
+  ballRun,
+  FIRST_SEEN_FT,
+  LINE_NEAR_FT,
   OUT_OF_HAND_FT,
   pickWindow,
+  windowOutside,
+  windowStart,
   runFeet,
   runInFrame,
   shotFrames,
@@ -62,15 +69,15 @@ describe("the shot window", () => {
   it("finds when the ball crossed the foul line and when it leaves the deck, from its speed", () => {
     const band = { top: 0.3, bottom: 0.72 };
     const lanes: FrameLane[] = [{ frame: 0, H }];
-    const feet = runFeet(runInFrame(runOf(25, 12.1, band), band, FRAME), lanes, [12]);
+    const feet = runFeet(runInFrame(runOf(20, 12.1, band), band, FRAME), lanes, [12]);
     expect(feet[0].u).toBeCloseTo(20, 6);
-    expect(feet[0].v).toBeCloseTo(2.5, 6);
+    expect(feet[0].v).toBeCloseTo(2, 6);
     const w = shotWindow(feet, shot(), 30);
     expect(w.by).toBe("speed");
-    expect(w.speed).toBeCloseTo(25, 6);
+    expect(w.speed).toBeCloseTo(20, 6);
     expect(w.foul).toBeCloseTo(12.1, 6);
     // The end on the grid, at or after the time the speed gives.
-    const by = 12.1 + (DECK_END_FT / 25) * END_SLACK + END_MARGIN;
+    const by = 12.1 + (DECK_END_FT / 20) * END_SLACK + END_MARGIN;
     expect(w.end).toBeGreaterThanOrEqual(by);
     expect(w.end - by).toBeLessThan(1 / EDGE_GRID);
     expect(w.end * EDGE_GRID).toBeCloseTo(Math.round(w.end * EDGE_GRID), 9);
@@ -83,24 +90,65 @@ describe("the shot window", () => {
     const feet = [{ t: 12.0, v: -2 }, { t: 12.067, v: 1 }, { t: 12.2, v: 2.5 }, { t: 12.3, v: 5 }, { t: 12.4, v: 7.5 }];
     const w = shotWindow(feet, shot(), 30);
     expect(w.speed).toBeCloseTo(25, 9);
-    expect(w.foul).toBeCloseTo(12.1, 9);
+    // Seen crossing: the crossing between -2 at 12.0 and 1 at 12.067.
+    expect(w.foul).toBeCloseTo(12.0 + 0.067 * (2 / 3), 9);
     // Too few out of the hand: all of them on the lane are used.
     const near = [{ t: 12.0, v: -2 }, { t: 12.067, v: 1 }, { t: 12.2, v: 2.5 }, { t: 12.3, v: 5 }];
     expect(shotWindow(near, shot(), 30).by).toBe("speed");
     expect(OUT_OF_HAND_FT).toBeGreaterThan(0);
   });
 
-  it("takes the window from whichever run is the ball's on the lane, not the bowler's slide", () => {
-    const part = { from: 11.6, to: 13.2 };
-    const slide = [{ t: 11.7, v: -13 }, { t: 11.8, v: -12.4 }, { t: 11.9, v: -11.8 }];
+  it("takes the window from whichever run is the ball's on the lane, not the bowler's approach", () => {
+    // The approach, 13 ft behind the foul line at walking pace, is the run the first look chose.
+    const approach = [{ t: 11.7, v: -13 }, { t: 11.8, v: -12.4 }, { t: 11.9, v: -11.8 }, { t: 12.0, v: -11 }];
     const ball = [{ t: 12.2, v: 2.5 }, { t: 12.3, v: 5 }, { t: 12.4, v: 7.5 }];
-    const w = pickWindow([slide, ball], shot(), 30, part);
+    const w = pickWindow([approach, ball], shot(), 30);
     expect(w.by).toBe("speed");
     expect(w.foul).toBeCloseTo(12.1, 9);
-    // A run that crosses the foul line outside the part read first is not taken.
-    const late = ball.map((p) => ({ ...p, t: p.t + 3 }));
-    expect(pickWindow([slide, late], shot({ pinHit: 14.6 }), 30, part).by).toBe("pins");
-    expect(pickWindow([], shot(), 30, part).by).toBe("slowest");
+    expect(pickWindow([approach], shot(), 30).by).toBe("slowest");
+    expect(pickWindow([], shot(), 30).by).toBe("slowest");
+  });
+
+  it("puts the pieces the ball was seen in together, and the line most of them are on wins", () => {
+    // Near the foul line, then 35 ft on; a stray run elsewhere at a ball's pace.
+    const near = [{ t: 12.2, v: 2.5 }, { t: 12.3, v: 5 }, { t: 12.4, v: 7.5 }];
+    const far = [{ t: 13.5, v: 35 }, { t: 13.6, v: 37.5 }, { t: 13.7, v: 40 }];
+    const stray = [{ t: 12.2, v: 20 }, { t: 12.3, v: 23 }, { t: 12.4, v: 26 }];
+    const ball = ballRun([stray, near, far])!;
+    expect(ball.points).toBe(6);
+    expect(ball.speed).toBeCloseTo(25, 6);
+    expect(ball.foul).toBeCloseTo(12.1, 6);
+    // A piece repeated (a run and its own first part) is one set of points.
+    expect(ballRun([near, near.slice(0, 3)])!.points).toBe(3);
+    expect(ballRun([[{ t: 1, v: 1 }]])).toBeNull();
+    // A run seen crossing the foul line beats one out on the lane with more points on its line.
+    const crossing = [{ t: 12.0, v: -5 }, { t: 12.1, v: 0.5 }, { t: 12.2, v: 4.5 }];
+    const reflection = [{ t: 11.0, v: 5 }, { t: 11.1, v: 7.5 }, { t: 11.2, v: 10 }, { t: 11.3, v: 12.5 }];
+    // Crossing between its points either side of the line: -5 at 12.0 and 0.5 at 12.1.
+    expect(ballRun([reflection, crossing])!.foul).toBeCloseTo(12.0 + 0.1 * (5 / 5.5), 9);
+    // A run first seen far down the lane only votes: alone, it is not the ball's.
+    const far2 = [{ t: 13.5, v: 21 }, { t: 13.6, v: 23.5 }, { t: 13.7, v: 26 }];
+    expect(ballRun([far2])).toBeNull();
+    expect(FIRST_SEEN_FT).toBeLessThan(21);
+    // A ball on the next lane, boards outside this one, is not the ball.
+    const next = [{ t: 12.2, v: 2.5, u: -12 }, { t: 12.3, v: 5, u: -12 }, { t: 12.4, v: 7.5, u: -11 }];
+    expect(ballRun([next])).toBeNull();
+    expect(ballRun([next.map((p) => ({ ...p, u: 20 }))])).not.toBeNull();
+    expect(ACROSS.to).toBeGreaterThan(39);
+    expect(LINE_NEAR_FT).toBeGreaterThan(0);
+  });
+
+  it("reads the window on its own when the ball is not where the first part is", () => {
+    const part = { from: 11.6, to: 13.2 };
+    const at = (foul: number | null): ShotWindow => ({ foul, end: 15, by: foul === null ? "slowest" : "speed", speed: null });
+    expect(windowOutside(at(12.1), part)).toBe(false);
+    expect(windowStart(at(12.1))).toBeCloseTo(Math.floor((12.1 - FOUL_LEAD) * EDGE_GRID) / EDGE_GRID, 9);
+    // The first look chose the approach, long before the ball: the ball crosses after the part.
+    expect(windowOutside(at(13.5), part)).toBe(true);
+    // Or a run after the ball: the window starts before the part.
+    expect(windowOutside(at(11.7), part)).toBe(true);
+    expect(windowOutside(at(null), part)).toBe(false);
+    expect(windowStart(at(null))).toBe(-Infinity);
   });
 
   it("takes each run point through the lane found nearest it in time", () => {
@@ -137,11 +185,21 @@ describe("the shot window", () => {
     const fast = shotWindow(quick, shot(), 30);
     expect(fast.speed).toBeCloseTo(45, 9);
     expect(fast.foul).toBeCloseTo(12.1, 9);
-    expect(fast.end).toBeGreaterThanOrEqual(12.1 + (DECK_END_FT / FASTEST_FTS) * END_SLACK + END_MARGIN);
+    // The end at no more than END_FTS: a fast reading and a faster one end alike.
+    expect(fast.end).toBeGreaterThanOrEqual(12.1 + (DECK_END_FT / END_FTS) * END_SLACK + END_MARGIN);
+    const slower = shotWindow(quick.map((p, i) => ({ ...p, v: p.v - i * 0.3 })), shot(), 30);
+    expect(slower.speed).toBeLessThan(fast.speed!);
+    expect(Math.abs(slower.end - fast.end)).toBeLessThanOrEqual(1 / EDGE_GRID + 1e-9);
     expect(shotWindow(quick.map((p) => ({ ...p, v: p.v * 2 })), shot(), 30).by).toBe("slowest");
-    // The approach and far down the lane are left out of the speed.
-    const off = [{ t: 12, v: -10 }, { t: 12.2, v: 2.5 }, { t: 12.3, v: 5 }, { t: 12.4, v: 7.5 }, { t: 14, v: 50 }];
-    expect(shotWindow(off, shot(), 30).speed).toBeCloseTo(25, 9);
+    // The ball behind the foul line, in the hand, is left out of the speed.
+    const behind = [{ t: 12, v: -10 }, { t: 12.2, v: 2.5 }, { t: 12.3, v: 5 }, { t: 12.4, v: 7.5 }];
+    expect(shotWindow(behind, shot(), 30).speed).toBeCloseTo(25, 9);
+    // A run with a point past the pins or far behind the foul line is not on the lane.
+    expect(shotWindow([...behind, { t: 14, v: 70 }], shot(), 30).by).toBe("slowest");
+    expect(shotWindow([{ t: 11.9, v: -25 }, ...behind], shot(), 30).by).toBe("slowest");
+    // Nor one that steps back down the lane.
+    expect(shotWindow([{ t: 12.2, v: 2.5 }, { t: 12.3, v: 9 }, { t: 12.35, v: 6 }, { t: 12.4, v: 10 }], shot(), 30).by).toBe("slowest");
+    expect(HAND_FAST).toBeGreaterThan(1);
   });
 
   it("gives the tracer the frames from just before the foul line to the end", () => {

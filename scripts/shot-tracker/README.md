@@ -597,16 +597,30 @@ until it leaves the pin deck, and nothing else. `src/shotTracer/readShot.ts`
 does it in two parts (the decisions are in `src/lib/shotTrack/shotWindow.ts`):
 
 1. The first part, from 0.4 s before the first look's run to 1.6 s after, at
-   60 a second. The lane is looked for on 8 of its frames.
-2. Each of the first look's runs (the one chosen and up to three others,
-   `ShotFound.others`) is put through that lane into feet. The first that gives
-   a believable speed and crosses the foul line inside the part sets the
-   window: from 0.2 s before the crossing to the deck end at that speed (no
-   faster than 27 mph) times 1.4, plus 0.25 s. Both edges sit on the first
-   look's 1/15 s grid: the tracer's readings move with its first frame.
-3. No run does: the end is the pins seen hit (when believable) or the time a
-   10 mph ball takes, from the read's start.
-4. The rest is read to the end. The whole window is kept at the highest rate
+   60 a second, in the clips' band first (30% to 72% of a portrait picture's
+   height), then the run's. The lane is looked for on 8 of its frames; not
+   there, the next band is tried without reading more.
+2. Every run of the first look of three points or more (`ShotFound.others`,
+   up to 16; when none passed the picture's tests the look is only a guess,
+   `guessed`) is put through that lane into feet (`ballRun`). A run is a
+   candidate when all of it is on the lane (20 ft behind the foul line to the
+   pins, and within the lane's boards: a ball on the next lane is outside),
+   it only goes up the lane, it is first seen in the first 12 ft, and its line
+   is at a ball's speed (12 to 51 ft/s; the ball in the hand reads fast). Of
+   the candidates, a run seen crossing the foul line wins, then the line most
+   of all the runs' points lie on, then the one over more feet: the ball is
+   seen in pieces, and they vote together. The bowler's approach (10 ft and
+   more behind the line, slow) is never a candidate.
+3. The window: from 0.2 s before the crossing (interpolated between the
+   run's points either side of the line) to the deck end at that speed, no
+   faster than 26 ft/s since the first look reads fast, times 1.4, plus 0.25
+   s. Both edges sit on the first look's 1/15 s grid: the tracer's readings
+   move with its first frame. A window outside the first part (the look chose
+   a run long before or after the ball's) is read on its own.
+4. No candidate: a guessed look is "the shot couldn't be found"; otherwise
+   the end is the pins seen hit (when believable) or the time a 10 mph ball
+   takes, and the console line says why.
+5. The rest is read to the end. The whole window is kept at the highest rate
    that fits 240 frames of 960 by 720 (60, 30, 20, 15): a slow shot is read at
    a lower rate, never cut.
 
@@ -617,15 +631,24 @@ slowly. On IMG_1996 (VP9 copy, headless Chromium) three reads with the main
 thread kept busy passed over 44 to 75 frames each and came out with the same
 204 frames, pixel for pixel, as a clean read.
 
-What still moves the readings: the first look. It still picks the bowler's
-approach instead of the ball on some looks (IMG_1996: the run at 3.07 s, 13 ft
-behind the foul line, or the ball's at 3.53 s), and when the ball's run is not
-among its runs at all the window falls back to the slowest ball. Four app runs
-of IMG_1996 read laydown 18.6, 19.9, 19.9, 18.4 and arrows 13.4 to 13.5;
-identical windows gave identical readings. The first look now plays at a rate
-that should show every frame on a 60 Hz phone (`scanRate`), which is two to
-four times slower than before; headless Chromium hands over only about 30
-frames a second, so it was not shown to repeat there.
+The first look still picks the bowler's approach, or something else, on many
+looks (IMG_1996: runs at 1.81, 3.07, 4.67 and 5.01 s besides the ball's at
+3.53 s); judged on the lane the window came out the same all the same. Four
+app runs of IMG_1996 in a row: window 3.467 to 7.083 s, laydown 18.6, arrows
+13.4, breakpoint 8.9 at 50 ft every time. A slower first look (every frame
+shown on a 60 Hz screen) was tried and dropped: it took 16 s rather than 4 and
+bought nothing once the runs were judged on the lane.
+
+The padded shot-01 (`p01-lead14`, 14 s of another bowler's shots looped
+before shot-01) still falls back to the slowest ball: none of the first look's
+runs is shot-01's ball on the lane (they are the looped bowler's, and on the
+found lane they read tens to hundreds of feet in a fifteenth of a second). A
+sharper second look on the first part was tried and found nothing either.
+Padded shot-06 is windowed by speed.
+
+The search worker never answered once, after the look's last frame, for over
+four minutes (cause not found). The screen now gives up after 60 s ("This
+video couldn't be read"), and a lane search after 60 s (the lane not found).
 
 ## In the app (0.108.0, 2026-11-14)
 

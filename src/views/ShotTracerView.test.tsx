@@ -217,11 +217,14 @@ describe("ShotTracerView", () => {
     expect(t.slice(1).every((x, i) => x > t[i])).toBe(true);
   });
 
-  it("reads only the lane's band of a portrait video, round where the ball's run starts", async () => {
+  it("reads only the lane's band of a portrait video: the clips' own, then round where the run starts", async () => {
     scanning({ width: 1080, height: 1920, duration: 30 });
     await searchFinds({ ...SHOT, run: [{ t: 12, x: 0.5, y: 0.45 }] });
     await waitFor(() => expect(find()).toBeTruthy());
-    const band = plan(0).band as { top: number; bottom: number };
+    expect(plan(0).band).toEqual({ top: 0.3, bottom: 0.72 });
+    find()!.reply({ frame: null } satisfies FindMessage);
+    await waitFor(() => expect(readVideoFrames).toHaveBeenCalledTimes(2));
+    const band = plan(1).band as { top: number; bottom: number };
     expect(band.top).toBeCloseTo(0.15, 9);
     expect(band.bottom).toBeCloseTo(0.59, 9);
   });
@@ -240,6 +243,16 @@ describe("ShotTracerView", () => {
     expect(plan(0)).toMatchObject({ from: 0, to: 4.65 });
     // 4.65 s does not fit at 60: read at 30.
     expect(plan(0).fps).toBe(30);
+  });
+
+  it("says the shot couldn't be found when the first look only guessed and the lane shows no ball on it", async () => {
+    await searchFinds({ ...SHOT, guessed: true });
+    await waitFor(() => expect(find()).toBeTruthy());
+    // The lane is found, but the run (one point) goes nowhere up it.
+    find()!.reply(found());
+    expect((await screen.findByRole("alert")).textContent).toBe("The shot couldn't be found in this video.");
+    expect(readVideoFrames).toHaveBeenCalledTimes(1);
+    expect(trace()).toBeUndefined();
   });
 
   it("says the shot couldn't be found in a long video, what to try, and offers another", async () => {
@@ -376,18 +389,70 @@ describe("ShotTracerView", () => {
     expect(screen.queryByRole("button", { name: /Trace the shot/ })).toBeNull();
   });
 
-  it("tries the sample clips' band of a portrait video when the run's band holds no lane", async () => {
+  it("goes straight to the run's band when the first part of the clips' band holds no lane", async () => {
     scanning({ width: 1080, height: 1920, duration: 30 });
     await searchFinds({ ...SHOT, run: [{ t: 12, x: 0.5, y: 0.95 }] });
-    await firstFind();
-    act(() => find()!.onerror?.());
-    await waitFor(() => expect(readVideoFrames).toHaveBeenCalledTimes(3));
-    expect(plan(2).band).toEqual({ top: 0.3, bottom: 0.72 });
-    await waitFor(() => expect(FakeWorker.all.filter((w) => w.name === "find")).toHaveLength(3));
+    await waitFor(() => expect(find()).toBeTruthy());
     find()!.reply({ frame: null } satisfies FindMessage);
-    await waitFor(() => expect(FakeWorker.all.filter((w) => w.name === "find")).toHaveLength(4));
+    // Nothing more of the first band is read: the second band's first part next.
+    expect(plan(0).band).toEqual({ top: 0.3, bottom: 0.72 });
+    await waitFor(() => expect(readVideoFrames).toHaveBeenCalledTimes(2));
+    expect((plan(1).band as { bottom: number }).bottom).toBe(1);
+    expect(plan(1).fps).toBe(60);
+    expect(plan(1).from).toBeCloseTo(11.6, 9);
+    // The last band: on to the end however its first part went, then the lane on the whole.
+    await waitFor(() => expect(FakeWorker.all.filter((w) => w.name === "find")).toHaveLength(2));
+    find()!.reply({ frame: null } satisfies FindMessage);
+    await waitFor(() => expect(FakeWorker.all.filter((w) => w.name === "find")).toHaveLength(3));
+    expect(readVideoFrames).toHaveBeenCalledTimes(3);
     find()!.reply({ frame: null } satisfies FindMessage);
     expect((await screen.findByRole("alert")).textContent).toBe("The lane couldn't be found in this video.");
+  });
+
+  it("tries the next band when the lane is found on the first part but not on the whole read", async () => {
+    scanning({ width: 1080, height: 1920, duration: 30 });
+    await searchFinds({ ...SHOT, run: [{ t: 12, x: 0.5, y: 0.95 }] });
+    await waitFor(() => expect(find()).toBeTruthy());
+    find()!.reply(found());
+    await waitFor(() => expect(FakeWorker.all.filter((w) => w.name === "find")).toHaveLength(2));
+    act(() => find()!.onerror?.());
+    await waitFor(() => expect(readVideoFrames).toHaveBeenCalledTimes(3));
+    expect(plan(0).band).toEqual({ top: 0.3, bottom: 0.72 });
+    expect((plan(2).band as { bottom: number }).bottom).toBe(1);
+  });
+
+  it("says the video couldn't be read when the shot search never answers, rather than waiting for ever", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      pickFile();
+      await waitFor(() => expect(searcher()?.posted.some((m) => (m as SearchRequest).kind === "done")).toBe(true));
+      expect(screen.getByText("Looking for the shot…")).toBeTruthy();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(61_000);
+      });
+      expect((await screen.findByRole("alert")).textContent).toMatch(/couldn't be read/);
+      expect(searcher()!.terminated).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("takes a lane search that never answers for a lane not found", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      await searchFinds(SHOT);
+      await waitFor(() => expect(find()).toBeTruthy());
+      find()!.reply({ frame: null } satisfies FindMessage);
+      await waitFor(() => expect(FakeWorker.all.filter((w) => w.name === "find")).toHaveLength(2));
+      const stuck = find()!;
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(61_000);
+      });
+      expect((await screen.findByRole("alert")).textContent).toBe("The lane couldn't be found in this video.");
+      expect(stuck.terminated).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("stops the lane search when the screen closes", async () => {

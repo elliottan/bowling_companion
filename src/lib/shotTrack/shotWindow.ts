@@ -1,4 +1,4 @@
-import { DECK_END_FT, imageToLane } from "./laneModel";
+import { DECK_END_FT, imageToLane, LEFT_U, RIGHT_U } from "./laneModel";
 import { keptFps, thinFrames } from "./marking";
 import type { FrameLane } from "./laneTrack";
 import { COARSE_FPS, LEAD_SECONDS, type Band, type RunPoint, type ShotFound } from "./shotStart";
@@ -55,6 +55,15 @@ export const END_MARGIN = 0.25;
  * this much longer.
  */
 export const END_SLACK = 1.4;
+/**
+ * The most speed the end is reckoned at, ft/s (17.7 mph, a common launch
+ * speed). The first look's speed is rough and mostly too fast (the ball in
+ * the hand reads ahead of itself): two looks at IMG_1996 read 36 and 43 ft/s
+ * where the tracer read 25, and the ends 0.2 s apart moved the readings. A
+ * faster ball is read a little longer than it needs; a slower one by its own
+ * speed.
+ */
+export const END_FTS = 26;
 /**
  * The run's points from this far down the lane are out of the bowler's hand:
  * nearer, the ball is still carried a foot or so above the lane, and through
@@ -124,47 +133,144 @@ export interface ShotWindow {
   speed: number | null;
 }
 
+/** A point is on a line through a run when within this many feet of it, and a tenth of its distance more (far down the lane a pixel is a foot). */
+export const LINE_NEAR_FT = 2;
 /**
- * Where the shot is, from the run in feet (`runFeet`; empty when the lane was
- * not found) and the first look. Points off the lane (the approach, past 45
- * ft) are left out, and those still in the hand where enough are past it
- * (`OUT_OF_HAND_FT`); at least three over 3 ft are needed for a speed.
+ * The run's points from this far behind the foul line to the pins count: the
+ * ball in the hand on the last steps reads 6 ft behind it (IMG_1996), the
+ * bowler's approach 10 ft and more.
  */
-export function shotWindow(feet: readonly { t: number; v: number }[], found: ShotFound, duration: number): ShotWindow {
+const ON_LANE = { from: -8, to: 62 };
+
+/** A point of a run through the lane: seconds, feet from the foul line and, when known, boards across. */
+type Feet = { t: number; v: number; u?: number };
+
+/**
+ * Boards across a run's points must be inside: the lane and a ball's width
+ * over either gutter. A ball on the next lane (IMG_1996, a run at the
+ * picture's left edge, 4 to 15 ft at 39 ft/s) is boards outside it.
+ */
+export const ACROSS = { from: LEFT_U - 5, to: RIGHT_U + 5 };
+
+/** Three points or more over 3 ft or more. */
+const enough = (ps: readonly Feet[]) => ps.length >= 3 && Math.max(...ps.map((p) => p.v)) - Math.min(...ps.map((p) => p.v)) >= 3;
+/**
+ * A speed a ball can have, ft/s: points still in the hand read fast (IMG_1996:
+ * 42 to 48 ft/s where the tracer read 25), so up to `HAND_FAST` over the
+ * fastest ball.
+ */
+export const HAND_FAST = 1.3;
+const ballSpeed = (s: number | null): s is number => s !== null && s >= SLOWEST_FTS * 0.8 && s <= FASTEST_FTS * HAND_FAST;
+/**
+ * A run that starts further than this down the lane only votes (`ballRun`):
+ * the first look sees the ball first in its first feet, and a run first seen
+ * 22 ft out at 2 s on IMG_1996, a second and a half before the ball, won a
+ * look the ball's own run was missing from.
+ */
+export const FIRST_SEEN_FT = 12;
+/**
+ * A run with a point further than this behind the foul line or past the pins
+ * is not on the lane at all (a thing above it, the masking units, reads
+ * hundreds of feet through the lane), and is not the ball's.
+ */
+const OFF_LANE = { from: -20, to: 62 };
+
+/** The straight line (feet against seconds) through points: its speed and when it crossed the foul line. */
+function lineOf(ps: readonly Feet[]): { speed: number; foul: number; at: (t: number) => number } | null {
+  const speed = lineSpeed(ps);
+  if (!ballSpeed(speed)) return null;
+  const mt = ps.reduce((a, p) => a + p.t, 0) / ps.length;
+  const mv = ps.reduce((a, p) => a + p.v, 0) / ps.length;
+  return { speed, foul: mt - mv / speed, at: (t) => mv + speed * (t - mt) };
+}
+
+/**
+ * The ball's run up the lane among the first look's runs, each in feet
+ * (`runFeet`): every run of three points or more over 3 ft that goes up the
+ * lane at a ball's speed, all of it on the lane and every step up it, puts a
+ * straight line through its points, and the
+ * line of a run seen crossing the foul line (from the hand out onto the
+ * lane: nothing else does), then the one most of all the runs' points lie on
+ * (`LINE_NEAR_FT`), then the one over more feet, is the ball's. A run seen
+ * crossing gives the crossing between its points either side of the line. The ball is often seen in
+ * pieces (IMG_1996: 3.5 to 3.9 s near the foul line, then 4.3 to 4.6 s 35 ft
+ * on), and the pieces vote together. The bowler's approach is behind the foul
+ * line and slow, and gives no line. Its speed and foul line crossing are then
+ * from all the points on it, those still in the hand left out where enough
+ * are past it (`OUT_OF_HAND_FT`). Null when no run is the ball's.
+ */
+export function ballRun(runs: readonly (readonly Feet[])[]): { speed: number; foul: number; points: number } | null {
+  const all = new Map<string, Feet>();
+  for (const r of runs) for (const p of r) if (p.v >= ON_LANE.from && p.v <= ON_LANE.to) all.set(`${p.t}/${p.v}`, p);
+  const points = [...all.values()];
+  let best: { on: Feet[]; own: Feet[]; key: number[] } | null = null;
+  for (const r of runs) {
+    if (r.some((p) => p.v < OFF_LANE.from || p.v > OFF_LANE.to)) continue;
+    // The bowler's lane, not the next one.
+    if (r.some((p) => p.u !== undefined && p.v >= ON_LANE.from && (p.u < ACROSS.from || p.u > ACROSS.to))) continue;
+    const own = r.filter((p) => p.v >= ON_LANE.from && p.v <= ON_LANE.to);
+    // The ball only goes up the lane, and the first look sees it first near the foul line.
+    if (!enough(own) || own.some((p, i) => i > 0 && p.v <= own[i - 1].v) || own[0].v > FIRST_SEEN_FT) continue;
+    const line = lineOf(own);
+    if (!line) continue;
+    const on = points.filter((p) => Math.abs(p.v - line.at(p.t)) <= LINE_NEAR_FT + 0.1 * Math.max(0, line.at(p.t)));
+    const vs = on.map((p) => p.v);
+    const span = Math.max(...vs) - Math.min(...vs);
+    const crosses = own[0].v < 0 && own[own.length - 1].v > 0;
+    const key = [crosses ? 1 : 0, on.length, span];
+    if (!best || key[0] > best.key[0] || (key[0] === best.key[0] && (key[1] > best.key[1] || (key[1] === best.key[1] && key[2] > best.key[2])))) best = { on, own, key };
+  }
+  if (!best) return null;
+  const out = best.on.filter((p) => p.v >= OUT_OF_HAND_FT);
+  const use = enough(out) ? out : best.on;
+  const line = lineOf(use);
+  if (!line) return null;
+  // Seen crossing: when, between the points either side of the line. The
+  // line's own crossing leans on its speed, which the points in the hand make
+  // rough (two looks at IMG_1996 read 3.587 and 3.684 s that way).
+  const k = best.key[0] ? best.own.findIndex((p) => p.v > 0) : -1;
+  const foul = k > 0 ? best.own[k - 1].t + ((best.own[k].t - best.own[k - 1].t) * -best.own[k - 1].v) / (best.own[k].v - best.own[k - 1].v) : line.foul;
+  return { speed: line.speed, foul, points: use.length };
+}
+
+/**
+ * Where the shot is, from the first look's runs in feet (`runFeet`, through
+ * the lane found on the read's first part; none when it was not found): the
+ * ball's run (`ballRun`) says when it crossed the foul line, and at its speed
+ * (no more than the fastest ball) when it has left the deck. No run is the
+ * ball's: the pins seen hit, when that is believable, else the time the
+ * slowest ball takes, from the run the first look chose.
+ */
+export function pickWindow(runs: readonly (readonly Feet[])[], found: ShotFound, duration: number): ShotWindow {
   const cap = (t: number) => Math.min(Number.isFinite(duration) ? duration : Infinity, t);
-  const enough = (ps: readonly { v: number }[]) => ps.length >= 3 && Math.max(...ps.map((p) => p.v)) - Math.min(...ps.map((p) => p.v)) >= 3;
-  const out = feet.filter((p) => p.v >= OUT_OF_HAND_FT && p.v <= 45);
-  const on = enough(out) ? out : feet.filter((p) => p.v >= -3 && p.v <= 45);
-  const speed = enough(on) ? lineSpeed(on) : null;
-  // Points still in the hand read fast (IMG_1996: 42 ft/s), so a run up to a
-  // third over the fastest ball still says when it crossed the foul line; the
-  // end is reckoned at no more than the fastest.
-  if (speed !== null && speed >= SLOWEST_FTS * 0.8 && speed <= FASTEST_FTS * 1.3) {
-    const mt = on.reduce((a, p) => a + p.t, 0) / on.length;
-    const mv = on.reduce((a, p) => a + p.v, 0) / on.length;
-    const foul = mt - mv / speed;
-    const end = foul + (DECK_END_FT / Math.min(speed, FASTEST_FTS)) * END_SLACK + END_MARGIN;
-    return { foul, end: cap(Math.ceil(end * EDGE_GRID) / EDGE_GRID), by: "speed", speed };
+  const ball = ballRun(runs);
+  if (ball) {
+    const end = ball.foul + (DECK_END_FT / Math.min(ball.speed, END_FTS)) * END_SLACK + END_MARGIN;
+    return { foul: ball.foul, end: cap(Math.ceil(end * EDGE_GRID) / EDGE_GRID), by: "speed", speed: ball.speed };
   }
   const after = found.pinHit !== null ? found.pinHit - found.release : NaN;
   if (after >= PINS_FROM && after <= PINS_TO) return { foul: null, end: cap(found.pinHit! + END_MARGIN + 0.15), by: "pins", speed: null };
   return { foul: null, end: cap(found.release + DECK_END_FT / SLOWEST_FTS + END_MARGIN), by: "slowest", speed: null };
 }
 
+/** `pickWindow` from one run. */
+export function shotWindow(feet: readonly Feet[], found: ShotFound, duration: number): ShotWindow {
+  return pickWindow([feet], found, duration);
+}
+
+/** Where the window starts, seconds: `FOUL_LEAD` before the foul line, back to the grid (`EDGE_GRID`); -Infinity when the foul line was not found. */
+export function windowStart(w: ShotWindow): number {
+  return w.foul !== null ? Math.floor((w.foul - FOUL_LEAD) * EDGE_GRID) / EDGE_GRID : -Infinity;
+}
+
 /**
- * The window from whichever of the first look's runs (each in feet,
- * `runFeet`, the chosen run first, then `ShotFound.others`) is the ball's on
- * the found lane: the first that gives a speed and crosses the foul line
- * inside `part` (the stretch read first, which the lane was found on). The
- * bowler's slide is 10 ft or more behind the foul line and gives none. None
- * does: the pins or the slowest ball, from the run chosen (`shotWindow`).
+ * Whether the window is not the first part's to carry on from: the ball
+ * crossed the foul line after the part, or the window starts before it (the
+ * first look chose a run long before or after the ball's). The window is then
+ * read on its own.
  */
-export function pickWindow(runs: readonly (readonly { t: number; v: number }[])[], found: ShotFound, duration: number, part: { from: number; to: number }): ShotWindow {
-  for (const feet of runs) {
-    const w = shotWindow(feet, found, duration);
-    if (w.foul !== null && w.foul >= part.from - FOUL_LEAD && w.foul <= part.to) return w;
-  }
-  return shotWindow([], found, duration);
+export function windowOutside(w: ShotWindow, part: { from: number; to: number }): boolean {
+  return w.foul !== null && (windowStart(w) < part.from - EDGE_EARLY || w.foul > part.to);
 }
 
 /**
@@ -173,7 +279,7 @@ export function pickWindow(runs: readonly (readonly { t: number; v: number }[])[
  * the grid (`EDGE_GRID`), to the end.
  */
 export function shotFrames(times: readonly number[], w: ShotWindow): number[] {
-  const from = w.foul !== null ? Math.floor((w.foul - FOUL_LEAD) * EDGE_GRID) / EDGE_GRID - EDGE_EARLY : -Infinity;
+  const from = windowStart(w) - EDGE_EARLY;
   return times.flatMap((t, i) => (t >= from && t <= w.end ? [i] : []));
 }
 

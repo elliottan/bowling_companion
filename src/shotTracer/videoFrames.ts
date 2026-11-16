@@ -15,8 +15,6 @@ import {
   resampleGray,
   rotateGray,
   scaledSize,
-  SCAN_START_RATE,
-  scanRate,
   slowerRate,
   sourceStep,
   toGray
@@ -142,7 +140,7 @@ const FIRST_FRAME_MS = 4000;
  * whole (`playbackRateFor`). It only slows from there.
  */
 const START_RATE = 0.25;
-/** The steps between frames shown that the video's own step is learned from (`sourceStep`), on a read and on the first look. */
+/** The steps between frames shown that a read learns the video's own step from (`sourceStep`). */
 const STEPS_TO_LEARN = 8;
 /** A copied frame's own time is taken over the announced one only this near it, seconds. */
 const OWN_TIME_WITHIN = 0.05;
@@ -409,6 +407,7 @@ async function firstPass(r: Reading): Promise<boolean> {
   };
   if (after) r.slots = new FrameSlots(from, to, fps, after.src, after.t);
   let missed = 0;
+  let slowed = false;
   return playPass(r, from, to, rate, (t) => {
     r.onProgress(0.85 * readProgress(t, from, to));
     if (!r.slots) {
@@ -421,9 +420,13 @@ async function firstPass(r: Reading): Promise<boolean> {
     const slots = r.slots!;
     if (!slots.offer(t)) return "skip";
     if (slots.missing.length > missed) {
-      // Frames went by unkept: slower, so the rest are not.
+      // Frames went by unkept: slower, once. Halving at every gap, as at
+      // first, slowed IMG_1996's reads to a sixteenth, 19 to 29 s where 7 to
+      // 10 do; the frames passed over are read again after (`refill`)
+      // whatever the rate.
       missed = slots.missing.length;
-      rate = slowerRate(rate);
+      if (!slowed) rate = slowerRate(rate);
+      slowed = true;
       r.video.playbackRate = rate;
     }
     const kept = r.times.length - r.dropped.size + 1;
@@ -596,6 +599,15 @@ export async function readVideoFrames(file: Blob, onProgress: (fraction: number)
   }
 }
 
+/**
+ * The rate the first look plays at. Chromium on a 1080 by 1920 VP9 clip: 4
+ * gave a frame every 0.067 s of video (15 a second) and read 7 s in 4.5.
+ * Slower, so that a 60 Hz screen shows every frame (0.45 for a 120 fps video),
+ * was tried (2026-11-16): the look took 16 s rather than 4 on IMG_1996, and
+ * once the runs were judged on the lane (`shotWindow.ts`) and the clips' band
+ * was read first, the window and the readings repeated at this rate as well.
+ */
+const SCAN_RATE = 2;
 /** The most seeks the first look makes where it cannot play: a frame every `duration / SCAN_SEEKS` seconds at the least. */
 const SCAN_SEEKS = 300;
 
@@ -680,26 +692,20 @@ export async function scanVideo(
           clearTimeout(stall);
           stall = setTimeout(stop, ms);
         };
-        // The first frames' times, until the video's own step is known.
-        const early: number[] = [];
         const onShown = (_: number, meta: FrameMeta) => {
           if (over) return;
-          if (early.length < STEPS_TO_LEARN + 1) {
-            early.push(meta.mediaTime);
-            if (early.length === STEPS_TO_LEARN + 1) video.playbackRate = scanRate(sourceStep(early.slice(1).map((t, i) => t - early[i])));
-          }
           if (onGrid(meta.mediaTime)) {
             take(meta.mediaTime);
             watch(STALL_MS);
           }
           handle = video.requestVideoFrameCallback!(onShown);
         };
-        // However the frames come, it ends: the video at the slowest rate, and a margin.
-        const overrun = setTimeout(stop, (duration / scanRate(1 / 1000)) * 1000 + FIRST_FRAME_MS);
+        // However the frames come, it ends: the video at real time, and a margin.
+        const overrun = setTimeout(stop, duration * 1000 + FIRST_FRAME_MS);
         video.addEventListener("ended", stop);
         handle = video.requestVideoFrameCallback!(onShown);
         watch(FIRST_FRAME_MS);
-        video.playbackRate = SCAN_START_RATE;
+        video.playbackRate = SCAN_RATE;
         video.play().catch(stop);
       });
     }
