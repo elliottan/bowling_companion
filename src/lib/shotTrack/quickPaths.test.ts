@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { closeGaps } from "./ballDetect";
 import { median, medianOf, parabolaPeak } from "./image";
 import { matchPatch, type Patch } from "./registration";
+import { findDisc } from "./release";
 import type { GrayFrame, Point } from "./types";
 
 /**
@@ -159,5 +160,32 @@ describe("matchPatch", () => {
     }
     // The pictures are made so that most patches are found.
     expect(found).toBeGreaterThan(60);
+  });
+});
+
+describe("findDisc", () => {
+  it("measures a radius by its tenth of a pixel, whatever was asked before", () => {
+    // A dark disc, lighter to its sides, on a light floor with a gentle slope: every offset counts.
+    const w = 40;
+    const h = 40;
+    const data = new Uint8ClampedArray(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) data[y * w + x] = Math.hypot(x - 20, y - 21) <= 5 ? 40 + (x - 20) ** 2 : 150 + x;
+    const f = { width: w, height: h, data, t: 0 };
+    // The contrast at (20, 21) for radius 5.0, worked out here.
+    const ring: number[] = [];
+    const inner: number[] = [];
+    for (let j = -8; j <= 8; j++) {
+      for (let i = -8; i <= 8; i++) {
+        const d = Math.hypot(i, j);
+        const v = data[(21 + j) * w + 20 + i];
+        if (d <= 4) inner.push(v);
+        else if (d >= 6 && d <= 8 && j > -0.5 * d) ring.push(v);
+      }
+    }
+    const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    // 4.96 asked first: its tenth is 5.0, and 0.8 of 4.96 would leave out the pixels 4 away.
+    const first = findDisc(f, { x: 20, y: 21 }, [4.96], 0);
+    expect(first?.contrast).toBeCloseTo(mean(ring) - mean(inner), 9);
+    expect(findDisc(f, { x: 20, y: 21 }, [5.04], 0)?.contrast).toBe(first?.contrast);
   });
 });

@@ -77,11 +77,18 @@ function meanAt(f: GrayFrame, x: number, y: number, offs: Int16Array, reach = In
 
 const offsetCache = new Map<string, { inner: Int16Array; ring: Int16Array; reach: number }>();
 
-/** Pixel offsets inside 0.8 r, and in the ring 1.2 r to 1.6 r below and beside the centre (not the top third). */
-function offsets(r: number): { inner: Int16Array; ring: Int16Array; reach: number } {
-  const key = r.toFixed(1);
+/**
+ * Pixel offsets inside 0.8 r, and in the ring 1.2 r to 1.6 r below and beside
+ * the centre (not the top third), for r to a tenth of a pixel: kept by that
+ * tenth, so they are made from it (made from the first r asked for, every
+ * radius within the tenth took that radius's offsets, and a reading depended
+ * on what had been asked before).
+ */
+function offsets(radius: number): { inner: Int16Array; ring: Int16Array; reach: number } {
+  const key = radius.toFixed(1);
   const known = offsetCache.get(key);
   if (known) return known;
+  const r = Number(key);
   const inner: number[] = [];
   const ring: number[] = [];
   const R = Math.ceil(1.6 * r);
