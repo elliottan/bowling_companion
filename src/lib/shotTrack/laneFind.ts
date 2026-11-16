@@ -28,7 +28,7 @@ import type { GrayFrame, Mat3, Point } from "./types";
  *    and the frame whose lines agree best (and put the camera where the other
  *    frames do) is kept, as calibration marks for `fitCalibration`.
  *
- * Frames are full resolution in the video's own grey (16 to 235, see
+ * Frames are full resolution in the video's own gray (16 to 235, see
  * `toGray`), as everywhere in the tracer.
  */
 
@@ -1050,13 +1050,13 @@ export function gutterEnds(f: GrayFrame, left: Line3, right: Line3, near: number
     // (2026-11-16: the console on shot-02 hides the right gutter, and the
     // strip running into its black face fell like an end 0.3 to 1 ft up the
     // lane on five frames).
-    if (grey(outside, y + 1, y + k) < GUTTER_BELOW * grey(inside(outside), y + 1, y + k)) return null;
+    if (gray(outside, y + 1, y + k) < GUTTER_BELOW * gray(inside(outside), y + 1, y + k)) return null;
     const [x0, x1] = outside(y);
     const xm = (x0 + x1) / 2;
     return { x: xm, y, drop: level };
   };
   // Mean grey over a strip from row a to row b, sampled along `slope`.
-  const grey = (strip: (y: number) => [number, number], a: number, b: number): number => {
+  const gray = (strip: (y: number) => [number, number], a: number, b: number): number => {
     let s = 0;
     let n = 0;
     for (let y = Math.ceil(a); y <= b; y++) {
