@@ -11,7 +11,7 @@ import { median, sample } from "./image";
 import { BALL_DIAMETER_IN, CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
 import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, withoutIslands, type MotionPoint } from "./pathFit";
 import { laneTrack, type FrameLane, type LaneTrack, type LaneTrackOptions } from "./laneTrack";
-import { followForward, overFoulLine, uAtColumn, type OverFoulLine, type ReleaseFrame } from "./release";
+import { atFoulLineTime, followForward, overFoulLine, uAtColumn, type FollowPrediction, type OverFoulLine, type ReleaseFrame } from "./release";
 import { followNear, nearSeeds } from "./nearFollow";
 import { alignTo, laneMarksOf, register, registerPlane, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, TrackError, TrackFailure, TrackResult } from "./types";
@@ -91,8 +91,10 @@ export interface TraceDebug {
   calibration: CalibrationReport | null;
   /** The ball followed back to where it sits right above the foul line (the laydown), when it could be. */
   release?: OverFoulLine | null;
-  /** The ball followed by its darkness from its last sighting to just before the rack moves. */
+  /** The ball followed by its darkness from its last sighting to the last frame before it touches a pin. */
   toPins?: ReleaseFrame[];
+  /** Where the board at the pins was read from the follow: the frame it is read on, lane u, and the frames the line through the boards used. */
+  pinsRead?: { frame: number; u: number; frames: number[] };
   /** The ball followed by its darkness over the near lane, when the empty lane did not show it (`followNear`). */
   nearFollow?: Candidate[];
   /** Seen over the near lane only (`NEAR_FROM_FT`, `NEAR_SPAN_FT`): the far readings are left missing. */
@@ -413,13 +415,38 @@ export function trace(input: TraceInput): TraceOutput {
     const g = geometry[i - first];
     return g && g.ok ? g : null;
   };
-  debug.release = overFoulLine(
+  const byImage = overFoulLine(
     (i) => (okGeo(i) ? source.frame(i) : null),
     (i) => okGeo(i)?.H ?? null,
     firstSeen.frame,
     { cx: firstSeen.cx, cy: firstSeen.cy, r: firstSeen.r },
     Math.round(0.5 / Math.max(1e-3, (seen[seen.length - 1].t - seen[0].t) / Math.max(1, seen[seen.length - 1].frame - seen[0].frame)))
   );
+  // The laydown by time (the owner, 2026-11-16): where the ball comes lowest
+  // in the picture depends on where the bowler finishes, so the frame is the
+  // one its timing puts it on the foul line: its first distance on the lane
+  // over its speed there (the rolling ball's fit, `m0`), back from that
+  // sighting. The picture's reading stays as the cross-check, and is used
+  // when the ball cannot be followed back that far.
+  const speed0 = m0.w + m0.d * firstSeen.t;
+  let byTime: OverFoulLine | null = null;
+  if (speed0 > 5 && firstSeen.v > 0) {
+    const t0 = firstSeen.t - firstSeen.v / speed0;
+    let lo = firstSeen.frame - 1;
+    while (lo > first && lo > firstSeen.frame - 60 && source.frame(lo).t > t0) lo--;
+    const ta = source.frame(lo).t;
+    const tb = source.frame(lo + 1).t;
+    if (ta <= t0 && tb > ta) {
+      byTime = atFoulLineTime(
+        (i) => (okGeo(i) ? source.frame(i) : null),
+        (i) => okGeo(i)?.H ?? null,
+        firstSeen.frame,
+        { cx: firstSeen.cx, cy: firstSeen.cy, r: firstSeen.r },
+        lo + (t0 - ta) / (tb - ta)
+      );
+    }
+  }
+  debug.release = byTime ? { ...byTime, image: byImage ? { at: byImage.at, u: byImage.u, reached: byImage.reached } : undefined } : byImage ? { ...byImage, by: "image" } : null;
 
   progress("path", 0.85);
   const pathPts = seen.map((s) => ({ v: s.v, u: s.u, w: s.weight, sv: svOf.get(s.frame), t: s.t }));
@@ -448,47 +475,81 @@ export function trace(input: TraceInput): TraceOutput {
   }
 
   // The board at the pins as the owner reads it (shot-01): where the ball is
-  // just before it meets the pins. It is followed by its darkness from its
-  // last sighting to the frame before the rack is first seen to move, and read
-  // by its centre across the picture on the head pin's contact row (in front
-  // of the rack its circle slides onto its mirror image, so only its column is
-  // trusted).
+  // on the last frame before it touches a pin. It is followed by its darkness
+  // from its last sighting, held to its own size and row (`followForward`
+  // with a prediction), and read by its center across the picture on the
+  // head pin's contact row (in front of the rack only its column is trusted).
   let pinsU: number | undefined;
   let pinsEstimated = false;
   const vAtT = (t: number) => motion.v0 + motion.w * t + 0.5 * motion.d * t * t;
   const lastSeen = seen[seen.length - 1];
-  // Only when the ball was lost more than two frames before the rack moves
-  // (shot-01: seven); seen closer than that, the sightings already reach it.
-  if (pinFrame !== null && lastSeen.v > 50 && pinFrame - lastSeen.frame > 2 && pinFrame - lastSeen.frame <= 30) {
-    const track = followForward((i) => (geometry[i - first]?.ok ? source.frame(i) : null), lastSeen.frame, lastSeen, pinFrame - 1);
-    debug.toPins = track;
+  // How far down the lane the ball is past its last sighting: the fitted
+  // motion's advance, from where the last far sightings put it. The fit alone
+  // lags there (2026-11-16, shot-01: anchored on the rack first seen moving,
+  // five frames after the ball met the head pin, it put the ball 1.2 ft short
+  // of where its last sightings were), so it is shifted onto them.
+  const far = seen.filter((s) => s.v > 40).slice(-10);
+  const lag = far.length >= 3 ? median(far.map((s) => s.v - vAtT(s.t))) : 0;
+  const vPast = (t: number) => vAtT(t) + lag;
+  const PIN_V = 60 - CONTACT_IN / 12;
+  const predict: FollowPrediction = (i, cx) => {
+    const g = geometry[i - first];
+    if (!g?.ok) return null;
+    const v = Math.min(vPast(source.frame(i).t), PIN_V);
+    const u = uAtColumn(g.H, cx, v);
+    const contact = apply(g.H, { x: u, y: v });
+    const r = expectedRadiusPx(g.H, u, v);
+    return { cy: contact.y - r * downAt(g.H, contact).y, r };
+  };
+  // The first frame on which the ball touches a pin: the ball reaching the
+  // first pin on its path, or the rack seen moving, whichever is first.
+  let touchFrame = pinFrame ?? Infinity;
+  const tTouch = contactV !== null && !nearOnly ? timeAtFeet({ ...motion, v0: motion.v0 + lag }, contactV) : null;
+  if (tTouch !== null) {
+    for (let i = lastSeen.frame + 1; i < Math.min(touchFrame, first + geometry.length); i++) {
+      if (source.frame(i).t >= tTouch) {
+        touchFrame = i;
+        break;
+      }
+    }
+  }
+  const lastBefore = touchFrame - 1;
+  // Only when the ball was lost two frames or more before that (shot-01:
+  // five); seen closer, the sightings already reach it.
+  if (pinFrame !== null && lastSeen.v > 50 && lastBefore - lastSeen.frame >= 2 && lastBefore - lastSeen.frame <= 29) {
+    // Followed two frames on, for the pictures of the frames after (the
+    // owner picks among them when unsure); read only up to `lastBefore`.
+    debug.toPins = followForward((i) => (geometry[i - first]?.ok ? source.frame(i) : null), lastSeen.frame, lastSeen, lastBefore + 2, 0.6, predict);
+    const track = debug.toPins.filter((d) => d.frame <= lastBefore);
     const reach = track.length ? track[track.length - 1].frame : lastSeen.frame;
-    if (reach >= pinFrame - 3) {
-      // A straight line through the last four frames' boards, read halfway
-      // between the last frame before the rack moves and the first that does:
-      // a hooking ball still turns, and at 30 frames a second the frames are
-      // 0.7 ft apart.
+    if (reach >= lastBefore - 2) {
+      // A straight line through the last four frames' boards, read on the last
+      // frame before the ball touches a pin: a hooking ball still turns, and
+      // one frame's column is noisy among the pins.
       const near = [{ frame: lastSeen.frame, cx: lastSeen.cx }, ...track].slice(-4);
       const xs = near.map((d) => d.frame);
-      const ys = near.map((d) => uAtColumn(geometry[d.frame - first].H, d.cx, 60 - CONTACT_IN / 12));
+      const ys = near.map((d) => uAtColumn(geometry[d.frame - first].H, d.cx, PIN_V));
       const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
       const my = ys.reduce((a, b) => a + b, 0) / ys.length;
       const den = xs.reduce((a, x) => a + (x - mx) ** 2, 0);
       const slope = den > 0 ? xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / den : 0;
-      pinsU = my + slope * (pinFrame - 0.5 - mx);
+      pinsU = my + slope * (lastBefore - mx);
+      debug.pinsRead = { frame: lastBefore, u: pinsU, frames: xs };
     }
   } else if (pinFrame === null && Math.max(lastSeen.v, vAtT(lastSeen.t)) > 50) {
     // The rack never seen to move (shot-02: the bowler's arm swings across it
-    // as the ball arrives). The ball is followed on until the arm covers it;
-    // if by then the fitted motion has it within three feet of the head pin,
-    // its last three frames' boards are the estimate. Not run on: the turn
-    // left in the last feet is not seen.
-    const track = followForward((i) => (geometry[i - first]?.ok ? source.frame(i) : null), lastSeen.frame, lastSeen, lastSeen.frame + 30);
+    // as the ball arrives). The ball is followed on until the arm covers it
+    // or it reaches the first pin; if by then the fitted motion has it within
+    // three feet of the head pin, its last three frames' boards are the
+    // estimate. Not run on: the turn left in the last feet is not seen.
+    const to = Math.min(lastSeen.frame + 30, lastBefore);
+    const track = followForward((i) => (geometry[i - first]?.ok ? source.frame(i) : null), lastSeen.frame, lastSeen, to, 0.6, predict);
     if (track.length >= 3 && vAtT(source.frame(track[track.length - 1].frame).t) >= 57) {
       debug.toPins = track;
       const tail = track.slice(-3);
-      pinsU = tail.reduce((a, d) => a + uAtColumn(geometry[d.frame - first].H, d.cx, 60 - CONTACT_IN / 12), 0) / tail.length;
+      pinsU = tail.reduce((a, d) => a + uAtColumn(geometry[d.frame - first].H, d.cx, PIN_V), 0) / tail.length;
       pinsEstimated = true;
+      debug.pinsRead = { frame: tail[tail.length - 1].frame, u: pinsU, frames: tail.map((d) => d.frame) };
     }
   }
 

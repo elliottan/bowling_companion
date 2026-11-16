@@ -6,7 +6,7 @@
  * table of the candidates: their row at the lane's middle, how far each sits
  * from the hand line and the found one in feet, and where each puts the
  * camera with the frame's pin row. The lane's edges, found and hand, are
- * drawn dashed in the same colours.
+ * drawn dashed in the same colors.
  *
  *   npx tsx scripts/shot-tracker/foul-look.ts <clip> <outDir> [<frame> ...]
  *

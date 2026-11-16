@@ -1,5 +1,5 @@
 import { sample } from "./image";
-import { mapLine } from "./homography";
+import { downAt, intersect, lineThrough, mapLine } from "./homography";
 import { imageToLane } from "./laneModel";
 import type { GrayFrame, Mat3, Point } from "./types";
 
@@ -42,6 +42,14 @@ export interface OverFoulLine {
   point: Point;
   /** Lane u there. */
   u: number;
+  /**
+   * How it was read: `time` when the ball's crossing of the foul line was
+   * timed from its touchdown and speed (`atFoulLineTime`), `image` when read
+   * where its bottom meets the foul line's row or comes lowest.
+   */
+  by?: "time" | "image";
+  /** With `time`: the reading the picture alone gives, for a cross-check. */
+  image?: { at: number; u: number; reached: boolean };
 }
 
 /** Mean of the picture over a set of offsets around (x, y); NaN when any falls outside. */
@@ -81,12 +89,12 @@ function offsets(r: number): { inner: Int16Array; ring: Int16Array } {
   return out;
 }
 
-/** The darkest-against-its-surroundings disc near `near`, with a radius from `radii`. */
-export function findDisc(f: GrayFrame, near: Point, radii: number[], reach: number): { cx: number; cy: number; r: number; contrast: number } | null {
+/** The darkest-against-its-surroundings disc near `near`, with a radius from `radii`, within `reach` pixels across and `reachY` (default `reach`) up and down. */
+export function findDisc(f: GrayFrame, near: Point, radii: number[], reach: number, reachY = reach): { cx: number; cy: number; r: number; contrast: number } | null {
   let best: { cx: number; cy: number; r: number; contrast: number } | null = null;
   for (const r of radii) {
     const o = offsets(r);
-    for (let y = Math.round(near.y - reach); y <= Math.round(near.y + reach); y++) {
+    for (let y = Math.round(near.y - reachY); y <= Math.round(near.y + reachY); y++) {
       for (let x = Math.round(near.x - reach); x <= Math.round(near.x + reach); x++) {
         const c = meanAt(f, x, y, o.ring) - meanAt(f, x, y, o.inner);
         if (Number.isFinite(c) && (!best || c > best.contrast)) best = { cx: x, cy: y, r, contrast: c };
@@ -244,6 +252,54 @@ export function overFoulLine(
   return null;
 }
 
+/** Where the ball should be on frame `i`, from the lane and its motion: its center's row and its radius, pixels; `cx` is where it was on the frame before. */
+export type FollowPrediction = (i: number, cx: number) => { cy: number; r: number } | null;
+
+/**
+ * The laydown by time (the owner, 2026-11-16: bowlers finish at different
+ * distances from the foul line, so where the ball comes lowest in the picture
+ * need not be over the line): the ball is followed back from its first
+ * sighting on the lane (frame `first`, disc `start`) by its darkness, as
+ * `overFoulLine` does, to the fractional frame `at` at which its timing puts
+ * it on the foul line (its touchdown distance over its speed, before the
+ * touchdown), and read there: its center between the two frames either side,
+ * and the lane u where the line from that center straight down in the lane
+ * ("down", `downAt`) meets the foul line. Null when the ball is lost before
+ * `at` or `at` is not before `first`.
+ */
+export function atFoulLineTime(
+  frame: (i: number) => GrayFrame | null,
+  H: (i: number) => Mat3 | null,
+  first: number,
+  start: { cx: number; cy: number; r: number },
+  at: number
+): OverFoulLine | null {
+  if (!(at < first) || at < first - 60) return null;
+  const f0 = frame(first);
+  if (!f0) return null;
+  const rough0 = findDisc(f0, { x: start.cx, y: start.cy }, [start.r], Math.max(2, 0.3 * start.r));
+  if (!rough0) return null;
+  const track: ReleaseFrame[] = [{ frame: first, ...fitOutline(f0, rough0) }];
+  const lo = Math.floor(at);
+  for (let i = first - 1; i >= lo; i--) {
+    const f = frame(i);
+    const last = track[track.length - 1];
+    if (!f || !H(i)) return null;
+    const rough = findDisc(f, { x: last.cx, y: last.cy }, [last.r, last.r * 1.04, last.r * 1.08], Math.max(4, 0.9 * last.r));
+    if (!rough || rough.contrast < rough0.contrast / 3) return null;
+    track.push({ frame: i, ...fitOutline(f, rough) });
+  }
+  const a = track[track.length - 1];
+  const b = track.length >= 2 ? track[track.length - 2] : a;
+  const s = at - lo;
+  const c = { x: a.cx + s * (b.cx - a.cx), y: a.cy + s * (b.cy - a.cy) };
+  const h = H(lo)!;
+  const d = downAt(h, c);
+  const point = intersect(lineThrough(c, { x: c.x + d.x, y: c.y + d.y }), mapLine(h, [0, 1, 0]));
+  if (!point) return null;
+  return { track, at, reached: true, point, u: imageToLane(h, point).u, by: "time" };
+}
+
 /**
  * The ball followed forward by its darkness from a sighting (`start`, in
  * frame `from`) to frame `to`, while it stays at least `minContrast` of its
@@ -251,18 +307,34 @@ export function overFoulLine(
  * parts of it and its circle slides onto its mirror image, so only its centre
  * across the picture is to be trusted (the owner, shot-01: the board at the
  * pins is read just before the ball meets them).
+ *
+ * With `predict`, the circle is held to the ball's own size and row (2026-11-16:
+ * left free, the outline fit grew the circle frame after frame among the
+ * pins, to twice the ball on shot-01 and 1.3 times on shot-02, and slid it
+ * down onto the mirror image and sideways onto a pin, so the board read off
+ * it fell by two while the ball hooked on), and it is found by the ball's own
+ * face rather than its darkness against what is round it: in front of the
+ * rack that is a white pin on one side and the dark gap between pins on the
+ * other, and the darkness match leaned a pixel or more toward the pin. The
+ * picture inside 0.8 of a radius on the starting frame is matched (zero-mean
+ * correlation, to a quarter pixel) along the column within 0.6 radii and
+ * within a sixth of a radius of the row predicted (from the row before); the follow stops when the
+ * best match correlates under `MATCH_MIN` (the ball hidden, or among the
+ * falling pins).
  */
 export function followForward(
   frame: (i: number) => GrayFrame | null,
   from: number,
   start: { cx: number; cy: number; r: number },
   to: number,
-  minContrast = 0.6
+  minContrast = 0.6,
+  predict?: FollowPrediction
 ): ReleaseFrame[] {
   const f0 = frame(from);
   if (!f0) return [];
   const rough0 = findDisc(f0, { x: start.cx, y: start.cy }, [0.95, 1, 1.05].map((k) => k * start.r), Math.max(2, 0.3 * start.r));
   if (!rough0) return [];
+  if (predict) return followFace(frame, f0, from, start, to, rough0.contrast, predict);
   let d = fitOutline(f0, rough0);
   const out: ReleaseFrame[] = [];
   for (let i = from + 1; i <= to; i++) {
@@ -272,6 +344,75 @@ export function followForward(
     if (!next || next.contrast < minContrast * rough0.contrast) break;
     d = fitOutline(f, next);
     out.push({ frame: i, ...d });
+  }
+  return out;
+}
+
+/** The face match must correlate at least this well for the follow to go on. */
+export const MATCH_MIN = 0.6;
+
+/** `followForward` with a prediction: the ball's face matched along its predicted row. */
+function followFace(
+  frame: (i: number) => GrayFrame | null,
+  f0: GrayFrame,
+  from: number,
+  start: { cx: number; cy: number; r: number },
+  to: number,
+  contrast: number,
+  predict: FollowPrediction
+): ReleaseFrame[] {
+  const offs: [number, number][] = [];
+  const R = 0.8 * start.r;
+  for (let j = -Math.floor(R); j <= R; j++) for (let i = -Math.floor(R); i <= R; i++) if (Math.hypot(i, j) <= R) offs.push([i, j]);
+  const face = offs.map(([i, j]) => sample(f0, start.cx + i, start.cy + j));
+  if (offs.length < 9 || face.some((v) => !Number.isFinite(v))) return [];
+  const fm = face.reduce((a, b) => a + b, 0) / face.length;
+  const fz = face.map((v) => v - fm);
+  const fn = Math.sqrt(fz.reduce((a, b) => a + b * b, 0)) || 1;
+  const ncc = (f: GrayFrame, x: number, y: number): number => {
+    let m = 0;
+    const vals = new Array<number>(offs.length);
+    for (let k = 0; k < offs.length; k++) {
+      const v = sample(f, x + offs[k][0], y + offs[k][1]);
+      if (!Number.isFinite(v)) return -1;
+      vals[k] = v;
+      m += v;
+    }
+    m /= offs.length;
+    let sxy = 0;
+    let syy = 0;
+    for (let k = 0; k < offs.length; k++) {
+      const z = vals[k] - m;
+      sxy += z * fz[k];
+      syy += z * z;
+    }
+    return syy > 0 ? sxy / (fn * Math.sqrt(syy)) : -1;
+  };
+  const out: ReleaseFrame[] = [];
+  let cx = start.cx;
+  // The row is predicted as a change from where the ball was: how far the
+  // last frame's row sat from its prediction is carried on (the prediction's
+  // own row can be a pixel or two out where a foot down the lane is one).
+  const p0 = predict(from, cx);
+  let off = p0 ? start.cy - p0.cy : 0;
+  for (let i = from + 1; i <= to; i++) {
+    const f = frame(i);
+    const p = f ? predict(i, cx) : null;
+    if (!f || !p) break;
+    const yc = p.cy + off;
+    let best = { x: cx, y: yc, c: -Infinity };
+    const rx = Math.max(3, 0.6 * p.r);
+    const ry = Math.max(1, p.r / 6);
+    for (let y = yc - ry; y <= yc + ry + 1e-9; y += 0.25) {
+      for (let x = cx - rx; x <= cx + rx + 1e-9; x += 0.25) {
+        const c = ncc(f, x, y);
+        if (c > best.c) best = { x, y, c };
+      }
+    }
+    if (best.c < MATCH_MIN) break;
+    cx = best.x;
+    off = best.y - p.cy;
+    out.push({ frame: i, cx: best.x, cy: best.y, r: p.r, contrast: contrast * best.c });
   }
   return out;
 }

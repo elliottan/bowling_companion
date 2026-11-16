@@ -1055,7 +1055,7 @@ export function gutterEnds(f: GrayFrame, left: Line3, right: Line3, near: number
     const xm = (x0 + x1) / 2;
     return { x: xm, y, drop: level };
   };
-  // Mean grey over a strip from row a to row b, sampled along `slope`.
+  // Mean gray over a strip from row a to row b, sampled along `slope`.
   const gray = (strip: (y: number) => [number, number], a: number, b: number): number => {
     let s = 0;
     let n = 0;
@@ -1083,18 +1083,18 @@ export function gutterEnds(f: GrayFrame, left: Line3, right: Line3, near: number
   return [side(leftStrip), side(rightStrip)];
 }
 
-/** Below a gutter's end the strip must be at least this share of the lane's grey beside it (the approach is as light as the lane; a console's face is not). */
+/** Below a gutter's end the strip must be at least this share of the lane's gray beside it (the approach is as light as the lane; a console's face is not). */
 export const GUTTER_BELOW = 0.6;
 
 /** Where the lane's own edge, the thin dark line between the lane and its gutter, stops at the approach. */
 export interface EdgeEnd {
   x: number;
   y: number;
-  /** How much darker the line is than the lane beside it above the end, grey levels. */
+  /** How much darker the line is than the lane beside it above the end, gray levels. */
   depth: number;
 }
 
-/** The edge's dark line must be at least this much darker than the lane beside it, grey levels, for its end to count. */
+/** The edge's dark line must be at least this much darker than the lane beside it, gray levels, for its end to count. */
 export const EDGE_LINE_DEPTH = 8;
 
 /**

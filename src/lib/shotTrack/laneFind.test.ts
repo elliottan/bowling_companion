@@ -682,7 +682,7 @@ describe("findFoulLines on a built picture", () => {
     // striped gutters outside down to `gutterEnd`, and the approach as light
     // as the lane below. `console` paints a dark block (20) over the right
     // gutter from that row down (or from the top with 0), clear of the line.
-    const withEdges = (o: { edgeEnd: number; gutterEnd: number; tilt?: number; console?: number; band?: number; edgeGrey?: number }) => {
+    const withEdges = (o: { edgeEnd: number; gutterEnd: number; tilt?: number; console?: number; band?: number; edgeGray?: number }) => {
       const tilt = o.tilt ?? 0;
       const f = makeFrame(300, 220, 0, 200);
       for (let y = 0; y < 220; y++) {
@@ -691,7 +691,7 @@ describe("findFoulLines on a built picture", () => {
           const dy = right ? tilt : 0;
           const i = y * 300 + x;
           if (((x >= 35 && x < 68) || (x > 232 && x <= 265)) && y < o.gutterEnd + dy) f.data[i] = Math.floor(x / 3) % 2 ? 60 : 190;
-          if ((x === 70 || x === 230) && y < o.edgeEnd + dy) f.data[i] = o.edgeGrey ?? 90;
+          if ((x === 70 || x === 230) && y < o.edgeEnd + dy) f.data[i] = o.edgeGray ?? 90;
           if (o.band !== undefined && x > 70 && x < 230 && y >= o.band && y < o.band + 2) f.data[i] = 150;
           if (o.console !== undefined && x >= 233 && y >= o.console) f.data[i] = 20;
         }
@@ -715,7 +715,7 @@ describe("findFoulLines on a built picture", () => {
 
     it("edgeEnds is null with no line, too faint a line, too few rows, or something dark over the lane below", () => {
       expect(edgeEnds(makeFrame(300, 220, 0, 200), L, R, 160, 100)).toEqual([null, null]);
-      expect(edgeEnds(withEdges({ edgeEnd: 158, gutterEnd: 160, edgeGrey: 196 }), L, R, 160, 100)).toEqual([null, null]);
+      expect(edgeEnds(withEdges({ edgeEnd: 158, gutterEnd: 160, edgeGray: 196 }), L, R, 160, 100)).toEqual([null, null]);
       expect(edgeEnds(withEdges({ edgeEnd: 158, gutterEnd: 160 }), L, R, 160, 10)).toEqual([null, null]);
       // A shoe across the left edge from row 158 down: the line stops under it, but so does the lane.
       const f = withEdges({ edgeEnd: 158, gutterEnd: 160 });
