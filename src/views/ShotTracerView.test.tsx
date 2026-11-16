@@ -264,17 +264,20 @@ describe("ShotTracerView", () => {
     expect(screen.getByRole("button", { name: /Choose a video/ })).toBeTruthy();
   });
 
-  it("says a video is unreadable when the first look cannot read it", async () => {
-    scanVideo.mockRejectedValue(new Error("no"));
+  it("says a video is unreadable when the first look cannot read it, and what the reader said", async () => {
+    scanVideo.mockRejectedValue(new Error("playback: no data after 10 s (WebCodecs codec hvc1.2.4.L150.B0 not supported)"));
     pickFile();
     expect((await screen.findByRole("alert")).textContent).toMatch(/couldn't be read/);
+    // The reason under the sentence, not in it.
+    expect(screen.getByText("Details: playback: no data after 10 s (WebCodecs codec hvc1.2.4.L150.B0 not supported)")).toBeTruthy();
     expect(readVideoFrames).not.toHaveBeenCalled();
   });
 
-  it("says a video is unreadable when too little of it could be read", async () => {
-    readVideoFrames.mockImplementation(async (_f: Blob, _p: unknown, p: { from: number; to: number; fps: number }) => ({ ...fakeVideo(p), gray: [], times: [] }));
+  it("says a video is unreadable when too little of it could be read, and how it was read", async () => {
+    readVideoFrames.mockImplementation(async (_f: Blob, _p: unknown, p: { from: number; to: number; fps: number }) => ({ ...fakeVideo(p), gray: [], times: [], via: "WebCodecs vp09" }));
     await searchFinds(SHOT);
     expect((await screen.findByRole("alert")).textContent).toMatch(/couldn't be read/);
+    expect(screen.getByText("Details: only 0 frames read (WebCodecs vp09)")).toBeTruthy();
   });
 
   it("looks for the lane on copies of about 24 frames spread over the clip", async () => {
@@ -322,6 +325,8 @@ describe("ShotTracerView", () => {
     expect(lane.parentElement?.querySelector("polyline")).toBeTruthy();
     expect(screen.queryByText(/The lane may be off/)).toBeNull();
     expect(screen.getByRole("button", { name: "Another video" })).toBeTruthy();
+    // How it was read and how long each stage took, for runs on a phone.
+    expect(screen.getByText(/^Read by \?\. Looking [\d.]+ s, reading [\d.]+ s, lane [\d.]+ s, tracing [\d.]+ s\.$/)).toBeTruthy();
   });
 
   it("says the lane may be off when the found lanes disagree, with nothing to move", async () => {

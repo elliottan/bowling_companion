@@ -84,6 +84,7 @@ export async function readShot(
     // The rest of the first part's frames are let go before the rest is read.
     first.gray = [];
     let missing = first.missing;
+    let via = first.via;
     if (split.rest) {
       const last = times[times.length - 1];
       const rest = await readVideoFrames(file, (f) => onProgress(FIRST_SHARE + (1 - FIRST_SHARE) * f), {
@@ -100,8 +101,9 @@ export async function readShot(
         times.push(t);
       });
       missing += rest.missing;
+      if (rest.via !== via) via = `${via ?? "?"}, then ${rest.via ?? "?"}`;
     }
-    frames = { width: first.width, height: first.height, gray, times, src: first.src, step: first.step * Math.round(READ_FPS / split.fps), missing };
+    frames = { width: first.width, height: first.height, gray, times, src: first.src, step: first.step * Math.round(READ_FPS / split.fps), missing, via };
   }
   onProgress(1);
   const { times } = frames;

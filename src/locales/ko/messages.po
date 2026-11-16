@@ -1690,6 +1690,10 @@ msgstr "스탠스에서 계산했어요. 탭하면 레인에서 볼 수 있어�
 msgid "Description"
 msgstr "설명"
 
+#: src/views/ShotTracerView.tsx
+msgid "Details: {why}"
+msgstr "자세히: {why}"
+
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
@@ -3869,6 +3873,11 @@ msgstr "비율"
 #: src/components/LaneVisualizer.tsx
 msgid "Re-aim"
 msgstr "다시 조준"
+
+#. A diagnostics line in Labs: how the video was read (a technical name), and the seconds each stage of the shot tracer took
+#: src/views/ShotTracerView.tsx
+msgid "Read by {reader}. Looking {look} s, reading {read} s, lane {lane} s, tracing {trace} s."
+msgstr "읽은 방식: {reader}. 찾기 {look}초, 읽기 {read}초, 레인 {lane}초, 추적 {trace}초."
 
 #: src/views/ShotTracerView.tsx
 msgid "Reading the video…"

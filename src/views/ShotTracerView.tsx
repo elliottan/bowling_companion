@@ -29,15 +29,28 @@ import type { Handedness } from "../types/bowling";
  * is part of a session.
  */
 
+/**
+ * How long each stage took, seconds, and how the video was read: a line on
+ * the result screen and in the console, for the owner's runs on a phone.
+ */
+interface Timing {
+  via: string;
+  look: number;
+  read: number;
+  lane: number;
+  trace: number;
+}
+
 type Step =
-  | { kind: "pick"; unreadable?: boolean }
+  /** `why`: what the reader said when the video couldn't be read, for the details line. */
+  | { kind: "pick"; unreadable?: boolean; why?: string }
   | { kind: "searching"; fraction: number }
   | { kind: "reading"; fraction: number }
   | { kind: "finding" }
   | { kind: "tracing"; fraction: number }
   /** The shot or the lane was not found: nothing to trace. */
   | { kind: "failed"; missing: "shot" | "lane" }
-  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null };
+  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null; timing?: Timing };
 
 /** The lane as the finder found it: on every frame it could, and what it knows about how sure it is. */
 interface Found {
@@ -53,6 +66,8 @@ interface Found {
  * two nearest each side, and a frame costs the finder a third of a second.
  */
 const FIND_FRAMES = 24;
+/** Milliseconds, for the stage times (read in the screen's handlers, never in render). */
+const now = () => performance.now();
 /**
  * The longest the screen waits for the shot search's answer once it has every
  * frame, or for a lane search, milliseconds. Each takes seconds (the search
@@ -79,6 +94,8 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   const workers = useRef(new Set<Worker>());
   // Each video chosen is a new attempt; an older one's late answers are dropped.
   const attempt = useRef(0);
+  // This attempt's stage times so far, milliseconds.
+  const timing = useRef({ via: "", look: 0, read: 0, lane: 0, trace: 0 });
 
   useEffect(
     () => () => {
@@ -126,7 +143,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       const found = await answer;
       clearTimeout(timer);
       console.info(`Shot tracer: the search answered ${found === "late" ? "nothing" : "in"} ${((performance.now() - asked) / 1000).toFixed(1)} s after its last frame`);
-      if (found === "late") throw new Error("the search did not answer");
+      if (found === "late") throw new Error(`the search did not answer in ${WORKER_WAIT_MS / 1000} s`);
       return { ...video, found };
     } finally {
       stopWorker(worker);
@@ -139,6 +156,8 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     for (const w of workers.current) w.terminate();
     workers.current.clear();
     setStep({ kind: "searching", fraction: 0 });
+    timing.current = { via: "", look: 0, read: 0, lane: 0, trace: 0 };
+    const began = now();
     let looked: Awaited<ReturnType<typeof search>>;
     let from: number | null;
     let bands: (Band | null)[];
@@ -146,10 +165,11 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       looked = await search(f, mine);
       from = readFrom(looked.duration, looked.found);
       bands = laneBands(looked.width, looked.height, looked.found);
-    } catch {
-      if (attempt.current === mine) setStep({ kind: "pick", unreadable: true });
+    } catch (e) {
+      unreadable(e, mine);
       return;
     }
+    if (attempt.current === mine) timing.current.look = now() - began;
     if (attempt.current !== mine) return;
     const found = looked.found;
     console.info(
@@ -160,10 +180,18 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     else void readBand(f, looked, bands, mine);
   }
 
+  /** Back to the start, saying the video couldn't be read and what the reader said. */
+  function unreadable(e: unknown, mine: number) {
+    const why = e instanceof Error ? e.message : String(e);
+    console.info(`Shot tracer: the video couldn't be read: ${why}`);
+    if (attempt.current === mine) setStep({ kind: "pick", unreadable: true, why });
+  }
+
   /** Reads the shot in the first band left, then looks for the lane there. */
   async function readBand(f: File, looked: { found: ShotFound | null; width: number; height: number; duration: number }, bands: (Band | null)[], mine: number) {
     setStep({ kind: "reading", fraction: 0 });
     let v: VideoFrames;
+    const began = now();
     try {
       const read = await readShot(
         f,
@@ -190,15 +218,20 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         return;
       }
       v = read.frames;
-      if (v.gray.length < 10) throw new Error("too short");
-    } catch {
-      if (attempt.current === mine) setStep({ kind: "pick", unreadable: true });
+      if (v.gray.length < 10) throw new Error(`only ${v.gray.length} frames read (${v.via ?? "?"})`);
+    } catch (e) {
+      unreadable(e, mine);
       return;
+    } finally {
+      if (attempt.current === mine) timing.current.read += now() - began;
     }
     if (attempt.current !== mine) return;
+    timing.current.via = v.via ?? "";
     setStep({ kind: "finding" });
+    const finding = now();
     const m = await findOn(v, FIND_FRAMES);
     if (attempt.current !== mine) return;
+    timing.current.lane += now() - finding;
     if (m.frame !== null) traceShot(v, m.frame, { lanes: m.lanes, evidence: m.evidence }, mine);
     // Not found in this band: the next, read again, or nothing to trace.
     else if (bands.length > 1) void readBand(f, looked, bands.slice(1), mine);
@@ -254,10 +287,19 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       hand: handedness
     };
     setStep({ kind: "tracing", fraction: 0 });
+    const began = now();
     const worker = startWorker(new URL("../shotTracer/trace.worker.ts", import.meta.url));
-    const finish = (next: Step) => {
+    const finish = (next: Step & { kind: "done" }) => {
       stopWorker(worker);
-      if (attempt.current === mine) setStep(next);
+      if (attempt.current !== mine) return;
+      const ms = timing.current;
+      ms.trace = now() - began;
+      const took = { via: ms.via, look: ms.look / 1000, read: ms.read / 1000, lane: ms.lane / 1000, trace: ms.trace / 1000 };
+      console.info(
+        `Shot tracer: stages took ${[took.look, took.read, took.lane, took.trace].map((x) => x.toFixed(1)).join(", ")} s (look, read, lane, trace), ` +
+          `${(took.look + took.read + took.lane + took.trace).toFixed(1)} s in all; read by ${took.via}`
+      );
+      setStep({ ...next, timing: took });
     };
     worker.onmessage = (e: MessageEvent<TraceMessage>) => {
       const m = e.data;
@@ -281,7 +323,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   return (
     <PushScreen history="route" mode="inline" title={t`Shot tracer`} onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl space-y-5 px-3 pb-10 pt-2 sm:px-6">
-        {step.kind === "pick" && <PickVideo unreadable={step.unreadable} onChoose={(f) => void choose(f)} />}
+        {step.kind === "pick" && <PickVideo unreadable={step.unreadable} why={step.why} onChoose={(f) => void choose(f)} />}
         {step.kind === "searching" && <Waiting label={t`Looking for the shot…`} fraction={step.fraction} />}
         {step.kind === "reading" && <Waiting label={t`Reading the video…`} fraction={step.fraction} />}
         {step.kind === "finding" && <Waiting label={t`Finding the lane…`} />}
@@ -289,13 +331,15 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         {step.kind === "failed" && (
           <Failure text={step.missing === "shot" ? t`The shot couldn't be found in this video.` : t`The lane couldn't be found in this video.`} onAnother={another} />
         )}
-        {step.kind === "done" && <Result result={step.result} H={step.H} verdict={step.verdict} picture={shown} onAnother={another} />}
+        {step.kind === "done" && (
+          <Result result={step.result} H={step.H} verdict={step.verdict} picture={shown} timing={step.timing} onAnother={another} />
+        )}
       </div>
     </PushScreen>
   );
 }
 
-function PickVideo({ unreadable, onChoose }: { unreadable?: boolean; onChoose: (f: File | undefined) => void }) {
+function PickVideo({ unreadable, why, onChoose }: { unreadable?: boolean; why?: string; onChoose: (f: File | undefined) => void }) {
   const record = useRef<HTMLInputElement>(null);
   const pick = useRef<HTMLInputElement>(null);
   return (
@@ -307,6 +351,10 @@ function PickVideo({ unreadable, onChoose }: { unreadable?: boolean; onChoose: (
         <p role="alert" className="text-subhead text-danger-700">
           {t`This video couldn't be read. Try another one.`}
         </p>
+      )}
+      {unreadable && why && (
+        // A Labs screen: the reader's own words, for the owner to pass on.
+        <p className="text-footnote text-ink-secondary [overflow-wrap:anywhere]">{t`Details: ${why}`}</p>
       )}
       <div className="flex flex-wrap gap-3">
         <Button variant="primary" onClick={() => record.current?.click()}>
@@ -438,12 +486,14 @@ function Result({
   H,
   verdict,
   picture,
+  timing,
   onAnother
 }: {
   result: TrackResult | TrackError;
   H: Mat3 | null;
   verdict: LaneVerdict | null;
   picture: { gray: Uint8ClampedArray; width: number; height: number } | null;
+  timing?: Timing;
   onAnother: () => void;
 }) {
   if (!result.ok) return <Failure text={failureText(result.failure)} onAnother={onAnother} />;
@@ -513,10 +563,25 @@ function Result({
           speed
         />
       </dl>
+      {timing && <TimingLine timing={timing} />}
       <div className="flex flex-wrap gap-3">
         <Button onClick={onAnother}>{t`Another video`}</Button>
       </div>
     </div>
+  );
+}
+
+/** How the video was read and how long each stage took, small, for the owner's runs on a phone. */
+function TimingLine({ timing }: { timing: Timing }) {
+  const s = (x: number) => formatNumber(x, 1);
+  const [reader, look, read, lane, trace] = [timing.via || "?", s(timing.look), s(timing.read), s(timing.lane), s(timing.trace)];
+  return (
+    <p className="text-footnote text-ink-secondary [overflow-wrap:anywhere]">
+      {t({
+        message: `Read by ${reader}. Looking ${look} s, reading ${read} s, lane ${lane} s, tracing ${trace} s.`,
+        comment: "A diagnostics line in Labs: how the video was read (a technical name), and the seconds each stage of the shot tracer took"
+      })}
+    </p>
   );
 }
 

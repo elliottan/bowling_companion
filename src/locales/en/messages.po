@@ -1690,6 +1690,10 @@ msgstr "Derived from your stance. Tap to see it on the lane."
 msgid "Description"
 msgstr "Description"
 
+#: src/views/ShotTracerView.tsx
+msgid "Details: {why}"
+msgstr "Details: {why}"
+
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
@@ -3869,6 +3873,11 @@ msgstr "Ratio"
 #: src/components/LaneVisualizer.tsx
 msgid "Re-aim"
 msgstr "Re-aim"
+
+#. A diagnostics line in Labs: how the video was read (a technical name), and the seconds each stage of the shot tracer took
+#: src/views/ShotTracerView.tsx
+msgid "Read by {reader}. Looking {look} s, reading {read} s, lane {lane} s, tracing {trace} s."
+msgstr "Read by {reader}. Looking {look} s, reading {read} s, lane {lane} s, tracing {trace} s."
 
 #: src/views/ShotTracerView.tsx
 msgid "Reading the video…"

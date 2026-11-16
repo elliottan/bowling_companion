@@ -1690,6 +1690,10 @@ msgstr "Dihitung dari posisi awalmu. Ketuk untuk melihatnya di lintasan."
 msgid "Description"
 msgstr "Deskripsi"
 
+#: src/views/ShotTracerView.tsx
+msgid "Details: {why}"
+msgstr "Detail: {why}"
+
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
@@ -3869,6 +3873,11 @@ msgstr "Rasio"
 #: src/components/LaneVisualizer.tsx
 msgid "Re-aim"
 msgstr "Bidik ulang"
+
+#. A diagnostics line in Labs: how the video was read (a technical name), and the seconds each stage of the shot tracer took
+#: src/views/ShotTracerView.tsx
+msgid "Read by {reader}. Looking {look} s, reading {read} s, lane {lane} s, tracing {trace} s."
+msgstr "Dibaca dengan {reader}. Mencari {look} dtk, membaca {read} dtk, lintasan {lane} dtk, melacak {trace} dtk."
 
 #: src/views/ShotTracerView.tsx
 msgid "Reading the video…"

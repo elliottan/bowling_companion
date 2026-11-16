@@ -19,18 +19,26 @@ import {
   sourceStep,
   toGray
 } from "../lib/shotTrack/marking";
+import { codecRead, codecScan, dropCodec, openCodec, reasonOf } from "./codecFrames";
 
 /**
  * Frames read out of a video file in the browser, for the shot tracer
  * (Settings, Labs): a stretch of the file (`ReadPlan`; where it starts and
  * ends is `lib/shotTrack/shotWindow.ts`), at most `MAX_PIXELS` a frame and kept
- * in grey, at the rate the plan asks for. A portrait video is cropped to the
+ * in gray, at the rate the plan asks for. A portrait video is cropped to the
  * band of its height the lane is in before it is scaled (`laneBand`), so the
  * lane reaches the finder at close to the video's own scale: a 1080 by 1920
  * original is read at 940 by 735 of its middle rather than 624 by 1109 of the
  * whole, ceiling and approach floor included, on which the lane was not found.
  *
- * The stretch is read by playing it. Where the browser has
+ * Decoded first (`codecFrames.ts`, WebCodecs): the file's own frames as fast
+ * as the decoder goes. Where the browser has no `VideoDecoder`, the file is
+ * not an MP4 or MOV this reader knows, the decoder will not take its stream or
+ * fails part way, the video is played instead, as below, and the reason is
+ * carried in `via` (or in the error, when playing fails too) for the screen's
+ * details line.
+ *
+ * Played: where the browser has
  * `requestVideoFrameCallback`, each frame it presents is offered as it comes,
  * at its own time (the copy's `timestamp`, else `mediaTime`), never an assumed
  * even spacing. Which frames are kept is fixed by the video's own frames, not
@@ -46,14 +54,14 @@ import {
  * and minutes for a 4K phone clip.
  *
  * A frame is taken as the decoder gave it where the browser can copy it out
- * (`VideoFrame`): its luma plane is the video's own grey, read in under a
+ * (`VideoFrame`): its luma plane is the video's own gray, read in under a
  * millisecond, where drawing it to a canvas took 36. Anything else (a flipped
  * or stretched frame, a pixel format not handled here) is drawn to a canvas,
  * as before.
  *
  * Playback that will not start at all hands over to the seek loop, so the read
  * always ends. Needs a real browser's decoder, so it is not unit tested; the
- * pure parts are in `marking.ts`.
+ * pure parts are in `marking.ts` and `mp4.ts`.
  */
 
 export interface VideoFrames {
@@ -69,6 +77,8 @@ export interface VideoFrames {
   step: number;
   /** Frames the read should have kept and could not get, after going back for them. */
   missing: number;
+  /** How the frames were read, for the details line: `WebCodecs <codec> ...`, or `playback (...)` and why not decoded. */
+  via?: string;
 }
 
 interface FrameMeta {
@@ -98,7 +108,8 @@ function once(target: EventTarget, name: string, ms = 10000): Promise<boolean> {
     };
     const bad = () => {
       done();
-      reject(new Error(`video ${name} failed`));
+      const error = (target as HTMLVideoElement).error;
+      reject(new Error(error ? `video error ${error.code}${error.message ? `: ${error.message}` : ""}` : `video ${name} failed`));
     };
     const timer = setTimeout(() => {
       done();
@@ -502,27 +513,75 @@ async function readBySeeking(r: Reading): Promise<void> {
  * `onProgress` is told how far it has got, 0 to 1 and never backwards.
  */
 export async function readVideoFrames(file: Blob, onProgress: (fraction: number) => void, plan: ReadPlan): Promise<VideoFrames> {
-  const url = URL.createObjectURL(file);
-  const video: FrameVideo = document.createElement("video");
-  video.muted = true;
-  video.playsInline = true;
-  video.preload = "auto";
-  video.src = url;
   let reached = 0;
   const progress = (f: number) => {
     if (f > reached) onProgress((reached = f));
   };
+  const codec = await openCodec(file);
+  let why = typeof codec === "string" ? codec : "";
+  if (typeof codec !== "string") {
+    try {
+      return await codecRead(codec, plan, progress);
+    } catch (e) {
+      why = `failed: ${reasonOf(e)}`;
+      dropCodec(file, why);
+      console.info(`Shot tracer: decoding failed (${reasonOf(e)}); playing the video instead`);
+    }
+  }
+  try {
+    return { ...(await playRead(file, progress, plan)), via: `playback (WebCodecs ${why})` };
+  } catch (e) {
+    throw new Error(`playback: ${reasonOf(e)} (WebCodecs ${why})`);
+  }
+}
+
+/**
+ * Loads the video and has it ready to give frames. iOS Safari loads no frame
+ * (and, in a detached element, at times not even the metadata) until the
+ * video is played, whatever `preload` says, so it is played muted and inline
+ * at once rather than after `loadeddata`, which there never came: every phone
+ * video ended on "couldn't be read" after a 10 s wait. Then paused and put back
+ * at the start. Rejects with a short reason.
+ */
+async function startVideo(video: FrameVideo, url: string): Promise<void> {
+  video.muted = true;
+  video.defaultMuted = true;
+  video.playsInline = true;
+  video.setAttribute("playsinline", "");
+  video.setAttribute("muted", "");
+  video.preload = "auto";
+  video.src = url;
+  video.load();
+  const meta = once(video, "loadedmetadata");
+  meta.catch(() => {});
+  let play = "play not started";
+  const played = video.play().then(
+    () => (play = "playing"),
+    (e: unknown) => (play = `play refused: ${reasonOf(e)}`)
+  );
+  if (video.readyState < 1 && !(await meta)) throw new Error("no metadata after 10 s");
+  const began = performance.now();
+  while (video.readyState < 2) {
+    if (video.error) throw new Error(`video error ${video.error.code}${video.error.message ? `: ${video.error.message}` : ""}`);
+    if (performance.now() - began > 10000) throw new Error(`no data after 10 s (ready state ${video.readyState}, ${play})`);
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  // The play asked for may not have started yet: wait a moment for it before pausing, so it does not start after.
+  await Promise.race([played, new Promise((r) => setTimeout(r, 1000))]);
+  video.pause();
+  if (video.currentTime > 1e-3) {
+    video.currentTime = 0;
+    await once(video, "seeked", 2000).catch(() => false);
+  }
+}
+
+/** The play and seek path of `readVideoFrames`. */
+async function playRead(file: Blob, progress: (fraction: number) => void, plan: ReadPlan): Promise<VideoFrames> {
+  const url = URL.createObjectURL(file);
+  const video: FrameVideo = document.createElement("video");
   const began = performance.now();
   try {
-    if (!(await once(video, "loadedmetadata"))) throw new Error("no metadata");
-    if (video.readyState < 2 && !(await once(video, "loadeddata"))) throw new Error("no data");
-    // iOS Safari draws nothing from a video that has never played.
-    try {
-      await video.play();
-      video.pause();
-    } catch {
-      // Autoplay refused: seeking still decodes on the browsers that refuse it.
-    }
+    await startVideo(video, url);
     const rows = bandRows(video.videoHeight, plan.band);
     const { width, height } = scaledSize(video.videoWidth, rows.h, MAX_PIXELS);
     const canvas = document.createElement("canvas");
@@ -617,6 +676,8 @@ export interface ScannedVideo {
   width: number;
   height: number;
   duration: number;
+  /** How the frames were read, for the details line (as `VideoFrames.via`). */
+  via?: string;
 }
 
 /**
@@ -634,16 +695,43 @@ export async function scanVideo(
   onFrame: (frame: CoarseFrame) => void,
   onProgress: (fraction: number) => void
 ): Promise<ScannedVideo> {
+  // Frames go on in time order whichever path gives them: after a decode that
+  // failed part way, playing hands on only those past the last one given.
+  let last = -Infinity;
+  const give = (frame: CoarseFrame) => {
+    if (frame.t <= last) return;
+    last = frame.t;
+    onFrame(frame);
+  };
+  let reached = 0;
+  const progress = (f: number) => {
+    if (f > reached) onProgress((reached = f));
+  };
+  const codec = await openCodec(file);
+  let why = typeof codec === "string" ? codec : "";
+  if (typeof codec !== "string") {
+    try {
+      return await codecScan(codec, give, progress);
+    } catch (e) {
+      why = `failed: ${reasonOf(e)}`;
+      dropCodec(file, why);
+      console.info(`Shot tracer: decoding failed (${reasonOf(e)}); playing the video instead`);
+    }
+  }
+  try {
+    return { ...(await playScan(file, give, progress)), via: `playback (WebCodecs ${why})` };
+  } catch (e) {
+    throw new Error(`playback: ${reasonOf(e)} (WebCodecs ${why})`);
+  }
+}
+
+/** The play and seek path of `scanVideo`. */
+async function playScan(file: Blob, onFrame: (frame: CoarseFrame) => void, onProgress: (fraction: number) => void): Promise<ScannedVideo> {
   const url = URL.createObjectURL(file);
   const video: FrameVideo = document.createElement("video");
-  video.muted = true;
-  video.playsInline = true;
-  video.preload = "auto";
-  video.src = url;
   const began = performance.now();
   try {
-    if (!(await once(video, "loadedmetadata"))) throw new Error("no metadata");
-    if (video.readyState < 2 && !(await once(video, "loadeddata"))) throw new Error("no data");
+    await startVideo(video, url);
     const duration = video.duration;
     if (!(duration > 0) || !Number.isFinite(duration)) throw new Error("no duration");
     const width = COARSE_WIDTH;
@@ -673,7 +761,7 @@ export async function scanVideo(
       next = after;
       return true;
     };
-    if (hasFrameCallback(video)) {
+    if (hasFrameCallback(video))
       await new Promise<void>((resolve) => {
         let handle = 0;
         let over = false;
@@ -708,11 +796,6 @@ export async function scanVideo(
         video.playbackRate = SCAN_RATE;
         video.play().catch(stop);
       });
-    }
-    else {
-      // iOS Safari draws nothing from a video that has never played.
-      await video.play().then(() => video.pause(), () => {});
-    }
     // What playing did not reach, by seeking.
     const stride = Math.max(1 / COARSE_FPS, duration / SCAN_SEEKS);
     for (let t = Math.max(0, last + stride); t < duration - 1e-3; t += stride) {
