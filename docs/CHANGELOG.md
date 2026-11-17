@@ -9,6 +9,18 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.113.2: The shot tracer reads the pins on the frame before contact (2026-11-17)
+
+- In Settings, Labs: the board at the pins is read on the last frame before the
+  first pin moves, found by watching the pins themselves. It used to be read a
+  frame or two late, and on a different frame depending on where the video was
+  cut.
+- A ball that passes the bowler's leg is still followed, so the arrows are read
+  where the ball is seen, not guessed from earlier.
+- Where the bowler's leg or arm covers part of the ball, its outline is placed
+  by the ball's own look rather than stretched to the lane's size, so the board
+  read under it is no longer pulled to one side.
+
 ## 0.113.1: The shot tracer looks for the shot again (2026-11-17)
 
 - In Settings, Labs: since 0.112.0 the shot tracer said "The shot couldn't

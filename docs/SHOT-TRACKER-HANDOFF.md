@@ -73,6 +73,12 @@ IMG_1996 in headless Chromium four runs gave the same window and laydown
 - Every end screen shows a "Details" block (read path, codec, frame format, look, runs and their verdicts, stage times).
 - Open: nothing has run on an iPhone since these changes (the owner's first two tries: "couldn't be read", then "shot couldn't be found" with no details); shot-01 pins 16.4 to 18.4 and shot-03 arrows 10.0 to 10.6 still move with where the read starts; the first look's run choice is fragile; IMG_1996 lost its breakpoint; shot-02 laydown 21.2 against the owner's 21.9; shot-06 pins 19.3 against 18.4; total time 17 s against "a few seconds".
 
+### 0.113.1 and 0.113.2 (2026-11-17)
+
+- 0.113.1: the search worker was never built (a `new URL` passed to a helper instead of written inside `new Worker`, so Vite inlined the `.ts` source as a data URL); every iPhone run ended on "shot couldn't be found". Workers are now `?worker&url` imports, a `noInlinedSources` build plugin guards it, and every tracer worker falls back to the main thread (`searchClient.ts`, `inlineWorker.ts`, `poolServe.ts`). Test hook `?tracerBreak=`. Test against `vite preview` of a build, not the dev server.
+- 0.113.2: pins frame from the pins themselves (`pinMove.ts`): owner's ground truth shot-01 233, shot-06 101 to 102, both matched. Near follow extends the detector's run past the bowler's leg (shot-04 arrows now seen to 13.6 ft); covered rims placed by `carryFace`. `scripts/shot-tracker/review-app.ts` makes review pictures from the app's own read, with a `--check` circle-vs-outline crop.
+- Open: shot-02's far sightings sit about 0.3 ball radius low (no top rim against the pit) and its far-end lane mapping is 1 to 1.5 boards off, so its pins read is probably 1.5 to 2.5 boards low; pin motion is not found when the bowler covers the rack (shot-05, IMG_1996) and may be fooled by an arm (shot-03 at 226); frame numbers: shot-01 and shot-02 start at 0.016 s, so `round(t*60)` is one above the owner's numbering.
+
 ## Where it stood before that (0.112.0, 2026-11-15)
 
 - **0.112.0 made the app all automatic**, on the owner's word: no marking
