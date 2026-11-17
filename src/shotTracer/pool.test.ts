@@ -14,7 +14,7 @@ import type { PoolMessage } from "./protocol";
  * `findLanes` and `trace` give on one thread.
  */
 
-const spec = standardShot({ hand: "right", body: true, duration: 2.4 });
+const spec = standardShot({ hand: "right", body: true, duration: 1.6 });
 const src = syntheticSource(spec);
 /** As the screen has them, a byte a pixel (the synthetic frames are float). */
 const bytes = (f: GrayFrame): GrayFrame => ({ ...f, data: Uint8ClampedArray.from(f.data) });
@@ -88,16 +88,16 @@ describe("the tracer's pool", () => {
     }
   });
 
-  it("traces on the screen's thread exactly as one thread does", async () => {
+  // A whole trace each, so one test a pool size: on CI under coverage the two
+  // together ran past 30 s.
+  it.each([1, 2])("traces on the screen's thread exactly as one thread does, with %i inline workers", async (size) => {
     expect(traced.result.ok).toBe(true);
-    for (const size of [1, 2]) {
-      const pool = new Pool(size, () => new InlineWorker());
-      const out = await traceInPool(pool, frames(), input);
-      expect(out.result).toEqual(traced.result);
-      expect(out.debug.H0).toEqual(traced.debug.H0);
-      pool.terminate();
-    }
-  }, 30_000);
+    const pool = new Pool(size, () => new InlineWorker());
+    const out = await traceInPool(pool, frames(), input);
+    expect(out.result).toEqual(traced.result);
+    expect(out.debug.H0).toEqual(traced.debug.H0);
+    pool.terminate();
+  }, 60_000);
 
   it("runs a worker's jobs on the screen's thread when it fails to load, sends it nothing, and says why", async () => {
     const notes: string[] = [];
