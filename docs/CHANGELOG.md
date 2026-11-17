@@ -28,6 +28,24 @@ had all shipped.
   hidden, by a ball return for example.
 - A search for the shot or the lane that never answers now ends with a
   sentence asking for another video, where it could wait forever.
+- The video is decoded straight from the file (WebCodecs) where the browser
+  can, in place of playing it, and the play-through way is kept as the
+  fallback. On iPhone the fallback no longer waits for a load event Safari
+  only sends once the video plays, which ended every raw video on "couldn't be
+  read".
+- The lane search and the trace run on several of the device's cores and skip
+  work that cannot change the answer: a run that took about 70 seconds on a
+  desktop takes about 17, with the same readings.
+- Every end screen of the shot tracer, the result included, ends in a small
+  "Details" block: how the video was read, what the first look saw, why each
+  candidate run was turned down, and how long each step took.
+- A landscape or cropped video no longer has every ball judged too fast, so its
+  shot is found.
+- The app gives the readings its review harness gives on the same frames: the
+  gray is full range from every reader, the maths gives the same bits in every
+  browser, and the lane, the empty lane and the ball no longer move with where
+  the kept frames start. A frame where the bowler hides the floor keeps the
+  floor last measured, which had put one laydown four boards out.
 
 ## 0.112.0: The shot tracer is all automatic (2026-11-15)
 

@@ -64,6 +64,15 @@ IMG_1996 in headless Chromium four runs gave the same window and laydown
 - Nothing has run on a real phone: rotated HEVC, HLG, Safari's frame
   timestamps and memory are all untested.
 
+### Since then, still 0.113.0 (2026-11-17)
+
+- Reading: WebCodecs decode (`lib/shotTrack/mp4.ts` demuxer, `shotTracer/codecFrames.ts`), play/seek kept as fallback with the iOS start fixed. Frames matched to samples by timestamp, picked by `framePick.ts`. Gray is full range from every reader (`grayRange.ts`, range from `colorSpace.fullRange`, else the `colr` box or VP9 flag, else limited).
+- Speed: exact shortcuts in the lane finder and registration (about 3x), then a worker pool (`trace`/`lane` jobs). Desktop Chromium on IMG_1996: look 3.5, read 4.6, lane 1.0, trace 8.1, about 17 s with 4 workers. Parallel decoding is parked as a patch (not in the repo).
+- Same answer everywhere: `detMath.ts` (fdlibm port; a lint rule bans `Math` transcendentals in `lib/shotTrack`), lane-search and background frames counted from the video's start (`gridFrames`), focal length from the found lane, `FOUL_LEAD` 0.4 s, a covered frame keeps the last floor (`PlanePass`), `onePace` drops pieces at the wrong pace, `nextPart` tries the look's next runs. `scripts/shot-tracker/app-read.ts` runs the app's own read in Node; the app in Chromium matches it to every digit shown.
+- First look: pace limits are fractions of a 9:16 height (`runScale`), so landscape and cropped clips are found.
+- Every end screen shows a "Details" block (read path, codec, frame format, look, runs and their verdicts, stage times).
+- Open: nothing has run on an iPhone since these changes (the owner's first two tries: "couldn't be read", then "shot couldn't be found" with no details); shot-01 pins 16.4 to 18.4 and shot-03 arrows 10.0 to 10.6 still move with where the read starts; the first look's run choice is fragile; IMG_1996 lost its breakpoint; shot-02 laydown 21.2 against the owner's 21.9; shot-06 pins 19.3 against 18.4; total time 17 s against "a few seconds".
+
 ## Where it stood before that (0.112.0, 2026-11-15)
 
 - **0.112.0 made the app all automatic**, on the owner's word: no marking
