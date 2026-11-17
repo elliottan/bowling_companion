@@ -270,7 +270,14 @@ export function* traceSteps(input: TraceInput): Generator<TraceJob[], TraceOutpu
   progress("registration", 0);
   // The picture's transforms first: they carry marks made on other frames.
   // Forward and back from the calibration frame, the two passes side by side.
-  const regOpts = input.register ?? {};
+  // The lens's focal length from the lane found on the calibration frame,
+  // where it gives one, as the floor's registration takes it: fitted to the
+  // frames that turned most, it changed with which frames the read had
+  // (shot-03 read from 0.33 s and from 0.67 s: every frame's lane a little
+  // apart, and the far sightings with it).
+  const ownLane = !input.calMarks && !input.marks ? input.lanes?.find((l) => l.frame === input.calibFrame && l.H.every(Number.isFinite)) : undefined;
+  const laneFocal = ownLane ? focalFromPlane(ownLane.H, calibFrame.width, calibFrame.height) : null;
+  const regOpts: RegisterOptions = input.register?.focal === undefined && laneFocal ? { ...input.register, focal: laneFocal } : (input.register ?? {});
   const [ahead, behind] = (yield ([1, -1] as const).map((dir) => ({
     kind: "register" as const, calibFrame: input.calibFrame, frames: passFrames(input.calibFrame, dir, first, last), opts: regOpts
   }))) as RegisterPassResult[];
