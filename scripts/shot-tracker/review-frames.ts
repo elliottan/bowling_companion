@@ -165,9 +165,14 @@ function pick(name: ReadingName, run: Ok, hand: Handedness, otherFeet: number | 
   const last = sights[sights.length - 1];
   const f = followedPins(run, hand);
   if (f) {
-    const d = debug.toPins?.find((x) => x.frame === f.frame) ?? debug.toPins![debug.toPins!.length - 1];
+    const seenAt = result.sightings.find((x) => x.frame === f.frame);
+    const d = debug.toPins?.find((x) => x.frame === f.frame) ?? seenAt ?? debug.toPins?.[debug.toPins.length - 1] ?? last;
     const H = geo(d.frame);
-    notes.push(`read by following the ball's face past its last sighting (frame ${last.frame}, ${last.v.toFixed(1)} ft) to frame ${f.frame}, the last before it touches a pin, a line through the boards of frames ${f.frames.join(", ")} on the head pin's row taken at frame ${f.frame}`);
+    notes.push(
+      debug.toPins?.length
+        ? `read by following the ball's face past its last sighting (read frame ${last.frame}, ${last.v.toFixed(1)} ft) to read frame ${f.frame}, the last before a pin moves, a line through the boards of read frames ${f.frames.join(", ")} on the head pin's row taken at read frame ${f.frame}`
+        : `read on read frame ${f.frame}, the last before a pin moves: a line through the boards of the sightings on read frames ${f.frames.join(", ")} on the head pin's row taken there`
+    );
     notes.push(result.pinFrame !== null ? `result.pinFrame ${result.pinFrame} (the rack first seen moving) is ${result.pinFrame - f.frame} frame(s) after the frame shown` : "result.pinFrame is not set (the rack was never seen to move, the bowler's arm is over it)");
     return { frame: d.frame, disc: d, ball: H ? { board: handedBoard(uAtColumn(H, d.cx, PIN_V), hand), feet: PIN_V } : null, metric, feet: PIN_V, notes };
   }
@@ -316,7 +321,10 @@ const MAX_BYTES = 58 * 1024;
 const MARK: Color = [255, 0, 220];
 
 export interface AutoFrame {
+  /** The frame's number in the video. */
   frame: number;
+  /** Its index in the read the trace ran on. */
+  readFrame: number;
   timeSeconds: number;
   picture: string | null;
   width: number | null;
@@ -332,6 +340,13 @@ export interface AutoReading {
   /** The reading was not seen on its frame: it is a fitted or followed value, and the frame shown is the nearest one. */
   extrapolated: boolean;
   frames: AutoFrame[];
+}
+
+export interface AutoFramesOptions {
+  /** Read frames for the pins strip, in place of the reading frame and the four before it. */
+  pinsFrames?: number[];
+  /** The pins strip's file names, 1-based. */
+  pinsFile?: (k: number) => string;
 }
 
 interface Crop {
@@ -403,33 +418,52 @@ function renderCrop(color: Canvas, o: Crop): Canvas {
   return c;
 }
 
-const seconds = (t: Truth, f: number) => t.clip.times[f];
-/** The font has digits and few letters: f is the frame, t its time in seconds, b a board. */
-const stamp = (t: Truth, f: number) => `f${f} t${seconds(t, f).toFixed(3)}`;
-
 /**
- * For the automatic trace only: a picture of the frame each reading is taken
- * on (laydown, touchdown, arrows, breakpoint) and, for the pins, that frame
- * and the four before it. The pictures say what they show in digits (the
- * drawing font has few letters): the corner label is f<frame> t<seconds>, then
- * the reading's board, then the ball's; magenta is the reading, cyan the board
- * read off the ball, yellow the ball's circle with a cross at the center of its
- * base. Writes `<dir>/auto-<reading>.jpg` and `<dir>/auto-pins-<1..5>.jpg`;
- * `pinsFrames` names other frames for the pins strip than the reading frame
- * and the four before it.
+ * The frames a trace ran on, for drawing over: the read's frame `i` (the
+ * index the trace knows it by), its number in the video, its time, and the
+ * color picture the trace's gray frame was made from, at the same size.
  */
-export function autoFrames(t: Truth, auto: TraceOutput, dir: string, picDir: string, pinsFrames?: number[]): AutoReading[] {
+export interface FrameView {
+  hand: Handedness;
+  count: number;
+  width: number;
+  height: number;
+  /** The frame's time in the video, seconds. */
+  time(i: number): number;
+  /** The frame's number in the video (the clip's own count from its first frame). */
+  number(i: number): number;
+  color(i: number): Canvas;
+}
+
+/** A sample clip read whole, as `review-auto.ts` traces it: frame `i` is the clip's frame `i`. */
+export function truthView(t: Truth): FrameView {
+  return {
+    hand: t.cal.hand,
+    count: t.clip.count,
+    width: t.clip.width,
+    height: t.clip.height,
+    time: (i) => t.clip.times[i],
+    number: (i) => i,
+    color: (i) => fromRgb(loadColorFrame(t.clipPath, i, t.clip.width, t.clip.height), t.clip.width, t.clip.height)
+  };
+}
+
+/** The font has digits and few letters: f is the frame's number in the video, t its time in seconds, b a board. */
+const stamp = (v: FrameView, f: number) => `f${v.number(f)} t${v.time(f).toFixed(3)}`;
+
+export function autoFrames(t: FrameView, auto: TraceOutput, dir: string, picDir: string, opts: AutoFramesOptions = {}): AutoReading[] {
+  const { pinsFrames, pinsFile = (k: number) => `auto-pins-${k}.jpg` } = opts;
   if (!isOk(auto)) return [];
   const run: Ok = { result: auto.result, debug: auto.debug };
   const { result, debug } = run;
-  const hand = t.cal.hand;
+  const hand = t.hand;
   const m = result.metrics;
   const sights = result.sightings;
   const colors = new Map<number, Canvas>();
   const colorOf = (i: number) => {
     let c = colors.get(i);
     if (!c) {
-      c = fromRgb(loadColorFrame(t.clipPath, i, t.clip.width, t.clip.height), t.clip.width, t.clip.height);
+      c = t.color(i);
       colors.set(i, c);
       if (colors.size > 8) colors.delete(colors.keys().next().value as number);
     }
@@ -453,7 +487,7 @@ export function autoFrames(t: Truth, auto: TraceOutput, dir: string, picDir: str
     if (!p) continue;
     const H = geo(p.frame);
     if (!H) {
-      out.push({ reading, value: metric.value, state: metric.state, extrapolated: false, frames: [{ frame: p.frame, timeSeconds: seconds(t, p.frame), picture: null, width: null, height: null, ball: p.ball, note: "no lane mapping on this frame" }] });
+      out.push({ reading, value: metric.value, state: metric.state, extrapolated: false, frames: [{ frame: t.number(p.frame), readFrame: p.frame, timeSeconds: t.time(p.frame), picture: null, width: null, height: null, ball: p.ball, note: "no lane mapping on this frame" }] });
       continue;
     }
     const notes = [...p.notes];
@@ -514,7 +548,7 @@ export function autoFrames(t: Truth, auto: TraceOutput, dir: string, picDir: str
       value: metric.value,
       state: metric.state,
       extrapolated,
-      frames: [{ frame: p.frame, timeSeconds: seconds(t, p.frame), picture: save(file, pic), width: pic.width, height: pic.height, ball: p.ball, note: notes.join("; ") }]
+      frames: [{ frame: t.number(p.frame), readFrame: p.frame, timeSeconds: t.time(p.frame), picture: save(file, pic), width: pic.width, height: pic.height, ball: p.ball, note: notes.join("; ") }]
     });
   }
 
@@ -542,14 +576,14 @@ export function autoFrames(t: Truth, auto: TraceOutput, dir: string, picDir: str
       if (Href) {
         const us = [readU, ...list.map((f, i) => (Hs[i] && discs[i] ? laneU(handedBoard(uAtColumn(Hs[i]!, discs[i]!.cx, PIN_V), hand), hand) : readU))];
         const [u0, u1] = span(us, 6);
-        box = boxOf(Href, [[u0, PIN_V - 4], [u1, PIN_V - 4], [u0, PIN_V + 1.5], [u1, PIN_V + 1.5]], t.clip.width, t.clip.height, 4, discs.flatMap((d) => (d ? [{ x: d.cx - 1.5 * d.r, y: d.cy - 1.5 * d.r }, { x: d.cx + 1.5 * d.r, y: d.cy + 1.5 * d.r }] : [])));
+        box = boxOf(Href, [[u0, PIN_V - 4], [u1, PIN_V - 4], [u0, PIN_V + 1.5], [u1, PIN_V + 1.5]], t.width, t.height, 4, discs.flatMap((d) => (d ? [{ x: d.cx - 1.5 * d.r, y: d.cy - 1.5 * d.r }, { x: d.cx + 1.5 * d.r, y: d.cy + 1.5 * d.r }] : [])));
       }
       list.forEach((f, i) => {
         const H = Hs[i];
         const d = discs[i];
         const when = f === shown ? "reading frame" : f < shown ? `${shown - f} before` : `${f - shown} after`;
-        if (f < 0 || f >= t.clip.count || !H) {
-          frames.push({ frame: f, timeSeconds: f >= 0 && f < t.clip.count ? seconds(t, f) : NaN, picture: null, width: null, height: null, ball: null, note: `${when}: no lane mapping on this frame` });
+        if (f < 0 || f >= t.count || !H) {
+          frames.push({ frame: t.number(f), readFrame: f, timeSeconds: f >= 0 && f < t.count ? t.time(f) : NaN, picture: null, width: null, height: null, ball: null, note: `${when}: no lane mapping on this frame` });
           return;
         }
         const board = d ? handedBoard(uAtColumn(H, d.cx, PIN_V), hand) : null;
@@ -568,9 +602,10 @@ export function autoFrames(t: Truth, auto: TraceOutput, dir: string, picDir: str
           label: [`${stamp(t, f)} ${i + 1}/${list.length}`, `b${pinsM.value!.toFixed(1)}`, ...(board !== null ? [`b${board.toFixed(1)}`] : [])]
         });
         frames.push({
-          frame: f,
-          timeSeconds: seconds(t, f),
-          picture: save(`auto-pins-${i + 1}.jpg`, pic),
+          frame: t.number(f),
+          readFrame: f,
+          timeSeconds: t.time(f),
+          picture: save(pinsFile(i + 1), pic),
           width: pic.width,
           height: pic.height,
           ball: board !== null ? { board, feet: PIN_V } : null,

@@ -25,11 +25,11 @@ import { findLanes, frameLanes } from "../../src/lib/shotTrack/laneFind";
 import { downAt } from "../../src/lib/shotTrack/homography";
 import { contactPoint, expectedRadiusPx, imageToLane } from "../../src/lib/shotTrack/laneModel";
 import { trace } from "../../src/lib/shotTrack/pipeline";
-import { sample } from "../../src/lib/shotTrack/image";
-import type { GrayFrame, Mat3, Point, TrackResult } from "../../src/lib/shotTrack/types";
+import type { Mat3, Point, TrackResult } from "../../src/lib/shotTrack/types";
 import { loadColorFrame } from "./clip";
 import { fromRgb, type Color } from "./draw";
 import { enlarge, jpg, ring, thin } from "./review-lib";
+import { outline, type Disc } from "./outline";
 import { loadTruth } from "./truth";
 
 const args = process.argv.slice(2);
@@ -41,63 +41,7 @@ const pngDir = opt("--png");
 const only = opt("--frames")?.split(",").map(Number);
 const names = args.length ? args : ["shot-01", "shot-02", "shot-03", "shot-04", "shot-05", "shot-06"];
 
-interface Disc { cx: number; cy: number; r: number }
 interface Row { frame: number; kind: string; disc: Disc; out: Disc | null; ratio: number; base: number; baseBoards: number; across: number; vsExpected: number }
-
-/** The ball's outline near a disc, measured afresh (see the header). */
-export function outline(f: GrayFrame, d: Disc, down: Point): Disc | null {
-  const pts: Point[] = [];
-  for (let a = 0; a < 72; a++) {
-    const th = (2 * Math.PI * a) / 72;
-    const dx = Math.cos(th);
-    const dy = Math.sin(th);
-    if (dx * down.x + dy * down.y > 0.3) continue;
-    let best = 0;
-    let at = -1;
-    for (let t = 0.5 * d.r; t <= 1.7 * d.r; t += 0.25) {
-      const g = Math.abs(sample(f, d.cx + dx * (t + 1), d.cy + dy * (t + 1)) - sample(f, d.cx + dx * (t - 1), d.cy + dy * (t - 1)));
-      if (Number.isFinite(g) && g > best) {
-        best = g;
-        at = t;
-      }
-    }
-    if (at > 0 && best >= 10) pts.push({ x: d.cx + dx * at, y: d.cy + dy * at });
-  }
-  let use = pts;
-  let fit: Disc | null = null;
-  for (let pass = 0; pass < 3; pass++) {
-    if (use.length < 12) return null;
-    fit = kasa(use);
-    if (!fit) return null;
-    const f0 = fit;
-    use = use.filter((p) => Math.abs(Math.hypot(p.x - f0.cx, p.y - f0.cy) - f0.r) <= 1.5);
-  }
-  return fit;
-}
-
-function kasa(pts: Point[]): Disc | null {
-  const n = pts.length;
-  const mx = pts.reduce((s, p) => s + p.x, 0) / n;
-  const my = pts.reduce((s, p) => s + p.y, 0) / n;
-  let suu = 0, svv = 0, suv = 0, suuu = 0, svvv = 0, suvv = 0, svuu = 0;
-  for (const p of pts) {
-    const u = p.x - mx;
-    const v = p.y - my;
-    suu += u * u;
-    svv += v * v;
-    suv += u * v;
-    suuu += u * u * u;
-    svvv += v * v * v;
-    suvv += u * v * v;
-    svuu += v * u * u;
-  }
-  const det = suu * svv - suv * suv;
-  if (Math.abs(det) < 1e-9) return null;
-  const uc = (0.5 * (suuu + suvv) * svv - 0.5 * (svvv + svuu) * suv) / det;
-  const vc = (suu * 0.5 * (svvv + svuu) - suv * 0.5 * (suuu + suvv)) / det;
-  const r = Math.sqrt(uc * uc + vc * vc + (suu + svv) / n);
-  return Number.isFinite(r) ? { cx: mx + uc, cy: my + vc, r } : null;
-}
 
 const med = (xs: number[]) => {
   const s = xs.filter(Number.isFinite).sort((a, b) => a - b);

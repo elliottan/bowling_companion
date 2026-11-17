@@ -17,6 +17,7 @@ npx tsx scripts/shot-tracker/look.ts <clip> <frame> <x0> <y0> <w> <h> <scale> <o
 npx tsx scripts/shot-tracker/diff.ts <clip> <first> <last> <step> <x0> <y0> <w> <h> <scale> <out.png>
 npx tsx scripts/shot-tracker/foul.ts <clip> <out.png> <frame> [<frame> ...]
 npx tsx scripts/shot-tracker/foul-look.ts <clip> <outDir> [<frame> ...]   # the foul line's region, found, hand and every candidate
+npx tsx scripts/shot-tracker/review-app.ts <outDir> <video>[:left] ... [--frames dumpDir] [--check]   # the review pictures and every reading from the app's own read, with the circle check
 ```
 
 `foul.ts` is the release aid: the near end of each frame named, with the foul

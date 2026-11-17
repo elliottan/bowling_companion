@@ -7,8 +7,8 @@
 import { execFileSync } from "node:child_process";
 import { rmSync, statSync, writeFileSync } from "node:fs";
 import { apply } from "../../src/lib/shotTrack/homography";
-import type { Mat3 } from "../../src/lib/shotTrack/types";
-import { canvas, circle, line, toPng, type Canvas, type Color } from "./draw";
+import type { Mat3, Point } from "../../src/lib/shotTrack/types";
+import { canvas, circle, dot, line, toPng, type Canvas, type Color } from "./draw";
 
 export const MAX_W = 1100;
 
@@ -74,3 +74,52 @@ export function ring(c: Canvas, cx: number, cy: number, r: number, col: Color): 
   if (r > 2) circle(c, cx, cy, r - 1, [0, 0, 0], 0.5);
   circle(c, cx, cy, r, col);
 }
+
+const LANE_EDGE: Color = [60, 255, 80];
+const LANE_CROSS: Color = [255, 120, 0];
+const PATH: Color = [255, 0, 200];
+const SIGHT: Color = [255, 255, 255];
+
+/** What `renderLane` draws: the lane from v0 to v1 feet, the foul line and pin row, the ball's path and its sightings (picture points). */
+export interface Layers {
+  H: Mat3;
+  v0: number;
+  v1: number;
+  pin: boolean;
+  foul: boolean;
+  path: Point[];
+  sightings: Point[];
+  /** On the foul line at the laydown board: the path is drawn from it. */
+  laydown?: Point;
+}
+
+/** A crop of a frame enlarged up to `want` times with the lane, the path and the sightings drawn thin. */
+export function renderLane(frame: Canvas, box: Box, want: number, L: Layers): Canvas {
+  const k = Math.min(want, MAX_W / box.w);
+  const c = enlarge(frame, box.x, box.y, box.w, box.h, k);
+  const P = (p: Point): Point => ({ x: (p.x - box.x + 0.5) * k - 0.5, y: (p.y - box.y + 0.5) * k - 0.5 });
+  const seg = (a: Point, b: Point, col: Color) => {
+    const p = P(a);
+    const q = P(b);
+    thin(c, p.x, p.y, q.x, q.y, col);
+  };
+  const at = (u: number, v: number) => apply(L.H, { x: u, y: v });
+  seg(at(0.5, L.v0), at(0.5, L.v1), LANE_EDGE);
+  seg(at(39.5, L.v0), at(39.5, L.v1), LANE_EDGE);
+  if (L.foul) seg(at(-2, 0), at(42, 0), LANE_CROSS);
+  if (L.pin) seg(at(-2, 62.6), at(42, 62.6), LANE_CROSS);
+  const path = L.laydown ? [L.laydown, ...L.path] : L.path;
+  for (let i = 1; i < path.length; i++) seg(path[i - 1], path[i], PATH);
+  if (L.laydown) {
+    const q = P(L.laydown);
+    ring(c, q.x, q.y, Math.max(5, 0.9 * k), [255, 255, 0]);
+  }
+  for (const s of L.sightings) {
+    const p = P(s);
+    const fill = Math.max(1, Math.floor(k / 2.5));
+    dot(c, p.x, p.y, fill + 1, [0, 0, 0]);
+    dot(c, p.x, p.y, fill, SIGHT);
+  }
+  return c;
+}
+
