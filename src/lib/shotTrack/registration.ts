@@ -933,6 +933,19 @@ export class PlanePass {
     // only bent itself around noise and repeating patterns.
     const planeOk = fit !== null && fit.inliers.length >= minPatches && span >= 20 && fit.inliers.length >= 1.3 * (turn?.inliers.length ?? 0);
     this.prevPic = g.S;
+    if (!planeOk && this.lastFloor) {
+      // The floor not measured on this frame (the bowler over it) after
+      // frames where it had travelled from the turn: the last floor
+      // measured, moved as the whole picture moved since. The turn alone
+      // jumps back by what the camera travelled: on shot-01 read from just
+      // before the foul line (the calibration frame then 1.6 s on), the
+      // release frames that the bowler hides put the foul line 23 pixels,
+      // 4 boards, from the frames either side, and the laydown with it.
+      const S = normalize(multiply(multiply(g.S, invert(this.lastFloor.pic)), this.lastFloor.S));
+      this.prevPlane = S;
+      const H = normalize(multiply(S, H0));
+      return { ...g, S, H, marks: laneMarksOf(H), lens };
+    }
     if (!planeOk || disagreement(St, fit.H, H0) < this.travelled) {
       const H = normalize(multiply(St, H0));
       this.prevPlane = St;
