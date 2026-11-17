@@ -472,6 +472,21 @@ function pinsHit(small: readonly CoarseFrame[], shifts: readonly Shift[], run: B
   return null;
 }
 
+/**
+ * The height the first look's limits on the ball's pace and rise
+ * (`MAX_RISE_RATE`, `MIN_RUN_RISE`, `MAX_RUN_RISE`) are fractions of: the
+ * picture's own when it is a portrait phone video (where they were measured,
+ * IMG_1996 and shot-05's original, 9 by 16), else what that height would be
+ * at this width. A landscape video, or a clip cut from a band of a portrait
+ * one (the sample clips: 42% of its height at the same width), shows the
+ * ball at the same pixels a second for the same width, and judged against
+ * its own short height every ball ran too fast to be one: no run passed on
+ * five of the six clips, and shot-01 was "not found" in the app.
+ */
+export function runScale(width: number, height: number): number {
+  return Math.max(height, Math.round((width * 16) / 9));
+}
+
 /** How much smaller the copies kept for the camera's movement and the pins are. */
 const SMALL = 4;
 
@@ -514,7 +529,10 @@ export class ShotSearch {
 
   finish(): ShotFound | null {
     if (!this.size || this.times.length < MIN_RUN_POINTS + 2) return null;
-    const { w, h } = this.size;
+    const { w } = this.size;
+    // The ball's pace and rise are judged against the height it has in a
+    // portrait phone video (`runScale`), not the picture's own.
+    const h = runScale(w, this.size.h);
     const all = ballRuns(this.times, this.blobs, this.shifts, h);
     const shot = new Set(all.filter((r) => isShotRun(r, this.times, this.shifts, w, h)));
     // No run passes for the ball's: the longest of three points or more,

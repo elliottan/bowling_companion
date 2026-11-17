@@ -17,6 +17,7 @@ import {
   OTHER_RUN_POINTS,
   OTHER_RUNS,
   readFrom,
+  runScale,
   ShotSearch,
   SHORT_VIDEO,
   shrink,
@@ -290,5 +291,15 @@ describe("what to read", () => {
     expect(low[0]).toEqual(DEFAULT_BAND);
     expect(low[1]!.bottom).toBe(1);
     expect(laneBands(1920, 1080, found(0.6))).toEqual([null]);
+  });
+
+  it("judges the ball's pace and rise against a portrait phone video's height at the picture's width", () => {
+    // IMG_1996 at the first look's width: its own height.
+    expect(runScale(192, 341)).toBe(341);
+    // A clip cut from a band of a portrait video, or a landscape video: the height a portrait one would have.
+    expect(runScale(192, 143)).toBe(341);
+    expect(runScale(192, 108)).toBe(341);
+    // Taller than 9 by 16: its own.
+    expect(runScale(192, 400)).toBe(400);
   });
 });
