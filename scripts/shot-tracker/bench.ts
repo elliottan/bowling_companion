@@ -20,7 +20,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { FIRST_LANE_EVERY, LANE_EVERY } from "../../src/lib/shotTrack/framePick";
 import { findLanes, frameLanes } from "../../src/lib/shotTrack/laneFind";
-import { bandRows, keptFps, MAX_PIXELS, READ_RATES, scaledSize } from "../../src/lib/shotTrack/marking";
+import { bandRows, FrameSlots, keptFps, MAX_PIXELS, READ_RATES, scaledSize, sourceStep } from "../../src/lib/shotTrack/marking";
 import { trace } from "../../src/lib/shotTrack/pipeline";
 import type { GrayFrame } from "../../src/lib/shotTrack/types";
 import { lanesReading, laneFrames, tracedReading, type Run } from "./bench-readings";
@@ -78,13 +78,11 @@ function load(name: string): Input {
   const seconds = inWindow[inWindow.length - 1].t - inWindow[0].t;
   // The clips are read whole at 60 a second, a little over the app's budget on the longest (shot-01, 279 frames), so the pins are read at the rate the app reads them.
   const fps = original ? Math.min(READ_RATES[0], keptFps(seconds, px)) : READ_RATES[0];
-  // Every frame on the 1 / fps grid from the first, nearest in time.
-  const kept: typeof inWindow = [];
-  for (const f of inWindow) {
-    const slot = Math.round((f.t - inWindow[0].t) * fps);
-    if (kept.length && Math.round((kept[kept.length - 1].t - inWindow[0].t) * fps) === slot) continue;
-    kept.push(f);
-  }
+  // The frames the app's reader keeps (`FrameSlots`): every mth of the video's own, counted from its start.
+  const shown = inWindow.map((f) => f.t);
+  const src = sourceStep(shown.slice(1).map((t, i) => t - shown[i])) ?? 1 / fps;
+  const slots = new FrameSlots(inWindow[0].t, Infinity, fps, src);
+  const kept = inWindow.filter((f) => slots.offer(f.t));
   const frames = kept.map((f) => ({ width: size.width, height: size.height, data: new Uint8ClampedArray(raw.buffer, raw.byteOffset + f.i * px, px), t: f.t }));
   console.log(`${name}: ${frames.length} frames of ${size.width} x ${size.height} at ${fps} a second`);
   return { name, hand: cal?.hand ?? "right", width: size.width, height: size.height, frames };
