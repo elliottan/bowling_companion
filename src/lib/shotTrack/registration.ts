@@ -2,6 +2,7 @@ import { apply, invert, multiply, normalize, solveHomography, solveLinear } from
 import { downsample, parabolaPeak } from "./image";
 import { BACK_ROW_FT, LEFT_U, RIGHT_U } from "./laneModel";
 import type { GrayFrame, LaneMarks, Mat3, Point } from "./types";
+import * as fdlibm from "./detMath";
 
 /**
  * Carry the calibration from the marked frame to every other frame (plan 7.3).
@@ -466,8 +467,8 @@ export function rotation(r: [number, number, number]): number[] {
   const th = Math.hypot(r[0], r[1], r[2]);
   if (th < 1e-12) return [1, -r[2], r[1], r[2], 1, -r[0], -r[1], r[0], 1];
   const [x, y, z] = [r[0] / th, r[1] / th, r[2] / th];
-  const c = Math.cos(th);
-  const s = Math.sin(th);
+  const c = fdlibm.cos(th);
+  const s = fdlibm.sin(th);
   const C = 1 - c;
   return [
     c + x * x * C, x * y * C - z * s, x * z * C + y * s,
@@ -482,7 +483,7 @@ export type TurnParams = [number, number, number, number];
 /** H = K' R K^-1 for a camera that turns by r and zooms by exp(p[3]). */
 export function turnHomography(lens: Lens, p: TurnParams): Mat3 {
   const R = rotation([p[0], p[1], p[2]]);
-  const fz = lens.f * Math.exp(p[3]);
+  const fz = lens.f * fdlibm.exp(p[3]);
   const K2: Mat3 = [fz, 0, lens.cx, 0, fz, lens.cy, 0, 0, 1];
   const Ki: Mat3 = [1 / lens.f, 0, -lens.cx / lens.f, 0, 1 / lens.f, -lens.cy / lens.f, 0, 0, 1];
   return normalize(multiply(K2, multiply(R as Mat3, Ki)));
@@ -711,7 +712,7 @@ export function finishRegister(
     out[m.index - first] = {
       index: m.index, ok: m.ok, reason: m.reason, S, H, marks: laneMarksOf(H),
       share: m.index === calibFrame ? 1 : m.inliers.length / Math.max(1, patchCount),
-      turn: [p[0], p[1], p[2]], zoom: Math.exp(p[3]), lens
+      turn: [p[0], p[1], p[2]], zoom: fdlibm.exp(p[3]), lens
     };
   }
   return out;
@@ -763,7 +764,7 @@ export function fitFocal(lens: Lens, all: { P: Point[]; Q: Point[]; inliers: num
   // Too little turn to tell one lens from another: keep the starting value.
   if (!turned.length || Math.hypot(turned[0].p[0], turned[0].p[1], turned[0].p[2]) < 0.004) return lens;
   const cost = (lf: number) => {
-    const L = { ...lens, f: lens.f * Math.exp(lf) };
+    const L = { ...lens, f: lens.f * fdlibm.exp(lf) };
     let c = 0;
     for (const m of turned) {
       const P = m.inliers.map((k) => m.P[k]);
@@ -772,8 +773,8 @@ export function fitFocal(lens: Lens, all: { P: Point[]; Q: Point[]; inliers: num
     }
     return c;
   };
-  let a = Math.log(0.25);
-  let b = Math.log(4);
+  let a = fdlibm.log(0.25);
+  let b = fdlibm.log(4);
   const gr = (Math.sqrt(5) - 1) / 2;
   let x1 = b - gr * (b - a);
   let x2 = a + gr * (b - a);
@@ -794,7 +795,7 @@ export function fitFocal(lens: Lens, all: { P: Point[]; Q: Point[]; inliers: num
       f2 = cost(x2);
     }
   }
-  return { ...lens, f: lens.f * Math.exp((a + b) / 2) };
+  return { ...lens, f: lens.f * fdlibm.exp((a + b) / 2) };
 }
 
 /**
@@ -925,7 +926,7 @@ export class PlanePass {
     // line from where the turn puts it (a camera that travelled), with
     // enough agreeing patches spread along the lane to be trusted.
     const lens = this.focal ? { ...g.lens, f: this.focal } : g.lens;
-    const turn = robustTurn(lens, [g.turn[0], g.turn[1], g.turn[2], Math.log(g.zoom)], P, Q, tol);
+    const turn = robustTurn(lens, [g.turn[0], g.turn[1], g.turn[2], fdlibm.log(g.zoom)], P, Q, tol);
     const St = turn && turn.inliers.length >= minPatches ? turnHomography(lens, turn.p) : g.S;
     // With four more unknowns than the turn, the floor fit must earn them:
     // it must agree with clearly more patches (a third more), or it has

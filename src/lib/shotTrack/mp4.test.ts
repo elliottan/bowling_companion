@@ -33,6 +33,8 @@ describe("the real files (checked against ffprobe)", () => {
     expect(track.description?.length).toBe(130);
     expect([track.codedWidth, track.codedHeight, track.rotation, track.width, track.height]).toEqual([1920, 1080, 90, 1080, 1920]);
     expect(track.bitDepth).toBe(10);
+    // Its colr box is QuickTime's nclc, which says nothing of the range.
+    expect(track.fullRange).toBeNull();
     // The edit's 17060 ticks of 2400.
     expect(track.duration).toBeCloseTo(17060 / 2400, 9);
     expect(track.samples.length).toBe(896);
@@ -63,6 +65,8 @@ describe("the real files (checked against ffprobe)", () => {
     expect(track.codec).toBe(codec);
     expect(track.rotation).toBe(0);
     expect(track.bitDepth).toBe(8);
+    // Each carries an nclx box saying limited range, as ffprobe's "tv".
+    expect(track.fullRange).toBe(false);
     expect(track.samples.length).toBe(count);
     expect(track.samples.filter((s) => s.key).length).toBe(keys);
     expect(track.samples[0]).toMatchObject({ offset, size, key: true });
@@ -220,6 +224,19 @@ describe("the boxes a phone or ffmpeg may write", () => {
     expect(vp9Codec(vpcC)).toBe("vp09.02.41.10.01.09.18.09.00");
     const vp9 = parseMoov(body(moov({ entry: entry("vp09", 64, 48, box("vpcC", vpcC)) })));
     expect([vp9.codec, vp9.bitDepth, vp9.description]).toEqual(["vp09.02.41.10.01.09.18.09.00", 10, null]);
+  });
+
+  it("reads the luma's range from a colr box of type nclx or a VP9 record, and nothing from nclc", () => {
+    const nclx = (full: boolean) => box("colr", text("nclx"), u16(9), u16(18), u16(9), [full ? 0x80 : 0]);
+    const avcC = box("avcC", [1, 0x64, 0, 0x1f, 0xff, 0xe0, 0]);
+    expect(parseMoov(body(moov({ entry: entry("avc1", 64, 48, avcC, nclx(false)) }))).fullRange).toBe(false);
+    expect(parseMoov(body(moov({ entry: entry("avc1", 64, 48, avcC, nclx(true)) }))).fullRange).toBe(true);
+    // An iPhone's QuickTime box has no range flag.
+    expect(parseMoov(body(moov({ entry: entry("avc1", 64, 48, avcC, box("colr", text("nclc"), u16(9), u16(18), u16(9))) }))).fullRange).toBeNull();
+    expect(parseMoov(body(moov())).fullRange).toBeNull();
+    const vpcC = (full: boolean) => box("vpcC", cat([1, 0, 0, 0], [0, 10, (8 << 4) | (1 << 1) | (full ? 1 : 0), 1, 1, 1], u16(0)));
+    expect(parseMoov(body(moov({ entry: entry("vp09", 64, 48, vpcC(true)) }))).fullRange).toBe(true);
+    expect(parseMoov(body(moov({ entry: entry("vp09", 64, 48, vpcC(false)) }))).fullRange).toBe(false);
   });
 
   it("reads an H.264 High 10 stream's bit depth from its avcC extension", () => {

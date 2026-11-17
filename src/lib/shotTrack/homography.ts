@@ -1,4 +1,5 @@
 import type { Mat3, Point, Segment } from "./types";
+import * as fdlibm from "./detMath";
 
 /**
  * Plane to plane mapping (plan 6.2). A flat lane seen by a pinhole camera is a
@@ -189,5 +190,5 @@ export function similarityFrom(p0: Point, p1: Point, q0: Point, q1: Point): Mat3
 
 /** Rotation (radians), scale and shift of a similarity matrix. */
 export function similarityParts(S: Mat3): { angle: number; scale: number; tx: number; ty: number } {
-  return { angle: Math.atan2(S[3], S[0]), scale: Math.hypot(S[0], S[3]), tx: S[2], ty: S[5] };
+  return { angle: fdlibm.atan2(S[3], S[0]), scale: Math.hypot(S[0], S[3]), tx: S[2], ty: S[5] };
 }

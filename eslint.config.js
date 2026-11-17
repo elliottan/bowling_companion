@@ -52,5 +52,30 @@ export default tseslint.config(
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrors: "none" }
       ]
     }
+  },
+  {
+    // The shot tracer reads the same on every engine only with `detMath.ts`:
+    // `Math`'s transcendental functions differ in the last bit between Node
+    // and Chromium, and the lane finder and the tracer carry that bit into
+    // the readings.
+    files: ["src/lib/shotTrack/**/*.ts"],
+    ignores: ["src/lib/shotTrack/detMath.ts", "src/lib/shotTrack/**/*.test.ts"],
+    rules: {
+      "no-restricted-properties": [
+        "error",
+        ...["exp", "expm1", "log", "log1p", "log2", "log10", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh", "pow", "cbrt"].map((property) => ({
+          object: "Math",
+          property,
+          message: "Use detMath.ts: Math's own differs between engines in the last bit."
+        }))
+      ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "BinaryExpression[operator='**'][right.value!=2][left.type!='Literal']",
+          message: "Only ** 2 and a literal's powers are exact on every engine; use detMath.ts or multiply."
+        }
+      ]
+    }
   }
 );

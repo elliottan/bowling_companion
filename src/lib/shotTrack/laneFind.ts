@@ -8,6 +8,7 @@ import type { FrameLane } from "./laneTrack";
 import type { MarkLines } from "./marking";
 import { BACK_ROW_FT, LEFT_U, RIGHT_U } from "./laneModel";
 import type { GrayFrame, Mat3, Point } from "./types";
+import * as fdlibm from "./detMath";
 
 /**
  * Finding the lane with no marks (plan, PR 8; docs/SHOT-TRACKER-HANDOFF.md).
@@ -69,8 +70,8 @@ export function houghLines(f: GrayFrame, opts: HoughOptions = {}): HoughLine[] {
   const cos = new Float64Array(A);
   const sin = new Float64Array(A);
   for (let a = 0; a < A; a++) {
-    cos[a] = Math.cos((a * Math.PI) / A);
-    sin[a] = Math.sin((a * Math.PI) / A);
+    cos[a] = fdlibm.cos((a * Math.PI) / A);
+    sin[a] = fdlibm.sin((a * Math.PI) / A);
   }
   const sb = Math.ceil((spread * A) / Math.PI);
   for (let y = fromY; y < h - 1; y++) {
@@ -78,7 +79,7 @@ export function houghLines(f: GrayFrame, opts: HoughOptions = {}): HoughLine[] {
       const i = y * w + x;
       const m = Math.hypot(gx[i], gy[i]);
       if (m < minMag) continue;
-      let th = Math.atan2(gy[i], gx[i]);
+      let th = fdlibm.atan2(gy[i], gx[i]);
       if (th < 0) th += Math.PI;
       const a0 = Math.round((th * A) / Math.PI);
       for (let k = -sb; k <= sb; k++) {
@@ -125,7 +126,7 @@ export function houghLines(f: GrayFrame, opts: HoughOptions = {}): HoughLine[] {
   return peaks.slice(0, max).map(({ a, r, v }) => {
     const theta = (a * Math.PI) / A;
     const rho = r - D;
-    return { theta, rho, votes: v, line: [Math.cos(theta), Math.sin(theta), -rho] as Line3 };
+    return { theta, rho, votes: v, line: [fdlibm.cos(theta), fdlibm.sin(theta), -rho] as Line3 };
   });
 }
 
@@ -143,7 +144,7 @@ export function vanishingPoint(lines: HoughLine[], tolerance: number, accept: (p
       let score = 0;
       for (const l of lines) {
         const d = lineDistance(l.line, p) / tolerance;
-        score += l.votes * Math.exp(-d * d);
+        score += l.votes * fdlibm.exp(-d * d);
       }
       if (!best || score > best.score) best = { point: p, score };
     }
@@ -277,7 +278,7 @@ function insideColumns(at: (i: number) => number, cols: number, xMax: number): [
 export function estimateRoll(lines: HoughLine[]): number {
   const level = lines.filter((l) => Math.abs(l.theta - Math.PI / 2) < (8 * Math.PI) / 180);
   if (!level.length) return 0;
-  const sl = level.map((l) => ({ s: -Math.cos(l.theta) / Math.sin(l.theta), w: l.votes })).sort((a, b) => a.s - b.s);
+  const sl = level.map((l) => ({ s: -fdlibm.cos(l.theta) / fdlibm.sin(l.theta), w: l.votes })).sort((a, b) => a.s - b.s);
   const total = sl.reduce((a, b) => a + b.w, 0);
   let acc = 0;
   for (const x of sl) {
@@ -626,9 +627,9 @@ export function rayThrough(vp: Point, pts: Point[]): Line3 | null {
     sxy += dx * dy;
     syy += dy * dy;
   }
-  const theta = 0.5 * Math.atan2(2 * sxy, sxx - syy);
-  const nx = -Math.sin(theta);
-  const ny = Math.cos(theta);
+  const theta = 0.5 * fdlibm.atan2(2 * sxy, sxx - syy);
+  const nx = -fdlibm.sin(theta);
+  const ny = fdlibm.cos(theta);
   return [nx, ny, -(nx * vp.x + ny * vp.y)];
 }
 
@@ -1619,14 +1620,14 @@ export const CAMERA_SPREAD_FT = 0.6;
 
 /** The value most of `xs` lie near: the peak of a Gaussian kernel density of width `h`, refined as the kernel-weighted mean. */
 export function modeOf(xs: number[], h: number): number {
-  const density = (x: number) => xs.reduce((s, v) => s + Math.exp(-0.5 * ((v - x) / h) ** 2), 0);
+  const density = (x: number) => xs.reduce((s, v) => s + fdlibm.exp(-0.5 * ((v - x) / h) ** 2), 0);
   let best = xs[0];
   for (const x of xs) if (density(x) > density(best)) best = x;
   for (let it = 0; it < 3; it++) {
     let sw = 0;
     let sx = 0;
     for (const v of xs) {
-      const w = Math.exp(-0.5 * ((v - best) / h) ** 2);
+      const w = fdlibm.exp(-0.5 * ((v - best) / h) ** 2);
       sw += w;
       sx += w * v;
     }

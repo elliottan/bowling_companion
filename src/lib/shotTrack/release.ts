@@ -2,6 +2,7 @@ import { sample } from "./image";
 import { downAt, intersect, lineThrough, mapLine } from "./homography";
 import { imageToLane } from "./laneModel";
 import type { GrayFrame, Mat3, Point } from "./types";
+import * as fdlibm from "./detMath";
 
 /**
  * The laydown as the owner reads it (2026-11-13): the board under the ball's
@@ -137,8 +138,8 @@ export function fitOutline(f: GrayFrame, d: { cx: number; cy: number; r: number;
     const pts: { x: number; y: number }[] = [];
     for (let deg = -30; deg <= 210; deg += 6) {
       const a = (deg * Math.PI) / 180;
-      const dx = Math.cos(a);
-      const dy = Math.sin(a);
+      const dx = fdlibm.cos(a);
+      const dy = fdlibm.sin(a);
       let best = 0;
       let at = -1;
       for (let t = 0.6 * r; t <= 1.6 * r; t += 0.5) {

@@ -1,3 +1,4 @@
+import * as fdlibm from "./detMath";
 /**
  * Pick the candidates that are one ball obeying physics (plan 7.4).
  *
@@ -86,7 +87,7 @@ function bestPerFrame<T extends Track3>(cands: T[], vt: number[], uAt: (v: numbe
  */
 function localLine(pts: Track3[]): (v: number) => number {
   return (v) => {
-    const w = pts.map((p) => Math.exp(-(((p.v - v) / 8) ** 2) / 2) + 1e-6);
+    const w = pts.map((p) => fdlibm.exp(-(((p.v - v) / 8) ** 2) / 2) + 1e-6);
     return evalPoly(polyfit(pts.map((p) => p.v), pts.map((p) => p.u), 1, w), v);
   };
 }

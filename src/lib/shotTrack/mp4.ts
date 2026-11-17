@@ -1,3 +1,4 @@
+import * as fdlibm from "./detMath";
 /**
  * The video track of an MP4 or QuickTime (.mov) file, read from its `moov`
  * box, for the shot tracer's WebCodecs reader (`src/shotTracer/codecFrames.ts`):
@@ -62,6 +63,14 @@ export interface VideoTrack {
   height: number;
   /** Bits a luma sample, where the configuration record says (8 when it does not). */
   bitDepth: number;
+  /**
+   * Whether the luma is full range (0 to 255) rather than limited (16 to 235),
+   * where the file says: a `colr` box of type `nclx`, or a VP9 record. Null
+   * where it does not (a QuickTime `nclc` box, as an iPhone writes, has no
+   * such flag; the stream's own VUI is not read here, and the decoder's
+   * `VideoFrame.colorSpace` says first). See `grayRange.ts`.
+   */
+  fullRange: boolean | null;
   /** Seconds the video plays for. */
   duration: number;
   /** In decode order, as they are fed to a decoder. */
@@ -213,7 +222,7 @@ function parseTrak(bytes: Uint8Array, trak: Box, movieScale: number): VideoTrack
  */
 export function rotationOf(a: number, b: number): number {
   if (a === 0 && b === 0) return 0;
-  const deg = (Math.atan2(b, a) * 180) / Math.PI;
+  const deg = (fdlibm.atan2(b, a) * 180) / Math.PI;
   return ((Math.round(deg / 90) * 90) % 360 + 360) % 360;
 }
 
@@ -256,7 +265,7 @@ function editOf(bytes: Uint8Array, elst: Box, movieScale: number): Edit | null {
 function sampleEntry(
   bytes: Uint8Array,
   stsd: Box
-): { fourcc: string; codec: string; description: Uint8Array | null; codedWidth: number; codedHeight: number; bitDepth: number } {
+): { fourcc: string; codec: string; description: Uint8Array | null; codedWidth: number; codedHeight: number; bitDepth: number; fullRange: boolean | null } {
   const v = view(bytes);
   if (v.getUint32(stsd.start + 4) < 1) throw new Mp4Error("no sample entry");
   const [entry] = boxes(bytes, stsd.start + 8, stsd.end);
@@ -270,7 +279,10 @@ function sampleEntry(
     const box = inner.find((b) => b.type === name);
     return box ? bytes.slice(box.start, box.end) : null;
   };
-  const size = { codedWidth, codedHeight };
+  // A `colr` box of type `nclx`: primaries, transfer and matrix (two bytes each), then the full range flag in the top bit.
+  const colr = config("colr");
+  const nclx = colr && colr.length >= 11 && fourcc(colr, 0) === "nclx" ? (colr[10] & 0x80) !== 0 : null;
+  const size = { codedWidth, codedHeight, fullRange: nclx };
   if (type === "avc1" || type === "avc3") {
     const avcC = config("avcC");
     if (!avcC || avcC.length < 4) throw new Mp4Error(`${type} without avcC`);
@@ -284,7 +296,8 @@ function sampleEntry(
   if (type === "vp09") {
     const vpcC = config("vpcC");
     if (!vpcC || vpcC.length < 12) throw new Mp4Error("vp09 without vpcC");
-    return { fourcc: type, codec: vp9Codec(vpcC), description: null, bitDepth: vpcC[6] >> 4, ...size };
+    // The record's last bit of its bit depth byte is the full range flag (it says first where both do).
+    return { fourcc: type, codec: vp9Codec(vpcC), description: null, bitDepth: vpcC[6] >> 4, ...size, fullRange: (vpcC[6] & 1) === 1 };
   }
   throw new Mp4Error(`codec ${type.trim() || "unknown"} not handled`);
 }

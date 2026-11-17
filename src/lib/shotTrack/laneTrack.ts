@@ -2,6 +2,7 @@ import { apply, invert, multiply, normalize, solveHomography } from "./homograph
 import { median } from "./image";
 import { BACK_ROW_FT, LEFT_U, RIGHT_U } from "./laneModel";
 import type { Mat3, Point } from "./types";
+import * as fdlibm from "./detMath";
 
 /**
  * The lane on every frame from the lane found on some of them (the shot
@@ -127,7 +128,7 @@ export function laneTrack(
     });
     // Relative to the nearest, so a frame far from every found one still has weights.
     const e0 = Math.min(...near.map((n) => n.e));
-    return blendLanes(near.map((n) => ({ H: n.H, w: (n.l.weight ?? 1) * (n.l.guess ? 0.25 : 1) * Math.exp(e0 - n.e) })));
+    return blendLanes(near.map((n) => ({ H: n.H, w: (n.l.weight ?? 1) * (n.l.guess ? 0.25 : 1) * fdlibm.exp(e0 - n.e) })));
   };
   // Each found lane against its nearest few others, one at a time, each
   // carried to its frame: how many of them it agrees with. On some frames the

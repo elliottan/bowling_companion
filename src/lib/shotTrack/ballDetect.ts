@@ -3,6 +3,7 @@ import { apply, downAt } from "./homography";
 import { median, parabolaPeak, sample } from "./image";
 import { DECK_END_FT, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
 import type { GrayFrame, Mat3, Point } from "./types";
+import * as fdlibm from "./detMath";
 
 /** Finding the ball in one frame (plan 7.4). */
 
@@ -438,8 +439,8 @@ export function refineCircle(f: GrayFrame, H: Mat3, rough: Point, r: number, low
   let no = 0;
   for (let a = 0; a < 16; a++) {
     const th = (2 * Math.PI * a) / 16;
-    const dx = Math.cos(th);
-    const dy = Math.sin(th);
+    const dx = fdlibm.cos(th);
+    const dy = fdlibm.sin(th);
     if (dx * down.x + dy * down.y > 0.17) continue;
     const vi = sample(f, rough.x + 0.4 * r * dx, rough.y + 0.4 * r * dy);
     const vo = sample(f, rough.x + 1.6 * r * dx, rough.y + 1.6 * r * dy);
@@ -461,8 +462,8 @@ export function refineCircle(f: GrayFrame, H: Mat3, rough: Point, r: number, low
   let kept = 0;
   for (let a = 0; a < rays; a++) {
     const th = (2 * Math.PI * a) / rays;
-    const dx = Math.cos(th);
-    const dy = Math.sin(th);
+    const dx = fdlibm.cos(th);
+    const dy = fdlibm.sin(th);
     if (dx * down.x + dy * down.y > 0.17) continue;
     kept++;
     const r0 = 0.6 * r;

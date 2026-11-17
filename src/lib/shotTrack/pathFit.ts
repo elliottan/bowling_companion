@@ -3,6 +3,7 @@ import { BOARD_FT, CONTACT_IN, handedBoard, hookSlope, hookU, type HookShape } f
 import { PIN_POSITIONS } from "../pinGeometry";
 import { entrySpeed, launchSpeed } from "./speeds";
 import type { Metric, MetricState, PathModel, TrackMetrics } from "./types";
+import * as fdlibm from "./detMath";
 
 /** Fitting the path, the distance against time, and the metrics (plan 7.5, 7.6). */
 
@@ -484,10 +485,10 @@ export function metrics(inp: MetricInput): TrackMetrics {
   lastU = boardAtPins(pts, contactV, inp.rackMovesAt);
   const board60 = lastU === null ? board(contactV) : handedBoard(lastU, hand);
   const pins = inp.pinsU !== undefined ? M(handedBoard(inp.pinsU, hand), inp.pinsEstimated ? "estimated" : "measured") : pinState === "missing" ? M(null, "missing") : M(board60, pinState);
-  const entry = (Math.atan(Math.abs(board(60) - board(54)) * BOARD_FT / 6) * 180) / Math.PI;
+  const entry = (fdlibm.atan(Math.abs(board(60) - board(54)) * BOARD_FT / 6) * 180) / Math.PI;
   const entryAngle = pinState === "missing" ? M(null, "missing") : M(entry, pinState);
   const skidSpan = seen.filter((v) => v <= path.s);
-  const launch = (Math.atan(Math.abs(path.a) * BOARD_FT) * 180) / Math.PI;
+  const launch = (fdlibm.atan(Math.abs(path.a) * BOARD_FT) * 180) / Math.PI;
   const launchAngle =
     skidSpan.length >= 2 && Math.max(...skidSpan) - Math.min(...skidSpan) >= 10 ? M(launch, "measured") : M(launch, from <= 30 ? "estimated" : "missing");
 

@@ -2,6 +2,7 @@ import { lineDistance, lineThrough, type Line3 } from "./homography";
 import { parabolaPeak, sample } from "./image";
 import { markCorners } from "./laneModel";
 import type { GrayFrame, LaneMarks, Point, Segment } from "./types";
+import * as fdlibm from "./detMath";
 
 /**
  * Refine a rough line to the true edge at sub-pixel precision (plan 7.2).
@@ -111,9 +112,9 @@ export function fitLine(pts: Point[]): Line3 {
     syy += (p.y - my) ** 2;
   }
   // The normal is the eigenvector of the smaller eigenvalue.
-  const theta = 0.5 * Math.atan2(2 * sxy, sxx - syy);
-  const nx = -Math.sin(theta);
-  const ny = Math.cos(theta);
+  const theta = 0.5 * fdlibm.atan2(2 * sxy, sxx - syy);
+  const nx = -fdlibm.sin(theta);
+  const ny = fdlibm.cos(theta);
   return [nx, ny, -(nx * mx + ny * my)];
 }
 
