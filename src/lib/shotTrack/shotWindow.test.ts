@@ -12,6 +12,8 @@ import {
   HAND_FAST,
   FIRST_SECONDS,
   firstPart,
+  budgetFrom,
+  COUNTED_LEAD,
   FOUL_LEAD,
   ACROSS,
   ballRun,
@@ -21,6 +23,8 @@ import {
   pickWindow,
   windowOutside,
   windowStart,
+  MORE_PARTS,
+  nextPart,
   runFeet,
   runInFrame,
   runVerdict,
@@ -206,8 +210,8 @@ describe("the shot window", () => {
   it("gives the tracer the frames from just before the foul line to the end", () => {
     const times = [11.8, 11.9, 12.0, 12.1, 13, 14, 14.5];
     const w: ShotWindow = { foul: 12.1, end: 14, by: "speed", speed: 25 };
-    expect(FOUL_LEAD).toBeGreaterThan(0.1);
-    expect(shotFrames(times, w).map((i) => times[i])).toEqual([11.9, 12.0, 12.1, 13, 14]);
+    expect(FOUL_LEAD).toBeGreaterThan(0.3);
+    expect(shotFrames(times, w).map((i) => times[i])).toEqual([11.8, 11.9, 12.0, 12.1, 13, 14]);
     // No foul line known: from the read's start.
     expect(shotFrames(times, { ...w, foul: null })).toEqual([0, 1, 2, 3, 4, 5]);
   });
@@ -226,6 +230,16 @@ describe("the shot window", () => {
       expect(times[split.keep[0]]).toBeCloseTo(Math.floor((12.1 - FOUL_LEAD) * EDGE_GRID) / EDGE_GRID, 9);
       expect(split.keep[split.keep.length - 1]).toBe(95);
       expect(split.rest).toEqual({ from: 13.2, to: 15 });
+    });
+
+    it("does not count the lead before the crossing's last fifth of a second against the frames it may keep", () => {
+      // 4 s from 0.2 s before the foul line: just 240 frames at 60.
+      const w: ShotWindow = { foul: 12.1, end: 12.1 - COUNTED_LEAD + 4, by: "speed", speed: 15 };
+      const split = splitRead(times, step, 60, 13.2, w, frame);
+      expect(split.fps).toBe(60);
+      expect(times[split.keep[0]]).toBeLessThan(12.1 - FOUL_LEAD + 1e-9);
+      expect(budgetFrom(w, 11.6)).toBeCloseTo(11.9, 9);
+      expect(budgetFrom({ ...w, foul: null }, 11.6)).toBe(11.6);
     });
 
     it("reads a slow shot at a lower rate rather than cutting its end", () => {
@@ -267,5 +281,22 @@ describe("the shot window", () => {
     expect(runVerdict(at(25, 20))).toBe("starts-far");
     expect(runVerdict(at(8, -2, 9))).toBe("too-slow");
     expect(runVerdict(at(60))).toBe("too-fast");
+  });
+});
+
+describe("another first part when no run is the ball's", () => {
+  const p = (t: number) => [{ t, x: 0.5, y: 0.7 }];
+  // shot-03: the look chose a run at 3.54 s; the ball's was at 1.00 s.
+  const found = shot({ release: 3.54, run: p(3.54), others: [p(0.4), p(3.6), p(1.0), p(2.74)] });
+
+  it("reads around the next of the look's runs outside every part read, in the look's order", () => {
+    const first = firstPart(found, 4.75);
+    expect(nextPart(found, [first], 4.75)).toEqual(firstPart({ ...found, release: 0.4 }, 4.75));
+    const second = nextPart(found, [first], 4.75)!;
+    // 1.00 s is inside the part read around 0.4 s (0 to 1.6): 2.74 s next.
+    expect(nextPart(found, [first, second], 4.75)).toEqual(firstPart({ ...found, release: 2.74 }, 4.75));
+    expect(nextPart(found, [{ from: 0, to: 4.75 }], 4.75)).toBeNull();
+    expect(nextPart(shot({ others: undefined }), [first], 4.75)).toBeNull();
+    expect(MORE_PARTS).toBeGreaterThan(0);
   });
 });

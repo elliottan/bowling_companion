@@ -2,7 +2,7 @@ import type { FrameLane } from "../lib/shotTrack/laneTrack";
 import { bandRows, keptFps, MAX_PIXELS, READ_FPS, scaledSize } from "../lib/shotTrack/marking";
 import type { Band, ShotFound } from "../lib/shotTrack/shotStart";
 import { verdictNote, windowNote, type Notes } from "../lib/shotTrack/notes";
-import { firstPart, pickWindow, runFeet, runInFrame, runVerdict, splitRead, windowOutside, windowStart, type ShotWindow } from "../lib/shotTrack/shotWindow";
+import { budgetFrom, firstPart, MORE_PARTS, nextPart, pickWindow, runFeet, runInFrame, runVerdict, splitRead, windowOutside, windowStart, type ShotWindow } from "../lib/shotTrack/shotWindow";
 import type { ReadPlan, VideoFrames } from "./videoFrames";
 
 /**
@@ -60,17 +60,35 @@ export async function readShot(
     notes?.add(key, `no shot: whole video read, ${frames.gray.length} frames`);
     return { frames, window: null };
   }
-  const part = firstPart(found, video.duration);
-  const first = await read({ ...part, fps: READ_FPS, band }, (f) => onProgress(FIRST_SHARE * f));
-  const lanes = first.gray.length ? await look(first) : null;
+  let part = firstPart(found, video.duration);
+  let first = await read({ ...part, fps: READ_FPS, band }, (f) => onProgress(FIRST_SHARE * f));
+  let lanes = first.gray.length ? await look(first) : null;
   notes?.add(key, `first part ${part.from.toFixed(2)} to ${part.to.toFixed(2)} s, ${first.gray.length} frames, lane ${lanes ? `found on ${lanes.length}` : "not found"}`);
   if (!lanes && !lastBand) {
     console.info(`Shot tracer: no lane on the first part (${part.from.toFixed(3)} to ${part.to.toFixed(3)} s) in this band; the next band`);
     return "no-lane";
   }
-  const runs = lanes ? [found.run, ...(found.others ?? [])].map((run) => runFeet(runInFrame(run, band, first), lanes, first.times)) : [];
-  const window = pickWindow(runs, found, video.duration);
+  const judged = (on: VideoFrames, by: FrameLane[]) => [found.run, ...(found.others ?? [])].map((run) => runFeet(runInFrame(run, band, on), by, on.times));
+  let runs = lanes ? judged(first, lanes) : [];
+  let window = pickWindow(runs, found, video.duration);
   notes?.add(key, `runs: ${lanes ? `${verdictNote(runs.map(runVerdict))} (${runs.slice(0, 6).map(runSpan).join(", ")})` : "not judged"}; window ${windowNote(window)}`);
+  // No run is the ball's through this part's lane: a run of the look's far
+  // from it in time was judged through a lane the camera has since turned
+  // from, so the part around the next such run is read and judged in turn.
+  const tried = [part];
+  for (let more = 0; lanes && window.by !== "speed" && more < MORE_PARTS; more++) {
+    const next = nextPart(found, tried, video.duration);
+    if (!next) break;
+    tried.push(next);
+    const other = await read({ ...next, fps: READ_FPS, band }, () => {});
+    const otherLanes = other.gray.length ? await look(other) : null;
+    const otherRuns = otherLanes ? judged(other, otherLanes) : [];
+    const w = pickWindow(otherRuns, found, video.duration);
+    notes?.add(key, `first part again ${next.from.toFixed(2)} to ${next.to.toFixed(2)} s, lane ${otherLanes ? `found on ${otherLanes.length}` : "not found"}; window ${windowNote(w)}`);
+    if (w.by !== "speed") continue;
+    first.gray = [];
+    [part, first, lanes, runs, window] = [next, other, otherLanes, otherRuns, w];
+  }
   if (found.guessed && window.by !== "speed") {
     console.info(`Shot tracer: none of the first look's ${runs.length} runs passed for the ball's, and none goes up the lane at a ball's speed`);
     return "no-shot";
@@ -86,7 +104,7 @@ export async function readShot(
   if (windowOutside(window, part)) {
     // The ball is not where the first look's run said: the window read on its own.
     const from = Math.max(0, windowStart(window));
-    fps = Math.min(READ_FPS, keptFps(window.end - from, frameBytes));
+    fps = Math.min(READ_FPS, keptFps(window.end - budgetFrom(window, from), frameBytes));
     first.gray = [];
     frames = await read({ from, to: window.end, fps, band }, (f) => onProgress(FIRST_SHARE + (1 - FIRST_SHARE) * f));
   } else {

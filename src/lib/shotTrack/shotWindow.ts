@@ -28,23 +28,43 @@ import { lineSpeed } from "./speeds";
  *
  * What the tracer needs at either end, from `pipeline.ts`: the laydown is read
  * by following the ball back from its first sighting to the frame it sits on
- * the foul line (`release.ts`), so a few frames before the crossing
- * (`FOUL_LEAD`); the empty lane is the median of the read's own frames, in
- * which the ball is at any spot for a few frames only, so no frames before the
- * release are needed for it; the board at the pins and the pins' movement are
- * read in the frames up to and just after the ball meets the head pin, inside
- * the deck. Pure.
+ * the foul line (`release.ts`), on that frame's own lane, which is blended
+ * from the lanes found on the frames either side of it (`laneTrack`), so a
+ * found lane before the crossing as well as after (`FOUL_LEAD`); the empty
+ * lane is the median of the read's own frames, in which the ball is at any
+ * spot for a few frames only, so no frames before the release are needed
+ * for it; the board at the pins and the pins' movement are read in the
+ * frames up to and just after the ball meets the head pin, inside the deck.
+ * Pure.
  */
 
 /** The read's first part, seconds after its start: the run and a second more, the lane found on it. */
 export const FIRST_SECONDS = 1.6;
 /**
  * Kept before the ball crosses the foul line, seconds: the frames the laydown
- * is followed back over. The crossing is put early rather than late (the run's
- * points are the ball's middle, a little above the lane while it is in the
- * hand, so they read a little further down it than the ball is).
+ * is followed back over, and a found lane before the crossing (the lane is
+ * looked for every `LANE_EVERY`, 0.15 s, and each frame's lane is blended
+ * from those within about 0.25 s, `laneTrack`). The crossing is put early
+ * rather than late (the run's points are the ball's middle, a little above
+ * the lane while it is in the hand, so they read a little further down it
+ * than the ball is), but the first look's run is coarse: on shot-05 it put
+ * the crossing 0.1 s late. At 0.2 s the crossing frame's lane came from
+ * found lanes after it only, and the laydown read 18.9 on shot-05 and 18.7 on
+ * IMG_1996 against 18.6 and 18.4 read from any earlier start (2026-11-17,
+ * `app-read.ts`); from 0.33 s on the reading no longer moved.
  */
-export const FOUL_LEAD = 0.2;
+export const FOUL_LEAD = 0.4;
+/**
+ * The read's frame budget (`keptFps`) counts the window from this long before
+ * the crossing: the rest of the lead is a few frames read over it (12 at 60 a
+ * second), so a long shot is not read at half the rate for them.
+ */
+export const COUNTED_LEAD = 0.2;
+
+/** Where the read's frame budget starts counting (`COUNTED_LEAD`): the window's start where the crossing is not known. */
+export function budgetFrom(w: ShotWindow, start: number): number {
+  return w.foul !== null ? Math.max(start, w.foul - COUNTED_LEAD) : start;
+}
 /** Kept after it leaves the deck, seconds: the coarse run's own uncertainty. */
 export const END_MARGIN = 0.25;
 /**
@@ -94,6 +114,27 @@ const EDGE_EARLY = 0.002;
 export function firstPart(found: ShotFound, duration: number): { from: number; to: number } {
   const from = Math.max(0, Math.round((found.release - LEAD_SECONDS) * EDGE_GRID) / EDGE_GRID);
   return { from, to: Math.min(Number.isFinite(duration) ? duration : Infinity, from + FIRST_SECONDS) };
+}
+
+/** First parts read beside the first, at most, when none of the runs goes up the lane at a ball's speed through the lane found on it (`nextPart`). */
+export const MORE_PARTS = 2;
+
+/**
+ * The next first part to read when the lane found on those read so far
+ * (`read`) shows none of the look's runs to be the ball's: around the first
+ * of the look's other runs, in the look's order, that starts outside every
+ * part read. A run far in time from the lane it is judged through is judged
+ * on a picture the camera has turned from: on shot-03 the look chose a run at
+ * 3.54 s, the ball's run at 1.00 s read as on the next lane through the lane
+ * found at 3.1 to 4.7 s, and the read missed the ball. Null when none is left.
+ */
+export function nextPart(found: ShotFound, read: readonly { from: number; to: number }[], duration: number): { from: number; to: number } | null {
+  for (const run of found.others ?? []) {
+    const t = run[0]?.t;
+    if (t === undefined || read.some((p) => t >= p.from && t <= p.to)) continue;
+    return firstPart({ ...found, release: t }, duration);
+  }
+  return null;
 }
 
 /**
@@ -322,7 +363,7 @@ export interface ReadSplit {
 export function splitRead(times: readonly number[], step: number, firstFps: number, firstTo: number, w: ShotWindow, frameBytes: number): ReadSplit {
   const inside = shotFrames(times, w);
   const start = inside.length ? times[inside[0]] : firstTo;
-  const fps = keptFps(w.end - start, frameBytes);
+  const fps = keptFps(w.end - budgetFrom(w, start), frameBytes);
   const k = Math.max(1, Math.ceil(firstFps / fps - 1e-6));
   const thinned = thinFrames(
     inside.map((i) => times[i]),
