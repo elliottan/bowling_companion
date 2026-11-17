@@ -211,7 +211,7 @@ interface Frame {
   flip?: boolean;
   /** Microseconds into the video: the frame's own time. */
   timestamp?: number | null;
-  /** What the decoder says of its colour; `fullRange` is the luma's range (`grayRange.ts`). */
+  /** What the decoder says of its color; `fullRange` is the luma's range (`grayRange.ts`). */
   colorSpace?: { fullRange?: boolean | null } | null;
   allocationSize(): number;
   copyTo(dest: Uint8Array): Promise<{ offset: number; stride: number }[]>;
@@ -236,7 +236,7 @@ function planesFit(f: Frame, video: HTMLVideoElement): boolean {
   return Math.abs(w / h - video.videoWidth / video.videoHeight) < 0.01;
 }
 
-/** Turns a frame copied out of the decoder into the grey picture the tracer reads. */
+/** Turns a frame copied out of the decoder into the gray picture the tracer reads. */
 function planeGray(
   r: Reading,
   f: { format: string; w: number; h: number; turn: number; fullRange: boolean | null },
@@ -248,16 +248,16 @@ function planeGray(
   const outH = quarter ? r.width : r.height;
   // The band kept, in the plane's own (unturned) pixels.
   const c = planeCrop({ top: r.rows.y / r.video.videoHeight, bottom: (r.rows.y + r.rows.h) / r.video.videoHeight }, f.w, f.h, f.turn);
-  let grey: Uint8ClampedArray;
+  let gray: Uint8ClampedArray;
   if (LUMA_FIRST.has(f.format)) {
     // In the range the video was recorded in: brought to full range.
-    grey = toFullRange(resampleGray(buf, c.w, c.h, layout.stride, layout.offset + c.y * layout.stride + c.x, outW, outH), lumaRange(f.fullRange, null));
+    gray = toFullRange(resampleGray(buf, c.w, c.h, layout.stride, layout.offset + c.y * layout.stride + c.x, outW, outH), lumaRange(f.fullRange, null));
   } else {
     // An RGB frame is in full range like a canvas.
     const luma = lumaOf(buf, c.w, c.h, layout.stride, layout.offset + c.y * layout.stride + 4 * c.x, f.format.startsWith("B"));
-    grey = resampleGray(luma, c.w, c.h, c.w, 0, outW, outH);
+    gray = resampleGray(luma, c.w, c.h, c.w, 0, outW, outH);
   }
-  return rotateGray(grey, outW, outH, f.turn);
+  return rotateGray(gray, outW, outH, f.turn);
 }
 
 /** Draws the video's current frame to the canvas and keeps it in grey. */

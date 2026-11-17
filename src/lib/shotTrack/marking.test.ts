@@ -275,7 +275,7 @@ describe("reading a video", () => {
     expect(scaledSize(640, 480, 960 * 540)).toEqual({ width: 640, height: 480 });
   });
 
-  it("turns colour into grey in full range, as ffmpeg's gray is", () => {
+  it("turns color into gray in full range, as ffmpeg's gray is", () => {
     const g = toGray(new Uint8ClampedArray([255, 255, 255, 255, 0, 0, 0, 255, 255, 0, 0, 255]), 3, 1);
     expect(Array.from(g)).toEqual([255, 0, 76]);
   });

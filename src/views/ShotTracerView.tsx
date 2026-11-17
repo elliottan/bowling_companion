@@ -503,7 +503,7 @@ interface Crop {
 }
 
 /**
- * A grey frame (full range, `grayRange.ts`) drawn into a canvas, or the part of
+ * A gray frame (full range, `grayRange.ts`) drawn into a canvas, or the part of
  * it in `crop`, with an SVG over it in the frame's own pixels.
  */
 function FramePicture({

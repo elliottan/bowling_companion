@@ -935,9 +935,9 @@ export class PlanePass {
     this.prevPic = g.S;
     if (!planeOk && this.lastFloor) {
       // The floor not measured on this frame (the bowler over it) after
-      // frames where it had travelled from the turn: the last floor
+      // frames where it had traveled from the turn: the last floor
       // measured, moved as the whole picture moved since. The turn alone
-      // jumps back by what the camera travelled: on shot-01 read from just
+      // jumps back by what the camera traveled: on shot-01 read from just
       // before the foul line (the calibration frame then 1.6 s on), the
       // release frames that the bowler hides put the foul line 23 pixels,
       // 4 boards, from the frames either side, and the laydown with it.

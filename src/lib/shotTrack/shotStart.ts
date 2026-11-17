@@ -98,8 +98,8 @@ export const OTHER_RUNS = 16;
 export const OTHER_RUN_POINTS = 3;
 
 /**
- * A pixel has changed when its grey moved this much, the same way, against
- * both neighbours: 12 in video range, where it was set, which is 14 in the
+ * A pixel has changed when its gray moved this much, the same way, against
+ * both neighbors: 12 in video range, where it was set, which is 14 in the
  * full range the frames are in since 2026-11-17 (`grayRange.ts`).
  */
 export const CHANGE = 14;

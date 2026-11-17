@@ -7,7 +7,7 @@
  *
  * What the app does (`ShotTracerView`, `readShot.ts`, `codecFrames.ts`), with
  * ffmpeg as the decoder: the file's sample table read by `mp4.ts`; the first
- * look's frames chosen by `scanPick` and turned to `COARSE_WIDTH` grey,
+ * look's frames chosen by `scanPick` and turned to `COARSE_WIDTH` gray,
  * searched by `ShotSearch`; the bands (`laneBands`); then `readShot` itself,
  * its reads chosen by `readPick` and each frame's luma plane cropped, scaled
  * and turned by `planeGray` as `codecRead` does; the lane on the first part's
@@ -141,7 +141,7 @@ export async function look(path: string, track: VideoTrack, gray: GrayMode): Pro
 /**
  * The first look's frames as a browser gave them (`<stem>.look` and
  * `.look.json` in `dir`, written by a page that runs `codecScan`): a canvas
- * scales and converts colour its own way, and the window found on its frames
+ * scales and converts color its own way, and the window found on its frames
  * can sit a grid slot from the one found on the luma plane.
  */
 function savedLook(dir: string, path: string, gray: GrayMode): CoarseFrame[] {

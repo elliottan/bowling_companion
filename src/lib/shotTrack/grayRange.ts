@@ -1,5 +1,5 @@
 /**
- * The one grey the shot tracer works in: full range, 0 for black to 255 for
+ * The one gray the shot tracer works in: full range, 0 for black to 255 for
  * white. Every threshold in `lib/shotTrack` (the change map, the ball's
  * contrast, the lane's edges) was set on the harness's frames, which are
  * ffmpeg's `-pix_fmt gray`, and that is full range: on the clips, all

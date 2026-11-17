@@ -249,9 +249,9 @@ export function scaledSize(width: number, height: number, maxPixels: number): { 
 }
 
 /**
- * RGBA pixels to grey, one byte a pixel: Rec. 601 luma of the RGB, which a
+ * RGBA pixels to gray, one byte a pixel: Rec. 601 luma of the RGB, which a
  * canvas holds in full range (0 for black to 255 for white), the tracer's one
- * grey (`grayRange.ts`). The harness's ffmpeg `-pix_fmt gray` is full range,
+ * gray (`grayRange.ts`). The harness's ffmpeg `-pix_fmt gray` is full range,
  * and every threshold in the tracer was set on it. Until 2026-11-17 the app
  * squeezed this back into video range (16 to 235) and kept a decoded luma
  * plane there too, and read differently from the harness on the same frames.

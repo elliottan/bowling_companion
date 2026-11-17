@@ -590,11 +590,87 @@ What the clips taught:
 - `review-auto.ts` writes the pictures and readings of the automatic trace
   for a review page.
 
+## The app's read in Node (2026-11-17, not released)
+
+```
+npx tsx scripts/shot-tracker/app-read.ts <video> [--hand left] [--gray decoded|full] [--from 0] [--look dir] [--json out.json] [--dump dir]
+```
+
+`app-read.ts` is the app's whole read with ffmpeg as the decoder: the file's
+sample table by `mp4.ts`, the first look's and each read's frames chosen by
+`framePick.ts` (the same code `codecFrames.ts` runs), each luma plane
+cropped, scaled and turned by `planeGray`, then `readShot` itself, the lane on
+the frames the view's `findOn` chooses, and the trace. On shot-01 its frames
+hash the same as `codecRead`'s in Chromium. `--from 0` reads the same frames
+from the video's start, `--gray decoded` keeps the luma as recorded (the app
+before this round). The first look's frames from a canvas cannot be had in
+Node; `--look dir` takes them as a page that runs `codecScan` saved them
+(`<stem>.look` and `.look.json`).
+
+Why the app read other numbers than the harness (the browser's numbers, each
+reproduced in Node first):
+
+- **The engine's own maths.** Node 22 and Chromium 153 differ in the last bit
+  of `Math.exp`, `sin`, `atan2` and the rest. On shot-01's frames, bit for
+  bit the same, Node read the pins 16.4 and Chromium 17.4. `detMath.ts` is
+  fdlibm, Node 22's own bits; a lint rule keeps `Math`'s out of
+  `lib/shotTrack`. The browser now gives the harness's digest.
+- **shot-06's 22.5 and 25.4**: the browser run was set up right-handed and
+  shot-06 is a left-hander's: 40 less 17.5 and 14.6.
+- **shot-01's 20.0 against 24.3**: read from 0.2 s before the foul line, the
+  calibration frame (the best found lane) fell 1.6 s on, and the floor's
+  registration fell back to the camera's turn on the release frames the
+  bowler hides: the turn was 23 pixels, 4 boards, out at the foul line. Such
+  a frame now keeps the floor last measured (`PlanePass`).
+- **shot-04's arrows 21.9 estimated**: in video range, and from the browser's
+  window, the ball's sightings stopped at 9.7 ft and something standing at
+  12.5 to 16 ft half a second later was taken for the ball. `onePace` keeps
+  a piece of the ball's run only at the ball's pace; the near lane's own
+  follow then reads it to 12.9 ft, as from the clip's start.
+- **Readings that moved with the read's start**: the lane search took every
+  nth frame of the read, and the empty lane every fourth, both counted from
+  the read's first frame, and the register passes fitted the focal length to
+  the frames they had. Both grids are now counted from the video's start
+  (`gridFrames`), and the focal length comes from the calibration frame's
+  found lane. At 0.2 s of lead the crossing frame's lane came from lanes
+  after it only (shot-05 18.9, IMG_1996 18.7 against 18.6 and 18.4 from any
+  earlier start); the read now starts 0.4 s before the first look's crossing,
+  the extra 0.2 s read over the frame budget.
+- **Gray range**: ffmpeg's gray is full range (1.1647 Y - 18.68); the app kept
+  video range. The reader now brings every luma plane to full range by the
+  range the decoder or the file reports (`grayRange.ts`), a canvas's luma is
+  taken as it is, and the first look's change threshold is the same contrast
+  (14 for 12). On the app's window, before the fixes above, video against
+  full range moved shot-01's laydown 19.9 to 20.4 and shot-04's arrows 21.9
+  estimated to 9.3.
+- **shot-03**: the first look chose a run at 3.54 s (the canvas's full range
+  gray moved it from 0.40 s); the lane found there showed no run to be the
+  ball's, and the read missed it. The part around the look's next run is now
+  read and judged too (`nextPart`), and finds the ball's at 1.08 s.
+
+Each clip read from the app's window, from 0.13 and 0.27 s earlier, and from
+its start (`sweep`: laydown, arrows, breakpoint at feet, pins):
+
+| clip | app's window | from the start |
+|---|---|---|
+| shot-01 | 24.31, 17.51, 7.59 at 42.8, 16.82 | 24.30, 17.49, 7.34 at 43.6, 18.35 |
+| shot-02 | 21.19, 15.95, 8.74 at 41.5, 16.76e (the window starts at the clip's) | same |
+| shot-03 | 13.52, 10.04 | 13.60, 10.55 |
+| shot-04 | 6.23, 4.86e | 6.15, 5.14e |
+| shot-05 | 18.55, 13.29, 9.08 at 48.4 | 18.55, 13.28, 9.07 at 48.4 |
+| shot-06 | 17.62, 14.79, 12.62 at 34.75, 19.27 | 17.59, 14.83, 12.68 at 34.75, 19.48 |
+| IMG_1996 (its VP9 copy) | 18.43, 13.48 | 18.43, 13.48 (from 1 s earlier) |
+
+Still moving with the start: shot-01's pins (16.4 to 18.4 over four
+starts: a sighting among the falling pins is kept on some, and the pins are
+then seen to move later), shot-03's arrows (10.0 to 10.6: the far sightings
+found depend on the empty lane's median, and the edges' clip median moves
+every sighting with them), shot-04's estimated arrows (4.8 to 5.1).
+
 ## Speed (2026-11-16, not released)
 
 ```
 npx tsx scripts/shot-tracker/bench.ts [shot-0N | IMG_1996 ...] [--out run.json] [--compare base.json]
-FIND_FRAMES=12 npx tsx scripts/shot-tracker/bench.ts    # the view's frame counts changed
 ```
 
 `bench.ts` runs the app's compute on what the app reads (frames scaled to

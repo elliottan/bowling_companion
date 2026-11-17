@@ -3,7 +3,7 @@ import { decodeSpan, shownTimes, spanStamps, type Sample, type VideoTrack } from
 import { COARSE_FPS } from "./shotStart";
 
 /**
- * Which of a video file's frames the shot tracer's reader turns to grey, from
+ * Which of a video file's frames the shot tracer's reader turns to gray, from
  * the file's own sample table (`mp4.ts`): the first look's frames on the
  * `COARSE_FPS` grid (`scanPick`) and a read's frames on `FrameSlots`
  * (`readPick`). The browser's decoder (`shotTracer/codecFrames.ts`) and the
