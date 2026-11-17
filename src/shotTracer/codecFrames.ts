@@ -1,6 +1,7 @@
 import { COARSE_FPS, COARSE_WIDTH, type CoarseFrame } from "../lib/shotTrack/shotStart";
-import { bandRows, FrameSlots, gridSlot, MAX_PIXELS, planeCrop, readProgress, resampleGray, rotateGray, scaledSize, sourceStep, toGray } from "../lib/shotTrack/marking";
-import { blobSource, decodeSpan, Mp4Error, readVideoTrack, shownTimes, type VideoTrack } from "../lib/shotTrack/mp4";
+import { bandRows, FrameSlots, gridSlot, MAX_PIXELS, planeCrop, planeGray, readProgress, scaledSize, sourceStep, toGray } from "../lib/shotTrack/marking";
+import { grayStats, type Notes } from "../lib/shotTrack/notes";
+import { blobSource, decodeSpan, Mp4Error, nearestStamp, readVideoTrack, shownTimes, spanStamps, stampOf, type VideoTrack } from "../lib/shotTrack/mp4";
 
 /**
  * Frames read out of a video file by decoding it (WebCodecs' `VideoDecoder`),
@@ -102,12 +103,22 @@ interface Decoded {
   /** Chunks fed. */
   fed: number;
   ms: number;
+  /** Frames that came out with a time before one already out (handed out in decode order, not shown order). */
+  backwards: number;
+  /** Frames whose time was not their sample's to the microsecond, but near it (rounded or rebased by the decoder). */
+  moved: number;
+  /** Frames matching no sample of the stretch, and frames that came out twice. */
+  stray: number;
+  /** Frames wanted that never came out. */
+  lost: number;
 }
 
 /**
  * Decodes samples `first` to `last` of the track and hands each frame out of
- * the decoder whose time `pick` says is wanted (asked in the order they come
- * out, which is the order they are shown) to `handle`, which must close it.
+ * the decoder that is one of `wanted` (by its sample's stamp, `stampOf`, to
+ * its place in the read) to `handle`, which must close it. A frame is matched
+ * to its sample by time (`nearestStamp`), whatever order frames come out in
+ * and however the decoder rounds their times, and carries its sample's time.
  * The rest are closed at once, so the decoder has them back: a phone's
  * hardware decoder has only a few. Feeding waits while the decoder's queue or
  * the frames waiting are full.
@@ -116,14 +127,19 @@ async function decodeRange(
   cv: CodecVideo,
   first: number,
   last: number,
-  pick: (t: number) => boolean,
-  handle: (frame: VideoFrame, t: number) => Promise<void> | void
+  wanted: Map<number, number>,
+  handle: (frame: VideoFrame, t: number, place: number) => Promise<void> | void
 ): Promise<Decoded> {
   const began = performance.now();
-  const waiting: { frame: VideoFrame; t: number }[] = [];
+  const stamps = spanStamps(cv.track.samples, first, last);
+  const waiting: { frame: VideoFrame; t: number; place: number }[] = [];
+  const seen = new Set<number>();
   let failed: unknown = null;
   let out = 0;
-  let lastAt = -Infinity;
+  let backwards = 0;
+  let moved = 0;
+  let stray = 0;
+  let latest = -Infinity;
   let woke: (() => void) | null = null;
   let activity = performance.now();
   const wake = () => {
@@ -133,11 +149,17 @@ async function decodeRange(
   const decoder = new VideoDecoder({
     output: (frame) => {
       out++;
-      const t = frame.timestamp / 1e6;
-      // A frame out of order is let go: the choices need them in order.
-      if (failed || t <= lastAt || !pick(t)) frame.close();
-      else waiting.push({ frame, t });
-      lastAt = Math.max(lastAt, t);
+      const at = frame.timestamp;
+      if (at < latest) backwards++;
+      latest = Math.max(latest, at);
+      const k = nearestStamp(stamps, at);
+      const stamp = k >= 0 ? stamps[k] : NaN;
+      if (k >= 0 && stamp !== at) moved++;
+      const place = k >= 0 && !seen.has(stamp) ? wanted.get(stamp) : undefined;
+      if (k < 0 || seen.has(stamp)) stray++;
+      if (k >= 0) seen.add(stamp);
+      if (failed || place === undefined) frame.close();
+      else waiting.push({ frame, t: stamp / 1e6, place });
       wake();
     },
     error: (e) => {
@@ -161,7 +183,7 @@ async function decodeRange(
   const drainOne = async () => {
     const next = waiting.shift()!;
     try {
-      await handle(next.frame, next.t);
+      await handle(next.frame, next.t, next.place);
     } finally {
       next.frame.close();
     }
@@ -200,7 +222,8 @@ async function decodeRange(
       decoder.decode(
         new EncodedVideoChunk({
           type: s.key ? "key" : "delta",
-          timestamp: Math.round(s.t * 1e6),
+          // Whole microseconds: the stamp the frame is matched back by.
+          timestamp: stampOf(s.t),
           duration: Math.round(s.duration * 1e6),
           data: bytes.subarray(s.offset - bytesFrom, s.offset - bytesFrom + s.size)
         })
@@ -228,7 +251,25 @@ async function decodeRange(
     for (const w of waiting) w.frame.close();
     if (decoder.state !== "closed") decoder.close();
   }
-  return { out, fed, ms: performance.now() - began };
+  let lost = 0;
+  for (const stamp of wanted.keys()) if (!seen.has(stamp)) lost++;
+  return { out, fed, ms: performance.now() - began, backwards, moved, stray, lost };
+}
+
+/** A decode pass as a line of the details: what came out of the decoder and how it matched the file. */
+function decodedNote(d: Decoded, kept: number): string {
+  return `${d.fed} fed, ${d.out} out, ${kept} kept, ${d.lost} lost, ${d.backwards} out of order, ${d.moved} times moved, ${d.stray} stray, ${(d.ms / 1000).toFixed(1)} s`;
+}
+
+/** The track as a line of the details. */
+export function trackNote(track: VideoTrack, config: VideoDecoderConfig): string {
+  const shown = shownTimes(track.samples);
+  const steps = shown.slice(1).map((t, i) => t - shown[i]);
+  const src = sourceStep(steps);
+  return (
+    `${track.codec} (${track.fourcc}) ${track.bitDepth}-bit, coded ${track.codedWidth}x${track.codedHeight}, turned ${track.rotation}, shown ${track.width}x${track.height}, ` +
+    `${track.duration.toFixed(2)} s, ${track.samples.length} samples, ${src ? (1 / src).toFixed(1) : "?"} fps, first at ${(shown[0] ?? NaN).toFixed(3)} s, ${config.hardwareAcceleration}`
+  );
 }
 
 /**
@@ -255,46 +296,92 @@ function canvas2d(width: number, height: number): CanvasRenderingContext2D {
 
 /**
  * The first look (`lib/shotTrack/shotStart.ts`) by decoding: every frame of
- * the video decoded, and those on the `COARSE_FPS` grid (`gridSlot`) drawn
- * `COARSE_WIDTH` wide and turned to grey. Same frames as playing would give
- * where playing shows every frame; here none is passed over.
+ * the video decoded, and those on the `COARSE_FPS` grid (`gridSlot`, chosen
+ * over the file's own frame times) made `COARSE_WIDTH` wide in grey: drawn
+ * to a canvas, or, for a video of more than 8 bits (an iPhone's HDR, which a
+ * canvas tone-maps), from the frame's luma plane where it can be copied.
+ * Same frames as playing would give where playing shows every frame; here
+ * none is passed over. Handed to `onFrame` in time order.
  */
 export async function codecScan(
   cv: CodecVideo,
   onFrame: (frame: CoarseFrame) => void,
-  onProgress: (fraction: number) => void
+  onProgress: (fraction: number) => void,
+  notes?: Notes
 ): Promise<{ width: number; height: number; duration: number; via: string }> {
   const { track } = cv;
   const duration = track.duration;
   const width = COARSE_WIDTH;
   const height = Math.max(2, Math.round((COARSE_WIDTH * track.height) / track.width));
-  const ctx = canvas2d(width, height);
+  const turn = track.rotation;
+  let ctx: CanvasRenderingContext2D | null = null;
   const span = decodeSpan(track.samples, 0, duration);
   if (!span) throw new Error("no frames to look at");
+  notes?.set("video", trackNote(track, cv.config));
+  // The frames on the grid, over the frames' own times in the order shown.
+  const order: number[] = [];
   let next = 0;
-  let count = 0;
-  const done = await decodeRange(
-    cv,
-    span.first,
-    span.last,
-    (t) => {
-      if (t < -1e-6) return false;
-      const after = gridSlot(t, next, COARSE_FPS);
-      if (after === null) return false;
-      next = after;
-      return true;
-    },
-    (frame, t) => {
-      drawTurned(ctx, frame, track.rotation, track.width, track.height, width / track.width, 0);
-      onFrame({ width, height, data: toGray(ctx.getImageData(0, 0, width, height).data, width, height), t });
-      count++;
-      onProgress(Math.min(1, t / duration));
+  let offGrid = 0;
+  for (const stamp of spanStamps(track.samples, span.first, span.last)) {
+    const t = stamp / 1e6;
+    if (t < -1e-6) continue;
+    const after = gridSlot(t, next, COARSE_FPS);
+    if (after === null) {
+      offGrid++;
+      continue;
     }
-  );
+    next = after;
+    order.push(stamp);
+  }
+  const wanted = new Map(order.map((stamp, k) => [stamp, k]));
+  // Made as they come from the decoder, handed on in time order; one that
+  // never comes is given up once eight after it have.
+  const made: (CoarseFrame | undefined)[] = [];
+  let given = 0;
+  let count = 0;
+  let skipped = 0;
+  let how = "";
+  const looks: string[] = [];
+  const handOn = (all: boolean) => {
+    for (;;) {
+      if (made[given]) {
+        onFrame(made[given]!);
+        made[given] = undefined;
+        given++;
+      } else if (given < made.length && (all || made.slice(given + 1, given + 9).filter(Boolean).length >= 8)) {
+        given++;
+        skipped++;
+      } else return;
+    }
+  };
+  const done = await decodeRange(cv, span.first, span.last, wanted, async (frame, t, place) => {
+    let data: Uint8ClampedArray | null = null;
+    const format = String(frame.format);
+    const bits = LUMA_16[format];
+    if (track.bitDepth > 8 && bits && frame.visibleRect) {
+      // The luma plane, untouched by tone mapping.
+      const vr = frame.visibleRect;
+      const buf = new Uint8Array(frame.allocationSize());
+      const layout = await frame.copyTo(buf);
+      const quarter = turn % 180 !== 0;
+      data = planeGray(buf, bits, layout[0].offset + vr.y * layout[0].stride + 2 * vr.x, layout[0].stride, vr.width, vr.height, quarter ? height : width, quarter ? width : height, turn);
+      how = `luma plane ${format}`;
+    } else {
+      ctx ??= canvas2d(width, height);
+      drawTurned(ctx, frame, turn, track.width, track.height, width / track.width, 0);
+      data = toGray(ctx.getImageData(0, 0, width, height).data, width, height);
+      how = `canvas ${format}`;
+    }
+    if (place === 0 || place === order.length >> 1 || place === order.length - 1) looks.push(`#${place} ${grayStats(data)}`);
+    made[place] = { width, height, data, t };
+    count++;
+    handOn(false);
+    onProgress(Math.min(1, count / Math.max(1, order.length)));
+  });
+  handOn(true);
   const via = `WebCodecs ${track.codec} ${cv.config.hardwareAcceleration}`;
-  console.info(
-    `Shot tracer: looked at ${count} frames of ${duration.toFixed(1)} s by decoding (${via}), ${done.fed} decoded, in ${(done.ms / 1000).toFixed(1)} s`
-  );
+  notes?.set("look", `${count} of ${order.length} grid frames (${offGrid} off the grid, ${skipped} given up), ${how}, gray mean/min/max ${looks.join(" ")}; decoder ${decodedNote(done, count)}`);
+  console.info(`Shot tracer: looked at ${count} frames of ${duration.toFixed(1)} s by decoding (${via}), ${notes?.get("look") ?? ""}`);
   return { width: track.width, height: track.height, duration, via };
 }
 
@@ -323,7 +410,8 @@ export interface CodecPlan {
 export async function codecRead(
   cv: CodecVideo,
   plan: CodecPlan,
-  onProgress: (fraction: number) => void
+  onProgress: (fraction: number) => void,
+  notes?: Notes
 ): Promise<{ width: number; height: number; gray: Uint8ClampedArray[]; times: number[]; src: number | null; step: number; missing: number; via: string }> {
   const { track } = cv;
   const from = Math.max(0, Math.min(plan.from, track.duration));
@@ -336,9 +424,15 @@ export async function codecRead(
   const steps = shown.slice(1).map((t, i) => t - shown[i]);
   const src = plan.after?.src ?? sourceStep(steps) ?? 1 / plan.fps;
   const slots = new FrameSlots(from, to, plan.fps, src, plan.after?.t);
-  const gray: Uint8ClampedArray[] = [];
-  const times: number[] = [];
   const span = decodeSpan(track.samples, from - 0.25 * src, to);
+  // The frames to keep, chosen over the file's own frame times in the order
+  // shown, as the decoder would hand them out; each frame out of the decoder
+  // is matched to its place among them by its time.
+  const wanted = new Map<number, number>();
+  if (span) for (const stamp of spanStamps(track.samples, span.first, span.last)) if (slots.offer(stamp / 1e6)) wanted.set(stamp, wanted.size);
+  slots.close();
+  const placed: (Uint8ClampedArray | undefined)[] = [];
+  const placedT: number[] = [];
   let mode: "unknown" | "planes" | "drawn" = "unknown";
   let how = "none";
   let ctx: CanvasRenderingContext2D | null = null;
@@ -346,8 +440,8 @@ export async function codecRead(
   const band = { top: rows.y / track.height, bottom: (rows.y + rows.h) / track.height };
   const cost: number[] = [];
 
-  /** The frame's luma, cropped to the band, as 8 bits; null where its format has none to copy. */
-  const lumaPlane = async (frame: VideoFrame): Promise<{ data: Uint8Array; w: number; h: number; stride: number; offset: number } | null> => {
+  /** The frame's luma plane, cropped to the band; null where its format has none to copy. */
+  const lumaPlane = async (frame: VideoFrame): Promise<{ data: Uint8Array; bits: number; w: number; h: number; stride: number; offset: number } | null> => {
     const format = String(frame.format);
     const bits = LUMA_8.has(format) ? 8 : LUMA_16[format];
     const vr = frame.visibleRect;
@@ -374,16 +468,7 @@ export async function codecRead(
       y0 = rect.y;
     }
     const plane = layout![0];
-    if (bits === 8) return { data: buf!, w: c.w, h: c.h, stride: plane.stride, offset: plane.offset + y0 * plane.stride + x0 };
-    // Two bytes a sample, little-endian: to 8 bits, video range kept (64 to 940 is 16 to 235).
-    const shift = bits - 8;
-    const eight = new Uint8Array(c.w * c.h);
-    const dv = new DataView(buf!.buffer, buf!.byteOffset, buf!.byteLength);
-    for (let y = 0; y < c.h; y++) {
-      const row = plane.offset + (y + y0) * plane.stride + 2 * x0;
-      for (let x = 0; x < c.w; x++) eight[y * c.w + x] = Math.min(255, dv.getUint16(row + 2 * x, true) >> shift);
-    }
-    return { data: eight, w: c.w, h: c.h, stride: c.w, offset: 0 };
+    return { data: buf!, bits, w: c.w, h: c.h, stride: plane.stride, offset: plane.offset + y0 * plane.stride + (bits > 8 ? 2 : 1) * x0 };
   };
 
   const done = span
@@ -391,8 +476,8 @@ export async function codecRead(
         cv,
         span.first,
         span.last,
-        (t) => slots.offer(t),
-        async (frame, t) => {
+        wanted,
+        async (frame, t, place) => {
           const started = performance.now();
           let g: Uint8ClampedArray | null = null;
           if (mode !== "drawn") {
@@ -400,7 +485,7 @@ export async function codecRead(
             if (luma) {
               const outW = quarter ? height : width;
               const outH = quarter ? width : height;
-              g = rotateGray(resampleGray(luma.data, luma.w, luma.h, luma.stride, luma.offset, outW, outH), outW, outH, turn);
+              g = planeGray(luma.data, luma.bits, luma.offset, luma.stride, luma.w, luma.h, outW, outH, turn);
               mode = "planes";
               how = `planes ${String(frame.format)}`;
             } else if (mode === "unknown") mode = "drawn";
@@ -413,14 +498,23 @@ export async function codecRead(
             g = toGray(ctx.getImageData(0, 0, width, height).data, width, height);
             how = `drawn ${String(frame.format)}`;
           }
-          gray.push(g);
-          times.push(t);
+          if (place === 0) notes?.add("gray", `${how} ${grayStats(g)}`);
+          placed[place] = g;
+          placedT[place] = t;
           cost.push(performance.now() - started);
           onProgress(readProgress(t, from, to));
         }
       )
-    : { out: 0, fed: 0, ms: 0 };
-  slots.close();
+    : { out: 0, fed: 0, ms: 0, backwards: 0, moved: 0, stray: 0, lost: 0 };
+  // In time order, any frame the decoder never gave left out.
+  const gray: Uint8ClampedArray[] = [];
+  const times: number[] = [];
+  placed.forEach((g, k) => {
+    if (!g) return;
+    gray.push(g);
+    times.push(placedT[k]);
+  });
+  notes?.add("read", `${from.toFixed(2)} to ${to.toFixed(2)} s at ${plan.fps.toFixed(0)} fps: ${gray.length} frames, ${slots.missing.length} not in the file, ${how}, ${width}x${height}; decoder ${decodedNote(done, gray.length)}`);
   const via = `WebCodecs ${track.codec} ${cv.config.hardwareAcceleration}, ${how}`;
   const median = cost.length ? [...cost].sort((a, b) => a - b)[cost.length >> 1] : 0;
   console.info(

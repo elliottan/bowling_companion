@@ -185,6 +185,29 @@ function lineOf(ps: readonly Feet[]): { speed: number; foul: number; at: (t: num
 }
 
 /**
+ * Why a run in feet is or is not the ball's (`ballRun` keeps the "ball"
+ * ones): off the lane (a point far behind the foul line or past the pins),
+ * on the next lane, too few points or feet, not every step up the lane,
+ * first seen too far out, or too slow or too fast for a ball (a speed
+ * outside what `ballRun` takes, or none).
+ */
+export type RunVerdict = "ball" | "off-lane" | "next-lane" | "too-short" | "not-up-lane" | "starts-far" | "too-slow" | "too-fast";
+
+export function runVerdict(r: readonly Feet[]): RunVerdict {
+  if (r.some((p) => p.v < OFF_LANE.from || p.v > OFF_LANE.to)) return "off-lane";
+  // The bowler's lane, not the next one.
+  if (r.some((p) => p.u !== undefined && p.v >= ON_LANE.from && (p.u < ACROSS.from || p.u > ACROSS.to))) return "next-lane";
+  const own = r.filter((p) => p.v >= ON_LANE.from && p.v <= ON_LANE.to);
+  // The ball only goes up the lane, and the first look sees it first near the foul line.
+  if (!enough(own)) return "too-short";
+  if (own.some((p, i) => i > 0 && p.v <= own[i - 1].v)) return "not-up-lane";
+  if (own[0].v > FIRST_SEEN_FT) return "starts-far";
+  const speed = lineSpeed(own);
+  if (!ballSpeed(speed)) return speed !== null && speed > FASTEST_FTS * HAND_FAST ? "too-fast" : "too-slow";
+  return "ball";
+}
+
+/**
  * The ball's run up the lane among the first look's runs, each in feet
  * (`runFeet`): every run of three points or more over 3 ft that goes up the
  * lane at a ball's speed, all of it on the lane and every step up it, puts a
@@ -205,14 +228,9 @@ export function ballRun(runs: readonly (readonly Feet[])[]): { speed: number; fo
   const points = [...all.values()];
   let best: { on: Feet[]; own: Feet[]; key: number[] } | null = null;
   for (const r of runs) {
-    if (r.some((p) => p.v < OFF_LANE.from || p.v > OFF_LANE.to)) continue;
-    // The bowler's lane, not the next one.
-    if (r.some((p) => p.u !== undefined && p.v >= ON_LANE.from && (p.u < ACROSS.from || p.u > ACROSS.to))) continue;
+    if (runVerdict(r) !== "ball") continue;
     const own = r.filter((p) => p.v >= ON_LANE.from && p.v <= ON_LANE.to);
-    // The ball only goes up the lane, and the first look sees it first near the foul line.
-    if (!enough(own) || own.some((p, i) => i > 0 && p.v <= own[i - 1].v) || own[0].v > FIRST_SEEN_FT) continue;
-    const line = lineOf(own);
-    if (!line) continue;
+    const line = lineOf(own)!;
     const on = points.filter((p) => Math.abs(p.v - line.at(p.t)) <= LINE_NEAR_FT + 0.1 * Math.max(0, line.at(p.t)));
     const vs = on.map((p) => p.v);
     const span = Math.max(...vs) - Math.min(...vs);

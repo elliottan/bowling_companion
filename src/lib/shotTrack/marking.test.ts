@@ -14,6 +14,7 @@ import {
   missingRuns,
   pathInPicture,
   planeCrop,
+  planeGray,
   playbackRateFor,
   READ_BUDGET,
   READ_FPS,
@@ -321,5 +322,19 @@ describe("drawing the path back", () => {
     const q = apply(H, { x: 20, y: 30 });
     expect(pts[30].x).toBeCloseTo(q.x, 6);
     expect(pts[30].y).toBeCloseTo(q.y, 6);
+  });
+
+  it("turns a copied luma plane, 8 or 10 bits, into the read's grey as the read did", () => {
+    // 4 by 2, two padding bytes a row, from byte 3.
+    const eight = Uint8Array.from([9, 9, 9, 10, 20, 30, 40, 0, 0, 50, 60, 70, 80, 0, 0]);
+    const g8 = planeGray(eight, 8, 3, 6, 4, 2, 4, 2, 0);
+    expect(Array.from(g8)).toEqual([10, 20, 30, 40, 50, 60, 70, 80]);
+    // The same in 10 bits, little-endian, two bytes a sample: 64 to 940 is 16 to 235.
+    const ten = new Uint8Array(2 + 2 * 2 * 5);
+    const dv = new DataView(ten.buffer);
+    [10, 20, 30, 40, 50, 60, 70, 80].forEach((v, i) => dv.setUint16(2 + Math.floor(i / 4) * 10 + (i % 4) * 2, v * 4 + 3, true));
+    expect(Array.from(planeGray(ten, 10, 2, 10, 4, 2, 4, 2, 0))).toEqual(Array.from(g8));
+    // Turned a quarter: the picture before turning is 4 by 2.
+    expect(Array.from(planeGray(eight, 8, 3, 6, 4, 2, 4, 2, 90))).toEqual(Array.from(rotateGray(g8, 4, 2, 90)));
   });
 });

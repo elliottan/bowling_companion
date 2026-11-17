@@ -9,6 +9,7 @@ import { apply } from "../lib/shotTrack/homography";
 import { BACK_ROW_FT, laneU, LEFT_U, RIGHT_U } from "../lib/shotTrack/laneModel";
 import type { FrameLane } from "../lib/shotTrack/laneTrack";
 import { laneVerdict, type LaneEvidence, type LaneVerdict } from "../lib/shotTrack/laneVerdict";
+import { foundNote, Notes, timesNote } from "../lib/shotTrack/notes";
 import { MARK_LINES, pathInPicture, type MarkLine } from "../lib/shotTrack/marking";
 import { laneBands, readFrom, type Band, type ShotFound } from "../lib/shotTrack/shotStart";
 import type { GrayFrame, Mat3, Metric, Point, TrackError, TrackFailure, TrackResult } from "../lib/shotTrack/types";
@@ -48,14 +49,14 @@ interface Timing {
 
 type Step =
   /** `why`: what the reader said when the video couldn't be read, for the details line. */
-  | { kind: "pick"; unreadable?: boolean; why?: string }
+  | { kind: "pick"; unreadable?: boolean; why?: string; details?: string }
   | { kind: "searching"; fraction: number }
   | { kind: "reading"; fraction: number }
   | { kind: "finding" }
   | { kind: "tracing"; fraction: number }
   /** The shot or the lane was not found: nothing to trace. */
-  | { kind: "failed"; missing: "shot" | "lane" }
-  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null; timing?: Timing };
+  | { kind: "failed"; missing: "shot" | "lane"; details?: string }
+  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null; timing?: Timing; details?: string };
 
 /** The lane as the finder found it: on every frame it could, and what it knows about how sure it is. */
 interface Found {
@@ -104,6 +105,8 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   const attempt = useRef(0);
   // This attempt's stage times so far, milliseconds.
   const timing = useRef({ via: "", look: 0, read: 0, lane: 0, trace: 0 });
+  // What this attempt did, for the details block on its end screen.
+  const notes = useRef(new Notes());
 
   useEffect(
     () => () => {
@@ -133,17 +136,25 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       let answered!: (found: ShotFound | null | "late") => void;
       const answer = new Promise<ShotFound | null | "late">((resolve) => (answered = resolve));
       worker.onmessage = (e: MessageEvent<SearchMessage>) => answered(e.data.found);
-      worker.onerror = () => answered(null);
+      // A search that fails is no shot found, but the details say so.
+      worker.onerror = (e) => {
+        notes.current.add("search worker", `failed: ${(e as ErrorEvent)?.message || "no message"}`);
+        answered(null);
+      };
+      let sent = 0;
       const video = await scanVideo(
         f,
         (frame) => {
+          sent++;
           const data = frame.data.buffer as ArrayBuffer;
           worker.postMessage({ kind: "frame", width: frame.width, height: frame.height, data, t: frame.t } satisfies SearchRequest, [data]);
         },
         (fraction) => {
           if (attempt.current === mine) setStep({ kind: "searching", fraction });
-        }
+        },
+        notes.current
       );
+      notes.current.add("search worker", `${sent} frames sent`);
       worker.postMessage({ kind: "done" } satisfies SearchRequest);
       // The search has every frame by now and answers in a second or two; a
       // worker that never answers (seen once, after four minutes) is a video
@@ -169,6 +180,8 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     pool.current = null;
     setStep({ kind: "searching", fraction: 0 });
     timing.current = { via: "", look: 0, read: 0, lane: 0, trace: 0 };
+    notes.current = new Notes();
+    notes.current.set("app", `Headpin ${__APP_VERSION__}, ${f.type || "?"} ${(f.size / 1e6).toFixed(1)} MB, ${navigator.userAgent}`);
     const began = now();
     let looked: Awaited<ReturnType<typeof search>>;
     let from: number | null;
@@ -188,7 +201,11 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       `Shot tracer: ${found ? `ball seen from ${found.release.toFixed(2)} s, pins ${found.pinHit?.toFixed(2) ?? "not seen"}, confidence ${found.confidence.toFixed(2)}` : "no shot found"}; ` +
         `reading from ${from?.toFixed(2) ?? "nowhere"} s, rows ${bands.map((b) => (b ? `${b.top.toFixed(2)} to ${b.bottom.toFixed(2)}` : "all")).join(", then ")}`
     );
-    if (from === null) setStep({ kind: "failed", missing: "shot" });
+    notes.current.set(
+      "search",
+      `${foundNote(found)}; read from ${from?.toFixed(2) ?? "nowhere"} s; bands ${bands.map((b) => (b ? `${b.top.toFixed(2)}-${b.bottom.toFixed(2)}` : "all")).join(", ")}`
+    );
+    if (from === null) setStep({ kind: "failed", missing: "shot", details: details() });
     else void readBand(f, looked, bands, mine);
   }
 
@@ -196,7 +213,15 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   function unreadable(e: unknown, mine: number) {
     const why = e instanceof Error ? e.message : String(e);
     console.info(`Shot tracer: the video couldn't be read: ${why}`);
-    if (attempt.current === mine) setStep({ kind: "pick", unreadable: true, why });
+    if (attempt.current === mine) setStep({ kind: "pick", unreadable: true, why, details: details() });
+  }
+
+  /** The details block's text so far, with the stage times; also to the console. */
+  function details(): string {
+    notes.current.set("times", timesNote(timing.current));
+    const text = notes.current.text();
+    console.info(`Shot tracer details:\n${text}`);
+    return text;
   }
 
   /** Reads the shot in the first band left, then looks for the lane there. */
@@ -204,6 +229,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     setStep({ kind: "reading", fraction: 0 });
     let v: VideoFrames;
     const began = now();
+    let counted = false;
     try {
       const read = await readShot(
         f,
@@ -218,10 +244,15 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         (fraction) => {
           if (attempt.current === mine) setStep({ kind: "reading", fraction });
         },
-        bands.length === 1
+        bands.length === 1,
+        notes.current
       );
       if (read === "no-shot") {
-        if (attempt.current === mine) setStep({ kind: "failed", missing: "shot" });
+        if (attempt.current === mine) {
+          timing.current.read += now() - began;
+          counted = true;
+          setStep({ kind: "failed", missing: "shot", details: details() });
+        }
         return;
       }
       if (read === "no-lane") {
@@ -232,10 +263,14 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       v = read.frames;
       if (v.gray.length < 10) throw new Error(`only ${v.gray.length} frames read (${v.via ?? "?"})`);
     } catch (e) {
+      if (attempt.current === mine) {
+        timing.current.read += now() - began;
+        counted = true;
+      }
       unreadable(e, mine);
       return;
     } finally {
-      if (attempt.current === mine) timing.current.read += now() - began;
+      if (attempt.current === mine && !counted) timing.current.read += now() - began;
     }
     if (attempt.current !== mine) return;
     timing.current.via = v.via ?? "";
@@ -244,10 +279,11 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     const m = await findOn(v, FIND_FRAMES, mine);
     if (attempt.current !== mine) return;
     timing.current.lane += now() - finding;
+    notes.current.add("lane", m.frame !== null ? `found on ${m.lanes.length} of ${Math.min(v.gray.length, FIND_FRAMES)}, best frame ${m.frame}, camera ${m.evidence.camera?.toFixed(1) ?? "?"} ft` : `not found on ${v.gray.length} frames`);
     if (m.frame !== null) void traceShot(v, m.frame, { lanes: m.lanes, evidence: m.evidence }, mine);
     // Not found in this band: the next, read again, or nothing to trace.
     else if (bands.length > 1) void readBand(f, looked, bands.slice(1), mine);
-    else setStep({ kind: "failed", missing: "lane" });
+    else setStep({ kind: "failed", missing: "lane", details: details() });
   }
 
   /**
@@ -316,7 +352,9 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         `Shot tracer: stages took ${[took.look, took.read, took.lane, took.trace].map((x) => x.toFixed(1)).join(", ")} s (look, read, lane, trace), ` +
           `${(took.look + took.read + took.lane + took.trace).toFixed(1)} s in all; read by ${took.via}`
       );
-      setStep({ ...next, timing: took });
+      const r = next.result;
+      notes.current.set("trace", r.ok ? `${r.sightings.length} sightings, ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft` : `${r.failure}: ${r.detail}`);
+      setStep({ ...next, timing: took, details: details() });
     };
     let out: TraceOutput;
     try {
@@ -354,23 +392,27 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   return (
     <PushScreen history="route" mode="inline" title={t`Shot tracer`} onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl space-y-5 px-3 pb-10 pt-2 sm:px-6">
-        {step.kind === "pick" && <PickVideo unreadable={step.unreadable} why={step.why} onChoose={(f) => void choose(f)} />}
+        {step.kind === "pick" && <PickVideo unreadable={step.unreadable} why={step.why} details={step.details} onChoose={(f) => void choose(f)} />}
         {step.kind === "searching" && <Waiting label={t`Looking for the shot…`} fraction={step.fraction} />}
         {step.kind === "reading" && <Waiting label={t`Reading the video…`} fraction={step.fraction} />}
         {step.kind === "finding" && <Waiting label={t`Finding the lane…`} />}
         {step.kind === "tracing" && <Waiting label={t`Tracing the shot…`} fraction={step.fraction} />}
         {step.kind === "failed" && (
-          <Failure text={step.missing === "shot" ? t`The shot couldn't be found in this video.` : t`The lane couldn't be found in this video.`} onAnother={another} />
+          <Failure
+            text={step.missing === "shot" ? t`The shot couldn't be found in this video.` : t`The lane couldn't be found in this video.`}
+            details={step.details}
+            onAnother={another}
+          />
         )}
         {step.kind === "done" && (
-          <Result result={step.result} H={step.H} verdict={step.verdict} picture={shown} timing={step.timing} onAnother={another} />
+          <Result result={step.result} H={step.H} verdict={step.verdict} picture={shown} timing={step.timing} details={step.details} onAnother={another} />
         )}
       </div>
     </PushScreen>
   );
 }
 
-function PickVideo({ unreadable, why, onChoose }: { unreadable?: boolean; why?: string; onChoose: (f: File | undefined) => void }) {
+function PickVideo({ unreadable, why, details, onChoose }: { unreadable?: boolean; why?: string; details?: string; onChoose: (f: File | undefined) => void }) {
   const record = useRef<HTMLInputElement>(null);
   const pick = useRef<HTMLInputElement>(null);
   return (
@@ -387,6 +429,7 @@ function PickVideo({ unreadable, why, onChoose }: { unreadable?: boolean; why?: 
         // A Labs screen: the reader's own words, for the owner to pass on.
         <p className="text-footnote text-ink-secondary [overflow-wrap:anywhere]">{t`Details: ${why}`}</p>
       )}
+      {unreadable && details && <Details text={details} />}
       <div className="flex flex-wrap gap-3">
         <Button variant="primary" onClick={() => record.current?.click()}>
           <Camera size={18} aria-hidden="true" />
@@ -411,7 +454,7 @@ function PickVideo({ unreadable, why, onChoose }: { unreadable?: boolean; why?: 
 }
 
 /** What could not be done, what to try, and another video. */
-function Failure({ text, onAnother }: { text: string; onAnother: () => void }) {
+function Failure({ text, details, onAnother }: { text: string; details?: string; onAnother: () => void }) {
   return (
     <div className="space-y-4">
       <p role="alert" className="text-subhead text-ink">
@@ -421,7 +464,23 @@ function Failure({ text, onAnother }: { text: string; onAnother: () => void }) {
         {t`Film from behind the bowler, with the whole lane in view from the foul line to the pins, and hold the phone still.`}
       </p>
       <Button onClick={onAnother}>{t`Another video`}</Button>
+      {details && <Details text={details} />}
     </div>
+  );
+}
+
+/**
+ * What the tracer did, line by line in technical English (`lib/shotTrack/
+ * notes.ts`), small and selectable under every end screen: the owner's
+ * screenshot from a phone is all there is to go on.
+ */
+function Details({ text }: { text: string }) {
+  // The same message as the reader's own reason above it.
+  const why = text;
+  return (
+    <p data-testid="tracer-details" className="select-text whitespace-pre-wrap text-footnote text-ink-secondary [overflow-wrap:anywhere]">
+      {t`Details: ${why}`}
+    </p>
   );
 }
 
@@ -518,6 +577,7 @@ function Result({
   verdict,
   picture,
   timing,
+  details,
   onAnother
 }: {
   result: TrackResult | TrackError;
@@ -525,9 +585,10 @@ function Result({
   verdict: LaneVerdict | null;
   picture: { gray: Uint8ClampedArray; width: number; height: number } | null;
   timing?: Timing;
+  details?: string;
   onAnother: () => void;
 }) {
-  if (!result.ok) return <Failure text={failureText(result.failure)} onAnother={onAnother} />;
+  if (!result.ok) return <Failure text={failureText(result.failure)} details={details} onAnother={onAnother} />;
   const m = result.metrics;
   const path = H ? pathInPicture(H, result.path, result.from, result.to) : [];
   // The laydown on the foul line, where the drawn path starts: the ball is
@@ -598,6 +659,7 @@ function Result({
       <div className="flex flex-wrap gap-3">
         <Button onClick={onAnother}>{t`Another video`}</Button>
       </div>
+      {details && <Details text={details} />}
     </div>
   );
 }

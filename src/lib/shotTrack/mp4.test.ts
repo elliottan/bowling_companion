@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { avcCodec, blobSource, decodeSpan, hevcCodec, Mp4Error, parseMoov, readVideoTrack, rotationOf, shownTimes, vp9Codec, type ByteSource } from "./mp4";
+import { avcCodec, blobSource, decodeSpan, hevcCodec, Mp4Error, nearestStamp, parseMoov, readVideoTrack, rotationOf, shownTimes, spanStamps, stampOf, vp9Codec, type ByteSource } from "./mp4";
 
 // The fixtures are read off disk. The app's type config carries no node
 // types (tsconfig.app.json), so node's file API is reached untyped, by name.
@@ -272,5 +272,21 @@ describe("the boxes a phone or ffmpeg may write", () => {
   it("is not thrown by a 64-bit box size inside the moov", () => {
     const free = cat(u32(1), text("free"), u64(16));
     expect(parseMoov(body(moov({ extra: [free] }))).samples.length).toBe(4);
+  });
+
+  it("matches a decoded frame to its sample by time, whatever order it comes in and however it was rounded", () => {
+    // Decode order I P B B (shown 0, 3, 1, 2 at 30 fps).
+    const samples = [0, 3, 1, 2].map((k, i) => ({ offset: i * 10, size: 10, t: k / 30, duration: 1 / 30, key: i === 0 }));
+    const stamps = spanStamps(samples, 0, 3);
+    expect(stamps).toEqual([0, 33333, 66667, 100000]);
+    expect(stampOf(1 / 30)).toBe(33333);
+    expect(nearestStamp(stamps, 66667)).toBe(2);
+    // Rounded or rebased by a few microseconds, still its sample.
+    expect(nearestStamp(stamps, 33330)).toBe(1);
+    expect(nearestStamp(stamps, 100004)).toBe(3);
+    // Half a frame off: no sample's.
+    expect(nearestStamp(stamps, 50000)).toBe(-1);
+    expect(nearestStamp([], 0)).toBe(-1);
+    expect(nearestStamp([5], 900000)).toBe(0);
   });
 });

@@ -455,3 +455,38 @@ export function shownTimes(samples: readonly Sample[], from = 0, to = Infinity):
     .filter((t) => t >= from - 1e-6 && t < to)
     .sort((a, b) => a - b);
 }
+
+/** A sample's time as a decoder is given it: whole microseconds (WebCodecs takes integers, and Safari keeps no finer). */
+export const stampOf = (t: number): number => Math.round(t * 1e6);
+
+/** The stamps (`stampOf`) of samples `first` to `last` inclusive, in the order their frames are shown. */
+export function spanStamps(samples: readonly Sample[], first: number, last: number): number[] {
+  const out: number[] = [];
+  for (let i = first; i <= last; i++) out.push(stampOf(samples[i].t));
+  return out.sort((a, b) => a - b);
+}
+
+/**
+ * The index in `sorted` (stamps, ascending) of the one a decoded frame's
+ * timestamp `at` belongs to: the nearest, within 40% of the shortest step
+ * between stamps (a decoder that rounds or rebases a timestamp a little still
+ * lands on its sample); -1 when none is that near. A frame is matched to its
+ * sample by its time, never by how many came before it: a decoder can hand
+ * frames out in another order than they are shown.
+ */
+export function nearestStamp(sorted: readonly number[], at: number): number {
+  if (!sorted.length) return -1;
+  let lo = 0;
+  let hi = sorted.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (sorted[mid] < at) lo = mid + 1;
+    else hi = mid;
+  }
+  let best = lo;
+  if (lo > 0 && Math.abs(sorted[lo - 1] - at) <= Math.abs(sorted[lo] - at)) best = lo - 1;
+  let step = Infinity;
+  for (let i = 1; i < sorted.length; i++) if (sorted[i] > sorted[i - 1]) step = Math.min(step, sorted[i] - sorted[i - 1]);
+  const tol = Number.isFinite(step) ? 0.4 * step : 1e6;
+  return Math.abs(sorted[best] - at) <= tol ? best : -1;
+}

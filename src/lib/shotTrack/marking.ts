@@ -419,3 +419,30 @@ export function pathInPicture(H: Mat3, path: PathModel, from: number, to: number
   for (let v = Math.max(0, from); v <= end + 1e-9; v += 1) out.push(apply(H, { x: pathU(path, v), y: v }));
   return out;
 }
+
+/**
+ * A frame's luma plane, as copied out of a decoder, to the read's grey: the
+ * crop `w` by `h` from byte `offset`, `stride` bytes a row, `bits` a sample
+ * (two bytes, little-endian, past 8, brought to 8 with video range kept: 64
+ * to 940 is 16 to 235), resampled to `outW` by `outH` (`resampleGray`) and
+ * then turned `turn` degrees (`rotateGray`): for a quarter turn `outW` and
+ * `outH` are the picture's before turning.
+ */
+export function planeGray(buf: Uint8Array, bits: number, offset: number, stride: number, w: number, h: number, outW: number, outH: number, turn: number): Uint8ClampedArray {
+  let src = buf;
+  let rowBytes = stride;
+  let from = offset;
+  if (bits > 8) {
+    const shift = bits - 8;
+    const eight = new Uint8Array(w * h);
+    const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    for (let y = 0; y < h; y++) {
+      const row = offset + y * stride;
+      for (let x = 0; x < w; x++) eight[y * w + x] = Math.min(255, dv.getUint16(row + 2 * x, true) >> shift);
+    }
+    src = eight;
+    rowBytes = w;
+    from = 0;
+  }
+  return rotateGray(resampleGray(src, w, h, rowBytes, from, outW, outH), outW, outH, turn);
+}

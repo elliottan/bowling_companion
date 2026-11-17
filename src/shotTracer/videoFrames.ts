@@ -19,6 +19,7 @@ import {
   sourceStep,
   toGray
 } from "../lib/shotTrack/marking";
+import { grayStats, type Notes } from "../lib/shotTrack/notes";
 import { codecRead, codecScan, dropCodec, openCodec, reasonOf } from "./codecFrames";
 
 /**
@@ -512,7 +513,7 @@ async function readBySeeking(r: Reading): Promise<void> {
  * (fractions, `laneBand`). Each frame carries its own time in the video.
  * `onProgress` is told how far it has got, 0 to 1 and never backwards.
  */
-export async function readVideoFrames(file: Blob, onProgress: (fraction: number) => void, plan: ReadPlan): Promise<VideoFrames> {
+export async function readVideoFrames(file: Blob, onProgress: (fraction: number) => void, plan: ReadPlan, notes?: Notes): Promise<VideoFrames> {
   let reached = 0;
   const progress = (f: number) => {
     if (f > reached) onProgress((reached = f));
@@ -521,15 +522,18 @@ export async function readVideoFrames(file: Blob, onProgress: (fraction: number)
   let why = typeof codec === "string" ? codec : "";
   if (typeof codec !== "string") {
     try {
-      return await codecRead(codec, plan, progress);
+      return await codecRead(codec, plan, progress, notes);
     } catch (e) {
       why = `failed: ${reasonOf(e)}`;
+      notes?.add("read", `decoding failed (${reasonOf(e)}), played instead`);
       dropCodec(file, why);
       console.info(`Shot tracer: decoding failed (${reasonOf(e)}); playing the video instead`);
     }
   }
   try {
-    return { ...(await playRead(file, progress, plan)), via: `playback (WebCodecs ${why})` };
+    const read = await playRead(file, progress, plan);
+    notes?.add("read", `playback ${plan.from.toFixed(2)} to ${plan.to.toFixed(2)} s at ${plan.fps} fps: ${read.gray.length} frames, ${read.missing} missing, ${read.width}x${read.height}${read.gray[0] ? `, gray ${grayStats(read.gray[0])}` : ""}`);
+    return { ...read, via: `playback (WebCodecs ${why})` };
   } catch (e) {
     throw new Error(`playback: ${reasonOf(e)} (WebCodecs ${why})`);
   }
@@ -693,14 +697,23 @@ export interface ScannedVideo {
 export async function scanVideo(
   file: Blob,
   onFrame: (frame: CoarseFrame) => void,
-  onProgress: (fraction: number) => void
+  onProgress: (fraction: number) => void,
+  notes?: Notes
 ): Promise<ScannedVideo> {
   // Frames go on in time order whichever path gives them: after a decode that
   // failed part way, playing hands on only those past the last one given.
   let last = -Infinity;
+  let given = 0;
+  let late = 0;
+  const looks: string[] = [];
   const give = (frame: CoarseFrame) => {
-    if (frame.t <= last) return;
+    if (frame.t <= last) {
+      late++;
+      return;
+    }
     last = frame.t;
+    if (given === 0 || given === 40) looks.push(`#${given} ${grayStats(frame.data)}`);
+    given++;
     onFrame(frame);
   };
   let reached = 0;
@@ -711,15 +724,20 @@ export async function scanVideo(
   let why = typeof codec === "string" ? codec : "";
   if (typeof codec !== "string") {
     try {
-      return await codecScan(codec, give, progress);
+      const scanned = await codecScan(codec, give, progress, notes);
+      notes?.set("path", `WebCodecs ${codec.config.codec}`);
+      return scanned;
     } catch (e) {
       why = `failed: ${reasonOf(e)}`;
       dropCodec(file, why);
       console.info(`Shot tracer: decoding failed (${reasonOf(e)}); playing the video instead`);
     }
   }
+  notes?.set("path", `playback (WebCodecs ${why})`);
   try {
-    return { ...(await playScan(file, give, progress)), via: `playback (WebCodecs ${why})` };
+    const scanned = await playScan(file, give, progress);
+    notes?.set("look", `${given} frames by playback (${late} dropped as not after the last), ${scanned.width}x${scanned.height}, ${scanned.duration.toFixed(2)} s, gray mean/min/max ${looks.join(" ")}`);
+    return { ...scanned, via: `playback (WebCodecs ${why})` };
   } catch (e) {
     throw new Error(`playback: ${reasonOf(e)} (WebCodecs ${why})`);
   }

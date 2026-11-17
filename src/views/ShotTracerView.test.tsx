@@ -302,6 +302,11 @@ describe("ShotTracerView", () => {
     expect((await screen.findByRole("alert")).textContent).toBe("The shot couldn't be found in this video.");
     expect(screen.getByText(/Film from behind the bowler, with the whole lane in view from the foul line to the pins/)).toBeTruthy();
     expect(readVideoFrames).not.toHaveBeenCalled();
+    // What the tracer did, for a screenshot from the phone.
+    const details = screen.getByTestId("tracer-details").textContent!;
+    expect(details).toMatch(/^Details: app: Headpin /);
+    expect(details).toContain("search: no run found; read from nowhere s");
+    expect(details).toMatch(/times: look [\d.]+, read 0\.0, lane 0\.0, trace 0\.0 s/);
     fireEvent.click(screen.getByRole("button", { name: "Another video" }));
     expect(screen.getByRole("button", { name: /Choose a video/ })).toBeTruthy();
   });
@@ -320,6 +325,7 @@ describe("ShotTracerView", () => {
     await searchFinds(SHOT);
     expect((await screen.findByRole("alert")).textContent).toMatch(/couldn't be read/);
     expect(screen.getByText("Details: only 0 frames read (WebCodecs vp09)")).toBeTruthy();
+    expect(screen.getByTestId("tracer-details").textContent).toContain("search: release 12.00 s, pins 14.60 s, confidence 0.90, 1 run");
   });
 
   it("looks for the lane on about 24 frames spread over the clip, in a pool of workers", async () => {
@@ -371,6 +377,7 @@ describe("ShotTracerView", () => {
     expect(screen.getByRole("button", { name: "Another video" })).toBeTruthy();
     // How it was read and how long each stage took, for runs on a phone.
     expect(screen.getByText(/^Read by \?\. Looking [\d.]+ s, reading [\d.]+ s, lane [\d.]+ s, tracing [\d.]+ s\.$/)).toBeTruthy();
+    expect(screen.getByTestId("tracer-details").textContent).toMatch(/lane: found on 2 of 24, best frame 16[\s\S]*trace: 0 sightings, 0\.0 to 60\.0 ft/);
   });
 
   it("says the lane may be off when the found lanes disagree, with nothing to move", async () => {
@@ -436,6 +443,7 @@ describe("ShotTracerView", () => {
     expect((await screen.findByRole("alert")).textContent).toBe("The lane couldn't be found in this video.");
     expect(trace()).toBeUndefined();
     expect(screen.queryByRole("button", { name: /Trace the shot/ })).toBeNull();
+    expect(screen.getByTestId("tracer-details").textContent).toContain("lane: not found on 204 frames");
   });
 
   it("goes straight to the run's band when the first part of the clips' band holds no lane", async () => {

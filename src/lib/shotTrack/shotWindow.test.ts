@@ -23,6 +23,7 @@ import {
   windowStart,
   runFeet,
   runInFrame,
+  runVerdict,
   shotFrames,
   shotWindow,
   SLOWEST_FTS,
@@ -253,5 +254,18 @@ describe("the shot window", () => {
       expect(split.fps).toBe(60);
       expect(split.rest).toEqual({ from: 13.2, to: 16 });
     });
+  });
+
+  it("says why each run is or is not the ball's", () => {
+    // A ball at 25 ft/s from 2 ft behind the foul line, a point every fifteenth of a second.
+    const at = (fts: number, from = -2, n = 6, u = 20) => Array.from({ length: n }, (_, i) => ({ t: i / 15, v: from + (fts * i) / 15, u }));
+    expect(runVerdict(at(25))).toBe("ball");
+    expect(runVerdict([...at(25), { t: 0.5, v: 300 }])).toBe("off-lane");
+    expect(runVerdict(at(25, -2, 6, 52))).toBe("next-lane");
+    expect(runVerdict(at(25, -2, 2))).toBe("too-short");
+    expect(runVerdict(at(25).reverse())).toBe("not-up-lane");
+    expect(runVerdict(at(25, 20))).toBe("starts-far");
+    expect(runVerdict(at(8, -2, 9))).toBe("too-slow");
+    expect(runVerdict(at(60))).toBe("too-fast");
   });
 });
