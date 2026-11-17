@@ -1690,6 +1690,10 @@ msgstr "立ち位置から算出しています。タップするとレーン上
 msgid "Description"
 msgstr "説明"
 
+#: src/views/ShotTracerView.tsx
+msgid "Details: {why}"
+msgstr "詳細: {why}"
+
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
@@ -1930,6 +1934,11 @@ msgstr "ライブアクティビティを有効にする"
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "両方のレーンに整数を入力してください。"
+
+#. Bowling: the ball's speed over the last feet before it meets the pins, in miles an hour
+#: src/views/ShotTracerView.tsx
+msgid "Entry speed"
+msgstr "エントリースピード"
 
 #. The tracer worked it out from where the ball was seen nearby
 #: src/views/ShotTracerView.tsx
@@ -2759,6 +2768,11 @@ msgstr "レイト＆アンギュラー"
 #: src/views/DashboardView.tsx
 msgid "Later"
 msgstr "あとで"
+
+#. Bowling: the ball's speed over the first 15 feet past the foul line, in miles an hour
+#: src/views/ShotTracerView.tsx
+msgid "Launch speed"
+msgstr "リリーススピード"
 
 #. Bowling term: the board the ball first touches the lane
 #. Bowling term: the board the ball first touches the lane
@@ -3860,6 +3874,11 @@ msgstr "比率"
 msgid "Re-aim"
 msgstr "狙い直し"
 
+#. A diagnostics line in Labs: how the video was read (a technical name), and the seconds each stage of the shot tracer took
+#: src/views/ShotTracerView.tsx
+msgid "Read by {reader}. Looking {look} s, reading {read} s, lane {lane} s, tracing {trace} s."
+msgstr "読み込み方法: {reader}。探索 {look} 秒、読み込み {read} 秒、レーン {lane} 秒、トレース {trace} 秒。"
+
 #: src/views/ShotTracerView.tsx
 msgid "Reading the video…"
 msgstr "動画を読み込み中…"
@@ -4568,10 +4587,6 @@ msgstr "現行ボールのスペックと写真"
 #: src/views/CatalogView.tsx
 msgid "Specs at {weight}"
 msgstr "{weight}のスペック"
-
-#: src/views/ShotTracerView.tsx
-msgid "Speed"
-msgstr "スピード"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins

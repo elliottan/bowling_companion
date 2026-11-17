@@ -14,7 +14,10 @@ import {
   laneBand,
   laneBands,
   LEAD_SECONDS,
+  OTHER_RUN_POINTS,
+  OTHER_RUNS,
   readFrom,
+  runScale,
   ShotSearch,
   SHORT_VIDEO,
   shrink,
@@ -217,7 +220,11 @@ describe("finding the shot", () => {
     expect(findShot(Array.from({ length: 40 }, (_, i) => frame(i / 15)))).toBeNull();
     expect(findShot(handShot(0).slice(0, 4))).toBeNull();
     expect(findShot([])).toBeNull();
-    expect(findShot(handShot(1, { x: 8 }))).toBeNull();
+    // A run up the side does not pass for the ball's: reported as a guess, for the lane to judge.
+    const side = findShot(handShot(1, { x: 8 }))!;
+    expect(side.guessed).toBe(true);
+    expect(side.run.length).toBeGreaterThanOrEqual(OTHER_RUN_POINTS);
+    expect(findShot(handShot(1))!.guessed).toBeUndefined();
   });
 
   it("of two runs as long, takes the later: the ball's comes after the bowler's slide", () => {
@@ -225,6 +232,10 @@ describe("finding the shot", () => {
     const second = handShot(0).map((f) => ({ ...f, t: f.t + 2 }));
     const found = findShot([...first, ...second])!;
     expect(found.release).toBeCloseTo(2, 1);
+    // The other run is reported beside it, for the lane to judge.
+    expect(found.others).toHaveLength(1);
+    expect(found.others![0][0].t).toBeCloseTo(0.5, 1);
+    expect(OTHER_RUNS).toBeGreaterThanOrEqual(1);
   });
 
   it("ignores a frame of another size", () => {
@@ -273,11 +284,22 @@ describe("what to read", () => {
     expect(high.bottom).toBeCloseTo(0.44, 9);
   });
 
-  it("tries the clips' own band after the run's, and alone when they are much the same", () => {
+  it("tries the clips' own band before the run's, and alone when they are much the same", () => {
     expect(laneBands(1080, 1920, found(0.6))).toEqual([DEFAULT_BAND]);
     const low = laneBands(1080, 1920, found(0.9));
     expect(low).toHaveLength(2);
-    expect(low[1]).toEqual(DEFAULT_BAND);
+    expect(low[0]).toEqual(DEFAULT_BAND);
+    expect(low[1]!.bottom).toBe(1);
     expect(laneBands(1920, 1080, found(0.6))).toEqual([null]);
+  });
+
+  it("judges the ball's pace and rise against a portrait phone video's height at the picture's width", () => {
+    // IMG_1996 at the first look's width: its own height.
+    expect(runScale(192, 341)).toBe(341);
+    // A clip cut from a band of a portrait video, or a landscape video: the height a portrait one would have.
+    expect(runScale(192, 143)).toBe(341);
+    expect(runScale(192, 108)).toBe(341);
+    // Taller than 9 by 16: its own.
+    expect(runScale(192, 400)).toBe(400);
   });
 });

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { gridFrames, LANE_EVERY, readStep } from "./framePick";
 import { trace } from "./pipeline";
 import { multiply, normalize } from "./homography";
 import { timeAt, truthAt } from "./synthetic";
@@ -140,5 +141,40 @@ describe("tracing a shot seen over the near lane only", () => {
     expect(r.metrics.pins.state).toBe("missing");
     expect(r.metrics.speed.state).toBe("estimated");
     expect(r.pinFrame).toBeNull();
+  });
+});
+
+describe("a read that starts earlier or later", () => {
+  // The app reads from a little before the foul line, the harness from the
+  // clip's start: the same shot, the frames they share the same, must read
+  // the same. Each frame's found lane is a little out (as the finder's are,
+  // a few tenths of a board), so a lane search or an empty lane that chose
+  // other frames for another start would move the readings. The lanes are
+  // looked for on the frames the view's `findOn` chooses (`gridFrames`).
+  // The ball let go 1.2 s in, so both reads have the same lead before it.
+  const spec = { ...standardShot({ hand: "right", body: true, duration: 4.4 }), releaseT: 1.2 };
+  const src = syntheticSource(spec);
+  const times = Array.from({ length: src.count }, (_, i) => src.frame(i).t);
+  const found = (i: number) => {
+    const out = 0.3 * Math.sin(1.3 * i);
+    return { frame: i, H: normalize(multiply(truthAt(spec, i).H, [1, 0, out, 0, 1, 0, 0, 0, 1])), weight: 1 };
+  };
+  const readFrom = (start: number) => {
+    const count = src.count - start;
+    const own = times.slice(start);
+    const lanes = gridFrames(own, LANE_EVERY, readStep(own)).map((k) => ({ ...found(start + k), frame: k }));
+    const out = trace({ source: { count, frame: (k) => src.frame(start + k) }, calibFrame: 80 - start, lanes, hand: "right" });
+    return (out.result as TrackResult).metrics;
+  };
+  const whole = readFrom(0);
+  const late = readFrom(9);
+
+  it("reads the same boards from either start", () => {
+    // Lanes chosen every nth frame of each read moved all four by 0.2 board here.
+    for (const k of ["laydown", "arrows", "breakpoint", "pins"] as const) {
+      expect(whole[k].state).toBe("measured");
+      expect(Math.abs(late[k].value! - whole[k].value!)).toBeLessThan(0.02);
+    }
+    expect(Math.abs(late.breakpointFeet.value! - whole.breakpointFeet.value!)).toBeLessThan(0.1);
   });
 });

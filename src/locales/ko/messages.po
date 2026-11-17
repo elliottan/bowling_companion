@@ -1690,6 +1690,10 @@ msgstr "스탠스에서 계산했어요. 탭하면 레인에서 볼 수 있어�
 msgid "Description"
 msgstr "설명"
 
+#: src/views/ShotTracerView.tsx
+msgid "Details: {why}"
+msgstr "자세히: {why}"
+
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
@@ -1930,6 +1934,11 @@ msgstr "실시간 현황 켜기"
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "두 레인 모두 정수로 입력하세요."
+
+#. Bowling: the ball's speed over the last feet before it meets the pins, in miles an hour
+#: src/views/ShotTracerView.tsx
+msgid "Entry speed"
+msgstr "진입 속도"
 
 #. The tracer worked it out from where the ball was seen nearby
 #: src/views/ShotTracerView.tsx
@@ -2759,6 +2768,11 @@ msgstr "늦고 각진 롤"
 #: src/views/DashboardView.tsx
 msgid "Later"
 msgstr "나중에"
+
+#. Bowling: the ball's speed over the first 15 feet past the foul line, in miles an hour
+#: src/views/ShotTracerView.tsx
+msgid "Launch speed"
+msgstr "초기 속도"
 
 #. Bowling term: the board the ball first touches the lane
 #. Bowling term: the board the ball first touches the lane
@@ -3860,6 +3874,11 @@ msgstr "비율"
 msgid "Re-aim"
 msgstr "다시 조준"
 
+#. A diagnostics line in Labs: how the video was read (a technical name), and the seconds each stage of the shot tracer took
+#: src/views/ShotTracerView.tsx
+msgid "Read by {reader}. Looking {look} s, reading {read} s, lane {lane} s, tracing {trace} s."
+msgstr "읽은 방식: {reader}. 찾기 {look}초, 읽기 {read}초, 레인 {lane}초, 추적 {trace}초."
+
 #: src/views/ShotTracerView.tsx
 msgid "Reading the video…"
 msgstr "동영상 읽는 중…"
@@ -4568,10 +4587,6 @@ msgstr "현재 볼의 사양과 사진"
 #: src/views/CatalogView.tsx
 msgid "Specs at {weight}"
 msgstr "{weight} 기준 스펙"
-
-#: src/views/ShotTracerView.tsx
-msgid "Speed"
-msgstr "속도"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins

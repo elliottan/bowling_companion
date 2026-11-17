@@ -62,6 +62,21 @@ export interface ShotFound {
   confidence: number;
   /** The ball's run, as found. */
   run: RunPoint[];
+  /**
+   * Every other run of three points or more, those that pass for the ball's
+   * first (longest first), up to `OTHER_RUNS`: the bowler's approach can win
+   * on length (IMG_1996: the run chosen was the approach, 13 ft behind the
+   * foul line, on most looks), and the ball's own run can fail the picture's
+   * tests on a look (seen for 4 frames rather than 5, it did not slow enough).
+   * Once the lane is found, the runs are judged in feet (`shotWindow.ts`).
+   */
+  others?: RunPoint[][];
+  /**
+   * No run passed for the ball's in the picture (`isShotRun`): `run` is only
+   * the longest seen. The shot is taken as found only if the lane then shows
+   * one of the runs is the ball's (`readShot.ts`).
+   */
+  guessed?: boolean;
 }
 
 /** The width the first look reads a video at, pixels, and how many frames a second it wants. */
@@ -69,16 +84,25 @@ export const COARSE_WIDTH = 192;
 export const COARSE_FPS = 15;
 
 /**
- * How far before the ball is first seen the full read starts, seconds. The
- * tracer follows the ball back to the foul line from its first sighting and
- * wants a third to a half of a second before it (`release.ts`). The run is
- * first seen anywhere from the bottom of the swing (shot-05's original, a
- * tenth of a second before the release) to a few feet down the lane.
+ * How far before the ball is first seen the full read starts, seconds. The run
+ * is first seen anywhere from the bottom of the swing (shot-05's original, a
+ * tenth of a second before the release) to a few feet down the lane (at 25
+ * ft/s, 5 ft is a fifth of a second), at 15 frames a second: this covers the
+ * foul line in every case. The tracer itself needs only a few frames before
+ * the crossing (`shotWindow.ts`, which drops the rest once the lane is found).
  */
-export const LEAD_SECONDS = 0.6;
+export const LEAD_SECONDS = 0.4;
 
-/** A pixel has changed when its grey moved this much (video range), the same way, against both neighbours. */
-export const CHANGE = 12;
+/** The most other runs a look reports beside the one chosen (`ShotFound.others`), and the fewest points each has. */
+export const OTHER_RUNS = 16;
+export const OTHER_RUN_POINTS = 3;
+
+/**
+ * A pixel has changed when its gray moved this much, the same way, against
+ * both neighbors: 12 in video range, where it was set, which is 14 in the
+ * full range the frames are in since 2026-11-17 (`grayRange.ts`).
+ */
+export const CHANGE = 14;
 
 /** A candidate is no wider than this fraction of the picture's width, nor taller than twice it (the ball and its reflection). */
 export const MAX_BALL = 0.15;
@@ -452,6 +476,21 @@ function pinsHit(small: readonly CoarseFrame[], shifts: readonly Shift[], run: B
   return null;
 }
 
+/**
+ * The height the first look's limits on the ball's pace and rise
+ * (`MAX_RISE_RATE`, `MIN_RUN_RISE`, `MAX_RUN_RISE`) are fractions of: the
+ * picture's own when it is a portrait phone video (where they were measured,
+ * IMG_1996 and shot-05's original, 9 by 16), else what that height would be
+ * at this width. A landscape video, or a clip cut from a band of a portrait
+ * one (the sample clips: 42% of its height at the same width), shows the
+ * ball at the same pixels a second for the same width, and judged against
+ * its own short height every ball ran too fast to be one: no run passed on
+ * five of the six clips, and shot-01 was "not found" in the app.
+ */
+export function runScale(width: number, height: number): number {
+  return Math.max(height, Math.round((width * 16) / 9));
+}
+
 /** How much smaller the copies kept for the camera's movement and the pins are. */
 const SMALL = 4;
 
@@ -494,15 +533,24 @@ export class ShotSearch {
 
   finish(): ShotFound | null {
     if (!this.size || this.times.length < MIN_RUN_POINTS + 2) return null;
-    const { w, h } = this.size;
-    const runs = ballRuns(this.times, this.blobs, this.shifts, h).filter((r) => isShotRun(r, this.times, this.shifts, w, h));
+    const { w } = this.size;
+    // The ball's pace and rise are judged against the height it has in a
+    // portrait phone video (`runScale`), not the picture's own.
+    const h = runScale(w, this.size.h);
+    const all = ballRuns(this.times, this.blobs, this.shifts, h);
+    const shot = new Set(all.filter((r) => isShotRun(r, this.times, this.shifts, w, h)));
+    // No run passes for the ball's: the longest of three points or more,
+    // flagged, for the lane to judge (IMG_1996: one look in four).
+    const guessed = shot.size === 0;
+    const runs = guessed ? all.filter((r) => r.length >= OTHER_RUN_POINTS) : all.filter((r) => shot.has(r));
     if (!runs.length) return null;
     // The longest; of those as long, the last to start. Before the ball's
     // run the bowler's slide or swing can pass for one, as long; after it the
     // follow-through and the walk back are shorter (four looks at shot-05's
     // original in Chromium: the ball's run had 4 to 7 points, the slide 4 or 5,
     // the follow-through 4).
-    const run = runs.reduce((best, r) => (r.length > best.length || (r.length === best.length && r[0].frame > best[0].frame) ? r : best));
+    const ranked = [...runs].sort((a, b) => b.length - a.length || b[0].frame - a[0].frame);
+    const run = ranked[0];
     const release = this.times[run[0].frame];
     const pinHit = pinsHit(this.small, this.shifts, run, SMALL);
     const rise = riseOf(run, this.shifts, h);
@@ -512,8 +560,18 @@ export class ShotSearch {
       release,
       pinHit,
       confidence,
-      run: run.map((b) => ({ t: this.times[b.frame], x: b.x / w, y: b.y / h }))
+      run: this.points(run),
+      others: (guessed ? ranked.slice(1) : [...ranked.slice(1), ...all.filter((r) => !shot.has(r) && r.length >= OTHER_RUN_POINTS)])
+        .slice(0, OTHER_RUNS)
+        .map((r) => this.points(r)),
+      ...(guessed ? { guessed: true } : {})
     };
+  }
+
+  /** A run as the first look reports it: seconds and picture fractions. */
+  private points(run: Blob[]): RunPoint[] {
+    const { w, h } = this.size!;
+    return run.map((b) => ({ t: this.times[b.frame], x: b.x / w, y: b.y / h }));
   }
 }
 
@@ -562,21 +620,16 @@ export function laneBand(width: number, height: number, found: ShotFound | null)
 }
 
 /**
- * A video no longer than this, seconds, is read from its start when no shot
- * is found in it: about what the reader holds of a 60 fps video, and one
- * more. A longer one is not guessed at.
+ * A video no longer than this, seconds, is read whole when no shot is found
+ * in it: a shot and a little more. A longer one is not guessed at.
  */
 export const SHORT_VIDEO = 5;
 
 /**
  * Where the full read of a video `duration` seconds long starts: a little
  * before the release when the shot was found, the start of a short video
- * when it was not, and null for a long one with no shot found.
- *
- * At 60 fps the read holds 4 seconds, and a slow ball (10 mph is 4.1 s to
- * the pins) does not fit with its lead. The release end is kept: it is where
- * the laydown, the touchdown and the arrows are read, and the tracer reports
- * the pins as not seen.
+ * when it was not, and null for a long one with no shot found. Where it ends
+ * is `shotWindow` (`shotWindow.ts`): when the ball has left the deck.
  */
 export function readFrom(duration: number, found: ShotFound | null): number | null {
   if (found) return found.start;
@@ -584,17 +637,19 @@ export function readFrom(duration: number, found: ShotFound | null): number | nu
 }
 
 /**
- * The bands of the picture to look for the lane in, in turn: the run's
- * (`laneBand`), then the sample clips' own; only the clips' own when the two
- * are much the same, since the tracer was tuned on it. On shot-05's original
- * the run's band (33% to 77%) read the laydown 23.1 and the clips' band 18.7,
- * as the harness reads it. The run can be the bowler's slide rather than the
- * ball, and then its band is too low; the lane finder is the judge. A
+ * The bands of the picture to look for the lane in, in turn: the sample
+ * clips' own, which the tracer was tuned on, then the run's (`laneBand`)
+ * when it is not much the same. On shot-05's original the run's band (33% to
+ * 77%) read the laydown 23.1 and the clips' band 18.7, as the harness reads
+ * it. The run is often the bowler's approach rather than the ball, and then
+ * its band is too low: tried first, it cost a read on most looks at IMG_1996,
+ * and which band was read depended on which run the look chose. The lane
+ * finder on the first part of the read is the judge (`readShot.ts`). A
  * landscape picture is read whole.
  */
 export function laneBands(width: number, height: number, found: ShotFound | null): (Band | null)[] {
   const first = laneBand(width, height, found);
   if (!first) return [null];
   const shared = Math.min(first.bottom, DEFAULT_BAND.bottom) - Math.max(first.top, DEFAULT_BAND.top);
-  return shared >= 0.8 * (DEFAULT_BAND.bottom - DEFAULT_BAND.top) ? [DEFAULT_BAND] : [first, DEFAULT_BAND];
+  return shared >= 0.8 * (DEFAULT_BAND.bottom - DEFAULT_BAND.top) ? [DEFAULT_BAND] : [DEFAULT_BAND, first];
 }

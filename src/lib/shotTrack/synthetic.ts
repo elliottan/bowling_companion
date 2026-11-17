@@ -18,6 +18,7 @@ import {
   type HookShape
 } from "./laneModel";
 import type { GrayFrame, LaneMarks, Mat3, Point } from "./types";
+import * as fdlibm from "./detMath";
 
 /**
  * Test support: renders grey frames of a lane from a pinhole camera, with a
@@ -55,15 +56,15 @@ interface Basis {
 }
 
 function basis(cam: Camera): Basis {
-  const cy = Math.cos(cam.yaw);
-  const sy = Math.sin(cam.yaw);
-  const cp = Math.cos(cam.pitch);
-  const sp = Math.sin(cam.pitch);
+  const cy = fdlibm.cos(cam.yaw);
+  const sy = fdlibm.sin(cam.yaw);
+  const cp = fdlibm.cos(cam.pitch);
+  const sp = fdlibm.sin(cam.pitch);
   const f: Vec3 = [sy * cp, cy * cp, -sp];
   const r0: Vec3 = [cy, -sy, 0];
   const u0: Vec3 = [r0[1] * f[2] - r0[2] * f[1], r0[2] * f[0] - r0[0] * f[2], r0[0] * f[1] - r0[1] * f[0]];
-  const cr = Math.cos(cam.roll);
-  const sr = Math.sin(cam.roll);
+  const cr = fdlibm.cos(cam.roll);
+  const sr = fdlibm.sin(cam.roll);
   // Rolling the camera clockwise turns its right vector down.
   const r: Vec3 = [r0[0] * cr - u0[0] * sr, r0[1] * cr - u0[1] * sr, r0[2] * cr - u0[2] * sr];
   const u: Vec3 = [u0[0] * cr + r0[0] * sr, u0[1] * cr + r0[1] * sr, u0[2] * cr + r0[2] * sr];
@@ -89,7 +90,7 @@ export function lookAt(from: Vec3, to: Vec3): { yaw: number; pitch: number } {
   const dx = to[0] - from[0];
   const dy = to[1] - from[1];
   const dz = to[2] - from[2];
-  return { yaw: Math.atan2(dx, dy), pitch: -Math.atan2(dz, Math.hypot(dx, dy)) };
+  return { yaw: fdlibm.atan2(dx, dy), pitch: -fdlibm.atan2(dz, Math.hypot(dx, dy)) };
 }
 
 /** Lane (u, v) to image homography for this camera, exact. */
@@ -131,7 +132,7 @@ export function rng(seed: number): () => number {
 
 function gaussian(rand: () => number): number {
   const u = Math.max(rand(), 1e-12);
-  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rand());
+  return Math.sqrt(-2 * fdlibm.log(u)) * fdlibm.cos(2 * Math.PI * rand());
 }
 
 export interface SyntheticShot {
@@ -340,12 +341,12 @@ function skyTone(o: Vec3, d: Vec3): number {
     const x = o[0] + tw * d[0];
     const z = o[2] + tw * d[2];
     if (z < 2.5) return 25;
-    return 120 + 50 * soft(Math.sin(x * 1.7) * Math.sin(z * 2.3));
+    return 120 + 50 * soft(fdlibm.sin(x * 1.7) * fdlibm.sin(z * 2.3));
   }
   if (tc < Infinity) {
     const x = o[0] + tc * d[0];
     const y = o[1] + tc * d[1];
-    return 190 + 40 * soft(Math.sin(x * 0.9) * Math.sin(y * 0.6));
+    return 190 + 40 * soft(fdlibm.sin(x * 0.9) * fdlibm.sin(y * 0.6));
   }
   return 180;
 }
@@ -385,7 +386,7 @@ export function renderFrame(spec: SyntheticShot, i: number): GrayFrame {
     balls.push(set);
   }
   const body = spec.body ? { ...laneToWorld(spec.body.u, spec.body.v), r: spec.body.radius, h: spec.body.height } : null;
-  const bodyX = body ? body.x + 0.4 * Math.sin(t * 2) : 0;
+  const bodyX = body ? body.x + 0.4 * fdlibm.sin(t * 2) : 0;
 
   // Picture boxes outside which the pins and the balls cannot be hit, so the
   // per-pixel ray tests run only where they matter.

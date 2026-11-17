@@ -3,6 +3,7 @@ import { apply, downAt } from "./homography";
 import { median, parabolaPeak, sample } from "./image";
 import { DECK_END_FT, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
 import type { GrayFrame, Mat3, Point } from "./types";
+import * as fdlibm from "./detMath";
 
 /** Finding the ball in one frame (plan 7.4). */
 
@@ -42,8 +43,13 @@ export function changeMap(
   const { width: w, height: h } = steadied;
   const n = w * h;
   const diff = new Float32Array(n);
-  const probe: number[] = [];
+  const probe = new Float64Array(Math.ceil(n / 7));
+  let probed = 0;
   const env = envelope(bg);
+  const { lo, hi } = env;
+  const data = steadied.data;
+  const bgData = bg.data;
+  const spread = bg.spread;
   for (let i = 0; i < n; i++) {
     // Outside the empty lane's 3 by 3 range: a strong static edge that the
     // steadying misses by a fraction of a pixel does not count as change.
@@ -52,14 +58,23 @@ export function changeMap(
     // also counts as changed when it leaves its own range over time: five
     // spreads from its median (a jittering edge has a wide spread, a still
     // pin's body a narrow one).
-    const p = steadied.data[i];
-    const sp = bg.spread?.[i];
-    const own = sp !== undefined && Number.isFinite(sp) ? Math.abs(p - bg.data[i]) - K_SPREAD * Math.max(sp, 2) : 0;
-    const d = Math.max(0, p - env.hi[i], env.lo[i] - p, own);
+    const p = data[i];
+    const sp = spread?.[i];
+    const own = sp !== undefined && Number.isFinite(sp) ? Math.abs(p - bgData[i]) - K_SPREAD * (sp > 2 ? sp : 2) : 0;
+    // The largest of the four, written out; NaN anywhere (a pixel not seen) counts as no change.
+    let d = 0;
+    if (p !== p || own !== own) d = NaN;
+    else {
+      const up = p - hi[i];
+      const down = lo[i] - p;
+      if (up > d) d = up;
+      if (down > d) d = down;
+      if (own > d) d = own;
+    }
     diff[i] = Number.isFinite(d) ? d : 0;
-    if (i % 7 === 0) probe.push(diff[i]);
+    if (i % 7 === 0) probe[probed++] = diff[i];
   }
-  const noise = 1.4826 * median(probe);
+  const noise = 1.4826 * median(probe.subarray(0, probed));
   return { diff, threshold: Math.max((opts.k ?? 4) * noise, opts.floor ?? 14) };
 }
 
@@ -84,12 +99,29 @@ export function findCandidates(
   const n = w * h;
   const { diff, threshold: thr } = changeMap(steadied, bg, opts);
   // Smooth the difference over 3 by 3 so a ball's highlights do not split it.
+  // A mean over the threshold needs a pixel near it at the threshold (a hair
+  // under, for the sum's rounding), and most of the lane has none: the rows
+  // with one are found first, and only around those pixels is the mean taken.
+  const near = thr * (1 - 1e-9);
   const mask = new Uint8Array(n);
+  const hot = new Uint8Array(n);
+  const hotRow = new Uint8Array(h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0, i = y * w; x < w; x++, i++) {
+      if (diff[i] >= near) {
+        hot[i] = 1;
+        hotRow[y] = 1;
+      }
+    }
+  }
   for (let y = 1; y < h - 1; y++) {
+    if (!hotRow[y - 1] && !hotRow[y] && !hotRow[y + 1]) continue;
     for (let x = 1; x < w - 1; x++) {
+      const c = y * w + x;
+      if (!(hot[c - w - 1] | hot[c - w] | hot[c - w + 1] | hot[c - 1] | hot[c] | hot[c + 1] | hot[c + w - 1] | hot[c + w] | hot[c + w + 1])) continue;
       let s = 0;
       for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) s += diff[(y + j) * w + x + i];
-      if (s / 9 > thr) mask[y * w + x] = 1;
+      if (s / 9 > thr) mask[c] = 1;
     }
   }
   const tol = opts.widthTolerance ?? 0.35;
@@ -130,11 +162,22 @@ export function findCandidates(
         if (y < y0) y0 = y;
         if (y > y1) y1 = y;
         (rowsX[y] ??= []).push(x);
-        for (const q of [p - 1, p + 1, p - w, p + w]) {
-          if (q < 0 || q >= n || label[q] || !mask[q]) continue;
-          if ((q === p - 1 && x === 0) || (q === p + 1 && x === w - 1)) continue;
-          label[q] = next;
-          stack.push(q);
+        // The four neighbors, in the order left, right, up, down.
+        if (x > 0 && !label[p - 1] && mask[p - 1]) {
+          label[p - 1] = next;
+          stack.push(p - 1);
+        }
+        if (x < w - 1 && !label[p + 1] && mask[p + 1]) {
+          label[p + 1] = next;
+          stack.push(p + 1);
+        }
+        if (p - w >= 0 && !label[p - w] && mask[p - w]) {
+          label[p - w] = next;
+          stack.push(p - w);
+        }
+        if (p + w < n && !label[p + w] && mask[p + w]) {
+          label[p + w] = next;
+          stack.push(p + w);
         }
       }
       if (area >= MIN_PIECE) blobs.push({ x0, x1, y0, y1, area, rowsX });
@@ -175,29 +218,73 @@ export function findCandidates(
 
 /** A mask with gaps up to `2 * radius` pixels wide closed: grown by `radius`, then shrunk by it. */
 export function closeGaps(mask: Uint8Array, w: number, h: number, radius: number): Uint8Array {
-  const pass = (src: Uint8Array, grow: boolean) => {
+  // A square is a row of the square's width swept down its height, so each
+  // pass is one along the rows and one down the columns. Outside the picture
+  // is clear, so nothing near the border comes out larger than it went in.
+  // The change is a few blobs on an empty lane: rows with nothing set are
+  // passed over.
+  const full = 2 * radius + 1;
+  const anyIn = (src: Uint8Array) => {
+    const any = new Uint8Array(h);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0, i = y * w; x < w; x++, i++) {
+        if (src[i]) {
+          any[y] = 1;
+          break;
+        }
+      }
+    }
+    return any;
+  };
+  // Along each row: how many set pixels lie within the radius (the window cut by the border counts fewer).
+  const rows = (src: Uint8Array, any: Uint8Array, grow: boolean) => {
     const out = new Uint8Array(w * h);
     for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        let hit = !grow;
-        for (let j = -radius; j <= radius && hit !== grow; j++) {
-          for (let i = -radius; i <= radius; i++) {
-            const xx = x + i;
-            const yy = y + j;
-            // Outside the picture is clear, so nothing near the border comes out larger than it went in.
-            const v = xx >= 0 && yy >= 0 && xx < w && yy < h && src[yy * w + xx] === 1;
-            if (v === grow) {
-              hit = grow;
-              break;
-            }
-          }
-        }
-        out[y * w + x] = hit ? 1 : 0;
+      if (!any[y]) continue;
+      const base = y * w;
+      let count = 0;
+      for (let k = 0; k < Math.min(radius, w); k++) count += src[base + k];
+      for (let k = 0; k < w; k++) {
+        if (k + radius < w) count += src[base + k + radius];
+        if (k - radius - 1 >= 0) count -= src[base + k - radius - 1];
+        // Growing: any set within reach. Shrinking: all of the reach set, which a window cut by the border cannot be.
+        if (grow ? count > 0 : count === full) out[base + k] = 1;
       }
     }
     return out;
   };
-  return pass(pass(mask, true), false);
+  // Down the columns, a row at a time: each pixel from the rows within the radius.
+  const cols = (src: Uint8Array, any: Uint8Array, grow: boolean) => {
+    const out = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) {
+      const lo = y - radius;
+      const hi = y + radius;
+      let need = false;
+      if (grow) {
+        for (let j = Math.max(0, lo); j <= Math.min(h - 1, hi) && !need; j++) need = any[j] === 1;
+      } else {
+        need = lo >= 0 && hi < h;
+        for (let j = lo; j <= hi && need; j++) need = any[j] === 1;
+      }
+      if (!need) continue;
+      const base = y * w;
+      for (let x = 0; x < w; x++) {
+        let hit = !grow;
+        for (let j = Math.max(0, lo); j <= Math.min(h - 1, hi); j++) {
+          if ((src[j * w + x] === 1) === grow) {
+            hit = grow;
+            break;
+          }
+        }
+        if (hit) out[base + x] = 1;
+      }
+    }
+    return out;
+  };
+  const grownRows = rows(mask, anyIn(mask), true);
+  const grown = cols(grownRows, anyIn(grownRows), true);
+  const shrunkRows = rows(grown, anyIn(grown), false);
+  return cols(shrunkRows, anyIn(shrunkRows), false);
 }
 
 interface Blob {
@@ -352,8 +439,8 @@ export function refineCircle(f: GrayFrame, H: Mat3, rough: Point, r: number, low
   let no = 0;
   for (let a = 0; a < 16; a++) {
     const th = (2 * Math.PI * a) / 16;
-    const dx = Math.cos(th);
-    const dy = Math.sin(th);
+    const dx = fdlibm.cos(th);
+    const dy = fdlibm.sin(th);
     if (dx * down.x + dy * down.y > 0.17) continue;
     const vi = sample(f, rough.x + 0.4 * r * dx, rough.y + 0.4 * r * dy);
     const vo = sample(f, rough.x + 1.6 * r * dx, rough.y + 1.6 * r * dy);
@@ -375,8 +462,8 @@ export function refineCircle(f: GrayFrame, H: Mat3, rough: Point, r: number, low
   let kept = 0;
   for (let a = 0; a < rays; a++) {
     const th = (2 * Math.PI * a) / rays;
-    const dx = Math.cos(th);
-    const dy = Math.sin(th);
+    const dx = fdlibm.cos(th);
+    const dy = fdlibm.sin(th);
     if (dx * down.x + dy * down.y > 0.17) continue;
     kept++;
     const r0 = 0.6 * r;

@@ -1,6 +1,7 @@
 import type { Handedness } from "../../types/bowling";
 import { associate } from "./associate";
-import { laneRoi, medianBackground, steady, type Roi } from "./background";
+import { laneRoi, medianBackground, steady, type Background, type Roi } from "./background";
+import { gridFrames, readStep } from "./framePick";
 import { findCandidates, refineCircle, type Candidate, type CircleFit } from "./ballDetect";
 import { calibrationReport, type CalibrationReport } from "./calibrationCheck";
 import { fitCalibration, focalFromPlane, type CalibrationFit, type CalMark } from "./calibrate";
@@ -11,9 +12,9 @@ import { median, sample } from "./image";
 import { BALL_DIAMETER_IN, CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
 import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, withoutIslands, type MotionPoint } from "./pathFit";
 import { laneTrack, type FrameLane, type LaneTrack, type LaneTrackOptions } from "./laneTrack";
-import { followForward, overFoulLine, uAtColumn, type OverFoulLine, type ReleaseFrame } from "./release";
+import { atFoulLineTime, followForward, overFoulLine, uAtColumn, type FollowPrediction, type OverFoulLine, type ReleaseFrame } from "./release";
 import { followNear, nearSeeds } from "./nearFollow";
-import { alignTo, laneMarksOf, register, registerPlane, type FrameGeometry, type FrameSource, type RegisterOptions } from "./registration";
+import { alignTo, finishRegister, laneMarksOf, passFrames, PlanePass, planeSlots, RegisterPass, type FrameGeometry, type FrameSource, type Matches, type PlaneOptions, type RegisterOptions } from "./registration";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, TrackError, TrackFailure, TrackResult } from "./types";
 
 /**
@@ -91,8 +92,10 @@ export interface TraceDebug {
   calibration: CalibrationReport | null;
   /** The ball followed back to where it sits right above the foul line (the laydown), when it could be. */
   release?: OverFoulLine | null;
-  /** The ball followed by its darkness from its last sighting to just before the rack moves. */
+  /** The ball followed by its darkness from its last sighting to the last frame before it touches a pin. */
   toPins?: ReleaseFrame[];
+  /** Where the board at the pins was read from the follow: the frame it is read on, lane u, and the frames the line through the boards used. */
+  pinsRead?: { frame: number; u: number; frames: number[] };
   /** The ball followed by its darkness over the near lane, when the empty lane did not show it (`followNear`). */
   nearFollow?: Candidate[];
   /** Seen over the near lane only (`NEAR_FROM_FT`, `NEAR_SPAN_FT`): the far readings are left missing. */
@@ -121,7 +124,140 @@ export const NEAR_FROM_FT = 8;
 export const NEAR_SPAN_FT = 5;
 
 export function trace(input: TraceInput): TraceOutput {
-  const { source, hand } = input;
+  const steps = traceSteps(input);
+  let next = steps.next();
+  while (!next.done) next = steps.next(next.value.map((job) => runTraceJob(job, input.source, input.onProgress)));
+  return next.value;
+}
+
+/**
+ * The tracer's work that runs frame by frame, or pass by pass, as jobs: each
+ * a pure function of what it carries and the frames it names
+ * (`runTraceJob`), so the jobs of one batch can run side by side in workers
+ * and give what one thread gives, bit for bit.
+ */
+export type TraceJob =
+  /** One direction of the picture's registration (`RegisterPass`), over `frames` in order. */
+  | { kind: "register"; calibFrame: number; frames: number[]; opts: RegisterOptions }
+  /** One direction of the floor's registration (`PlanePass`): each of `geos` in order. */
+  | { kind: "plane"; calibFrame: number; H0: Mat3; geos: FrameGeometry[]; opts: PlaneOptions }
+  /** A frame's lane region steadied onto the calibration frame (`steady`). */
+  | { kind: "steady"; index: number; S: Mat3; roi: Roi }
+  /** The per-pixel median and spread of steadied frames (`medianBackground`); any band of rows on its own gives the same. */
+  | { kind: "median"; frames: GrayFrame[] }
+  /**
+   * A frame steadied onto the empty lane (`align` in `traceSteps`), and with
+   * `bg` its ball candidates on it (`findCandidates`). `picture` is the
+   * frame's region already steadied by `S`, when at hand.
+   */
+  | { kind: "align"; index: number; S: Mat3; H: Mat3; plane: boolean; roi: Roi; bg0: GrayFrame; bg?: Background; picture?: GrayFrame }
+  /** Everything after the candidates (`traceTail`): the ball's sightings, path and readings. */
+  | { kind: "tail"; state: TailState };
+
+/** What an `align` job gives: the frame's transform onto the empty lane, the frame steadied by it, and its candidates when asked. */
+export interface Aligned {
+  S: Mat3;
+  steadied: GrayFrame;
+  candidates?: Candidate[];
+}
+
+/** What the tracer has by the time it has every frame's candidates: `traceTail` reads the ball from it. */
+export interface TailState {
+  hand: Handedness;
+  distance?: DistanceSource;
+  first: number;
+  last: number;
+  calibFrame: number;
+  H0: Mat3;
+  geometry: FrameGeometry[];
+  cands: Candidate[];
+  debug: TraceDebug;
+}
+
+/** One job of `traceSteps`, run on `source`'s frames. */
+export function runTraceJob(job: TraceJob, source: FrameSource, onProgress?: (stage: string, fraction: number) => void): unknown {
+  switch (job.kind) {
+    case "register":
+    case "plane": {
+      const pass = passOf(job);
+      for (const i of pass.frames) pass.feed(source.frame(i));
+      return pass.result();
+    }
+    case "steady":
+      return steady(source.frame(job.index), job.S, job.roi);
+    case "median":
+      return medianBackground(job.frames);
+    case "align":
+      return alignFrame(job, source);
+    case "tail":
+      return traceTail(job.state, source, onProgress ?? (() => {}));
+  }
+}
+
+/**
+ * A `register` or `plane` job as a pass fed a frame at a time: `frames` is
+ * the order it wants them in (the calibration frame first), so a worker can
+ * be sent them one by one rather than all at once.
+ */
+export function passOf(job: Extract<TraceJob, { kind: "register" | "plane" }>): { frames: number[]; feed: (f: GrayFrame) => void; result: () => unknown } {
+  const frames = [job.calibFrame, ...(job.kind === "register" ? job.frames : job.geos.map((g) => g.index))];
+  const out: unknown[] = [];
+  let reg: RegisterPass | null = null;
+  let plane: PlanePass | null = null;
+  let k = 0;
+  return {
+    frames,
+    feed(f) {
+      if (k === 0) {
+        if (job.kind === "register") reg = new RegisterPass(f, job.opts);
+        else plane = new PlanePass(f, job.H0, job.opts);
+      } else if (job.kind === "register") out.push(reg!.step(frames[k], f));
+      else out.push(plane!.step(job.geos[k - 1], f));
+      k++;
+    },
+    result: () => (job.kind === "register" ? ({ matches: out as Matches[], patches: reg!.patchCount } satisfies RegisterPassResult) : out)
+  };
+}
+
+/** What a `register` job gives: the pass's matches, and how many patches each frame was matched by. */
+export interface RegisterPassResult {
+  matches: Matches[];
+  patches: number;
+}
+
+/**
+ * A frame steadied onto the empty lane `bg0`: its transform, and its picture
+ * through it (the picture it was aligned on, when the alignment left the
+ * transform as it was); with `bg`, its ball candidates.
+ */
+export function alignFrame(job: Extract<TraceJob, { kind: "align" }>, source: FrameSource): Aligned {
+  const { roi } = job;
+  const toRoi: Mat3 = [1, 0, roi.x0, 0, 1, roi.y0, 0, 0, 1];
+  const fromRoi: Mat3 = [1, 0, -roi.x0, 0, 1, -roi.y0, 0, 0, 1];
+  const frame = source.frame(job.index);
+  const picture = job.picture ?? steady(frame, job.S, roi);
+  let out: Aligned = { S: job.S, steadied: picture };
+  // Only frames registered on the floor's own homography: a turn is exact
+  // for the camera it models, and aligning those adds only noise.
+  if (job.plane) {
+    const R = alignTo(job.bg0, picture);
+    if (R) {
+      const S = normalize(multiply(job.S, multiply(toRoi, multiply(R, fromRoi))));
+      out = { S, steadied: steady(frame, S, roi) };
+    }
+  }
+  if (job.bg) out.candidates = findCandidates(out.steadied, job.bg, roi, out.S, job.H, job.index);
+  return out;
+}
+
+/**
+ * The tracer as batches of jobs (`TraceJob`): each `yield` hands out jobs
+ * that do not depend on one another and takes their results back in the same
+ * order. `trace` runs them one after another; a pool of workers can run each
+ * batch side by side.
+ */
+export function* traceSteps(input: TraceInput): Generator<TraceJob[], TraceOutput, unknown[]> {
+  const { source } = input;
   const first = input.first ?? 0;
   const last = input.last ?? source.count - 1;
   const progress = input.onProgress ?? (() => {});
@@ -133,7 +269,19 @@ export function trace(input: TraceInput): TraceOutput {
   const I: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
   progress("registration", 0);
   // The picture's transforms first: they carry marks made on other frames.
-  const pictures = register(source, input.calibFrame, I, first, last, input.register);
+  // Forward and back from the calibration frame, the two passes side by side.
+  // The lens's focal length from the lane found on the calibration frame,
+  // where it gives one, as the floor's registration takes it: fitted to the
+  // frames that turned most, it changed with which frames the read had
+  // (shot-03 read from 0.33 s and from 0.67 s: every frame's lane a little
+  // apart, and the far sightings with it).
+  const ownLane = !input.calMarks && !input.marks ? input.lanes?.find((l) => l.frame === input.calibFrame && l.H.every(Number.isFinite)) : undefined;
+  const laneFocal = ownLane ? focalFromPlane(ownLane.H, calibFrame.width, calibFrame.height) : null;
+  const regOpts: RegisterOptions = input.register?.focal === undefined && laneFocal ? { ...input.register, focal: laneFocal } : (input.register ?? {});
+  const [ahead, behind] = (yield ([1, -1] as const).map((dir) => ({
+    kind: "register" as const, calibFrame: input.calibFrame, frames: passFrames(input.calibFrame, dir, first, last), opts: regOpts
+  }))) as RegisterPassResult[];
+  const pictures = finishRegister(calibFrame, input.calibFrame, I, first, ahead.matches, behind.matches, ahead.patches, regOpts);
   let marks: CalMark[] = [];
   const carry = (geo: FrameGeometry[]) =>
     input.calMarks!.map((m) => {
@@ -194,7 +342,15 @@ export function trace(input: TraceInput): TraceOutput {
   // turn's fit at the bottom of the picture depends on it, and the picture's
   // own small turns fix it poorly.
   const focal = focalFromPlane(H0, calibFrame.width, calibFrame.height) ?? undefined;
-  const geometry = registerPlane(source, input.calibFrame, H0, pictures, first, { focal });
+  const geometry: FrameGeometry[] = pictures.map((g) => ({ ...g }));
+  {
+    // Forward and back again, side by side (`registerPlane`).
+    const slots = ([1, -1] as const).map((dir) => planeSlots(input.calibFrame, dir, first, pictures));
+    const passes = (yield slots.map((ks) => ({
+      kind: "plane" as const, calibFrame: input.calibFrame, H0, geos: ks.map((k) => pictures[k]), opts: { focal }
+    }))) as FrameGeometry[][];
+    slots.forEach((ks, d) => ks.forEach((k, j) => (geometry[k] = passes[d][j])));
+  }
   if (input.calMarks && input.calMarks.some((m) => m.frame !== undefined && m.frame !== input.calibFrame)) {
     marks = carry(geometry);
     debug.fitMarks = marks;
@@ -240,28 +396,47 @@ export function trace(input: TraceInput): TraceOutput {
   // between seeing the ball and seeing the pins' outlines. Each frame's
   // steadied picture is aligned to the empty lane by its own textured
   // patches (`alignTo`); the lane's mapping is not changed by it.
-  const bgFrames0 = usable.filter((_, k) => k % 4 === 0).map((g) => steady(source.frame(g.index), g.S, roi));
-  const bg0 = medianBackground(bgFrames0);
-  const toRoi: Mat3 = [1, 0, roi.x0, 0, 1, roi.y0, 0, 0, 1];
-  const fromRoi: Mat3 = [1, 0, -roi.x0, 0, 1, -roi.y0, 0, 0, 1];
+  // Every fourth frame counted from the video's start (`gridFrames`), not
+  // from the read's: a read that starts a frame later sampled other frames,
+  // and the empty lane and every reading off it moved with them.
+  const times = usable.map((g) => source.frame(g.index).t);
+  const step = readStep(times);
+  const onGrid = new Set(gridFrames(times, 4 * step, step));
+  const sampled = usable.filter((_, k) => onGrid.has(k));
+  const bgFrames0 = (yield sampled.map((g) => ({ kind: "steady" as const, index: g.index, S: g.S, roi }))) as GrayFrame[];
+  const [bg0] = (yield [{ kind: "median" as const, frames: bgFrames0 }]) as Background[];
   const steadyS = debug.steady;
-  for (const g of usable) {
-    // Only frames registered on the floor's own homography: a turn is exact
-    // for the camera it models, and aligning those adds only noise.
-    const R = g.plane ? alignTo(bg0, steady(source.frame(g.index), g.S, roi)) : null;
-    steadyS.set(g.index, R ? normalize(multiply(g.S, multiply(toRoi, multiply(R, fromRoi)))) : g.S);
-  }
-  const bgFrames = usable.filter((_, k) => k % 4 === 0).map((g) => steady(source.frame(g.index), steadyS.get(g.index)!, roi));
-  const bg = medianBackground(bgFrames);
+  // The empty lane again from every fourth frame, each steadied (`alignFrame`).
+  const alignJob = (g: FrameGeometry, picture?: GrayFrame) => ({ kind: "align" as const, index: g.index, S: g.S, H: g.H, plane: !!g.plane, roi, bg0, picture });
+  const sampledAligned = new Map(((yield sampled.map((g, j) => alignJob(g, bgFrames0[j]))) as Aligned[]).map((a, j) => [sampled[j].index, a]));
+  const [bg] = (yield [{ kind: "median" as const, frames: sampled.map((g) => sampledAligned.get(g.index)!.steadied) }]) as Background[];
   debug.background = bg;
 
   progress("ball", 0.45);
+  // Every frame steadied onto the empty lane and its candidates found; the
+  // frames already steadied keep their transform (taken as is: no `plane`).
+  const found = (yield usable.map((g) => {
+    const known = sampledAligned.get(g.index);
+    return known ? { ...alignJob(g, known.steadied), S: known.S, plane: false, bg } : { ...alignJob(g), bg };
+  })) as Aligned[];
   const cands: Candidate[] = [];
-  for (const g of usable) {
-    const f = source.frame(g.index);
-    const Sg = steadyS.get(g.index)!;
-    cands.push(...findCandidates(steady(f, Sg, roi), bg, roi, Sg, g.H, g.index));
-  }
+  usable.forEach((g, k) => {
+    steadyS.set(g.index, found[k].S);
+    cands.push(...found[k].candidates!);
+  });
+  const [out] = (yield [{ kind: "tail" as const, state: { hand: input.hand, distance: input.distance, first, last, calibFrame: input.calibFrame, H0, geometry, cands, debug } }]) as TraceOutput[];
+  return out;
+}
+
+/**
+ * The tracer from every frame's ball candidates on (`traceSteps`): the one
+ * physical ball, each sighting's circle, the path and the distance against
+ * time, and the readings off them.
+ */
+export function traceTail(state: TailState, source: FrameSource, progress: (stage: string, fraction: number) => void): TraceOutput {
+  const { hand, first, last, H0, geometry, cands, debug } = state;
+  const calibFrame = source.frame(state.calibFrame);
+  const usable = geometry.filter((g) => g && g.ok);
   debug.candidates = cands;
   // A candidate that does not move is background (a reflection, a mark the
   // median missed): one that has company at the same lane spot in two or
@@ -413,13 +588,38 @@ export function trace(input: TraceInput): TraceOutput {
     const g = geometry[i - first];
     return g && g.ok ? g : null;
   };
-  debug.release = overFoulLine(
+  const byImage = overFoulLine(
     (i) => (okGeo(i) ? source.frame(i) : null),
     (i) => okGeo(i)?.H ?? null,
     firstSeen.frame,
     { cx: firstSeen.cx, cy: firstSeen.cy, r: firstSeen.r },
     Math.round(0.5 / Math.max(1e-3, (seen[seen.length - 1].t - seen[0].t) / Math.max(1, seen[seen.length - 1].frame - seen[0].frame)))
   );
+  // The laydown by time (the owner, 2026-11-16): where the ball comes lowest
+  // in the picture depends on where the bowler finishes, so the frame is the
+  // one its timing puts it on the foul line: its first distance on the lane
+  // over its speed there (the rolling ball's fit, `m0`), back from that
+  // sighting. The picture's reading stays as the cross-check, and is used
+  // when the ball cannot be followed back that far.
+  const speed0 = m0.w + m0.d * firstSeen.t;
+  let byTime: OverFoulLine | null = null;
+  if (speed0 > 5 && firstSeen.v > 0) {
+    const t0 = firstSeen.t - firstSeen.v / speed0;
+    let lo = firstSeen.frame - 1;
+    while (lo > first && lo > firstSeen.frame - 60 && source.frame(lo).t > t0) lo--;
+    const ta = source.frame(lo).t;
+    const tb = source.frame(lo + 1).t;
+    if (ta <= t0 && tb > ta) {
+      byTime = atFoulLineTime(
+        (i) => (okGeo(i) ? source.frame(i) : null),
+        (i) => okGeo(i)?.H ?? null,
+        firstSeen.frame,
+        { cx: firstSeen.cx, cy: firstSeen.cy, r: firstSeen.r },
+        lo + (t0 - ta) / (tb - ta)
+      );
+    }
+  }
+  debug.release = byTime ? { ...byTime, image: byImage ? { at: byImage.at, u: byImage.u, reached: byImage.reached } : undefined } : byImage ? { ...byImage, by: "image" } : null;
 
   progress("path", 0.85);
   const pathPts = seen.map((s) => ({ v: s.v, u: s.u, w: s.weight, sv: svOf.get(s.frame), t: s.t }));
@@ -448,47 +648,81 @@ export function trace(input: TraceInput): TraceOutput {
   }
 
   // The board at the pins as the owner reads it (shot-01): where the ball is
-  // just before it meets the pins. It is followed by its darkness from its
-  // last sighting to the frame before the rack is first seen to move, and read
-  // by its centre across the picture on the head pin's contact row (in front
-  // of the rack its circle slides onto its mirror image, so only its column is
-  // trusted).
+  // on the last frame before it touches a pin. It is followed by its darkness
+  // from its last sighting, held to its own size and row (`followForward`
+  // with a prediction), and read by its center across the picture on the
+  // head pin's contact row (in front of the rack only its column is trusted).
   let pinsU: number | undefined;
   let pinsEstimated = false;
   const vAtT = (t: number) => motion.v0 + motion.w * t + 0.5 * motion.d * t * t;
   const lastSeen = seen[seen.length - 1];
-  // Only when the ball was lost more than two frames before the rack moves
-  // (shot-01: seven); seen closer than that, the sightings already reach it.
-  if (pinFrame !== null && lastSeen.v > 50 && pinFrame - lastSeen.frame > 2 && pinFrame - lastSeen.frame <= 30) {
-    const track = followForward((i) => (geometry[i - first]?.ok ? source.frame(i) : null), lastSeen.frame, lastSeen, pinFrame - 1);
-    debug.toPins = track;
+  // How far down the lane the ball is past its last sighting: the fitted
+  // motion's advance, from where the last far sightings put it. The fit alone
+  // lags there (2026-11-16, shot-01: anchored on the rack first seen moving,
+  // five frames after the ball met the head pin, it put the ball 1.2 ft short
+  // of where its last sightings were), so it is shifted onto them.
+  const far = seen.filter((s) => s.v > 40).slice(-10);
+  const lag = far.length >= 3 ? median(far.map((s) => s.v - vAtT(s.t))) : 0;
+  const vPast = (t: number) => vAtT(t) + lag;
+  const PIN_V = 60 - CONTACT_IN / 12;
+  const predict: FollowPrediction = (i, cx) => {
+    const g = geometry[i - first];
+    if (!g?.ok) return null;
+    const v = Math.min(vPast(source.frame(i).t), PIN_V);
+    const u = uAtColumn(g.H, cx, v);
+    const contact = apply(g.H, { x: u, y: v });
+    const r = expectedRadiusPx(g.H, u, v);
+    return { cy: contact.y - r * downAt(g.H, contact).y, r };
+  };
+  // The first frame on which the ball touches a pin: the ball reaching the
+  // first pin on its path, or the rack seen moving, whichever is first.
+  let touchFrame = pinFrame ?? Infinity;
+  const tTouch = contactV !== null && !nearOnly ? timeAtFeet({ ...motion, v0: motion.v0 + lag }, contactV) : null;
+  if (tTouch !== null) {
+    for (let i = lastSeen.frame + 1; i < Math.min(touchFrame, first + geometry.length); i++) {
+      if (source.frame(i).t >= tTouch) {
+        touchFrame = i;
+        break;
+      }
+    }
+  }
+  const lastBefore = touchFrame - 1;
+  // Only when the ball was lost two frames or more before that (shot-01:
+  // five); seen closer, the sightings already reach it.
+  if (pinFrame !== null && lastSeen.v > 50 && lastBefore - lastSeen.frame >= 2 && lastBefore - lastSeen.frame <= 29) {
+    // Followed two frames on, for the pictures of the frames after (the
+    // owner picks among them when unsure); read only up to `lastBefore`.
+    debug.toPins = followForward((i) => (geometry[i - first]?.ok ? source.frame(i) : null), lastSeen.frame, lastSeen, lastBefore + 2, 0.6, predict);
+    const track = debug.toPins.filter((d) => d.frame <= lastBefore);
     const reach = track.length ? track[track.length - 1].frame : lastSeen.frame;
-    if (reach >= pinFrame - 3) {
-      // A straight line through the last four frames' boards, read halfway
-      // between the last frame before the rack moves and the first that does:
-      // a hooking ball still turns, and at 30 frames a second the frames are
-      // 0.7 ft apart.
+    if (reach >= lastBefore - 2) {
+      // A straight line through the last four frames' boards, read on the last
+      // frame before the ball touches a pin: a hooking ball still turns, and
+      // one frame's column is noisy among the pins.
       const near = [{ frame: lastSeen.frame, cx: lastSeen.cx }, ...track].slice(-4);
       const xs = near.map((d) => d.frame);
-      const ys = near.map((d) => uAtColumn(geometry[d.frame - first].H, d.cx, 60 - CONTACT_IN / 12));
+      const ys = near.map((d) => uAtColumn(geometry[d.frame - first].H, d.cx, PIN_V));
       const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
       const my = ys.reduce((a, b) => a + b, 0) / ys.length;
       const den = xs.reduce((a, x) => a + (x - mx) ** 2, 0);
       const slope = den > 0 ? xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / den : 0;
-      pinsU = my + slope * (pinFrame - 0.5 - mx);
+      pinsU = my + slope * (lastBefore - mx);
+      debug.pinsRead = { frame: lastBefore, u: pinsU, frames: xs };
     }
   } else if (pinFrame === null && Math.max(lastSeen.v, vAtT(lastSeen.t)) > 50) {
     // The rack never seen to move (shot-02: the bowler's arm swings across it
-    // as the ball arrives). The ball is followed on until the arm covers it;
-    // if by then the fitted motion has it within three feet of the head pin,
-    // its last three frames' boards are the estimate. Not run on: the turn
-    // left in the last feet is not seen.
-    const track = followForward((i) => (geometry[i - first]?.ok ? source.frame(i) : null), lastSeen.frame, lastSeen, lastSeen.frame + 30);
+    // as the ball arrives). The ball is followed on until the arm covers it
+    // or it reaches the first pin; if by then the fitted motion has it within
+    // three feet of the head pin, its last three frames' boards are the
+    // estimate. Not run on: the turn left in the last feet is not seen.
+    const to = Math.min(lastSeen.frame + 30, lastBefore);
+    const track = followForward((i) => (geometry[i - first]?.ok ? source.frame(i) : null), lastSeen.frame, lastSeen, to, 0.6, predict);
     if (track.length >= 3 && vAtT(source.frame(track[track.length - 1].frame).t) >= 57) {
       debug.toPins = track;
       const tail = track.slice(-3);
-      pinsU = tail.reduce((a, d) => a + uAtColumn(geometry[d.frame - first].H, d.cx, 60 - CONTACT_IN / 12), 0) / tail.length;
+      pinsU = tail.reduce((a, d) => a + uAtColumn(geometry[d.frame - first].H, d.cx, PIN_V), 0) / tail.length;
       pinsEstimated = true;
+      debug.pinsRead = { frame: tail[tail.length - 1].frame, u: pinsU, frames: tail.map((d) => d.frame) };
     }
   }
 
@@ -504,7 +738,7 @@ export function trace(input: TraceInput): TraceOutput {
 
   const tFirst = seen[0].t;
   const tLast = seen[seen.length - 1].t;
-  const distance = input.distance ?? "foul";
+  const distance = state.distance ?? "foul";
   const met = metrics({
     path: fit.path, hand, seen: vs, points: pathPts, touchdown, motion, tFirst, tLast, rackMovesAt: pinT,
     overFoulLineU: debug.release?.u,

@@ -62,7 +62,7 @@ export function followNearEnd(clip: Clip, cal: CalibrationFile, out: TraceOutput
     metrics: {
       ...m,
       arrows: m.arrows.value === null ? missing : { value: m.arrows.value, state: to >= 13 ? "measured" : "estimated" },
-      breakpoint: missing, breakpointFeet: missing, pins: missing, entryAngle: missing, speed: missing, speedAtPins: missing
+      breakpoint: missing, breakpointFeet: missing, pins: missing, entryAngle: missing, speed: missing, speedAtPins: missing, launchSpeed: missing, entrySpeed: missing
     },
     motion, touchdownFrame: sightings[0].frame, pinFrame: null
   };

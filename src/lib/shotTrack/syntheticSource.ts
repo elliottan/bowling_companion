@@ -5,6 +5,7 @@ import { apply } from "./homography";
 import { namedLine, namedPoint, type CalMark } from "./calibrate";
 import { handedBoard, hookU, laneU } from "./laneModel";
 import { firstPinContact } from "./pathFit";
+import * as fdlibm from "./detMath";
 
 /**
  * Test support: a synthetic shot as a frame source (frames rendered on first
@@ -31,7 +32,7 @@ export function syntheticSource(spec: SyntheticShot): FrameSource & { spec: Synt
 /** The true lines on frame i, each end moved by up to `slop` pixels the way a finger would. */
 export function roughMarks(spec: SyntheticShot, i: number, slop = 1.5): LaneMarks {
   const m = marksFor(truthAt(spec, i).camera);
-  const j = (p: { x: number; y: number }, k: number) => ({ x: p.x + slop * Math.sin(k * 1.7), y: p.y + slop * Math.cos(k * 2.3) });
+  const j = (p: { x: number; y: number }, k: number) => ({ x: p.x + slop * fdlibm.sin(k * 1.7), y: p.y + slop * fdlibm.cos(k * 2.3) });
   return {
     left: { a: j(m.left.a, 1), b: j(m.left.b, 2) },
     right: { a: j(m.right.a, 3), b: j(m.right.b, 4) },
@@ -107,7 +108,7 @@ export function laneMarkings(spec: SyntheticShot, i: number, slop = 0.4): CalMar
   const at = (u: number, v: number) => {
     const p = apply(H, { x: u, y: v });
     k++;
-    return { x: p.x + slop * Math.sin(k * 1.7), y: p.y + slop * Math.cos(k * 2.3) };
+    return { x: p.x + slop * fdlibm.sin(k * 1.7), y: p.y + slop * fdlibm.cos(k * 2.3) };
   };
   const marks: CalMark[] = [];
   for (const name of ["arrow 5", "arrow 10", "arrow 15", "arrow 20", "arrow 25", "arrow 30", "arrow 35", "pin 7", "pin 10", "pin 1"]) {

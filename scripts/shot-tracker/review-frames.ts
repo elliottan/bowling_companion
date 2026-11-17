@@ -8,7 +8,7 @@
  * Driven by `review-auto.ts`, which runs both traces.
  */
 import { join } from "node:path";
-import { apply, mapLine } from "../../src/lib/shotTrack/homography";
+import { apply, downAt, intersect, lineThrough, mapLine } from "../../src/lib/shotTrack/homography";
 import { CONTACT_IN, handedBoard, imageToLane, laneU } from "../../src/lib/shotTrack/laneModel";
 import { LANE_BOARDS } from "../../src/lib/laneGeometry";
 import type { TraceOutput } from "../../src/lib/shotTrack/pipeline";
@@ -88,36 +88,25 @@ function footU(H: Mat3, cx: number): number {
   return imageToLane(H, { x: cx, y }).u;
 }
 
+/** Lane u where the line from a disc's center straight down in the lane meets the foul line, as `atFoulLineTime` reads it. */
+function footDownU(H: Mat3, d: { cx: number; cy: number }): number {
+  const c = { x: d.cx, y: d.cy };
+  const dn = downAt(H, c);
+  const p = intersect(lineThrough(c, { x: c.x + dn.x, y: c.y + dn.y }), mapLine(H, [0, 1, 0]));
+  return p ? imageToLane(H, p).u : NaN;
+}
+
 /**
- * The board at the pins as `pipeline.ts` reads it by following the ball's
- * darkness past its last sighting (the formulas are the pipeline's), or null
- * when the reading came from the fitted sightings instead.
+ * The board at the pins as `pipeline.ts` read it by following the ball past
+ * its last sighting (`debug.pinsRead`: the frame it is read on, the last
+ * before the ball touches a pin, and the frames the line through the boards
+ * used), or null when the reading came from the fitted sightings instead.
  */
-function followedPins(run: Ok, hand: Handedness, lastSeen: BallSighting): { u: number; frames: number[] } | null {
-  const { result, debug } = run;
-  const track = debug.toPins;
-  const target = result.metrics.pins.value;
-  if (!track || !track.length || target === null) return null;
-  const geo = (i: number) => debug.geometry[i - debug.first]?.H;
-  const cols = (d: { frame: number; cx: number }) => {
-    const H = geo(d.frame);
-    return H ? uAtColumn(H, d.cx, PIN_V) : NaN;
-  };
-  const same = (u: number) => Number.isFinite(u) && Math.abs(handedBoard(u, hand) - target) < 1e-6;
-  if (result.pinFrame !== null) {
-    const near = [{ frame: lastSeen.frame, cx: lastSeen.cx }, ...track].slice(-4);
-    const xs = near.map((d) => d.frame);
-    const ys = near.map(cols);
-    const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
-    const my = ys.reduce((a, b) => a + b, 0) / ys.length;
-    const den = xs.reduce((a, x) => a + (x - mx) ** 2, 0);
-    const slope = den > 0 ? xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / den : 0;
-    const u = my + slope * (result.pinFrame - 0.5 - mx);
-    return same(u) ? { u, frames: xs } : null;
-  }
-  const tail = track.slice(-3);
-  const u = tail.reduce((a, d) => a + cols(d), 0) / tail.length;
-  return same(u) ? { u, frames: tail.map((d) => d.frame) } : null;
+function followedPins(run: Ok, hand: Handedness): { u: number; frame: number; frames: number[] } | null {
+  const read = run.debug.pinsRead;
+  const target = run.result.metrics.pins.value;
+  if (!read || target === null || Math.abs(handedBoard(read.u, hand) - target) > 1e-6) return null;
+  return read;
 }
 
 function pick(name: ReadingName, run: Ok, hand: Handedness, otherFeet: number | null, who: string): Pick | null {
@@ -139,11 +128,16 @@ function pick(name: ReadingName, run: Ok, hand: Handedness, otherFeet: number | 
       const frame = Math.round(rel.at);
       const entry = rel.track.find((d) => d.frame === frame) ?? rel.track.reduce((b, d) => (Math.abs(d.frame - rel.at) < Math.abs(b.frame - rel.at) ? d : b), rel.track[0]);
       const H = geo(entry.frame);
-      notes.push(
-        `read from the release follow-back: the ball's bottom ${rel.reached ? "was last on the foul line's row" : "never reached the foul line's row, so it is read where it comes lowest"} at fractional frame ${rel.at.toFixed(2)}, shown on frame ${entry.frame}`
-      );
-      notes.push("the ball is not a sighting here (hand and body over it): the circle is the disc followed back by its darkness, and its lane position is the foul line point straight below its centre");
-      return { frame: entry.frame, disc: entry, ball: H ? { board: handedBoard(footU(H, entry.cx), hand), feet: 0 } : null, metric, feet: 0, notes };
+      if (rel.by === "time") {
+        notes.push(`read where the ball's timing (its first distance on the lane over its speed) puts it on the foul line, fractional frame ${rel.at.toFixed(2)}, shown on frame ${entry.frame}`);
+        if (rel.image) notes.push(`cross-check: the picture alone (where the ball's bottom ${rel.image.reached ? "meets the foul line's row" : "comes lowest"}) gives frame ${rel.image.at.toFixed(2)} and board ${handedBoard(rel.image.u, hand).toFixed(2)}`);
+      } else {
+        notes.push(
+          `read from the release follow-back: the ball's bottom ${rel.reached ? "was last on the foul line's row" : "never reached the foul line's row, so it is read where it comes lowest"} at fractional frame ${rel.at.toFixed(2)}, shown on frame ${entry.frame}`
+        );
+      }
+      notes.push("the ball is not a sighting here (hand and body over it): the circle is the disc followed back by its darkness, and its lane position is the foul line point straight below its center in the lane (at right angles to the horizon)");
+      return { frame: entry.frame, disc: entry, ball: H ? { board: handedBoard(rel.by === "time" ? footDownU(H, entry) : footU(H, entry.cx), hand), feet: 0 } : null, metric, feet: 0, notes };
     }
     const s = sights[0];
     notes.push("the laydown did not come from the release follow-back (it could not be followed): it is the fitted path run back to 0 ft, and the frame shown is the first sighting, which is the touchdown, not the laydown");
@@ -169,14 +163,12 @@ function pick(name: ReadingName, run: Ok, hand: Handedness, otherFeet: number | 
 
   // pins
   const last = sights[sights.length - 1];
-  const f = followedPins(run, hand, last);
+  const f = followedPins(run, hand);
   if (f) {
-    const track = debug.toPins!;
-    const d = track[track.length - 1];
+    const d = debug.toPins?.find((x) => x.frame === f.frame) ?? debug.toPins![debug.toPins!.length - 1];
     const H = geo(d.frame);
-    notes.push(`read by following the ball's darkness past its last sighting (frame ${last.frame}, ${last.v.toFixed(1)} ft) through frames ${f.frames.join(", ")} on the head pin's row; the frame shown is the last followed one, ${d.frame}`);
-    if (result.pinFrame !== null) notes.push(`result.pinFrame ${result.pinFrame} (the rack first seen moving) is ${result.pinFrame - d.frame} frame(s) after the frame shown; the reading is a line through the last four boards read at ${(result.pinFrame - 0.5).toFixed(1)}, so the cross sits a half frame to a frame ahead of the ball`);
-    else notes.push("result.pinFrame is not set (the rack was never seen to move, the bowler's arm is over it)");
+    notes.push(`read by following the ball's face past its last sighting (frame ${last.frame}, ${last.v.toFixed(1)} ft) to frame ${f.frame}, the last before it touches a pin, a line through the boards of frames ${f.frames.join(", ")} on the head pin's row taken at frame ${f.frame}`);
+    notes.push(result.pinFrame !== null ? `result.pinFrame ${result.pinFrame} (the rack first seen moving) is ${result.pinFrame - f.frame} frame(s) after the frame shown` : "result.pinFrame is not set (the rack was never seen to move, the bowler's arm is over it)");
     return { frame: d.frame, disc: d, ball: H ? { board: handedBoard(uAtColumn(H, d.cx, PIN_V), hand), feet: PIN_V } : null, metric, feet: PIN_V, notes };
   }
   const short = 60 - last.v;
@@ -313,4 +305,281 @@ export function reviewFrames(name: string, t: Truth, auto: TraceOutput, hand: Tr
     });
   }
   return cases;
+}
+
+// ---------------------------------------------------------------------------
+// The frame every automatic reading is taken on, whether or not it differs.
+// ---------------------------------------------------------------------------
+
+/** Each picture is kept under about this size. */
+const MAX_BYTES = 58 * 1024;
+const MARK: Color = [255, 0, 220];
+
+export interface AutoFrame {
+  frame: number;
+  timeSeconds: number;
+  picture: string | null;
+  width: number | null;
+  height: number | null;
+  ball: { board: number; feet: number } | null;
+  note: string;
+}
+
+export interface AutoReading {
+  reading: ReadingName;
+  value: number | null;
+  state: string;
+  /** The reading was not seen on its frame: it is a fitted or followed value, and the frame shown is the nearest one. */
+  extrapolated: boolean;
+  frames: AutoFrame[];
+}
+
+interface Crop {
+  H: Mat3;
+  /** Lane points (u, v) the crop must hold. */
+  lane: [number, number][];
+  /** Discs (frame pixels) the crop must hold. */
+  discs: { cx: number; cy: number; r: number }[];
+  k: number;
+  /** Fixed crop box, to keep a strip of frames on one window. */
+  box?: { x: number; y: number; w: number; h: number };
+  disc: { cx: number; cy: number; r: number } | null;
+  foul: boolean;
+  /** A small ring at lane (u, v). */
+  ringAt?: { u: number; v: number };
+  /** Ticks across a row of lane (v) at board u values, with labels. */
+  ticks?: { u: number; v: number; color: Color; label?: string }[];
+  /** A faint dashed row at this distance, feet. */
+  row?: number;
+  label: string[];
+}
+
+function fill(c: Canvas, x0: number, y0: number, w: number, h: number): void {
+  for (let y = Math.max(0, y0); y < Math.min(c.height, y0 + h); y++) {
+    for (let x = Math.max(0, x0); x < Math.min(c.width, x0 + w); x++) {
+      for (let ch = 0; ch < 3; ch++) c.rgb[(y * c.width + x) * 3 + ch] = Math.round(c.rgb[(y * c.width + x) * 3 + ch] * 0.2);
+    }
+  }
+}
+
+/** The crop picture: thin lines, a 1 px ring on the ball, a label in the corner. */
+function renderCrop(color: Canvas, o: Crop): Canvas {
+  const { H } = o;
+  const box = o.box ?? boxOf(H, o.lane, color.width, color.height, 6, o.discs.flatMap((d) => [{ x: d.cx - 1.5 * d.r, y: d.cy - 1.5 * d.r }, { x: d.cx + 1.5 * d.r, y: d.cy + 1.5 * d.r }]));
+  const k = Math.min(o.k, MAX_W / box.w);
+  const c = enlarge(color, box.x, box.y, box.w, box.h, k);
+  const P = (q: { x: number; y: number }) => ({ x: (q.x - box.x + 0.5) * k - 0.5, y: (q.y - box.y + 0.5) * k - 0.5 });
+  const at = (u: number, v: number) => P(apply(H, { x: u, y: v }));
+  const seg = (a: { x: number; y: number }, b: { x: number; y: number }, col: Color, dash?: number) => thin(c, a.x, a.y, b.x, b.y, col, dash);
+  const vs = o.lane.map((p) => p[1]);
+  const v0 = Math.min(...vs);
+  const v1 = Math.max(...vs);
+  seg(at(0.5, v0), at(0.5, v1), EDGE);
+  seg(at(39.5, v0), at(39.5, v1), EDGE);
+  if (o.foul && v0 <= 0.5 && v1 >= -0.5) seg(at(-2, 0), at(42, 0), FOUL);
+  if (o.row !== undefined) seg(at(0.5, o.row), at(39.5, o.row), TICK, 4);
+  for (const t of o.ticks ?? []) {
+    const a = at(t.u, t.v - 0.4);
+    const b = at(t.u, t.v + 0.4);
+    seg(a, b, t.color);
+    if (t.label) text(c, Math.round(Math.max(2, Math.min(c.width - t.label.length * 8 - 2, a.x - (t.label.length * 8 - 2) / 2))), Math.round(Math.min(c.height - 14, Math.max(a.y, b.y) + 4)), t.label, t.color, 2);
+  }
+  if (o.disc) {
+    const q = P({ x: o.disc.cx, y: o.disc.cy });
+    ring(c, q.x, q.y, o.disc.r * k, BALL);
+    // The center of the ball's base: one radius along "down" from its center.
+    const d = downAt(H, { x: o.disc.cx, y: o.disc.cy });
+    const b = P({ x: o.disc.cx + o.disc.r * d.x, y: o.disc.cy + o.disc.r * d.y });
+    seg({ x: b.x - 5, y: b.y }, { x: b.x + 5, y: b.y }, BALL);
+    seg({ x: b.x, y: b.y - 5 }, { x: b.x, y: b.y + 5 }, BALL);
+  }
+  if (o.ringAt) {
+    const q = at(o.ringAt.u, o.ringAt.v);
+    ring(c, q.x, q.y, 6, MARK);
+  }
+  const w = Math.max(...o.label.map((s) => s.length)) * 8 + 8;
+  fill(c, 0, 0, Math.min(c.width, w), o.label.length * 14 + 6);
+  o.label.forEach((s, i) => text(c, 4, 4 + i * 14, s, WHITE, 2));
+  return c;
+}
+
+const seconds = (t: Truth, f: number) => t.clip.times[f];
+/** The font has digits and few letters: f is the frame, t its time in seconds, b a board. */
+const stamp = (t: Truth, f: number) => `f${f} t${seconds(t, f).toFixed(3)}`;
+
+/**
+ * For the automatic trace only: a picture of the frame each reading is taken
+ * on (laydown, touchdown, arrows, breakpoint) and, for the pins, that frame
+ * and the four before it. The pictures say what they show in digits (the
+ * drawing font has few letters): the corner label is f<frame> t<seconds>, then
+ * the reading's board, then the ball's; magenta is the reading, cyan the board
+ * read off the ball, yellow the ball's circle with a cross at the center of its
+ * base. Writes `<dir>/auto-<reading>.jpg` and `<dir>/auto-pins-<1..5>.jpg`;
+ * `pinsFrames` names other frames for the pins strip than the reading frame
+ * and the four before it.
+ */
+export function autoFrames(t: Truth, auto: TraceOutput, dir: string, picDir: string, pinsFrames?: number[]): AutoReading[] {
+  if (!isOk(auto)) return [];
+  const run: Ok = { result: auto.result, debug: auto.debug };
+  const { result, debug } = run;
+  const hand = t.cal.hand;
+  const m = result.metrics;
+  const sights = result.sightings;
+  const colors = new Map<number, Canvas>();
+  const colorOf = (i: number) => {
+    let c = colors.get(i);
+    if (!c) {
+      c = fromRgb(loadColorFrame(t.clipPath, i, t.clip.width, t.clip.height), t.clip.width, t.clip.height);
+      colors.set(i, c);
+      if (colors.size > 8) colors.delete(colors.keys().next().value as number);
+    }
+    return c;
+  };
+  const geo = (i: number) => debug.geometry[i - debug.first]?.H ?? null;
+  const out: AutoReading[] = [];
+  const save = (file: string, pic: Canvas) => {
+    jpg(pic, join(dir, file), MAX_BYTES);
+    return `${picDir}/${file}`;
+  };
+  const span = (us: number[], pad: number): [number, number] => [Math.max(-2, Math.min(...us) - pad), Math.min(42, Math.max(...us) + pad)];
+
+  for (const reading of ["laydown", "touchdown", "arrows", "breakpoint"] as const) {
+    const metric = m[reading];
+    if (metric.value === null) {
+      out.push({ reading, value: null, state: metric.state, extrapolated: false, frames: [] });
+      continue;
+    }
+    const p = pick(reading, run, hand, null, "auto");
+    if (!p) continue;
+    const H = geo(p.frame);
+    if (!H) {
+      out.push({ reading, value: metric.value, state: metric.state, extrapolated: false, frames: [{ frame: p.frame, timeSeconds: seconds(t, p.frame), picture: null, width: null, height: null, ball: p.ball, note: "no lane mapping on this frame" }] });
+      continue;
+    }
+    const notes = [...p.notes];
+    let extrapolated = false;
+    const readU = laneU(metric.value, hand);
+    const ballU = p.ball ? laneU(p.ball.board, hand) : readU;
+    const [u0, u1] = span([readU, ballU], 7);
+    let v = p.feet;
+    const ballV = p.ball?.feet ?? p.feet;
+    if (reading === "laydown") {
+      const rel = debug.release;
+      if (!rel) {
+        extrapolated = true;
+        notes.unshift("EXTRAPOLATED: the ball was not followed to the foul line; the ring is the fitted path run back to 0 ft and the frame shown is the nearest sighting");
+      } else if (rel.by === "time") {
+        notes.unshift("the frame the ball's timing puts it on the foul line (its first distance on the lane over its speed), whatever its height in the picture");
+      } else if (!rel.reached) {
+        notes.unshift("the ball never reached the foul line's row on any frame: this is the frame where it comes lowest, and the laydown is read there");
+      }
+    } else if (reading === "touchdown") {
+      v = m.touchdownFeet.value ?? p.feet;
+      if (result.touchdownFrame === null) {
+        extrapolated = true;
+        notes.unshift("EXTRAPOLATED: no first-contact frame; shown on the sighting nearest the touchdown distance");
+      }
+    } else if (reading === "arrows") {
+      v = 15;
+      const gap = Math.abs(ballV - 15);
+      if (gap > 1 || metric.state !== "measured") {
+        extrapolated = true;
+        notes.unshift(`ESTIMATED: the ball was seen ${gap.toFixed(1)} ft from the arrows' 15 ft on this frame; the tick is the fitted line's board at 15 ft`);
+      }
+    } else {
+      v = m.breakpointFeet.value ?? p.feet;
+      if (Math.abs(ballV - v) > 1 || metric.state !== "measured") {
+        extrapolated = true;
+        notes.unshift(`ESTIMATED: breakpoint comes from the fitted path; the nearest sighting is ${Math.abs(ballV - v).toFixed(1)} ft from ${v.toFixed(1)} ft`);
+      }
+    }
+    const vlo = Math.min(v, ballV) - (reading === "laydown" ? 3 : 2.5);
+    const vhi = Math.max(v, ballV) + (reading === "laydown" ? 3 : 2.5);
+    const asRing = reading === "laydown" || reading === "touchdown";
+    const pic = renderCrop(colorOf(p.frame), {
+      H,
+      lane: [[u0, vlo], [u1, vlo], [u0, vhi], [u1, vhi]],
+      discs: p.disc ? [p.disc] : [],
+      disc: p.disc,
+      k: 3,
+      foul: reading === "laydown" || reading === "touchdown",
+      ringAt: asRing ? { u: readU, v } : undefined,
+      ticks: asRing ? [] : [{ u: readU, v, color: MARK, label: metric.value.toFixed(1) }],
+      row: asRing ? undefined : v,
+      label: [stamp(t, p.frame), `b${metric.value.toFixed(1)}`, ...(p.ball ? [`b${p.ball.board.toFixed(1)} ${p.ball.feet.toFixed(1)} ft`] : [])]
+    });
+    const file = `auto-${reading}.jpg`;
+    out.push({
+      reading,
+      value: metric.value,
+      state: metric.state,
+      extrapolated,
+      frames: [{ frame: p.frame, timeSeconds: seconds(t, p.frame), picture: save(file, pic), width: pic.width, height: pic.height, ball: p.ball, note: notes.join("; ") }]
+    });
+  }
+
+  // Pins: the frame the reading is taken on and the four before it.
+  const pinsM = m.pins;
+  const lastSeen = sights.filter((s) => !s.airborne);
+  if (pinsM.value !== null && lastSeen.length) {
+    const p = pick("pins", run, hand, null, "auto");
+    if (p) {
+      const frames: AutoFrame[] = [];
+      const readU = laneU(pinsM.value, hand);
+      const shown = p.frame;
+      const discOf = (f: number): { cx: number; cy: number; r: number; source: string } | null => {
+        const s = sights.find((x) => x.frame === f);
+        if (s) return { cx: s.cx, cy: s.cy, r: s.r, source: "sighting" };
+        const d = debug.toPins?.find((x) => x.frame === f);
+        if (d) return { cx: d.cx, cy: d.cy, r: d.r, source: "followed by its face" };
+        return null;
+      };
+      const list = pinsFrames ?? [shown - 4, shown - 3, shown - 2, shown - 1, shown];
+      const discs = list.map(discOf);
+      const Hs = list.map(geo);
+      const Href = Hs[list.indexOf(shown)] ?? Hs[Hs.length - 1] ?? Hs.find((h) => h) ?? null;
+      let box: Crop["box"];
+      if (Href) {
+        const us = [readU, ...list.map((f, i) => (Hs[i] && discs[i] ? laneU(handedBoard(uAtColumn(Hs[i]!, discs[i]!.cx, PIN_V), hand), hand) : readU))];
+        const [u0, u1] = span(us, 6);
+        box = boxOf(Href, [[u0, PIN_V - 4], [u1, PIN_V - 4], [u0, PIN_V + 1.5], [u1, PIN_V + 1.5]], t.clip.width, t.clip.height, 4, discs.flatMap((d) => (d ? [{ x: d.cx - 1.5 * d.r, y: d.cy - 1.5 * d.r }, { x: d.cx + 1.5 * d.r, y: d.cy + 1.5 * d.r }] : [])));
+      }
+      list.forEach((f, i) => {
+        const H = Hs[i];
+        const d = discs[i];
+        const when = f === shown ? "reading frame" : f < shown ? `${shown - f} before` : `${f - shown} after`;
+        if (f < 0 || f >= t.clip.count || !H) {
+          frames.push({ frame: f, timeSeconds: f >= 0 && f < t.clip.count ? seconds(t, f) : NaN, picture: null, width: null, height: null, ball: null, note: `${when}: no lane mapping on this frame` });
+          return;
+        }
+        const board = d ? handedBoard(uAtColumn(H, d.cx, PIN_V), hand) : null;
+        const ticks: NonNullable<Crop["ticks"]> = [{ u: readU, v: PIN_V, color: MARK, label: pinsM.value!.toFixed(1) }];
+        if (board !== null) ticks.push({ u: laneU(board, hand), v: PIN_V, color: TICK, label: board.toFixed(1) });
+        const pic = renderCrop(colorOf(f), {
+          H,
+          lane: [[0, PIN_V - 4], [40, PIN_V - 4], [0, PIN_V + 1.5], [40, PIN_V + 1.5]],
+          discs: d ? [d] : [],
+          disc: d,
+          box,
+          k: 6,
+          foul: false,
+          ticks,
+          row: PIN_V,
+          label: [`${stamp(t, f)} ${i + 1}/${list.length}`, `b${pinsM.value!.toFixed(1)}`, ...(board !== null ? [`b${board.toFixed(1)}`] : [])]
+        });
+        frames.push({
+          frame: f,
+          timeSeconds: seconds(t, f),
+          picture: save(`auto-pins-${i + 1}.jpg`, pic),
+          width: pic.width,
+          height: pic.height,
+          ball: board !== null ? { board, feet: PIN_V } : null,
+          note: `${when}; ${d ? `ball ${d.source}, board it reads on the head pin's row ${board!.toFixed(2)}` : "ball not seen on this frame (so no board is read from it)"}${f === shown ? `; ${p.notes.join("; ")}` : ""}`
+        });
+      });
+      const last = lastSeen[lastSeen.length - 1];
+      out.push({ reading: "pins", value: pinsM.value, state: pinsM.state, extrapolated: 60 - last.v > 0.5 && !followedPins(run, hand), frames });
+    }
+  }
+  return out;
 }

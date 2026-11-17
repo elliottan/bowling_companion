@@ -1690,6 +1690,10 @@ msgstr "Derived from your stance. Tap to see it on the lane."
 msgid "Description"
 msgstr "Description"
 
+#: src/views/ShotTracerView.tsx
+msgid "Details: {why}"
+msgstr "Details: {why}"
+
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
@@ -1930,6 +1934,11 @@ msgstr "Enable Live Activity"
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "Enter whole numbers for both lanes."
+
+#. Bowling: the ball's speed over the last feet before it meets the pins, in miles an hour
+#: src/views/ShotTracerView.tsx
+msgid "Entry speed"
+msgstr "Entry speed"
 
 #. The tracer worked it out from where the ball was seen nearby
 #: src/views/ShotTracerView.tsx
@@ -2759,6 +2768,11 @@ msgstr "Late and angular"
 #: src/views/DashboardView.tsx
 msgid "Later"
 msgstr "Later"
+
+#. Bowling: the ball's speed over the first 15 feet past the foul line, in miles an hour
+#: src/views/ShotTracerView.tsx
+msgid "Launch speed"
+msgstr "Launch speed"
 
 #. Bowling term: the board the ball first touches the lane
 #. Bowling term: the board the ball first touches the lane
@@ -3860,6 +3874,11 @@ msgstr "Ratio"
 msgid "Re-aim"
 msgstr "Re-aim"
 
+#. A diagnostics line in Labs: how the video was read (a technical name), and the seconds each stage of the shot tracer took
+#: src/views/ShotTracerView.tsx
+msgid "Read by {reader}. Looking {look} s, reading {read} s, lane {lane} s, tracing {trace} s."
+msgstr "Read by {reader}. Looking {look} s, reading {read} s, lane {lane} s, tracing {trace} s."
+
 #: src/views/ShotTracerView.tsx
 msgid "Reading the video…"
 msgstr "Reading the video…"
@@ -4568,10 +4587,6 @@ msgstr "Specs and pictures of current balls"
 #: src/views/CatalogView.tsx
 msgid "Specs at {weight}"
 msgstr "Specs at {weight}"
-
-#: src/views/ShotTracerView.tsx
-msgid "Speed"
-msgstr "Speed"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins

@@ -9,6 +9,44 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.113.0: The shot tracer reads only the shot, and reads it the same every time (2026-11-16)
+
+- In Settings, Labs: the shot tracer no longer keeps a fixed four seconds. It
+  keeps the video from just before the ball crosses the foul line to when it
+  should reach the pins. A slow shot is kept whole at a lower frame rate.
+- Reading the same video twice gives the same frames, so the same readings.
+  When the browser skips frames while the video plays, they are read again.
+- The result lists two speeds: the launch speed over the first feet of the
+  lane, and the entry speed at the pins, in place of one speed.
+- The laydown is the board the ball is over at the moment it crosses the foul
+  line, timed back from where it lands. It no longer depends on where the
+  bowler finishes.
+- The board at the pins is read on the last frame before the ball touches a
+  pin. It used to be read several frames late, on a circle that had grown and
+  slid onto a pin or the ball's reflection.
+- The foul line is found where the lane's edge line stops when a gutter end is
+  hidden, by a ball return for example.
+- A search for the shot or the lane that never answers now ends with a
+  sentence asking for another video, where it could wait forever.
+- The video is decoded straight from the file (WebCodecs) where the browser
+  can, in place of playing it, and the play-through way is kept as the
+  fallback. On iPhone the fallback no longer waits for a load event Safari
+  only sends once the video plays, which ended every raw video on "couldn't be
+  read".
+- The lane search and the trace run on several of the device's cores and skip
+  work that cannot change the answer: a run that took about 70 seconds on a
+  desktop takes about 17, with the same readings.
+- Every end screen of the shot tracer, the result included, ends in a small
+  "Details" block: how the video was read, what the first look saw, why each
+  candidate run was turned down, and how long each step took.
+- A landscape or cropped video no longer has every ball judged too fast, so its
+  shot is found.
+- The app gives the readings its review harness gives on the same frames: the
+  gray is full range from every reader, the maths gives the same bits in every
+  browser, and the lane, the empty lane and the ball no longer move with where
+  the kept frames start. A frame where the bowler hides the floor keeps the
+  floor last measured, which had put one laydown four boards out.
+
 ## 0.112.0: The shot tracer is all automatic (2026-11-15)
 
 - In Settings, Labs: the shot tracer no longer asks for lines to be dragged or

@@ -1,5 +1,5 @@
 import { apply } from "./homography";
-import { warp } from "./image";
+import { medianOf, warp } from "./image";
 import { BALL_DIAMETER_BOARDS, DECK_END_FT, LEFT_U, RIGHT_U, expectedRadiusPx } from "./laneModel";
 import type { GrayFrame, Mat3 } from "./types";
 
@@ -64,12 +64,11 @@ export function medianBackground(frames: GrayFrame[]): Background {
       out[i] = NaN;
       continue;
     }
-    const s = col.subarray(0, n).sort();
-    const m = n % 2 ? s[n >> 1] : (s[(n >> 1) - 1] + s[n >> 1]) / 2;
+    // Selection, not sorting: the same middle values (`medianOf`).
+    const m = medianOf(col, n);
     out[i] = m;
-    for (let k = 0; k < n; k++) s[k] = Math.abs(s[k] - m);
-    s.sort();
-    spread[i] = 1.4826 * (n % 2 ? s[n >> 1] : (s[(n >> 1) - 1] + s[n >> 1]) / 2);
+    for (let k = 0; k < n; k++) col[k] = Math.abs(col[k] - m);
+    spread[i] = 1.4826 * medianOf(col, n);
   }
   return { width, height, data: out, t: 0, spread };
 }

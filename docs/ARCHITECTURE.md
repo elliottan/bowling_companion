@@ -24,10 +24,12 @@ Each layer's *role* and the *load-bearing* modules:
   `scoring.ts`, `frameController.ts` (shot state machine), `shotSeeding.ts`
   (what a shot opens with), `pins.ts`, `stats.ts`.
 - `shotTracer/`: the browser's side of the shot tracer (Settings, Labs):
-  reading a video's frames through a `<video>` and a canvas, and the worker
-  the tracer (`lib/shotTrack/`) runs in. It needs a real browser's decoder,
-  so it has no unit tests and no coverage floor; its pure parts are in
-  `lib/shotTrack/marking.ts`.
+  reading a video's frames by decoding it (WebCodecs, `codecFrames.ts`), or
+  where that cannot be done by playing it through a `<video>` and a canvas
+  (`videoFrames.ts`), and the workers the tracer (`lib/shotTrack/`) runs in.
+  It needs a real browser's decoder, so it has no unit tests and no coverage
+  floor; its pure parts are in `lib/shotTrack/marking.ts` and the MP4/MOV
+  demuxer `lib/shotTrack/mp4.ts`.
 - `db/bowlingDb.ts`: Dexie class + versioned schema.
   `types/bowling.ts`: shared interfaces.
 - `test/`: the vitest setup (jsdom shims for `Blob.text`, `matchMedia` and

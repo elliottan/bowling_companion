@@ -590,6 +590,185 @@ What the clips taught:
 - `review-auto.ts` writes the pictures and readings of the automatic trace
   for a review page.
 
+## The app's read in Node (2026-11-17, not released)
+
+```
+npx tsx scripts/shot-tracker/app-read.ts <video> [--hand left] [--gray decoded|full] [--from 0] [--look dir] [--json out.json] [--dump dir]
+```
+
+`app-read.ts` is the app's whole read with ffmpeg as the decoder: the file's
+sample table by `mp4.ts`, the first look's and each read's frames chosen by
+`framePick.ts` (the same code `codecFrames.ts` runs), each luma plane
+cropped, scaled and turned by `planeGray`, then `readShot` itself, the lane on
+the frames the view's `findOn` chooses, and the trace. On shot-01 its frames
+hash the same as `codecRead`'s in Chromium. `--from 0` reads the same frames
+from the video's start, `--gray decoded` keeps the luma as recorded (the app
+before this round). The first look's frames from a canvas cannot be had in
+Node; `--look dir` takes them as a page that runs `codecScan` saved them
+(`<stem>.look` and `.look.json`).
+
+Why the app read other numbers than the harness (the browser's numbers, each
+reproduced in Node first):
+
+- **The engine's own maths.** Node 22 and Chromium 153 differ in the last bit
+  of `Math.exp`, `sin`, `atan2` and the rest. On shot-01's frames, bit for
+  bit the same, Node read the pins 16.4 and Chromium 17.4. `detMath.ts` is
+  fdlibm, Node 22's own bits; a lint rule keeps `Math`'s out of
+  `lib/shotTrack`. The browser now gives the harness's digest.
+- **shot-06's 22.5 and 25.4**: the browser run was set up right-handed and
+  shot-06 is a left-hander's: 40 less 17.5 and 14.6.
+- **shot-01's 20.0 against 24.3**: read from 0.2 s before the foul line, the
+  calibration frame (the best found lane) fell 1.6 s on, and the floor's
+  registration fell back to the camera's turn on the release frames the
+  bowler hides: the turn was 23 pixels, 4 boards, out at the foul line. Such
+  a frame now keeps the floor last measured (`PlanePass`).
+- **shot-04's arrows 21.9 estimated**: in video range, and from the browser's
+  window, the ball's sightings stopped at 9.7 ft and something standing at
+  12.5 to 16 ft half a second later was taken for the ball. `onePace` keeps
+  a piece of the ball's run only at the ball's pace; the near lane's own
+  follow then reads it to 12.9 ft, as from the clip's start.
+- **Readings that moved with the read's start**: the lane search took every
+  nth frame of the read, and the empty lane every fourth, both counted from
+  the read's first frame, and the register passes fitted the focal length to
+  the frames they had. Both grids are now counted from the video's start
+  (`gridFrames`), and the focal length comes from the calibration frame's
+  found lane. At 0.2 s of lead the crossing frame's lane came from lanes
+  after it only (shot-05 18.9, IMG_1996 18.7 against 18.6 and 18.4 from any
+  earlier start); the read now starts 0.4 s before the first look's crossing,
+  the extra 0.2 s read over the frame budget.
+- **Gray range**: ffmpeg's gray is full range (1.1647 Y - 18.68); the app kept
+  video range. The reader now brings every luma plane to full range by the
+  range the decoder or the file reports (`grayRange.ts`), a canvas's luma is
+  taken as it is, and the first look's change threshold is the same contrast
+  (14 for 12). On the app's window, before the fixes above, video against
+  full range moved shot-01's laydown 19.9 to 20.4 and shot-04's arrows 21.9
+  estimated to 9.3.
+- **shot-03**: the first look chose a run at 3.54 s (the canvas's full range
+  gray moved it from 0.40 s); the lane found there showed no run to be the
+  ball's, and the read missed it. The part around the look's next run is now
+  read and judged too (`nextPart`), and finds the ball's at 1.08 s.
+
+Each clip read from the app's window, from 0.13 and 0.27 s earlier, and from
+its start (`sweep`: laydown, arrows, breakpoint at feet, pins):
+
+| clip | app's window | from the start |
+|---|---|---|
+| shot-01 | 24.31, 17.51, 7.59 at 42.8, 16.82 | 24.30, 17.49, 7.34 at 43.6, 18.35 |
+| shot-02 | 21.19, 15.95, 8.74 at 41.5, 16.76e (the window starts at the clip's) | same |
+| shot-03 | 13.52, 10.04 | 13.60, 10.55 |
+| shot-04 | 6.23, 4.86e | 6.15, 5.14e |
+| shot-05 | 18.55, 13.29, 9.08 at 48.4 | 18.55, 13.28, 9.07 at 48.4 |
+| shot-06 | 17.62, 14.79, 12.62 at 34.75, 19.27 | 17.59, 14.83, 12.68 at 34.75, 19.48 |
+| IMG_1996 (its VP9 copy) | 18.43, 13.48 | 18.43, 13.48 (from 1 s earlier) |
+
+Still moving with the start: shot-01's pins (16.4 to 18.4 over four
+starts: a sighting among the falling pins is kept on some, and the pins are
+then seen to move later), shot-03's arrows (10.0 to 10.6: the far sightings
+found depend on the empty lane's median, and the edges' clip median moves
+every sighting with them), shot-04's estimated arrows (4.8 to 5.1).
+
+## Speed (2026-11-16, not released)
+
+```
+npx tsx scripts/shot-tracker/bench.ts [shot-0N | IMG_1996 ...] [--out run.json] [--compare base.json]
+```
+
+`bench.ts` runs the app's compute on what the app reads (frames scaled to
+960 by 720 at most, 60 a second; IMG_1996 cropped to the clips' band over
+the window the app chose, 3.467 to 7.083 s): the lane on 8 frames of the
+first two seconds, the lane on 24 frames spread over the read, then the
+trace, each stage timed, every reading kept to 4 places. `--compare` lists
+every reading that moved. Run one clip a process to time it as the app's
+fresh worker does.
+
+The lane finder and the tracer were made about three times faster with
+every reading the same (Node, this container, one clip a process):
+
+| input | frames | lane, 8 + 24 frames | trace | of which registration | ball | total |
+|---|---|---|---|---|---|---|
+| shot-01 | 279 | 13.1 to 2.5 s | 41.5 to 14.9 s | 23.1 to 8.1 s | 7.0 to 5.0 s | 54.6 to 17.4 s |
+| shot-02 | 242 | 10.1 to 2.3 s | 31.7 to 11.2 s | 20.6 to 6.9 s | 6.0 to 3.0 s | 41.8 to 13.4 s |
+| shot-03 | 284 | 11.0 to 2.4 s | 30.3 to 10.4 s | 23.0 to 7.0 s | 6.0 to 2.5 s | 41.4 to 12.8 s |
+| shot-04 | 203 | 14.4 to 2.7 s | 27.9 to 10.4 s | 18.3 to 5.4 s | 7.5 to 3.5 s | 42.3 to 13.1 s |
+| shot-05 | 277 | 15.6 to 2.9 s | 38.2 to 13.5 s | 23.2 to 7.3 s | 9.9 to 4.1 s | 53.8 to 16.4 s |
+| shot-06 | 126 | 8.4 to 1.6 s | 8.7 to 3.7 s | 5.4 to 2.2 s | 2.8 to 1.1 s | 17.2 to 5.3 s |
+| IMG_1996 | 218 | 14.9 to 2.8 s | 32.0 to 11.1 s | 19.5 to 5.6 s | 7.4 to 3.9 s | 46.9 to 13.9 s |
+
+The finder's third of a second a frame was not a regression: 0.112.0 takes
+the same on the same frames (0.41 against 0.40 s a frame at the clips' full
+size). It went on medians: thousands a frame by sorting, three profiles a
+frame where two are read. It is now about 70 ms a frame.
+
+What is left is the patch matching that carries the lane from frame to
+frame (`register`, `registerPlane`, `alignTo`: about 150,000 patches a clip,
+each searched over 169 shifts) and the per-pixel work on every frame's lane
+(warp, change map, blobs). Both are now cut as far as an exact search
+allows: a shift is skipped when its block sums show it cannot win, and a
+sum is given up once it passes the best. Anything that changes the
+registration at all moves the readings: half the patches put IMG_1996's
+breakpoint at 52 ft against 45, and 12 frames for the lane search instead
+of 24 put shot-01's laydown at 19.4 against 24.3.
+
+## The shot window and the reader (2026-11-16, not released)
+
+The owner's ruling: no fixed four seconds; read from the ball on the foul line
+until it leaves the pin deck, and nothing else. `src/shotTracer/readShot.ts`
+does it in two parts (the decisions are in `src/lib/shotTrack/shotWindow.ts`):
+
+1. The first part, from 0.4 s before the first look's run to 1.6 s after, at
+   60 a second, in the clips' band first (30% to 72% of a portrait picture's
+   height), then the run's. The lane is looked for on 8 of its frames; not
+   there, the next band is tried without reading more.
+2. Every run of the first look of three points or more (`ShotFound.others`,
+   up to 16; when none passed the picture's tests the look is only a guess,
+   `guessed`) is put through that lane into feet (`ballRun`). A run is a
+   candidate when all of it is on the lane (20 ft behind the foul line to the
+   pins, and within the lane's boards: a ball on the next lane is outside),
+   it only goes up the lane, it is first seen in the first 12 ft, and its line
+   is at a ball's speed (12 to 51 ft/s; the ball in the hand reads fast). Of
+   the candidates, a run seen crossing the foul line wins, then the line most
+   of all the runs' points lie on, then the one over more feet: the ball is
+   seen in pieces, and they vote together. The bowler's approach (10 ft and
+   more behind the line, slow) is never a candidate.
+3. The window: from 0.2 s before the crossing (interpolated between the
+   run's points either side of the line) to the deck end at that speed, no
+   faster than 26 ft/s since the first look reads fast, times 1.4, plus 0.25
+   s. Both edges sit on the first look's 1/15 s grid: the tracer's readings
+   move with its first frame. A window outside the first part (the look chose
+   a run long before or after the ball's) is read on its own.
+4. No candidate: a guessed look is "the shot couldn't be found"; otherwise
+   the end is the pins seen hit (when believable) or the time a 10 mph ball
+   takes, and the console line says why.
+5. The rest is read to the end. The whole window is kept at the highest rate
+   that fits 240 frames of 960 by 720 (60, 30, 20, 15): a slow shot is read at
+   a lower rate, never cut.
+
+The reader keeps every `m`th frame of the video counted from its start
+(`FrameSlots`), each at its own media time; a frame the browser passed over is
+found from the gap in the times and read again by playing that stretch more
+slowly. On IMG_1996 (VP9 copy, headless Chromium) three reads with the main
+thread kept busy passed over 44 to 75 frames each and came out with the same
+204 frames, pixel for pixel, as a clean read.
+
+The first look still picks the bowler's approach, or something else, on many
+looks (IMG_1996: runs at 1.81, 3.07, 4.67 and 5.01 s besides the ball's at
+3.53 s); judged on the lane the window came out the same all the same. Four
+app runs of IMG_1996 in a row: window 3.467 to 7.083 s, laydown 18.6, arrows
+13.4, breakpoint 8.9 at 50 ft every time. A slower first look (every frame
+shown on a 60 Hz screen) was tried and dropped: it took 16 s rather than 4 and
+bought nothing once the runs were judged on the lane.
+
+The padded shot-01 (`p01-lead14`, 14 s of another bowler's shots looped
+before shot-01) still falls back to the slowest ball: none of the first look's
+runs is shot-01's ball on the lane (they are the looped bowler's, and on the
+found lane they read tens to hundreds of feet in a fifteenth of a second). A
+sharper second look on the first part was tried and found nothing either.
+Padded shot-06 is windowed by speed.
+
+The search worker never answered once, after the look's last frame, for over
+four minutes (cause not found). The screen now gives up after 60 s ("This
+video couldn't be read"), and a lane search after 60 s (the lane not found).
+
 ## In the app (0.108.0, 2026-11-14)
 
 The tracer runs in the app, in Settings, Labs (`src/views/ShotTracerView.tsx`,

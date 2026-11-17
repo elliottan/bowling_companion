@@ -24,7 +24,7 @@ import { trace } from "../../src/lib/shotTrack/pipeline";
 import type { Mat3, Metric, Point, TrackResult } from "../../src/lib/shotTrack/types";
 import { loadColorFrame } from "./clip";
 import { dot, fromRgb, type Canvas, type Color } from "./draw";
-import { reviewFrames, type FrameCase } from "./review-frames";
+import { autoFrames, reviewFrames, type FrameCase } from "./review-frames";
 import { boxOf, enlarge, jpg, MAX_W, ring, thin, type Box } from "./review-lib";
 import { toCalMarks } from "./overlay";
 import { loadTruth } from "./truth";
@@ -152,7 +152,8 @@ for (const name of clips) {
       autoOk: ok,
       handOk: handRun.result.ok,
       note: ok && handRun.result.ok ? "readings differing by more than 0.5 board (or present in one trace only), with the frame each trace took them on" : "no comparison: a trace failed",
-      readings: frameCases
+      readings: frameCases,
+      auto: autoFrames(t, out, dir, name)
     };
     console.log(`${name}: ${frameCases.map((c) => `${c.reading} ${c.auto.value?.toFixed(1) ?? "-"} vs ${c.hand.value?.toFixed(1) ?? "-"} (frames ${c.auto.frame} / ${c.hand.frame})`).join("; ") || "no differing readings"}`);
   }

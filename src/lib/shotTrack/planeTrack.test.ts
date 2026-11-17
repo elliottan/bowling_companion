@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { focalFromPlane } from "./calibrate";
-import { apply } from "./homography";
+import { apply, invert, multiply } from "./homography";
 import { trace } from "./pipeline";
-import { alignTo, robustHomography, rotation, turnHomography } from "./registration";
+import { alignTo, laneMarksOf, PlanePass, robustHomography, rotation, turnHomography, type FrameGeometry } from "./registration";
 import { medianBackground } from "./background";
-import { makeFrame, warp } from "./image";
+import { boxBlur, makeFrame, warp } from "./image";
 import { timeAt, truthAt } from "./synthetic";
 import { laneMarkings, standardShot, syntheticSource, truthBoard, truthBoardAtPins } from "./syntheticSource";
 import type { Mat3, TrackResult } from "./types";
@@ -146,5 +146,66 @@ describe("steadying onto the empty lane", () => {
     const bg = medianBackground(frames);
     expect(bg.data[0]).toBe(12);
     expect(bg.spread[0]).toBeCloseTo(1.4826, 3);
+  });
+});
+
+describe("the floor through frames it cannot be measured on", () => {
+  // A textured floor filling the picture, the camera travelling over frames 1
+  // to 6 (the near floor sliding further than the far: a shear no turn can
+  // make), then still. Frames 7 and 8 are covered (the bowler at the
+  // release): no patch is found on them.
+  const W = 320;
+  const H = 240;
+  let seed = 7;
+  const rnd = () => {
+    seed = (Math.imul(seed, 1103515245) + 12345) >>> 0;
+    return seed / 4294967296;
+  };
+  const noise = makeFrame(W + 80, H + 80);
+  // Strong texture in one block of three, faint elsewhere: patches are chosen where it stands out.
+  for (let i = 0; i < noise.data.length; i++) {
+    const x = i % noise.width;
+    const y = Math.floor(i / noise.width);
+    const strong = (Math.floor(x / 24) + Math.floor(y / 24)) % 3 === 0;
+    noise.data[i] = 128 + (strong ? 127 : 15) * (2 * rnd() - 1);
+  }
+  const tex = boxBlur(noise, 2);
+  const shearAt = (k: number) => 0.03 * Math.min(k, 6);
+  // Frame pixels to the texture's, and the floor's true transform from the calibration frame's pixels to frame k's.
+  const floorOf = (k: number): Mat3 => [1, shearAt(k), 0, 0, 1, 0, 0, 0, 1];
+  const frame = (k: number) => {
+    const f = warp(tex, multiply([1, 0, 40, 0, 1, 40, 0, 0, 1], invert(floorOf(k))), 0, 0, W, H);
+    const out = makeFrame(W, H, k / 30);
+    for (let i = 0; i < out.data.length; i++) out.data[i] = k === 7 || k === 8 || !Number.isFinite(f.data[i]) ? 128 : f.data[i];
+    return out;
+  };
+  // Lane (u, v) to pixels: the lane runs up the picture, the whole picture floor.
+  const H0: Mat3 = [5, 0, 60, 0, -3.2, 230, 0, 0, 1];
+  const lens = { f: 400, cx: (W - 1) / 2, cy: (H - 1) / 2 };
+  const I: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+  // The picture's own registration saw no turn at all.
+  const pic = (k: number): FrameGeometry => ({ index: k, ok: true, S: I, H: H0, marks: laneMarksOf(H0), share: 1, turn: [0, 0, 0], zoom: 1, lens });
+  const pass = new PlanePass(frame(0), H0, { focal: 400 });
+  const geo = Array.from({ length: 10 }, (_, k) => k).slice(1).map((k) => pass.step(pic(k), frame(k)));
+  const foulGap = (g: FrameGeometry, k: number) => {
+    // Where each puts the foul line's left end in frame k, pixels apart.
+    const p = apply(g.S, apply(H0, { x: 0.5, y: 0 }));
+    const q = apply(floorOf(k), apply(H0, { x: 0.5, y: 0 }));
+    return Math.hypot(p.x - q.x, p.y - q.y);
+  };
+
+  it("measures the floor where it is seen", () => {
+    for (const k of [3, 6, 9]) {
+      expect(geo[k - 1].plane).toBeGreaterThan(0);
+      expect(foulGap(geo[k - 1], k)).toBeLessThan(0.5);
+    }
+  });
+
+  it("carries the last floor measured over the covered frames, not the turn", () => {
+    for (const k of [7, 8]) {
+      expect(geo[k - 1].plane).toBeUndefined();
+      // The turn alone would put the foul line 41 pixels out (the shear at its row).
+      expect(foulGap(geo[k - 1], k)).toBeLessThan(0.5);
+    }
   });
 });

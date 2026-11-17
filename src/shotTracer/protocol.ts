@@ -1,8 +1,7 @@
+import type { LaneJob } from "../lib/shotTrack/laneFind";
 import type { LaneEvidence } from "../lib/shotTrack/laneVerdict";
 import type { FrameLane } from "../lib/shotTrack/laneTrack";
 import type { ShotFound } from "../lib/shotTrack/shotStart";
-import type { Mat3, TrackError, TrackResult } from "../lib/shotTrack/types";
-import type { Handedness } from "../types/bowling";
 
 /**
  * The messages between the shot tracer screen and its workers (Settings,
@@ -22,40 +21,6 @@ export interface SearchMessage {
   found: ShotFound | null;
 }
 
-export interface TraceRequest {
-  width: number;
-  height: number;
-  /** Grey frames, one byte a pixel, row-major, with their times in seconds. */
-  frames: { data: ArrayBuffer; t: number }[];
-  /** The frame the pictures are registered to: the one the lane was found best on. */
-  calibFrame: number;
-  /** The lane as found on many frames, each frame then traced on its own (`TraceInput.lanes`). */
-  lanes: FrameLane[];
-  hand: Handedness;
-}
-
-export type TraceMessage =
-  | { kind: "progress"; stage: string; fraction: number }
-  | {
-      kind: "done";
-      result: TrackResult | TrackError;
-      /** The lane mapping on `calibFrame` as traced, for drawing the lane and the path on it. */
-      H: Mat3 | null;
-      /** What the tracer learned about the lane, for `laneVerdict`. */
-      evidence?: Pick<LaneEvidence, "kept" | "dropped" | "pinCheck">;
-    };
-
-/**
- * Finding the lane with no marks (`lib/shotTrack/laneFind.ts`): a few frames
- * spread over the clip, copied (the screen keeps its own to trace), each with
- * its index in the clip.
- */
-export interface FindRequest {
-  width: number;
-  height: number;
-  frames: { data: ArrayBuffer; index: number }[];
-}
-
 /**
  * The frame the lane was found best on (an index in the clip), the lane on
  * every frame it was found on (`frameLanes`), and what the finder knows about
@@ -64,3 +29,43 @@ export interface FindRequest {
 export type FindMessage =
   | { frame: number; lanes: FrameLane[]; evidence: Pick<LaneEvidence, "guess" | "support" | "pinsUsed" | "camera"> }
   | { frame: null };
+
+/**
+ * The pool of workers the tracer's work is shared among (`pool.ts`,
+ * `pool.worker.ts`). Frames stay with the screen; each job is sent the
+ * frames it reads, copied, or (a registration pass) is sent them one at a
+ * time as it asks for them.
+ */
+export interface WireFrame {
+  index: number;
+  width: number;
+  height: number;
+  data: ArrayBuffer;
+  t: number;
+}
+
+/** An object sent to a worker once and named in jobs after (the empty lane). */
+export interface SharedRef {
+  shared: string;
+}
+
+export type PoolJob =
+  /** A tracer job (`TraceJob`), with its large shared pictures named by `SharedRef`; `stream`: its frames come one at a time. */
+  | { kind: "trace"; job: unknown; stream: boolean }
+  /** A lane search job (`LaneJob`) of search `session`: a frame's later jobs run where its first did. */
+  | { kind: "lane"; session: string; job: LaneJob }
+  /** A frame's luma, cropped, turned to the read's grey: resampled to `outW` by `outH`, then turned. */
+  | { kind: "gray"; luma: ArrayBuffer; w: number; h: number; stride: number; offset: number; outW: number; outH: number; turn: number };
+
+export type PoolRequest =
+  | { kind: "job"; id: number; job: PoolJob; frames: WireFrame[] }
+  | { kind: "frame"; id: number; frame: WireFrame }
+  | { kind: "share"; key: string; value: unknown }
+  | { kind: "forget"; keys: string[] };
+
+export type PoolMessage =
+  | { kind: "done"; id: number; result: unknown }
+  | { kind: "error"; id: number; message: string }
+  | { kind: "progress"; id: number; stage: string; fraction: number }
+  /** A streamed job took a frame: the next can be sent. */
+  | { kind: "took"; id: number };

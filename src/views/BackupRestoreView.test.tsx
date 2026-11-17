@@ -90,7 +90,9 @@ describe("BackupRestoreView", () => {
     await continuePastCopy();
 
     // Two on the device against one in the file: the shortfall is said out loud.
-    expect(await screen.findByText(/You would lose/)).toHaveTextContent("1 session");
+    // The copy step leaves and the gate comes in over two transitions: under a
+    // loaded CI run that took longer than the default second.
+    expect(await screen.findByText(/You would lose/, {}, { timeout: 5000 })).toHaveTextContent("1 session");
   });
 
   it("takes no for an answer and writes nothing", async () => {

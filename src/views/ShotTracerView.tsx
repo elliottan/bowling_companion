@@ -9,10 +9,18 @@ import { apply } from "../lib/shotTrack/homography";
 import { BACK_ROW_FT, laneU, LEFT_U, RIGHT_U } from "../lib/shotTrack/laneModel";
 import type { FrameLane } from "../lib/shotTrack/laneTrack";
 import { laneVerdict, type LaneEvidence, type LaneVerdict } from "../lib/shotTrack/laneVerdict";
+import { foundNote, Notes, timesNote } from "../lib/shotTrack/notes";
 import { MARK_LINES, pathInPicture, type MarkLine } from "../lib/shotTrack/marking";
+import { FIRST_LANE_EVERY, gridFrames, LANE_EVERY, readStep } from "../lib/shotTrack/framePick";
 import { laneBands, readFrom, type Band, type ShotFound } from "../lib/shotTrack/shotStart";
-import type { Mat3, Metric, Point, TrackError, TrackFailure, TrackResult } from "../lib/shotTrack/types";
-import type { FindMessage, FindRequest, SearchMessage, SearchRequest, TraceMessage, TraceRequest } from "../shotTracer/protocol";
+import type { GrayFrame, Mat3, Metric, Point, TrackError, TrackFailure, TrackResult } from "../lib/shotTrack/types";
+import { frameLanes } from "../lib/shotTrack/laneFind";
+import type { TraceOutput } from "../lib/shotTrack/pipeline";
+import { poolSize } from "../lib/shotTrack/workers";
+import { isIOSApp } from "../lib/platform";
+import { findInPool, Pool, traceInPool } from "../shotTracer/pool";
+import type { FindMessage, SearchMessage, SearchRequest } from "../shotTracer/protocol";
+import { readShot } from "../shotTracer/readShot";
 import { readVideoFrames, scanVideo, type VideoFrames } from "../shotTracer/videoFrames";
 import type { Handedness } from "../types/bowling";
 
@@ -21,21 +29,35 @@ import type { Handedness } from "../types/bowling";
  * a video recorded or chosen, with nothing more asked of the bowler. A first
  * look over the whole video finds the shot (the ball's run up the lane,
  * `lib/shotTrack/shotStart.ts`) and, in a portrait video, the band of the
- * picture the lane is in; those few seconds are read at full quality, the lane
- * is found in a worker, and the tracer (`lib/shotTrack`) runs in another, its
- * readings shown on the frame. For the owner to try on real shots before it
+ * picture the lane is in; the shot alone, from the foul line until the ball
+ * has left the pin deck (`shotTracer/readShot.ts`), is read at full quality,
+ * the lane is found in a worker, and the tracer (`lib/shotTrack`) runs in
+ * another, its readings shown on the frame. For the owner to try on real shots before it
  * is part of a session.
  */
 
+/**
+ * How long each stage took, seconds, and how the video was read: a line on
+ * the result screen and in the console, for the owner's runs on a phone.
+ */
+interface Timing {
+  via: string;
+  look: number;
+  read: number;
+  lane: number;
+  trace: number;
+}
+
 type Step =
-  | { kind: "pick"; unreadable?: boolean }
+  /** `why`: what the reader said when the video couldn't be read, for the details line. */
+  | { kind: "pick"; unreadable?: boolean; why?: string; details?: string }
   | { kind: "searching"; fraction: number }
   | { kind: "reading"; fraction: number }
   | { kind: "finding" }
   | { kind: "tracing"; fraction: number }
   /** The shot or the lane was not found: nothing to trace. */
-  | { kind: "failed"; missing: "shot" | "lane" }
-  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null };
+  | { kind: "failed"; missing: "shot" | "lane"; details?: string }
+  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null; timing?: Timing; details?: string };
 
 /** The lane as the finder found it: on every frame it could, and what it knows about how sure it is. */
 interface Found {
@@ -43,14 +65,15 @@ interface Found {
   evidence: LaneEvidence;
 }
 
+/** Milliseconds, for the stage times (read in the screen's handlers, never in render). */
+const now = () => performance.now();
 /**
- * How many frames the lane search looks at, spread over the clip. A full read
- * (240 frames) is then every 10th frame, as the harness measured the
- * per-frame lanes on (scripts/shot-tracker/README.md, "The lane on every
- * frame"): the tracer blends found lanes over about 15 frames, so that is the
- * two nearest each side, and a frame costs the finder a third of a second.
+ * The longest the screen waits for the shot search's answer once it has every
+ * frame, or for a lane search, milliseconds. Each takes seconds (the search
+ * one or two after its last frame, the lane a third of a second a frame on a
+ * phone, 24 frames); past this the worker is taken to have failed.
  */
-const FIND_FRAMES = 24;
+const WORKER_WAIT_MS = 60_000;
 
 /** Each line's colour on the picture. */
 const LINE_TONE: Record<MarkLine, string> = {
@@ -66,13 +89,22 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   // themselves go to the worker.
   const [shown, setShown] = useState<{ gray: Uint8ClampedArray; width: number; height: number } | null>(null);
   const workers = useRef(new Set<Worker>());
+  const pool = useRef<Pool | null>(null);
+  // The attempt the pool was made for.
+  const poolOf = useRef(0);
   // Each video chosen is a new attempt; an older one's late answers are dropped.
   const attempt = useRef(0);
+  // This attempt's stage times so far, milliseconds.
+  const timing = useRef({ via: "", look: 0, read: 0, lane: 0, trace: 0 });
+  // What this attempt did, for the details block on its end screen.
+  const notes = useRef(new Notes());
 
   useEffect(
     () => () => {
       for (const w of workers.current) w.terminate();
       workers.current.clear();
+      pool.current?.terminate();
+      pool.current = null;
     },
     []
   );
@@ -92,22 +124,39 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   async function search(f: File, mine: number): Promise<{ found: ShotFound | null; width: number; height: number; duration: number }> {
     const worker = startWorker(new URL("../shotTracer/search.worker.ts", import.meta.url));
     try {
-      const answer = new Promise<ShotFound | null>((resolve) => {
-        worker.onmessage = (e: MessageEvent<SearchMessage>) => resolve(e.data.found);
-        worker.onerror = () => resolve(null);
-      });
+      let answered!: (found: ShotFound | null | "late") => void;
+      const answer = new Promise<ShotFound | null | "late">((resolve) => (answered = resolve));
+      worker.onmessage = (e: MessageEvent<SearchMessage>) => answered(e.data.found);
+      // A search that fails is no shot found, but the details say so.
+      worker.onerror = (e) => {
+        notes.current.add("search worker", `failed: ${(e as ErrorEvent)?.message || "no message"}`);
+        answered(null);
+      };
+      let sent = 0;
       const video = await scanVideo(
         f,
         (frame) => {
+          sent++;
           const data = frame.data.buffer as ArrayBuffer;
           worker.postMessage({ kind: "frame", width: frame.width, height: frame.height, data, t: frame.t } satisfies SearchRequest, [data]);
         },
         (fraction) => {
           if (attempt.current === mine) setStep({ kind: "searching", fraction });
-        }
+        },
+        notes.current
       );
+      notes.current.add("search worker", `${sent} frames sent`);
       worker.postMessage({ kind: "done" } satisfies SearchRequest);
-      return { ...video, found: await answer };
+      // The search has every frame by now and answers in a second or two; a
+      // worker that never answers (seen once, after four minutes) is a video
+      // that couldn't be read, not a screen that waits for ever.
+      const asked = performance.now();
+      const timer = setTimeout(() => answered("late"), WORKER_WAIT_MS);
+      const found = await answer;
+      clearTimeout(timer);
+      console.info(`Shot tracer: the search answered ${found === "late" ? "nothing" : "in"} ${((performance.now() - asked) / 1000).toFixed(1)} s after its last frame`);
+      if (found === "late") throw new Error(`the search did not answer in ${WORKER_WAIT_MS / 1000} s`);
+      return { ...video, found };
     } finally {
       stopWorker(worker);
     }
@@ -118,139 +167,248 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     const mine = ++attempt.current;
     for (const w of workers.current) w.terminate();
     workers.current.clear();
+    pool.current?.terminate();
+    pool.current = null;
     setStep({ kind: "searching", fraction: 0 });
-    let found: ShotFound | null;
+    timing.current = { via: "", look: 0, read: 0, lane: 0, trace: 0 };
+    notes.current = new Notes();
+    notes.current.set("app", `Headpin ${__APP_VERSION__}, ${f.type || "?"} ${(f.size / 1e6).toFixed(1)} MB, ${navigator.userAgent}`);
+    const began = now();
+    let looked: Awaited<ReturnType<typeof search>>;
     let from: number | null;
     let bands: (Band | null)[];
     try {
-      const looked = await search(f, mine);
-      found = looked.found;
-      from = readFrom(looked.duration, found);
-      bands = laneBands(looked.width, looked.height, found);
-    } catch {
-      if (attempt.current === mine) setStep({ kind: "pick", unreadable: true });
+      looked = await search(f, mine);
+      from = readFrom(looked.duration, looked.found);
+      bands = laneBands(looked.width, looked.height, looked.found);
+    } catch (e) {
+      unreadable(e, mine);
       return;
     }
+    if (attempt.current === mine) timing.current.look = now() - began;
     if (attempt.current !== mine) return;
+    const found = looked.found;
     console.info(
       `Shot tracer: ${found ? `ball seen from ${found.release.toFixed(2)} s, pins ${found.pinHit?.toFixed(2) ?? "not seen"}, confidence ${found.confidence.toFixed(2)}` : "no shot found"}; ` +
         `reading from ${from?.toFixed(2) ?? "nowhere"} s, rows ${bands.map((b) => (b ? `${b.top.toFixed(2)} to ${b.bottom.toFixed(2)}` : "all")).join(", then ")}`
     );
-    if (from === null) setStep({ kind: "failed", missing: "shot" });
-    else void readBand(f, from, bands, mine);
+    notes.current.set(
+      "search",
+      `${foundNote(found)}; read from ${from?.toFixed(2) ?? "nowhere"} s; bands ${bands.map((b) => (b ? `${b.top.toFixed(2)}-${b.bottom.toFixed(2)}` : "all")).join(", ")}`
+    );
+    if (from === null) setStep({ kind: "failed", missing: "shot", details: details() });
+    else void readBand(f, looked, bands, mine);
   }
 
-  /** Reads the shot's few seconds in the first band left, then looks for the lane there. */
-  async function readBand(f: File, from: number, bands: (Band | null)[], mine: number) {
+  /** Back to the start, saying the video couldn't be read and what the reader said. */
+  function unreadable(e: unknown, mine: number) {
+    const why = e instanceof Error ? e.message : String(e);
+    console.info(`Shot tracer: the video couldn't be read: ${why}`);
+    if (attempt.current === mine) setStep({ kind: "pick", unreadable: true, why, details: details() });
+  }
+
+  /** The details block's text so far, with the stage times; also to the console. */
+  function details(): string {
+    notes.current.set("times", timesNote(timing.current));
+    const text = notes.current.text();
+    console.info(`Shot tracer details:\n${text}`);
+    return text;
+  }
+
+  /** Reads the shot in the first band left, then looks for the lane there. */
+  async function readBand(f: File, looked: { found: ShotFound | null; width: number; height: number; duration: number }, bands: (Band | null)[], mine: number) {
     setStep({ kind: "reading", fraction: 0 });
     let v: VideoFrames;
+    const began = now();
+    let counted = false;
     try {
-      v = await readVideoFrames(
-        f,
+      const read = await readShot(
+        (plan, onRead) => readVideoFrames(f, onRead, plan, notes.current),
+        looked.found,
+        looked,
+        bands[0],
+        // The lane on a few of the first part's frames, for where the shot ends.
+        async (first) => {
+          const m = await findOn(first, FIRST_LANE_EVERY, mine);
+          return m.frame === null ? null : m.lanes;
+        },
         (fraction) => {
           if (attempt.current === mine) setStep({ kind: "reading", fraction });
         },
-        from,
-        bands[0]
+        bands.length === 1,
+        notes.current
       );
-      if (v.gray.length < 10) throw new Error("too short");
-    } catch {
-      if (attempt.current === mine) setStep({ kind: "pick", unreadable: true });
+      if (read === "no-shot") {
+        if (attempt.current === mine) {
+          timing.current.read += now() - began;
+          counted = true;
+          setStep({ kind: "failed", missing: "shot", details: details() });
+        }
+        return;
+      }
+      if (read === "no-lane") {
+        // No lane on the first part in this band: the next, read again.
+        if (attempt.current === mine) void readBand(f, looked, bands.slice(1), mine);
+        return;
+      }
+      v = read.frames;
+      if (v.gray.length < 10) throw new Error(`only ${v.gray.length} frames read (${v.via ?? "?"})`);
+    } catch (e) {
+      if (attempt.current === mine) {
+        timing.current.read += now() - began;
+        counted = true;
+      }
+      unreadable(e, mine);
       return;
+    } finally {
+      if (attempt.current === mine && !counted) timing.current.read += now() - began;
     }
     if (attempt.current !== mine) return;
+    timing.current.via = v.via ?? "";
+    setStep({ kind: "finding" });
+    const finding = now();
+    const m = await findOn(v, LANE_EVERY, mine);
+    if (attempt.current !== mine) return;
+    timing.current.lane += now() - finding;
+    notes.current.add("lane", m.frame !== null ? `found on ${m.lanes.length} of ${m.looked}, best frame ${m.frame}, camera ${m.evidence.camera?.toFixed(1) ?? "?"} ft` : `not found on ${v.gray.length} frames`);
+    if (m.frame !== null) void traceShot(v, m.frame, { lanes: m.lanes, evidence: m.evidence }, mine);
     // Not found in this band: the next, read again, or nothing to trace.
-    findLane(v, mine, () => {
-      if (attempt.current !== mine) return;
-      if (bands.length > 1) void readBand(f, from, bands.slice(1), mine);
-      else setStep({ kind: "failed", missing: "lane" });
-    });
+    else if (bands.length > 1) void readBand(f, looked, bands.slice(1), mine);
+    else setStep({ kind: "failed", missing: "lane", details: details() });
   }
 
-  /** Looks for the lane on a few frames, then traces with it; `lost` when it is not found. */
-  function findLane(v: VideoFrames, mine: number, lost: () => void) {
-    setStep({ kind: "finding" });
-    const stride = Math.max(1, Math.floor(v.gray.length / FIND_FRAMES));
-    const request: FindRequest = {
-      width: v.width,
-      height: v.height,
-      // Copies: the frames are still needed to trace.
-      frames: v.gray.flatMap((g, index) => (index % stride === 0 ? [{ data: g.slice().buffer as ArrayBuffer, index }] : []))
-    };
-    let worker: Worker;
+  /**
+   * The pool of workers the lane search and the trace share (`shotTracer/pool.ts`):
+   * one per attempt, made when first needed. `?tracerWorkers=N` in the
+   * address sets how many (the harness's runs with 1, 2 and 4).
+   */
+  function poolFor(mine: number): Pool {
+    if (pool.current && poolOf.current === mine) return pool.current;
+    pool.current?.terminate();
+    const asked = Number(new URLSearchParams(window.location.search).get("tracerWorkers") ?? NaN);
+    const ios = isIOSApp() || /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const size = poolSize(navigator.hardwareConcurrency, ios, Number.isFinite(asked) ? asked : null);
+    pool.current = new Pool(size, () => new Worker(new URL("../shotTracer/pool.worker.ts", import.meta.url), { type: "module" }));
+    poolOf.current = mine;
+    console.info(`Shot tracer: ${size} worker${size === 1 ? "" : "s"} (${navigator.hardwareConcurrency ?? "?"} cores reported)`);
+    return pool.current;
+  }
+
+  /** The read's frames as the tracer takes them. */
+  const framesOf = (v: VideoFrames): GrayFrame[] => v.gray.map((data, i) => ({ width: v.width, height: v.height, data, t: v.times[i] }));
+
+  /**
+   * Looks for the lane on the frames of `v` on a grid `every` seconds apart
+   * from the video's start (`gridFrames`: the same frames however much lead
+   * the read has), in the pool; a null frame when it is not found or the pool
+   * fails.
+   */
+  async function findOn(v: VideoFrames, every: number, mine: number): Promise<FindMessage & { looked: number }> {
+    const all = framesOf(v);
+    const idx = gridFrames(v.times, every, v.step || readStep(v.times));
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    // A search that never answers is a lane not found, not a screen that waits for ever.
+    const late = new Promise<"late">((resolve) => (timer = setTimeout(() => resolve("late"), WORKER_WAIT_MS)));
     try {
-      worker = startWorker(new URL("../shotTracer/find.worker.ts", import.meta.url));
-    } catch {
-      lost();
+      const found = await Promise.race([findInPool(poolFor(mine), idx.map((i) => all[i])), late]);
+      if (found === "late") {
+        console.info(`Shot tracer: the lane search did not answer in ${WORKER_WAIT_MS / 1000} s`);
+        // Its workers may be stuck: the next search or trace starts a new pool.
+        pool.current?.terminate();
+        pool.current = null;
+        return { frame: null, looked: idx.length };
+      }
+      const best = found.best;
+      if (!best) return { frame: null, looked: idx.length };
+      return {
+        looked: idx.length,
+        frame: idx[best.index],
+        lanes: frameLanes(found, (i) => idx[i]),
+        evidence: { guess: best.guess, support: best.support, pinsUsed: best.pinsUsed, camera: best.camera }
+      };
+    } catch (e) {
+      console.info(`Shot tracer: the lane search failed: ${e instanceof Error ? e.message : String(e)}`);
+      return { frame: null, looked: idx.length };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  /** Traces with the found lanes, each frame on its own, in the pool. */
+  async function traceShot(video: VideoFrames, frame: number, found: Found, mine: number) {
+    setShown({ gray: video.gray[frame].slice(), width: video.width, height: video.height });
+    setStep({ kind: "tracing", fraction: 0 });
+    const began = now();
+    const finish = (next: Step & { kind: "done" }) => {
+      if (attempt.current !== mine) return;
+      const ms = timing.current;
+      ms.trace = now() - began;
+      const took = { via: ms.via, look: ms.look / 1000, read: ms.read / 1000, lane: ms.lane / 1000, trace: ms.trace / 1000 };
+      console.info(
+        `Shot tracer: stages took ${[took.look, took.read, took.lane, took.trace].map((x) => x.toFixed(1)).join(", ")} s (look, read, lane, trace), ` +
+          `${(took.look + took.read + took.lane + took.trace).toFixed(1)} s in all; read by ${took.via}`
+      );
+      const r = next.result;
+      notes.current.set("trace", r.ok ? `${r.sightings.length} sightings, ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft` : `${r.failure}: ${r.detail}`);
+      setStep({ ...next, timing: took, details: details() });
+    };
+    let out: TraceOutput;
+    try {
+      // The frames move to the pool's last job; the screen keeps only the one it shows.
+      out = await traceInPool(poolFor(mine), framesOf(video), {
+        calibFrame: frame,
+        // The found lanes, each frame traced on its own.
+        lanes: found.lanes,
+        hand: handedness,
+        onProgress: (_stage, fraction) => {
+          if (attempt.current === mine) setStep({ kind: "tracing", fraction });
+        }
+      });
+    } catch (e) {
+      const why = e instanceof Error ? e.message : String(e);
+      console.info(`Shot tracer: the trace failed: ${why}`);
+      finish({ kind: "done", result: { ok: false, failure: "unsupported-video", detail: `worker failed: ${why}` }, H: null, verdict: null });
       return;
     }
-    worker.onmessage = (e: MessageEvent<FindMessage>) => {
-      stopWorker(worker);
-      const m = e.data;
-      if (m.frame === null) lost();
-      else if (attempt.current === mine) traceShot(v, m.frame, { lanes: m.lanes, evidence: m.evidence }, mine);
-    };
-    worker.onerror = () => {
-      stopWorker(worker);
-      lost();
-    };
-    worker.postMessage(request, request.frames.map((f) => f.data));
-  }
-
-  /** Traces with the found lanes, each frame on its own. */
-  function traceShot(video: VideoFrames, frame: number, found: Found, mine: number) {
-    setShown({ gray: video.gray[frame].slice(), width: video.width, height: video.height });
-    const request: TraceRequest = {
-      width: video.width,
-      height: video.height,
-      frames: video.gray.map((g, i) => ({ data: g.buffer as ArrayBuffer, t: video.times[i] })),
-      calibFrame: frame,
-      lanes: found.lanes,
-      hand: handedness
-    };
-    setStep({ kind: "tracing", fraction: 0 });
-    const worker = startWorker(new URL("../shotTracer/trace.worker.ts", import.meta.url));
-    const finish = (next: Step) => {
-      stopWorker(worker);
-      if (attempt.current === mine) setStep(next);
-    };
-    worker.onmessage = (e: MessageEvent<TraceMessage>) => {
-      const m = e.data;
-      if (m.kind === "progress") {
-        if (attempt.current === mine) setStep({ kind: "tracing", fraction: m.fraction });
-      } else finish({ kind: "done", result: m.result, H: m.H, verdict: laneVerdict({ ...found.evidence, ...m.evidence }) });
-    };
-    worker.onerror = () =>
-      finish({ kind: "done", result: { ok: false, failure: "unsupported-video", detail: "worker failed" }, H: null, verdict: null });
-    // The frames move to the worker; the screen keeps only the one it shows.
-    worker.postMessage(request, request.frames.map((f) => f.data));
+    const lanesUsed = out.debug.lanes;
+    const evidence = { kept: lanesUsed?.kept.length, dropped: lanesUsed?.dropped.length, pinCheck: out.debug.calibration?.pinError ?? null };
+    // The calibration frame's mapping as traced: the found lanes' blend there.
+    finish({ kind: "done", result: out.result, H: out.debug.H0 ?? null, verdict: laneVerdict({ ...found.evidence, ...evidence }) });
   }
 
   const another = () => {
     attempt.current++;
     for (const w of workers.current) w.terminate();
     workers.current.clear();
+    pool.current?.terminate();
+    pool.current = null;
     setStep({ kind: "pick" });
   };
 
   return (
     <PushScreen history="route" mode="inline" title={t`Shot tracer`} onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl space-y-5 px-3 pb-10 pt-2 sm:px-6">
-        {step.kind === "pick" && <PickVideo unreadable={step.unreadable} onChoose={(f) => void choose(f)} />}
+        {step.kind === "pick" && <PickVideo unreadable={step.unreadable} why={step.why} details={step.details} onChoose={(f) => void choose(f)} />}
         {step.kind === "searching" && <Waiting label={t`Looking for the shot…`} fraction={step.fraction} />}
         {step.kind === "reading" && <Waiting label={t`Reading the video…`} fraction={step.fraction} />}
         {step.kind === "finding" && <Waiting label={t`Finding the lane…`} />}
         {step.kind === "tracing" && <Waiting label={t`Tracing the shot…`} fraction={step.fraction} />}
         {step.kind === "failed" && (
-          <Failure text={step.missing === "shot" ? t`The shot couldn't be found in this video.` : t`The lane couldn't be found in this video.`} onAnother={another} />
+          <Failure
+            text={step.missing === "shot" ? t`The shot couldn't be found in this video.` : t`The lane couldn't be found in this video.`}
+            details={step.details}
+            onAnother={another}
+          />
         )}
-        {step.kind === "done" && <Result result={step.result} H={step.H} verdict={step.verdict} picture={shown} onAnother={another} />}
+        {step.kind === "done" && (
+          <Result result={step.result} H={step.H} verdict={step.verdict} picture={shown} timing={step.timing} details={step.details} onAnother={another} />
+        )}
       </div>
     </PushScreen>
   );
 }
 
-function PickVideo({ unreadable, onChoose }: { unreadable?: boolean; onChoose: (f: File | undefined) => void }) {
+function PickVideo({ unreadable, why, details, onChoose }: { unreadable?: boolean; why?: string; details?: string; onChoose: (f: File | undefined) => void }) {
   const record = useRef<HTMLInputElement>(null);
   const pick = useRef<HTMLInputElement>(null);
   return (
@@ -263,6 +421,11 @@ function PickVideo({ unreadable, onChoose }: { unreadable?: boolean; onChoose: (
           {t`This video couldn't be read. Try another one.`}
         </p>
       )}
+      {unreadable && why && (
+        // A Labs screen: the reader's own words, for the owner to pass on.
+        <p className="text-footnote text-ink-secondary [overflow-wrap:anywhere]">{t`Details: ${why}`}</p>
+      )}
+      {unreadable && details && <Details text={details} />}
       <div className="flex flex-wrap gap-3">
         <Button variant="primary" onClick={() => record.current?.click()}>
           <Camera size={18} aria-hidden="true" />
@@ -287,7 +450,7 @@ function PickVideo({ unreadable, onChoose }: { unreadable?: boolean; onChoose: (
 }
 
 /** What could not be done, what to try, and another video. */
-function Failure({ text, onAnother }: { text: string; onAnother: () => void }) {
+function Failure({ text, details, onAnother }: { text: string; details?: string; onAnother: () => void }) {
   return (
     <div className="space-y-4">
       <p role="alert" className="text-subhead text-ink">
@@ -297,7 +460,23 @@ function Failure({ text, onAnother }: { text: string; onAnother: () => void }) {
         {t`Film from behind the bowler, with the whole lane in view from the foul line to the pins, and hold the phone still.`}
       </p>
       <Button onClick={onAnother}>{t`Another video`}</Button>
+      {details && <Details text={details} />}
     </div>
+  );
+}
+
+/**
+ * What the tracer did, line by line in technical English (`lib/shotTrack/
+ * notes.ts`), small and selectable under every end screen: the owner's
+ * screenshot from a phone is all there is to go on.
+ */
+function Details({ text }: { text: string }) {
+  // The same message as the reader's own reason above it.
+  const why = text;
+  return (
+    <p data-testid="tracer-details" className="select-text whitespace-pre-wrap text-footnote text-ink-secondary [overflow-wrap:anywhere]">
+      {t`Details: ${why}`}
+    </p>
   );
 }
 
@@ -324,7 +503,7 @@ interface Crop {
 }
 
 /**
- * A grey frame (video range, see `toGray`) drawn into a canvas, or the part of
+ * A gray frame (full range, `grayRange.ts`) drawn into a canvas, or the part of
  * it in `crop`, with an SVG over it in the frame's own pixels.
  */
 function FramePicture({
@@ -349,7 +528,7 @@ function FramePicture({
     const img = ctx.createImageData(box.w, box.h);
     for (let y = 0; y < box.h; y++) {
       for (let x = 0; x < box.w; x++) {
-        const g = (gray[(y + box.y) * width + x + box.x] - 16) * (255 / 219);
+        const g = gray[(y + box.y) * width + x + box.x];
         const k = 4 * (y * box.w + x);
         img.data[k] = img.data[k + 1] = img.data[k + 2] = g;
         img.data[k + 3] = 255;
@@ -393,15 +572,19 @@ function Result({
   H,
   verdict,
   picture,
+  timing,
+  details,
   onAnother
 }: {
   result: TrackResult | TrackError;
   H: Mat3 | null;
   verdict: LaneVerdict | null;
   picture: { gray: Uint8ClampedArray; width: number; height: number } | null;
+  timing?: Timing;
+  details?: string;
   onAnother: () => void;
 }) {
-  if (!result.ok) return <Failure text={failureText(result.failure)} onAnother={onAnother} />;
+  if (!result.ok) return <Failure text={failureText(result.failure)} details={details} onAnother={onAnother} />;
   const m = result.metrics;
   const path = H ? pathInPicture(H, result.path, result.from, result.to) : [];
   // The laydown on the foul line, where the drawn path starts: the ball is
@@ -457,12 +640,37 @@ function Result({
           feet={m.breakpointFeet}
         />
         <Reading label={t({ message: "At the pins", comment: "The board the ball is on where it meets the pins" })} metric={m.pins} />
-        <Reading label={t`Speed`} metric={m.speed} speed />
+        <Reading
+          label={t({ message: "Launch speed", comment: "Bowling: the ball's speed over the first 15 feet past the foul line, in miles an hour" })}
+          metric={m.launchSpeed}
+          speed
+        />
+        <Reading
+          label={t({ message: "Entry speed", comment: "Bowling: the ball's speed over the last feet before it meets the pins, in miles an hour" })}
+          metric={m.entrySpeed}
+          speed
+        />
       </dl>
+      {timing && <TimingLine timing={timing} />}
       <div className="flex flex-wrap gap-3">
         <Button onClick={onAnother}>{t`Another video`}</Button>
       </div>
+      {details && <Details text={details} />}
     </div>
+  );
+}
+
+/** How the video was read and how long each stage took, small, for the owner's runs on a phone. */
+function TimingLine({ timing }: { timing: Timing }) {
+  const s = (x: number) => formatNumber(x, 1);
+  const [reader, look, read, lane, trace] = [timing.via || "?", s(timing.look), s(timing.read), s(timing.lane), s(timing.trace)];
+  return (
+    <p className="text-footnote text-ink-secondary [overflow-wrap:anywhere]">
+      {t({
+        message: `Read by ${reader}. Looking ${look} s, reading ${read} s, lane ${lane} s, tracing ${trace} s.`,
+        comment: "A diagnostics line in Labs: how the video was read (a technical name), and the seconds each stage of the shot tracer took"
+      })}
+    </p>
   );
 }
 

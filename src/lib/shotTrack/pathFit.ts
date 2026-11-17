@@ -1,7 +1,9 @@
 import type { Handedness } from "../../types/bowling";
 import { BOARD_FT, CONTACT_IN, handedBoard, hookSlope, hookU, type HookShape } from "./laneModel";
 import { PIN_POSITIONS } from "../pinGeometry";
+import { entrySpeed, launchSpeed } from "./speeds";
 import type { Metric, MetricState, PathModel, TrackMetrics } from "./types";
+import * as fdlibm from "./detMath";
 
 /** Fitting the path, the distance against time, and the metrics (plan 7.5, 7.6). */
 
@@ -483,10 +485,10 @@ export function metrics(inp: MetricInput): TrackMetrics {
   lastU = boardAtPins(pts, contactV, inp.rackMovesAt);
   const board60 = lastU === null ? board(contactV) : handedBoard(lastU, hand);
   const pins = inp.pinsU !== undefined ? M(handedBoard(inp.pinsU, hand), inp.pinsEstimated ? "estimated" : "measured") : pinState === "missing" ? M(null, "missing") : M(board60, pinState);
-  const entry = (Math.atan(Math.abs(board(60) - board(54)) * BOARD_FT / 6) * 180) / Math.PI;
+  const entry = (fdlibm.atan(Math.abs(board(60) - board(54)) * BOARD_FT / 6) * 180) / Math.PI;
   const entryAngle = pinState === "missing" ? M(null, "missing") : M(entry, pinState);
   const skidSpan = seen.filter((v) => v <= path.s);
-  const launch = (Math.atan(Math.abs(path.a) * BOARD_FT) * 180) / Math.PI;
+  const launch = (fdlibm.atan(Math.abs(path.a) * BOARD_FT) * 180) / Math.PI;
   const launchAngle =
     skidSpan.length >= 2 && Math.max(...skidSpan) - Math.min(...skidSpan) >= 10 ? M(launch, "measured") : M(launch, from <= 30 ? "estimated" : "missing");
 
@@ -504,5 +506,13 @@ export function metrics(inp: MetricInput): TrackMetrics {
   const t60 = timeAtFeet(m, 60);
   const endSpeed = t60 !== null ? (m.w + m.d * t60) * FTS_TO_MPH : NaN;
   const speedAtPins = to >= 52 && sane(endSpeed) ? M(endSpeed, spState) : M(null, "missing");
-  return { laydown, touchdown, touchdownFeet, arrows, breakpoint, breakpointFeet, pins, entryAngle, launchAngle, speed, speedAtPins };
+  // The launch and entry speeds from the sightings in their own stretches,
+  // each at its own time (`speeds.ts`); none without timed sightings.
+  const timed = pts.flatMap((p) => (p.t !== undefined ? [{ t: p.t, v: p.v, w: p.w }] : []));
+  const launchSpeedM = launchSpeed(timed);
+  const entrySpeedM = entrySpeed(timed, inp.rackMovesAt);
+  return {
+    laydown, touchdown, touchdownFeet, arrows, breakpoint, breakpointFeet, pins, entryAngle, launchAngle, speed, speedAtPins,
+    launchSpeed: launchSpeedM, entrySpeed: entrySpeedM
+  };
 }

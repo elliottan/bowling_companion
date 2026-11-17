@@ -1,3 +1,4 @@
+import * as fdlibm from "./detMath";
 /**
  * Pick the candidates that are one ball obeying physics (plan 7.4).
  *
@@ -86,7 +87,7 @@ function bestPerFrame<T extends Track3>(cands: T[], vt: number[], uAt: (v: numbe
  */
 function localLine(pts: Track3[]): (v: number) => number {
   return (v) => {
-    const w = pts.map((p) => Math.exp(-(((p.v - v) / 8) ** 2) / 2) + 1e-6);
+    const w = pts.map((p) => fdlibm.exp(-(((p.v - v) / 8) ** 2) / 2) + 1e-6);
     return evalPoly(polyfit(pts.map((p) => p.v), pts.map((p) => p.u), 1, w), v);
   };
 }
@@ -133,5 +134,58 @@ export function associate<T extends Track3>(cands: T[], opts: AssociateOptions =
   // end a pixel is about a foot, so two honest sightings can cross.
   const mono: T[] = [];
   for (const c of best) if (!mono.length || c.v > mono[mono.length - 1].v - 0.5) mono.push(c);
-  return mono;
+  return onePace(mono);
+}
+
+/** Sightings this far apart in time or more are two pieces of the ball's run, seconds. */
+export const PIECE_GAP_S = 0.1;
+/** A piece's speed is trusted when it is seen over this long, seconds. */
+export const PACE_SPAN_S = 0.2;
+/** Across a gap the ball goes on at no less than this share of the longest piece's speed... */
+export const GAP_PACE = 0.6;
+/** ...give or take this many feet (a sighting's own error far down the lane). */
+export const GAP_SLACK_FT = 1.5;
+
+/**
+ * The ball, once seen in pieces (lost behind the bowler, among the pins),
+ * goes on between them at about its speed: it loses a quarter of it at most
+ * over the lane. The set the fit above keeps is one straight line in time
+ * within 3 ft, which a run of 9 ft and something standing a few feet past it
+ * half a second later can both be near: shot-04 read from just before the
+ * foul line kept the ball to 9.7 ft and then something at 12.5 to 16 ft that
+ * hardly moved for 0.3 s, read the arrows 9.3 off the line through them,
+ * and the near lane's own follow (`followNear`), which reads the ball to
+ * 12.9 ft, was never tried. The heaviest piece, when it is seen over
+ * `PACE_SPAN_S`, sets the speed (its straight line in time); a piece after
+ * it whose sightings are mostly short of where the ball would be at
+ * `GAP_PACE` of that speed, or a piece before it mostly past where the ball
+ * could have come from, is left out. Each piece is judged by most of its
+ * sightings, not its end: a stray at a piece's end is common. Pure.
+ */
+export function onePace<T extends Track3>(set: T[]): T[] {
+  const pieces: T[][] = [];
+  for (const c of set) {
+    const last = pieces[pieces.length - 1];
+    if (last && c.t - last[last.length - 1].t < PIECE_GAP_S) last.push(c);
+    else pieces.push([c]);
+  }
+  if (pieces.length < 2) return set;
+  const weightOf = (p: T[]) => p.reduce((s, c) => s + (c.weight ?? 1), 0);
+  const main = pieces.reduce((a, p) => (weightOf(p) > weightOf(a) ? p : a));
+  const t0 = main[0].t;
+  const t1 = main[main.length - 1].t;
+  if (t1 - t0 < PACE_SPAN_S) return set;
+  const line = polyfit(main.map((c) => c.t), main.map((c) => c.v), 1);
+  const speed = line[1];
+  if (!(speed > 0)) return set;
+  const v0 = evalPoly(line, t0);
+  const v1 = evalPoly(line, t1);
+  // How far each sighting is inside where the ball can be: after the piece,
+  // at least that slow; before it, at most that far on.
+  const margin = (c: T) => (c.t > t1 ? c.v - (v1 + GAP_PACE * speed * (c.t - t1)) : v0 - GAP_PACE * speed * (t0 - c.t) - c.v) + GAP_SLACK_FT;
+  const fits = (p: T[]) => {
+    const m = p.map(margin).sort((a, b) => a - b);
+    return m[(m.length - 1) >> 1] >= 0;
+  };
+  return pieces.filter((p) => p === main || fits(p)).flat();
 }

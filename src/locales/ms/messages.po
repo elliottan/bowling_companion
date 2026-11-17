@@ -1690,6 +1690,10 @@ msgstr "Dikira daripada kedudukan awal anda. Ketik untuk melihatnya pada lorong.
 msgid "Description"
 msgstr "Penerangan"
 
+#: src/views/ShotTracerView.tsx
+msgid "Details: {why}"
+msgstr "Butiran: {why}"
+
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
 #. Bowling term: the differential, a ball spec (short for differential RG)
@@ -1930,6 +1934,11 @@ msgstr "Dayakan Aktiviti Langsung"
 #: src/views/ActiveSessionView.tsx
 msgid "Enter whole numbers for both lanes."
 msgstr "Masukkan nombor bulat untuk kedua-dua lorong."
+
+#. Bowling: the ball's speed over the last feet before it meets the pins, in miles an hour
+#: src/views/ShotTracerView.tsx
+msgid "Entry speed"
+msgstr "Kelajuan masuk"
 
 #. The tracer worked it out from where the ball was seen nearby
 #: src/views/ShotTracerView.tsx
@@ -2759,6 +2768,11 @@ msgstr "Lewat dan tajam"
 #: src/views/DashboardView.tsx
 msgid "Later"
 msgstr "Kemudian"
+
+#. Bowling: the ball's speed over the first 15 feet past the foul line, in miles an hour
+#: src/views/ShotTracerView.tsx
+msgid "Launch speed"
+msgstr "Kelajuan awal"
 
 #. Bowling term: the board the ball first touches the lane
 #. Bowling term: the board the ball first touches the lane
@@ -3860,6 +3874,11 @@ msgstr "Nisbah"
 msgid "Re-aim"
 msgstr "Bidik semula"
 
+#. A diagnostics line in Labs: how the video was read (a technical name), and the seconds each stage of the shot tracer took
+#: src/views/ShotTracerView.tsx
+msgid "Read by {reader}. Looking {look} s, reading {read} s, lane {lane} s, tracing {trace} s."
+msgstr "Dibaca dengan {reader}. Mencari {look} saat, membaca {read} saat, lorong {lane} saat, menjejak {trace} saat."
+
 #: src/views/ShotTracerView.tsx
 msgid "Reading the video…"
 msgstr "Membaca video…"
@@ -4568,10 +4587,6 @@ msgstr "Spesifikasi dan gambar bola semasa"
 #: src/views/CatalogView.tsx
 msgid "Specs at {weight}"
 msgstr "Spesifikasi pada {weight}"
-
-#: src/views/ShotTracerView.tsx
-msgid "Speed"
-msgstr "Kelajuan"
 
 #. Bowling term. A short column heading over the share of leaves that were splits.
 #. Bowling term: a leave with a gap between the standing pins

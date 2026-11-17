@@ -61,8 +61,8 @@ const fmt = (x: number, d = 2) => (Number.isFinite(x) ? x.toFixed(d) : "-");
 const metric = (m: Metric | undefined, d = 1) => (m && m.value !== null ? `${m.value.toFixed(d)}${m.state === "estimated" ? "e" : ""}` : "-");
 
 const rows: string[] = [
-  "| clip | frame | left 0 / 50 ft | right 0 / 50 ft | foul ft | pin row ft | pins check | laydown | arrows | breakpoint | pins | speed |",
-  "|---|---|---|---|---|---|---|---|---|---|---|---|"
+  "| clip | frame | left 0 / 50 ft | right 0 / 50 ft | foul ft | pin row ft | pins check | laydown | arrows | breakpoint | pins | speed | launch | entry |",
+  "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"
 ];
 for (const name of names) {
   const t = loadTruth(name);
@@ -73,7 +73,7 @@ for (const name of names) {
   const ms = Date.now() - t0;
   if (!found) {
     console.log(`${name}: no lane found (${ms} ms)`);
-    rows.push(`| ${name} | not found | | | | | | | | | | |`);
+    rows.push(`| ${name} | not found | | | | | | | | | | | | |`);
     continue;
   }
   const frame = idx[found.index];
@@ -118,7 +118,7 @@ for (const name of names) {
     mkdirSync(join(here, "out", name), { recursive: true });
     savePng(c, join(here, "out", name, "auto-lane.png"));
   }
-  let read = "| - | - | - | - | - |";
+  let read = "| - | - | - | - | - | - | - |";
   if (!noTrace) {
     // The lane found on every frame it was found on, each frame's own blended
     // from those near it (`laneTrack`); the finder's chosen frame is only the
@@ -155,8 +155,8 @@ for (const name of names) {
     }
     const pair = (k: keyof TrackResult["metrics"], d = 1) => `${metric(a?.[k], d)} (${metric(h?.[k], d)})`;
     console.log(`   auto ${auto.ok ? "traced" : `failed: ${auto.failure} ${auto.detail}`}; hand ${handOk ? "traced" : `failed: ${handFailure}`}`);
-    console.log(`   laydown ${pair("laydown")}  arrows ${pair("arrows")}  breakpoint ${pair("breakpoint")} at ${pair("breakpointFeet", 0)} ft  pins ${pair("pins")}  speed ${pair("speed")}   (hand in brackets)`);
-    read = `| ${pair("laydown")} | ${pair("arrows")} | ${pair("breakpoint")} at ${pair("breakpointFeet", 0)} | ${pair("pins")} | ${pair("speed")} |`;
+    console.log(`   laydown ${pair("laydown")}  arrows ${pair("arrows")}  breakpoint ${pair("breakpoint")} at ${pair("breakpointFeet", 0)} ft  pins ${pair("pins")}  speed ${pair("speed")}  launch ${pair("launchSpeed")}  entry ${pair("entrySpeed")}   (hand in brackets)`);
+    read = `| ${pair("laydown")} | ${pair("arrows")} | ${pair("breakpoint")} at ${pair("breakpointFeet", 0)} | ${pair("pins")} | ${pair("speed")} | ${pair("launchSpeed")} | ${pair("entrySpeed")} |`;
   }
   rows.push(`| ${name} | ${frame} | ${fmt(L[0])} / ${fmt(L[1])} | ${fmt(R[0])} / ${fmt(R[1])} | ${fmt(foul)} | ${fmt(pinRow)} | ${pins.map((p) => `${p.name.replace("pin ", "")}: ${fmt(p.error)}`).join(", ") || "-"} ${read}`);
 }

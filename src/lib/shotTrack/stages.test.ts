@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { associate, polyfit } from "./associate";
+import { associate, onePace, polyfit } from "./associate";
 import { laneRoi, medianBackground, steady } from "./background";
 import { closeGaps, findCandidates, refineCircle } from "./ballDetect";
 import { calibrationReport, checkArrows, checkPins } from "./calibrationCheck";
@@ -270,6 +270,40 @@ describe("associate", () => {
     expect(got.length).toBe(60);
     expect(got.every((c) => c.u > 24)).toBe(true);
     expect(polyfit([0, 1, 2], [1, 3, 7], 2)[2]).toBeCloseTo(1);
+  });
+
+  // shot-04 read from just before the foul line: the ball from 0.8 to 9.7 ft
+  // at 24 ft/s, then hidden behind the bowler, and something at 12.5 to 16 ft
+  // half a second later that hardly moves.
+  const ball = Array.from({ length: 23 }, (_, i) => ({ frame: 78 + i, t: 1.3 + i / 60, v: 0.8 + 24 * (i / 60), u: 34 + 0.03 * i }));
+  const stray = [
+    ...[0, 1, 2].map((k) => ({ frame: 127 + k, t: 2.119 + k / 60, v: 12.9 + 0.2 * k, u: 31 })),
+    ...[0, 2, 3, 4, 6].map((k) => ({ frame: 139 + k, t: 2.319 + k / 60, v: 13 - 0.1 * k, u: 31.5 }))
+  ];
+
+  it("keeps the ball's pieces at the ball's pace, and nothing it could not have reached", () => {
+    expect(onePace([...ball, ...stray])).toEqual(ball);
+    // Lost for 0.2 s and seen again where its speed puts it: one ball.
+    const on = Array.from({ length: 12 }, (_, i) => ({ frame: 113 + i, t: 1.3 + (35 + i) / 60, v: 0.8 + 24 * ((35 + i) / 60), u: 35 }));
+    expect(onePace([...ball, ...on])).toEqual([...ball, ...on]);
+    // A piece before the longest is judged the other way: no sighting further on than the ball could have come from.
+    const ahead = [0, 1, 2].map((k) => ({ frame: 60 + k, t: 1.0 + k / 60, v: 9 + 0.1 * k, u: 30 }));
+    expect(onePace([...ahead, ...ball])).toEqual(ball);
+    // A stray at a piece's end does not cost the piece: it is judged by most of its sightings.
+    const tail = [...on.slice(0, 8), { ...on[8], v: on[8].v + 6 }];
+    expect(onePace([...ball, ...tail])).toEqual([...ball, ...tail]);
+  });
+
+  it("leaves a set in one piece, or with no piece seen long enough to time, as it is", () => {
+    expect(onePace(ball)).toEqual(ball);
+    const short = [ball[0], ball[1], ...stray];
+    expect(onePace(short)).toEqual(short);
+    const still = [...ball.map((c) => ({ ...c, v: 5 })), ...stray];
+    expect(onePace(still)).toEqual(still);
+  });
+
+  it("drops the stray pieces when it associates", () => {
+    expect(associate([...ball, ...stray])).toEqual(ball);
   });
 });
 
