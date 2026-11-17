@@ -27,9 +27,16 @@ Each layer's *role* and the *load-bearing* modules:
   reading a video's frames by decoding it (WebCodecs, `codecFrames.ts`), or
   where that cannot be done by playing it through a `<video>` and a canvas
   (`videoFrames.ts`), and the workers the tracer (`lib/shotTrack/`) runs in.
-  It needs a real browser's decoder, so it has no unit tests and no coverage
-  floor; its pure parts are in `lib/shotTrack/marking.ts` and the MP4/MOV
-  demuxer `lib/shotTrack/mp4.ts`.
+  Every worker says `ready` once loaded and posts its own errors
+  (`workerFault.ts`); one that fails is replaced by the same work on the
+  screen's thread (`searchClient.ts`, `InlineWorker` in `inlineWorker.ts`),
+  with the same readings. Workers are imported as `?worker&url`: a
+  `new URL("x.worker.ts", import.meta.url)` not written inside `new Worker(...)`
+  is inlined as TypeScript source no browser runs, and the build fails on it.
+  The reading needs a real browser's decoder, so it has no unit tests and the
+  folder has no coverage floor; the pool, the search and the faults are tested
+  in Node, and the pure parts of reading are in `lib/shotTrack/marking.ts` and
+  the MP4/MOV demuxer `lib/shotTrack/mp4.ts`.
 - `db/bowlingDb.ts`: Dexie class + versioned schema.
   `types/bowling.ts`: shared interfaces.
 - `test/`: the vitest setup (jsdom shims for `Blob.text`, `matchMedia` and

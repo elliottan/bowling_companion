@@ -16,10 +16,23 @@ import type { ShotFound } from "../lib/shotTrack/shotStart";
  */
 export type SearchRequest = { kind: "frame"; width: number; height: number; data: ArrayBuffer; t: number } | { kind: "done" };
 
-/** Where the shot is, or null when no run of the ball up the lane was seen. */
-export interface SearchMessage {
-  found: ShotFound | null;
+/**
+ * A worker's own failure, posted instead of thrown (`workerFault.ts`): an
+ * error a worker throws reaches the screen as an ErrorEvent that Safari
+ * leaves empty, so the worker says what went wrong itself.
+ */
+export interface WorkerFault {
+  message: string;
+  /** The first line of its stack, where one was given. */
+  at?: string;
 }
+
+/**
+ * The search worker's messages: `ready` once it has loaded, then where the
+ * shot is (null when no run of the ball up the lane was seen), or what went
+ * wrong.
+ */
+export type SearchMessage = { kind: "ready" } | { kind: "found"; found: ShotFound | null } | ({ kind: "error" } & WorkerFault);
 
 /**
  * The frame the lane was found best on (an index in the clip), the lane on
@@ -64,8 +77,11 @@ export type PoolRequest =
   | { kind: "forget"; keys: string[] };
 
 export type PoolMessage =
+  /** The worker has loaded and takes jobs. */
+  | { kind: "ready" }
   | { kind: "done"; id: number; result: unknown }
-  | { kind: "error"; id: number; message: string }
+  /** A job failed (`id`), or the worker itself did, outside any one job (no `id`). */
+  | ({ kind: "error"; id?: number } & WorkerFault)
   | { kind: "progress"; id: number; stage: string; fraction: number }
   /** A streamed job took a frame: the next can be sent. */
   | { kind: "took"; id: number };
