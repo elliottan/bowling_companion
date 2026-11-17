@@ -20,7 +20,7 @@ import { isIOSApp } from "../lib/platform";
 import { findInPool, Pool, traceInPool } from "../shotTracer/pool";
 import type { FindMessage, SearchMessage, SearchRequest } from "../shotTracer/protocol";
 import { readShot } from "../shotTracer/readShot";
-import { scanVideo, type VideoFrames } from "../shotTracer/videoFrames";
+import { readVideoFrames, scanVideo, type VideoFrames } from "../shotTracer/videoFrames";
 import type { Handedness } from "../types/bowling";
 
 /**
@@ -232,7 +232,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     let counted = false;
     try {
       const read = await readShot(
-        f,
+        (plan, onRead) => readVideoFrames(f, onRead, plan, notes.current),
         looked.found,
         looked,
         bands[0],

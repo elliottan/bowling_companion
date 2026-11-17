@@ -1,7 +1,8 @@
-import { COARSE_FPS, COARSE_WIDTH, type CoarseFrame } from "../lib/shotTrack/shotStart";
-import { bandRows, FrameSlots, gridSlot, MAX_PIXELS, planeCrop, planeGray, readProgress, scaledSize, sourceStep, toGray } from "../lib/shotTrack/marking";
+import { readPick, scanPick, type PickPlan } from "../lib/shotTrack/framePick";
+import { COARSE_WIDTH, type CoarseFrame } from "../lib/shotTrack/shotStart";
+import { planeCrop, planeGray, readProgress, sourceStep, toGray } from "../lib/shotTrack/marking";
 import { grayStats, type Notes } from "../lib/shotTrack/notes";
-import { blobSource, decodeSpan, Mp4Error, nearestStamp, readVideoTrack, shownTimes, spanStamps, stampOf, type VideoTrack } from "../lib/shotTrack/mp4";
+import { blobSource, Mp4Error, nearestStamp, readVideoTrack, shownTimes, spanStamps, stampOf, type VideoTrack } from "../lib/shotTrack/mp4";
 
 /**
  * Frames read out of a video file by decoding it (WebCodecs' `VideoDecoder`),
@@ -315,24 +316,11 @@ export async function codecScan(
   const height = Math.max(2, Math.round((COARSE_WIDTH * track.height) / track.width));
   const turn = track.rotation;
   let ctx: CanvasRenderingContext2D | null = null;
-  const span = decodeSpan(track.samples, 0, duration);
-  if (!span) throw new Error("no frames to look at");
-  notes?.set("video", trackNote(track, cv.config));
   // The frames on the grid, over the frames' own times in the order shown.
-  const order: number[] = [];
-  let next = 0;
-  let offGrid = 0;
-  for (const stamp of spanStamps(track.samples, span.first, span.last)) {
-    const t = stamp / 1e6;
-    if (t < -1e-6) continue;
-    const after = gridSlot(t, next, COARSE_FPS);
-    if (after === null) {
-      offGrid++;
-      continue;
-    }
-    next = after;
-    order.push(stamp);
-  }
+  const pick = scanPick(track.samples, duration);
+  if (!pick) throw new Error("no frames to look at");
+  notes?.set("video", trackNote(track, cv.config));
+  const { span, order, offGrid } = pick;
   const wanted = new Map(order.map((stamp, k) => [stamp, k]));
   // Made as they come from the decoder, handed on in time order; one that
   // never comes is given up once eight after it have.
@@ -391,13 +379,7 @@ const LUMA_8 = new Set(["I420", "I420A", "I422", "I444", "NV12"]);
 const LUMA_16: Record<string, number> = { I420P10: 10, I420AP10: 10, I422P10: 10, I444P10: 10, I420P12: 12, I422P12: 12, I444P12: 12, P010: 10 };
 
 /** The plan of one read, as `videoFrames.ts` gives it. */
-export interface CodecPlan {
-  from: number;
-  to: number;
-  fps: number;
-  band: { top: number; bottom: number } | null;
-  after?: { t: number; src: number };
-}
+export type CodecPlan = PickPlan;
 
 /**
  * The frames of a stretch the plan asks for (`ReadPlan`): every frame from
@@ -414,30 +396,17 @@ export async function codecRead(
   notes?: Notes
 ): Promise<{ width: number; height: number; gray: Uint8ClampedArray[]; times: number[]; src: number | null; step: number; missing: number; via: string }> {
   const { track } = cv;
-  const from = Math.max(0, Math.min(plan.from, track.duration));
-  const to = Math.min(track.duration, plan.to);
-  const rows = bandRows(track.height, plan.band);
-  const { width, height } = scaledSize(track.width, rows.h, MAX_PIXELS);
+  // The frames to keep (`readPick`); each frame out of the decoder is matched
+  // to its place among them by its time.
+  const { from, to, rows, band, width, height, src, step, missing, span, wanted } = readPick(track, plan);
   const turn = track.rotation;
   const quarter = turn % 180 !== 0;
-  const shown = shownTimes(track.samples, from, to);
-  const steps = shown.slice(1).map((t, i) => t - shown[i]);
-  const src = plan.after?.src ?? sourceStep(steps) ?? 1 / plan.fps;
-  const slots = new FrameSlots(from, to, plan.fps, src, plan.after?.t);
-  const span = decodeSpan(track.samples, from - 0.25 * src, to);
-  // The frames to keep, chosen over the file's own frame times in the order
-  // shown, as the decoder would hand them out; each frame out of the decoder
-  // is matched to its place among them by its time.
-  const wanted = new Map<number, number>();
-  if (span) for (const stamp of spanStamps(track.samples, span.first, span.last)) if (slots.offer(stamp / 1e6)) wanted.set(stamp, wanted.size);
-  slots.close();
   const placed: (Uint8ClampedArray | undefined)[] = [];
   const placedT: number[] = [];
   let mode: "unknown" | "planes" | "drawn" = "unknown";
   let how = "none";
   let ctx: CanvasRenderingContext2D | null = null;
   let noRect = false;
-  const band = { top: rows.y / track.height, bottom: (rows.y + rows.h) / track.height };
   const cost: number[] = [];
 
   /** The frame's luma plane, cropped to the band; null where its format has none to copy. */
@@ -514,14 +483,14 @@ export async function codecRead(
     gray.push(g);
     times.push(placedT[k]);
   });
-  notes?.add("read", `${from.toFixed(2)} to ${to.toFixed(2)} s at ${plan.fps.toFixed(0)} fps: ${gray.length} frames, ${slots.missing.length} not in the file, ${how}, ${width}x${height}; decoder ${decodedNote(done, gray.length)}`);
+  notes?.add("read", `${from.toFixed(2)} to ${to.toFixed(2)} s at ${plan.fps.toFixed(0)} fps: ${gray.length} frames, ${missing} not in the file, ${how}, ${width}x${height}; decoder ${decodedNote(done, gray.length)}`);
   const via = `WebCodecs ${track.codec} ${cv.config.hardwareAcceleration}, ${how}`;
   const median = cost.length ? [...cost].sort((a, b) => a - b)[cost.length >> 1] : 0;
   console.info(
     `Shot tracer: read ${gray.length} frames by decoding (${via}) from ${from.toFixed(3)} s to ${(times[times.length - 1] ?? from).toFixed(3)} s ` +
       `at ${plan.fps.toFixed(0)} fps of a ${(1 / src).toFixed(1)} fps video, ${done.fed} decoded from ${span ? track.samples[span.first].t.toFixed(3) : "-"} s, ` +
-      `${slots.missing.length} not in the file, rows ${rows.y} to ${rows.y + rows.h} of ${track.width} by ${track.height} at ${width} by ${height}, ` +
+      `${missing} not in the file, rows ${rows.y} to ${rows.y + rows.h} of ${track.width} by ${track.height} at ${width} by ${height}, ` +
       `in ${(done.ms / 1000).toFixed(1)} s, ${median.toFixed(1)} ms a frame`
   );
-  return { width, height, gray, times, src, step: slots.step, missing: slots.missing.length, via };
+  return { width, height, gray, times, src, step, missing, via };
 }

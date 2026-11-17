@@ -3,7 +3,7 @@ import { bandRows, keptFps, MAX_PIXELS, READ_FPS, scaledSize } from "../lib/shot
 import type { Band, ShotFound } from "../lib/shotTrack/shotStart";
 import { verdictNote, windowNote, type Notes } from "../lib/shotTrack/notes";
 import { firstPart, pickWindow, runFeet, runInFrame, runVerdict, splitRead, windowOutside, windowStart, type ShotWindow } from "../lib/shotTrack/shotWindow";
-import { readVideoFrames, type VideoFrames } from "./videoFrames";
+import type { ReadPlan, VideoFrames } from "./videoFrames";
 
 /**
  * The shot's frames out of a video, and only the shot's (`lib/shotTrack/
@@ -23,6 +23,9 @@ const runSpan = (r: readonly { t: number; v: number }[]) =>
 /** How much of the bar the first part fills: about its share of a shot's read. */
 const FIRST_SHARE = 0.4;
 
+/** Reads the frames a plan asks for (`readVideoFrames` on the chosen file in the app; ffmpeg in the harness, `scripts/shot-tracker/app-read.ts`). */
+export type FrameReader = (plan: ReadPlan, onProgress: (fraction: number) => void) => Promise<VideoFrames>;
+
 export interface ShotFrames {
   frames: VideoFrames;
   /** Where the shot was found to be in the video; null when no shot was found and the video was read whole. */
@@ -30,7 +33,7 @@ export interface ShotFrames {
 }
 
 /**
- * Reads the shot `found` in `file` (a video `size` pixels shown and `duration`
+ * Reads the shot `found` with `read` (a video `size` pixels shown and `duration`
  * seconds long), of a portrait video only `band`. `look` finds the lane on the
  * first part's frames (null when it is not there); not found there and with
  * another band to try (`lastBand` false), nothing more is read and the answer
@@ -39,7 +42,7 @@ export interface ShotFrames {
  * video) the whole video is read.
  */
 export async function readShot(
-  file: Blob,
+  read: FrameReader,
   found: ShotFound | null,
   video: { width: number; height: number; duration: number },
   band: Band | null,
@@ -53,12 +56,12 @@ export async function readShot(
   const frameBytes = shown.width * shown.height;
   if (!found) {
     const to = Number.isFinite(video.duration) ? video.duration : 0;
-    const frames = await readVideoFrames(file, onProgress, { from: 0, to, fps: Math.min(READ_FPS, keptFps(to, frameBytes)), band }, notes);
+    const frames = await read({ from: 0, to, fps: Math.min(READ_FPS, keptFps(to, frameBytes)), band }, onProgress);
     notes?.add(key, `no shot: whole video read, ${frames.gray.length} frames`);
     return { frames, window: null };
   }
   const part = firstPart(found, video.duration);
-  const first = await readVideoFrames(file, (f) => onProgress(FIRST_SHARE * f), { ...part, fps: READ_FPS, band }, notes);
+  const first = await read({ ...part, fps: READ_FPS, band }, (f) => onProgress(FIRST_SHARE * f));
   const lanes = first.gray.length ? await look(first) : null;
   notes?.add(key, `first part ${part.from.toFixed(2)} to ${part.to.toFixed(2)} s, ${first.gray.length} frames, lane ${lanes ? `found on ${lanes.length}` : "not found"}`);
   if (!lanes && !lastBand) {
@@ -85,7 +88,7 @@ export async function readShot(
     const from = Math.max(0, windowStart(window));
     fps = Math.min(READ_FPS, keptFps(window.end - from, frameBytes));
     first.gray = [];
-    frames = await readVideoFrames(file, (f) => onProgress(FIRST_SHARE + (1 - FIRST_SHARE) * f), { from, to: window.end, fps, band }, notes);
+    frames = await read({ from, to: window.end, fps, band }, (f) => onProgress(FIRST_SHARE + (1 - FIRST_SHARE) * f));
   } else {
     const split = splitRead(first.times, first.step, READ_FPS, part.to, window, first.width * first.height);
     fps = split.fps;
@@ -97,12 +100,12 @@ export async function readShot(
     let via = first.via;
     if (split.rest) {
       const last = times[times.length - 1];
-      const rest = await readVideoFrames(file, (f) => onProgress(FIRST_SHARE + (1 - FIRST_SHARE) * f), {
+      const rest = await read({
         ...split.rest,
         fps: split.fps,
         band,
         after: first.src !== null && last !== undefined ? { t: last, src: first.src } : undefined
-      }, notes);
+      }, (f) => onProgress(FIRST_SHARE + (1 - FIRST_SHARE) * f));
       // Past the first part's last frame kept, half a frame clear of it.
       const clear = (last ?? -Infinity) + 0.5 * (first.src ?? 1 / READ_FPS);
       rest.times.forEach((t, i) => {
