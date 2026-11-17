@@ -3,7 +3,9 @@ import { lanesFrom, laneSteps, type LaneJob, type LanesFound } from "../lib/shot
 import { traceSteps, type TraceInput, type TraceJob, type TraceOutput } from "../lib/shotTrack/pipeline";
 import type { GrayFrame } from "../lib/shotTrack/types";
 import { joinBackground, rowBands, rowsOf } from "../lib/shotTrack/workers";
+import { InlineWorker, type WorkerLike } from "./inlineWorker";
 import type { PoolJob, PoolMessage, PoolRequest, SharedRef, WireFrame } from "./protocol";
+import { faultNote, loadFailureNote, type LoadError } from "./workerFault";
 
 /**
  * A few workers the tracer's work is shared among (`lib/shotTrack/workers.ts`
@@ -14,7 +16,20 @@ import type { PoolJob, PoolMessage, PoolRequest, SharedRef, WireFrame } from "./
  * Every job gives what it gives on one thread, and the results are put back
  * in the order the jobs were handed out, so the readings do not depend on
  * how many workers there are or which finishes first.
+ *
+ * A worker is sent nothing until it says it is ready. One that fails to load,
+ * or is not ready in `READY_MS`, is replaced by an `InlineWorker` (its jobs
+ * run on the screen's thread, the same code, the same readings), and the pool
+ * notes why. One that fails after it was ready may have lost what it kept, so
+ * the pool fails with a `WorkerCrash`, and the screen runs the whole search
+ * or trace again on its own thread (`inlinePool`).
  */
+
+/** How long a worker has to say it is ready before its jobs run on the screen's thread, milliseconds. */
+export const READY_MS = 5000;
+
+/** A worker failed after it was ready: what it kept may be lost, so the whole job is run again (`inlinePool`). */
+export class WorkerCrash extends Error {}
 
 /** Jobs sent to a worker before it finishes the one it is on, so it never waits for the next. */
 const AHEAD = 2;
@@ -38,7 +53,10 @@ interface Task {
 }
 
 interface Slot {
-  worker: Worker;
+  worker: WorkerLike;
+  /** It has said it is ready (an inline one is from the start): only then is it sent anything. */
+  ready: boolean;
+  timer: ReturnType<typeof setTimeout> | undefined;
   running: Task[];
   /** Shared pictures this worker has. */
   has: Set<string>;
@@ -58,13 +76,69 @@ export class Pool {
   private readonly keys = new WeakMap<object, string>();
   private broken: Error | null = null;
 
-  constructor(size: number, start: () => Worker) {
+  private readonly onNote: (text: string) => void;
+
+  /**
+   * `url`: where the workers are started from, for the details when one
+   * fails to load; `onNote`: a line for the details block when one does.
+   */
+  constructor(size: number, start: () => WorkerLike, opts: { url?: string; readyMs?: number; onNote?: (text: string) => void } = {}) {
+    this.onNote = opts.onNote ?? (() => {});
+    const readyMs = opts.readyMs ?? READY_MS;
+    const url = opts.url ?? "?";
     this.slots = Array.from({ length: Math.max(1, size) }, (_, n) => {
-      const slot: Slot = { worker: start(), running: [], has: new Set() };
-      slot.worker.onmessage = (e: MessageEvent<PoolMessage>) => this.answer(slot, e.data);
-      slot.worker.onerror = (e) => this.fail(new Error(`worker ${n}: ${e.message || "failed"}`));
+      const slot: Slot = { worker: null as unknown as WorkerLike, running: [], has: new Set(), ready: false, timer: undefined };
+      let worker: WorkerLike;
+      try {
+        worker = start();
+      } catch (e) {
+        this.inline(slot, n, `could not be started: ${e instanceof Error ? e.message : String(e)}`);
+        return slot;
+      }
+      slot.worker = worker;
+      slot.ready = worker instanceof InlineWorker;
+      worker.onmessage = (e: MessageEvent<PoolMessage>) => {
+        const m = e.data;
+        if (!slot.ready) this.becomeReady(slot);
+        if (m.kind === "ready") return;
+        if (m.kind === "error" && m.id === undefined) this.fail(new WorkerCrash(`worker ${n} threw while working: ${faultNote(m)}`));
+        else this.answer(slot, m);
+      };
+      worker.onerror = (e) => {
+        if (slot.worker !== worker) return;
+        if (!slot.ready) this.inline(slot, n, loadFailureNote(e as LoadError, url));
+        else this.fail(new WorkerCrash(`worker ${n} threw while working: ${(e as LoadError).message || "no message"}`));
+      };
+      if (!slot.ready) slot.timer = setTimeout(() => this.inline(slot, n, `never said it was ready in ${readyMs / 1000} s, from ${url}`), readyMs);
       return slot;
     });
+  }
+
+  private becomeReady(slot: Slot) {
+    slot.ready = true;
+    clearTimeout(slot.timer);
+    this.pump();
+  }
+
+  /** A worker that never got ready replaced by one on the screen's thread: it was sent nothing, so nothing is lost. */
+  private inline(slot: Slot, n: number, why: string) {
+    if (slot.ready || this.broken) return;
+    clearTimeout(slot.timer);
+    if (slot.worker) {
+      slot.worker.onmessage = null;
+      slot.worker.onerror = null;
+      slot.worker.terminate();
+    }
+    this.onNote(`worker ${n} ${why}; its jobs ran on the main thread`);
+    const worker = new InlineWorker();
+    worker.onmessage = (e: MessageEvent<PoolMessage>) => {
+      const m = e.data;
+      if (m.kind === "error" && m.id === undefined) this.fail(new WorkerCrash(`worker ${n} (main thread) failed: ${faultNote(m)}`));
+      else if (m.kind !== "ready") this.answer(slot, m);
+    };
+    slot.worker = worker;
+    slot.ready = true;
+    this.pump();
   }
 
   get size(): number {
@@ -72,7 +146,10 @@ export class Pool {
   }
 
   terminate(): void {
-    for (const s of this.slots) s.worker.terminate();
+    for (const s of this.slots) {
+      clearTimeout(s.timer);
+      s.worker.terminate();
+    }
     this.fail(new Error("stopped"));
   }
 
@@ -127,7 +204,7 @@ export class Pool {
   }
 
   private pick(t: Task): Slot | null {
-    const free = (s: Slot) => !s.running.some((r) => r.stream) && (t.stream ? !s.running.length : s.running.length < AHEAD);
+    const free = (s: Slot) => s.ready && !s.running.some((r) => r.stream) && (t.stream ? !s.running.length : s.running.length < AHEAD);
     if (t.on !== undefined) return free(this.slots[t.on]) ? this.slots[t.on] : null;
     let best: Slot | null = null;
     for (const s of this.slots) if (free(s) && (!best || s.running.length < best.running.length)) best = s;
@@ -159,6 +236,7 @@ export class Pool {
   }
 
   private answer(slot: Slot, m: PoolMessage) {
+    if (m.kind === "ready") return;
     const t = slot.running.find((r) => r.id === m.id);
     if (!t) return;
     if (m.kind === "took") {
@@ -171,12 +249,13 @@ export class Pool {
     }
     slot.running.splice(slot.running.indexOf(t), 1);
     if (m.kind === "done") t.resolve(m.result);
-    else t.reject(new Error(m.message));
+    else if (m.kind === "error") t.reject(new Error(faultNote(m)));
     this.pump();
   }
 
   private fail(e: Error) {
     this.broken ??= e;
+    for (const s of this.slots) clearTimeout(s.timer);
     for (const s of this.slots) for (const t of s.running.splice(0)) t.reject(e);
     for (const t of this.queue.splice(0)) t.reject(e);
   }

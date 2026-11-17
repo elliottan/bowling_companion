@@ -12,14 +12,23 @@ import { laneVerdict, type LaneEvidence, type LaneVerdict } from "../lib/shotTra
 import { foundNote, Notes, timesNote } from "../lib/shotTrack/notes";
 import { MARK_LINES, pathInPicture, type MarkLine } from "../lib/shotTrack/marking";
 import { FIRST_LANE_EVERY, gridFrames, LANE_EVERY, readStep } from "../lib/shotTrack/framePick";
-import { laneBands, readFrom, type Band, type ShotFound } from "../lib/shotTrack/shotStart";
+import { laneBands, readFrom, ShotSearch, type Band, type ShotFound } from "../lib/shotTrack/shotStart";
 import type { GrayFrame, Mat3, Metric, Point, TrackError, TrackFailure, TrackResult } from "../lib/shotTrack/types";
 import { frameLanes } from "../lib/shotTrack/laneFind";
 import type { TraceOutput } from "../lib/shotTrack/pipeline";
 import { poolSize } from "../lib/shotTrack/workers";
 import { isIOSApp } from "../lib/platform";
-import { findInPool, Pool, traceInPool } from "../shotTracer/pool";
-import type { FindMessage, SearchMessage, SearchRequest } from "../shotTracer/protocol";
+import { findInPool, Pool, traceInPool, WorkerCrash } from "../shotTracer/pool";
+import { InlineWorker } from "../shotTracer/inlineWorker";
+import type { FindMessage } from "../shotTracer/protocol";
+import { SearchClient } from "../shotTracer/searchClient";
+import { breakFlags, startBroken } from "../shotTracer/workerFault";
+// Imported as addresses, never as `new URL("x.worker.ts", import.meta.url)`
+// handed to `new Worker` elsewhere: Vite builds a worker only when the two are
+// written together, and otherwise inlines the TypeScript source as a data URL
+// that no browser can run (0.112.0 to 0.113.0: the search never ran).
+import poolWorkerUrl from "../shotTracer/pool.worker.ts?worker&url";
+import searchWorkerUrl from "../shotTracer/search.worker.ts?worker&url";
 import { readShot } from "../shotTracer/readShot";
 import { readVideoFrames, scanVideo, type VideoFrames } from "../shotTracer/videoFrames";
 import type { Handedness } from "../types/bowling";
@@ -109,56 +118,42 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     []
   );
 
-  function startWorker(url: URL): Worker {
-    const worker = new Worker(url, { type: "module" });
+  /** A worker of the tracer's, or one broken on purpose (`?tracerBreak=`, the harness's). */
+  function startWorker(url: string, which: "search" | "pool"): Worker {
+    const broken = breakFlags(window.location.search)[which];
+    const worker = broken ? startBroken(broken).worker : new Worker(url, { type: "module" });
     workers.current.add(worker);
     return worker;
   }
 
-  function stopWorker(worker: Worker) {
-    worker.terminate();
-    workers.current.delete(worker);
-  }
-
   /** Looks for the shot over the whole video, the small frames going to a worker as they are drawn. */
   async function search(f: File, mine: number): Promise<{ found: ShotFound | null; width: number; height: number; duration: number }> {
-    const worker = startWorker(new URL("../shotTracer/search.worker.ts", import.meta.url));
+    let started: Worker | null = null;
+    const client = new SearchClient(() => (started = startWorker(searchWorkerUrl, "search")), {
+      url: searchWorkerUrl,
+      makeSearch: () => new ShotSearch(),
+      note: (text) => notes.current.add("search worker", text),
+      // The search has every frame by now and answers in a second or two; a
+      // worker that never answers (seen once, after four minutes) is a video
+      // that couldn't be read, not a screen that waits for ever.
+      answerMs: WORKER_WAIT_MS
+    });
     try {
-      let answered!: (found: ShotFound | null | "late") => void;
-      const answer = new Promise<ShotFound | null | "late">((resolve) => (answered = resolve));
-      worker.onmessage = (e: MessageEvent<SearchMessage>) => answered(e.data.found);
-      // A search that fails is no shot found, but the details say so.
-      worker.onerror = (e) => {
-        notes.current.add("search worker", `failed: ${(e as ErrorEvent)?.message || "no message"}`);
-        answered(null);
-      };
-      let sent = 0;
       const video = await scanVideo(
         f,
-        (frame) => {
-          sent++;
-          const data = frame.data.buffer as ArrayBuffer;
-          worker.postMessage({ kind: "frame", width: frame.width, height: frame.height, data, t: frame.t } satisfies SearchRequest, [data]);
-        },
+        (frame) => client.push(frame),
         (fraction) => {
           if (attempt.current === mine) setStep({ kind: "searching", fraction });
         },
         notes.current
       );
-      notes.current.add("search worker", `${sent} frames sent`);
-      worker.postMessage({ kind: "done" } satisfies SearchRequest);
-      // The search has every frame by now and answers in a second or two; a
-      // worker that never answers (seen once, after four minutes) is a video
-      // that couldn't be read, not a screen that waits for ever.
       const asked = performance.now();
-      const timer = setTimeout(() => answered("late"), WORKER_WAIT_MS);
-      const found = await answer;
-      clearTimeout(timer);
-      console.info(`Shot tracer: the search answered ${found === "late" ? "nothing" : "in"} ${((performance.now() - asked) / 1000).toFixed(1)} s after its last frame`);
-      if (found === "late") throw new Error(`the search did not answer in ${WORKER_WAIT_MS / 1000} s`);
-      return { ...video, found };
+      const answer = await client.finish();
+      console.info(`Shot tracer: the search answered in ${((performance.now() - asked) / 1000).toFixed(1)} s after its last frame${answer.fallback ? `, on the main thread (the worker ${answer.fallback})` : ""}`);
+      return { ...video, found: answer.found };
     } finally {
-      stopWorker(worker);
+      client.stop();
+      if (started) workers.current.delete(started);
     }
   }
 
@@ -288,9 +283,25 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     const asked = Number(new URLSearchParams(window.location.search).get("tracerWorkers") ?? NaN);
     const ios = isIOSApp() || /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     const size = poolSize(navigator.hardwareConcurrency, ios, Number.isFinite(asked) ? asked : null);
-    pool.current = new Pool(size, () => new Worker(new URL("../shotTracer/pool.worker.ts", import.meta.url), { type: "module" }));
+    const broken = breakFlags(window.location.search).pool;
+    pool.current = new Pool(size, () => (broken ? startBroken(broken).worker : new Worker(poolWorkerUrl, { type: "module" })), {
+      url: poolWorkerUrl,
+      onNote: (text) => notes.current.add("pool", text)
+    });
     poolOf.current = mine;
     console.info(`Shot tracer: ${size} worker${size === 1 ? "" : "s"} (${navigator.hardwareConcurrency ?? "?"} cores reported)`);
+    return pool.current;
+  }
+
+  /**
+   * A pool of one on the screen's own thread (`InlineWorker`), for a search
+   * or trace run again after a worker failed while working: the same jobs,
+   * the same readings, slower.
+   */
+  function inlinePool(mine: number): Pool {
+    pool.current?.terminate();
+    pool.current = new Pool(1, () => new InlineWorker(), { url: "main thread" });
+    poolOf.current = mine;
     return pool.current;
   }
 
@@ -309,8 +320,17 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     let timer: ReturnType<typeof setTimeout> | undefined;
     // A search that never answers is a lane not found, not a screen that waits for ever.
     const late = new Promise<"late">((resolve) => (timer = setTimeout(() => resolve("late"), WORKER_WAIT_MS)));
+    const frames = idx.map((i) => all[i]);
     try {
-      const found = await Promise.race([findInPool(poolFor(mine), idx.map((i) => all[i])), late]);
+      let found: Awaited<ReturnType<typeof findInPool>> | "late";
+      try {
+        found = await Promise.race([findInPool(poolFor(mine), frames), late]);
+      } catch (e) {
+        // A worker that failed while working may have lost what it kept: the whole search again, on this thread.
+        if (!(e instanceof WorkerCrash) || attempt.current !== mine) throw e;
+        notes.current.add("pool", `${e.message}; the lane search ran again on the main thread`);
+        found = await Promise.race([findInPool(inlinePool(mine), frames), late]);
+      }
       if (found === "late") {
         console.info(`Shot tracer: the lane search did not answer in ${WORKER_WAIT_MS / 1000} s`);
         // Its workers may be stuck: the next search or trace starts a new pool.
@@ -353,17 +373,28 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       setStep({ ...next, timing: took, details: details() });
     };
     let out: TraceOutput;
+    const input = {
+      calibFrame: frame,
+      // The found lanes, each frame traced on its own.
+      lanes: found.lanes,
+      hand: handedness,
+      onProgress: (_stage: string, fraction: number) => {
+        if (attempt.current === mine) setStep({ kind: "tracing", fraction });
+      }
+    };
     try {
-      // The frames move to the pool's last job; the screen keeps only the one it shows.
-      out = await traceInPool(poolFor(mine), framesOf(video), {
-        calibFrame: frame,
-        // The found lanes, each frame traced on its own.
-        lanes: found.lanes,
-        hand: handedness,
-        onProgress: (_stage, fraction) => {
-          if (attempt.current === mine) setStep({ kind: "tracing", fraction });
-        }
-      });
+      try {
+        // The frames move to the pool's last job; the screen keeps only the one it shows.
+        out = await traceInPool(poolFor(mine), framesOf(video), input);
+      } catch (e) {
+        // A worker that failed while working: the whole trace again on this
+        // thread, while the screen still has the frames (the last job moves them).
+        const kept = video.gray.every((g) => g.byteLength > 0);
+        if (!(e instanceof WorkerCrash) || attempt.current !== mine) throw e;
+        notes.current.add("pool", `${e.message}; ${kept ? "the trace ran again on the main thread" : "the frames had gone to it, so the trace could not run again"}`);
+        if (!kept) throw e;
+        out = await traceInPool(inlinePool(mine), framesOf(video), input);
+      }
     } catch (e) {
       const why = e instanceof Error ? e.message : String(e);
       console.info(`Shot tracer: the trace failed: ${why}`);

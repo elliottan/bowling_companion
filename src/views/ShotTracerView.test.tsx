@@ -5,6 +5,7 @@ import type { LanesFound } from "../lib/shotTrack/laneFind";
 import type { TraceInput, TraceOutput } from "../lib/shotTrack/pipeline";
 import type { GrayFrame, Mat3, TrackError, TrackResult } from "../lib/shotTrack/types";
 import type { FindMessage, SearchRequest } from "../shotTracer/protocol";
+import { WorkerCrash } from "../shotTracer/pool";
 import { ShotTracerView } from "./ShotTracerView";
 
 const readVideoFrames = vi.hoisted(() => vi.fn());
@@ -17,7 +18,21 @@ const pooled = vi.hoisted(() => ({
   finds: [] as { frames: GrayFrame[]; resolve: (v: unknown) => void; reject: (e: Error) => void }[],
   traces: [] as { frames: GrayFrame[]; input: Omit<TraceInput, "source">; resolve: (v: unknown) => void; reject: (e: Error) => void }[]
 }));
+/** The search on the screen's own thread (`ShotSearch`), when its worker fails: the frames it was given, and its answer. */
+const mainSearch = vi.hoisted(() => ({ pushed: [] as { t: number; data: Uint8ClampedArray }[], answer: null as unknown }));
+vi.mock("../lib/shotTrack/shotStart", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../lib/shotTrack/shotStart")>()),
+  ShotSearch: class {
+    push(f: { t: number; data: Uint8ClampedArray }) {
+      mainSearch.pushed.push(f);
+    }
+    finish() {
+      return mainSearch.answer;
+    }
+  }
+}));
 vi.mock("../shotTracer/pool", () => ({
+  WorkerCrash: class extends Error {},
   Pool: class {
     terminated = false;
     constructor(readonly size: number) {
@@ -32,18 +47,32 @@ vi.mock("../shotTracer/pool", () => ({
     new Promise((resolve, reject) => pooled.traces.push({ frames, input, resolve, reject }))
 }));
 
-/** A stand-in for the search worker: it records what it was sent and is answered by the test. */
+/**
+ * A stand-in for the search worker: it records what it was sent and is
+ * answered by the test. `mode`: says it is ready once started (as the real
+ * one does), fails to load (an error event Safari leaves empty), never says
+ * anything, or throws on its first frame.
+ */
 class FakeWorker {
   static all: FakeWorker[] = [];
+  static mode: "ready" | "load" | "silent" | "throw" = "ready";
   onmessage: ((e: MessageEvent) => void) | null = null;
-  onerror: (() => void) | null = null;
+  onerror: ((e: unknown) => void) | null = null;
   posted: unknown[] = [];
   terminated = false;
   constructor() {
     FakeWorker.all.push(this);
+    const mode = FakeWorker.mode;
+    setTimeout(() => {
+      if (mode === "ready" || mode === "throw") this.onmessage?.({ data: { kind: "ready" } } as MessageEvent);
+      if (mode === "load") this.onerror?.({ message: "", filename: "", lineno: 0, colno: 0 });
+    }, 0);
   }
   postMessage(m: unknown) {
     this.posted.push(m);
+    if (FakeWorker.mode === "throw" && (m as SearchRequest).kind === "frame" && this.posted.length === 1) {
+      setTimeout(() => this.onmessage?.({ data: { kind: "error", message: "boom", at: "push@search.worker.js:1:2" } } as MessageEvent), 0);
+    }
   }
   terminate() {
     this.terminated = true;
@@ -165,7 +194,7 @@ function pickFile() {
 async function searchFinds(shot: ShotFound | null) {
   pickFile();
   await waitFor(() => expect(searcher()?.posted.some((m) => (m as SearchRequest).kind === "done")).toBe(true));
-  searcher()!.reply({ found: shot });
+  searcher()!.reply({ kind: "found", found: shot });
 }
 
 /** The lane looked for on the read's first part, to say where the shot ends: answered, and the rest read. */
@@ -184,6 +213,9 @@ async function chooseVideo() {
 describe("ShotTracerView", () => {
   beforeEach(() => {
     FakeWorker.all = [];
+    FakeWorker.mode = "ready";
+    mainSearch.pushed.length = 0;
+    mainSearch.answer = SHOT;
     pooled.pools.length = 0;
     pooled.finds.length = 0;
     pooled.traces.length = 0;
@@ -516,7 +548,7 @@ describe("ShotTracerView", () => {
   it("stops the lane search when the screen closes", async () => {
     const view = pickFile();
     await waitFor(() => expect(searcher()?.posted.some((m) => (m as SearchRequest).kind === "done")).toBe(true));
-    searcher()!.reply({ found: SHOT });
+    searcher()!.reply({ kind: "found", found: SHOT });
     await waitFor(() => expect(find()).toBeTruthy());
     view.unmount();
     expect(pools()[0].terminated).toBe(true);
@@ -528,7 +560,115 @@ describe("ShotTracerView", () => {
     fireEvent.click(screen.getByRole("button", { name: "Another video" }));
     const first = searcher()!;
     expect(first.terminated).toBe(true);
-    first.reply({ found: SHOT });
+    first.reply({ kind: "found", found: SHOT });
     expect(readVideoFrames).not.toHaveBeenCalled();
+  });
+  /** The lane found, the shot traced: the details block of the result screen. */
+  async function traceToEnd(): Promise<string> {
+    await firstFind();
+    find()!.reply(found());
+    await waitFor(() => expect(trace()).toBeTruthy());
+    trace()!.reply(done());
+    expect(await screen.findByText("Board 23.8")).toBeTruthy();
+    return screen.getByTestId("tracer-details").textContent!;
+  }
+
+  it("searches on the screen's own thread with the same frames when the search worker never loads, and says why", async () => {
+    FakeWorker.mode = "load";
+    pickFile();
+    const details = await traceToEnd();
+    // The frames the worker was sent, kept and searched here, in order.
+    expect(mainSearch.pushed.map((f) => f.t)).toEqual([0, 0.1]);
+    expect(mainSearch.pushed.every((f) => f.data.byteLength === 8)).toBe(true);
+    expect(details).toMatch(
+      /search worker: 2 frames sent; did not load: no message \(file none, line 0, column 0\), from \S*search\.worker\S*; the search ran on the main thread because the worker did not load/
+    );
+    expect(details).toContain("search: release 12.00 s, pins 14.60 s, confidence 0.90");
+    expect(searcher()!.terminated).toBe(true);
+  });
+
+  it("searches on the screen's own thread when the search worker throws while working, and says what it threw", async () => {
+    FakeWorker.mode = "throw";
+    pickFile();
+    const details = await traceToEnd();
+    expect(mainSearch.pushed.map((f) => f.t)).toEqual([0, 0.1]);
+    expect(details).toContain(
+      "search worker: 2 frames sent; threw while working: boom; at push@search.worker.js:1:2; the search ran on the main thread because the worker threw"
+    );
+    expect(details).toContain("search: release 12.00 s");
+  });
+
+  it("searches on the screen's own thread when the search worker never says it is ready", async () => {
+    FakeWorker.mode = "silent";
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      pickFile();
+      await waitFor(() => expect(searcher()?.posted).toHaveLength(2));
+      expect(find()).toBeUndefined();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5_100);
+      });
+      const details = await traceToEnd();
+      expect(mainSearch.pushed.map((f) => f.t)).toEqual([0, 0.1]);
+      expect(details).toMatch(/search worker: 2 frames sent; never said it was ready in 5 s, from \S*search\.worker\S*; the search ran on the main thread because the worker never got ready/);
+      expect(details).toContain("search: release 12.00 s");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not search on the screen's own thread when the worker answers", async () => {
+    await searchFinds(SHOT);
+    await waitFor(() => expect(find()).toBeTruthy());
+    expect(mainSearch.pushed).toHaveLength(0);
+  });
+
+  it("runs the lane search again on the screen's own thread when a pool worker fails while working", async () => {
+    await searchFinds(SHOT);
+    await waitFor(() => expect(find()).toBeTruthy());
+    const first = pooled.finds[0];
+    act(() => first.reject(new WorkerCrash("worker 0 threw while working: no message")));
+    await waitFor(() => expect(pooled.finds).toHaveLength(2));
+    // The same frames, in a pool of one on this thread; the broken pool stopped.
+    expect(pooled.finds[1].frames.map((f) => f.t)).toEqual(first.frames.map((f) => f.t));
+    expect(pools()).toHaveLength(2);
+    expect(pools()[0].terminated).toBe(true);
+    expect(pools()[1].size).toBe(1);
+    find()!.reply(NONE);
+    await waitFor(() => expect(pooled.finds).toHaveLength(3));
+    find()!.reply(found());
+    await waitFor(() => expect(trace()).toBeTruthy());
+    trace()!.reply(done());
+    expect(await screen.findByText("Board 23.8")).toBeTruthy();
+    expect(screen.getByTestId("tracer-details").textContent).toContain(
+      "pool: worker 0 threw while working: no message; the lane search ran again on the main thread"
+    );
+  });
+
+  it("runs the trace again on the screen's own thread when a pool worker fails while working", async () => {
+    await chooseVideo();
+    find()!.reply(found());
+    await waitFor(() => expect(trace()).toBeTruthy());
+    const first = pooled.traces[0];
+    act(() => first.reject(new WorkerCrash("worker 1 threw while working: no message")));
+    await waitFor(() => expect(pooled.traces).toHaveLength(2));
+    expect(pooled.traces[1].frames.map((f) => f.t)).toEqual(first.frames.map((f) => f.t));
+    expect(pooled.traces[1].input.calibFrame).toBe(24);
+    expect(pools()[pools().length - 1].size).toBe(1);
+    trace()!.reply(done());
+    expect(await screen.findByText("Board 23.8")).toBeTruthy();
+    expect(screen.getByTestId("tracer-details").textContent).toContain("pool: worker 1 threw while working: no message; the trace ran again on the main thread");
+  });
+
+  it("says the video couldn't be read when a pool worker fails after the frames went to it", async () => {
+    await chooseVideo();
+    find()!.reply(found());
+    await waitFor(() => expect(trace()).toBeTruthy());
+    const first = pooled.traces[0];
+    // The last job moves the frames to its worker: the screen has them no more.
+    for (const f of first.frames) structuredClone(f.data.buffer, { transfer: [f.data.buffer as ArrayBuffer] });
+    act(() => first.reject(new WorkerCrash("worker 1 threw while working: no message")));
+    expect((await screen.findByRole("alert")).textContent).toBe("This video couldn't be read.");
+    expect(pooled.traces).toHaveLength(1);
   });
 });

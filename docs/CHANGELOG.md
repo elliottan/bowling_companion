@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.113.1: The shot tracer looks for the shot again (2026-11-17)
+
+- In Settings, Labs: since 0.112.0 the shot tracer said "The shot couldn't
+  be found in this video." for every video on a phone. The part that looks
+  for the shot was left out when the app was built, so it never ran. It is
+  built and runs again, and the build now stops if a part like it is ever
+  left out again.
+- When a part of the tracer cannot start on a phone, or stops partway, the
+  tracer does that work itself instead: a little slower, with the same
+  readings. The details under the result say which part, and why.
+
 ## 0.113.0: The shot tracer reads only the shot, and reads it the same every time (2026-11-16)
 
 - In Settings, Labs: the shot tracer no longer keeps a fixed four seconds. It

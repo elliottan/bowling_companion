@@ -191,6 +191,29 @@ function fingerprintLandingShots(): Plugin {
   };
 }
 
+/**
+ * Fails the build on a worker that was not built. Vite builds a worker only
+ * from `new Worker(new URL("x.worker.ts", import.meta.url))` written in one
+ * piece, or a `?worker` import. A `new URL` of a .ts file anywhere else is
+ * taken for an asset and inlined as a `data:` URL of the TypeScript source,
+ * which no browser runs: from 0.112.0 to 0.113.0 the shot search's worker
+ * failed to load on every phone, with an error that says nothing, and every
+ * video was "no shot found".
+ */
+function noInlinedSources(): Plugin {
+  return {
+    name: "headpin-no-inlined-sources",
+    apply: "build",
+    generateBundle(_options, bundle) {
+      for (const file of Object.values(bundle)) {
+        if (file.type !== "chunk") continue;
+        const m = /new URL\(\s*["'`]data:(video\/mp2t|text\/x-typescript|application\/x-typescript)/.exec(file.code);
+        if (m) this.error(`${file.fileName} inlines a source file as a data URL (${m[1]}): start a worker as new Worker(new URL(...), ...) in one piece, or import it with ?worker&url`);
+      }
+    }
+  };
+}
+
 export default defineConfig({
   // Baked in so a pasted bug report says which build it came from. The app has
   // no backend to ask, and a screenshot never carries it.
@@ -261,6 +284,7 @@ export default defineConfig({
     }
   },
   plugins: [
+    noInlinedSources(),
     serveCleanUrls(),
     fingerprintLandingShots(),
     appStoreBanner(),
