@@ -29,8 +29,8 @@ import * as fdlibm from "./detMath";
  *    and the frame whose lines agree best (and put the camera where the other
  *    frames do) is kept, as calibration marks for `fitCalibration`.
  *
- * Frames are full resolution in the video's own gray (16 to 235, see
- * `toGray`), as everywhere in the tracer.
+ * Frames are full resolution in full range gray (0 to 255, `grayRange.ts`),
+ * as everywhere in the tracer.
  */
 
 export interface HoughLine {

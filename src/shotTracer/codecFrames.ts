@@ -1,4 +1,5 @@
 import { readPick, scanPick, type PickPlan } from "../lib/shotTrack/framePick";
+import { lumaRange, toFullRange } from "../lib/shotTrack/grayRange";
 import { COARSE_WIDTH, type CoarseFrame } from "../lib/shotTrack/shotStart";
 import { planeCrop, planeGray, readProgress, sourceStep, toGray } from "../lib/shotTrack/marking";
 import { grayStats, type Notes } from "../lib/shotTrack/notes";
@@ -11,7 +12,8 @@ import { blobSource, Mp4Error, nearestStamp, readVideoTrack, shownTimes, spanSta
  * (`lib/shotTrack/mp4.ts`, the `moov` box alone), the frames fed to the
  * decoder from the keyframe at or before the stretch wanted, and each one the
  * read keeps turned to grey: its luma plane copied out where the decoder's
- * format has one (8, 10 or 12 bits), else drawn to a canvas. Frames come
+ * format has one (8, 10 or 12 bits) and brought to full range
+ * (`grayRange.ts`), else drawn to a canvas. Frames come
  * unturned from a decoder; a phone's portrait video is turned here by its
  * track matrix.
  *
@@ -352,8 +354,9 @@ export async function codecScan(
       const buf = new Uint8Array(frame.allocationSize());
       const layout = await frame.copyTo(buf);
       const quarter = turn % 180 !== 0;
-      data = planeGray(buf, bits, layout[0].offset + vr.y * layout[0].stride + 2 * vr.x, layout[0].stride, vr.width, vr.height, quarter ? height : width, quarter ? width : height, turn);
-      how = `luma plane ${format}`;
+      const range = lumaRange(frame.colorSpace?.fullRange, track.fullRange);
+      data = toFullRange(planeGray(buf, bits, layout[0].offset + vr.y * layout[0].stride + 2 * vr.x, layout[0].stride, vr.width, vr.height, quarter ? height : width, quarter ? width : height, turn), range);
+      how = `luma plane ${format} ${range}`;
     } else {
       ctx ??= canvas2d(width, height);
       drawTurned(ctx, frame, turn, track.width, track.height, width / track.width, 0);
@@ -454,9 +457,11 @@ export async function codecRead(
             if (luma) {
               const outW = quarter ? height : width;
               const outH = quarter ? width : height;
-              g = planeGray(luma.data, luma.bits, luma.offset, luma.stride, luma.w, luma.h, outW, outH, turn);
+              // In the range the video was recorded in (limited, mostly): brought to the tracer's full range.
+              const range = lumaRange(frame.colorSpace?.fullRange, track.fullRange);
+              g = toFullRange(planeGray(luma.data, luma.bits, luma.offset, luma.stride, luma.w, luma.h, outW, outH, turn), range);
               mode = "planes";
-              how = `planes ${String(frame.format)}`;
+              how = `planes ${String(frame.format)} ${range}`;
             } else if (mode === "unknown") mode = "drawn";
             else throw new Error(`frame format changed to ${String(frame.format)}`);
           }

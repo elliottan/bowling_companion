@@ -19,6 +19,7 @@ import {
   sourceStep,
   toGray
 } from "../lib/shotTrack/marking";
+import { lumaRange, toFullRange } from "../lib/shotTrack/grayRange";
 import { grayStats, type Notes } from "../lib/shotTrack/notes";
 import { codecRead, codecScan, dropCodec, openCodec, reasonOf } from "./codecFrames";
 
@@ -210,6 +211,8 @@ interface Frame {
   flip?: boolean;
   /** Microseconds into the video: the frame's own time. */
   timestamp?: number | null;
+  /** What the decoder says of its colour; `fullRange` is the luma's range (`grayRange.ts`). */
+  colorSpace?: { fullRange?: boolean | null } | null;
   allocationSize(): number;
   copyTo(dest: Uint8Array): Promise<{ offset: number; stride: number }[]>;
   close(): void;
@@ -236,7 +239,7 @@ function planesFit(f: Frame, video: HTMLVideoElement): boolean {
 /** Turns a frame copied out of the decoder into the grey picture the tracer reads. */
 function planeGray(
   r: Reading,
-  f: { format: string; w: number; h: number; turn: number },
+  f: { format: string; w: number; h: number; turn: number; fullRange: boolean | null },
   buf: Uint8Array,
   layout: { offset: number; stride: number }
 ): Uint8ClampedArray {
@@ -247,9 +250,10 @@ function planeGray(
   const c = planeCrop({ top: r.rows.y / r.video.videoHeight, bottom: (r.rows.y + r.rows.h) / r.video.videoHeight }, f.w, f.h, f.turn);
   let grey: Uint8ClampedArray;
   if (LUMA_FIRST.has(f.format)) {
-    grey = resampleGray(buf, c.w, c.h, layout.stride, layout.offset + c.y * layout.stride + c.x, outW, outH);
+    // In the range the video was recorded in: brought to full range.
+    grey = toFullRange(resampleGray(buf, c.w, c.h, layout.stride, layout.offset + c.y * layout.stride + c.x, outW, outH), lumaRange(f.fullRange, null));
   } else {
-    // An RGB frame is in full range like a canvas: to the video's grey first.
+    // An RGB frame is in full range like a canvas.
     const luma = lumaOf(buf, c.w, c.h, layout.stride, layout.offset + c.y * layout.stride + 4 * c.x, f.format.startsWith("B"));
     grey = resampleGray(luma, c.w, c.h, c.w, 0, outW, outH);
   }
@@ -296,7 +300,7 @@ function keep(r: Reading, at: number, frame: Frame | null): number {
     return index;
   }
   const f = frame;
-  const shape = { format: f.format!, w: f.visibleRect!.width, h: f.visibleRect!.height, turn: f.rotation ?? 0 };
+  const shape = { format: f.format!, w: f.visibleRect!.width, h: f.visibleRect!.height, turn: f.rotation ?? 0, fullRange: f.colorSpace?.fullRange ?? null };
   const buf = new Uint8Array(f.allocationSize());
   // Copied at once, so the decoder has its frame back; turned to grey in order.
   const copied = f.copyTo(buf).finally(() => f.close());

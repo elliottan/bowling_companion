@@ -249,16 +249,12 @@ export function scaledSize(width: number, height: number, maxPixels: number): { 
 }
 
 /**
- * RGBA pixels to grey, one byte a pixel, as the video itself stores it: Rec.
- * 601 luma in video range, 16 for black to 235 for white, as a frame's own
- * luma plane is. The harness does not read that: ffmpeg's `-pix_fmt gray`
- * stretches the clips to 0 to 255 (measured on shot-01 and shot-06: grey =
- * 1.164 Y - 18.6), and the tracer's thresholds were set there. Kept in video
- * range all the same: on the six clips scaled as the app reads them, video
- * range read shot-03 and shot-05 right where the stretch did not, while at
- * full size the stretch did better on shot-03 to 05 (2026-11-14). Neither
- * wins outright. In a canvas, with the stretch, the ball was lost at 47 ft on
- * shot-01 where video range followed it to 58.
+ * RGBA pixels to grey, one byte a pixel: Rec. 601 luma of the RGB, which a
+ * canvas holds in full range (0 for black to 255 for white), the tracer's one
+ * grey (`grayRange.ts`). The harness's ffmpeg `-pix_fmt gray` is full range,
+ * and every threshold in the tracer was set on it. Until 2026-11-17 the app
+ * squeezed this back into video range (16 to 235) and kept a decoded luma
+ * plane there too, and read differently from the harness on the same frames.
  */
 export function toGray(rgba: Uint8ClampedArray | Uint8Array, width: number, height: number): Uint8ClampedArray {
   return lumaOf(rgba, width, height, 4 * width, 0, false);
@@ -283,7 +279,7 @@ export function lumaOf(
     const row = offset + y * stride;
     for (let x = 0; x < width; x++) {
       const k = row + 4 * x;
-      out[y * width + x] = 16 + (219 / 255) * (0.299 * px[k + r] + 0.587 * px[k + 1] + 0.114 * px[k + b]);
+      out[y * width + x] = 0.299 * px[k + r] + 0.587 * px[k + 1] + 0.114 * px[k + b];
     }
   }
   return out;
@@ -291,7 +287,7 @@ export function lumaOf(
 
 /**
  * A grey picture (`srcW` by `srcH`, `stride` bytes a row from `offset`: a
- * video frame's luma plane, which is already the video's own grey) scaled to
+ * video frame's luma plane, in the range it was recorded in) scaled to
  * `dstW` by `dstH`, each pixel the average of the area it covers. A 4K frame
  * read at 960 wide is four source pixels to one, and sampling only some of
  * them would shimmer a ball three pixels across.
@@ -423,8 +419,9 @@ export function pathInPicture(H: Mat3, path: PathModel, from: number, to: number
 /**
  * A frame's luma plane, as copied out of a decoder, to the read's grey: the
  * crop `w` by `h` from byte `offset`, `stride` bytes a row, `bits` a sample
- * (two bytes, little-endian, past 8, brought to 8 with video range kept: 64
- * to 940 is 16 to 235), resampled to `outW` by `outH` (`resampleGray`) and
+ * (two bytes, little-endian, past 8, brought to 8 bits as they are: 64
+ * to 940 is 16 to 235; the range is the reader's to bring to full,
+ * `toFullRange`), resampled to `outW` by `outH` (`resampleGray`) and
  * then turned `turn` degrees (`rotateGray`): for a quarter turn `outW` and
  * `outH` are the picture's before turning.
  */

@@ -275,16 +275,16 @@ describe("reading a video", () => {
     expect(scaledSize(640, 480, 960 * 540)).toEqual({ width: 640, height: 480 });
   });
 
-  it("turns colour into grey in video range", () => {
+  it("turns colour into grey in full range, as ffmpeg's gray is", () => {
     const g = toGray(new Uint8ClampedArray([255, 255, 255, 255, 0, 0, 0, 255, 255, 0, 0, 255]), 3, 1);
-    expect(Array.from(g)).toEqual([235, 16, 81]);
+    expect(Array.from(g)).toEqual([255, 0, 76]);
   });
 
   it("reads grey from a frame copied out red first or blue first, at its stride", () => {
     // One row of two pixels, padded to 12 bytes a row, after 2 bytes of something else.
     const rgba = new Uint8Array([9, 9, 255, 0, 0, 255, 0, 0, 255, 255, 7, 7, 9, 9, 0, 0, 0, 0, 255, 255, 255, 255, 7, 7]);
-    expect(Array.from(lumaOf(rgba, 2, 2, 12, 2, false))).toEqual([81, 41, 16, 235]);
-    expect(Array.from(lumaOf(rgba, 2, 2, 12, 2, true))).toEqual([41, 81, 16, 235]);
+    expect(Array.from(lumaOf(rgba, 2, 2, 12, 2, false))).toEqual([76, 29, 0, 255]);
+    expect(Array.from(lumaOf(rgba, 2, 2, 12, 2, true))).toEqual([29, 76, 0, 255]);
   });
 
   it("scales a luma plane by the average of the area each pixel covers", () => {
