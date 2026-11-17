@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { gridFrames, LANE_EVERY, readStep } from "./framePick";
 import { trace } from "./pipeline";
 import { multiply, normalize } from "./homography";
-import { timeAt, truthAt } from "./synthetic";
+import { PIN_HIT_FT, timeAt, truthAt } from "./synthetic";
 import { roughMarks, standardShot, syntheticSource, truthBoard, truthBoardAtPins, truthSpeedMph } from "./syntheticSource";
 import type { TrackResult } from "./types";
 
@@ -59,6 +59,13 @@ describe.each([
   it("finds the touchdown within a frame", () => {
     const truth = Math.ceil(timeAt(spec, spec.touchdownV) * spec.fps);
     expect(Math.abs(r.touchdownFrame! - truth)).toBeLessThanOrEqual(1);
+  });
+
+  it("reads the pins on the last frame before a pin moves", () => {
+    // The rendered rack falls on the first frame the ball reaches PIN_HIT_FT.
+    const hit = Math.ceil(timeAt(spec, PIN_HIT_FT) * spec.fps);
+    expect(r.pinFrame).toBe(hit);
+    expect(out.debug.pinsRead!.frame).toBe(hit - 1);
   });
 
   it("reads the speed within 0.3 mph, anchored at the pins", () => {

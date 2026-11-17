@@ -2,18 +2,19 @@ import type { Handedness } from "../../types/bowling";
 import { associate } from "./associate";
 import { laneRoi, medianBackground, steady, type Background, type Roi } from "./background";
 import { gridFrames, readStep } from "./framePick";
-import { findCandidates, refineCircle, type Candidate, type CircleFit } from "./ballDetect";
+import { carryFace, findCandidates, refineCircle, type Candidate, type CircleFit } from "./ballDetect";
 import { calibrationReport, type CalibrationReport } from "./calibrationCheck";
 import { fitCalibration, focalFromPlane, type CalibrationFit, type CalMark } from "./calibrate";
 import { snapEdge, snapMarks, type MarkSnap } from "./edgeSnap";
 import { apply, downAt, invert, multiply, normalize } from "./homography";
 import type { Point } from "./types";
-import { median, sample } from "./image";
-import { BALL_DIAMETER_IN, CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
+import { median } from "./image";
+import { CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
 import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, withoutIslands, type MotionPoint } from "./pathFit";
 import { laneTrack, type FrameLane, type LaneTrack, type LaneTrackOptions } from "./laneTrack";
 import { atFoulLineTime, followForward, overFoulLine, uAtColumn, type FollowPrediction, type OverFoulLine, type ReleaseFrame } from "./release";
 import { followNear, nearSeeds } from "./nearFollow";
+import { firstPinMove, pinScores, pinsInReach, type PinFrame } from "./pinMove";
 import { alignTo, finishRegister, laneMarksOf, passFrames, PlanePass, planeSlots, RegisterPass, type FrameGeometry, type FrameSource, type Matches, type PlaneOptions, type RegisterOptions } from "./registration";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, TrackError, TrackFailure, TrackResult } from "./types";
 
@@ -81,6 +82,7 @@ export interface TraceDebug {
   candidates: Candidate[];
   associated: Candidate[];
   circles: Map<number, CircleFit>;
+  /** Per frame near the pins, the largest share of a reachable pin's points that changed (`pinScores`). */
   pinEnergy: { frame: number; energy: number }[];
   /**
    * Per sighting, where each gutter edge re-snapped near the ball's row sits
@@ -121,6 +123,14 @@ export const MIN_SPAN_FT = 10;
  * the ball from 12 ft on).
  */
 export const NEAR_FROM_FT = 8;
+/** A circle fit is clean when its radius was free and this share of its rays found the rim on it (`refineCircle`'s weight). */
+export const CLEAN_WEIGHT = 0.8;
+/** A clean sighting's face is carried to frames at most this many after it... */
+export const CARRY_FRAMES = 6;
+/** ...and looked for within this share of a radius of where the fit put the ball. */
+export const CARRY_REACH = 0.4;
+/** The pins are watched for the first one to move from when the ball is this many feet short of where it meets one. */
+export const PIN_LEAD_FT = 1.5;
 export const NEAR_SPAN_FT = 5;
 
 export function trace(input: TraceInput): TraceOutput {
@@ -460,13 +470,23 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
     const okFrame = (i: number) => (i >= first && i <= last && geometry[i - first]?.ok ? source.frame(i) : null);
     const okH = (i: number) => (i >= first && i <= last && geometry[i - first]?.ok ? geometry[i - first].H : null);
     let best: Candidate[] = [];
+    let followed: Candidate[] = [];
+    const lastChosen = chosen[chosen.length - 1];
     for (const seed of nearSeeds(cands).slice(0, 6)) {
       const near = followNear(okFrame, okH, seed, last);
-      if (near.length >= MIN_SIGHTINGS && spanOf(near) > spanOf(best)) best = near;
+      // Followed on from the detector's own last sighting, the follow carries
+      // its run on, and the two are one stretch (2026-11-17, shot-04: seen to
+      // 9 ft, the ball plain to the eye to 13.4 ft but its change joined to
+      // the bowler's leg; the follow alone, 4 ft, never beat the run).
+      const run = seed === lastChosen ? [...chosen, ...near] : near;
+      if (run.length >= MIN_SIGHTINGS && spanOf(run) > spanOf(best)) {
+        best = run;
+        followed = near;
+      }
     }
     if (spanOf(best) >= NEAR_SPAN_FT && spanOf(best) > spanOf(chosen)) {
       chosen = best;
-      debug.nearFollow = best;
+      debug.nearFollow = followed;
     }
   }
   debug.associated = chosen;
@@ -476,11 +496,26 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
   const geoOf = (i: number) => geometry[i - first];
   const sightings: BallSighting[] = [];
   const sv: number[] = [];
+  // The last sighting whose outline was clean, for carrying its face on.
+  let clean: { frame: number; f: GrayFrame; H: Mat3; fit: CircleFit; rExp: number } | null = null;
+  const rAt = (H: Mat3, fit: { cx: number; cy: number; r: number }) => {
+    const p = contactPoint(H, { x: fit.cx, y: fit.cy }, fit.r);
+    return expectedRadiusPx(H, p.u, p.v);
+  };
   for (const c0 of chosen) {
     const g = geoOf(c0.frame);
     const f = source.frame(c0.frame);
-    const fit = refineCircle(f, g.H, { x: c0.x, y: c0.y }, c0.r);
+    let fit = refineCircle(f, g.H, { x: c0.x, y: c0.y }, c0.r);
     if (!fit) continue;
+    if (!fit.fixed && fit.weight >= CLEAN_WEIGHT) clean = { frame: c0.frame, f, H: g.H, fit, rExp: rAt(g.H, fit) };
+    else if (clean && c0.frame - clean.frame <= CARRY_FRAMES) {
+      // Too few of its rim's edges on the circle (a leg or a hand over it):
+      // placed by its face from the last clean sighting, at that sighting's
+      // size scaled as the lane scales it here (`carryFace`).
+      const r = (clean.fit.r * rAt(g.H, fit)) / clean.rExp;
+      const m = carryFace(clean.f, clean.fit, f, { x: fit.cx, y: fit.cy }, r, CARRY_REACH * r);
+      if (m) fit = { ...fit, cx: m.cx, cy: m.cy, r, carried: clean.frame };
+    }
     debug.circles.set(c0.frame, fit);
     // The contact point (plan 6.4, revised after the sample clips). A glossy
     // ball mirrors the bright lane on its underside, so the dark disc is cut
@@ -571,9 +606,9 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
     if (s.airborne && s.v < 10) lastAir = i;
   });
   for (let i = 0; i < lastAir; i++) sightings[i].airborne = true;
-  const seen = withoutIslands(sightings.filter((s) => !s.airborne));
+  let seen = withoutIslands(sightings.filter((s) => !s.airborne));
   const svOf = new Map(sightings.map((s, k) => [s.frame, sv[k]]));
-  const vs = seen.map((s) => s.v);
+  let vs = seen.map((s) => s.v);
   const seenSpan = Math.max(...vs) - Math.min(...vs);
   const nearOnly = seenSpan < MIN_SPAN_FT && Math.min(...vs) <= NEAR_FROM_FT && seenSpan >= NEAR_SPAN_FT;
   if (seen.length < MIN_SIGHTINGS || (seenSpan < MIN_SPAN_FT && !nearOnly)) {
@@ -622,25 +657,39 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
   debug.release = byTime ? { ...byTime, image: byImage ? { at: byImage.at, u: byImage.u, reached: byImage.reached } : undefined } : byImage ? { ...byImage, by: "image" } : null;
 
   progress("path", 0.85);
-  const pathPts = seen.map((s) => ({ v: s.v, u: s.u, w: s.weight, sv: svOf.get(s.frame), t: s.t }));
-  const fit = fitPath(pathPts);
+  const pathOf = (ss: BallSighting[]) => ss.map((s) => ({ v: s.v, u: s.u, w: s.weight, sv: svOf.get(s.frame), t: s.t }));
+  let pathPts = pathOf(seen);
+  let fit = fitPath(pathPts);
   const touchdown = seen[0].v <= 6 ? seen[0].v : null;
 
   // Speed: distance against time, anchored at the pins (plan 7.6).
-  const motionPts: MotionPoint[] = seen.map((s) => ({ t: s.t, v: s.v, w: s.weight / (1 + (svOf.get(s.frame) ?? 0) ** 2) }));
+  const motionOf = (ss: BallSighting[]): MotionPoint[] => ss.map((s) => ({ t: s.t, v: s.v, w: s.weight / (1 + (svOf.get(s.frame) ?? 0) ** 2) }));
+  let motionPts = motionOf(seen);
   let motion = fitMotion(motionPts);
-  const contactV = pinContactFeet(fit.path);
+  let contactV = pinContactFeet(fit.path);
   let pinFrame: number | null = null;
   let pinT: number | undefined;
   let anchoredSpeed: number | undefined;
   // Seen over the near lane only, the rack's movement cannot be tied to this
   // ball: the speed stays the fitted slope, as estimated.
   if (contactV !== null && !nearOnly) {
-    const farT = seen.filter((s) => s.v > 50).map((s) => s.t);
-    const found = findPinFrame(source, geometry, motion, fit.path, debug, farT.length ? Math.max(...farT) : -Infinity);
+    const found = findPinFrame(source, geometry, sightings, motion, fit.path, contactV, debug);
     if (found !== null) {
       pinFrame = found.frame;
       pinT = found.t;
+      // The ball among the moving pins is no longer the ball rolling: its
+      // sightings from the first pin's move on (shot-01: two, at 59 ft, a
+      // board apart) are left out of the path and the speed.
+      const before = seen.filter((s) => s.frame < found.frame);
+      if (before.length < seen.length && before.length >= MIN_SIGHTINGS) {
+        seen = before;
+        vs = seen.map((s) => s.v);
+        pathPts = pathOf(seen);
+        fit = fitPath(pathPts);
+        motionPts = motionOf(seen);
+        motion = fitMotion(motionPts);
+        contactV = pinContactFeet(fit.path) ?? contactV;
+      }
       if (touchdown !== null && found.t > seen[0].t) anchoredSpeed = (contactV - seen[0].v) / (found.t - seen[0].t);
       const total = motionPts.reduce((s, p) => s + p.w, 0);
       motion = fitMotion([...motionPts, { t: found.t, v: contactV, w: 0.25 * total }]);
@@ -677,7 +726,8 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
   // The first frame on which the ball touches a pin: the ball reaching the
   // first pin on its path, or the rack seen moving, whichever is first.
   let touchFrame = pinFrame ?? Infinity;
-  const tTouch = contactV !== null && !nearOnly ? timeAtFeet({ ...motion, v0: motion.v0 + lag }, contactV) : null;
+  // A pin seen to move is the touch itself; the fitted motion only stands in for it.
+  const tTouch = contactV !== null && !nearOnly && pinFrame === null ? timeAtFeet({ ...motion, v0: motion.v0 + lag }, contactV) : null;
   if (tTouch !== null) {
     for (let i = lastSeen.frame + 1; i < Math.min(touchFrame, first + geometry.length); i++) {
       if (source.frame(i).t >= tTouch) {
@@ -687,8 +737,10 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
     }
   }
   const lastBefore = touchFrame - 1;
-  // Only when the ball was lost two frames or more before that (shot-01:
-  // five); seen closer, the sightings already reach it.
+  // Read on that frame whenever a pin is seen to move (2026-11-17, the
+  // owner: shot-01's last frame before is 233, shot-06's 102). Lost two
+  // frames or more before it, the ball is followed to it by its face (shot-01
+  // read from 0.2 s before the foul line: five).
   if (pinFrame !== null && lastSeen.v > 50 && lastBefore - lastSeen.frame >= 2 && lastBefore - lastSeen.frame <= 29) {
     // Followed two frames on, for the pictures of the frames after (the
     // owner picks among them when unsure); read only up to `lastBefore`.
@@ -702,13 +754,21 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
       const near = [{ frame: lastSeen.frame, cx: lastSeen.cx }, ...track].slice(-4);
       const xs = near.map((d) => d.frame);
       const ys = near.map((d) => uAtColumn(geometry[d.frame - first].H, d.cx, PIN_V));
-      const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
-      const my = ys.reduce((a, b) => a + b, 0) / ys.length;
-      const den = xs.reduce((a, x) => a + (x - mx) ** 2, 0);
-      const slope = den > 0 ? xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / den : 0;
-      pinsU = my + slope * (lastBefore - mx);
+      pinsU = lineAt(xs, ys, lastBefore);
       debug.pinsRead = { frame: lastBefore, u: pinsU, frames: xs };
     }
+  } else if (pinFrame !== null && lastSeen.v > 50 && lastBefore - lastSeen.frame >= 0 && lastBefore - lastSeen.frame < 2) {
+    // Seen up to that frame: where the ball stands on the lane, a straight
+    // line through the sightings of its last four frames read on it (the
+    // fitted path, run on from 53 ft, put shot-06's ball two boards from
+    // where the frame shows it, square in front of the head pin). Their own
+    // points under the ball, not their columns: from a camera to the side a
+    // column runs across the boards.
+    const near = seen.filter((x) => x.v > 50 && x.frame >= lastBefore - 3);
+    const xs = near.map((d) => d.frame);
+    const ys = near.map((d) => d.u);
+    pinsU = lineAt(xs, ys, lastBefore);
+    debug.pinsRead = { frame: lastBefore, u: pinsU, frames: xs };
   } else if (pinFrame === null && Math.max(lastSeen.v, vAtT(lastSeen.t)) > 50) {
     // The rack never seen to move (shot-02: the bowler's arm swings across it
     // as the ball arrives). The ball is followed on until the arm covers it
@@ -751,7 +811,9 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
   });
   // The arrows are 15 ft out: a near-only trace that stops short of them
   // reads them off the line through what it saw, as estimated.
-  if (nearOnly && Math.max(...vs) < 15 && met.arrows.state === "measured") met.arrows = { ...met.arrows, state: "estimated" };
+  // (So is any trace that stops short of them: shot-04, followed on past the
+  // bowler's leg to 13.6 ft, is seen over 12.7 ft and no longer near-only.)
+  if (Math.max(...vs) < 15 && met.arrows.state === "measured") met.arrows = { ...met.arrows, state: "estimated" };
   const vAt = (t: number) => motion.v0 + motion.w * t + 0.5 * motion.d * t * t;
   debug.speeds = {
     anchored: anchoredSpeed !== undefined ? anchoredSpeed * FTS_TO_MPH : null,
@@ -765,6 +827,15 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
     },
     debug
   };
+}
+
+/** The least squares straight line through (xs, ys) at x; one point's own y, or flat when the xs are all one. */
+export function lineAt(xs: number[], ys: number[], x: number): number {
+  const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
+  const my = ys.reduce((a, b) => a + b, 0) / ys.length;
+  const den = xs.reduce((a, v) => a + (v - mx) ** 2, 0);
+  const slope = den > 0 ? xs.reduce((a, v, i) => a + (v - mx) * (ys[i] - my), 0) / den : 0;
+  return my + slope * (x - mx);
 }
 
 /** Each gutter edge re-snapped on a short stretch around the ball's row, as lane u against the fitted edge. */
@@ -822,74 +893,49 @@ export function trackEdges(sightings: BallSighting[], offsets: { frame: number; 
 }
 
 /**
- * The first frame in which the rack changes sharply (plan 7.6): the pins
- * start to move. The rack is sampled on a grid of points standing on the deck
- * up to pin height, the ball and its reflection are masked out, and each
- * frame is compared with the rack's median before the ball got near.
+ * The first frame on which a pin moves (`firstPinMove`), from when the ball
+ * is `PIN_LEAD_FT` short of the pins on: each frame with its lane, the ball
+ * where it was sighted or else where the path and the motion put it (masked
+ * out of the pins), and only the pins the ball can reach first. The time is
+ * the middle of the interval before that frame, in which they moved.
  */
 function findPinFrame(
   source: FrameSource,
   geometry: FrameGeometry[],
+  sightings: BallSighting[],
   motion: { v0: number; w: number; d: number },
   path: Parameters<typeof pathU>[0],
-  debug: TraceDebug,
-  notBefore: number
+  contactV: number,
+  debug: TraceDebug
 ): { frame: number; t: number } | null {
   const vAt = (t: number) => motion.v0 + motion.w * t + 0.5 * motion.d * t * t;
-  const rows = [0.15, 0.3, 0.45, 0.6, 0.75, 0.9];
-  const grid: { u: number; v: number; up: number }[] = [];
-  for (const v of [60.2, 61.2, 62.2]) for (let u = 1; u <= 39; u += 0.5) for (const up of rows) grid.push({ u, v, up });
-  const samples: { frame: number; t: number; v: number; vals: Float32Array }[] = [];
+  const from = timeAtFeet(motion, contactV - PIN_LEAD_FT);
+  if (from === null) return null;
+  const byFrame = new Map(sightings.map((s) => [s.frame, s]));
+  const frames: PinFrame[] = [];
   for (const g of geometry) {
     if (!g || !g.ok) continue;
     const f = source.frame(g.index);
     const vb = vAt(f.t);
-    if (vb < 20) continue;
-    const r = expectedRadiusPx(g.H, 20, 60);
-    const pinH = (15 / BALL_DIAMETER_IN) * 2 * r;
-    const bu = pathU(path, Math.min(vb, 62.8));
-    const ballContact = apply(g.H, { x: bu, y: Math.min(vb, 62.8) });
-    const down = downAt(g.H, ballContact);
-    const ballC = { x: ballContact.x - r * down.x, y: ballContact.y - r * down.y };
-    const reflC = { x: ballContact.x + r * down.x, y: ballContact.y + r * down.y };
-    const vals = new Float32Array(grid.length);
-    grid.forEach((p, k) => {
-      const base = apply(g.H, { x: p.u, y: p.v });
-      const q = { x: base.x - p.up * pinH * down.x, y: base.y - p.up * pinH * down.y };
-      const near = Math.hypot(q.x - ballC.x, q.y - ballC.y) < 1.8 * r || Math.hypot(q.x - reflC.x, q.y - reflC.y) < 1.8 * r;
-      vals[k] = near ? NaN : sample(f, q.x, q.y);
-    });
-    samples.push({ frame: g.index, t: f.t, v: vb, vals });
-  }
-  const refs = samples.filter((s) => s.v < 45);
-  if (refs.length < 3) return null;
-  const ref = new Float32Array(grid.length);
-  for (let k = 0; k < grid.length; k++) ref[k] = median(refs.map((s) => s.vals[k]));
-  const energy = (s: (typeof samples)[number]) => {
-    let e = 0;
-    let n = 0;
-    for (let k = 0; k < grid.length; k++) {
-      const d = Math.abs(s.vals[k] - ref[k]);
-      if (Number.isFinite(d)) {
-        e += d;
-        n++;
-      }
+    if (vb < 30) continue;
+    const s = byFrame.get(g.index);
+    let ball: PinFrame["ball"];
+    if (s) ball = { cx: s.cx, cy: s.cy, r: s.r };
+    else {
+      const v = Math.min(vb, 62.8);
+      const u = pathU(path, v);
+      const contact = apply(g.H, { x: u, y: v });
+      const r = expectedRadiusPx(g.H, u, v);
+      const down = downAt(g.H, contact);
+      ball = { cx: contact.x - r * down.x, cy: contact.y - r * down.y, r };
     }
-    return n ? e / n : NaN;
-  };
-  const base = refs.map(energy);
-  const mid = median(base);
-  const spread = 1.4826 * median(base.map((e) => Math.abs(e - mid)));
-  const thr = mid + Math.max(6, 6 * spread);
-  for (const s of samples) {
-    const e = energy(s);
-    debug.pinEnergy.push({ frame: s.frame, energy: e });
+    frames.push({ index: g.index, t: f.t, f, H: g.H, ball });
   }
-  // The pins cannot move while the ball is still seen short of them.
-  const hit = samples.find((s, k) => s.v > 50 && s.t > notBefore && debug.pinEnergy[k].energy > thr);
+  const hit = firstPinMove(frames, from, pinsInReach((v) => pathU(path, Math.min(v, 62.8))));
+  const scores = hit?.scores ?? pinScores(frames);
+  frames.forEach((p, k) => debug.pinEnergy.push({ frame: p.index, energy: scores[k] }));
   if (!hit) return null;
-  // The pins moved during the interval before this frame: take its middle.
-  const k = samples.indexOf(hit);
-  const prevT = k > 0 ? samples[k - 1].t : hit.t;
-  return { frame: hit.frame, t: (hit.t + prevT) / 2 };
+  const k = frames.findIndex((p) => p.index === hit.index);
+  const prevT = k > 0 ? frames[k - 1].t : hit.t;
+  return { frame: hit.index, t: (hit.t + prevT) / 2 };
 }
