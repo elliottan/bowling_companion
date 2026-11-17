@@ -10,17 +10,20 @@
  * frames, a little over the app's `READ_BUDGET`); IMG_1996 (the phone's original) is cropped to the
  * clips' band (30% to 72% of its height) and read over the window the app
  * chose for it (3.467 to 7.083 s). Then, as `ShotTracerView` does: the lane on
- * `FIRST_FIND_FRAMES` frames of the first two seconds (the read's first part),
- * the lane on `FIND_FRAMES` frames spread over the read, and the trace.
+ * the first two seconds' frames (the read's first part) and on the read's,
+ * each on the grid the view's `findOn` uses (`gridFrames`), and the trace.
+ * Frames keep the file's own times, as the app's do, so the grid falls on the
+ * same frames.
  */
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { FIRST_LANE_EVERY, LANE_EVERY } from "../../src/lib/shotTrack/framePick";
 import { findLanes, frameLanes } from "../../src/lib/shotTrack/laneFind";
 import { bandRows, keptFps, MAX_PIXELS, READ_RATES, scaledSize } from "../../src/lib/shotTrack/marking";
 import { trace } from "../../src/lib/shotTrack/pipeline";
 import type { GrayFrame } from "../../src/lib/shotTrack/types";
-import { lanesReading, spread, tracedReading, type Run } from "./bench-readings";
+import { lanesReading, laneFrames, tracedReading, type Run } from "./bench-readings";
 import type { Handedness } from "../../src/types/bowling";
 
 const here = new URL(".", import.meta.url).pathname;
@@ -34,9 +37,6 @@ const compareFile = opt("--compare");
 const dumpDir = opt("--dump");
 const names = args.length ? args : ["shot-01", "shot-02", "shot-03", "shot-04", "shot-05", "shot-06", "IMG_1996"];
 
-/** As `ShotTracerView`. */
-const FIND_FRAMES = Number(process.env.FIND_FRAMES ?? 24);
-const FIRST_FIND_FRAMES = Number(process.env.FIRST_FIND_FRAMES ?? 8);
 /** The read's first part, seconds (`shotWindow.ts`: 0.4 before the run, 1.6 after). */
 const FIRST_PART_S = 2;
 
@@ -58,8 +58,7 @@ function probe(path: string): { width: number; height: number; times: number[] }
   const rot = Math.abs(s.side_data_list?.find((d) => d.rotation !== undefined)?.rotation ?? 0);
   const [width, height] = rot === 90 || rot === 270 ? [s.height, s.width] : [s.width, s.height];
   const stamps = info.frames.map((f) => Number(f.pts_time ?? f.best_effort_timestamp_time));
-  const t0 = stamps[0] ?? 0;
-  return { width, height, times: stamps.map((t) => t - t0) };
+  return { width, height, times: stamps };
 }
 
 function load(name: string): Input {
@@ -86,7 +85,7 @@ function load(name: string): Input {
     if (kept.length && Math.round((kept[kept.length - 1].t - inWindow[0].t) * fps) === slot) continue;
     kept.push(f);
   }
-  const frames = kept.map((f) => ({ width: size.width, height: size.height, data: new Uint8ClampedArray(raw.buffer, raw.byteOffset + f.i * px, px), t: f.t - inWindow[0].t }));
+  const frames = kept.map((f) => ({ width: size.width, height: size.height, data: new Uint8ClampedArray(raw.buffer, raw.byteOffset + f.i * px, px), t: f.t }));
   console.log(`${name}: ${frames.length} frames of ${size.width} x ${size.height} at ${fps} a second`);
   return { name, hand: cal?.hand ?? "right", width: size.width, height: size.height, frames };
 }
@@ -96,17 +95,17 @@ function dump(input: Input, dir: string) {
   mkdirSync(dir, { recursive: true });
   const raw = Buffer.concat(input.frames.map((f) => Buffer.from(f.data.buffer, f.data.byteOffset, f.data.byteLength)));
   writeFileSync(join(dir, `${input.name}.gray`), raw);
-  writeFileSync(join(dir, `${input.name}.json`), JSON.stringify({ name: input.name, hand: input.hand, width: input.width, height: input.height, times: input.frames.map((f) => f.t), FIND_FRAMES, FIRST_FIND_FRAMES, FIRST_PART_S }));
+  writeFileSync(join(dir, `${input.name}.json`), JSON.stringify({ name: input.name, hand: input.hand, width: input.width, height: input.height, times: input.frames.map((f) => f.t), FIRST_PART_S }));
 }
 
 function run(input: Input): Run {
   const n = input.frames.length;
   const firstCount = input.frames.filter((f) => f.t <= input.frames[0].t + FIRST_PART_S).length;
-  const firstIdx = spread(firstCount, FIRST_FIND_FRAMES);
+  const firstIdx = laneFrames(input.frames.slice(0, firstCount).map((f) => f.t), FIRST_LANE_EVERY);
   let t0 = performance.now();
   const first = findLanes(firstIdx.map((i) => input.frames[i]));
   const firstMs = performance.now() - t0;
-  const idx = spread(n, FIND_FRAMES);
+  const idx = laneFrames(input.frames.map((f) => f.t), LANE_EVERY);
   t0 = performance.now();
   const all = findLanes(idx.map((i) => input.frames[i]));
   const findMs = performance.now() - t0;

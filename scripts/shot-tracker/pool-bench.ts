@@ -8,12 +8,13 @@
  *   npx tsx scripts/shot-tracker/bench.ts IMG_1996 --dump scripts/shot-tracker/out/dump --out base.json
  *   node scripts/shot-tracker/pool-bench.cjs IMG_1996 --workers 1,2,4
  */
+import { FIRST_LANE_EVERY, LANE_EVERY } from "../../src/lib/shotTrack/framePick";
 import { findLanes, frameLanes } from "../../src/lib/shotTrack/laneFind";
 import { trace } from "../../src/lib/shotTrack/pipeline";
 import type { GrayFrame } from "../../src/lib/shotTrack/types";
 import type { Handedness } from "../../src/types/bowling";
 import { findInPool, Pool, traceInPool } from "../../src/shotTracer/pool";
-import { lanesReading, spread, tracedReading, type Run } from "./bench-readings";
+import { lanesReading, laneFrames, tracedReading, type Run } from "./bench-readings";
 
 interface Dumped {
   name: string;
@@ -21,8 +22,6 @@ interface Dumped {
   width: number;
   height: number;
   times: number[];
-  FIND_FRAMES: number;
-  FIRST_FIND_FRAMES: number;
   FIRST_PART_S: number;
 }
 
@@ -37,11 +36,11 @@ export async function poolBench(dir: string, name: string, workers: number): Pro
   try {
     const n = frames.length;
     const firstCount = frames.filter((f) => f.t <= frames[0].t + meta.FIRST_PART_S).length;
-    const firstIdx = spread(firstCount, meta.FIRST_FIND_FRAMES);
+    const firstIdx = laneFrames(frames.slice(0, firstCount).map((f) => f.t), FIRST_LANE_EVERY);
     let t0 = performance.now();
     const first = one ? findLanes(firstIdx.map((i) => frames[i])) : await findInPool(pool, firstIdx.map((i) => frames[i]));
     const firstMs = performance.now() - t0;
-    const idx = spread(n, meta.FIND_FRAMES);
+    const idx = laneFrames(frames.map((f) => f.t), LANE_EVERY);
     t0 = performance.now();
     const all = one ? findLanes(idx.map((i) => frames[i])) : await findInPool(pool, idx.map((i) => frames[i]));
     const findMs = performance.now() - t0;

@@ -88,3 +88,42 @@ export function readPick(track: Pick<VideoTrack, "samples" | "duration" | "width
   const band = { top: rows.y / track.height, bottom: (rows.y + rows.h) / track.height };
   return { from, to, rows, band, width, height, src, step: slots.step, missing: slots.missing.length, span, wanted };
 }
+
+/** A frame time stored to the millisecond can be this much under the grid instant it is on. */
+const GRID_EARLY = 0.002;
+
+/**
+ * The frames of a read on a grid `every` seconds apart counted from the
+ * video's start, not from the read's: of `times` (a read's frames, seconds,
+ * in order, kept every `step`), the first at or after each grid instant and
+ * less than `step` past it. Two reads of one video that start at different
+ * times choose the same frames where they overlap. Choosing every `n`th frame
+ * of the read, as the lane search and the empty lane did, chose other frames
+ * for every other start, and the trace's readings moved with them (shot-04
+ * read from five starts: the arrows from 4.8 to 9.9). Pure.
+ */
+export function gridFrames(times: readonly number[], every: number, step: number): number[] {
+  const out: number[] = [];
+  let last = -Infinity;
+  times.forEach((t, i) => {
+    const slot = Math.floor((t + GRID_EARLY) / every);
+    if (slot === last || t + GRID_EARLY - slot * every >= step) return;
+    out.push(i);
+    last = slot;
+  });
+  return out;
+}
+
+/** The step between a read's frames, seconds: the median of the steps (a frame passed over makes one step two). */
+export function readStep(times: readonly number[]): number {
+  const steps = times.slice(1).map((t, i) => t - times[i]).sort((a, b) => a - b);
+  return steps.length ? steps[steps.length >> 1] : 1 / 60;
+}
+
+/**
+ * How far apart the frames the lane is looked for on are, seconds
+ * (`gridFrames`): about 24 over a shot read whole, as before.
+ */
+export const LANE_EVERY = 0.15;
+/** And on the read's first part, which only says where the shot is: about 8 over its 1.6 s. */
+export const FIRST_LANE_EVERY = 0.2;

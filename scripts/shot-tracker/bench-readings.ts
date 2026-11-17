@@ -1,3 +1,4 @@
+import { gridFrames, readStep } from "../../src/lib/shotTrack/framePick";
 import { apply } from "../../src/lib/shotTrack/homography";
 import type { LanesFound } from "../../src/lib/shotTrack/laneFind";
 import type { TraceOutput } from "../../src/lib/shotTrack/pipeline";
@@ -9,11 +10,8 @@ import type { TrackResult } from "../../src/lib/shotTrack/types";
  * to each other exactly.
  */
 
-/** The frames `findOn` in the view sends: every `stride`th. */
-export const spread = (n: number, count: number) => {
-  const stride = Math.max(1, Math.floor(n / count));
-  return Array.from({ length: n }, (_, i) => i).filter((i) => i % stride === 0);
-};
+/** The frames `findOn` in the view sends: those on a grid `every` seconds apart from the video's start (`gridFrames`). */
+export const laneFrames = (times: readonly number[], every: number) => gridFrames(times, every, readStep(times));
 
 const r2 = (x: number | null | undefined, d = 2) => (x === null || x === undefined || !Number.isFinite(x) ? null : Number(x.toFixed(d)));
 

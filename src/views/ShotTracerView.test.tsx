@@ -97,10 +97,10 @@ function scanning(video: { width: number; height: number; duration: number }) {
 const SHOT: ShotFound = { start: 11.4, release: 12, pinHit: 14.6, confidence: 0.9, run: [{ t: 12, x: 0.5, y: 0.6 }] };
 
 const I: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-/** Every 8th frame of the read is searched (204 frames, about 24 of them): the search's frames 0 and 2 are the read's 0 and 16. */
+/** The frames on a 0.15 s grid are searched (from 11.7 s, every 9th of 204): the search's frames 0 and 2 are the read's 6 and 24. */
 const LANES = [
-  { frame: 0, H: I, weight: 1, guess: false },
-  { frame: 16, H: I, weight: 2, guess: false }
+  { frame: 6, H: I, weight: 1, guess: false },
+  { frame: 24, H: I, weight: 2, guess: false }
 ] satisfies (FindMessage & { frame: number })["lanes"];
 
 /** The finder's answer: the lane found best on the search's third frame, on two frames in all. */
@@ -328,12 +328,13 @@ describe("ShotTracerView", () => {
     expect(screen.getByTestId("tracer-details").textContent).toContain("search: release 12.00 s, pins 14.60 s, confidence 0.90, 1 run");
   });
 
-  it("looks for the lane on about 24 frames spread over the clip, in a pool of workers", async () => {
+  it("looks for the lane every 0.15 s of the video, in a pool of workers", async () => {
     await chooseVideo();
     expect(screen.getByText("Finding the lane…")).toBeTruthy();
     const { frames } = find()!;
-    // 11.6 to 15.0 s at 60: 204 frames, so every 8th, each with its own time.
-    expect(frames.map((f) => Math.round((f.t - 11.6) * 60))).toEqual(Array.from({ length: 26 }, (_, i) => i * 8));
+    // 11.6 to 15.0 s at 60: 204 frames, of which those on a grid of 0.15 s from
+    // the video's start (11.7 s on), every 9th, each with its own time.
+    expect(frames.map((f) => Math.round((f.t - 11.6) * 60))).toEqual(Array.from({ length: 22 }, (_, i) => 6 + i * 9));
     expect(frames[0].data.byteLength).toBe(W * H);
     // In a pool of workers, one fewer than the cores reported, at most four.
     expect(pools()).toHaveLength(1);
@@ -345,7 +346,7 @@ describe("ShotTracerView", () => {
     find()!.reply(found());
     await waitFor(() => expect(screen.getByText("Tracing the shot…")).toBeTruthy());
     const { input } = trace()!;
-    expect(input.calibFrame).toBe(16);
+    expect(input.calibFrame).toBe(24);
     expect(input.lanes).toEqual(LANES);
     expect(input.hand).toBe("right");
   });
@@ -377,7 +378,7 @@ describe("ShotTracerView", () => {
     expect(screen.getByRole("button", { name: "Another video" })).toBeTruthy();
     // How it was read and how long each stage took, for runs on a phone.
     expect(screen.getByText(/^Read by \?\. Looking [\d.]+ s, reading [\d.]+ s, lane [\d.]+ s, tracing [\d.]+ s\.$/)).toBeTruthy();
-    expect(screen.getByTestId("tracer-details").textContent).toMatch(/lane: found on 2 of 24, best frame 16[\s\S]*trace: 0 sightings, 0\.0 to 60\.0 ft/);
+    expect(screen.getByTestId("tracer-details").textContent).toMatch(/lane: found on 2 of 22, best frame 24[\s\S]*trace: 0 sightings, 0\.0 to 60\.0 ft/);
   });
 
   it("says the lane may be off when the found lanes disagree, with nothing to move", async () => {

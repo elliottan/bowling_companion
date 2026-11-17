@@ -11,6 +11,7 @@ import type { FrameLane } from "../lib/shotTrack/laneTrack";
 import { laneVerdict, type LaneEvidence, type LaneVerdict } from "../lib/shotTrack/laneVerdict";
 import { foundNote, Notes, timesNote } from "../lib/shotTrack/notes";
 import { MARK_LINES, pathInPicture, type MarkLine } from "../lib/shotTrack/marking";
+import { FIRST_LANE_EVERY, gridFrames, LANE_EVERY, readStep } from "../lib/shotTrack/framePick";
 import { laneBands, readFrom, type Band, type ShotFound } from "../lib/shotTrack/shotStart";
 import type { GrayFrame, Mat3, Metric, Point, TrackError, TrackFailure, TrackResult } from "../lib/shotTrack/types";
 import { frameLanes } from "../lib/shotTrack/laneFind";
@@ -64,14 +65,6 @@ interface Found {
   evidence: LaneEvidence;
 }
 
-/**
- * How many frames the lane search looks at, spread over the clip. A full read
- * (240 frames) is then every 10th frame, as the harness measured the
- * per-frame lanes on (scripts/shot-tracker/README.md, "The lane on every
- * frame"): the tracer blends found lanes over about 15 frames, so that is the
- * two nearest each side, and a frame costs the finder a third of a second.
- */
-const FIND_FRAMES = 24;
 /** Milliseconds, for the stage times (read in the screen's handlers, never in render). */
 const now = () => performance.now();
 /**
@@ -81,8 +74,6 @@ const now = () => performance.now();
  * phone, 24 frames); past this the worker is taken to have failed.
  */
 const WORKER_WAIT_MS = 60_000;
-/** How many of the read's first part's frames the lane is looked for on, to say where the shot ends. */
-const FIRST_FIND_FRAMES = 8;
 
 /** Each line's colour on the picture. */
 const LINE_TONE: Record<MarkLine, string> = {
@@ -238,7 +229,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         bands[0],
         // The lane on a few of the first part's frames, for where the shot ends.
         async (first) => {
-          const m = await findOn(first, FIRST_FIND_FRAMES, mine);
+          const m = await findOn(first, FIRST_LANE_EVERY, mine);
           return m.frame === null ? null : m.lanes;
         },
         (fraction) => {
@@ -276,10 +267,10 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     timing.current.via = v.via ?? "";
     setStep({ kind: "finding" });
     const finding = now();
-    const m = await findOn(v, FIND_FRAMES, mine);
+    const m = await findOn(v, LANE_EVERY, mine);
     if (attempt.current !== mine) return;
     timing.current.lane += now() - finding;
-    notes.current.add("lane", m.frame !== null ? `found on ${m.lanes.length} of ${Math.min(v.gray.length, FIND_FRAMES)}, best frame ${m.frame}, camera ${m.evidence.camera?.toFixed(1) ?? "?"} ft` : `not found on ${v.gray.length} frames`);
+    notes.current.add("lane", m.frame !== null ? `found on ${m.lanes.length} of ${m.looked}, best frame ${m.frame}, camera ${m.evidence.camera?.toFixed(1) ?? "?"} ft` : `not found on ${v.gray.length} frames`);
     if (m.frame !== null) void traceShot(v, m.frame, { lanes: m.lanes, evidence: m.evidence }, mine);
     // Not found in this band: the next, read again, or nothing to trace.
     else if (bands.length > 1) void readBand(f, looked, bands.slice(1), mine);
@@ -306,11 +297,15 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   /** The read's frames as the tracer takes them. */
   const framesOf = (v: VideoFrames): GrayFrame[] => v.gray.map((data, i) => ({ width: v.width, height: v.height, data, t: v.times[i] }));
 
-  /** Looks for the lane on about `count` frames spread over `v`, in the pool; a null frame when it is not found or the pool fails. */
-  async function findOn(v: VideoFrames, count: number, mine: number): Promise<FindMessage> {
-    const stride = Math.max(1, Math.floor(v.gray.length / count));
+  /**
+   * Looks for the lane on the frames of `v` on a grid `every` seconds apart
+   * from the video's start (`gridFrames`: the same frames however much lead
+   * the read has), in the pool; a null frame when it is not found or the pool
+   * fails.
+   */
+  async function findOn(v: VideoFrames, every: number, mine: number): Promise<FindMessage & { looked: number }> {
     const all = framesOf(v);
-    const idx = all.map((_, i) => i).filter((i) => i % stride === 0);
+    const idx = gridFrames(v.times, every, v.step || readStep(v.times));
     let timer: ReturnType<typeof setTimeout> | undefined;
     // A search that never answers is a lane not found, not a screen that waits for ever.
     const late = new Promise<"late">((resolve) => (timer = setTimeout(() => resolve("late"), WORKER_WAIT_MS)));
@@ -321,18 +316,19 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         // Its workers may be stuck: the next search or trace starts a new pool.
         pool.current?.terminate();
         pool.current = null;
-        return { frame: null };
+        return { frame: null, looked: idx.length };
       }
       const best = found.best;
-      if (!best) return { frame: null };
+      if (!best) return { frame: null, looked: idx.length };
       return {
+        looked: idx.length,
         frame: idx[best.index],
         lanes: frameLanes(found, (i) => idx[i]),
         evidence: { guess: best.guess, support: best.support, pinsUsed: best.pinsUsed, camera: best.camera }
       };
     } catch (e) {
       console.info(`Shot tracer: the lane search failed: ${e instanceof Error ? e.message : String(e)}`);
-      return { frame: null };
+      return { frame: null, looked: idx.length };
     } finally {
       clearTimeout(timer);
     }
@@ -507,7 +503,7 @@ interface Crop {
 }
 
 /**
- * A grey frame (video range, see `toGray`) drawn into a canvas, or the part of
+ * A grey frame (full range, `grayRange.ts`) drawn into a canvas, or the part of
  * it in `crop`, with an SVG over it in the frame's own pixels.
  */
 function FramePicture({
@@ -532,7 +528,7 @@ function FramePicture({
     const img = ctx.createImageData(box.w, box.h);
     for (let y = 0; y < box.h; y++) {
       for (let x = 0; x < box.w; x++) {
-        const g = (gray[(y + box.y) * width + x + box.x] - 16) * (255 / 219);
+        const g = gray[(y + box.y) * width + x + box.x];
         const k = 4 * (y * box.w + x);
         img.data[k] = img.data[k + 1] = img.data[k + 2] = g;
         img.data[k + 3] = 255;

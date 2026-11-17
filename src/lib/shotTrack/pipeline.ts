@@ -1,6 +1,7 @@
 import type { Handedness } from "../../types/bowling";
 import { associate } from "./associate";
 import { laneRoi, medianBackground, steady, type Background, type Roi } from "./background";
+import { gridFrames, readStep } from "./framePick";
 import { findCandidates, refineCircle, type Candidate, type CircleFit } from "./ballDetect";
 import { calibrationReport, type CalibrationReport } from "./calibrationCheck";
 import { fitCalibration, focalFromPlane, type CalibrationFit, type CalMark } from "./calibrate";
@@ -388,7 +389,13 @@ export function* traceSteps(input: TraceInput): Generator<TraceJob[], TraceOutpu
   // between seeing the ball and seeing the pins' outlines. Each frame's
   // steadied picture is aligned to the empty lane by its own textured
   // patches (`alignTo`); the lane's mapping is not changed by it.
-  const sampled = usable.filter((_, k) => k % 4 === 0);
+  // Every fourth frame counted from the video's start (`gridFrames`), not
+  // from the read's: a read that starts a frame later sampled other frames,
+  // and the empty lane and every reading off it moved with them.
+  const times = usable.map((g) => source.frame(g.index).t);
+  const step = readStep(times);
+  const onGrid = new Set(gridFrames(times, 4 * step, step));
+  const sampled = usable.filter((_, k) => onGrid.has(k));
   const bgFrames0 = (yield sampled.map((g) => ({ kind: "steady" as const, index: g.index, S: g.S, roi }))) as GrayFrame[];
   const [bg0] = (yield [{ kind: "median" as const, frames: bgFrames0 }]) as Background[];
   const steadyS = debug.steady;

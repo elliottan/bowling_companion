@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readPick, scanPick } from "./framePick";
+import { gridFrames, readPick, readStep, scanPick } from "./framePick";
 import { blobSource, readVideoTrack, type VideoTrack } from "./mp4";
 
 // The fixtures are read off disk. The app's type config carries no node
@@ -53,5 +53,30 @@ describe("the frames the reader keeps (as the app's details block counted them i
     expect(p.band.top).toBeCloseTo(576 / 1920, 9);
     expect(p.wanted.size).toBe(96);
     expect(readPick(tr, { from: 40, to: 50, fps: 60, band: null }).span).toBeNull();
+  });
+});
+
+describe("frames on a grid from the video's start", () => {
+  // shot-01's frames at 60 a second, 16 ms in, read whole and from 1.066 s.
+  const all = Array.from({ length: 279 }, (_, i) => 0.016016 + i / 60);
+  const late = all.filter((t) => t >= 1.066);
+
+  it("chooses the same frames whatever the read's start", () => {
+    const a = gridFrames(all, 0.15, 1 / 60).map((i) => all[i]);
+    const b = gridFrames(late, 0.15, 1 / 60).map((i) => late[i]);
+    expect(b).toEqual(a.filter((t) => t >= 1.066));
+    // One a slot, each the first frame past its grid instant.
+    expect(a.length).toBe(31);
+    a.forEach((t) => expect((t + 0.002) % 0.15).toBeLessThan(1 / 60));
+  });
+
+  it("takes a frame stored to the millisecond just under its instant, and none from a slot it starts late in", () => {
+    expect(gridFrames([0.149, 0.166, 0.299, 0.316], 0.15, 1 / 60)).toEqual([0, 2]);
+    expect(gridFrames([0.17, 0.2, 0.3], 0.15, 1 / 60)).toEqual([2]);
+  });
+
+  it("measures a read's step as the median of its steps", () => {
+    expect(readStep([0, 1 / 60, 2 / 60, 4 / 60, 5 / 60])).toBeCloseTo(1 / 60, 9);
+    expect(readStep([1])).toBeCloseTo(1 / 60, 9);
   });
 });

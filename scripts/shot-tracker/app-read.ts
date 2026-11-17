@@ -3,7 +3,7 @@
  * give the tracer, so a reading the app gives can be reproduced and bisected
  * without a browser.
  *
- *   npx tsx scripts/shot-tracker/app-read.ts <video> [<video> ...] [--hand left] [--gray decoded|full] [--from 0] [--json out.json] [--dump dir]
+ *   npx tsx scripts/shot-tracker/app-read.ts <video> [<video> ...] [--hand left] [--gray decoded|full] [--from 0] [--look dir] [--json out.json] [--dump dir]
  *
  * What the app does (`ShotTracerView`, `readShot.ts`, `codecFrames.ts`), with
  * ffmpeg as the decoder: the file's sample table read by `mp4.ts`; the first
@@ -11,8 +11,8 @@
  * searched by `ShotSearch`; the bands (`laneBands`); then `readShot` itself,
  * its reads chosen by `readPick` and each frame's luma plane cropped, scaled
  * and turned by `planeGray` as `codecRead` does; the lane on the first part's
- * frames and on 24 of the read's (`findLanes`, the frames `findOn` chooses);
- * the trace.
+ * frames and on the read's (`findLanes` on the frames `gridFrames` chooses,
+ * as `findOn` in the view); the trace.
  *
  * `--gray decoded` keeps each luma plane as decoded (the app before
  * 2026-11-17: video range), `--gray full` (the default) brings it to full
@@ -27,25 +27,21 @@
  * app's (the details block's "search" and "band" lines) to check.
  */
 import { spawn } from "node:child_process";
-import { closeSync, mkdirSync, openSync, readSync, statSync, writeFileSync } from "node:fs";
+import { closeSync, mkdirSync, openSync, readFileSync, readSync, statSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { readPick, scanPick, type PickPlan } from "../../src/lib/shotTrack/framePick";
+import { FIRST_LANE_EVERY, gridFrames, LANE_EVERY, readPick, readStep, scanPick, type PickPlan } from "../../src/lib/shotTrack/framePick";
 import { lumaRange, toFullRange } from "../../src/lib/shotTrack/grayRange";
 import { findLanes, frameLanes } from "../../src/lib/shotTrack/laneFind";
 import { planeCrop, planeGray } from "../../src/lib/shotTrack/marking";
 import { nearestStamp, readVideoTrack, spanStamps, type VideoTrack } from "../../src/lib/shotTrack/mp4";
 import { Notes } from "../../src/lib/shotTrack/notes";
 import { trace } from "../../src/lib/shotTrack/pipeline";
-import { COARSE_WIDTH, laneBands, readFrom, ShotSearch, type CoarseFrame, type ShotFound } from "../../src/lib/shotTrack/shotStart";
+import { COARSE_WIDTH, laneBands, readFrom, ShotSearch, type Band, type CoarseFrame, type ShotFound } from "../../src/lib/shotTrack/shotStart";
 import type { GrayFrame } from "../../src/lib/shotTrack/types";
 import { readShot, type ShotFrames } from "../../src/shotTracer/readShot";
 import type { VideoFrames } from "../../src/shotTracer/videoFrames";
 import type { Handedness } from "../../src/types/bowling";
-import { spread, tracedReading } from "./bench-readings";
-
-/** As `ShotTracerView`. */
-const FIND_FRAMES = 24;
-const FIRST_FIND_FRAMES = 8;
+import { tracedReading } from "./bench-readings";
 
 export type GrayMode = "decoded" | "full";
 
@@ -142,6 +138,25 @@ export async function look(path: string, track: VideoTrack, gray: GrayMode): Pro
   return made.filter(Boolean);
 }
 
+/**
+ * The first look's frames as a browser gave them (`<stem>.look` and
+ * `.look.json` in `dir`, written by a page that runs `codecScan`): a canvas
+ * scales and converts colour its own way, and the window found on its frames
+ * can sit a grid slot from the one found on the luma plane.
+ */
+function savedLook(dir: string, path: string, gray: GrayMode): CoarseFrame[] {
+  const stem = basename(path).replace(/\.[^.]+$/, "");
+  const meta = JSON.parse(readFileSync(join(dir, `${stem}.look.json`), "utf8")) as { width: number; height: number; times: number[]; range?: string };
+  const raw = readFileSync(join(dir, `${stem}.look`));
+  const px = meta.width * meta.height;
+  // Saved in the range the page gave (`range` in the json: video range before 2026-11-17).
+  const expand = gray === "full" && meta.range !== "full";
+  return meta.times.map((t, i) => {
+    const data = new Uint8ClampedArray(raw.subarray(i * px, (i + 1) * px));
+    return { width: meta.width, height: meta.height, data: expand ? toFullRange(data, "limited") : data, t };
+  });
+}
+
 /** A read as `codecRead` gives it. */
 export function reader(path: string, track: VideoTrack, gray: GrayMode, log: string[]) {
   return async (plan: PickPlan): Promise<VideoFrames> => {
@@ -171,10 +186,10 @@ export function reader(path: string, track: VideoTrack, gray: GrayMode, log: str
 
 const framesOf = (v: VideoFrames): GrayFrame[] => v.gray.map((data, i) => ({ width: v.width, height: v.height, data, t: v.times[i] }));
 
-/** `findOn` in the view: the lane on every `stride`th frame. */
-function findOn(v: VideoFrames, count: number) {
+/** `findOn` in the view: the lane on the frames on a grid `every` seconds apart from the video's start. */
+function findOn(v: VideoFrames, every: number) {
   const all = framesOf(v);
-  const idx = spread(all.length, count);
+  const idx = gridFrames(v.times, every, v.step || readStep(v.times));
   const found = findLanes(idx.map((i) => all[i]));
   return found.best ? { frame: idx[found.best.index], lanes: frameLanes(found, (i) => idx[i]) } : null;
 }
@@ -183,17 +198,19 @@ export interface AppRead {
   name: string;
   found: ShotFound | null;
   window: ShotFrames["window"];
+  /** The band of the picture read (`laneBands`), null for all of it. */
+  band: Band | null;
   frames: GrayFrame[];
   log: string[];
   notes: string;
 }
 
 /** The frames the app gives the tracer for `path`: the first look, the bands, `readShot`. `fromZero` reads from the video's start instead of the window's. */
-export async function appRead(path: string, gray: GrayMode, fromZero = false): Promise<AppRead | null> {
+export async function appRead(path: string, gray: GrayMode, fromZero = false, lookDir?: string): Promise<AppRead | null> {
   const track = await fileTrack(path);
   const log: string[] = [];
   const notes = new Notes();
-  const coarse = await look(path, track, gray);
+  const coarse = lookDir ? savedLook(lookDir, path, gray) : await look(path, track, gray);
   const search = new ShotSearch();
   for (const f of coarse) search.push(f);
   const found = search.finish();
@@ -208,18 +225,25 @@ export async function appRead(path: string, gray: GrayMode, fromZero = false): P
   for (let b = 0; b < bands.length; b++) {
     const band = bands[b];
     const r = await readShot(
-      (plan) => read(fromZero && plan.from > 0 && !plan.after ? { ...plan, from: 0 } : plan),
+      read,
       found,
       video,
       band,
-      async (first) => findOn(first, FIRST_FIND_FRAMES)?.lanes ?? null,
+      async (first) => findOn(first, FIRST_LANE_EVERY)?.lanes ?? null,
       () => {},
       b === bands.length - 1,
       notes
     );
     if (r === "no-shot") return null;
     if (r === "no-lane") continue;
-    return { name: basename(path), found, window: r.window, frames: framesOf(r.frames), log, notes: notes.text() };
+    let frames = r.frames;
+    if (fromZero) {
+      // The same frames from the video's start: the same rate and band, to the same last frame.
+      const fps = Math.round(1 / r.frames.step);
+      const to = r.frames.times[r.frames.times.length - 1] + 0.5 / fps;
+      frames = await read({ from: 0, to, fps, band });
+    }
+    return { name: basename(path), found, window: r.window, band, frames: framesOf(frames), log, notes: notes.text() };
   }
   return null;
 }
@@ -227,7 +251,7 @@ export async function appRead(path: string, gray: GrayMode, fromZero = false): P
 /** The trace as the view runs it on the read's frames: the lane on 24 of them, then `trace`. */
 export function traceRead(frames: GrayFrame[], hand: Handedness) {
   const v: VideoFrames = { width: frames[0].width, height: frames[0].height, gray: frames.map((f) => f.data), times: frames.map((f) => f.t), src: null, step: 0, missing: 0 };
-  const m = findOn(v, FIND_FRAMES);
+  const m = findOn(v, LANE_EVERY);
   if (!m) return null;
   return trace({ source: { count: frames.length, frame: (i) => frames[i] }, calibFrame: m.frame, lanes: m.lanes, hand });
 }
@@ -243,10 +267,11 @@ if (process.argv[1]?.endsWith("app-read.ts")) {
   const fromZero = opt("--from") === "0";
   const jsonOut = opt("--json");
   const dumpDir = opt("--dump");
+  const lookDir = opt("--look");
   const results: Record<string, unknown>[] = [];
   for (const path of args) {
     const t0 = Date.now();
-    const r = await appRead(path, gray, fromZero);
+    const r = await appRead(path, gray, fromZero, lookDir);
     if (!r) {
       console.log(`${basename(path)}: no shot read`);
       continue;
@@ -256,6 +281,8 @@ if (process.argv[1]?.endsWith("app-read.ts")) {
     const w = r.window;
     console.log(`${r.name} (${gray}${fromZero ? ", from 0" : ""}): ${r.frames.length} frames ${r.frames[0].width}x${r.frames[0].height}, ${r.frames[0].t.toFixed(3)} to ${r.frames[r.frames.length - 1].t.toFixed(3)} s; window foul ${w?.foul?.toFixed(3) ?? "-"} end ${w?.end.toFixed(3) ?? "-"} by ${w?.by ?? "-"} (${((Date.now() - t0) / 1000).toFixed(1)} s)`);
     for (const l of r.log) console.log(`   ${l}`);
+    // The details block's lines on the bands: the runs as judged on the lane, and the window.
+    for (const l of r.notes.split("\n").filter((x) => x.startsWith("band"))) console.log(`   ${l}`);
     const pick = (k: string) => (reading as Record<string, unknown> | null)?.[k];
     console.log(`   ${JSON.stringify({ laydown: pick("laydown"), arrows: pick("arrows"), breakpoint: pick("breakpoint"), at: pick("breakpointFeet"), pins: pick("pins"), launch: pick("launchSpeed"), failure: pick("failure") })}`);
     results.push({ name: r.name, gray, fromZero, first: r.frames[0].t, last: r.frames[r.frames.length - 1].t, count: r.frames.length, window: w, trace: reading });
@@ -263,7 +290,7 @@ if (process.argv[1]?.endsWith("app-read.ts")) {
       mkdirSync(dumpDir, { recursive: true });
       const stem = r.name.replace(/\.[^.]+$/, "");
       writeFileSync(join(dumpDir, `${stem}.gray`), Buffer.concat(r.frames.map((f) => Buffer.from(f.data.buffer, f.data.byteOffset, f.data.byteLength))));
-      writeFileSync(join(dumpDir, `${stem}.json`), JSON.stringify({ name: stem, hand, width: r.frames[0].width, height: r.frames[0].height, times: r.frames.map((f) => f.t), FIND_FRAMES, FIRST_FIND_FRAMES, FIRST_PART_S: 2 }));
+      writeFileSync(join(dumpDir, `${stem}.json`), JSON.stringify({ name: stem, hand, width: r.frames[0].width, height: r.frames[0].height, times: r.frames.map((f) => f.t), FIRST_PART_S: 2 }));
     }
   }
   if (jsonOut) writeFileSync(jsonOut, JSON.stringify(results, null, 1) + "\n");
