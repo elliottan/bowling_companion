@@ -24,6 +24,12 @@ had all shipped.
   straight from the video, the same way on every phone and browser, instead of
   asking the browser to draw the frame first. On an iPhone the drawn frames came
   out differently, and the shot was not found in a video a computer traces.
+- The tracer now finds the ball itself in the video's own frames, once it knows
+  where the lane is: something the size of a ball for where it sits, rolling up
+  the lane from the foul line. The first look's guess only says where to look
+  first; when the ball is not there, the tracer looks through the rest of the
+  video until it finds it. The bowler's walk to the line, or the ball swinging
+  in the hand, no longer passes for the shot.
 - The details under the tracer's result say how the phone handed over the first
   frame (its size, format and colors), how the first look was made, and how far
   a drawn frame would have been from it, and small pictures show what the
