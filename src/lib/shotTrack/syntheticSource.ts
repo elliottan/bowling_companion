@@ -1,5 +1,5 @@
 import type { FrameSource } from "./registration";
-import { behindCamera, frameCount, marksFor, renderFrame, truthAt, timeAt, type SyntheticShot } from "./synthetic";
+import { ballDistance, behindCamera, frameCount, marksFor, PIN_HIT_FT, renderFrame, truthAt, timeAt, type SyntheticShot } from "./synthetic";
 import type { GrayFrame, LaneMarks } from "./types";
 import { apply } from "./homography";
 import { namedLine, namedPoint, type CalMark } from "./calibrate";
@@ -46,9 +46,15 @@ export function truthBoard(spec: SyntheticShot, v: number): number {
   return handedBoard(hookU(spec.path, v), spec.hand);
 }
 
-/** The true board where the ball first meets a pin: what the tracer reads as the board at the pins. */
+/**
+ * The true board at the pins as the tracer reads it (the owner, 2026-11-17):
+ * where the ball is on the last frame before a pin moves. The rendered pins
+ * fall once the ball reaches `PIN_HIT_FT`.
+ */
 export function truthBoardAtPins(spec: SyntheticShot): number {
-  return truthBoard(spec, firstPinContact((v) => hookU(spec.path, v)) ?? 60);
+  const contact = firstPinContact((v) => hookU(spec.path, v)) ?? 60;
+  const lastBefore = Math.ceil(timeAt(spec, PIN_HIT_FT) * spec.fps) - 1;
+  return truthBoard(spec, Math.min(contact, ballDistance(spec, lastBefore / spec.fps) ?? contact));
 }
 
 export function truthSpeedMph(spec: SyntheticShot, v0: number, v1: number): number {

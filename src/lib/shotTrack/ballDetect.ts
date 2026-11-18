@@ -375,6 +375,8 @@ export interface CircleFit {
   edges: Point[];
   /** Free-radius fit was rejected for straying more than 20% from the expected radius. */
   fixed: boolean;
+  /** Placed by the face of the clean sighting on this frame (`carryFace`), its rim being covered. */
+  carried?: number;
 }
 
 function fitCircle(pts: Point[], c0: Point, r0: number, freeRadius: boolean): { cx: number; cy: number; r: number } {
@@ -497,4 +499,66 @@ export function refineCircle(f: GrayFrame, H: Mat3, rough: Point, r: number, low
   // Rays whose edge lies on the fitted circle are the ones that found it.
   const on = edges.filter((p) => Math.abs(Math.hypot(p.x - fit.cx, p.y - fit.cy) - fit.r) < 1.5);
   return { cx: fit.cx, cy: fit.cy, r: fit.r, weight: (on.length / kept) * (useFree ? 1 : 0.5), edges: on, fixed: !useFree };
+}
+
+/** A carried face must correlate at least this well to place the ball. */
+export const CARRY_MIN = 0.6;
+
+/**
+ * The ball placed on frame `f` by its own face on an earlier frame where its
+ * outline was clean (`from` on `f0`), when its outline here is not: a leg or
+ * a hand over part of its rim leaves too few edges on the circle, and the
+ * fit with the lane's radius slides off the ball, down and away from the
+ * cover (2026-11-17, shot-04 frames 107 to 109: a quarter of a radius low and
+ * right). The picture inside 0.8 of a radius of `from`, scaled to radius `r`,
+ * is matched (zero-mean correlation) within `reach` pixels of `near`, first
+ * every pixel, then to a quarter pixel round the best. Null when nothing
+ * correlates `CARRY_MIN` or better. Pure.
+ */
+export function carryFace(f0: GrayFrame, from: { cx: number; cy: number; r: number }, f: GrayFrame, near: Point, r: number, reach: number): { cx: number; cy: number; score: number } | null {
+  const R = 0.8 * r;
+  const k = from.r / r;
+  const offs: [number, number][] = [];
+  for (let j = -Math.floor(R); j <= R; j++) for (let i = -Math.floor(R); i <= R; i++) if (i * i + j * j <= R * R) offs.push([i, j]);
+  const face = offs.map(([i, j]) => sample(f0, from.cx + k * i, from.cy + k * j));
+  if (offs.length < 9 || face.some((v) => !Number.isFinite(v))) return null;
+  const fm = face.reduce((a, b) => a + b, 0) / face.length;
+  const fz = face.map((v) => v - fm);
+  const fn = Math.sqrt(fz.reduce((a, b) => a + b * b, 0));
+  if (!(fn > 0)) return null;
+  const vals = new Float64Array(offs.length);
+  const ncc = (x: number, y: number): number => {
+    let m = 0;
+    for (let q = 0; q < offs.length; q++) {
+      const v = sample(f, x + offs[q][0], y + offs[q][1]);
+      if (!Number.isFinite(v)) return -1;
+      vals[q] = v;
+      m += v;
+    }
+    m /= offs.length;
+    let sxy = 0;
+    let syy = 0;
+    for (let q = 0; q < offs.length; q++) {
+      const z = vals[q] - m;
+      sxy += z * fz[q];
+      syy += z * z;
+    }
+    return syy > 0 ? sxy / (fn * Math.sqrt(syy)) : -1;
+  };
+  let best = { cx: near.x, cy: near.y, score: -Infinity };
+  const n = Math.ceil(reach);
+  for (let dy = -n; dy <= n; dy++) {
+    for (let dx = -n; dx <= n; dx++) {
+      const c = ncc(near.x + dx, near.y + dy);
+      if (c > best.score) best = { cx: near.x + dx, cy: near.y + dy, score: c };
+    }
+  }
+  const at = { x: best.cx, y: best.cy };
+  for (let dy = -1; dy <= 1 + 1e-9; dy += 0.25) {
+    for (let dx = -1; dx <= 1 + 1e-9; dx += 0.25) {
+      const c = ncc(at.x + dx, at.y + dy);
+      if (c > best.score) best = { cx: at.x + dx, cy: at.y + dy, score: c };
+    }
+  }
+  return best.score >= CARRY_MIN ? best : null;
 }

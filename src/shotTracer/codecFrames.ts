@@ -3,6 +3,7 @@ import { lumaRange, toFullRange } from "../lib/shotTrack/grayRange";
 import { COARSE_WIDTH, type CoarseFrame } from "../lib/shotTrack/shotStart";
 import { planeCrop, planeGray, readProgress, sourceStep, toGray } from "../lib/shotTrack/marking";
 import { grayStats, type Notes } from "../lib/shotTrack/notes";
+import { drawnTurn, frameNote, lookGray, lumaBits, meanAbsDiff, type FrameShape } from "../lib/shotTrack/lookFrame";
 import { blobSource, Mp4Error, nearestStamp, readVideoTrack, shownTimes, spanStamps, stampOf, type VideoTrack } from "../lib/shotTrack/mp4";
 
 /**
@@ -13,7 +14,8 @@ import { blobSource, Mp4Error, nearestStamp, readVideoTrack, shownTimes, spanSta
  * decoder from the keyframe at or before the stretch wanted, and each one the
  * read keeps turned to grey: its luma plane copied out where the decoder's
  * format has one (8, 10 or 12 bits) and brought to full range
- * (`grayRange.ts`), else drawn to a canvas. Frames come
+ * (`grayRange.ts`), else drawn to a canvas, turned only as far as the browser
+ * has not (`lookFrame.ts`). Frames come
  * unturned from a decoder; a phone's portrait video is turned here by its
  * track matrix.
  *
@@ -276,16 +278,84 @@ export function trackNote(track: VideoTrack, config: VideoDecoderConfig): string
 }
 
 /**
- * Draws a frame as shown, turned `turn` degrees clockwise, into a canvas:
- * the shown picture (`shownW` by `shownH`) scaled by `k`, from `top` rows of
- * it down.
+ * Draws a frame as shown into a canvas: the shown picture (`shownW` by
+ * `shownH`, the track's) scaled by `k`, from `top` rows of it down. The
+ * frame is drawn at an explicit size, the shown picture's before the turn
+ * left to make (`drawnTurn`: the track's, less any the browser has made), and
+ * then turned that far clockwise, so a browser's own `displayWidth` or turn
+ * cannot squeeze or turn it twice.
  */
 function drawTurned(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, frame: VideoFrame, turn: number, shownW: number, shownH: number, k: number, top: number) {
   ctx.setTransform(k, 0, 0, k, 0, -top * k);
+  const quarter = turn % 180 !== 0;
   if (turn === 90) ctx.transform(0, 1, -1, 0, shownW, 0);
   else if (turn === 180) ctx.transform(-1, 0, 0, -1, shownW, shownH);
   else if (turn === 270) ctx.transform(0, -1, 1, 0, 0, shownH);
-  ctx.drawImage(frame, 0, 0, frame.displayWidth, frame.displayHeight);
+  ctx.drawImage(frame, 0, 0, quarter ? shownH : shownW, quarter ? shownW : shownH);
+}
+
+/** A decoded frame as `FrameShape` (what `lookFrame.ts` reads of it). */
+function shapeOf(frame: VideoFrame): FrameShape {
+  const own = frame as VideoFrame & { rotation?: number; flip?: boolean };
+  const vr = frame.visibleRect;
+  const cs = frame.colorSpace;
+  return {
+    format: frame.format === null ? null : String(frame.format),
+    codedWidth: frame.codedWidth,
+    codedHeight: frame.codedHeight,
+    displayWidth: frame.displayWidth,
+    displayHeight: frame.displayHeight,
+    visibleRect: vr ? { x: vr.x, y: vr.y, width: vr.width, height: vr.height } : null,
+    colorSpace: cs ? { primaries: cs.primaries, transfer: cs.transfer, matrix: cs.matrix, fullRange: cs.fullRange } : null,
+    ...(typeof own.rotation === "number" ? { rotation: own.rotation } : {}),
+    ...(typeof own.flip === "boolean" ? { flip: own.flip } : {})
+  };
+}
+
+/** A frame's luma plane as copied out: `w` by `h` samples of `bits`, `stride` bytes a row from `offset` in `data`. */
+interface Luma {
+  data: Uint8Array;
+  bits: number;
+  w: number;
+  h: number;
+  stride: number;
+  offset: number;
+}
+
+/**
+ * The frame's luma plane, or the part of it in `crop` (in the visible
+ * picture's own samples; the whole visible picture for none); null where its
+ * format has none to copy. `copyTo` copies the visible rectangle when given
+ * no rectangle, so a crop is copied by itself where the browser takes a
+ * rectangle, else found in the whole (`state.noRect` remembers which).
+ */
+async function copyLuma(frame: VideoFrame, crop: { x: number; y: number; w: number; h: number } | null, state: { noRect: boolean }): Promise<Luma | null> {
+  const bits = lumaBits(frame.format === null ? null : String(frame.format));
+  const vr = frame.visibleRect;
+  if (!bits || !vr) return null;
+  const c = crop ?? { x: 0, y: 0, w: vr.width, h: vr.height };
+  let buf: Uint8Array | null = null;
+  let layout: PlaneLayout[] | null = null;
+  let x0 = 0;
+  let y0 = 0;
+  if (crop && !state.noRect) {
+    const rect = { x: vr.x + c.x, y: vr.y + c.y, width: c.w, height: c.h };
+    try {
+      buf = new Uint8Array(frame.allocationSize({ rect }));
+      layout = await frame.copyTo(buf, { rect });
+    } catch {
+      state.noRect = true;
+    }
+  }
+  if (!buf || !layout) {
+    // The whole visible picture, and the crop found in it.
+    buf = new Uint8Array(frame.allocationSize());
+    layout = await frame.copyTo(buf);
+    x0 = c.x;
+    y0 = c.y;
+  }
+  const plane = layout[0];
+  return { data: buf, bits, w: c.w, h: c.h, stride: plane.stride, offset: plane.offset + y0 * plane.stride + (bits > 8 ? 2 : 1) * x0 };
 }
 
 function canvas2d(width: number, height: number): CanvasRenderingContext2D {
@@ -300,9 +370,13 @@ function canvas2d(width: number, height: number): CanvasRenderingContext2D {
 /**
  * The first look (`lib/shotTrack/shotStart.ts`) by decoding: every frame of
  * the video decoded, and those on the `COARSE_FPS` grid (`gridSlot`, chosen
- * over the file's own frame times) made `COARSE_WIDTH` wide in grey: drawn
- * to a canvas, or, for a video of more than 8 bits (an iPhone's HDR, which a
- * canvas tone-maps), from the frame's luma plane where it can be copied.
+ * over the file's own frame times) made `COARSE_WIDTH` wide in grey from
+ * the frame's luma plane (`lookFrame.ts`), as the read makes its frames, of
+ * any bit depth; drawn to a canvas only for a frame whose format has no
+ * plane to copy. Until 0.113.2 an 8-bit frame was drawn, and a browser draws
+ * a frame its own way: the owner's iPhone found no run on the lane in a video
+ * desktop Chromium traces. The first frame's own description and, on three
+ * frames, how far a canvas drawing is from the plane's go to the details.
  * Same frames as playing would give where playing shows every frame; here
  * none is passed over. Handed to `onFrame` in time order.
  */
@@ -330,8 +404,25 @@ export async function codecScan(
   let given = 0;
   let count = 0;
   let skipped = 0;
-  let how = "";
   const looks: string[] = [];
+  const checks: string[] = [];
+  const copying = { noRect: false };
+  let planes = 0;
+  let drawn = 0;
+  let planesHow = "";
+  let drawnHow = "";
+  /** A canvas drawing of the frame as the track says, against the plane's look frame `data`: mean differences straight and upside down. */
+  const canvasCheck = (frame: VideoFrame, data: Uint8ClampedArray): string => {
+    try {
+      const plan = drawnTurn(shapeOf(frame), turn);
+      ctx ??= canvas2d(width, height);
+      drawTurned(ctx, frame, plan.turn, track.width, track.height, width / track.width, 0);
+      const drawnGray = toGray(ctx.getImageData(0, 0, width, height).data, width, height);
+      return `canvas diff ${meanAbsDiff(drawnGray, data).toFixed(1)}, upside down ${meanAbsDiff(drawnGray.reverse(), data).toFixed(1)} (${plan.why})`;
+    } catch (e) {
+      return `canvas failed: ${reasonOf(e)}`;
+    }
+  };
   const handOn = (all: boolean) => {
     for (;;) {
       if (made[given]) {
@@ -345,25 +436,28 @@ export async function codecScan(
     }
   };
   const done = await decodeRange(cv, span.first, span.last, wanted, async (frame, t, place) => {
-    let data: Uint8ClampedArray | null = null;
-    const format = String(frame.format);
-    const bits = LUMA_16[format];
-    if (track.bitDepth > 8 && bits && frame.visibleRect) {
-      // The luma plane, untouched by tone mapping.
-      const vr = frame.visibleRect;
-      const buf = new Uint8Array(frame.allocationSize());
-      const layout = await frame.copyTo(buf);
-      const quarter = turn % 180 !== 0;
+    if (!count) notes?.set("frame", frameNote(shapeOf(frame)));
+    const stats = place === 0 || place === order.length >> 1 || place === order.length - 1;
+    let data: Uint8ClampedArray;
+    const luma = await copyLuma(frame, null, copying);
+    if (luma) {
+      // The luma plane, as the read takes it: the same on every browser, and untouched by tone mapping.
       const range = lumaRange(frame.colorSpace?.fullRange, track.fullRange);
-      data = toFullRange(planeGray(buf, bits, layout[0].offset + vr.y * layout[0].stride + 2 * vr.x, layout[0].stride, vr.width, vr.height, quarter ? height : width, quarter ? width : height, turn), range);
-      how = `luma plane ${format} ${range}`;
+      data = lookGray(luma.data, luma.bits, luma.offset, luma.stride, luma.w, luma.h, width, height, turn, range);
+      planes++;
+      planesHow = `planes ${String(frame.format)} ${range}`;
+      // How far a canvas would have been from it (the look before 0.113.2), upside down too: for a browser that draws a frame its own way.
+      if (stats) checks.push(`#${place} ${canvasCheck(frame, data)}`);
     } else {
+      // No luma plane to copy: drawn, turned only as far as the browser has not turned it.
+      const plan = drawnTurn(shapeOf(frame), turn);
       ctx ??= canvas2d(width, height);
-      drawTurned(ctx, frame, turn, track.width, track.height, width / track.width, 0);
+      drawTurned(ctx, frame, plan.turn, track.width, track.height, width / track.width, 0);
       data = toGray(ctx.getImageData(0, 0, width, height).data, width, height);
-      how = `canvas ${format}`;
+      drawn++;
+      drawnHow = `canvas ${String(frame.format)} (${plan.why})`;
     }
-    if (place === 0 || place === order.length >> 1 || place === order.length - 1) looks.push(`#${place} ${grayStats(data)}`);
+    if (stats) looks.push(`#${place} ${grayStats(data)}`);
     made[place] = { width, height, data, t };
     count++;
     handOn(false);
@@ -371,15 +465,12 @@ export async function codecScan(
   });
   handOn(true);
   const via = `WebCodecs ${track.codec} ${cv.config.hardwareAcceleration}`;
+  const how = [planes ? `${planesHow} ${planes}` : "", drawn ? `${drawnHow} ${drawn}` : ""].filter(Boolean).join(", ") || "none";
   notes?.set("look", `${count} of ${order.length} grid frames (${offGrid} off the grid, ${skipped} given up), ${how}, gray mean/min/max ${looks.join(" ")}; decoder ${decodedNote(done, count)}`);
+  if (checks.length) notes?.set("look check", checks.join("; "));
   console.info(`Shot tracer: looked at ${count} frames of ${duration.toFixed(1)} s by decoding (${via}), ${notes?.get("look") ?? ""}`);
   return { width: track.width, height: track.height, duration, via };
 }
-
-/** Formats whose first plane is luma, one byte a sample. */
-const LUMA_8 = new Set(["I420", "I420A", "I422", "I444", "NV12"]);
-/** Formats whose first plane is luma, two bytes a sample, by their bits. */
-const LUMA_16: Record<string, number> = { I420P10: 10, I420AP10: 10, I422P10: 10, I444P10: 10, I420P12: 12, I422P12: 12, I444P12: 12, P010: 10 };
 
 /** The plan of one read, as `videoFrames.ts` gives it. */
 export type CodecPlan = PickPlan;
@@ -409,38 +500,13 @@ export async function codecRead(
   let mode: "unknown" | "planes" | "drawn" = "unknown";
   let how = "none";
   let ctx: CanvasRenderingContext2D | null = null;
-  let noRect = false;
   const cost: number[] = [];
 
+  const copying = { noRect: false };
   /** The frame's luma plane, cropped to the band; null where its format has none to copy. */
-  const lumaPlane = async (frame: VideoFrame): Promise<{ data: Uint8Array; bits: number; w: number; h: number; stride: number; offset: number } | null> => {
-    const format = String(frame.format);
-    const bits = LUMA_8.has(format) ? 8 : LUMA_16[format];
+  const lumaPlane = (frame: VideoFrame): Promise<Luma | null> => {
     const vr = frame.visibleRect;
-    if (!bits || !vr) return null;
-    const c = planeCrop(band, vr.width, vr.height, turn);
-    const rect = { x: vr.x + c.x, y: vr.y + c.y, width: c.w, height: c.h };
-    let buf: Uint8Array;
-    let layout: PlaneLayout[];
-    let x0 = 0;
-    let y0 = 0;
-    if (!noRect) {
-      try {
-        buf = new Uint8Array(frame.allocationSize({ rect }));
-        layout = await frame.copyTo(buf, { rect });
-      } catch {
-        noRect = true;
-      }
-    }
-    if (noRect) {
-      // The whole frame, and the band found in it.
-      buf = new Uint8Array(frame.allocationSize());
-      layout = await frame.copyTo(buf);
-      x0 = rect.x;
-      y0 = rect.y;
-    }
-    const plane = layout![0];
-    return { data: buf!, bits, w: c.w, h: c.h, stride: plane.stride, offset: plane.offset + y0 * plane.stride + (bits > 8 ? 2 : 1) * x0 };
+    return vr ? copyLuma(frame, planeCrop(band, vr.width, vr.height, turn), copying) : Promise.resolve(null);
   };
 
   const done = span
@@ -467,10 +533,11 @@ export async function codecRead(
           }
           if (!g) {
             // One read is all drawn or all copied: drawn HDR is tone-mapped, copied is not.
+            const plan = drawnTurn(shapeOf(frame), turn);
             ctx ??= canvas2d(width, height);
-            drawTurned(ctx, frame, turn, track.width, track.height, width / track.width, rows.y);
+            drawTurned(ctx, frame, plan.turn, track.width, track.height, width / track.width, rows.y);
             g = toGray(ctx.getImageData(0, 0, width, height).data, width, height);
-            how = `drawn ${String(frame.format)}`;
+            how = `drawn ${String(frame.format)} (${plan.why})`;
           }
           if (place === 0) notes?.add("gray", `${how} ${grayStats(g)}`);
           placed[place] = g;

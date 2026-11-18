@@ -17,6 +17,7 @@ npx tsx scripts/shot-tracker/look.ts <clip> <frame> <x0> <y0> <w> <h> <scale> <o
 npx tsx scripts/shot-tracker/diff.ts <clip> <first> <last> <step> <x0> <y0> <w> <h> <scale> <out.png>
 npx tsx scripts/shot-tracker/foul.ts <clip> <out.png> <frame> [<frame> ...]
 npx tsx scripts/shot-tracker/foul-look.ts <clip> <outDir> [<frame> ...]   # the foul line's region, found, hand and every candidate
+npx tsx scripts/shot-tracker/review-app.ts <outDir> <video>[:left] ... [--frames dumpDir] [--check]   # the review pictures and every reading from the app's own read, with the circle check
 ```
 
 `foul.ts` is the release aid: the near end of each frame named, with the foul
@@ -151,6 +152,85 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
 - 7.5: a handful of sightings past a long unseen stretch (more than 15 ft,
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
+
+## The ball found where the lane is known (0.113.2, 2026-11-18)
+
+The owner's iPhone could not find the shot in IMG_1996: the first look (192
+pixel frames drawn on a canvas) chose the bowler at 3.07 s, the ball's run was
+not among its runs, and the read gave up. On desktop Chromium the plane look
+chose the pushaway at 1.8 s on most copies, and `readShot` took the window
+from it.
+
+**The hole.** The pushaway, the ball held at the waist two seconds before the
+shot, reads through the floor's mapping from 7 ft behind the foul line to 5
+ft past it at 30 to 45 ft/s (an object 3 ft above the lane maps three times as
+far up it). It passed every test a run of centroids can take (on the lane,
+every step up it, a ball's speed, seen crossing the foul line) and won on
+crossing. No threshold on where a look run starts tells them apart: the
+ball at the bottom of the swing read 6.3 ft behind the line on shot-03, the
+pushaway 7 ft on IMG_1996.
+
+**What decides now** (`ballFind.ts`, `readShot.ts`, `seekPart` in
+`shotWindow.ts`): in each part read, with the lane found on it, the ball is
+looked for in the part's own frames: every second frame at half size, steadied
+by a searched shift, a median empty lane, blobs of a ball's width for the lane
+row their foot maps to (`findCandidates`: anything above the lane is too wide
+for its row, which is what rejects the pushaway), chained frame to frame, and
+judged: 6 or more in a row over 5 ft or more, a ball's speed, on a straight
+line, never standing still, first seen within 15 ft of the foul line, the line
+crossing it inside the part. The window is that line's crossing, and the deck
+end at its speed (`seenWindow`, slack 1.2: it is the launch speed, not the
+look's rough one). Where it is not seen, the parts it may be in are read in
+turn: where a part saw it out on the lane, the crossings of look runs that
+pass, the look's other runs, then the whole video stepped through every 1 s
+in 1.6 s parts, nearest the look's guess first (at most 8 parts, 30 s). Only
+when it is seen nowhere is a look run's window used, one whose crossing no
+searched part would have shown first: a ball that crossed the foul line rolls
+up the lane in the frames after. A look run must also go past the foul line
+(`short-of-line`).
+
+**Measured** (headless Chromium, `vite preview` of a production build, plane
+look; before is the build before this change, the SDR copies' before in
+`app-read.ts`, which agrees with the browser; window = the foul line crossing,
+seconds; boards, mph):
+
+| input | before: crossing, laydown, touchdown, arrows, launch | after |
+|---|---|---|
+| IMG_1996 VP9 8-bit | 3.73, 18.3, 17.2, 13.5, 16.3 | 3.61, 18.3, 17.1, 13.4, 16.3 |
+| VP9 10-bit | 3.73, 18.2, 17.1, 13.3, 16.5 | 3.61, 18.2, 17.1, 13.3, 16.5 |
+| VP9 10-bit 60 fps | 3.72, 18.3, 17.2, 13.4, 16.4 | 3.63, 18.3, 17.2, 13.4, 16.4 |
+| avc1 rot90 120 fps | 1.59 (the pushaway), 18.6, 17.3, 13.3, 16.7 | 3.61, 18.4, 17.3, 13.5, 16.7 |
+| avc1-b | 1.62 (the pushaway), 18.5, 17.5, 13.1, 16.5 | 3.61, 18.4, 17.2, 13.5, 16.5 |
+| portrait remux | 3.78, 18.4, 17.3, 13.5, 16.5 | 3.61, 18.4, 17.3, 13.5, 16.5 |
+| SDR limited | 3.72, 18.5, -, 13.3, 16.8 | 3.58, 18.5, 17.3, 13.3, 16.8 |
+| SDR full range | 2.23 (the pushaway), 19.2, -, 13.5, 16.5 | 3.58, 18.4, 17.2, 13.4, 16.7 |
+| shot-01 | 1.30, 24.3, 23.1, 17.5, pins 17.4 | 1.22, 24.3, 23.0, 17.5, pins 17.4 |
+| shot-02 | 1.13, 21.2, 20.4, 16.0, pins 14.8 | 1.02, 21.2, 20.3, 16.0, pins 15.6 |
+| shot-03 | 1.08, 13.5, 13.2, 10.0 | 1.02, 13.6, 13.1, 9.9 (end 4.33 s, was 4.73) |
+| shot-04 | 1.33, 6.2, 6.0, 5.0e | 1.27, 6.2, 6.0, 5.0e |
+| shot-05 | 1.20, 18.5, 17.2, 13.3 | 1.11, 18.5, 17.2, 13.3 |
+| shot-06 | 1.17, 22.4, 22.8, 25.2, pins 20.7 | 1.13, 22.4, 22.9, 25.2, pins 20.7 |
+
+shot-02's pins moved with its window's start (16.2 from 0.016 s on the canvas
+look's wrong 0.30 s crossing, 14.8 from 0.67 s, 15.6 from 0.60 s): its far
+end is known to read 1.5 to 2.5 boards low, so the read there is not settled
+by any of the three.
+
+The crossing is 0.05 to 0.1 s earlier than the look's on every clip: the
+look's comes from centroids of the ball still in the hand, the new one from
+the line through the ball rolling on the lane. With `FOUL_LEAD` 0.4 s the read
+starts a grid slot earlier, which the readings do not move with. The old
+canvas look (0.113.1's `codecFrames.ts`, built locally) on the portrait remux
+gives the iPhone's search line to the digit (release 3.07 s, run from y 0.99,
+bands 0.30-0.72 and 0.56-1.00) and now finds the ball in that first part:
+crossing 3.58 s, 18.4, 17.3, 13.5, 16.5. `app-read.ts` gives the same windows
+and readings as the browser to every digit shown.
+
+**Cost.** A search is 0.3 to 0.9 s a part in desktop Chromium, on the main
+thread; a part the look missed costs a read and a lane search more, 2 to 3 s
+(IMG_1996 read 6.0 s before, 8.7 s now on the copies whose look chose the
+pushaway; shot-04, whose ball is hidden behind the bowler on two parts, 24 s
+to 30 s in all).
 
 ## The foul line, and shot-04 (2026-11-15)
 

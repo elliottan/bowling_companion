@@ -1,19 +1,24 @@
 import type { FrameLane } from "../lib/shotTrack/laneTrack";
 import { bandRows, keptFps, MAX_PIXELS, READ_FPS, scaledSize } from "../lib/shotTrack/marking";
+import { findBall, type BallSearch } from "../lib/shotTrack/ballFind";
 import type { Band, ShotFound } from "../lib/shotTrack/shotStart";
-import { verdictNote, windowNote, type Notes } from "../lib/shotTrack/notes";
-import { budgetFrom, firstPart, MORE_PARTS, nextPart, pickWindow, runFeet, runInFrame, runVerdict, splitRead, windowOutside, windowStart, type ShotWindow } from "../lib/shotTrack/shotWindow";
+import { ballNote, verdictNote, windowNote, type Notes } from "../lib/shotTrack/notes";
+import { budgetFrom, firstPart, partSees, pickWindow, runFeet, runInFrame, runVerdict, seekPart, seenWindow, splitRead, windowOutside, windowStart, type ShotWindow } from "../lib/shotTrack/shotWindow";
 import type { ReadPlan, VideoFrames } from "./videoFrames";
 
 /**
  * The shot's frames out of a video, and only the shot's (`lib/shotTrack/
  * shotWindow.ts`): the first part read from just before the ball's run to a
  * second and a half later, the lane looked for on a few of its frames
- * (`look`), the window worked out from the run through that lane, and the
- * rest read to where the ball has left the pin deck, at the rate that fits the
- * whole window. The frames before the ball reaches the foul line are let go.
- * Browser code (the reader needs a decoder); the decisions are in
- * `shotWindow.ts`.
+ * (`look`), the ball looked for in the part's own frames through that lane
+ * (`seek`, `lib/shotTrack/ballFind.ts`), and, where it is not there, other
+ * parts read until it is (`seekPart`): the first look is a cheap guess, and
+ * the decision is made where the lane is known. The window is worked out from
+ * the ball seen (or, seen nowhere, from a run of the first look's through the
+ * lane), and the rest read to where the ball has left the pin deck, at the
+ * rate that fits the whole window. The frames before the ball reaches the
+ * foul line are let go. Browser code (the reader needs a decoder); the
+ * decisions are in `shotWindow.ts` and `ballFind.ts`.
  */
 
 /** A run in feet as the details show it: its verdict, and from where to where up the lane over how long. */
@@ -22,6 +27,17 @@ const runSpan = (r: readonly { t: number; v: number }[]) =>
 
 /** How much of the bar the first part fills: about its share of a shot's read. */
 const FIRST_SHARE = 0.4;
+
+/** At most this many parts are read beside the first to look for the ball in (`seekPart`)... */
+export const SEEK_PARTS = 8;
+/** ...for no longer than this, milliseconds: a long video is not read whole a part at a time. */
+export const SEEK_MS = 30000;
+
+/** Looks for the ball in a part's frames with its lane (`findBall`). */
+export type BallSeeker = (on: VideoFrames, lanes: FrameLane[]) => BallSearch;
+
+/** `findBall` on a read's frames, on this thread. */
+export const seekFrames: BallSeeker = (on, lanes) => findBall(on.gray.map((data, i) => ({ width: on.width, height: on.height, data, t: on.times[i] })), lanes);
 
 /** Reads the frames a plan asks for (`readVideoFrames` on the chosen file in the app; ffmpeg in the harness, `scripts/shot-tracker/app-read.ts`). */
 export type FrameReader = (plan: ReadPlan, onProgress: (fraction: number) => void) => Promise<VideoFrames>;
@@ -38,8 +54,10 @@ export interface ShotFrames {
  * first part's frames (null when it is not there); not found there and with
  * another band to try (`lastBand` false), nothing more is read and the answer
  * is "no-lane". A shot the first look only guessed at (`ShotFound.guessed`)
- * that the lane does not bear out is "no-shot". Without a shot (a short
- * video) the whole video is read.
+ * whose ball is seen in no part read, and none of whose runs goes up the lane
+ * at a ball's speed, is "no-shot". Without a shot (a short video) the whole
+ * video is read. `seek` looks for the ball in a part's frames (`findBall` on
+ * this thread unless given).
  */
 export async function readShot(
   read: FrameReader,
@@ -49,7 +67,8 @@ export async function readShot(
   look: (first: VideoFrames) => Promise<FrameLane[] | null>,
   onProgress: (fraction: number) => void,
   lastBand = true,
-  notes?: Notes
+  notes?: Notes,
+  seek: BallSeeker = seekFrames
 ): Promise<ShotFrames | "no-lane" | "no-shot"> {
   const key = `band ${band ? `${band.top.toFixed(2)}-${band.bottom.toFixed(2)}` : "all"}`;
   const shown = scaledSize(video.width, bandRows(video.height, band).h, MAX_PIXELS);
@@ -68,40 +87,95 @@ export async function readShot(
     console.info(`Shot tracer: no lane on the first part (${part.from.toFixed(3)} to ${part.to.toFixed(3)} s) in this band; the next band`);
     return "no-lane";
   }
-  const judged = (on: VideoFrames, by: FrameLane[]) => [found.run, ...(found.others ?? [])].map((run) => runFeet(runInFrame(run, band, on), by, on.times));
+  const looks = [found.run, ...(found.others ?? [])];
+  const judged = (on: VideoFrames, by: FrameLane[]) => looks.map((run) => runFeet(runInFrame(run, band, on), by, on.times));
   let runs = lanes ? judged(first, lanes) : [];
   let window = pickWindow(runs, found, video.duration);
   notes?.add(key, `runs: ${lanes ? `${verdictNote(runs.map(runVerdict))} (${runs.slice(0, 6).map(runSpan).join(", ")})` : "not judged"}; window ${windowNote(window)}`);
-  // No run is the ball's through this part's lane: a run of the look's far
-  // from it in time was judged through a lane the camera has since turned
-  // from, so the part around the next such run is read and judged in turn.
+  // The ball found in the part's own frames, where the lane is known
+  // (`ballFind.ts`), decides: the first look's runs are a guess, and a part
+  // of the bowler held above the lane can pass for one.
+  // How long each search for the ball took, for the details.
+  const timed = (on: VideoFrames, by: FrameLane[]) => {
+    const t0 = Date.now();
+    const r = seek(on, by);
+    return { r, took: `in ${((Date.now() - t0) / 1000).toFixed(1)} s` };
+  };
+  const firstSeek = lanes ? timed(first, lanes) : null;
+  let ball = firstSeek?.r ?? null;
+  if (firstSeek) notes?.add(key, `ball: ${ballNote(firstSeek.r)} ${firstSeek.took}`);
+  // Not seen in this part: the parts the ball may be in, in turn (`seekPart`),
+  // until it is seen or the time runs out. First where this part's search
+  // saw it out on the lane, then the crossing of the look's run that passes,
+  // then the look's runs that pass on the lane, then its others, then the
+  // whole video stepped through.
   const tried = [part];
-  for (let more = 0; lanes && window.by !== "speed" && more < MORE_PARTS; more++) {
-    const next = nextPart(found, tried, video.duration);
+  const hints: number[] = [];
+  const hintFrom = (seen: BallSearch | null, w: ShotWindow, rs: ReturnType<typeof judged>) => {
+    if (seen?.earlier != null) hints.push(seen.earlier);
+    if (w.foul !== null) hints.push(w.foul);
+    rs.forEach((r, i) => runVerdict(r) === "ball" && hints.push(r.find((q) => q.v > 0)?.t ?? looks[i][0].t));
+  };
+  hintFrom(ball, window, runs);
+  for (const r of looks) if (r[0]) hints.push(r[0].t);
+  // Each part's window from a run of the look's at a ball's speed through its
+  // lane, for when the ball is seen in no part; and the parts searched.
+  const byRun: { part: typeof part; window: ShotWindow; lanes: FrameLane[] }[] = window.by === "speed" ? [{ part, window, lanes: lanes! }] : [];
+  const searched = lanes ? [part] : [];
+  let dropped = false;
+  const began = Date.now();
+  for (let more = 0; lanes && !ball?.seen && more < SEEK_PARTS && Date.now() - began < SEEK_MS; more++) {
+    const next = seekPart(hints, tried, video.duration, found.release);
     if (!next) break;
     tried.push(next);
     const other = await read({ ...next, fps: READ_FPS, band }, () => {});
     const otherLanes = other.gray.length ? await look(other) : null;
     const otherRuns = otherLanes ? judged(other, otherLanes) : [];
     const w = pickWindow(otherRuns, found, video.duration);
-    notes?.add(key, `first part again ${next.from.toFixed(2)} to ${next.to.toFixed(2)} s, lane ${otherLanes ? `found on ${otherLanes.length}` : "not found"}; window ${windowNote(w)}`);
-    if (w.by !== "speed") continue;
+    const sought = otherLanes ? timed(other, otherLanes) : null;
+    const b = sought?.r ?? null;
+    notes?.add(key, `looked again ${next.from.toFixed(2)} to ${next.to.toFixed(2)} s, lane ${otherLanes ? `found on ${otherLanes.length}` : "not found"}; window ${windowNote(w)}${sought ? `; ball: ${ballNote(sought.r)} ${sought.took}` : ""}`);
+    if (otherLanes) hintFrom(b, w, otherRuns);
+    if (otherLanes) searched.push(next);
+    if (w.by === "speed") byRun.push({ part: next, window: w, lanes: otherLanes! });
+    if (!b?.seen) {
+      other.gray = [];
+      continue;
+    }
     first.gray = [];
-    [part, first, lanes, runs, window] = [next, other, otherLanes, otherRuns, w];
+    dropped = false;
+    [part, first, lanes, runs, ball] = [next, other, otherLanes, otherRuns, b];
   }
-  if (found.guessed && window.by !== "speed") {
-    console.info(`Shot tracer: none of the first look's ${runs.length} runs passed for the ball's, and none goes up the lane at a ball's speed`);
+  // Not seen in any part: a run's window, first one whose crossing no part
+  // searched would have shown. A ball that crossed the foul line rolls up the
+  // lane in the frames after: a crossing inside a part searched where nothing
+  // rolled is the bowler (IMG_1996: the pushaway at 1.6 s), taken only when
+  // nothing else is left (the ball can be hidden, behind the bowler on shot-04).
+  const crossingSearched = (w: ShotWindow) => searched.some((p) => partSees(p, w.foul!));
+  const run = byRun.find((r) => !crossingSearched(r.window)) ?? byRun[0];
+  if (ball?.seen) window = seenWindow(ball.seen, video.duration);
+  else if (run && run.part !== part) {
+    // The run's part was let go: its window is read on its own.
+    first.gray = [];
+    dropped = true;
+    [part, lanes, window] = [run.part, run.lanes, run.window];
+  } else if (run) window = run.window;
+  if (!ball?.seen && run) notes?.add(key, `ball not seen; window from a run of the first look's${crossingSearched(run.window) ? ", though no ball rolled after its crossing" : ""}`);
+  if (found.guessed && window.by !== "speed" && window.by !== "seen") {
+    console.info(`Shot tracer: the ball was not seen in ${tried.length} part${tried.length === 1 ? "" : "s"} of the video, and none of the first look's ${runs.length} runs goes up the lane at a ball's speed`);
     return "no-shot";
   }
   const why =
-    window.by === "speed"
+    window.by === "seen"
+      ? `the ball seen at ${window.speed!.toFixed(1)} ft/s`
+      : window.by === "speed"
       ? `${window.speed!.toFixed(1)} ft/s`
       : lanes
         ? `none of the first look's ${runs.length} runs goes up the lane at a ball's speed`
         : "no lane found on the first part";
   let frames: VideoFrames;
   let fps: number;
-  if (windowOutside(window, part)) {
+  if (windowOutside(window, part) || dropped) {
     // The ball is not where the first look's run said: the window read on its own.
     const from = Math.max(0, windowStart(window));
     fps = Math.min(READ_FPS, keptFps(window.end - budgetFrom(window, from), frameBytes));

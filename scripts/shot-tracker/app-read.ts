@@ -20,7 +20,7 @@
  * video's start to the window's end instead of from the window's start, the
  * frames otherwise chosen the same way: the read's start alone changed.
  * `--dump dir` writes the frames the trace got as `bench.ts --dump` does, for
- * `pool-bench.ts`.
+ * `pool-bench.ts` and `review-app.ts --frames` (with the video and the band read).
  *
  * The first look's frames are the luma plane scaled down where the app draws
  * an 8-bit video to a canvas; the window it finds is printed beside the
@@ -187,7 +187,7 @@ export function reader(path: string, track: VideoTrack, gray: GrayMode, log: str
 const framesOf = (v: VideoFrames): GrayFrame[] => v.gray.map((data, i) => ({ width: v.width, height: v.height, data, t: v.times[i] }));
 
 /** `findOn` in the view: the lane on the frames on a grid `every` seconds apart from the video's start. */
-function findOn(v: VideoFrames, every: number) {
+export function findOn(v: VideoFrames, every: number) {
   const all = framesOf(v);
   const idx = gridFrames(v.times, every, v.step || readStep(v.times));
   const found = findLanes(idx.map((i) => all[i]));
@@ -290,7 +290,7 @@ if (process.argv[1]?.endsWith("app-read.ts")) {
       mkdirSync(dumpDir, { recursive: true });
       const stem = r.name.replace(/\.[^.]+$/, "");
       writeFileSync(join(dumpDir, `${stem}.gray`), Buffer.concat(r.frames.map((f) => Buffer.from(f.data.buffer, f.data.byteOffset, f.data.byteLength))));
-      writeFileSync(join(dumpDir, `${stem}.json`), JSON.stringify({ name: stem, hand, width: r.frames[0].width, height: r.frames[0].height, times: r.frames.map((f) => f.t), FIRST_PART_S: 2 }));
+      writeFileSync(join(dumpDir, `${stem}.json`), JSON.stringify({ name: stem, hand, video: path, band: r.band, width: r.frames[0].width, height: r.frames[0].height, times: r.frames.map((f) => f.t), FIRST_PART_S: 2 }));
     }
   }
   if (jsonOut) writeFileSync(jsonOut, JSON.stringify(results, null, 1) + "\n");

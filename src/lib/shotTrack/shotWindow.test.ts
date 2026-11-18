@@ -23,8 +23,14 @@ import {
   pickWindow,
   windowOutside,
   windowStart,
-  MORE_PARTS,
-  nextPart,
+  PAST_LINE_FT,
+  partSees,
+  SEEN_EARLY,
+  SEEN_ROOM,
+  SEEN_SLACK,
+  seekPart,
+  seenWindow,
+  STEP_SECONDS,
   runFeet,
   runInFrame,
   runVerdict,
@@ -282,21 +288,75 @@ describe("the shot window", () => {
     expect(runVerdict(at(8, -2, 9))).toBe("too-slow");
     expect(runVerdict(at(60))).toBe("too-fast");
   });
+
+  it("does not take the bowler's approach for the ball, however fast it reads, when it never goes past the foul line", () => {
+    // Walking up the approach with the ball in the pushaway, held at the waist: 12 to 4 ft behind the line, read at a ball's pace.
+    const approach = [{ t: 1.4, v: -12 }, { t: 1.47, v: -10 }, { t: 1.53, v: -8 }, { t: 1.6, v: -6 }, { t: 1.67, v: -4 }];
+    expect(runVerdict(approach)).toBe("short-of-line");
+    expect(pickWindow([approach], shot(), 30).by).toBe("slowest");
+    // Up to the line and no further is the bowler too.
+    expect(runVerdict(approach.map((p) => ({ ...p, v: p.v + 4 + PAST_LINE_FT * 0.5 })))).toBe("short-of-line");
+  });
+
+  it("takes a ball's run that goes from the bottom of the swing up the lane past the foul line", () => {
+    // shot-03: from 6.3 ft behind the line, in the swing, to 7 ft past it.
+    const ball = [{ t: 0.93, v: -6.3 }, { t: 1.0, v: -3.3 }, { t: 1.07, v: -0.5 }, { t: 1.2, v: 7.1 }];
+    expect(runVerdict(ball)).toBe("ball");
+    expect(pickWindow([ball], shot(), 30).by).toBe("speed");
+  });
 });
 
-describe("another first part when no run is the ball's", () => {
-  const p = (t: number) => [{ t, x: 0.5, y: 0.7 }];
-  // shot-03: the look chose a run at 3.54 s; the ball's was at 1.00 s.
-  const found = shot({ release: 3.54, run: p(3.54), others: [p(0.4), p(3.6), p(1.0), p(2.74)] });
+describe("the window from the ball seen in the frames", () => {
+  it("crosses the foul line where the ball did and ends when it has left the deck at its own speed", () => {
+    const w = seenWindow({ foul: 3.61, speed: 24 }, 30);
+    expect(w.by).toBe("seen");
+    expect(w.foul).toBe(3.61);
+    expect(w.speed).toBe(24);
+    const end = 3.61 + (DECK_END_FT / 24) * SEEN_SLACK + END_MARGIN;
+    expect(w.end).toBeGreaterThanOrEqual(end);
+    expect(w.end).toBeLessThan(end + 1 / EDGE_GRID);
+    // No faster than `END_FTS`, and inside the video.
+    expect(seenWindow({ foul: 1, speed: 40 }, 30).end).toBeGreaterThanOrEqual(1 + (DECK_END_FT / END_FTS) * SEEN_SLACK + END_MARGIN);
+    expect(seenWindow({ foul: 3.61, speed: 15 }, 7.1).end).toBe(7.1);
+  });
+});
 
-  it("reads around the next of the look's runs outside every part read, in the look's order", () => {
-    const first = firstPart(found, 4.75);
-    expect(nextPart(found, [first], 4.75)).toEqual(firstPart({ ...found, release: 0.4 }, 4.75));
-    const second = nextPart(found, [first], 4.75)!;
-    // 1.00 s is inside the part read around 0.4 s (0 to 1.6): 2.74 s next.
-    expect(nextPart(found, [first, second], 4.75)).toEqual(firstPart({ ...found, release: 2.74 }, 4.75));
-    expect(nextPart(found, [{ from: 0, to: 4.75 }], 4.75)).toBeNull();
-    expect(nextPart(shot({ others: undefined }), [first], 4.75)).toBeNull();
-    expect(MORE_PARTS).toBeGreaterThan(0);
+describe("the parts the ball is looked for in", () => {
+  it("would see a crossing inside a part with room after it, or just before it", () => {
+    const part = { from: 2, to: 3.6 };
+    expect(partSees(part, 2.5)).toBe(true);
+    expect(partSees(part, 2 - SEEN_EARLY + 0.01)).toBe(true);
+    expect(partSees(part, 2 - SEEN_EARLY - 0.01)).toBe(false);
+    expect(partSees(part, 3.6 - SEEN_ROOM + 0.01)).toBe(false);
+  });
+
+  it("goes first where a hint says the ball crossed, unless a part read would have shown it", () => {
+    const read = [{ from: 1.4, to: 3 }];
+    // The approach's crossing at 1.62 s is inside the part read; the ball's at 3.7 s is not.
+    expect(seekPart([1.62, 3.7], read, 7.1, 1.8)).toEqual({ from: 3.3333333333333335, to: 3.3333333333333335 + FIRST_SECONDS });
+    expect(seekPart([3.7], read, 7.1, 1.8)!.from).toBeCloseTo(3.7 - LEAD_SECONDS, 1);
+    // A hint outside the video is no hint.
+    expect(seekPart([-1, 9, NaN], [{ from: 0, to: 7.1 }], 7.1, 1.8)).toBeNull();
+  });
+
+  it("then steps through the whole video, nearest the look's guess first, until every crossing would have been seen", () => {
+    const read: { from: number; to: number }[] = [{ from: 1.4, to: 3 }];
+    const order: number[] = [];
+    for (let p = seekPart([], read, 7.1, 1.8); p; p = seekPart([], read, 7.1, 1.8)) {
+      read.push(p);
+      order.push(p.from);
+      expect(p.to - p.from).toBeCloseTo(FIRST_SECONDS, 9);
+      expect(order.length).toBeLessThan(10);
+    }
+    expect(order[0]).toBe(STEP_SECONDS);
+    // Every crossing in the video would have been seen.
+    for (let t = 0; t <= 7.1 - SEEN_ROOM; t += 0.01) expect(read.some((p) => partSees(p, t)), `${t}`).toBe(true);
+    // The last part ends at the video's end.
+    expect(Math.max(...read.map((p) => p.to))).toBeCloseTo(7.1, 9);
+  });
+
+  it("reads a video shorter than a part once", () => {
+    expect(seekPart([], [], 1.2, 0.5)).toEqual({ from: 0, to: 1.2 });
+    expect(seekPart([], [{ from: 0, to: 1.2 }], 1.2, 0.5)).toBeNull();
   });
 });

@@ -9,6 +9,32 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.113.2: The shot tracer reads the pins on the frame before contact (2026-11-17)
+
+- In Settings, Labs: the board at the pins is read on the last frame before the
+  first pin moves, found by watching the pins themselves. It used to be read a
+  frame or two late, and on a different frame depending on where the video was
+  cut.
+- A ball that passes the bowler's leg is still followed, so the arrows are read
+  where the ball is seen, not guessed from earlier.
+- Where the bowler's leg or arm covers part of the ball, its outline is placed
+  by the ball's own look rather than stretched to the lane's size, so the board
+  read under it is no longer pulled to one side.
+- The tracer's first look over the video now takes each frame's brightness
+  straight from the video, the same way on every phone and browser, instead of
+  asking the browser to draw the frame first. On an iPhone the drawn frames came
+  out differently, and the shot was not found in a video a computer traces.
+- The tracer now finds the ball itself in the video's own frames, once it knows
+  where the lane is: something the size of a ball for where it sits, rolling up
+  the lane from the foul line. The first look's guess only says where to look
+  first; when the ball is not there, the tracer looks through the rest of the
+  video until it finds it. The bowler's walk to the line, or the ball swinging
+  in the hand, no longer passes for the shot.
+- The details under the tracer's result say how the phone handed over the first
+  frame (its size, format and colors), how the first look was made, and how far
+  a drawn frame would have been from it, and small pictures show what the
+  tracer saw.
+
 ## 0.113.1: The shot tracer looks for the shot again (2026-11-17)
 
 - In Settings, Labs: since 0.112.0 the shot tracer said "The shot couldn't
