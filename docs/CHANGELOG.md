@@ -20,6 +20,14 @@ had all shipped.
 - Where the bowler's leg or arm covers part of the ball, its outline is placed
   by the ball's own look rather than stretched to the lane's size, so the board
   read under it is no longer pulled to one side.
+- The tracer's first look over the video now takes each frame's brightness
+  straight from the video, the same way on every phone and browser, instead of
+  asking the browser to draw the frame first. On an iPhone the drawn frames came
+  out differently, and the shot was not found in a video a computer traces.
+- The details under the tracer's result say how the phone handed over the first
+  frame (its size, format and colors), how the first look was made, and how far
+  a drawn frame would have been from it, and small pictures show what the
+  tracer saw.
 
 ## 0.113.1: The shot tracer looks for the shot again (2026-11-17)
 
