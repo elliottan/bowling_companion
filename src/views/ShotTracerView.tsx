@@ -10,9 +10,10 @@ import { BACK_ROW_FT, laneU, LEFT_U, RIGHT_U } from "../lib/shotTrack/laneModel"
 import type { FrameLane } from "../lib/shotTrack/laneTrack";
 import { laneVerdict, type LaneEvidence, type LaneVerdict } from "../lib/shotTrack/laneVerdict";
 import { foundNote, Notes, timesNote } from "../lib/shotTrack/notes";
+import { glimpseIndices } from "../lib/shotTrack/lookFrame";
 import { MARK_LINES, pathInPicture, type MarkLine } from "../lib/shotTrack/marking";
 import { FIRST_LANE_EVERY, gridFrames, LANE_EVERY, readStep } from "../lib/shotTrack/framePick";
-import { laneBands, readFrom, ShotSearch, type Band, type ShotFound } from "../lib/shotTrack/shotStart";
+import { laneBands, readFrom, ShotSearch, type Band, type CoarseFrame, type ShotFound } from "../lib/shotTrack/shotStart";
 import type { GrayFrame, Mat3, Metric, Point, TrackError, TrackFailure, TrackResult } from "../lib/shotTrack/types";
 import { frameLanes } from "../lib/shotTrack/laneFind";
 import type { TraceOutput } from "../lib/shotTrack/pipeline";
@@ -57,6 +58,21 @@ interface Timing {
   trace: number;
 }
 
+/** A frame as the tracer saw it, for the pictures under the details: gray, with the found lane drawn on it when there is one. */
+interface Glimpse {
+  gray: Uint8ClampedArray;
+  width: number;
+  height: number;
+  t: number;
+  H?: Mat3 | null;
+}
+
+/** The pictures under the details: the first look's frames, then a frame of the first part read. */
+interface Glimpses {
+  look: Glimpse[];
+  band: Glimpse | null;
+}
+
 type Step =
   /** `why`: what the reader said when the video couldn't be read, for the details line. */
   | { kind: "pick"; unreadable?: boolean; why?: string; details?: string }
@@ -65,8 +81,8 @@ type Step =
   | { kind: "finding" }
   | { kind: "tracing"; fraction: number }
   /** The shot or the lane was not found: nothing to trace. */
-  | { kind: "failed"; missing: "shot" | "lane"; details?: string }
-  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null; timing?: Timing; details?: string };
+  | { kind: "failed"; missing: "shot" | "lane"; details?: string; pictures?: Glimpses }
+  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null; timing?: Timing; details?: string; pictures?: Glimpses };
 
 /** The lane as the finder found it: on every frame it could, and what it knows about how sure it is. */
 interface Found {
@@ -107,6 +123,8 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   const timing = useRef({ via: "", look: 0, read: 0, lane: 0, trace: 0 });
   // What this attempt did, for the details block on its end screen.
   const notes = useRef(new Notes());
+  // What this attempt saw, for the pictures under the details.
+  const glimpses = useRef<Glimpses>({ look: [], band: null });
 
   useEffect(
     () => () => {
@@ -138,15 +156,25 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       // that couldn't be read, not a screen that waits for ever.
       answerMs: WORKER_WAIT_MS
     });
+    // The look's frames, kept by reference until three are picked for the pictures (the search is sent copies).
+    const seen: CoarseFrame[] = [];
     try {
       const video = await scanVideo(
         f,
-        (frame) => client.push(frame),
+        (frame) => {
+          seen.push(frame);
+          client.push(frame);
+        },
         (fraction) => {
           if (attempt.current === mine) setStep({ kind: "searching", fraction });
         },
         notes.current
       );
+      glimpses.current.look = glimpseIndices(
+        seen.map((s) => s.t),
+        video.duration
+      ).map((i) => ({ gray: new Uint8ClampedArray(seen[i].data), width: seen[i].width, height: seen[i].height, t: seen[i].t }));
+      seen.length = 0;
       const asked = performance.now();
       const answer = await client.finish();
       console.info(`Shot tracer: the search answered in ${((performance.now() - asked) / 1000).toFixed(1)} s after its last frame${answer.fallback ? `, on the main thread (the worker ${answer.fallback})` : ""}`);
@@ -167,6 +195,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     setStep({ kind: "searching", fraction: 0 });
     timing.current = { via: "", look: 0, read: 0, lane: 0, trace: 0 };
     notes.current = new Notes();
+    glimpses.current = { look: [], band: null };
     notes.current.set("app", `Headpin ${__APP_VERSION__}, ${f.type || "?"} ${(f.size / 1e6).toFixed(1)} MB, ${navigator.userAgent}`);
     const began = now();
     let looked: Awaited<ReturnType<typeof search>>;
@@ -191,7 +220,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       "search",
       `${foundNote(found)}; read from ${from?.toFixed(2) ?? "nowhere"} s; bands ${bands.map((b) => (b ? `${b.top.toFixed(2)}-${b.bottom.toFixed(2)}` : "all")).join(", ")}`
     );
-    if (from === null) setStep({ kind: "failed", missing: "shot", details: details() });
+    if (from === null) setStep({ kind: "failed", missing: "shot", details: details(), pictures: pictures() });
     else void readBand(f, looked, bands, mine);
   }
 
@@ -210,6 +239,11 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     return text;
   }
 
+  /** The pictures so far, for an end screen. */
+  function pictures(): Glimpses {
+    return { look: [...glimpses.current.look], band: glimpses.current.band };
+  }
+
   /** Reads the shot in the first band left, then looks for the lane there. */
   async function readBand(f: File, looked: { found: ShotFound | null; width: number; height: number; duration: number }, bands: (Band | null)[], mine: number) {
     setStep({ kind: "reading", fraction: 0 });
@@ -225,6 +259,12 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         // The lane on a few of the first part's frames, for where the shot ends.
         async (first) => {
           const m = await findOn(first, FIRST_LANE_EVERY, mine);
+          // The first part of the first band, as read, with the lane where it was found.
+          if (!glimpses.current.band && first.gray.length) {
+            const at = m.frame ?? first.gray.length >> 1;
+            const H = m.frame === null ? null : (m.lanes.find((l) => l.frame === m.frame)?.H ?? null);
+            glimpses.current.band = { gray: first.gray[at].slice(), width: first.width, height: first.height, t: first.times[at], H };
+          }
           return m.frame === null ? null : m.lanes;
         },
         (fraction) => {
@@ -237,7 +277,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         if (attempt.current === mine) {
           timing.current.read += now() - began;
           counted = true;
-          setStep({ kind: "failed", missing: "shot", details: details() });
+          setStep({ kind: "failed", missing: "shot", details: details(), pictures: pictures() });
         }
         return;
       }
@@ -269,7 +309,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     if (m.frame !== null) void traceShot(v, m.frame, { lanes: m.lanes, evidence: m.evidence }, mine);
     // Not found in this band: the next, read again, or nothing to trace.
     else if (bands.length > 1) void readBand(f, looked, bands.slice(1), mine);
-    else setStep({ kind: "failed", missing: "lane", details: details() });
+    else setStep({ kind: "failed", missing: "lane", details: details(), pictures: pictures() });
   }
 
   /**
@@ -370,7 +410,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       );
       const r = next.result;
       notes.current.set("trace", r.ok ? `${r.sightings.length} sightings, ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft` : `${r.failure}: ${r.detail}`);
-      setStep({ ...next, timing: took, details: details() });
+      setStep({ ...next, timing: took, details: details(), pictures: pictures() });
     };
     let out: TraceOutput;
     const input = {
@@ -428,11 +468,21 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
           <Failure
             text={step.missing === "shot" ? t`The shot couldn't be found in this video.` : t`The lane couldn't be found in this video.`}
             details={step.details}
+            pictures={step.pictures}
             onAnother={another}
           />
         )}
         {step.kind === "done" && (
-          <Result result={step.result} H={step.H} verdict={step.verdict} picture={shown} timing={step.timing} details={step.details} onAnother={another} />
+          <Result
+            result={step.result}
+            H={step.H}
+            verdict={step.verdict}
+            picture={shown}
+            timing={step.timing}
+            details={step.details}
+            pictures={step.pictures}
+            onAnother={another}
+          />
         )}
       </div>
     </PushScreen>
@@ -481,7 +531,7 @@ function PickVideo({ unreadable, why, details, onChoose }: { unreadable?: boolea
 }
 
 /** What could not be done, what to try, and another video. */
-function Failure({ text, details, onAnother }: { text: string; details?: string; onAnother: () => void }) {
+function Failure({ text, details, pictures, onAnother }: { text: string; details?: string; pictures?: Glimpses; onAnother: () => void }) {
   return (
     <div className="space-y-4">
       <p role="alert" className="text-subhead text-ink">
@@ -492,7 +542,41 @@ function Failure({ text, details, onAnother }: { text: string; details?: string;
       </p>
       <Button onClick={onAnother}>{t`Another video`}</Button>
       {details && <Details text={details} />}
+      {pictures && <Seen pictures={pictures} />}
     </div>
+  );
+}
+
+/**
+ * What the tracer saw, under the details: three of the first look's frames
+ * as the search got them, and a frame of the first part read with the lane
+ * where it was found. Small, for the owner's screenshot from a phone.
+ */
+function Seen({ pictures }: { pictures: Glimpses }) {
+  const all = [...pictures.look, ...(pictures.band ? [pictures.band] : [])];
+  if (!all.length) return null;
+  return (
+    <figure data-testid="tracer-seen" className="space-y-2">
+      <div className="grid grid-cols-4 items-start gap-2">
+        {all.map((g, i) => {
+          const seconds = formatNumber(g.t, 2);
+          return (
+            <div key={i} className="space-y-1">
+              <FramePicture gray={g.gray} width={g.width} height={g.height}>
+                {/* Drawn thicker: the picture is shown a fifth of its size. */}
+                {g.H && <LaneLines H={g.H} width={g.width} stroke={g.width / 90} />}
+              </FramePicture>
+              <p className="text-center text-caption tabular-nums text-ink-secondary">
+                {t({ message: `${seconds} s`, comment: "Seconds into the video a small picture was taken at, as in 3.07 s" })}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+      <figcaption className="text-footnote text-ink-secondary">
+        {t`What the tracer saw: the first look at a quarter, a half and three quarters of the video, then the lane on the first part read.`}
+      </figcaption>
+    </figure>
   );
 }
 
@@ -605,6 +689,7 @@ function Result({
   picture,
   timing,
   details,
+  pictures,
   onAnother
 }: {
   result: TrackResult | TrackError;
@@ -613,9 +698,10 @@ function Result({
   picture: { gray: Uint8ClampedArray; width: number; height: number } | null;
   timing?: Timing;
   details?: string;
+  pictures?: Glimpses;
   onAnother: () => void;
 }) {
-  if (!result.ok) return <Failure text={failureText(result.failure)} details={details} onAnother={onAnother} />;
+  if (!result.ok) return <Failure text={failureText(result.failure)} details={details} pictures={pictures} onAnother={onAnother} />;
   const m = result.metrics;
   const path = H ? pathInPicture(H, result.path, result.from, result.to) : [];
   // The laydown on the foul line, where the drawn path starts: the ball is
@@ -687,6 +773,7 @@ function Result({
         <Button onClick={onAnother}>{t`Another video`}</Button>
       </div>
       {details && <Details text={details} />}
+      {pictures && <Seen pictures={pictures} />}
     </div>
   );
 }
@@ -707,9 +794,10 @@ function TimingLine({ timing }: { timing: Timing }) {
 
 /**
  * The lane the tracer used, drawn quietly under the path: both edges, the
- * foul line and the back pin row. A wrong lane shows at a glance.
+ * foul line and the back pin row. A wrong lane shows at a glance. `stroke`
+ * (the frame's pixels) for a picture shown small.
  */
-function LaneLines({ H, width }: { H: Mat3; width: number }) {
+function LaneLines({ H, width, stroke }: { H: Mat3; width: number; stroke?: number }) {
   const ends: Record<MarkLine, [Point, Point]> = {
     left: [{ x: LEFT_U, y: 0 }, { x: LEFT_U, y: BACK_ROW_FT }],
     right: [{ x: RIGHT_U, y: 0 }, { x: RIGHT_U, y: BACK_ROW_FT }],
@@ -717,7 +805,7 @@ function LaneLines({ H, width }: { H: Mat3; width: number }) {
     pinrow: [{ x: LEFT_U, y: BACK_ROW_FT }, { x: RIGHT_U, y: BACK_ROW_FT }]
   };
   return (
-    <g data-testid="lane-lines" strokeOpacity={0.55} strokeWidth={Math.max(1, width / 700)} strokeLinecap="round">
+    <g data-testid="lane-lines" strokeOpacity={0.55} strokeWidth={stroke ?? Math.max(1, width / 700)} strokeLinecap="round">
       {MARK_LINES.map((k) => {
         const [a, b] = ends[k].map((p) => apply(H, p));
         return <line key={k} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className={LINE_TONE[k]} />;

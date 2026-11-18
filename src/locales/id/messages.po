@@ -532,6 +532,11 @@ msgstr "Pin {pin} berdiri"
 msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
 msgstr "{pins, plural, other {frame {frame}, lemparan {ball} (# pin)}}"
 
+#. Seconds into the video a small picture was taken at, as in 3.07 s
+#: src/views/ShotTracerView.tsx
+msgid "{seconds} s"
+msgstr "{seconds} dtk"
+
 #: src/components/PatternSheet.tsx
 msgid "{sessionCount, plural, one {Your # session on this pattern} other {Your # sessions on this pattern}}"
 msgstr "{sessionCount, plural, other {# sesimu di pola ini}}"
@@ -5422,6 +5427,10 @@ msgstr "Apa itu Headpin?"
 #: src/components/MotionRail.tsx
 msgid "What it will do"
 msgstr "Yang akan terjadi"
+
+#: src/views/ShotTracerView.tsx
+msgid "What the tracer saw: the first look at a quarter, a half and three quarters of the video, then the lane on the first part read."
+msgstr "Yang dilihat pelacak: tinjauan pertama pada seperempat, setengah, dan tiga perempat video, lalu lintasan pada bagian pertama yang dibaca."
 
 #: src/components/BallEstimates.tsx
 msgid "What you'd average with each ball here"

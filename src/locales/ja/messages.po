@@ -532,6 +532,11 @@ msgstr "{pin}番ピンが残り"
 msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
 msgstr "{pins, plural, other {フレーム{frame}、{ball}投目(#ピン)}}"
 
+#. Seconds into the video a small picture was taken at, as in 3.07 s
+#: src/views/ShotTracerView.tsx
+msgid "{seconds} s"
+msgstr "{seconds}秒"
+
 #: src/components/PatternSheet.tsx
 msgid "{sessionCount, plural, one {Your # session on this pattern} other {Your # sessions on this pattern}}"
 msgstr "{sessionCount, plural, other {このパターンでの#セッション}}"
@@ -5422,6 +5427,10 @@ msgstr "Headpinとは？"
 #: src/components/MotionRail.tsx
 msgid "What it will do"
 msgstr "動きの予測"
+
+#: src/views/ShotTracerView.tsx
+msgid "What the tracer saw: the first look at a quarter, a half and three quarters of the video, then the lane on the first part read."
+msgstr "トレーサーが見たもの: 動画の4分の1、半分、4分の3の時点の最初の確認と、最初に読み込んだ部分のレーン。"
 
 #: src/components/BallEstimates.tsx
 msgid "What you'd average with each ball here"

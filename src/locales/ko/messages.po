@@ -532,6 +532,11 @@ msgstr "{pin}번 핀 남음"
 msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
 msgstr "{pins, plural, other {{frame}프레임, {ball}번째 투구 (핀 #개)}}"
 
+#. Seconds into the video a small picture was taken at, as in 3.07 s
+#: src/views/ShotTracerView.tsx
+msgid "{seconds} s"
+msgstr "{seconds}초"
+
 #: src/components/PatternSheet.tsx
 msgid "{sessionCount, plural, one {Your # session on this pattern} other {Your # sessions on this pattern}}"
 msgstr "{sessionCount, plural, other {이 패턴에서 친 세션 #개}}"
@@ -5422,6 +5427,10 @@ msgstr "Headpin이란?"
 #: src/components/MotionRail.tsx
 msgid "What it will do"
 msgstr "예상되는 동작"
+
+#: src/views/ShotTracerView.tsx
+msgid "What the tracer saw: the first look at a quarter, a half and three quarters of the video, then the lane on the first part read."
+msgstr "트레이서가 본 화면: 영상의 4분의 1, 절반, 4분의 3 지점의 첫 확인, 그리고 처음 읽은 부분의 레인."
 
 #: src/components/BallEstimates.tsx
 msgid "What you'd average with each ball here"

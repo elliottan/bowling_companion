@@ -532,6 +532,11 @@ msgstr "Pino {pin} en pie"
 msgid "{pins, plural, one {frame {frame}, ball {ball} (# pin)} other {frame {frame}, ball {ball} (# pins)}}"
 msgstr "{pins, plural, one {cuadro {frame}, bola {ball} (# pino)} other {cuadro {frame}, bola {ball} (# pinos)}}"
 
+#. Seconds into the video a small picture was taken at, as in 3.07 s
+#: src/views/ShotTracerView.tsx
+msgid "{seconds} s"
+msgstr "{seconds} s"
+
 #: src/components/PatternSheet.tsx
 msgid "{sessionCount, plural, one {Your # session on this pattern} other {Your # sessions on this pattern}}"
 msgstr "{sessionCount, plural, one {Tu # sesión en este patrón} other {Tus # sesiones en este patrón}}"
@@ -5422,6 +5427,10 @@ msgstr "¿Qué es Headpin?"
 #: src/components/MotionRail.tsx
 msgid "What it will do"
 msgstr "Qué hará"
+
+#: src/views/ShotTracerView.tsx
+msgid "What the tracer saw: the first look at a quarter, a half and three quarters of the video, then the lane on the first part read."
+msgstr "Lo que vio el trazador: el primer vistazo a un cuarto, a la mitad y a tres cuartos del video, y luego la pista en la primera parte leída."
 
 #: src/components/BallEstimates.tsx
 msgid "What you'd average with each ball here"
