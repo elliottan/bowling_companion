@@ -1,4 +1,5 @@
 import type { ShotFound } from "./shotStart";
+import type { BallSearch } from "./ballFind";
 import type { RunVerdict, ShotWindow } from "./shotWindow";
 
 /**
@@ -68,6 +69,12 @@ export function verdictNote(verdicts: readonly RunVerdict[]): string {
 /** The window chosen. */
 export function windowNote(w: ShotWindow): string {
   return `${w.foul === null ? "foul line not found" : `foul line ${f2(w.foul)} s`}, end ${f2(w.end)} s by ${w.by}${w.speed !== null ? ` (${f1(w.speed)} ft/s)` : ""}`;
+}
+
+/** What the search for the ball in a part's frames found (`ballFind.ts`). */
+export function ballNote(b: BallSearch): string {
+  const what = b.seen ? `foul line ${f2(b.seen.foul)} s at ${f1(b.seen.speed)} ft/s` : b.earlier !== null ? `over the foul line about ${f2(b.earlier)} s` : "not seen";
+  return `${what}: ${b.why}, ${b.candidates} candidates`;
 }
 
 /** The stage times, seconds. */

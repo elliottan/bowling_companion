@@ -116,27 +116,6 @@ export function firstPart(found: ShotFound, duration: number): { from: number; t
   return { from, to: Math.min(Number.isFinite(duration) ? duration : Infinity, from + FIRST_SECONDS) };
 }
 
-/** First parts read beside the first, at most, when none of the runs goes up the lane at a ball's speed through the lane found on it (`nextPart`). */
-export const MORE_PARTS = 2;
-
-/**
- * The next first part to read when the lane found on those read so far
- * (`read`) shows none of the look's runs to be the ball's: around the first
- * of the look's other runs, in the look's order, that starts outside every
- * part read. A run far in time from the lane it is judged through is judged
- * on a picture the camera has turned from: on shot-03 the look chose a run at
- * 3.54 s, the ball's run at 1.00 s read as on the next lane through the lane
- * found at 3.1 to 4.7 s, and the read missed the ball. Null when none is left.
- */
-export function nextPart(found: ShotFound, read: readonly { from: number; to: number }[], duration: number): { from: number; to: number } | null {
-  for (const run of found.others ?? []) {
-    const t = run[0]?.t;
-    if (t === undefined || read.some((p) => t >= p.from && t <= p.to)) continue;
-    return firstPart({ ...found, release: t }, duration);
-  }
-  return null;
-}
-
 /**
  * The run's points in a read frame's pixels: the frame is `frame` pixels, the
  * picture's rows in `band` (fractions of its height, null for all) scaled to
@@ -168,8 +147,8 @@ export interface ShotWindow {
   foul: number | null;
   /** When the read ends: the ball has left the deck. */
   end: number;
-  /** What the end came from. */
-  by: "speed" | "pins" | "slowest";
+  /** What the end came from: the ball found in the read's frames (`ballFind.ts`), a run of the first look's at a ball's speed, the pins seen hit, or the slowest ball. */
+  by: "seen" | "speed" | "pins" | "slowest";
   /** The run's speed, ft/s, when it gave one. */
   speed: number | null;
 }
@@ -229,10 +208,21 @@ function lineOf(ps: readonly Feet[]): { speed: number; foul: number; at: (t: num
  * Why a run in feet is or is not the ball's (`ballRun` keeps the "ball"
  * ones): off the lane (a point far behind the foul line or past the pins),
  * on the next lane, too few points or feet, not every step up the lane,
- * first seen too far out, or too slow or too fast for a ball (a speed
- * outside what `ballRun` takes, or none).
+ * first seen too far out, never past the foul line (`PAST_LINE_FT`), or too slow or
+ * too fast for a ball (a speed outside what `ballRun` takes, or none).
  */
-export type RunVerdict = "ball" | "off-lane" | "next-lane" | "too-short" | "not-up-lane" | "starts-far" | "too-slow" | "too-fast";
+export type RunVerdict = "ball" | "off-lane" | "next-lane" | "too-short" | "not-up-lane" | "starts-far" | "short-of-line" | "too-slow" | "too-fast";
+
+/**
+ * A run of the ball's goes past the foul line by this much, feet: the ball
+ * is let go at the foul line and from there goes only up the lane, so a run
+ * that stays behind it is the bowler, whatever its pace. How far behind the
+ * line a run starts does not tell: the ball at the bottom of the swing read
+ * 6.3 ft behind it on shot-03, the ball in the pushaway, two seconds before
+ * the shot, 7 ft on IMG_1996. That is told by the frames after a crossing
+ * (`ballFind.ts`, `readShot.ts`).
+ */
+export const PAST_LINE_FT = 1;
 
 export function runVerdict(r: readonly Feet[]): RunVerdict {
   if (r.some((p) => p.v < OFF_LANE.from || p.v > OFF_LANE.to)) return "off-lane";
@@ -243,6 +233,7 @@ export function runVerdict(r: readonly Feet[]): RunVerdict {
   if (!enough(own)) return "too-short";
   if (own.some((p, i) => i > 0 && p.v <= own[i - 1].v)) return "not-up-lane";
   if (own[0].v > FIRST_SEEN_FT) return "starts-far";
+  if (own[own.length - 1].v < PAST_LINE_FT) return "short-of-line";
   const speed = lineSpeed(own);
   if (!ballSpeed(speed)) return speed !== null && speed > FASTEST_FTS * HAND_FAST ? "too-fast" : "too-slow";
   return "ball";
@@ -310,6 +301,71 @@ export function pickWindow(runs: readonly (readonly Feet[])[], found: ShotFound,
   const after = found.pinHit !== null ? found.pinHit - found.release : NaN;
   if (after >= PINS_FROM && after <= PINS_TO) return { foul: null, end: cap(found.pinHit! + END_MARGIN + 0.15), by: "pins", speed: null };
   return { foul: null, end: cap(found.release + DECK_END_FT / SLOWEST_FTS + END_MARGIN), by: "slowest", speed: null };
+}
+
+/**
+ * The ball found in the read's frames (`ballFind.ts`) is a ball rolling on
+ * the lane, its speed the launch speed, not the first look's rough one: it
+ * loses 5 to 15% of it by the pins, so it reaches the deck end by
+ * `DECK_END_FT` over its speed (no more than `END_FTS`), this much longer.
+ */
+export const SEEN_SLACK = 1.2;
+
+/** The window from the ball found in the read's frames: its foul line crossing, and the deck end at its speed. */
+export function seenWindow(seen: { foul: number; speed: number }, duration: number): ShotWindow {
+  const cap = (t: number) => Math.min(Number.isFinite(duration) ? duration : Infinity, t);
+  const end = seen.foul + (DECK_END_FT / Math.min(seen.speed, END_FTS)) * SEEN_SLACK + END_MARGIN;
+  return { foul: seen.foul, end: cap(Math.ceil(end * EDGE_GRID) / EDGE_GRID), by: "seen", speed: seen.speed };
+}
+
+/**
+ * A part read sees the ball cross the foul line at `t` when `t` is inside it
+ * with this long after it, seconds: the ball is then 8 ft or more up the lane
+ * on enough frames to be found (`ballFind.ts`)...
+ */
+export const SEEN_ROOM = 0.4;
+/** ...or this long before it: the ball is then a few feet out on its first frames. */
+export const SEEN_EARLY = 0.1;
+
+/** Whether a part read (`from` to `to`) would show the ball crossing the foul line at `t` (`SEEN_ROOM`, `SEEN_EARLY`). */
+export function partSees(part: { from: number; to: number }, t: number): boolean {
+  return t >= part.from - SEEN_EARLY - 1e-9 && t <= part.to - SEEN_ROOM + 1e-9;
+}
+
+/** The parts the video is stepped through when the ball is not where the first look said, seconds apart: each `FIRST_SECONDS` long, so neighbors share `FIRST_SECONDS - STEP_SECONDS - SEEN_ROOM - SEEN_EARLY`, and no crossing falls between two. */
+export const STEP_SECONDS = 1.0;
+
+/**
+ * The next part to look for the ball in (`readShot.ts`), when none of the
+ * parts `read` so far showed it: around the first of `hints` (times the ball
+ * may have crossed the foul line, in the order to try them) that no part read
+ * would have shown (`partSees`), from `LEAD_SECONDS` before it; else the
+ * part of the video stepped through every `STEP_SECONDS` from its start,
+ * nearest `near` first, that would show a crossing none read would. Null
+ * when every crossing in the video would have been seen.
+ */
+export function seekPart(hints: readonly number[], read: readonly { from: number; to: number }[], duration: number, near: number): { from: number; to: number } | null {
+  const end = Number.isFinite(duration) ? duration : 0;
+  const seen = (t: number) => read.some((p) => partSees(p, t));
+  for (const t of hints) {
+    if (!Number.isFinite(t) || t < 0 || t > end || seen(t)) continue;
+    const from = Math.max(0, Math.round((t - LEAD_SECONDS) * EDGE_GRID) / EDGE_GRID);
+    return { from, to: Math.min(end, from + FIRST_SECONDS) };
+  }
+  const steps: { from: number; to: number }[] = [];
+  for (let k = 0; k * STEP_SECONDS < end; k++) {
+    const from = Math.min(k * STEP_SECONDS, Math.max(0, end - FIRST_SECONDS));
+    if (!steps.some((p) => p.from === from)) steps.push({ from, to: Math.min(end, from + FIRST_SECONDS) });
+  }
+  const middle = (p: { from: number; to: number }) => (p.from + p.to) / 2;
+  steps.sort((a, b) => Math.abs(middle(a) - near) - Math.abs(middle(b) - near) || a.from - b.from);
+  // A crossing this part would show (to a twentieth of a second) that no part read would.
+  const adds = (p: { from: number; to: number }) => {
+    const first = Math.max(0, p.from - SEEN_EARLY);
+    for (let k = 0; first + k * 0.05 <= p.to - SEEN_ROOM + 1e-9; k++) if (!seen(first + k * 0.05)) return true;
+    return false;
+  };
+  return steps.find(adds) ?? null;
 }
 
 /** `pickWindow` from one run. */
