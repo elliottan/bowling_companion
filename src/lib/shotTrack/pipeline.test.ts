@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { gridFrames, LANE_EVERY, readStep } from "./framePick";
-import { trace } from "./pipeline";
+import { predictCenter, PREDICT_FRAMES, trace } from "./pipeline";
 import { multiply, normalize } from "./homography";
 import { PIN_HIT_FT, timeAt, truthAt } from "./synthetic";
 import { roughMarks, standardShot, syntheticSource, truthBoard, truthBoardAtPins, truthSpeedMph } from "./syntheticSource";
@@ -34,6 +34,8 @@ describe.each([
   const calib = src.count - 2;
   const out = trace({ source: src, calibFrame: calib, marks: roughMarks(spec, calib), hand: c.hand });
   const r = out.result as TrackResult;
+  // Traced again with the other hand set, reading the hand from the video.
+  const auto = trace({ source: src, calibFrame: calib, marks: roughMarks(spec, calib), hand: c.hand === "right" ? "left" : "right", handFromVideo: true }).result as TrackResult;
 
   it("traces the shot", () => {
     expect(r.ok).toBe(true);
@@ -72,6 +74,19 @@ describe.each([
     expect(r.pinFrame).not.toBeNull();
     expect(r.metrics.speed.state).toBe("measured");
     expect(Math.abs(r.metrics.speed.value! - truthSpeedMph(spec, r.from, r.to))).toBeLessThan(0.3);
+  });
+
+  it("reads the bowler's hand from the video, whatever the setting says", () => {
+    expect(auto.hand).toBe(c.hand);
+    expect(auto.handFound!.by).toBe("video");
+    expect(auto.handFound!.cues.map((x) => x.name)).toEqual(expect.arrayContaining(["drift", "hook", "pins"]));
+    expect(auto.metrics.laydown.value).toBeCloseTo(r.metrics.laydown.value!, 6);
+    expect(auto.metrics.breakpoint.value).toBeCloseTo(r.metrics.breakpoint.value!, 6);
+    expect(auto.metrics.pins.value).toBeCloseTo(r.metrics.pins.value!, 6);
+    // Without being asked, the setting's hand stands and nothing is said of the video's.
+    expect(r.hand).toBe(c.hand);
+    expect(r.handFound).toBeUndefined();
+    expect(out.debug.hand!.hand).toBe(c.hand);
   });
 
   it("passes its own calibration check", () => {
@@ -183,5 +198,22 @@ describe("a read that starts earlier or later", () => {
       expect(Math.abs(late[k].value! - whole[k].value!)).toBeLessThan(0.02);
     }
     expect(Math.abs(late.breakpointFeet.value! - whole.breakpointFeet.value!)).toBeLessThan(0.1);
+  });
+});
+
+describe("predictCenter", () => {
+  it("runs the last circles' straight line on to the frame asked", () => {
+    const placed = [1, 2, 3, 5].map((frame) => ({ frame, x: 100 - 0.6 * frame, y: 50 + 0.1 * frame }));
+    const at = predictCenter(placed, 6)!;
+    expect(at.x).toBeCloseTo(100 - 3.6, 6);
+    expect(at.y).toBeCloseTo(50.6, 6);
+  });
+
+  it("says nothing with fewer than three circles near enough before it", () => {
+    expect(predictCenter([{ frame: 1, x: 0, y: 0 }, { frame: 2, x: 1, y: 0 }], 3)).toBeNull();
+    const old = [1, 2, 3].map((frame) => ({ frame, x: frame, y: 0 }));
+    expect(predictCenter(old, 3 + PREDICT_FRAMES + 1)).toBeNull();
+    // Only circles before the frame count.
+    expect(predictCenter(old, 2)).toBeNull();
   });
 });

@@ -2900,6 +2900,18 @@ msgstr "左投げ、両手"
 msgid "Left-handed"
 msgstr "左投げ"
 
+#: src/views/ShotTracerView.tsx
+msgid "Left-handed, as you chose. The boards are counted from the left gutter."
+msgstr "左投げ（選択どおり）。枚目は左のガターから数えます。"
+
+#: src/views/ShotTracerView.tsx
+msgid "Left-handed, from the video."
+msgstr "左投げ（動画から判定）。"
+
+#: src/views/ShotTracerView.tsx
+msgid "Left-handed, from your settings: the video didn't show which hand threw it."
+msgstr "左投げ（設定から）。動画からは投げた手がわかりませんでした。"
+
 #. Bowling term: how far down the lane the ball travels before it turns, a reading on the layout lab's rail
 #: src/components/OilPatternFormDialog.tsx
 #: src/components/PatternFilterSheet.tsx
@@ -4128,6 +4140,18 @@ msgstr "右投げ、両手"
 #: src/views/SettingsView.tsx
 msgid "Right-handed"
 msgstr "右投げ"
+
+#: src/views/ShotTracerView.tsx
+msgid "Right-handed, as you chose. The boards are counted from the right gutter."
+msgstr "右投げ（選択どおり）。枚目は右のガターから数えます。"
+
+#: src/views/ShotTracerView.tsx
+msgid "Right-handed, from the video."
+msgstr "右投げ（動画から判定）。"
+
+#: src/views/ShotTracerView.tsx
+msgid "Right-handed, from your settings: the video didn't show which hand threw it."
+msgstr "右投げ（設定から）。動画からは投げた手がわかりませんでした。"
 
 #. Accent color name: a pink-red
 #: src/lib/palette.ts

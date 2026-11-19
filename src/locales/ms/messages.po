@@ -2900,6 +2900,18 @@ msgstr "Tangan kiri, 2H"
 msgid "Left-handed"
 msgstr "Tangan kiri"
 
+#: src/views/ShotTracerView.tsx
+msgid "Left-handed, as you chose. The boards are counted from the left gutter."
+msgstr "Tangan kiri, seperti yang anda pilih. Papan dikira dari gutter kiri."
+
+#: src/views/ShotTracerView.tsx
+msgid "Left-handed, from the video."
+msgstr "Tangan kiri, daripada video."
+
+#: src/views/ShotTracerView.tsx
+msgid "Left-handed, from your settings: the video didn't show which hand threw it."
+msgstr "Tangan kiri, daripada Tetapan: video tidak menunjukkan tangan yang membaling."
+
 #. Bowling term: how far down the lane the ball travels before it turns, a reading on the layout lab's rail
 #: src/components/OilPatternFormDialog.tsx
 #: src/components/PatternFilterSheet.tsx
@@ -4128,6 +4140,18 @@ msgstr "Tangan kanan, 2H"
 #: src/views/SettingsView.tsx
 msgid "Right-handed"
 msgstr "Tangan kanan"
+
+#: src/views/ShotTracerView.tsx
+msgid "Right-handed, as you chose. The boards are counted from the right gutter."
+msgstr "Tangan kanan, seperti yang anda pilih. Papan dikira dari gutter kanan."
+
+#: src/views/ShotTracerView.tsx
+msgid "Right-handed, from the video."
+msgstr "Tangan kanan, daripada video."
+
+#: src/views/ShotTracerView.tsx
+msgid "Right-handed, from your settings: the video didn't show which hand threw it."
+msgstr "Tangan kanan, daripada Tetapan: video tidak menunjukkan tangan yang membaling."
 
 #. Accent color name: a pink-red
 #: src/lib/palette.ts
