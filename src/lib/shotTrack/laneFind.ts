@@ -323,6 +323,31 @@ export function laneRows(fan: Fan): { far: number; near: number } {
   const n = E.length;
   let far = 0;
   for (let j = 1; j < Math.floor(n * 0.6); j++) if (E[j] > E[far]) far = j;
+  let near = nearRow(E, far);
+  // The racks stand where a camera `CAMERA_FT` behind the foul line puts them:
+  // along the lane, (pin row - vp) / (foul line - vp) = d / (d + 62.6). A
+  // camera held low has the masking units' artwork just under the horizon,
+  // busier than the racks below it (2026-11-19: a phone at waist height took
+  // the masking for the far end, a row under the vanishing point, and no pin
+  // was looked for where they stand). The far end is then the busiest row
+  // where the racks can be, with a margin for the rough near row.
+  const rows = fan.y0 + near - fan.vp.y;
+  if (rows > 0) {
+    const ratio = (d: number) => d / (d + BACK_ROW_FT);
+    const lo = Math.max(1, Math.ceil(fan.vp.y + 0.8 * ratio(CAMERA_FT[0]) * rows - fan.y0));
+    const hi = Math.min(n - 1, Math.floor(fan.vp.y + 1.15 * ratio(CAMERA_FT[1]) * rows - fan.y0));
+    if ((far < lo || far > hi) && hi > lo) {
+      far = lo;
+      for (let j = lo + 1; j <= hi; j++) if (E[j] > E[far]) far = j;
+      near = nearRow(E, far);
+    }
+  }
+  return { far: fan.y0 + far, near: fan.y0 + near };
+}
+
+/** `laneRows`' near end below the far row `far`, in fan rows. */
+function nearRow(E: Float32Array, far: number): number {
+  const n = E.length;
   // The near end: the sharpest fall in structure going down (the gutters and
   // caps end, the approach is plain), over a few rows either side; failing a
   // clear fall, the lowest row still at half the lane's typical structure.
@@ -346,7 +371,7 @@ export function laneRows(fan: Fan): { far: number; near: number } {
     near = n - 1;
     while (near > far && E[near] < 0.5 * mid) near--;
   }
-  return { far: fan.y0 + far, near: fan.y0 + near };
+  return near;
 }
 
 export interface ColumnProfile {
