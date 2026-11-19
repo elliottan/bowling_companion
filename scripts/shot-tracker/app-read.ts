@@ -70,7 +70,7 @@ function frameStamps(path: string): Promise<number[]> {
     let out = "";
     p.stdout.on("data", (d: Buffer) => (out += d.toString()));
     p.on("error", reject);
-    p.on("close", () => resolve(out.trim().split("\n").map((l) => Number(l.split(",").find((x) => x !== "")))));
+    p.on("close", () => resolve(out.trim().split("\n").filter((l) => /\d/.test(l)).map((l) => Number(l.split(",").find((x) => x !== "")))));
   });
 }
 const stampsCache = new Map<string, Promise<number[]>>();
@@ -85,6 +85,14 @@ async function decodeLuma(path: string, track: VideoTrack, wanted: ReadonlyMap<n
   if (!stampsCache.has(path)) stampsCache.set(path, frameStamps(path));
   const times = await stampsCache.get(path)!;
   const stamps = spanStamps(track.samples, 0, track.samples.length - 1);
+  // An edit list that starts the video past its first samples (a video a
+  // messaging app re-encoded: seven samples before the start): ffmpeg leaves
+  // those frames out and counts its times from the first one shown, while
+  // the app decodes every sample at its own time. ffmpeg's times are moved
+  // onto the samples it shows, or each frame lands on the sample before it.
+  const sorted = [...stamps].sort((a, b) => a - b);
+  const skipped = sorted.length - times.length;
+  const shift = skipped > 0 ? sorted[skipped] / 1e6 - times[0] : 0;
   const bytes = track.bitDepth > 8 ? 2 : 1;
   const size = track.codedWidth * track.codedHeight * bytes;
   const fmt = track.bitDepth > 8 ? "gray10le" : "gray";
@@ -103,7 +111,7 @@ async function decodeLuma(path: string, track: VideoTrack, wanted: ReadonlyMap<n
         at += n;
         off += n;
         if (at === size) {
-          const j = nearestStamp(stamps, Math.round(times[k] * 1e6));
+          const j = nearestStamp(stamps, Math.round((times[k] + shift) * 1e6));
           const place = j >= 0 ? wanted.get(stamps[j]) : undefined;
           if (place !== undefined) {
             onFrame(place, stamps[j] / 1e6, new Uint8Array(fill.buffer, fill.byteOffset, size));
@@ -249,11 +257,11 @@ export async function appRead(path: string, gray: GrayMode, fromZero = false, lo
 }
 
 /** The trace as the view runs it on the read's frames: the lane on 24 of them, then `trace`. */
-export function traceRead(frames: GrayFrame[], hand: Handedness) {
+export function traceRead(frames: GrayFrame[], hand: Handedness, handFromVideo = false) {
   const v: VideoFrames = { width: frames[0].width, height: frames[0].height, gray: frames.map((f) => f.data), times: frames.map((f) => f.t), src: null, step: 0, missing: 0 };
   const m = findOn(v, LANE_EVERY);
   if (!m) return null;
-  return trace({ source: { count: frames.length, frame: (i) => frames[i] }, calibFrame: m.frame, lanes: m.lanes, hand });
+  return trace({ source: { count: frames.length, frame: (i) => frames[i] }, calibFrame: m.frame, lanes: m.lanes, hand, handFromVideo });
 }
 
 if (process.argv[1]?.endsWith("app-read.ts")) {
@@ -262,7 +270,10 @@ if (process.argv[1]?.endsWith("app-read.ts")) {
     const i = args.indexOf(k);
     return i >= 0 ? args.splice(i, 2)[1] : undefined;
   };
-  const hand = (opt("--hand") ?? "right") as Handedness;
+  // `--hand auto`: the hand read from the video (as the app does), the right hand where it cannot tell.
+  const handArg = opt("--hand") ?? "right";
+  const auto = handArg === "auto";
+  const hand = (auto ? "right" : handArg) as Handedness;
   const gray = (opt("--gray") ?? "full") as GrayMode;
   const fromZero = opt("--from") === "0";
   const jsonOut = opt("--json");
@@ -276,13 +287,15 @@ if (process.argv[1]?.endsWith("app-read.ts")) {
       console.log(`${basename(path)}: no shot read`);
       continue;
     }
-    const out = traceRead(r.frames, hand);
+    const out = traceRead(r.frames, hand, auto);
     const reading = out ? tracedReading(out) : null;
     const w = r.window;
     console.log(`${r.name} (${gray}${fromZero ? ", from 0" : ""}): ${r.frames.length} frames ${r.frames[0].width}x${r.frames[0].height}, ${r.frames[0].t.toFixed(3)} to ${r.frames[r.frames.length - 1].t.toFixed(3)} s; window foul ${w?.foul?.toFixed(3) ?? "-"} end ${w?.end.toFixed(3) ?? "-"} by ${w?.by ?? "-"} (${((Date.now() - t0) / 1000).toFixed(1)} s)`);
     for (const l of r.log) console.log(`   ${l}`);
     // The details block's lines on the bands: the runs as judged on the lane, and the window.
     for (const l of r.notes.split("\n").filter((x) => x.startsWith("band"))) console.log(`   ${l}`);
+    const hf = out?.debug.hand;
+    if (hf) console.log(`   hand: ${out?.result.ok ? out.result.hand : "-"} (video says ${hf.by === "video" ? hf.hand : `nothing: ${hf.why}`}, confidence ${hf.confidence.toFixed(2)}; ${hf.cues.map((c) => `${c.name} ${c.boards.toFixed(1)} -> ${c.vote.toFixed(2)}`).join(", ")})`);
     const pick = (k: string) => (reading as Record<string, unknown> | null)?.[k];
     console.log(`   ${JSON.stringify({ laydown: pick("laydown"), arrows: pick("arrows"), breakpoint: pick("breakpoint"), at: pick("breakpointFeet"), pins: pick("pins"), launch: pick("launchSpeed"), failure: pick("failure") })}`);
     results.push({ name: r.name, gray, fromZero, first: r.frames[0].t, last: r.frames[r.frames.length - 1].t, count: r.frames.length, window: w, trace: reading });
