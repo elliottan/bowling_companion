@@ -17,6 +17,7 @@ import { atFoulLineTime, followForward, overFoulLine, uAtColumn, type FollowPred
 import { followNear, nearSeeds } from "./nearFollow";
 import { firstPinMove, pinScores, pinsInReach, type PinFrame } from "./pinMove";
 import { alignTo, finishRegister, laneMarksOf, passFrames, PlanePass, planeSlots, RegisterPass, type FrameGeometry, type FrameSource, type Matches, type PlaneOptions, type RegisterOptions } from "./registration";
+import { readingShots, type ReadingShot } from "./readingFrame";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, Metric, PathModel, TrackError, TrackFailure, TrackMetrics, TrackResult } from "./types";
 
 /**
@@ -113,6 +114,13 @@ export interface TraceDebug {
 export interface TraceOutput {
   result: TrackResult | TrackError;
   debug: TraceDebug;
+  /**
+   * The frame behind each reading, kept as a small crop with the ball, the
+   * cross and the board's line drawn (`readingFrame.ts`): the frames
+   * themselves go to the workers, so they are cut here, where the tracer
+   * still has them. Only a result that is ok.
+   */
+  shots?: ReadingShot[];
 }
 
 const fail = (failure: TrackFailure, detail: string): TrackError => ({ ok: false, failure, detail });
@@ -898,13 +906,20 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
     slope: ((vAt(tLast) - vAt(tFirst)) / (tLast - tFirst)) * FTS_TO_MPH
   };
   progress("done", 1);
-  return {
+  const output: TraceOutput = {
     result: {
       ok: true, hand: used, sightings, path: fit.path, from: Math.min(...vs), to: Math.max(...vs), rms: fit.rms,
       metrics: met, readOff, handFound: state.handFromVideo ? handFound : undefined, motion, touchdownFrame: touchdown !== null ? seen[0].frame : null, pinFrame
     },
     debug
   };
+  try {
+    output.shots = readingShots(output, source);
+  } catch {
+    // The pictures are a review aid: a frame that cannot be cut never costs the readings.
+    output.shots = [];
+  }
+  return output;
 }
 
 /**

@@ -4,6 +4,7 @@ import type { ShotFound } from "../lib/shotTrack/shotStart";
 import type { LanesFound } from "../lib/shotTrack/laneFind";
 import type { TraceInput, TraceOutput } from "../lib/shotTrack/pipeline";
 import type { Notes } from "../lib/shotTrack/notes";
+import type { ReadingShot } from "../lib/shotTrack/readingFrame";
 import type { GrayFrame, Mat3, TrackError, TrackResult } from "../lib/shotTrack/types";
 import type { FindMessage, SearchRequest } from "../shotTracer/protocol";
 import { WorkerCrash } from "../shotTracer/pool";
@@ -13,6 +14,12 @@ import { ShotTracerView } from "./ShotTracerView";
 const readVideoFrames = vi.hoisted(() => vi.fn());
 const scanVideo = vi.hoisted(() => vi.fn());
 vi.mock("../shotTracer/videoFrames", () => ({ readVideoFrames, scanVideo }));
+/** The file's sample table (`readVideoTrack`): by default the file cannot be read, as the test's stand-in file cannot. */
+const track = vi.hoisted(() => ({ read: vi.fn() }));
+vi.mock("../lib/shotTrack/mp4", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../lib/shotTrack/mp4")>()),
+  readVideoTrack: track.read
+}));
 /** The search for the ball in a part's frames (`findBall`): not seen unless a test says. */
 const NOT_SEEN = { seen: null, earlier: null, candidates: 0, why: "no candidates" };
 const ballSearch = vi.hoisted(() => vi.fn());
@@ -246,6 +253,8 @@ describe("ShotTracerView", () => {
     // jsdom draws nothing; the picture's effect only needs a null context.
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
     vi.spyOn(console, "info").mockImplementation(() => {});
+    track.read.mockReset();
+    track.read.mockRejectedValue(new Error("not an mp4"));
     readVideoFrames.mockReset();
     readVideoFrames.mockImplementation(async (_f: Blob, _p: unknown, p: { from: number; to: number; fps: number }) => fakeVideo(p));
     scanVideo.mockReset();
@@ -479,6 +488,124 @@ describe("ShotTracerView", () => {
     // How it was read and how long each stage took, for runs on a phone.
     expect(screen.getByText(/^Read by \?\. Looking [\d.]+ s, reading [\d.]+ s, lane [\d.]+ s, tracing [\d.]+ s\.$/)).toBeTruthy();
     expect(screen.getByTestId("tracer-details").textContent).toMatch(/lane: found on 2 of 22, best frame 24[\s\S]*trace: 0 sightings, 0\.0 to 60\.0 ft/);
+  });
+
+  /** A frame behind a reading: a 12 by 10 crop with the ball, the cross and the line drawn. */
+  const part = (frame: number, t: number, feet: number | null = null) => ({
+    frame, t, width: 12, height: 10, gray: new Uint8ClampedArray(120).fill(90), feet,
+    disc: { cx: 6, cy: 5, r: 3 }, cross: { x: 6, y: 8 }, line: [{ x: 6, y: 0 }, { x: 6, y: 10 }] as [{ x: number; y: number }, { x: number; y: number }]
+  });
+  const SHOTS: ReadingShot[] = [
+    { reading: "laydown", estimated: false, parts: [part(12, 0.4, 0)] },
+    { reading: "breakpoint", estimated: true, parts: [part(62, 2.1, 40)] },
+    { reading: "launchSpeed", estimated: false, parts: [part(13, 0.43, 1.1), part(30, 1, 14.5)] },
+    { reading: "entrySpeed", estimated: true, parts: [part(70, 2.33, 45.5)] }
+  ];
+
+  /** The file shows a frame every 10 ms from 0 s: a frame's number is its time in centiseconds. */
+  const centis = () => track.read.mockResolvedValue({ samples: Array.from({ length: 400 }, (_, i) => ({ t: i / 100 })) });
+
+  async function resultWithShots(shots: ReadingShot[] | null = SHOTS) {
+    await chooseVideo();
+    find()!.reply(found());
+    await waitFor(() => expect(trace()).toBeTruthy());
+    trace()!.reply({ ...done(), shots: shots ?? undefined });
+    await screen.findByText("Board 23.8");
+  }
+
+  it("opens the frame a reading was taken on when its row is tapped, and only rows that have one are buttons", async () => {
+    centis();
+    await resultWithShots();
+    expect(screen.getByRole("button", { name: "Laydown, show the frame" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Breakpoint, show the frame" })).toBeTruthy();
+    // No frame behind the touchdown, arrows and pins: plain rows.
+    for (const name of ["Touchdown", "Arrows", "At the pins"]) expect(screen.queryByRole("button", { name: `${name}, show the frame` })).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Laydown, show the frame" }));
+    const sheet = await screen.findByRole("dialog", { name: "Laydown" });
+    // The reading, then the frame's number and time, with the ball, the cross and the board's line over it.
+    expect(within(sheet).getByText("Board 23.8")).toBeTruthy();
+    expect(within(sheet).getByText("Video frame 40 at 0.40 s")).toBeTruthy();
+    expect(within(sheet).getByRole("img", { name: "Video frame 40 at 0.40 s" })).toBeTruthy();
+    expect(within(sheet).getAllByTestId("reading-ball")).toHaveLength(1);
+    expect(within(sheet).getAllByTestId("reading-cross")).toHaveLength(1);
+    expect(within(sheet).getAllByTestId("reading-line")).toHaveLength(1);
+    expect(within(sheet).getByText(/The ring is the ball, the cross is where the board is read/)).toBeTruthy();
+    expect(within(sheet).queryByTestId("reading-estimated")).toBeNull();
+  });
+
+  it("closes the frame with its close button, Escape, or a tap outside", async () => {
+    await resultWithShots();
+    const open = () => fireEvent.click(screen.getByRole("button", { name: "Laydown, show the frame" }));
+    open();
+    fireEvent.click(await screen.findByRole("button", { name: "Close" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    open();
+    await screen.findByRole("dialog", { name: "Laydown" });
+    fireEvent.keyDown(document, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    open();
+    const sheet = await screen.findByRole("dialog", { name: "Laydown" });
+    // The backdrop is the dialog's first child.
+    fireEvent.click(sheet.firstElementChild!);
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    // The result is as it was.
+    expect(screen.getByText("Board 23.8")).toBeTruthy();
+  });
+
+  it("says an estimated reading is estimated, and why the picture is the nearest frame", async () => {
+    await resultWithShots();
+    fireEvent.click(screen.getByRole("button", { name: "Breakpoint, show the frame" }));
+    const sheet = await screen.findByRole("dialog", { name: "Breakpoint" });
+    expect(within(sheet).getByText("Board 7.7 at 43 ft")).toBeTruthy();
+    expect(within(sheet).getByTestId("reading-estimated").textContent).toMatch(/Estimated: the ball wasn't seen at this spot/);
+  });
+
+  it("shows the first and the last frame of the stretch a speed was measured over", async () => {
+    centis();
+    await resultWithShots();
+    fireEvent.click(screen.getByRole("button", { name: "Launch speed, show the frame" }));
+    const sheet = await screen.findByRole("dialog", { name: "Launch speed" });
+    expect(within(sheet).getByText("17.4 mph")).toBeTruthy();
+    expect(within(sheet).getByText("First frame: video frame 43 at 0.43 s, 1.1 ft down the lane")).toBeTruthy();
+    expect(within(sheet).getByText("Last frame: video frame 100 at 1.00 s, 14.5 ft down the lane")).toBeTruthy();
+    expect(within(sheet).getAllByTestId("reading-ball")).toHaveLength(2);
+    expect(within(sheet).getByText(/the line is the row where its distance is read/)).toBeTruthy();
+    expect(within(sheet).queryByTestId("reading-estimated")).toBeNull();
+  });
+
+  it("shows one frame for a speed read over one, and says an estimated speed is", async () => {
+    centis();
+    await resultWithShots();
+    fireEvent.click(screen.getByRole("button", { name: "Entry speed, show the frame" }));
+    const sheet = await screen.findByRole("dialog", { name: "Entry speed" });
+    expect(within(sheet).getAllByTestId("reading-ball")).toHaveLength(1);
+    expect(within(sheet).getByText("Video frame 233 at 2.33 s")).toBeTruthy();
+    expect(within(sheet).getByTestId("reading-estimated").textContent).toMatch(/seen over only part of this stretch/);
+  });
+
+  it("draws the ball alone for a frame with no lane mapping", async () => {
+    await resultWithShots([{ reading: "laydown", estimated: false, parts: [{ ...part(12, 0.4, 0), cross: null, line: null }] }]);
+    fireEvent.click(screen.getByRole("button", { name: "Laydown, show the frame" }));
+    const sheet = await screen.findByRole("dialog", { name: "Laydown" });
+    expect(within(sheet).getAllByTestId("reading-ball")).toHaveLength(1);
+    expect(within(sheet).queryByTestId("reading-cross")).toBeNull();
+    expect(within(sheet).queryByTestId("reading-line")).toBeNull();
+  });
+
+  it("counts a frame by the video's own step when the file's table can't be read", async () => {
+    await resultWithShots();
+    fireEvent.click(screen.getByRole("button", { name: "Laydown, show the frame" }));
+    const sheet = await screen.findByRole("dialog", { name: "Laydown" });
+    // The stand-in video steps 1/60 s: 0.4 s is its frame 24.
+    expect(within(sheet).getByText("Video frame 24 at 0.40 s")).toBeTruthy();
+  });
+
+  it("makes no row a button when the trace kept no frames", async () => {
+    await resultWithShots(null);
+    expect(screen.queryByRole("button", { name: /show the frame/ })).toBeNull();
+    // The values still line up: every row keeps the chevron's room.
+    expect(screen.getByText("Board 23.8")).toBeTruthy();
   });
 
   it("says which hand the boards are counted from, from the video, with no switch", async () => {

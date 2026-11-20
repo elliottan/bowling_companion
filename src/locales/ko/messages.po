@@ -401,6 +401,10 @@ msgstr "{label}, {word}"
 msgid "{label}, opens in a new tab"
 msgstr "{label}, 새 탭에서 열림"
 
+#: src/views/ShotTracerView.tsx
+msgid "{label}, show the frame"
+msgstr "{label}, 프레임 보기"
+
 #: src/components/LayoutEditor.tsx
 msgid "{label}, what it does"
 msgstr "{label}, 설명"
@@ -1954,6 +1958,14 @@ msgstr "추정"
 msgid "Estimated average"
 msgstr "예상 에버리지"
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball was seen over only part of this stretch."
+msgstr "추정: 이 구간에서는 볼이 일부만 보였어요."
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball wasn't seen at this spot, so the cross is where the fitted path crosses it, on the nearest frame where the ball was seen."
+msgstr "추정: 이 지점에서는 볼이 보이지 않아서, 십자는 맞춘 경로가 여기를 지나는 위치예요. 볼이 보인 가장 가까운 프레임을 보여 줘요."
+
 #: src/components/SessionFilterBar.tsx
 msgid "Event"
 msgstr "이벤트"
@@ -2166,6 +2178,11 @@ msgstr "풀 랙 첫 투구 중 스트라이크를 친 비율이에요."
 #: src/components/statsMetrics.ts
 msgid "First balls that hit the pocket."
 msgstr "포켓에 맞은 첫 투구 비율이에요."
+
+#. Caption of the first picture of the stretch a speed was measured over; the video frame is not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "First frame: video frame {n} at {time} s, {feet} ft down the lane"
+msgstr "첫 프레임: 동영상 {n}번째 프레임, {time}초, 레인 {feet} ft 지점"
 
 #: src/views/ActiveSessionView.tsx
 msgid "First lane"
@@ -2762,6 +2779,11 @@ msgstr "마지막 백업: 오늘"
 #: src/lib/backupNudge.ts
 msgid "Last backup yesterday"
 msgstr "마지막 백업: 어제"
+
+#. Caption of the last picture of the stretch a speed was measured over; the video frame is not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "Last frame: video frame {n} at {time} s, {feet} ft down the lane"
+msgstr "마지막 프레임: 동영상 {n}번째 프레임, {time}초, 레인 {feet} ft 지점"
 
 #. Label before the bowler's average in their latest session, e.g. Last session 214
 #: src/components/HomeProfile.tsx
@@ -5006,6 +5028,14 @@ msgstr "핀은 PAP에서 {pinToPap}인치 떨어져 있고 핀 버퍼는 {buffer
 msgid "The restore failed."
 msgstr "복원하지 못했어요."
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "The ring is the ball, and the line is the row where its distance is read."
+msgstr "원은 볼이고, 선은 거리를 읽는 위치예요."
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "The ring is the ball, the cross is where the board is read, and the line is that board."
+msgstr "원은 볼, 십자는 보드를 읽는 위치, 선은 그 보드예요."
+
 #: src/lib/shareCard.ts
 msgid "The share image could not be created."
 msgstr "공유 이미지를 만들 수 없어요."
@@ -5332,6 +5362,11 @@ msgstr "VAL"
 #: src/components/LayoutEditor.tsx
 msgid "VAL angle"
 msgstr "VAL 각도"
+
+#. Caption of a picture from the shot tracer: which picture of the video it is, counted from 0 as the video's frames are listed, and the seconds into the video. Not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "Video frame {n} at {time} s"
+msgstr "동영상 {n}번째 프레임, {time}초"
 
 #: src/components/ShotDetailBar.tsx
 msgid "View actual line"

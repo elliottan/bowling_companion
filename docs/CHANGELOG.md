@@ -9,6 +9,27 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.115.0: Tap a reading to see the frame it came from (2026-11-20)
+
+- In Settings, Labs: on the shot tracer's result, each reading that has a
+  frame behind it (Laydown, Touchdown, Arrows, Breakpoint, At the pins, and the
+  two speeds) is a row you can tap. A sheet rises with that frame of the video,
+  cut round the ball: the tracer's yellow ring on the ball, a cross where the
+  board is read, and a dashed line along that board. Under it, which video
+  frame it is and the time into the video. Swipe it down, tap outside it, press
+  back or Escape to put it away.
+- A speed shows two frames, the first and the last of the stretch it was
+  measured over, each with how far down the lane the ball was there.
+- A reading the tracer worked out rather than saw (the ball wasn't seen at that
+  spot) says "Estimated" in the sheet, and shows the nearest frame where the
+  ball was seen, with the cross where the fitted path crosses the board.
+- The tracer keeps only those few small crops, a few hundred pixels across, for
+  the result, never the video's frames, so it costs a phone well under a
+  megabyte.
+- Which frame each reading uses is the choice the review pictures already made,
+  now in `lib/shotTrack/readingFrame.ts`, so the harness and the app cannot
+  disagree.
+
 ## 0.114.1: The ball's circle stays on the ball among the pins, and the hand is always the video's (2026-11-20)
 
 - In Settings, Labs: where the ball is blurred among the pins, or a leg or a

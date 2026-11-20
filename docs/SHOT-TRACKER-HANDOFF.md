@@ -95,6 +95,11 @@ IMG_1996 in headless Chromium four runs gave the same window and laydown
 - `fitPath` never weaves: the hook shape always, `rough` above 0.7 board RMS.
 - Open: 8133 does not read in Node (wrong first look, no lane); its stopping short of the pins and its far right edge are not reproduced. The far line's tilt (1856) and a camera-based far-line constraint are not built. shot-02's far-end scale is not checked against the pins' 12 in spacing. Review pictures: `scratchpad/review12/`.
 
+### 0.115.0 (2026-11-20)
+
+- A reading's row on the result opens the frame it was taken on (the owner: "good for review purposes"). `lib/shotTrack/readingFrame.ts` holds the choice of frame the review pictures made (`pickFrame`, moved out of `review-frames.ts`, which imports it) and `readingShots`, run at the end of `traceTail` while the frames are still there: they go to the pool's last job, so the screen cannot cut them later. Each reading keeps one gray crop, 72 to 240 px square (`cropBox`), with the ball, the cross and the board's line already in the crop's pixels; a speed keeps the first and last sighting of its stretch (`speedStretch`). About 9 crops, under 0.6 MB, on `TraceOutput.shots`. `ReadingFrameSheet` (a `FormSheet`, portalled out of the tab) draws them.
+- An estimated reading (`isEstimated`: its state, or no follow to the foul line, no touchdown frame, the nearest sighting over a foot from its row, a ball last seen short of the pins) shows the nearest frame it was seen on and puts the cross on the fitted path instead of under the ball. No wider view: only the crop is kept.
+
 ## Where it stood before that (0.112.0, 2026-11-15)
 
 - **0.112.0 made the app all automatic**, on the owner's word: no marking
