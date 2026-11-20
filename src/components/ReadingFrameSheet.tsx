@@ -56,13 +56,13 @@ function Picture({ part, caption }: { part: FramePart; caption: string }) {
 }
 
 /** One frame's caption: where it is in the video, and for a speed which end of the stretch and how far down the lane. */
-function captionOf(part: FramePart, which: "board" | "first" | "last"): string {
-  const n = formatNumber(part.frame + 1);
+function captionOf(part: FramePart, number: number, which: "board" | "first" | "last"): string {
+  const n = formatNumber(number);
   const time = formatFixed(part.t, 2);
   if (which === "board") {
     return t({
       message: `Video frame ${n} at ${time} s`,
-      comment: "Caption of a picture from the shot tracer: which picture of the video it is, counted from the first one the tracer read, and the seconds into the video. Not a bowling frame"
+      comment: "Caption of a picture from the shot tracer: which picture of the video it is, counted from 0 as the video's frames are listed, and the seconds into the video. Not a bowling frame"
     });
   }
   const feet = formatFixed(part.feet ?? 0, 1);
@@ -84,7 +84,7 @@ function captionOf(part: FramePart, which: "board" | "first" | "last"): string {
  * (DESIGN-LANGUAGE §1a: a task over the screen, answered by tap outside, a
  * swipe down, the back button or Escape).
  */
-export function ReadingFrameSheet({ title, value, shot, onClose }: { title: string; value: string | null; shot: ReadingShot; onClose: () => void }) {
+export function ReadingFrameSheet({ title, value, shot, numberOf, onClose }: { title: string; value: string | null; shot: ReadingShot; numberOf: (part: FramePart) => number; onClose: () => void }) {
   const speed = shot.reading === "launchSpeed" || shot.reading === "entrySpeed";
   // Out to the body: opened from a screen pushed into a tab, the sheet would
   // sit under the tab bar, which draws over everything inside the tab.
@@ -92,7 +92,7 @@ export function ReadingFrameSheet({ title, value, shot, onClose }: { title: stri
     <FormSheet title={title} subtitle={value ?? undefined} onClose={onClose}>
       <div data-testid="reading-frames" className="space-y-5">
         {shot.parts.map((part, i) => (
-          <Picture key={part.frame} part={part} caption={captionOf(part, !speed || shot.parts.length === 1 ? "board" : i === 0 ? "first" : "last")} />
+          <Picture key={part.frame} part={part} caption={captionOf(part, numberOf(part), !speed || shot.parts.length === 1 ? "board" : i === 0 ? "first" : "last")} />
         ))}
         <p className="text-footnote text-ink-secondary">
           {speed

@@ -8,7 +8,8 @@ import { ReadingFrameSheet } from "../components/ReadingFrameSheet";
 import { Spinner } from "../components/ui/Spinner";
 import { formatNumber } from "../lib/format";
 import { handNote, type HandFound } from "../lib/shotTrack/handFind";
-import type { ReadingShot, ShotKey } from "../lib/shotTrack/readingFrame";
+import { videoFrameNumber, type Numbering, type ReadingShot, type ShotKey } from "../lib/shotTrack/readingFrame";
+import { blobSource, readVideoTrack, shownTimes } from "../lib/shotTrack/mp4";
 import { apply } from "../lib/shotTrack/homography";
 import { BACK_ROW_FT, laneU, LEFT_U, RIGHT_U } from "../lib/shotTrack/laneModel";
 import type { FrameLane } from "../lib/shotTrack/laneTrack";
@@ -86,7 +87,7 @@ type Step =
   | { kind: "tracing"; fraction: number }
   /** The shot or the lane was not found: nothing to trace. */
   | { kind: "failed"; missing: "shot" | "lane"; details?: string; pictures?: Glimpses }
-  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null; timing?: Timing; details?: string; pictures?: Glimpses; shots?: ReadingShot[] };
+  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null; timing?: Timing; details?: string; pictures?: Glimpses; shots?: ReadingShot[]; numbering?: Numbering };
 
 /** The lane as the finder found it: on every frame it could, and what it knows about how sure it is. */
 interface Found {
@@ -129,6 +130,8 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
   const notes = useRef(new Notes());
   // What this attempt saw, for the pictures under the details.
   const glimpses = useRef<Glimpses>({ look: [], band: null });
+  // Each frame's time in the file, to say a frame's number in the video (null when the file's table can't be read).
+  const frameTimes = useRef<Promise<number[] | null>>(Promise.resolve(null));
 
   useEffect(
     () => () => {
@@ -200,6 +203,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     timing.current = { via: "", look: 0, read: 0, lane: 0, trace: 0 };
     notes.current = new Notes();
     glimpses.current = { look: [], band: null };
+    frameTimes.current = readVideoTrack(blobSource(f)).then((track) => shownTimes(track.samples), () => null);
     notes.current.set("app", `Headpin ${__APP_VERSION__}, ${f.type || "?"} ${(f.size / 1e6).toFixed(1)} MB, ${navigator.userAgent}`);
     const began = now();
     let looked: Awaited<ReturnType<typeof search>>;
@@ -403,7 +407,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     setShown({ gray: video.gray[frame].slice(), width: video.width, height: video.height });
     setStep({ kind: "tracing", fraction: 0 });
     const began = now();
-    const finish = (next: Step & { kind: "done" }) => {
+    const finish = async (next: Step & { kind: "done" }) => {
       if (attempt.current !== mine) return;
       const ms = timing.current;
       ms.trace = now() - began;
@@ -415,7 +419,9 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       const r = next.result;
       notes.current.set("trace", r.ok ? `${r.sightings.length} sightings, ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft` : `${r.failure}: ${r.detail}`);
       if (r.ok && r.handFound) notes.current.set("hand", handNote(r.handFound));
-      setStep({ ...next, timing: took, details: details(), pictures: pictures(), shots: next.shots });
+      const times = await frameTimes.current;
+      if (attempt.current !== mine) return;
+      setStep({ ...next, timing: took, details: details(), pictures: pictures(), shots: next.shots, numbering: { times, step: video.src } });
     };
     let out: TraceOutput;
     const input = {
@@ -445,13 +451,13 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     } catch (e) {
       const why = e instanceof Error ? e.message : String(e);
       console.info(`Shot tracer: the trace failed: ${why}`);
-      finish({ kind: "done", result: { ok: false, failure: "unsupported-video", detail: `worker failed: ${why}` }, H: null, verdict: null });
+      void finish({ kind: "done", result: { ok: false, failure: "unsupported-video", detail: `worker failed: ${why}` }, H: null, verdict: null });
       return;
     }
     const lanesUsed = out.debug.lanes;
     const evidence = { kept: lanesUsed?.kept.length, dropped: lanesUsed?.dropped.length, pinCheck: out.debug.calibration?.pinError ?? null };
     // The calibration frame's mapping as traced: the found lanes' blend there.
-    finish({ kind: "done", result: out.result, H: out.debug.H0 ?? null, verdict: laneVerdict({ ...found.evidence, ...evidence }), shots: out.shots });
+    void finish({ kind: "done", result: out.result, H: out.debug.H0 ?? null, verdict: laneVerdict({ ...found.evidence, ...evidence }), shots: out.shots });
   }
 
   const another = () => {
@@ -486,6 +492,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
             verdict={step.verdict}
             picture={shown}
             shots={step.shots}
+            numbering={step.numbering}
             timing={step.timing}
             details={step.details}
             pictures={step.pictures}
@@ -639,6 +646,7 @@ function Result({
   verdict,
   picture,
   shots,
+  numbering,
   timing,
   details,
   pictures,
@@ -650,6 +658,7 @@ function Result({
   picture: { gray: Uint8ClampedArray; width: number; height: number } | null;
   /** The frame behind each reading (`readingShots`). */
   shots?: ReadingShot[];
+  numbering?: Numbering;
   timing?: Timing;
   details?: string;
   pictures?: Glimpses;
@@ -705,7 +714,7 @@ function Result({
           {handLine(hand, result.handFound)}
         </p>
       )}
-      <Readings m={m} shots={shots} />
+      <Readings m={m} shots={shots} numbering={numbering} />
       {timing && <TimingLine timing={timing} />}
       <div className="flex flex-wrap gap-3">
         <Button onClick={onAnother}>{t`Another video`}</Button>
@@ -812,7 +821,7 @@ interface ReadingRow {
  * a sheet over the result with the ball, the point the board is read at and
  * its line drawn on a crop of the frame.
  */
-function Readings({ m, shots }: { m: TrackResult["metrics"]; shots?: ReadingShot[] }) {
+function Readings({ m, shots, numbering }: { m: TrackResult["metrics"]; shots?: ReadingShot[]; numbering?: Numbering }) {
   const [open, setOpen] = useState<ShotKey | null>(null);
   const rows: ReadingRow[] = [
     { key: "laydown", label: t`Laydown`, metric: m.laydown },
@@ -852,7 +861,7 @@ function Readings({ m, shots }: { m: TrackResult["metrics"]; shots?: ReadingShot
           <Reading key={r.key} label={r.label} metric={r.metric} feet={r.feet} speed={r.speed} onOpen={shots?.some((s) => s.reading === r.key) ? () => setOpen(r.key) : undefined} />
         ))}
       </dl>
-      {shown && shot && <ReadingFrameSheet title={shown.label} value={readingValue(shown.metric, shown.feet, shown.speed)} shot={shot} onClose={() => setOpen(null)} />}
+      {shown && shot && <ReadingFrameSheet title={shown.label} value={readingValue(shown.metric, shown.feet, shown.speed)} shot={shot} numberOf={(part) => (numbering ? videoFrameNumber(part.t, numbering) : null) ?? part.frame} onClose={() => setOpen(null)} />}
     </>
   );
 }

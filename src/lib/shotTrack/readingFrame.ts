@@ -349,3 +349,31 @@ export function readingShots(output: TraceOutput, source: FrameSource): ReadingS
   }
   return shots;
 }
+
+/** How a frame's time is turned into its number in the video. */
+export interface Numbering {
+  /** The time of every frame the file shows, ascending (`shownTimes` of its sample table), or null where the file's table could not be read. */
+  times: readonly number[] | null;
+  /** The video's own step between frames, seconds, when it was seen. */
+  step: number | null;
+}
+
+/**
+ * The frame's own number in the video, counted from 0 as the video's frames
+ * are listed: the index of the frame shown nearest `t` in the sample table,
+ * else `t` over the video's step. Null when neither is known.
+ */
+export function videoFrameNumber(t: number, numbering: Numbering): number | null {
+  const times = numbering.times;
+  if (times && times.length) {
+    let lo = 0;
+    let hi = times.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (times[mid] < t) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo > 0 && Math.abs(times[lo - 1] - t) <= Math.abs(times[lo] - t) ? lo - 1 : lo;
+  }
+  return numbering.step && numbering.step > 0 ? Math.max(0, Math.round(t / numbering.step)) : null;
+}

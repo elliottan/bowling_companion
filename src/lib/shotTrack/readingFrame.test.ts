@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CROP_MAX, CROP_MIN, cropBox, isEstimated, pickFrame, readingShots, speedStretch, type Ok } from "./readingFrame";
+import { CROP_MAX, CROP_MIN, cropBox, isEstimated, pickFrame, readingShots, speedStretch, videoFrameNumber, type Ok } from "./readingFrame";
 import { laneU } from "./laneModel";
 import { trace, type TraceDebug, type TraceOutput } from "./pipeline";
 import { roughMarks, standardShot, syntheticSource } from "./syntheticSource";
@@ -260,3 +260,21 @@ describe("a traced synthetic shot", () => {
     }
   });
 }, 60_000);
+
+describe("videoFrameNumber", () => {
+  const times = [0, 0.1, 0.2, 0.3, 0.4];
+  it("is the index of the frame the file shows nearest the time, counted from 0", () => {
+    expect(videoFrameNumber(0, { times, step: null })).toBe(0);
+    expect(videoFrameNumber(0.21, { times, step: 0.5 })).toBe(2);
+    expect(videoFrameNumber(0.26, { times, step: null })).toBe(3);
+    expect(videoFrameNumber(9, { times, step: null })).toBe(4);
+    expect(videoFrameNumber(0.25, { times: [0, 0.5], step: null })).toBe(0);
+  });
+
+  it("falls back to the time over the video's own step, and to nothing without either", () => {
+    expect(videoFrameNumber(3.9, { times: null, step: 1 / 60 })).toBe(234);
+    expect(videoFrameNumber(3.9, { times: [], step: 1 / 60 })).toBe(234);
+    expect(videoFrameNumber(-1, { times: null, step: 0.1 })).toBe(0);
+    expect(videoFrameNumber(3.9, { times: null, step: null })).toBeNull();
+  });
+});

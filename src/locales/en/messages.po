@@ -5363,7 +5363,7 @@ msgstr "VAL"
 msgid "VAL angle"
 msgstr "VAL angle"
 
-#. Caption of a picture from the shot tracer: which picture of the video it is, counted from the first one the tracer read, and the seconds into the video. Not a bowling frame
+#. Caption of a picture from the shot tracer: which picture of the video it is, counted from 0 as the video's frames are listed, and the seconds into the video. Not a bowling frame
 #: src/components/ReadingFrameSheet.tsx
 msgid "Video frame {n} at {time} s"
 msgstr "Video frame {n} at {time} s"

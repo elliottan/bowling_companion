@@ -14,6 +14,12 @@ import { ShotTracerView } from "./ShotTracerView";
 const readVideoFrames = vi.hoisted(() => vi.fn());
 const scanVideo = vi.hoisted(() => vi.fn());
 vi.mock("../shotTracer/videoFrames", () => ({ readVideoFrames, scanVideo }));
+/** The file's sample table (`readVideoTrack`): by default the file cannot be read, as the test's stand-in file cannot. */
+const track = vi.hoisted(() => ({ read: vi.fn() }));
+vi.mock("../lib/shotTrack/mp4", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../lib/shotTrack/mp4")>()),
+  readVideoTrack: track.read
+}));
 /** The search for the ball in a part's frames (`findBall`): not seen unless a test says. */
 const NOT_SEEN = { seen: null, earlier: null, candidates: 0, why: "no candidates" };
 const ballSearch = vi.hoisted(() => vi.fn());
@@ -247,6 +253,8 @@ describe("ShotTracerView", () => {
     // jsdom draws nothing; the picture's effect only needs a null context.
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
     vi.spyOn(console, "info").mockImplementation(() => {});
+    track.read.mockReset();
+    track.read.mockRejectedValue(new Error("not an mp4"));
     readVideoFrames.mockReset();
     readVideoFrames.mockImplementation(async (_f: Blob, _p: unknown, p: { from: number; to: number; fps: number }) => fakeVideo(p));
     scanVideo.mockReset();
@@ -494,6 +502,9 @@ describe("ShotTracerView", () => {
     { reading: "entrySpeed", estimated: true, parts: [part(70, 2.33, 45.5)] }
   ];
 
+  /** The file shows a frame every 10 ms from 0 s: a frame's number is its time in centiseconds. */
+  const centis = () => track.read.mockResolvedValue({ samples: Array.from({ length: 400 }, (_, i) => ({ t: i / 100 })) });
+
   async function resultWithShots(shots: ReadingShot[] | null = SHOTS) {
     await chooseVideo();
     find()!.reply(found());
@@ -503,6 +514,7 @@ describe("ShotTracerView", () => {
   }
 
   it("opens the frame a reading was taken on when its row is tapped, and only rows that have one are buttons", async () => {
+    centis();
     await resultWithShots();
     expect(screen.getByRole("button", { name: "Laydown, show the frame" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Breakpoint, show the frame" })).toBeTruthy();
@@ -513,8 +525,8 @@ describe("ShotTracerView", () => {
     const sheet = await screen.findByRole("dialog", { name: "Laydown" });
     // The reading, then the frame's number and time, with the ball, the cross and the board's line over it.
     expect(within(sheet).getByText("Board 23.8")).toBeTruthy();
-    expect(within(sheet).getByText("Video frame 13 at 0.40 s")).toBeTruthy();
-    expect(within(sheet).getByRole("img", { name: "Video frame 13 at 0.40 s" })).toBeTruthy();
+    expect(within(sheet).getByText("Video frame 40 at 0.40 s")).toBeTruthy();
+    expect(within(sheet).getByRole("img", { name: "Video frame 40 at 0.40 s" })).toBeTruthy();
     expect(within(sheet).getAllByTestId("reading-ball")).toHaveLength(1);
     expect(within(sheet).getAllByTestId("reading-cross")).toHaveLength(1);
     expect(within(sheet).getAllByTestId("reading-line")).toHaveLength(1);
@@ -550,23 +562,25 @@ describe("ShotTracerView", () => {
   });
 
   it("shows the first and the last frame of the stretch a speed was measured over", async () => {
+    centis();
     await resultWithShots();
     fireEvent.click(screen.getByRole("button", { name: "Launch speed, show the frame" }));
     const sheet = await screen.findByRole("dialog", { name: "Launch speed" });
     expect(within(sheet).getByText("17.4 mph")).toBeTruthy();
-    expect(within(sheet).getByText("First frame: video frame 14 at 0.43 s, 1.1 ft down the lane")).toBeTruthy();
-    expect(within(sheet).getByText("Last frame: video frame 31 at 1.00 s, 14.5 ft down the lane")).toBeTruthy();
+    expect(within(sheet).getByText("First frame: video frame 43 at 0.43 s, 1.1 ft down the lane")).toBeTruthy();
+    expect(within(sheet).getByText("Last frame: video frame 100 at 1.00 s, 14.5 ft down the lane")).toBeTruthy();
     expect(within(sheet).getAllByTestId("reading-ball")).toHaveLength(2);
     expect(within(sheet).getByText(/the line is the row where its distance is read/)).toBeTruthy();
     expect(within(sheet).queryByTestId("reading-estimated")).toBeNull();
   });
 
   it("shows one frame for a speed read over one, and says an estimated speed is", async () => {
+    centis();
     await resultWithShots();
     fireEvent.click(screen.getByRole("button", { name: "Entry speed, show the frame" }));
     const sheet = await screen.findByRole("dialog", { name: "Entry speed" });
     expect(within(sheet).getAllByTestId("reading-ball")).toHaveLength(1);
-    expect(within(sheet).getByText("Video frame 71 at 2.33 s")).toBeTruthy();
+    expect(within(sheet).getByText("Video frame 233 at 2.33 s")).toBeTruthy();
     expect(within(sheet).getByTestId("reading-estimated").textContent).toMatch(/seen over only part of this stretch/);
   });
 
@@ -577,6 +591,14 @@ describe("ShotTracerView", () => {
     expect(within(sheet).getAllByTestId("reading-ball")).toHaveLength(1);
     expect(within(sheet).queryByTestId("reading-cross")).toBeNull();
     expect(within(sheet).queryByTestId("reading-line")).toBeNull();
+  });
+
+  it("counts a frame by the video's own step when the file's table can't be read", async () => {
+    await resultWithShots();
+    fireEvent.click(screen.getByRole("button", { name: "Laydown, show the frame" }));
+    const sheet = await screen.findByRole("dialog", { name: "Laydown" });
+    // The stand-in video steps 1/60 s: 0.4 s is its frame 24.
+    expect(within(sheet).getByText("Video frame 24 at 0.40 s")).toBeTruthy();
   });
 
   it("makes no row a button when the trace kept no frames", async () => {
