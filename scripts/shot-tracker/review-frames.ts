@@ -8,25 +8,22 @@
  * Driven by `review-auto.ts`, which runs both traces.
  */
 import { join } from "node:path";
-import { apply, downAt, intersect, lineThrough, mapLine } from "../../src/lib/shotTrack/homography";
-import { CONTACT_IN, handedBoard, imageToLane, laneU } from "../../src/lib/shotTrack/laneModel";
+import { apply, downAt } from "../../src/lib/shotTrack/homography";
+import { handedBoard, laneU } from "../../src/lib/shotTrack/laneModel";
+import { followedPins, type Ok, PIN_V, pickFrame as pick, type Pick, READINGS, type ReadingName } from "../../src/lib/shotTrack/readingFrame";
 import { LANE_BOARDS } from "../../src/lib/laneGeometry";
 import type { TraceOutput } from "../../src/lib/shotTrack/pipeline";
 import { uAtColumn } from "../../src/lib/shotTrack/release";
-import type { BallSighting, Mat3, Metric, TrackResult } from "../../src/lib/shotTrack/types";
+import type { Mat3, Metric, TrackResult } from "../../src/lib/shotTrack/types";
 import type { Handedness } from "../../src/types/bowling";
 import { loadColorFrame } from "./clip";
 import { fromRgb, line as rawLine, text, type Canvas, type Color } from "./draw";
 import { boxOf, enlarge, jpg, MAX_W, ring, thin } from "./review-lib";
 import type { Truth } from "./truth";
 
-export const READINGS = ["laydown", "touchdown", "arrows", "breakpoint", "pins"] as const;
-export type ReadingName = (typeof READINGS)[number];
 
 /** Boards apart that count as differing. */
 export const DIFFERS = 0.5;
-/** Where the board at the pins is read: the head pin's contact row. */
-const PIN_V = 60 - CONTACT_IN / 12;
 /** The least size of a board in the enlarged picture, pixels, where the width cap allows. */
 const BOARD_PX = 8;
 /** The least enlargement, so a 25 board crop is readable and the 1 px drawing stays thin against the picture. */
@@ -40,21 +37,6 @@ const TICK: Color = [0, 230, 230];
 const BALL: Color = [255, 230, 0];
 const CROSS: Color = [255, 0, 220];
 const WHITE: Color = [255, 255, 255];
-
-interface Ok { result: TrackResult; debug: TraceOutput["debug"] }
-
-/** The frame one trace took one reading on. */
-interface Pick {
-  frame: number;
-  /** The ball as the tracer saw it on that frame (a sighting's circle, or a followed disc), frame pixels. */
-  disc: { cx: number; cy: number; r: number } | null;
-  /** The ball's position on the lane as sighted on that frame, handed boards and feet. */
-  ball: { board: number; feet: number } | null;
-  metric: Metric;
-  /** Where the reading is taken: its distance, feet. */
-  feet: number;
-  notes: string[];
-}
 
 export interface FrameSide {
   value: number | null;
@@ -80,109 +62,6 @@ export interface FrameCase {
 }
 
 const isOk = (o: TraceOutput): o is TraceOutput & { result: TrackResult } => o.result.ok;
-
-/** Lane u under the foul line's point straight below a disc's centre, as release.ts reads it. */
-function footU(H: Mat3, cx: number): number {
-  const foul = mapLine(H, [0, 1, 0]);
-  const y = -(foul[0] * cx + foul[2]) / foul[1];
-  return imageToLane(H, { x: cx, y }).u;
-}
-
-/** Lane u where the line from a disc's center straight down in the lane meets the foul line, as `atFoulLineTime` reads it. */
-function footDownU(H: Mat3, d: { cx: number; cy: number }): number {
-  const c = { x: d.cx, y: d.cy };
-  const dn = downAt(H, c);
-  const p = intersect(lineThrough(c, { x: c.x + dn.x, y: c.y + dn.y }), mapLine(H, [0, 1, 0]));
-  return p ? imageToLane(H, p).u : NaN;
-}
-
-/**
- * The board at the pins as `pipeline.ts` read it by following the ball past
- * its last sighting (`debug.pinsRead`: the frame it is read on, the last
- * before the ball touches a pin, and the frames the line through the boards
- * used), or null when the reading came from the fitted sightings instead.
- */
-function followedPins(run: Ok, hand: Handedness): { u: number; frame: number; frames: number[] } | null {
-  const read = run.debug.pinsRead;
-  const target = run.result.metrics.pins.value;
-  if (!read || target === null || Math.abs(handedBoard(read.u, hand) - target) > 1e-6) return null;
-  return read;
-}
-
-function pick(name: ReadingName, run: Ok, hand: Handedness, otherFeet: number | null, who: string): Pick | null {
-  const { result, debug } = run;
-  const m = result.metrics;
-  const sights = result.sightings.filter((s) => !s.airborne);
-  if (!sights.length) return null;
-  const nearest = (feet: number) => sights.reduce((b, s) => (Math.abs(s.v - feet) < Math.abs(b.v - feet) ? s : b), sights[0]);
-  const geo = (i: number) => debug.geometry[i - debug.first]?.H ?? null;
-  const asSighted = (s: BallSighting) => ({ board: handedBoard(s.u, hand), feet: s.v });
-  const notes: string[] = [];
-  const metric: Metric = m[name];
-  const missing = metric.value === null;
-  if (missing) notes.push(`${who} has no ${name} reading; the frame shown is only where the other trace's reading sits`);
-
-  if (name === "laydown") {
-    const rel = debug.release;
-    if (rel) {
-      const frame = Math.round(rel.at);
-      const entry = rel.track.find((d) => d.frame === frame) ?? rel.track.reduce((b, d) => (Math.abs(d.frame - rel.at) < Math.abs(b.frame - rel.at) ? d : b), rel.track[0]);
-      const H = geo(entry.frame);
-      if (rel.by === "time") {
-        notes.push(`read where the ball's timing (its first distance on the lane over its speed) puts it on the foul line, fractional frame ${rel.at.toFixed(2)}, shown on frame ${entry.frame}`);
-        if (rel.image) notes.push(`cross-check: the picture alone (where the ball's bottom ${rel.image.reached ? "meets the foul line's row" : "comes lowest"}) gives frame ${rel.image.at.toFixed(2)} and board ${handedBoard(rel.image.u, hand).toFixed(2)}`);
-      } else {
-        notes.push(
-          `read from the release follow-back: the ball's bottom ${rel.reached ? "was last on the foul line's row" : "never reached the foul line's row, so it is read where it comes lowest"} at fractional frame ${rel.at.toFixed(2)}, shown on frame ${entry.frame}`
-        );
-      }
-      notes.push("the ball is not a sighting here (hand and body over it): the circle is the disc followed back by its darkness, and its lane position is the foul line point straight below its center in the lane (at right angles to the horizon)");
-      return { frame: entry.frame, disc: entry, ball: H ? { board: handedBoard(rel.by === "time" ? footDownU(H, entry) : footU(H, entry.cx), hand), feet: 0 } : null, metric, feet: 0, notes };
-    }
-    const s = sights[0];
-    notes.push("the laydown did not come from the release follow-back (it could not be followed): it is the fitted path run back to 0 ft, and the frame shown is the first sighting, which is the touchdown, not the laydown");
-    return { frame: s.frame, disc: s, ball: asSighted(s), metric, feet: 0, notes };
-  }
-
-  if (name === "touchdown") {
-    const feet = m.touchdownFeet.value ?? otherFeet ?? sights[0].v;
-    const s = result.touchdownFrame !== null ? (sights.find((x) => x.frame === result.touchdownFrame) ?? sights[0]) : nearest(feet);
-    notes.push(result.touchdownFrame !== null ? `result.touchdownFrame ${result.touchdownFrame}: the first sighting on the lane, at ${s.v.toFixed(1)} ft` : "no touchdown frame in this trace");
-    notes.push(`the reading is the fitted path's board at ${feet.toFixed(1)} ft; the ball's own sighted board on this frame is shown beside it`);
-    return { frame: s.frame, disc: s, ball: asSighted(s), metric, feet, notes };
-  }
-
-  if (name === "arrows" || name === "breakpoint") {
-    const feet = name === "arrows" ? 15 : (m.breakpointFeet.value ?? otherFeet ?? 45);
-    const s = nearest(feet);
-    notes.push(`the sighting nearest ${feet.toFixed(1)} ft is on frame ${s.frame}, at ${s.v.toFixed(1)} ft (${Math.abs(s.v - feet).toFixed(1)} ft from ${feet.toFixed(1)})`);
-    if (name === "arrows") notes.push("the reading is a straight line through the sightings between 10 and 20 ft, taken at 15 ft; the ball's own sighted board on this frame is shown beside it");
-    else notes.push("the breakpoint is the fitted path's furthest point toward the bowler's own gutter");
-    return { frame: s.frame, disc: s, ball: asSighted(s), metric, feet, notes };
-  }
-
-  // pins
-  const last = sights[sights.length - 1];
-  const f = followedPins(run, hand);
-  if (f) {
-    const seenAt = result.sightings.find((x) => x.frame === f.frame);
-    const d = debug.toPins?.find((x) => x.frame === f.frame) ?? seenAt ?? debug.toPins?.[debug.toPins.length - 1] ?? last;
-    const H = geo(d.frame);
-    notes.push(
-      debug.toPins?.length
-        ? `read by following the ball's face past its last sighting (read frame ${last.frame}, ${last.v.toFixed(1)} ft) to read frame ${f.frame}, the last before a pin moves, a line through the boards of read frames ${f.frames.join(", ")} on the head pin's row taken at read frame ${f.frame}`
-        : `read on read frame ${f.frame}, the last before a pin moves: a line through the boards of the sightings on read frames ${f.frames.join(", ")} on the head pin's row taken there`
-    );
-    notes.push(result.pinFrame !== null ? `result.pinFrame ${result.pinFrame} (the rack first seen moving) is ${result.pinFrame - f.frame} frame(s) after the frame shown` : "result.pinFrame is not set (the rack was never seen to move, the bowler's arm is over it)");
-    return { frame: d.frame, disc: d, ball: H ? { board: handedBoard(uAtColumn(H, d.cx, PIN_V), hand), feet: PIN_V } : null, metric, feet: PIN_V, notes };
-  }
-  const short = 60 - last.v;
-  notes.push(`the last sighting is on frame ${last.frame}, at ${last.v.toFixed(1)} ft`);
-  if (short > 0.5) notes.push(`the reading comes from the fitted path / last sightings beyond the last sighting: the ball was last sighted ${short.toFixed(1)} ft short of the pins (60 ft)`);
-  else notes.push("the last sighting is within half a foot of the pins");
-  notes.push(result.pinFrame !== null ? `result.pinFrame ${result.pinFrame} (the rack first seen moving) is ${result.pinFrame - last.frame} frame(s) after the frame shown` : "result.pinFrame is not set (the rack was never seen to move)");
-  return { frame: last.frame, disc: last, ball: asSighted(last), metric, feet: PIN_V, notes };
-}
 
 /** The reading's lane u: the cross is placed at it. */
 function renderPick(color: Canvas, H: Mat3, p: Pick, hand: Handedness): Canvas {
@@ -618,3 +497,5 @@ export function autoFrames(t: FrameView, auto: TraceOutput, dir: string, picDir:
   }
   return out;
 }
+
+export { READINGS, type ReadingName };
