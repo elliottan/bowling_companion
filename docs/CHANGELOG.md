@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.115.1: The shot tracer's ball circle fits the ball near the pins (2026-11-20)
+
+- In Settings, Labs: far down the lane, the shot tracer's yellow ring was drawn
+  a little too big, and at the pins it could sit low on the ball. It now keeps
+  the ball's true size all the way to the pins and holds to the bottom of the
+  ball, which stays clear on the dry back end when the top fades into the dark
+  pit. Readings at the pins move by up to half a board.
+- A ball right at the pins that was dropped as "not seen" for a frame is now
+  kept, so the strip of frames at the pins has fewer gaps.
+
 ## 0.115.0: Tap a reading to see the frame it came from (2026-11-20)
 
 - In Settings, Labs: on the shot tracer's result, each reading that has a

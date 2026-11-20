@@ -100,7 +100,7 @@ IMG_1996 in headless Chromium four runs gave the same window and laydown
 - A reading's row on the result opens the frame it was taken on (the owner: "good for review purposes"). `lib/shotTrack/readingFrame.ts` holds the choice of frame the review pictures made (`pickFrame`, moved out of `review-frames.ts`, which imports it) and `readingShots`, run at the end of `traceTail` while the frames are still there: they go to the pool's last job, so the screen cannot cut them later. Each reading keeps one gray crop, 72 to 240 px square (`cropBox`), with the ball, the cross and the board's line already in the crop's pixels; a speed keeps the first and last sighting of its stretch (`speedStretch`). About 9 crops, under 0.6 MB, on `TraceOutput.shots`. `ReadingFrameSheet` (a `FormSheet`, portalled out of the tab) draws them.
 - An estimated reading (`isEstimated`: its state, or no follow to the foul line, no touchdown frame, the nearest sighting over a foot from its row, a ball last seen short of the pins) shows the nearest frame it was seen on and puts the cross on the fitted path instead of under the ball. No wider view: only the crop is kept.
 
-### After 0.115.0, not released (2026-11-20): the ball's size at the far end
+### 0.115.1 (2026-11-20): the ball's size at the far end
 
 - The owner's marks: shot-02 frames 211 to 215 (the ball's left and bottom edge 1.5 to 2 px inside the circle), shot-05 frame 384 (the circle 8 to 10% large), shot-01 frame 231 (not seen, the ball plain against the pins; its base reads board 17.0).
 - Not the lane's scale: on shot-02 the next lane's rack (7 pins 8.55 px apart a 6 in step) and a pin's height (21.5 px for 15 in) put the far end's width within 1 to 3% of the lane mapping's. Not `carryFace`.
