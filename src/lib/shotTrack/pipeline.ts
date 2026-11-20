@@ -2,7 +2,7 @@ import type { Handedness } from "../../types/bowling";
 import { associate } from "./associate";
 import { laneRoi, medianBackground, steady, type Background, type Roi } from "./background";
 import { gridFrames, readStep } from "./framePick";
-import { carryFace, findCandidates, refineCircle, type Candidate, type CircleFit } from "./ballDetect";
+import { ARC_MIN, ARC_REACH, arcFit, carryFace, findCandidates, FREE_RADIUS_TOLERANCE, refineCircle, type Candidate, type CircleFit } from "./ballDetect";
 import { calibrationReport, type CalibrationReport } from "./calibrationCheck";
 import { fitCalibration, focalFromPlane, type CalibrationFit, type CalMark } from "./calibrate";
 import { snapEdge, snapMarks, type MarkSnap } from "./edgeSnap";
@@ -11,7 +11,7 @@ import type { Point } from "./types";
 import { median } from "./image";
 import { CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane, laneU } from "./laneModel";
 import { FTS_TO_MPH, fitMotion, fitPath, handedMetrics, pathU, pinContactFeet, timeAtFeet, withoutIslands, type MotionPoint, type ReadOff } from "./pathFit";
-import { bodyAtRelease, decideHand, driftCue, hookCue, pinsCue, releaseCue, type HandCue, type HandFound } from "./handFind";
+import { bodyAtRelease, decideHand, driftCue, hookAgainstDrift, hookCue, lineCue, pinsCue, releaseCue, type HandCue, type HandFound } from "./handFind";
 import { laneTrack, type FrameLane, type LaneTrack, type LaneTrackOptions } from "./laneTrack";
 import { atFoulLineTime, followForward, overFoulLine, uAtColumn, type FollowPrediction, type OverFoulLine, type ReleaseFrame } from "./release";
 import { followNear, nearSeeds } from "./nearFollow";
@@ -135,8 +135,31 @@ export const CLEAN_WEIGHT = 0.8;
 export const CARRY_FRAMES = 6;
 /** ...and looked for within this share of a radius of where the fit put the ball. */
 export const CARRY_REACH = 0.4;
-/** A fixed-radius circle with fewer than this share of its rays on the rim is cast again from where the ball is expected (`predictCenter`). */
-export const WEAK_RIM = 0.35;
+/**
+ * Clean circles this far down the lane or more are left out of the ball's own
+ * size (`ownScale`): from a camera behind the bowler the rack stands behind
+ * the ball in the picture from about here on, and a pin's edge beside the
+ * ball widens a free fit. Measured on four clips: from 15 to 40 ft the free
+ * fits run 0.94 to 0.97 of the lane's size; from 45 ft on 0.93 to 1.03, and
+ * 1.06 to 1.16 in front of the pins (shot-01, shot-05, shot-06 larger).
+ */
+export const RACK_FT = 45;
+/** How many of the last clean circles the ball's own size is the median of. */
+export const OWN_SIZE_N = 8;
+
+/**
+ * The ball's own size against the lane's prediction: the median of the
+ * ratios of its last `OWN_SIZE_N` clean circles, 1 with fewer than three.
+ * The lane predicts a disk on the lane as wide as the ball; the ball's rim
+ * measures 0.93 to 0.98 of it on every clip (the edge's peak sits inside the
+ * blur), and a ball 4.25 in above the lane seen from behind is within 1% of
+ * that disk, so the measured ratio is what a covered ball's circle is drawn
+ * at.
+ */
+export function ownScale(ratios: number[]): number {
+  const last = ratios.slice(-OWN_SIZE_N);
+  return last.length >= 3 ? median(last) : 1;
+}
 
 /**
  * Where the ball's center is expected on `frame`: a straight line in the
@@ -529,13 +552,17 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
   };
   // Each circle placed so far, for where the next is expected (`predictCenter`).
   const placed: { frame: number; x: number; y: number }[] = [];
+  // The ball's clean circles' size against the lane's (`ownScale`).
+  const ratios: number[] = [];
   for (const c0 of chosen) {
     const g = geoOf(c0.frame);
     const f = source.frame(c0.frame);
     let fit = refineCircle(f, g.H, { x: c0.x, y: c0.y }, c0.r);
     if (!fit) continue;
-    if (!fit.fixed && fit.weight >= CLEAN_WEIGHT) clean = { frame: c0.frame, f, H: g.H, fit, rExp: rAt(g.H, fit) };
-    else if (clean && c0.frame - clean.frame <= CARRY_FRAMES) {
+    if (!fit.fixed && fit.weight >= CLEAN_WEIGHT) {
+      clean = { frame: c0.frame, f, H: g.H, fit, rExp: rAt(g.H, fit) };
+      if (contactPoint(g.H, { x: fit.cx, y: fit.cy }, fit.r).v < RACK_FT) ratios.push(fit.r / clean.rExp);
+    } else if (clean && c0.frame - clean.frame <= CARRY_FRAMES) {
       // Too few of its rim's edges on the circle (a leg or a hand over it):
       // placed by its face from the last clean sighting, at that sighting's
       // size scaled as the lane scales it here (`carryFace`).
@@ -543,18 +570,24 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
       const m = carryFace(clean.f, clean.fit, f, { x: fit.cx, y: fit.cy }, r, CARRY_REACH * r);
       if (m) fit = { ...fit, cx: m.cx, cy: m.cy, r, carried: clean.frame };
     }
-    if (fit.fixed && fit.carried === undefined && fit.weight < WEAK_RIM) {
-      // Few of its rim's edges on the circle and no face to carry: the rays
-      // were cast from the detector's blob, which over the rack takes in a
-      // pin's dark neck beside the ball, and the circle slid toward it
-      // (2026-11-19, the owner on shot-01 frame 230: a quarter radius right
-      // and low). Cast again from where the ball's last placed circles put
-      // it, and that fit is kept when its rays find more of the rim and it
-      // sits nearer where the ball was expected.
-      const at = predictCenter(placed, c0.frame);
-      const again = at ? refineCircle(f, g.H, at, fit.r) : null;
-      const off = (q: { cx: number; cy: number }) => (at ? Math.hypot(q.cx - at.x, q.cy - at.y) : Infinity);
-      if (again && again.weight > fit.weight && off(again) < off(fit)) fit = again;
+    if (fit.fixed) {
+      // The rim found on too few rays to free the radius: a leg or a hand
+      // over the ball, or a blurred ball among the pins. Its size is known
+      // (its own, from its clean circles), so whatever part of the rim shows
+      // fixes its center (`arcFit`), looked for round where it was expected:
+      // its face's match when carried, else where its last circles put it.
+      // The rays' fit before slid toward a pin's dark neck beside the ball
+      // and onto the lane's radius, too big for the ball (2026-11-20, the
+      // owner on shot-01 frames 230 and 233 and shot-04 frame 109). A rim
+      // seen round two thirds of the ball sets its own radius when within
+      // `FREE_RADIUS_TOLERANCE` of that size.
+      const rOwn = ownScale(ratios) * rAt(g.H, fit);
+      const at = fit.carried === undefined ? (predictCenter(placed, c0.frame) ?? { x: fit.cx, y: fit.cy }) : { x: fit.cx, y: fit.cy };
+      const a = arcFit(f, downAt(g.H, at), at, rOwn, ARC_REACH * rOwn);
+      if (a && a.support >= ARC_MIN) {
+        const free = a.free && Math.abs(a.free.r / rOwn - 1) <= FREE_RADIUS_TOLERANCE ? a.free : null;
+        fit = free ? { ...fit, cx: free.cx, cy: free.cy, r: free.r } : { ...fit, cx: a.cx, cy: a.cy, r: rOwn };
+      }
     }
     placed.push({ frame: c0.frame, x: fit.cx, y: fit.cy });
     debug.circles.set(c0.frame, fit);
@@ -761,8 +794,10 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
     const v = Math.min(vPast(source.frame(i).t), PIN_V);
     const u = uAtColumn(g.H, cx, v);
     const contact = apply(g.H, { x: u, y: v });
-    const r = expectedRadiusPx(g.H, u, v);
-    return { cy: contact.y - r * downAt(g.H, contact).y, r };
+    // The ball's own size, as its covered circles are drawn (`ownScale`).
+    const r = ownScale(ratios) * expectedRadiusPx(g.H, u, v);
+    const down = downAt(g.H, contact);
+    return { cy: contact.y - r * down.y, r, down };
   };
   // The first frame on which the ball touches a pin: the ball reaching the
   // first pin on its path, or the rack seen moving, whichever is first.
@@ -883,9 +918,12 @@ export function handCues(m: TrackMetrics, hand: Handedness, path: PathModel, see
   if (body) cues.push(releaseCue(body.ballU, body.bodyU));
   const foul = u(m.laydown);
   const arrows = u(m.arrows);
-  if (foul !== null && arrows !== null) cues.push(driftCue(foul, arrows));
-  const hook = hookCue(path, seenTo);
+  const drift = foul !== null && arrows !== null ? driftCue(foul, arrows) : null;
+  if (drift) cues.push(drift);
+  const hook = hookAgainstDrift(hookCue(path, seenTo), drift);
   if (hook) cues.push(hook);
+  const line = arrows === null ? null : lineCue(arrows);
+  if (line) cues.push(line);
   const pins = u(m.pins);
   const pc = pins === null ? null : pinsCue(pins);
   if (pc) cues.push(pc);

@@ -562,3 +562,144 @@ export function carryFace(f0: GrayFrame, from: { cx: number; cy: number; r: numb
   }
   return best.score >= CARRY_MIN ? best : null;
 }
+
+/** An arc fit must find the rim round at least this share of the ball's upper side to place it. */
+export const ARC_MIN = 0.3;
+
+/** How far from where it was expected `arcFit` is asked to look for a covered or blurred ball's center, in its radii. */
+export const ARC_REACH = 0.3;
+
+export interface ArcFit {
+  cx: number;
+  cy: number;
+  /** The circle fitted to the rim points alone, radius free, when they go round two thirds of the upper side or more; else null. */
+  free: { cx: number; cy: number; r: number } | null;
+  /** Share of the upper side's directions with a rim point on the circle. */
+  support: number;
+}
+
+/** How much a center at the edge of `arcFit`'s reach loses against one at its prior: the ball's run is smooth, a pin's edge beside it is not. */
+export const ARC_PULL = 0.5;
+
+/** Directions round the ball's upper side `arcFit` counts the rim in. */
+const ARC_BINS = 48;
+
+/**
+ * The ball's center from whatever part of its rim shows, its size known
+ * (the owner, 2026-11-20: "balls are completely round, so if you can align a
+ * part of the circle it should be easy to get the circle right"). The edge
+ * pixels near `prior` (the gradient's peak across the edge, to a fraction of
+ * a pixel) over the top and sides of the ball (the bottom meets its mirror
+ * image); each votes for the centers one radius `r` behind it, against its
+ * gradient, and only where its gradient points the way the ball's rim would:
+ * out of the ball where the ball is darker than what is round it. A center
+ * is scored by the rim it explains, one vote per direction round it (the
+ * best edge there, none counted more than the typical one, so a pin's strong
+ * edge does not outvote the rest of the rim), falling off gently with its
+ * distance from `prior`, within `reach`. A pin's edge, a leg's or the blur
+ * round the ball is a line or a band, not an arc of this radius: it explains
+ * one or two directions of any one center. The best center is refined by
+ * least squares on its rim points. `free` is the circle those points give
+ * alone, radius free, when they cover two thirds of the directions. Null when too little
+ * rim is found. Pure; the result does not depend on `prior` beyond the
+ * window and the gentle pull.
+ */
+export function arcFit(f: GrayFrame, down: Point, prior: Point, r: number, reach: number): ArcFit | null {
+  const upper = (dx: number, dy: number) => dx * down.x + dy * down.y <= 0.17 * Math.hypot(dx, dy);
+  // The ball's own face: what the inner side of its rim looks like.
+  const inner: number[] = [];
+  for (let a = 0; a < 16; a++) {
+    const th = (2 * Math.PI * a) / 16;
+    for (const k of [0, 0.2, 0.4]) {
+      const v = sample(f, prior.x + k * r * fdlibm.cos(th), prior.y + k * r * fdlibm.sin(th));
+      if (Number.isFinite(v)) inner.push(v);
+    }
+  }
+  if (inner.length < 8) return null;
+  const face = median(inner);
+  // Edge points: pixels whose gradient is a peak across the edge, placed to a fraction of a pixel along it.
+  const R = Math.ceil(r + reach + 1.5);
+  const px = Math.round(prior.x);
+  const py = Math.round(prior.y);
+  const grad = (x: number, y: number) => ({
+    gx: (sample(f, x + 1, y) - sample(f, x - 1, y)) / 2,
+    gy: (sample(f, x, y + 1) - sample(f, x, y - 1)) / 2
+  });
+  const edges: { x: number; y: number; nx: number; ny: number; m: number }[] = [];
+  for (let y = py - R; y <= py + R; y++) {
+    for (let x = px - R; x <= px + R; x++) {
+      const dpx = x - prior.x;
+      const dpy = y - prior.y;
+      const dist = Math.hypot(dpx, dpy);
+      if (dist > r + reach + 1.5) continue;
+      const { gx, gy } = grad(x, y);
+      const m = Math.hypot(gx, gy);
+      if (!(m >= 2)) continue;
+      const nx = gx / m;
+      const ny = gy / m;
+      const g0 = grad(x - nx, y - ny);
+      const g1 = grad(x + nx, y + ny);
+      const m0 = Math.hypot(g0.gx, g0.gy);
+      const m1 = Math.hypot(g1.gx, g1.gy);
+      if (!(m >= m0 && m >= m1)) continue;
+      const off = parabolaPeak(m0, m, m1);
+      const ex = x + off * nx;
+      const ey = y + off * ny;
+      // Out of the ball is the side that looks less like its face: a rim
+      // against a white pin rises outward, one against the dark between two
+      // pins falls; an edge with the face on neither side is not its rim.
+      const lo = sample(f, ex - 1.5 * nx, ey - 1.5 * ny);
+      const hi = sample(f, ex + 1.5 * nx, ey + 1.5 * ny);
+      if (!Number.isFinite(lo) || !Number.isFinite(hi)) continue;
+      const out = Math.abs(hi - face) >= Math.abs(lo - face) ? 1 : -1;
+      if (Math.min(Math.abs(lo - face), Math.abs(hi - face)) > 0.5 * Math.abs(hi - lo)) continue;
+      edges.push({ x: ex, y: ey, nx: out * nx, ny: out * ny, m });
+    }
+  }
+  if (edges.length < 4) return null;
+  const typical = median(edges.map((e) => e.m));
+  const usable = edges.filter((e) => e.m >= typical / 2).map((e) => ({ ...e, w: Math.min(e.m, 2 * typical) }));
+  const rimOf = (cx: number, cy: number) => {
+    const per = new Map<number, { x: number; y: number; s: number }>();
+    for (const e of usable) {
+      const dx = e.x - cx;
+      const dy = e.y - cy;
+      const d = Math.hypot(dx, dy);
+      if (!(d > 0) || !upper(dx, dy)) continue;
+      const off = Math.abs(d - r);
+      if (off >= 1) continue;
+      // The way out of the ball must point away from the center, within about 35 degrees.
+      const cosA = (e.nx * dx + e.ny * dy) / d;
+      if (cosA < 0.82) continue;
+      const s = e.w * (1 - off) * ((cosA - 0.82) / 0.18);
+      const bin = Math.floor(((fdlibm.atan2(dy, dx) + Math.PI) / (2 * Math.PI)) * ARC_BINS) % ARC_BINS;
+      if (s > (per.get(bin)?.s ?? 0)) per.set(bin, { x: e.x, y: e.y, s });
+    }
+    return per;
+  };
+  let top = { x: prior.x, y: prior.y, s: -Infinity };
+  const n = Math.ceil(reach / 0.25);
+  for (let j = -n; j <= n; j++) {
+    for (let i = -n; i <= n; i++) {
+      const q = ((i * 0.25) ** 2 + (j * 0.25) ** 2) / (reach * reach);
+      if (q > 1) continue;
+      let s = 0;
+      for (const v of rimOf(prior.x + i * 0.25, prior.y + j * 0.25).values()) s += v.s;
+      s *= 1 - ARC_PULL * q;
+      if (s > top.s) top = { x: prior.x + i * 0.25, y: prior.y + j * 0.25, s };
+    }
+  }
+  // Directions round the upper side that a rim can show in.
+  let bins = 0;
+  for (let b = 0; b < ARC_BINS; b++) {
+    const th = ((b + 0.5) / ARC_BINS) * 2 * Math.PI - Math.PI;
+    if (upper(fdlibm.cos(th), fdlibm.sin(th))) bins++;
+  }
+  const on = [...rimOf(top.x, top.y).values()];
+  if (on.length < Math.max(4, ARC_MIN * bins)) return null;
+  const c = fitCircle(on, top, r, false);
+  const at = Math.hypot(c.cx - prior.x, c.cy - prior.y) <= reach ? c : { cx: top.x, cy: top.y };
+  const final = [...rimOf(at.cx, at.cy).values()];
+  const free = final.length >= (2 / 3) * bins ? fitCircle(final, { x: at.cx, y: at.cy }, r, true) : null;
+  return { cx: at.cx, cy: at.cy, free: free && Number.isFinite(free.r) && free.r > 0 ? free : null, support: final.length / bins };
+}

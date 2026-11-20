@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { gridFrames, LANE_EVERY, readStep } from "./framePick";
-import { predictCenter, PREDICT_FRAMES, trace } from "./pipeline";
+import { OWN_SIZE_N, ownScale, predictCenter, PREDICT_FRAMES, trace } from "./pipeline";
 import { multiply, normalize } from "./homography";
 import { PIN_HIT_FT, timeAt, truthAt } from "./synthetic";
 import { roughMarks, standardShot, syntheticSource, truthBoard, truthBoardAtPins, truthSpeedMph } from "./syntheticSource";
@@ -215,5 +215,18 @@ describe("predictCenter", () => {
     expect(predictCenter(old, 3 + PREDICT_FRAMES + 1)).toBeNull();
     // Only circles before the frame count.
     expect(predictCenter(old, 2)).toBeNull();
+  });
+});
+
+describe("ownScale", () => {
+  it("is the median of the ball's last clean circles against the lane's size", () => {
+    expect(ownScale([0.97, 0.95, 0.96])).toBeCloseTo(0.96, 9);
+    // Only the last OWN_SIZE_N count: an early odd one drops out.
+    expect(ownScale([1.3, 1.3, 1.3, ...Array.from({ length: OWN_SIZE_N }, () => 0.94)])).toBeCloseTo(0.94, 9);
+  });
+
+  it("is the lane's own size with fewer than three", () => {
+    expect(ownScale([])).toBe(1);
+    expect(ownScale([0.9, 0.92])).toBe(1);
   });
 });
