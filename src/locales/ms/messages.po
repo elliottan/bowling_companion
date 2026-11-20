@@ -401,6 +401,10 @@ msgstr "{label}, {word}"
 msgid "{label}, opens in a new tab"
 msgstr "{label}, dibuka dalam tab baharu"
 
+#: src/views/ShotTracerView.tsx
+msgid "{label}, show the frame"
+msgstr "{label}, tunjukkan frame"
+
 #: src/components/LayoutEditor.tsx
 msgid "{label}, what it does"
 msgstr "{label}, fungsinya"
@@ -1954,6 +1958,14 @@ msgstr "Anggaran"
 msgid "Estimated average"
 msgstr "Anggaran purata"
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball was seen over only part of this stretch."
+msgstr "Anggaran: bola hanya kelihatan pada sebahagian daripada jarak ini."
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball wasn't seen at this spot, so the cross is where the fitted path crosses it, on the nearest frame where the ball was seen."
+msgstr "Anggaran: bola tidak kelihatan di titik ini, jadi tanda silang berada di tempat laluan yang dipadankan melaluinya, pada frame terdekat yang menunjukkan bola."
+
 #: src/components/SessionFilterBar.tsx
 msgid "Event"
 msgstr "Jenis sesi"
@@ -2166,6 +2178,11 @@ msgstr "Balingan pertama pada rak penuh yang menjadi strike."
 #: src/components/statsMetrics.ts
 msgid "First balls that hit the pocket."
 msgstr "Balingan pertama yang mengenai pocket."
+
+#. Caption of the first picture of the stretch a speed was measured over; the video frame is not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "First frame: video frame {n} at {time} s, {feet} ft down the lane"
+msgstr "Frame pertama: frame video {n} pada {time} saat, {feet} ft sepanjang lorong"
 
 #: src/views/ActiveSessionView.tsx
 msgid "First lane"
@@ -2762,6 +2779,11 @@ msgstr "Sandaran terakhir hari ini"
 #: src/lib/backupNudge.ts
 msgid "Last backup yesterday"
 msgstr "Sandaran terakhir semalam"
+
+#. Caption of the last picture of the stretch a speed was measured over; the video frame is not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "Last frame: video frame {n} at {time} s, {feet} ft down the lane"
+msgstr "Frame terakhir: frame video {n} pada {time} saat, {feet} ft sepanjang lorong"
 
 #. Label before the bowler's average in their latest session, e.g. Last session 214
 #: src/components/HomeProfile.tsx
@@ -5006,6 +5028,14 @@ msgstr "Pin terletak {pinToPap} inci dari PAP dengan pin buffer {buffer} inci, d
 msgid "The restore failed."
 msgstr "Pemulihan gagal."
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "The ring is the ball, and the line is the row where its distance is read."
+msgstr "Bulatan ialah bola, dan garisan ialah baris tempat jaraknya dibaca."
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "The ring is the ball, the cross is where the board is read, and the line is that board."
+msgstr "Bulatan ialah bola, tanda silang ialah tempat papan dibaca, dan garisan ialah papan itu."
+
 #: src/lib/shareCard.ts
 msgid "The share image could not be created."
 msgstr "Imej kongsi tidak dapat dicipta."
@@ -5332,6 +5362,11 @@ msgstr "VAL"
 #: src/components/LayoutEditor.tsx
 msgid "VAL angle"
 msgstr "Sudut VAL"
+
+#. Caption of a picture from the shot tracer: which picture of the video it is, counted from the first one the tracer read, and the seconds into the video. Not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "Video frame {n} at {time} s"
+msgstr "Frame video {n} pada {time} saat"
 
 #: src/components/ShotDetailBar.tsx
 msgid "View actual line"

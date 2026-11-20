@@ -1,11 +1,14 @@
 import { t } from "@lingui/core/macro";
-import { Camera, FileVideo } from "lucide-react";
+import { Camera, ChevronRight, FileVideo } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { PushScreen } from "../components/PushScreen";
 import { Button } from "../components/ui/Button";
+import { FramePicture, type Crop } from "../components/FramePicture";
+import { ReadingFrameSheet } from "../components/ReadingFrameSheet";
 import { Spinner } from "../components/ui/Spinner";
 import { formatNumber } from "../lib/format";
 import { handNote, type HandFound } from "../lib/shotTrack/handFind";
+import type { ReadingShot, ShotKey } from "../lib/shotTrack/readingFrame";
 import { apply } from "../lib/shotTrack/homography";
 import { BACK_ROW_FT, laneU, LEFT_U, RIGHT_U } from "../lib/shotTrack/laneModel";
 import type { FrameLane } from "../lib/shotTrack/laneTrack";
@@ -83,7 +86,7 @@ type Step =
   | { kind: "tracing"; fraction: number }
   /** The shot or the lane was not found: nothing to trace. */
   | { kind: "failed"; missing: "shot" | "lane"; details?: string; pictures?: Glimpses }
-  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null; timing?: Timing; details?: string; pictures?: Glimpses };
+  | { kind: "done"; result: TrackResult | TrackError; H: Mat3 | null; verdict: LaneVerdict | null; timing?: Timing; details?: string; pictures?: Glimpses; shots?: ReadingShot[] };
 
 /** The lane as the finder found it: on every frame it could, and what it knows about how sure it is. */
 interface Found {
@@ -412,7 +415,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       const r = next.result;
       notes.current.set("trace", r.ok ? `${r.sightings.length} sightings, ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft` : `${r.failure}: ${r.detail}`);
       if (r.ok && r.handFound) notes.current.set("hand", handNote(r.handFound));
-      setStep({ ...next, timing: took, details: details(), pictures: pictures() });
+      setStep({ ...next, timing: took, details: details(), pictures: pictures(), shots: next.shots });
     };
     let out: TraceOutput;
     const input = {
@@ -448,7 +451,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     const lanesUsed = out.debug.lanes;
     const evidence = { kept: lanesUsed?.kept.length, dropped: lanesUsed?.dropped.length, pinCheck: out.debug.calibration?.pinError ?? null };
     // The calibration frame's mapping as traced: the found lanes' blend there.
-    finish({ kind: "done", result: out.result, H: out.debug.H0 ?? null, verdict: laneVerdict({ ...found.evidence, ...evidence }) });
+    finish({ kind: "done", result: out.result, H: out.debug.H0 ?? null, verdict: laneVerdict({ ...found.evidence, ...evidence }), shots: out.shots });
   }
 
   const another = () => {
@@ -482,6 +485,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
             H={step.H}
             verdict={step.verdict}
             picture={shown}
+            shots={step.shots}
             timing={step.timing}
             details={step.details}
             pictures={step.pictures}
@@ -613,63 +617,6 @@ function Waiting({ label, fraction }: { label: string; fraction?: number }) {
   );
 }
 
-/** A part of a frame, in its pixels. */
-interface Crop {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-/**
- * A gray frame (full range, `grayRange.ts`) drawn into a canvas, or the part of
- * it in `crop`, with an SVG over it in the frame's own pixels.
- */
-function FramePicture({
-  gray,
-  width,
-  height,
-  crop,
-  children
-}: {
-  gray: Uint8ClampedArray;
-  width: number;
-  height: number;
-  crop?: Crop;
-  children?: React.ReactNode;
-}) {
-  const own = useRef<HTMLCanvasElement | null>(null);
-  const box = crop ?? { x: 0, y: 0, w: width, h: height };
-  useEffect(() => {
-    const c = own.current;
-    const ctx = c?.getContext("2d");
-    if (!c || !ctx) return;
-    const img = ctx.createImageData(box.w, box.h);
-    for (let y = 0; y < box.h; y++) {
-      for (let x = 0; x < box.w; x++) {
-        const g = gray[(y + box.y) * width + x + box.x];
-        const k = 4 * (y * box.w + x);
-        img.data[k] = img.data[k + 1] = img.data[k + 2] = g;
-        img.data[k + 3] = 255;
-      }
-    }
-    ctx.putImageData(img, 0, 0);
-  }, [gray, width, box.x, box.y, box.w, box.h]);
-  return (
-    <div className="relative overflow-hidden rounded-xl bg-surface-muted">
-      <canvas
-        ref={own}
-        width={box.w}
-        height={box.h}
-        className="block h-auto w-full"
-      />
-      <svg viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`} className="absolute inset-0 h-full w-full">
-        {children}
-      </svg>
-    </div>
-  );
-}
-
 /** What went wrong in a trace, said as what could not be done; `Failure` adds what to try. */
 function failureText(f: TrackFailure): string {
   switch (f) {
@@ -691,6 +638,7 @@ function Result({
   H,
   verdict,
   picture,
+  shots,
   timing,
   details,
   pictures,
@@ -700,6 +648,8 @@ function Result({
   H: Mat3 | null;
   verdict: LaneVerdict | null;
   picture: { gray: Uint8ClampedArray; width: number; height: number } | null;
+  /** The frame behind each reading (`readingShots`). */
+  shots?: ReadingShot[];
   timing?: Timing;
   details?: string;
   pictures?: Glimpses;
@@ -755,31 +705,7 @@ function Result({
           {handLine(hand, result.handFound)}
         </p>
       )}
-      <dl className="overflow-hidden rounded-[26px] bg-surface">
-        <Reading label={t`Laydown`} metric={m.laydown} />
-        <Reading
-          label={t({ message: "Touchdown", comment: "Bowling: where the ball first touches the lane after it leaves the hand, as a board and a distance past the foul line" })}
-          metric={m.touchdown}
-          feet={m.touchdownFeet}
-        />
-        <Reading label={t({ message: "Arrows", comment: "A bowling term: the aiming arrows 15 feet down the lane; here the board the ball crosses there" })} metric={m.arrows} />
-        <Reading
-          label={t({ message: "Breakpoint", comment: "Bowling term: the point where the ball turns from skid to hook" })}
-          metric={m.breakpoint}
-          feet={m.breakpointFeet}
-        />
-        <Reading label={t({ message: "At the pins", comment: "The board the ball is on where it meets the pins" })} metric={m.pins} />
-        <Reading
-          label={t({ message: "Launch speed", comment: "Bowling: the ball's speed over the first 15 feet past the foul line, in miles an hour" })}
-          metric={m.launchSpeed}
-          speed
-        />
-        <Reading
-          label={t({ message: "Entry speed", comment: "Bowling: the ball's speed over the last feet before it meets the pins, in miles an hour" })}
-          metric={m.entrySpeed}
-          speed
-        />
-      </dl>
+      <Readings m={m} shots={shots} />
       {timing && <TimingLine timing={timing} />}
       <div className="flex flex-wrap gap-3">
         <Button onClick={onAnother}>{t`Another video`}</Button>
@@ -862,22 +788,97 @@ function stateText(m: Metric): string {
       : t({ message: "Not seen", comment: "The tracer did not see the ball there" });
 }
 
-function Reading({ label, metric, feet, speed }: { label: string; metric: Metric; feet?: Metric; speed?: boolean }) {
-  const value =
-    metric.value === null
-      ? null
-      : speed
-        ? t`${{ speed: formatNumber(metric.value, 1) }} mph`
-        : feet?.value != null
-          ? t`Board ${{ board: formatNumber(metric.value, 1) }} at ${{ feet: formatNumber(Math.round(feet.value)) }} ft`
-          : t`Board ${{ board: formatNumber(metric.value, 1) }}`;
+/** A reading as the row and the sheet over it say it: a board, and where it is read, or a speed. */
+function readingValue(metric: Metric, feet?: Metric, speed?: boolean): string | null {
+  if (metric.value === null) return null;
+  return speed
+    ? t`${{ speed: formatNumber(metric.value, 1) }} mph`
+    : feet?.value != null
+      ? t`Board ${{ board: formatNumber(metric.value, 1) }} at ${{ feet: formatNumber(Math.round(feet.value)) }} ft`
+      : t`Board ${{ board: formatNumber(metric.value, 1) }}`;
+}
+
+/** What a row of readings is made of: the name, the reading, and where it is read. */
+interface ReadingRow {
+  key: ShotKey;
+  label: string;
+  metric: Metric;
+  feet?: Metric;
+  speed?: boolean;
+}
+
+/**
+ * The readings, each row opening the frame it was taken on where there is one:
+ * a sheet over the result with the ball, the point the board is read at and
+ * its line drawn on a crop of the frame.
+ */
+function Readings({ m, shots }: { m: TrackResult["metrics"]; shots?: ReadingShot[] }) {
+  const [open, setOpen] = useState<ShotKey | null>(null);
+  const rows: ReadingRow[] = [
+    { key: "laydown", label: t`Laydown`, metric: m.laydown },
+    {
+      key: "touchdown",
+      label: t({ message: "Touchdown", comment: "Bowling: where the ball first touches the lane after it leaves the hand, as a board and a distance past the foul line" }),
+      metric: m.touchdown,
+      feet: m.touchdownFeet
+    },
+    { key: "arrows", label: t({ message: "Arrows", comment: "A bowling term: the aiming arrows 15 feet down the lane; here the board the ball crosses there" }), metric: m.arrows },
+    {
+      key: "breakpoint",
+      label: t({ message: "Breakpoint", comment: "Bowling term: the point where the ball turns from skid to hook" }),
+      metric: m.breakpoint,
+      feet: m.breakpointFeet
+    },
+    { key: "pins", label: t({ message: "At the pins", comment: "The board the ball is on where it meets the pins" }), metric: m.pins },
+    {
+      key: "launchSpeed",
+      label: t({ message: "Launch speed", comment: "Bowling: the ball's speed over the first 15 feet past the foul line, in miles an hour" }),
+      metric: m.launchSpeed,
+      speed: true
+    },
+    {
+      key: "entrySpeed",
+      label: t({ message: "Entry speed", comment: "Bowling: the ball's speed over the last feet before it meets the pins, in miles an hour" }),
+      metric: m.entrySpeed,
+      speed: true
+    }
+  ];
+  const shown = rows.find((r) => r.key === open);
+  const shot = shots?.find((s) => s.reading === open);
   return (
-    <div className="flex min-h-[52px] items-center gap-3 px-4 py-2.5 [&+&]:border-t [&+&]:border-edge">
+    <>
+      <dl className="overflow-hidden rounded-[26px] bg-surface">
+        {rows.map((r) => (
+          <Reading key={r.key} label={r.label} metric={r.metric} feet={r.feet} speed={r.speed} onOpen={shots?.some((s) => s.reading === r.key) ? () => setOpen(r.key) : undefined} />
+        ))}
+      </dl>
+      {shown && shot && <ReadingFrameSheet title={shown.label} value={readingValue(shown.metric, shown.feet, shown.speed)} shot={shot} onClose={() => setOpen(null)} />}
+    </>
+  );
+}
+
+/** One row. With `onOpen` the whole row is the button that opens its frame (the stretched button's `::after` covers the row). */
+function Reading({ label, metric, feet, speed, onOpen }: Omit<ReadingRow, "key"> & { onOpen?: () => void }) {
+  const value = readingValue(metric, feet, speed);
+  const text = (
+    <>
+      <span className="block text-body text-ink">{label}</span>
+      <span className="block text-footnote text-ink-secondary">{stateText(metric)}</span>
+    </>
+  );
+  return (
+    <div className="relative flex min-h-[52px] items-center gap-3 px-4 py-2.5 [&+&]:border-t [&+&]:border-edge [&:has(button:active)]:bg-surface-muted">
       <dt className="min-w-0 flex-1">
-        <span className="block text-body text-ink">{label}</span>
-        <span className="block text-footnote text-ink-secondary">{stateText(metric)}</span>
+        {onOpen ? (
+          <button type="button" onClick={onOpen} aria-label={t`${label}, show the frame`} className="block w-full text-left after:absolute after:inset-0 after:content-['']">
+            {text}
+          </button>
+        ) : (
+          text
+        )}
       </dt>
       <dd className="shrink-0 text-body font-semibold tabular-nums text-ink">{value}</dd>
+      {onOpen ? <ChevronRight size={17} strokeWidth={2.25} aria-hidden="true" className="shrink-0 text-ink-tertiary" /> : <span aria-hidden="true" className="w-[17px] shrink-0" />}
     </div>
   );
 }

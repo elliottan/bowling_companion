@@ -401,6 +401,10 @@ msgstr "{label}, {word}"
 msgid "{label}, opens in a new tab"
 msgstr "{label}, se abre en una pestaña nueva"
 
+#: src/views/ShotTracerView.tsx
+msgid "{label}, show the frame"
+msgstr "{label}, ver el fotograma"
+
 #: src/components/LayoutEditor.tsx
 msgid "{label}, what it does"
 msgstr "{label}, qué hace"
@@ -1954,6 +1958,14 @@ msgstr "Estimado"
 msgid "Estimated average"
 msgstr "Promedio estimado"
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball was seen over only part of this stretch."
+msgstr "Estimado: la bola solo se vio en parte de este tramo."
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball wasn't seen at this spot, so the cross is where the fitted path crosses it, on the nearest frame where the ball was seen."
+msgstr "Estimado: no se vio la bola en este punto, así que la cruz está donde la trayectoria ajustada lo cruza, en el fotograma más cercano donde sí se vio la bola."
+
 #: src/components/SessionFilterBar.tsx
 msgid "Event"
 msgstr "Evento"
@@ -2166,6 +2178,11 @@ msgstr "Primeras bolas con los diez pinos en pie que fueron strike."
 #: src/components/statsMetrics.ts
 msgid "First balls that hit the pocket."
 msgstr "Primeras bolas que dieron en el bolsillo."
+
+#. Caption of the first picture of the stretch a speed was measured over; the video frame is not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "First frame: video frame {n} at {time} s, {feet} ft down the lane"
+msgstr "Primer fotograma: fotograma de video {n} a los {time} s, a {feet} ft por la pista"
 
 #: src/views/ActiveSessionView.tsx
 msgid "First lane"
@@ -2762,6 +2779,11 @@ msgstr "Último respaldo hoy"
 #: src/lib/backupNudge.ts
 msgid "Last backup yesterday"
 msgstr "Último respaldo ayer"
+
+#. Caption of the last picture of the stretch a speed was measured over; the video frame is not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "Last frame: video frame {n} at {time} s, {feet} ft down the lane"
+msgstr "Último fotograma: fotograma de video {n} a los {time} s, a {feet} ft por la pista"
 
 #. Label before the bowler's average in their latest session, e.g. Last session 214
 #: src/components/HomeProfile.tsx
@@ -5006,6 +5028,14 @@ msgstr "El pin está a {pinToPap} pulgadas del PAP con un pin buffer de {buffer}
 msgid "The restore failed."
 msgstr "No se pudo restaurar."
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "The ring is the ball, and the line is the row where its distance is read."
+msgstr "El círculo es la bola y la línea es la fila donde se lee su distancia."
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "The ring is the ball, the cross is where the board is read, and the line is that board."
+msgstr "El círculo es la bola, la cruz es donde se lee la tabla y la línea es esa tabla."
+
 #: src/lib/shareCard.ts
 msgid "The share image could not be created."
 msgstr "No se pudo crear la imagen para compartir."
@@ -5332,6 +5362,11 @@ msgstr "VAL"
 #: src/components/LayoutEditor.tsx
 msgid "VAL angle"
 msgstr "Ángulo VAL"
+
+#. Caption of a picture from the shot tracer: which picture of the video it is, counted from the first one the tracer read, and the seconds into the video. Not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "Video frame {n} at {time} s"
+msgstr "Fotograma de video {n} a los {time} s"
 
 #: src/components/ShotDetailBar.tsx
 msgid "View actual line"

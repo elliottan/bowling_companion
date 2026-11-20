@@ -401,6 +401,10 @@ msgstr "{label}、{word}"
 msgid "{label}, opens in a new tab"
 msgstr "{label}、新しいタブで開きます"
 
+#: src/views/ShotTracerView.tsx
+msgid "{label}, show the frame"
+msgstr "{label}、フレームを表示"
+
 #: src/components/LayoutEditor.tsx
 msgid "{label}, what it does"
 msgstr "{label}、その働き"
@@ -1954,6 +1958,14 @@ msgstr "推定"
 msgid "Estimated average"
 msgstr "推定アベレージ"
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball was seen over only part of this stretch."
+msgstr "推定: ボールはこの区間の一部でしか見えませんでした。"
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball wasn't seen at this spot, so the cross is where the fitted path crosses it, on the nearest frame where the ball was seen."
+msgstr "推定: この位置ではボールが見えなかったため、十字は近似した軌道がここを通る位置です。表示しているのは、ボールが見えた最も近いフレームです。"
+
 #: src/components/SessionFilterBar.tsx
 msgid "Event"
 msgstr "イベント"
@@ -2166,6 +2178,11 @@ msgstr "10本のピンに対する1投目のうち、ストライクになった
 #: src/components/statsMetrics.ts
 msgid "First balls that hit the pocket."
 msgstr "ポケットに当たった1投目の割合です。"
+
+#. Caption of the first picture of the stretch a speed was measured over; the video frame is not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "First frame: video frame {n} at {time} s, {feet} ft down the lane"
+msgstr "最初のフレーム: 動画の{n}コマ目、{time} 秒、レーン上 {feet} ft"
 
 #: src/views/ActiveSessionView.tsx
 msgid "First lane"
@@ -2762,6 +2779,11 @@ msgstr "最後のバックアップ：今日"
 #: src/lib/backupNudge.ts
 msgid "Last backup yesterday"
 msgstr "最後のバックアップ：昨日"
+
+#. Caption of the last picture of the stretch a speed was measured over; the video frame is not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "Last frame: video frame {n} at {time} s, {feet} ft down the lane"
+msgstr "最後のフレーム: 動画の{n}コマ目、{time} 秒、レーン上 {feet} ft"
 
 #. Label before the bowler's average in their latest session, e.g. Last session 214
 #: src/components/HomeProfile.tsx
@@ -5006,6 +5028,14 @@ msgstr "ピンはPAPから{pinToPap}インチ、ピンバッファーは{buffer}
 msgid "The restore failed."
 msgstr "復元に失敗しました。"
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "The ring is the ball, and the line is the row where its distance is read."
+msgstr "円はボール、線は距離を読み取る位置です。"
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "The ring is the ball, the cross is where the board is read, and the line is that board."
+msgstr "円はボール、十字はボードを読み取る位置、線はそのボードです。"
+
 #: src/lib/shareCard.ts
 msgid "The share image could not be created."
 msgstr "共有画像を作成できませんでした。"
@@ -5332,6 +5362,11 @@ msgstr "VAL"
 #: src/components/LayoutEditor.tsx
 msgid "VAL angle"
 msgstr "VAL角"
+
+#. Caption of a picture from the shot tracer: which picture of the video it is, counted from the first one the tracer read, and the seconds into the video. Not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "Video frame {n} at {time} s"
+msgstr "動画の{n}コマ目、{time} 秒"
 
 #: src/components/ShotDetailBar.tsx
 msgid "View actual line"

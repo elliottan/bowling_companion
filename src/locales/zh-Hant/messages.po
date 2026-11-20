@@ -401,6 +401,10 @@ msgstr "{label}，{word}"
 msgid "{label}, opens in a new tab"
 msgstr "{label}，在新分頁開啟"
 
+#: src/views/ShotTracerView.tsx
+msgid "{label}, show the frame"
+msgstr "{label}，查看畫格"
+
 #: src/components/LayoutEditor.tsx
 msgid "{label}, what it does"
 msgstr "{label}，作用說明"
@@ -1954,6 +1958,14 @@ msgstr "估計"
 msgid "Estimated average"
 msgstr "預估平均分"
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball was seen over only part of this stretch."
+msgstr "估計：這段距離只有一部分看得到球。"
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball wasn't seen at this spot, so the cross is where the fitted path crosses it, on the nearest frame where the ball was seen."
+msgstr "估計：這個位置沒有看到球，所以十字是擬合路徑經過這裡的位置，畫面取自看得到球的最近一張。"
+
 #: src/components/SessionFilterBar.tsx
 msgid "Event"
 msgstr "賽事"
@@ -2166,6 +2178,11 @@ msgstr "對滿瓶的第一球中，打出全倒的球。"
 #: src/components/statsMetrics.ts
 msgid "First balls that hit the pocket."
 msgstr "擊中甜蜜點的第一球。"
+
+#. Caption of the first picture of the stretch a speed was measured over; the video frame is not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "First frame: video frame {n} at {time} s, {feet} ft down the lane"
+msgstr "第一張：影片第 {n} 張畫格，{time} 秒，球道上 {feet} ft 處"
 
 #: src/views/ActiveSessionView.tsx
 msgid "First lane"
@@ -2762,6 +2779,11 @@ msgstr "上次備份：今天"
 #: src/lib/backupNudge.ts
 msgid "Last backup yesterday"
 msgstr "上次備份：昨天"
+
+#. Caption of the last picture of the stretch a speed was measured over; the video frame is not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "Last frame: video frame {n} at {time} s, {feet} ft down the lane"
+msgstr "最後一張：影片第 {n} 張畫格，{time} 秒，球道上 {feet} ft 處"
 
 #. Label before the bowler's average in their latest session, e.g. Last session 214
 #: src/components/HomeProfile.tsx
@@ -5006,6 +5028,14 @@ msgstr "定位銷距離 PAP {pinToPap} 英吋，定位銷緩衝為 {buffer} 英�
 msgid "The restore failed."
 msgstr "還原失敗。"
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "The ring is the ball, and the line is the row where its distance is read."
+msgstr "圓圈是球，線是讀取距離的那一列。"
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "The ring is the ball, the cross is where the board is read, and the line is that board."
+msgstr "圓圈是球，十字是讀取球板的位置，線就是那一塊板。"
+
 #: src/lib/shareCard.ts
 msgid "The share image could not be created."
 msgstr "無法建立分享圖片。"
@@ -5332,6 +5362,11 @@ msgstr "VAL"
 #: src/components/LayoutEditor.tsx
 msgid "VAL angle"
 msgstr "VAL 角度"
+
+#. Caption of a picture from the shot tracer: which picture of the video it is, counted from the first one the tracer read, and the seconds into the video. Not a bowling frame
+#: src/components/ReadingFrameSheet.tsx
+msgid "Video frame {n} at {time} s"
+msgstr "影片第 {n} 張畫格，{time} 秒"
 
 #: src/components/ShotDetailBar.tsx
 msgid "View actual line"
