@@ -481,8 +481,7 @@ describe("ShotTracerView", () => {
     expect(screen.getByTestId("tracer-details").textContent).toMatch(/lane: found on 2 of 22, best frame 24[\s\S]*trace: 0 sightings, 0\.0 to 60\.0 ft/);
   });
 
-  it("says which hand the boards are counted from and why, and switches it in place", async () => {
-    // Sightings 1 to 12 ft out, on lane u 24.2 to 26.4 (boards from the left edge).
+  it("says which hand the boards are counted from, from the video, with no switch", async () => {
     const pts = Array.from({ length: 12 }, (_, i) => ({ v: 1 + i, u: 24 + 0.2 * (1 + i), w: 1, t: 0.5 + i * 0.05 }));
     const readOff = {
       path: { kind: "hook" as const, u0: 24, a: 0.2, s: 50, L: 5, k: 0 }, seen: pts.map((p) => p.v), points: pts, touchdown: 1,
@@ -494,36 +493,33 @@ describe("ShotTracerView", () => {
     await waitFor(() => expect(trace()).toBeTruthy());
     trace()!.reply(out({ ...TRACED, hand: "left", readOff, handFound }));
     const hand = await screen.findByTestId("tracer-hand");
-    expect(hand.textContent).toContain("Left-handed, from the video.");
-    expect(screen.getByRole("button", { name: "Left-handed" }).getAttribute("aria-pressed")).toBe("true");
+    expect(hand.textContent).toBe("Left-handed (from the video)");
+    // The bowler is never asked: no switch on the result.
+    expect(screen.queryByRole("button", { name: "Left-handed" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Right-handed" })).toBeNull();
     expect(screen.getByText("Board 23.8")).toBeTruthy();
+    // The cues stay in the details.
     expect(screen.getByTestId("tracer-details").textContent).toMatch(/hand: left from the video, confidence 1\.00; release -12\.3 boards \(-1\.00\)/);
-    // Switched: the same sightings read from the right gutter, nothing read again.
-    fireEvent.click(screen.getByRole("button", { name: "Right-handed" }));
-    expect(screen.getByTestId("tracer-hand").textContent).toContain("Right-handed, as you chose. The boards are counted from the right gutter.");
-    expect(screen.getByText("Board 16")).toBeTruthy();
-    expect(screen.queryByText("Board 23.8")).toBeNull();
-    expect(pooled.traces).toHaveLength(1);
-    // And back to what the video said.
-    fireEvent.click(screen.getByRole("button", { name: "Left-handed" }));
-    expect(screen.getByTestId("tracer-hand").textContent).toContain("Left-handed, from the video.");
-    expect(screen.getByText("Board 23.8")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Right-handed" }));
-    fireEvent.click(screen.getByRole("button", { name: "Left-handed" }));
-    fireEvent.click(screen.getByRole("button", { name: "Right-handed" }));
-    expect(screen.getByText("Board 16")).toBeTruthy();
   });
 
-  it("says the hand came from the settings when the video could not tell", async () => {
-    const handFound = { hand: "right" as const, by: "setting" as const, why: "weak" as const, confidence: 0, cues: [] };
+  it("says in one line when the video showed no cue and the setting was used", async () => {
+    const handFound = { hand: "right" as const, by: "setting" as const, confidence: 0, cues: [] };
     const readOff = { path: TRACED.path, seen: [1, 30], touchdown: 1, motion: TRACED.motion, tFirst: 0, tLast: 2, speedMeasured: false };
     await chooseVideo();
     find()!.reply(found());
     await waitFor(() => expect(trace()).toBeTruthy());
     trace()!.reply(out({ ...TRACED, readOff, handFound }));
-    expect((await screen.findByTestId("tracer-hand")).textContent).toContain("Right-handed, from your settings: the video didn't show which hand threw it.");
-    fireEvent.click(screen.getByRole("button", { name: "Left-handed" }));
-    expect(screen.getByTestId("tracer-hand").textContent).toContain("Left-handed, as you chose. The boards are counted from the left gutter.");
+    expect((await screen.findByTestId("tracer-hand")).textContent).toBe("Hand not clear in the video: counted as right-handed, the app's setting");
+    expect(screen.queryByRole("button", { name: "Left-handed" })).toBeNull();
+  });
+
+  it("says a left-handed setting the same way", async () => {
+    const handFound = { hand: "left" as const, by: "setting" as const, confidence: 0, cues: [] };
+    await chooseVideo();
+    find()!.reply(found());
+    await waitFor(() => expect(trace()).toBeTruthy());
+    trace()!.reply(out({ ...TRACED, hand: "left", handFound }));
+    expect((await screen.findByTestId("tracer-hand")).textContent).toBe("Hand not clear in the video: counted as left-handed, the app's setting");
   });
 
   it("shows no hand line for a trace that did not read the hand", async () => {

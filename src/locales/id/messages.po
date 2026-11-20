@@ -2409,6 +2409,14 @@ msgctxt "bowling hand"
 msgid "Hand"
 msgstr "Tangan"
 
+#: src/views/ShotTracerView.tsx
+msgid "Hand not clear in the video: counted as left-handed, the app's setting"
+msgstr "Tangan tidak jelas di video: dihitung tangan kiri, dari Pengaturan"
+
+#: src/views/ShotTracerView.tsx
+msgid "Hand not clear in the video: counted as right-handed, the app's setting"
+msgstr "Tangan tidak jelas di video: dihitung tangan kanan, dari Pengaturan"
+
 #: src/components/HandednessPicker.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "Handedness"
@@ -2901,16 +2909,8 @@ msgid "Left-handed"
 msgstr "Tangan kiri"
 
 #: src/views/ShotTracerView.tsx
-msgid "Left-handed, as you chose. The boards are counted from the left gutter."
-msgstr "Tangan kiri, sesuai pilihanmu. Papan dihitung dari gutter kiri."
-
-#: src/views/ShotTracerView.tsx
-msgid "Left-handed, from the video."
-msgstr "Tangan kiri, dari video."
-
-#: src/views/ShotTracerView.tsx
-msgid "Left-handed, from your settings: the video didn't show which hand threw it."
-msgstr "Tangan kiri, dari Pengaturan: video tidak menunjukkan tangan yang melempar."
+msgid "Left-handed (from the video)"
+msgstr "Tangan kiri (dari video)"
 
 #. Bowling term: how far down the lane the ball travels before it turns, a reading on the layout lab's rail
 #: src/components/OilPatternFormDialog.tsx
@@ -4142,16 +4142,8 @@ msgid "Right-handed"
 msgstr "Tangan kanan"
 
 #: src/views/ShotTracerView.tsx
-msgid "Right-handed, as you chose. The boards are counted from the right gutter."
-msgstr "Tangan kanan, sesuai pilihanmu. Papan dihitung dari gutter kanan."
-
-#: src/views/ShotTracerView.tsx
-msgid "Right-handed, from the video."
-msgstr "Tangan kanan, dari video."
-
-#: src/views/ShotTracerView.tsx
-msgid "Right-handed, from your settings: the video didn't show which hand threw it."
-msgstr "Tangan kanan, dari Pengaturan: video tidak menunjukkan tangan yang melempar."
+msgid "Right-handed (from the video)"
+msgstr "Tangan kanan (dari video)"
 
 #. Accent color name: a pink-red
 #: src/lib/palette.ts
