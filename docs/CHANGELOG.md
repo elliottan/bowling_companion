@@ -9,6 +9,24 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.114.1: The ball's circle stays on the ball among the pins, and the hand is always the video's (2026-11-20)
+
+- In Settings, Labs: where the ball is blurred among the pins, or a leg or a
+  hand covers part of it, the tracer now places its circle by the part of the
+  ball's rim that shows, at the ball's own size measured earlier in the same
+  shot. The circle used to slide toward a pin's edge and come out too big
+  there. On the sample shot the owner marked, the board at the pins moves from
+  17.4 to 17.8, a little higher, as the owner read it.
+- The first pin to move is found on the right frame with the circle on the
+  ball: the area left out round the ball is now just the ball and its blur.
+- The result says which hand threw the ball, "Left-handed (from the video)",
+  with no switch under it: the bowler is never asked. The hand is read from
+  the video even when the clues are faint, and from the side of the lane the
+  ball crosses the arrows on as well. Only when the video shows no clue at all
+  does it use the hand from Settings, and it says so in one line.
+- The drawn path is always a shape a ball can make: straight, then one smooth
+  bend. A noisy video used to get a line that weaved from side to side.
+
 ## 0.114.0: The shot tracer reads the bowler's hand from the video (2026-11-19)
 
 - In Settings, Labs: the shot tracer works out which hand threw the ball from

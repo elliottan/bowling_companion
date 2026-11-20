@@ -88,6 +88,13 @@ IMG_1996 in headless Chromium four runs gave the same window and laydown
 - shot-01 f230: a weak circle is cast again from where the ball was heading (`WEAK_RIM`); it moves about half the owner's correction, and the pins read 17.36 (was 17.44). f232 and f233 sit right of the run and are the likelier cause of "a bit light"; not changed. Review crops for the owner show only the yellow circle and base cross (`check/`); the cyan outline is in `check-debug/`.
 - Open: the release cue's body box rests on twelve videos; a bowler who stands still for the whole read sits in the empty lane and gives no release cue (the others then decide). Nothing of this round has run on an iPhone.
 
+### 0.114.1 (2026-11-20)
+
+- Circles placed by the rim that shows (`arcFit`) at the ball's own measured size (`ownScale`, 0.93 to 0.98 of the lane's on every clip) wherever the radius could not be freed: legs, hands, pins. shot-01 f230 to f233 now run on the ball's path; pins 17.36 to 17.81, frame 233 kept (`BALL_MASK` 1.42 so the touched pin's near side is watched). shot-06 pins 19.30 to 19.13. shot-02 near the pins is smaller but still a quarter radius low (too little rim; its far-end mapping is the suspect). README, "The ball among the pins".
+- The hand is always the video's; the switch is gone. New `line` cue, weights changed, a hook along the drift is ignored. The setting only with no cue.
+- `fitPath` never weaves: the hook shape always, `rough` above 0.7 board RMS.
+- Open: 8133 does not read in Node (wrong first look, no lane); its stopping short of the pins and its far right edge are not reproduced. The far line's tilt (1856) and a camera-based far-line constraint are not built. shot-02's far-end scale is not checked against the pins' 12 in spacing. Review pictures: `scratchpad/review12/`.
+
 ## Where it stood before that (0.112.0, 2026-11-15)
 
 - **0.112.0 made the app all automatic**, on the owner's word: no marking

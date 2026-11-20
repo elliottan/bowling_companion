@@ -5,7 +5,7 @@
  * reading (`auto-<reading>.jpg`, `auto-pins-1..5.jpg`, and six frames round
  * the pins frame in `p6/`), `manifest.json` and `frames.json` in the shape
  * `review-auto.ts` writes them, and `readings.json`: every reading with its
- * frame, time and whether it is estimated, and the circle check
+ * frame, time and whether it is estimated, the hand and its cues, and the circle check
  * (`outline.ts`) on every reading frame and the five frames before the pins.
  *
  *   npx tsx scripts/shot-tracker/review-app.ts <outDir> <video>[:left] ... [--frames dumpDir] [--check]
@@ -249,7 +249,11 @@ if (process.argv[1]?.endsWith("review-app.ts")) {
     const m = ok ? (res as TrackResult).metrics : null;
     const metricRow = (k: keyof TrackResult["metrics"]) => (m ? { value: m[k].value, state: m[k].state } : null);
     readings[name] = {
-      video: inp.video, hand: inp.hand, band: inp.band, frames: inp.frames.length, first: inp.frames[0].t, last: inp.frames[inp.frames.length - 1].t, calibFrame: view.number(lane.frame),
+      video: inp.video, hand: inp.hand,
+      // How the hand was read: from the video (each cue's boards and vote, -1 left to +1 right) or the setting with no cue.
+      handFound: ok ? ((res as TrackResult).handFound ?? null) : null,
+      path: ok ? { kind: (res as TrackResult).path.kind, rough: (res as TrackResult).path.rough ?? false, rms: (res as TrackResult).rms } : null,
+      band: inp.band, frames: inp.frames.length, first: inp.frames[0].t, last: inp.frames[inp.frames.length - 1].t, calibFrame: view.number(lane.frame),
       failure: ok ? null : res.failure,
       metrics: m ? Object.fromEntries((Object.keys(m) as (keyof TrackResult["metrics"])[]).map((k) => [k, metricRow(k)])) : null,
       pinFrame: ok && res.pinFrame !== null ? view.number(res.pinFrame) : null,
