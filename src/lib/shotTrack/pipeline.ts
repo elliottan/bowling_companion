@@ -9,14 +9,15 @@ import { snapEdge, snapMarks, type MarkSnap } from "./edgeSnap";
 import { apply, downAt, invert, multiply, normalize } from "./homography";
 import type { Point } from "./types";
 import { median } from "./image";
-import { CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
-import { FTS_TO_MPH, fitMotion, fitPath, metrics, pathU, pinContactFeet, timeAtFeet, withoutIslands, type MotionPoint } from "./pathFit";
+import { CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusPx, imageToLane, laneU } from "./laneModel";
+import { FTS_TO_MPH, fitMotion, fitPath, handedMetrics, pathU, pinContactFeet, timeAtFeet, withoutIslands, type MotionPoint, type ReadOff } from "./pathFit";
+import { bodyAtRelease, decideHand, driftCue, hookCue, pinsCue, releaseCue, type HandCue, type HandFound } from "./handFind";
 import { laneTrack, type FrameLane, type LaneTrack, type LaneTrackOptions } from "./laneTrack";
 import { atFoulLineTime, followForward, overFoulLine, uAtColumn, type FollowPrediction, type OverFoulLine, type ReleaseFrame } from "./release";
 import { followNear, nearSeeds } from "./nearFollow";
 import { firstPinMove, pinScores, pinsInReach, type PinFrame } from "./pinMove";
 import { alignTo, finishRegister, laneMarksOf, passFrames, PlanePass, planeSlots, RegisterPass, type FrameGeometry, type FrameSource, type Matches, type PlaneOptions, type RegisterOptions } from "./registration";
-import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, TrackError, TrackFailure, TrackResult } from "./types";
+import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, Metric, PathModel, TrackError, TrackFailure, TrackMetrics, TrackResult } from "./types";
 
 /**
  * The tracer, stage by stage (plan 5.3): snap the marks, carry them to every
@@ -50,7 +51,10 @@ export interface TraceInput {
   lanes?: FrameLane[];
   /** With `lanes`: how the found lanes are blended. */
   laneTrack?: LaneTrackOptions;
+  /** The app's handedness setting: the boards are counted from this hand's gutter, unless `handFromVideo` and the video says otherwise. */
   hand: Handedness;
+  /** Read the bowler's hand from the video (`handFind.ts`), `hand` kept only where it cannot tell. */
+  handFromVideo?: boolean;
   distance?: DistanceSource;
   first?: number;
   last?: number;
@@ -102,6 +106,8 @@ export interface TraceDebug {
   nearFollow?: Candidate[];
   /** Seen over the near lane only (`NEAR_FROM_FT`, `NEAR_SPAN_FT`): the far readings are left missing. */
   nearOnly?: boolean;
+  /** The bowler's hand as the video shows it (`handFind.ts`), whether or not it was used. */
+  hand?: HandFound;
 }
 
 export interface TraceOutput {
@@ -129,6 +135,24 @@ export const CLEAN_WEIGHT = 0.8;
 export const CARRY_FRAMES = 6;
 /** ...and looked for within this share of a radius of where the fit put the ball. */
 export const CARRY_REACH = 0.4;
+/** A fixed-radius circle with fewer than this share of its rays on the rim is cast again from where the ball is expected (`predictCenter`). */
+export const WEAK_RIM = 0.35;
+
+/**
+ * Where the ball's center is expected on `frame`: a straight line in the
+ * picture through the last circles placed within `PREDICT_FRAMES` before it
+ * (three at least), run on to it. Null with fewer.
+ */
+export function predictCenter(placed: { frame: number; x: number; y: number }[], frame: number): Point | null {
+  const near = placed.filter((p) => p.frame < frame && frame - p.frame <= PREDICT_FRAMES).slice(-4);
+  if (near.length < 3) return null;
+  const fs = near.map((p) => p.frame);
+  return { x: lineAt(fs, near.map((p) => p.x), frame), y: lineAt(fs, near.map((p) => p.y), frame) };
+}
+
+/** How far back the circles `predictCenter` runs on from may be, frames. */
+export const PREDICT_FRAMES = 8;
+
 /** The pins are watched for the first one to move from when the ball is this many feet short of where it meets one. */
 export const PIN_LEAD_FT = 1.5;
 export const NEAR_SPAN_FT = 5;
@@ -174,6 +198,7 @@ export interface Aligned {
 /** What the tracer has by the time it has every frame's candidates: `traceTail` reads the ball from it. */
 export interface TailState {
   hand: Handedness;
+  handFromVideo?: boolean;
   distance?: DistanceSource;
   first: number;
   last: number;
@@ -434,7 +459,7 @@ export function* traceSteps(input: TraceInput): Generator<TraceJob[], TraceOutpu
     steadyS.set(g.index, found[k].S);
     cands.push(...found[k].candidates!);
   });
-  const [out] = (yield [{ kind: "tail" as const, state: { hand: input.hand, distance: input.distance, first, last, calibFrame: input.calibFrame, H0, geometry, cands, debug } }]) as TraceOutput[];
+  const [out] = (yield [{ kind: "tail" as const, state: { hand: input.hand, handFromVideo: input.handFromVideo, distance: input.distance, first, last, calibFrame: input.calibFrame, H0, geometry, cands, debug } }]) as TraceOutput[];
   return out;
 }
 
@@ -502,6 +527,8 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
     const p = contactPoint(H, { x: fit.cx, y: fit.cy }, fit.r);
     return expectedRadiusPx(H, p.u, p.v);
   };
+  // Each circle placed so far, for where the next is expected (`predictCenter`).
+  const placed: { frame: number; x: number; y: number }[] = [];
   for (const c0 of chosen) {
     const g = geoOf(c0.frame);
     const f = source.frame(c0.frame);
@@ -516,6 +543,20 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
       const m = carryFace(clean.f, clean.fit, f, { x: fit.cx, y: fit.cy }, r, CARRY_REACH * r);
       if (m) fit = { ...fit, cx: m.cx, cy: m.cy, r, carried: clean.frame };
     }
+    if (fit.fixed && fit.carried === undefined && fit.weight < WEAK_RIM) {
+      // Few of its rim's edges on the circle and no face to carry: the rays
+      // were cast from the detector's blob, which over the rack takes in a
+      // pin's dark neck beside the ball, and the circle slid toward it
+      // (2026-11-19, the owner on shot-01 frame 230: a quarter radius right
+      // and low). Cast again from where the ball's last placed circles put
+      // it, and that fit is kept when its rays find more of the rim and it
+      // sits nearer where the ball was expected.
+      const at = predictCenter(placed, c0.frame);
+      const again = at ? refineCircle(f, g.H, at, fit.r) : null;
+      const off = (q: { cx: number; cy: number }) => (at ? Math.hypot(q.cx - at.x, q.cy - at.y) : Infinity);
+      if (again && again.weight > fit.weight && off(again) < off(fit)) fit = again;
+    }
+    placed.push({ frame: c0.frame, x: fit.cx, y: fit.cy });
     debug.circles.set(c0.frame, fit);
     // The contact point (plan 6.4, revised after the sample clips). A glossy
     // ball mirrors the bright lane on its underside, so the dark disc is cut
@@ -799,8 +840,8 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
   const tFirst = seen[0].t;
   const tLast = seen[seen.length - 1].t;
   const distance = state.distance ?? "foul";
-  const met = metrics({
-    path: fit.path, hand, seen: vs, points: pathPts, touchdown, motion, tFirst, tLast, rackMovesAt: pinT,
+  const readOff: ReadOff = {
+    path: fit.path, seen: vs, points: pathPts, touchdown, motion, tFirst, tLast, rackMovesAt: pinT,
     overFoulLineU: debug.release?.u,
     pinsU,
     pinsEstimated,
@@ -808,12 +849,14 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
     // touchdown or the rack, the fit's speed is shown as estimated.
     speedMeasured: distance !== "default" && anchoredSpeed !== undefined,
     anchoredSpeed
-  });
-  // The arrows are 15 ft out: a near-only trace that stops short of them
-  // reads them off the line through what it saw, as estimated.
-  // (So is any trace that stops short of them: shot-04, followed on past the
-  // bowler's leg to 13.6 ft, is seen over 12.7 ft and no longer near-only.)
-  if (Math.max(...vs) < 15 && met.arrows.state === "measured") met.arrows = { ...met.arrows, state: "estimated" };
+  };
+  // Which hand threw it, from the video (`handFind.ts`): the readings in the
+  // setting's boards say where the ball went, the release where the body was.
+  const inSetting = handedMetrics({ ...readOff, hand });
+  const handFound = decideHand(handCues(inSetting, hand, fit.path, Math.max(...vs), releaseBody(state, source, debug.release ?? null)), hand);
+  debug.hand = handFound;
+  const used = state.handFromVideo ? handFound.hand : hand;
+  const met = used === hand ? inSetting : handedMetrics({ ...readOff, hand: used });
   const vAt = (t: number) => motion.v0 + motion.w * t + 0.5 * motion.d * t * t;
   debug.speeds = {
     anchored: anchoredSpeed !== undefined ? anchoredSpeed * FTS_TO_MPH : null,
@@ -822,11 +865,43 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
   progress("done", 1);
   return {
     result: {
-      ok: true, hand, sightings, path: fit.path, from: Math.min(...vs), to: Math.max(...vs), rms: fit.rms,
-      metrics: met, motion, touchdownFrame: touchdown !== null ? seen[0].frame : null, pinFrame
+      ok: true, hand: used, sightings, path: fit.path, from: Math.min(...vs), to: Math.max(...vs), rms: fit.rms,
+      metrics: met, readOff, handFound: state.handFromVideo ? handFound : undefined, motion, touchdownFrame: touchdown !== null ? seen[0].frame : null, pinFrame
     },
     debug
   };
+}
+
+/**
+ * The hand cues (`handFind.ts`) from the readings in the setting's boards
+ * (`hand`): the laydown and the arrows for the drift, the board at the pins,
+ * the fitted path's turn, and the body at the release when it was placed.
+ */
+export function handCues(m: TrackMetrics, hand: Handedness, path: PathModel, seenTo: number, body: { ballU: number; bodyU: number } | null): HandCue[] {
+  const u = (x: Metric) => (x.value === null ? null : laneU(x.value, hand));
+  const cues: HandCue[] = [];
+  if (body) cues.push(releaseCue(body.ballU, body.bodyU));
+  const foul = u(m.laydown);
+  const arrows = u(m.arrows);
+  if (foul !== null && arrows !== null) cues.push(driftCue(foul, arrows));
+  const hook = hookCue(path, seenTo);
+  if (hook) cues.push(hook);
+  const pins = u(m.pins);
+  const pc = pins === null ? null : pinsCue(pins);
+  if (pc) cues.push(pc);
+  return cues;
+}
+
+/** The ball and the bowler's body at the release (`bodyAtRelease`), on the frame the laydown was read on. */
+function releaseBody(state: TailState, source: FrameSource, release: OverFoulLine | null): { ballU: number; bodyU: number } | null {
+  const { debug, H0 } = state;
+  if (!release || !debug.background || !debug.roi) return null;
+  const i = Math.round(release.at);
+  const S = debug.steady.get(i);
+  if (!S || i < state.first || i > state.last) return null;
+  const f = steady(source.frame(i), S, debug.roi);
+  const bodyU = bodyAtRelease(f, debug.background as Background, debug.roi, H0, release.u);
+  return bodyU === null ? null : { ballU: release.u, bodyU };
 }
 
 /** The least squares straight line through (xs, ys) at x; one point's own y, or flat when the xs are all one. */

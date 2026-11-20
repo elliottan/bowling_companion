@@ -262,6 +262,15 @@ describe("laneRows", () => {
     expect(r.near - 10).toBeGreaterThan(70);
     expect(r.near - 10).toBeLessThan(85);
   });
+
+  it("looks for the racks only where a camera 10 to 45 ft behind the foul line puts them", () => {
+    // A phone held low: the masking units' artwork just under the horizon is
+    // busier than the racks below it (2026-11-19, a 720 by 1280 video).
+    const E = Array.from({ length: 300 }, (_, j) => (j >= 2 && j <= 6 ? 20 : j === 40 ? 12 : j < 250 ? 4 : 0.1));
+    const r = laneRows(energyFan(E));
+    expect(r.far).toBe(10 + 40);
+    expect(Math.abs(r.near - (10 + 250))).toBeLessThanOrEqual(4);
+  });
 });
 
 describe("columnProfile", () => {

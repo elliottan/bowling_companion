@@ -405,6 +405,20 @@ export function localU(pts: PathPoint[], lo: number, hi: number, at: number, min
   return u0 + a * at;
 }
 
+/** What the readings are read off, without the hand they are counted from: kept with a result so another hand reads it again (`handedMetrics`). */
+export type ReadOff = Omit<MetricInput, "hand">;
+
+/**
+ * `metrics`, with the arrows estimated where the sightings stop short of
+ * them (15 ft): a trace seen near the foul line only reads them off the line
+ * through what it saw (shot-04, seen to 13.6 ft).
+ */
+export function handedMetrics(inp: MetricInput): TrackMetrics {
+  const met = metrics(inp);
+  if (inp.seen.length && Math.max(...inp.seen) < 15 && met.arrows.state === "measured") met.arrows = { ...met.arrows, state: "estimated" };
+  return met;
+}
+
 const M = (value: number | null, state: MetricState): Metric => (value === null || !Number.isFinite(value) ? { value: null, state: "missing" } : { value, state });
 
 /** The metrics and their states (plan 7.5, R11), in handed boards, feet, degrees and mph. */

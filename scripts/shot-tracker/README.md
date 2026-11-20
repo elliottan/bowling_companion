@@ -153,6 +153,141 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
+## The hand from the video, and a far-back phone (0.114.0, 2026-11-19)
+
+```
+npx tsx scripts/shot-tracker/app-read.ts <video> --hand auto     # the hand read from the video, as the app reads it
+npx tsx scripts/shot-tracker/review-app.ts <outDir> <video> --check   # the hand from the video unless <video>:left or :right
+```
+
+**The hand** (`handFind.ts`, `handCues` and `releaseBody` in `pipeline.ts`).
+The boards were counted from the gutter of the app's handedness setting, so a
+left-hander filmed on a right-hander's phone (IMG_9960) read 28.5 for 11.3.
+The hand changes only `metrics` (`handedBoard` and the breakpoint, the
+lowest handed board); the path, the sightings and every other stage are in
+lane u. Four cues, each a vote from -1 (left) to +1 (right), in lane u:
+
+- `release`: the ball against the middle of the bowler's body on the laydown
+  frame: the change against the empty lane in a box over the foul line (a
+  lane width and a half up, half a lane width down and past each edge),
+  leaving out the ball. Ball right of the body: right-handed. 4 boards for a
+  full vote.
+- `drift`: the arrows' board less the laydown's, in u: a right-hander's ball
+  goes out to the right. 3 boards.
+- `hook`: the fitted hook's turn by 60 ft, when the sightings run past the
+  middle of the bend: a right-hander's turns left. 4 boards.
+- `pins`: the board at the pins right of the head pin. 3 boards, weighed 0.6
+  (a missed pocket lands on the other side).
+
+The video decides when the weighted votes add to 0.6 or more and none votes
+0.5 or more against them; otherwise the setting stands and the result says
+why (`HandFound.why`). On every input every cue agreed (confidence 1.00):
+
+| input | release | drift | hook | pins | hand |
+|---|---|---|---|---|---|
+| shot-01 | +2.6 | +6.8 | +18.6 | +2.6 | right |
+| shot-02 | +7.2 | +5.3 | +12.4 | +4.4 | right |
+| shot-03 | +13.3 | +3.7 | +6.6 | - | right |
+| shot-04 | +16.4 | +1.2 | - | - | right |
+| shot-05 | +10.7 | +5.2 | +13.6 | - | right |
+| shot-06 | -15.1 | -2.8 | -9.9 | -0.7 | left |
+| IMG_1996, 8 copies | +11.0 to +11.7 | +4.8 to +5.2 | +10.1 to +13.0 | - | right |
+| IMG_9960 | -12.3 | -0.9 | -5.8 | - | left |
+| 6447 (Node and Chromium) | - | - | -2.4 | -2.7 | left |
+
+(boards, positive is right.) The release cue is the strongest and the only
+one that does not depend on where the bowler aimed; drift is the weakest
+(IMG_9960 plays nearly straight up board 11). The result keeps what the
+readings were read off (`readOff`), and `handedMetrics` reads them again for
+the other hand: the screen's switch uses it, with nothing read again.
+
+**IMG_9960 read left-handed** (Node on the HEVC original; the review pictures
+`review-app.ts ... --check`): laydown 11.3 on frame 213 (the ball still in
+the air over the foul line, the circle on it), touchdown 11.5 at 1.0 ft on
+214, arrows 10.4 on 231 at 14.3 ft (circle on the ball), breakpoint 9.1 at
+36.7 ft (the sightings sit at u 9.2 to 9.5 from 34 to 41 ft and come back to
+11.5 by 53.7 ft). Right-handed the breakpoint was "not seen": the lowest
+right-handed board is at the end of the sightings. The pins are not read: the
+sightings stop at 53.7 ft (54 is needed), where the bowler, walking back, has
+her hand in front of the ball and the rack (frame 82 of the read, 9.41 s);
+the iPhone's "estimated 27.6" (12.4 from the left) came from the follow
+forward past that. The lane: both edges and the foul line sit on the lane's
+own lines on the calibration frame (`lane.jpg`).
+
+**6447176557853835635.mov** (720 by 1280, 30 fps, re-encoded by a messaging
+app, filmed from far back and panning with the bowler). Why "The ball
+couldn't be followed down the lane":
+
+1. `laneRows` put the lane's far end at the busiest row of the fan, the first
+   rows under the vanishing point: a phone held low has the masking units'
+   artwork there, busier than the racks (at 22 against 12). The pins were
+   looked for a pin's height under the vanishing point, none was found, and
+   no lane was found on the first part read; the window fell back to the
+   slowest ball and the ball was not found. The far end is now the busiest
+   row where a camera `CAMERA_FT` (10 to 45 ft) behind the foul line puts the
+   racks, (pin row - vp) / (foul - vp) = d / (d + 62.6), with a margin for
+   the rough near row. No other input moves.
+2. The harness read this file one frame early: it has an edit list that
+   starts the video after seven samples, ffmpeg leaves them out and counts
+   its times from the first shown (0.0 for the sample at 0.0233 s), and each
+   frame landed on the sample before it. `decodeLuma` now moves ffmpeg's
+   times onto the samples it shows. Node and Chromium then agree to the digit
+   (search release 3.09 s, bands 0.30-0.72 and 0.39-0.83, read 2.67 to 4.27 s,
+   48 frames, 1 not in the file: the iPhone's own lines).
+
+Now the first part's lane is found, the ball is seen from 1 to 12 ft and the
+window is right (crossing 3.12 s). The trace still sees the ball only from
+46.5 to 60.8 ft: the best lane is on read frame 73 (5.1 s), the camera has
+panned and moved since the release, the release frames do not register onto
+it (share of patches 0.10 to 0.15, under the 0.15 floor; counting only the
+patches in view does not help), and the found lanes there cannot be carried
+to the anchor and are dropped. Traced from a calibration frame near the
+release (read frame 14, 32 or 50) every frame registers and it reads laydown
+10.2 to 10.4, arrows 9.0 to 9.2, breakpoint 8.3 to 8.5 at 26 ft. Not done:
+choosing the calibration frame by the release changes every clip's
+readings, and a second trace needs the frames the pool has taken. What it
+reads now: the hand (left, from the hook and the pins), pins 17.3 measured,
+entry speed 16.6 mph; laydown, arrows and launch speed not seen.
+
+**A weak circle near the pins** (`WEAK_RIM`, `predictCenter`): a
+fixed-radius circle with fewer than 35% of its rays on the rim and no face to
+carry is cast again from where the last three or four circles put the ball,
+and kept when it finds more of the rim and sits nearer that point. On
+shot-01 frame 230 (the owner: the circle a quarter radius right and low) it
+moves 0.74 px left and 0.52 px up, 0.12 and 0.08 of a radius, about half the
+owner's correction. The pins reading moves from 17.44 to 17.36: f230 is the
+first of the three sightings the line through them is read from, so moving it
+left flattens the line. Frames 232 and 233 sit right of where the run puts
+them (467.9 against about 466); the "a bit light" reading is more likely
+theirs, and was not changed. The pins frame stays 233 (shot-06: 102).
+
+**Review crops**: `check/` now shows only the tracer's circle and its base
+cross; the measured outline in cyan is in `check-debug/`, its numbers in
+`readings.json` (on shot-01 frame 229 the owner ruled the yellow circle right
+and the cyan outline wrong: the outline takes a pin's edge there).
+
+**Measured** (Node, `app-read.ts`; before: 0.113.2 with the harness's hand,
+shot-06, IMG_9960 and 6447 told left; after: `--hand auto`; laydown, arrows,
+breakpoint at feet, pins; `e` estimated):
+
+| input | before | after |
+|---|---|---|
+| shot-01 | 24.27, 17.51, 7.47 at 43.3, 17.44 | 24.27, 17.51, 7.46 at 43.3, 17.36 |
+| shot-02 | 21.24, 15.97, 8.78 at 42.5, 15.65 | same |
+| shot-03 | 13.58, 9.90 | same |
+| shot-04 | 6.24, 5.03e | same |
+| shot-05 | 18.54, 13.29, 9.03 at 48.6 | same |
+| shot-06 (left) | 17.61, 14.78, 12.62 at 34.7, 19.30 | same, left from the video |
+| IMG_1996 vp9 / vp9-10 / vp9-10-60 | 18.29, 13.43 / 18.21, 13.26 / 18.27, 13.43, 8.90 at 50.1 | same |
+| avc1-b / remux / rot90-120 | 18.45, 13.45 / 18.42, 13.48 / 18.43, 13.52 | same / 18.42, 13.49 / same |
+| SDR / SDR full | 18.54, 13.34, 8.97 at 49.9 / 18.36, 13.36 | same |
+| IMG_9960 | iPhone, right: 28.5, 29.5, none, 27.6e; Node told left: 11.30, 10.45, 9.13 at 37.0 | 11.30, 10.45, 9.14 at 36.7, left from the video |
+| 6447 | ball not followed | pins 17.3, entry 16.6 mph, left from the video |
+
+The harness's IMG_9960 had read "no shot" in Node: its ffprobe lists a blank
+line for every frame's Dolby Vision side data, and the frame times were read
+off the wrong lines. Both scripts now skip lines with no number.
+
 ## The ball found where the lane is known (0.113.2, 2026-11-18)
 
 The owner's iPhone could not find the shot in IMG_1996: the first look (192

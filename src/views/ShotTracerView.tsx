@@ -1,10 +1,12 @@
 import { t } from "@lingui/core/macro";
 import { Camera, FileVideo } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { HandednessPicker } from "../components/HandednessPicker";
 import { PushScreen } from "../components/PushScreen";
 import { Button } from "../components/ui/Button";
 import { Spinner } from "../components/ui/Spinner";
 import { formatNumber } from "../lib/format";
+import { handNote, type HandFound } from "../lib/shotTrack/handFind";
 import { apply } from "../lib/shotTrack/homography";
 import { BACK_ROW_FT, laneU, LEFT_U, RIGHT_U } from "../lib/shotTrack/laneModel";
 import type { FrameLane } from "../lib/shotTrack/laneTrack";
@@ -16,6 +18,7 @@ import { FIRST_LANE_EVERY, gridFrames, LANE_EVERY, readStep } from "../lib/shotT
 import { laneBands, readFrom, ShotSearch, type Band, type CoarseFrame, type ShotFound } from "../lib/shotTrack/shotStart";
 import type { GrayFrame, Mat3, Metric, Point, TrackError, TrackFailure, TrackResult } from "../lib/shotTrack/types";
 import { frameLanes } from "../lib/shotTrack/laneFind";
+import { handedMetrics } from "../lib/shotTrack/pathFit";
 import type { TraceOutput } from "../lib/shotTrack/pipeline";
 import { poolSize } from "../lib/shotTrack/workers";
 import { isIOSApp } from "../lib/platform";
@@ -410,6 +413,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       );
       const r = next.result;
       notes.current.set("trace", r.ok ? `${r.sightings.length} sightings, ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft` : `${r.failure}: ${r.detail}`);
+      if (r.ok && r.handFound) notes.current.set("hand", handNote(r.handFound));
       setStep({ ...next, timing: took, details: details(), pictures: pictures() });
     };
     let out: TraceOutput;
@@ -417,7 +421,9 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       calibFrame: frame,
       // The found lanes, each frame traced on its own.
       lanes: found.lanes,
+      // The setting only where the video cannot tell whose hand it was (`handFind.ts`).
       hand: handedness,
+      handFromVideo: true,
       onProgress: (_stage: string, fraction: number) => {
         if (attempt.current === mine) setStep({ kind: "tracing", fraction });
       }
@@ -701,12 +707,16 @@ function Result({
   pictures?: Glimpses;
   onAnother: () => void;
 }) {
+  // The hand the boards are counted from, when the bowler switched it here: read again off the same sightings.
+  const [chosen, setChosen] = useState<Handedness | null>(null);
   if (!result.ok) return <Failure text={failureText(result.failure)} details={details} pictures={pictures} onAnother={onAnother} />;
-  const m = result.metrics;
+  const readOff = result.readOff;
+  const hand = chosen && readOff ? chosen : result.hand;
+  const m = hand !== result.hand && readOff ? handedMetrics({ ...readOff, hand }) : result.metrics;
   const path = H ? pathInPicture(H, result.path, result.from, result.to) : [];
   // The laydown on the foul line, where the drawn path starts: the ball is
   // first seen on the lane a foot or two past it.
-  const laydownAt = H && m.laydown.value !== null ? apply(H, { x: laneU(m.laydown.value, result.hand), y: 0 }) : null;
+  const laydownAt = H && m.laydown.value !== null ? apply(H, { x: laneU(m.laydown.value, hand), y: 0 }) : null;
   const dots = H ? result.sightings.filter((s) => !s.airborne).map((s) => apply(H, { x: s.u, y: s.v })) : [];
   return (
     <div className="space-y-5">
@@ -743,6 +753,12 @@ function Result({
           {t`The lane may be off. Check its lines on the picture.`}
         </p>
       )}
+      {result.handFound && readOff && (
+        <div data-testid="tracer-hand" className="space-y-2">
+          <p className="text-subhead text-ink-secondary">{handLine(hand, chosen && chosen !== result.hand ? null : result.handFound)}</p>
+          <HandednessPicker value={hand} onSelect={(h) => setChosen(h)} />
+        </div>
+      )}
       <dl className="overflow-hidden rounded-[26px] bg-surface">
         <Reading label={t`Laydown`} metric={m.laydown} />
         <Reading
@@ -776,6 +792,19 @@ function Result({
       {pictures && <Seen pictures={pictures} />}
     </div>
   );
+}
+
+/**
+ * Which hand the boards are counted from, and why, in one line: read from
+ * the video, the app's setting where the video could not tell, or the
+ * bowler's own choice here (`found` null).
+ */
+function handLine(hand: Handedness, found: HandFound | null): string {
+  if (!found) return hand === "left" ? t`Left-handed, as you chose. The boards are counted from the left gutter.` : t`Right-handed, as you chose. The boards are counted from the right gutter.`;
+  if (found.by === "video") return hand === "left" ? t`Left-handed, from the video.` : t`Right-handed, from the video.`;
+  return hand === "left"
+    ? t`Left-handed, from your settings: the video didn't show which hand threw it.`
+    : t`Right-handed, from your settings: the video didn't show which hand threw it.`;
 }
 
 /** How the video was read and how long each stage took, small, for the owner's runs on a phone. */

@@ -1,4 +1,6 @@
 import type { Handedness } from "../../types/bowling";
+import type { HandFound } from "./handFind";
+import type { ReadOff } from "./pathFit";
 
 /**
  * Shared shapes of the shot tracer (docs/SHOT-TRACKER-PLAN.md, section 5).
@@ -151,6 +153,10 @@ export interface TrackResult {
   /** RMS of the across-lane residual, boards. */
   rms: number;
   metrics: TrackMetrics;
+  /** What the readings were read off, so another hand can read them again (`handedMetrics`). */
+  readOff?: ReadOff;
+  /** The bowler's hand as the video showed it, when the tracer was asked to read it (`handFind.ts`). */
+  handFound?: HandFound;
   /** Distance against time: v(t) = v0 + w t + d t^2 / 2, feet and seconds. */
   motion: { v0: number; w: number; d: number };
   touchdownFrame: number | null;

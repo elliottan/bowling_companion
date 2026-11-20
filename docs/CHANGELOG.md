@@ -9,6 +9,27 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.114.0: The shot tracer reads the bowler's hand from the video (2026-11-19)
+
+- In Settings, Labs: the shot tracer works out which hand threw the ball from
+  the video itself, so a shot filmed of a left-hander reads its boards from the
+  left gutter even when the phone's owner is right-handed. It looks at where
+  the ball is beside the bowler's body as it is let go, which way the ball
+  drifts on its way to the arrows, which way it hooks, and which side of the
+  head pin it heads for. When those agree it says so ("Left-handed, from the
+  video."); when they are unclear it keeps the hand from Settings and says that.
+- One tap on Left-handed or Right-handed under the picture switches the hand
+  and reads the boards and the breakpoint again from the same trace, without
+  reading the video again. The details at the bottom list the hand and what
+  each clue measured.
+- A video filmed from far back, with the lane's far end just under the masking
+  units, now has its lane found. The tracer used to take the busy artwork above
+  the pins for the far end of the lane and gave up with "The ball couldn't be
+  followed down the lane."
+- Near the pins, where a pin's dark neck stands beside the ball, a weakly seen
+  ball's outline is placed again from where the ball was heading, rather than
+  slid toward the pin.
+
 ## 0.113.2: The shot tracer reads the pins on the frame before contact (2026-11-17)
 
 - In Settings, Labs: the board at the pins is read on the last frame before the

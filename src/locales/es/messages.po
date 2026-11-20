@@ -2900,6 +2900,18 @@ msgstr "Mano izquierda, a dos manos"
 msgid "Left-handed"
 msgstr "Zurdo"
 
+#: src/views/ShotTracerView.tsx
+msgid "Left-handed, as you chose. The boards are counted from the left gutter."
+msgstr "Zurdo, como elegiste. Las tablas se cuentan desde el canal izquierdo."
+
+#: src/views/ShotTracerView.tsx
+msgid "Left-handed, from the video."
+msgstr "Zurdo, según el vídeo."
+
+#: src/views/ShotTracerView.tsx
+msgid "Left-handed, from your settings: the video didn't show which hand threw it."
+msgstr "Zurdo, según tus ajustes: el vídeo no mostró con qué mano se lanzó."
+
 #. Bowling term: how far down the lane the ball travels before it turns, a reading on the layout lab's rail
 #: src/components/OilPatternFormDialog.tsx
 #: src/components/PatternFilterSheet.tsx
@@ -4128,6 +4140,18 @@ msgstr "Mano derecha, a dos manos"
 #: src/views/SettingsView.tsx
 msgid "Right-handed"
 msgstr "Diestro"
+
+#: src/views/ShotTracerView.tsx
+msgid "Right-handed, as you chose. The boards are counted from the right gutter."
+msgstr "Diestro, como elegiste. Las tablas se cuentan desde el canal derecho."
+
+#: src/views/ShotTracerView.tsx
+msgid "Right-handed, from the video."
+msgstr "Diestro, según el vídeo."
+
+#: src/views/ShotTracerView.tsx
+msgid "Right-handed, from your settings: the video didn't show which hand threw it."
+msgstr "Diestro, según tus ajustes: el vídeo no mostró con qué mano se lanzó."
 
 #. Accent color name: a pink-red
 #: src/lib/palette.ts

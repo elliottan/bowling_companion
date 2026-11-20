@@ -12,8 +12,13 @@
  *
  * `--frames` takes the read from `app-read.ts --dump` (`<stem>.gray` and
  * `.json`, which name the video and the band read) rather than reading again.
- * `--check` also writes `<name>/check/<reading>-f<frame>.jpg`: the circle in
- * yellow and the outline measured afresh in cyan.
+ * `--check` also writes `<name>/check/<reading>-f<frame>.jpg`, for the owner:
+ * the tracer's circle in yellow and its base (the point under the ball) as a
+ * cross, nothing else; and `<name>/check-debug/` the same with the outline
+ * measured afresh in cyan, whose numbers are in `readings.json` (the owner
+ * found the second circle confusing, 2026-11-19).
+ * The hand is read from the video as the app reads it (the right hand where
+ * it cannot tell); `<video>:left` or `:right` makes the trace use that hand.
  * Frame numbers in the pictures and the json are the video's own (counted
  * from its first frame, as ffprobe lists them); `readFrame` is the index in
  * the read. The color pictures are the same frames cropped to the band and
@@ -33,7 +38,7 @@ import type { VideoFrames } from "../../src/shotTracer/videoFrames";
 import type { Handedness } from "../../src/types/bowling";
 import { appRead, fileTrack, findOn } from "./app-read";
 import { tracedReading } from "./bench-readings";
-import { fromRgb, type Canvas } from "./draw";
+import { cross, fromRgb, type Canvas } from "./draw";
 import { outline, type Disc } from "./outline";
 import { autoFrames, type AutoReading, type FrameView } from "./review-frames";
 import { boxOf, enlarge, jpg, renderLane, ring } from "./review-lib";
@@ -57,7 +62,7 @@ function fromDump(dir: string, stem: string): Input {
 /** Each frame's time as ffprobe lists them, in order: a frame's place in this list is its number in the video. */
 function videoTimes(path: string): number[] {
   const out = execFileSync("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "frame=pts_time,best_effort_timestamp_time", "-of", "csv=p=0", path], { maxBuffer: 64 << 20 }).toString();
-  return out.trim().split("\n").map((l) => Number(l.split(",").find((x) => x !== "")));
+  return out.trim().split("\n").filter((l) => /\d/.test(l)).map((l) => Number(l.split(",").find((x) => x !== "")));
 }
 
 /** The read's frames as a `FrameView`: numbered by the video's own count, in color through ffmpeg (turned as shown, cropped to the band, scaled to the read's size). */
@@ -158,6 +163,7 @@ if (process.argv[1]?.endsWith("review-app.ts")) {
       inp = { name: stem, video, hand: (side as Handedness) ?? "right", band: r.band, frames: r.frames };
     }
     if (side) inp.hand = side as Handedness;
+    const fromVideo = !side;
     const name = inp.name;
     const vf: VideoFrames = { width: inp.frames[0].width, height: inp.frames[0].height, gray: inp.frames.map((f) => f.data), times: inp.frames.map((f) => f.t), src: null, step: 0, missing: 0 };
     const lane = findOn(vf, LANE_EVERY);
@@ -166,7 +172,9 @@ if (process.argv[1]?.endsWith("review-app.ts")) {
       manifest[name] = { clip: name, laneFound: false };
       continue;
     }
-    const out = trace({ source: { count: inp.frames.length, frame: (i) => inp.frames[i] }, calibFrame: lane.frame, lanes: lane.lanes, hand: inp.hand });
+    const out = trace({ source: { count: inp.frames.length, frame: (i) => inp.frames[i] }, calibFrame: lane.frame, lanes: lane.lanes, hand: inp.hand, handFromVideo: fromVideo });
+    // The hand the trace counted its boards from: the video's, unless one was named.
+    if (out.result.ok) inp.hand = out.result.hand;
     const view = await viewOf(inp);
     const dir = join(outDir, name);
     mkdirSync(dir, { recursive: true });
@@ -210,20 +218,29 @@ if (process.argv[1]?.endsWith("review-app.ts")) {
           const c = check(inp.frames[i], h, d, fm.frame, i);
           checks.push({ ...c, reading: r.reading } as CircleCheck & { reading: string });
           if (checkPics) {
-            // The circle (yellow) and the outline measured afresh (cyan), on the color frame.
+            // For the owner: the circle (yellow) and its base, the point under the ball (a cross); for us, the outline measured afresh (cyan) too.
             mkdirSync(join(dir, "check"), { recursive: true });
+            mkdirSync(join(dir, "check-debug"), { recursive: true });
             const R = Math.max(d.r, c.outline?.r ?? 0);
             const box = { x: Math.max(0, Math.floor(d.cx - 2.5 * R)), y: Math.max(0, Math.floor(d.cy - 2.5 * R)), w: Math.ceil(5 * R), h: Math.ceil(5 * R) };
             const k = Math.min(16, 300 / box.w);
-            const pic = enlarge(view.color(i), box.x, box.y, box.w, box.h, k);
             const P = (x: number, y: number) => ({ x: (x - box.x + 0.5) * k - 0.5, y: (y - box.y + 0.5) * k - 0.5 });
             const q = P(d.cx, d.cy);
-            ring(pic, q.x, q.y, d.r * k, [255, 230, 0]);
+            const dn = downAt(h, { x: d.cx, y: d.cy });
+            const b = P(d.cx + d.r * dn.x, d.cy + d.r * dn.y);
+            const plain = () => {
+              const pic = enlarge(view.color(i), box.x, box.y, box.w, box.h, k);
+              ring(pic, q.x, q.y, d.r * k, [255, 230, 0]);
+              cross(pic, b.x, b.y, Math.max(4, 0.25 * d.r * k), [255, 230, 0]);
+              return pic;
+            };
+            jpg(plain(), join(dir, "check", `${r.reading}-f${fm.frame}.jpg`));
+            const dbg = plain();
             if (c.outline) {
               const o = P(c.outline.cx, c.outline.cy);
-              ring(pic, o.x, o.y, c.outline.r * k, [0, 230, 255]);
+              ring(dbg, o.x, o.y, c.outline.r * k, [0, 230, 255]);
             }
-            jpg(pic, join(dir, "check", `${r.reading}-f${fm.frame}.jpg`));
+            jpg(dbg, join(dir, "check-debug", `${r.reading}-f${fm.frame}.jpg`));
           }
         }
       }
