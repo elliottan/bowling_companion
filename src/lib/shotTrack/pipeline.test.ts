@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { gridFrames, LANE_EVERY, readStep } from "./framePick";
-import { OWN_SIZE_N, ownScale, predictCenter, PREDICT_FRAMES, trace } from "./pipeline";
+import { ownInset, ownRadius, predictCenter, PREDICT_FRAMES, trace } from "./pipeline";
 import { multiply, normalize } from "./homography";
 import { PIN_HIT_FT, timeAt, truthAt } from "./synthetic";
 import { roughMarks, standardShot, syntheticSource, truthBoard, truthBoardAtPins, truthSpeedMph } from "./syntheticSource";
@@ -218,15 +218,19 @@ describe("predictCenter", () => {
   });
 });
 
-describe("ownScale", () => {
-  it("is the median of the ball's last clean circles against the lane's size", () => {
-    expect(ownScale([0.97, 0.95, 0.96])).toBeCloseTo(0.96, 9);
-    // Only the last OWN_SIZE_N count: an early odd one drops out.
-    expect(ownScale([1.3, 1.3, 1.3, ...Array.from({ length: OWN_SIZE_N }, () => 0.94)])).toBeCloseTo(0.94, 9);
+describe("ownInset and ownRadius", () => {
+  it("is the median of how far inside the lane's size the ball's clean rims sit, in pixels", () => {
+    expect(ownInset([0.6, 0.65, 0.69, 0.64])).toBeCloseTo(0.645, 9);
+    // A pixel's blur, not a share of the ball: the same inset at 20 px and at 6 px.
+    expect(ownRadius(20, 0.6)).toBeCloseTo(19.4, 9);
+    expect(ownRadius(6.6, 0.6)).toBeCloseTo(6.0, 9);
   });
 
-  it("is the lane's own size with fewer than three", () => {
-    expect(ownScale([])).toBe(1);
-    expect(ownScale([0.9, 0.92])).toBe(1);
+  it("is no inset with fewer than three, and never draws the ball under half the lane's size", () => {
+    expect(ownInset([])).toBe(0);
+    expect(ownInset([0.5, 0.6])).toBe(0);
+    expect(ownRadius(4, 3)).toBe(2);
+    // A ball measured larger than the lane predicts (1856: -0.2 px) is drawn larger.
+    expect(ownRadius(10, -0.2)).toBeCloseTo(10.2, 9);
   });
 });

@@ -574,7 +574,7 @@ export interface ArcFit {
   cy: number;
   /** The circle fitted to the rim points alone, radius free, when they go round two thirds of the upper side or more; else null. */
   free: { cx: number; cy: number; r: number } | null;
-  /** Share of the upper side's directions with a rim point on the circle. */
+  /** Rim directions found on the circle against the number round the upper side: with `whole` the lower side's add to it, so it can pass 1. */
   support: number;
 }
 
@@ -602,10 +602,14 @@ const ARC_BINS = 48;
  * least squares on its rim points. `free` is the circle those points give
  * alone, radius free, when they cover two thirds of the directions. Null when too little
  * rim is found. Pure; the result does not depend on `prior` beyond the
- * window and the gentle pull.
+ * window and the gentle pull. `whole` counts the rim all the way round: past
+ * the oil the ball's mirror image is too faint to hide its lower rim, and
+ * against the dark pit the lower rim and one side may be all that shows.
  */
-export function arcFit(f: GrayFrame, down: Point, prior: Point, r: number, reach: number): ArcFit | null {
+export function arcFit(f: GrayFrame, down: Point, prior: Point, r: number, reach: number, whole = false): ArcFit | null {
   const upper = (dx: number, dy: number) => dx * down.x + dy * down.y <= 0.17 * Math.hypot(dx, dy);
+  // The directions a rim point counts in: the upper side, or with `whole` all round.
+  const counted = (dx: number, dy: number) => whole || upper(dx, dy);
   // The ball's own face: what the inner side of its rim looks like.
   const inner: number[] = [];
   for (let a = 0; a < 16; a++) {
@@ -665,7 +669,7 @@ export function arcFit(f: GrayFrame, down: Point, prior: Point, r: number, reach
       const dx = e.x - cx;
       const dy = e.y - cy;
       const d = Math.hypot(dx, dy);
-      if (!(d > 0) || !upper(dx, dy)) continue;
+      if (!(d > 0) || !counted(dx, dy)) continue;
       const off = Math.abs(d - r);
       if (off >= 1) continue;
       // The way out of the ball must point away from the center, within about 35 degrees.

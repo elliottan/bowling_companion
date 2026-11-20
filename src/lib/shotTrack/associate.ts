@@ -26,6 +26,11 @@ export interface AssociateOptions {
   minGap?: number;
 }
 
+/** From here on down the lane a pixel is a foot or more, and sightings may cross by... */
+export const FAR_FT = 45;
+/** ...this many feet. */
+export const FAR_SLACK_FT = 2;
+
 export const MIN_SPEED_FTS = 8 * (5280 / 3600);
 export const MAX_SPEED_FTS = 26 * (5280 / 3600);
 
@@ -130,10 +135,16 @@ export function associate<T extends Track3>(cands: T[], opts: AssociateOptions =
     if (next.length < 4) break;
     best = next;
   }
-  // Down-lane position increases with time. Half a foot of slack: at the far
-  // end a pixel is about a foot, so two honest sightings can cross.
+  // Down-lane position increases with time. Half a foot of slack, and
+  // `FAR_SLACK_FT` from `FAR_FT` on: at the far end a pixel is about a foot,
+  // so two honest sightings can cross by more (shot-01 frame 231, the ball
+  // plain against the pins, a pixel low and 1.4 ft short of the frame
+  // before's sighting, was dropped).
   const mono: T[] = [];
-  for (const c of best) if (!mono.length || c.v > mono[mono.length - 1].v - 0.5) mono.push(c);
+  for (const c of best) {
+    const last = mono[mono.length - 1];
+    if (!last || c.v > last.v - (last.v >= FAR_FT ? FAR_SLACK_FT : 0.5)) mono.push(c);
+  }
   return onePace(mono);
 }
 

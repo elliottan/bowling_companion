@@ -144,29 +144,41 @@ export const CARRY_FRAMES = 6;
 /** ...and looked for within this share of a radius of where the fit put the ball. */
 export const CARRY_REACH = 0.4;
 /**
- * Clean circles this far down the lane or more are left out of the ball's own
- * size (`ownScale`): from a camera behind the bowler the rack stands behind
- * the ball in the picture from about here on, and a pin's edge beside the
- * ball widens a free fit. Measured on four clips: from 15 to 40 ft the free
- * fits run 0.94 to 0.97 of the lane's size; from 45 ft on 0.93 to 1.03, and
- * 1.06 to 1.16 in front of the pins (shot-01, shot-05, shot-06 larger).
+ * From this far down the lane the rack stands behind the ball in the picture
+ * from a camera behind the bowler, and a pin's edge beside the ball widens a
+ * free fit (shot-05 frame 384: 1.02 of the lane's size, the owner's mark
+ * 0.96). Circles from here on are drawn at the ball's own size
+ * (`ownRadius`), never their own.
  */
 export const RACK_FT = 45;
-/** How many of the last clean circles the ball's own size is the median of. */
-export const OWN_SIZE_N = 8;
+/**
+ * Clean circles nearer than this give the ball's own size (`ownInset`). From
+ * 35 ft on, on four of ten inputs, the rack already widens them: the inset
+ * below falls from 0.35 to 0.45 px to 0.0 to -0.4 px on shot-05 and IMG_1996.
+ */
+export const OWN_TO_FT = 35;
 
 /**
- * The ball's own size against the lane's prediction: the median of the
- * ratios of its last `OWN_SIZE_N` clean circles, 1 with fewer than three.
- * The lane predicts a disk on the lane as wide as the ball; the ball's rim
- * measures 0.93 to 0.98 of it on every clip (the edge's peak sits inside the
- * blur), and a ball 4.25 in above the lane seen from behind is within 1% of
- * that disk, so the measured ratio is what a covered ball's circle is drawn
- * at.
+ * How far inside the lane's prediction the ball's rim is measured, pixels:
+ * the median of `rLane - r` over its clean circles nearer than `OWN_TO_FT`,
+ * 0 with fewer than three. The lane predicts the ball's true size (a disk
+ * 8.5 in wide; a ball 4.25 in above the lane seen from behind is within 1%
+ * of it); the rim's edge peak sits inside the blur by a width that is the
+ * blur's, not a share of the ball: from 0 to 35 ft, where the ball shrinks
+ * from 20 to 10 px, each input's inset is constant to a tenth of a pixel
+ * (shot-01 0.43 to 0.53, shot-02 0.60 to 0.69, shot-05 0.33 to 0.44, shot-06
+ * 0.27 to 0.42, IMG_1996 0.35 to 0.40) while the ratio falls (shot-02 0.96 to
+ * 0.93). A ratio taken near the bowler drew the ball 4 to 7% large at the
+ * pins (2026-11-20, the owner on shot-02 frames 211 to 215 and shot-05
+ * frame 384).
  */
-export function ownScale(ratios: number[]): number {
-  const last = ratios.slice(-OWN_SIZE_N);
-  return last.length >= 3 ? median(last) : 1;
+export function ownInset(insets: number[]): number {
+  return insets.length >= 3 ? median(insets) : 0;
+}
+
+/** The ball's radius as its rim is measured where the lane predicts `rLane`: never under half of it. */
+export function ownRadius(rLane: number, inset: number): number {
+  return Math.max(0.5 * rLane, rLane - inset);
 }
 
 /**
@@ -560,8 +572,8 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
   };
   // Each circle placed so far, for where the next is expected (`predictCenter`).
   const placed: { frame: number; x: number; y: number }[] = [];
-  // The ball's clean circles' size against the lane's (`ownScale`).
-  const ratios: number[] = [];
+  // How far inside the lane's size the ball's clean rims are measured (`ownInset`).
+  const insets: number[] = [];
   for (const c0 of chosen) {
     const g = geoOf(c0.frame);
     const f = source.frame(c0.frame);
@@ -569,12 +581,12 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
     if (!fit) continue;
     if (!fit.fixed && fit.weight >= CLEAN_WEIGHT) {
       clean = { frame: c0.frame, f, H: g.H, fit, rExp: rAt(g.H, fit) };
-      if (contactPoint(g.H, { x: fit.cx, y: fit.cy }, fit.r).v < RACK_FT) ratios.push(fit.r / clean.rExp);
+      if (contactPoint(g.H, { x: fit.cx, y: fit.cy }, fit.r).v < OWN_TO_FT) insets.push(clean.rExp - fit.r);
     } else if (clean && c0.frame - clean.frame <= CARRY_FRAMES) {
       // Too few of its rim's edges on the circle (a leg or a hand over it):
       // placed by its face from the last clean sighting, at that sighting's
       // size scaled as the lane scales it here (`carryFace`).
-      const r = (clean.fit.r * rAt(g.H, fit)) / clean.rExp;
+      const r: number = (clean.fit.r * rAt(g.H, fit)) / clean.rExp;
       const m = carryFace(clean.f, clean.fit, f, { x: fit.cx, y: fit.cy }, r, CARRY_REACH * r);
       if (m) fit = { ...fit, cx: m.cx, cy: m.cy, r, carried: clean.frame };
     }
@@ -586,16 +598,27 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
       // its face's match when carried, else where its last circles put it.
       // The rays' fit before slid toward a pin's dark neck beside the ball
       // and onto the lane's radius, too big for the ball (2026-11-20, the
-      // owner on shot-01 frames 230 and 233 and shot-04 frame 109). A rim
-      // seen round two thirds of the ball sets its own radius when within
-      // `FREE_RADIUS_TOLERANCE` of that size.
-      const rOwn = ownScale(ratios) * rAt(g.H, fit);
+      // owner on shot-01 frames 230 and 233 and shot-04 frame 109). Nearer
+      // than `RACK_FT`, a rim seen round two thirds of the ball sets its own
+      // radius when within `FREE_RADIUS_TOLERANCE` of that size. Where no rim
+      // places it, it keeps its center and is drawn at that size too
+      // (shot-02 frame 208, the circle the pins' follow starts from, was
+      // drawn at the lane's size, 10% over the ball's).
+      const rOwn: number = ownRadius(rAt(g.H, fit), ownInset(insets));
       const at = fit.carried === undefined ? (predictCenter(placed, c0.frame) ?? { x: fit.cx, y: fit.cy }) : { x: fit.cx, y: fit.cy };
       const a = arcFit(f, downAt(g.H, at), at, rOwn, ARC_REACH * rOwn);
       if (a && a.support >= ARC_MIN) {
-        const free = a.free && Math.abs(a.free.r / rOwn - 1) <= FREE_RADIUS_TOLERANCE ? a.free : null;
+        const far = contactPoint(g.H, { x: a.cx, y: a.cy }, rOwn).v >= RACK_FT;
+        const free: { cx: number; cy: number; r: number } | null = !far && a.free && Math.abs(a.free.r / rOwn - 1) <= FREE_RADIUS_TOLERANCE ? a.free : null;
         fit = free ? { ...fit, cx: free.cx, cy: free.cy, r: free.r } : { ...fit, cx: a.cx, cy: a.cy, r: rOwn };
-      }
+      } else fit = { ...fit, r: rOwn };
+    } else if (contactPoint(g.H, { x: fit.cx, y: fit.cy }, fit.r).v >= RACK_FT) {
+      // From `RACK_FT` on a clean circle keeps its center but is drawn at the
+      // ball's own size: in front of the rack a pin's edge beside the ball
+      // widens a free fit (shot-05 frame 384, 1.02 of the lane's size against
+      // the owner's 0.96). Placing it again by its rim at that size moved
+      // the circles of a phone held low (1856, 6447) off the ball.
+      fit = { ...fit, r: ownRadius(rAt(g.H, fit), ownInset(insets)) };
     }
     placed.push({ frame: c0.frame, x: fit.cx, y: fit.cy });
     debug.circles.set(c0.frame, fit);
@@ -802,8 +825,8 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
     const v = Math.min(vPast(source.frame(i).t), PIN_V);
     const u = uAtColumn(g.H, cx, v);
     const contact = apply(g.H, { x: u, y: v });
-    // The ball's own size, as its covered circles are drawn (`ownScale`).
-    const r = ownScale(ratios) * expectedRadiusPx(g.H, u, v);
+    // The ball's own size, as its covered circles are drawn (`ownRadius`).
+    const r = ownRadius(expectedRadiusPx(g.H, u, v), ownInset(insets));
     const down = downAt(g.H, contact);
     return { cy: contact.y - r * down.y, r, down };
   };

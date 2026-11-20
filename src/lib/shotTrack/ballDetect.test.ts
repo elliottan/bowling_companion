@@ -99,6 +99,34 @@ describe("arcFit", () => {
     expect(a!.free).toBeNull();
   });
 
+  it("places a ball against the dark pit by its lower rim and the pin beside it, counted all the way round", () => {
+    // Shot-02 frames 211 to 215: the pit (40) as dark as the ball (32) above
+    // the pin deck's edge, the deck (125) below it, a white pin left of the
+    // ball. Only the left rim and the bottom show.
+    const atPit = (cx: number, cy: number, r: number): GrayFrame => {
+      const f = makeFrame(120, 120, 0, 0);
+      for (let y = 0; y < f.height; y++) {
+        for (let x = 0; x < f.width; x++) {
+          let v = y < cy + 0.5 * r ? 40 : 125;
+          if (x >= cx - r - 7 && x < cx - r) v = 220;
+          if (Math.hypot(x - cx, y - cy) <= r) v = 32;
+          f.data[y * f.width + x] = v;
+        }
+      }
+      return boxBlur(f, 1);
+    };
+    const f = atPit(60.4, 60.6, 6);
+    // From a prior a fifth of a radius low and left, as the face's match left it.
+    const prior = { x: 59.6, y: 61.6 };
+    const a = arcFit(f, down, prior, 6, 0.3 * 6, true);
+    expect(a).not.toBeNull();
+    expect(a!.support).toBeGreaterThanOrEqual(ARC_MIN);
+    expect(Math.hypot(a!.cx - 60.4, a!.cy - 60.6)).toBeLessThanOrEqual(0.6);
+    // The upper side alone has the left rim only: too little to place it.
+    const up = arcFit(f, down, prior, 6, 0.3 * 6);
+    expect(up === null || up.support < ARC_MIN).toBe(true);
+  });
+
   it("finds no rim where there is no ball, or none in the picture", () => {
     expect(arcFit(makeFrame(120, 120, 0, 210), down, { x: 60, y: 60 }, 10, 3)).toBeNull();
     expect(arcFit(ballFrame(50, 50, 16), down, { x: -40, y: -40 }, 16, 4)).toBeNull();

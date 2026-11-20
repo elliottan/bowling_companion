@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { associate, onePace, polyfit } from "./associate";
+import { associate, FAR_FT, FAR_SLACK_FT, onePace, polyfit } from "./associate";
 import { laneRoi, medianBackground, steady } from "./background";
 import { closeGaps, findCandidates, refineCircle } from "./ballDetect";
 import { calibrationReport, checkArrows, checkPins } from "./calibrationCheck";
@@ -300,6 +300,19 @@ describe("associate", () => {
     expect(onePace(short)).toEqual(short);
     const still = [...ball.map((c) => ({ ...c, v: 5 })), ...stray];
     expect(onePace(still)).toEqual(still);
+  });
+
+  it("lets two sightings cross by up to FAR_SLACK_FT from FAR_FT on, by half a foot nearer", () => {
+    // A ball at 20 ft/s, one frame a pixel low: 1.4 ft short of the frame before.
+    const run = (v0: number) => Array.from({ length: 30 }, (_, i) => ({ frame: i, t: i / 60, v: v0 + (20 * i) / 60, u: 20 }));
+    const far = run(50);
+    far[21] = { ...far[21], v: far[20].v - 1.4 };
+    expect(associate(far).map((c) => c.frame)).toContain(21);
+    const near = run(10);
+    near[21] = { ...near[21], v: near[20].v - 1.4 };
+    expect(associate(near).map((c) => c.frame)).not.toContain(21);
+    expect(FAR_SLACK_FT).toBeGreaterThan(1.4);
+    expect(FAR_FT).toBeLessThan(50);
   });
 
   it("drops the stray pieces when it associates", () => {
