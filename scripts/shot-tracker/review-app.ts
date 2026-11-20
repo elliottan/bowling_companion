@@ -8,7 +8,7 @@
  * frame, time and whether it is estimated, the hand and its cues, and the circle check
  * (`outline.ts`) on every reading frame and the five frames before the pins.
  *
- *   npx tsx scripts/shot-tracker/review-app.ts <outDir> <video>[:left] ... [--frames dumpDir] [--check]
+ *   npx tsx scripts/shot-tracker/review-app.ts <outDir> <video>[:left] ... [--frames dumpDir] [--check] [--check-frames 211,212]
  *
  * `--frames` takes the read from `app-read.ts --dump` (`<stem>.gray` and
  * `.json`, which name the video and the band read) rather than reading again.
@@ -16,7 +16,9 @@
  * the tracer's circle in yellow and its base (the point under the ball) as a
  * cross, nothing else; and `<name>/check-debug/` the same with the outline
  * measured afresh in cyan, whose numbers are in `readings.json` (the owner
- * found the second circle confusing, 2026-11-19).
+ * found the second circle confusing, 2026-11-19). `--check-frames` adds
+ * those frames (numbered as the video counts them) to the check, as
+ * `frame-f<n>.jpg`, wherever the tracer drew a circle on them.
  * The hand is read from the video as the app reads it (the right hand where
  * it cannot tell); `<video>:left` or `:right` makes the trace use that hand.
  * Frame numbers in the pictures and the json are the video's own (counted
@@ -144,6 +146,7 @@ if (process.argv[1]?.endsWith("review-app.ts")) {
   };
   const dumpDir = opt("--frames");
   const checkPics = args.includes("--check") ? (args.splice(args.indexOf("--check"), 1), true) : false;
+  const alsoFrames = opt("--check-frames")?.split(",").map(Number);
   const outDir = resolve(args.shift()!);
   mkdirSync(outDir, { recursive: true });
   const manifest: Record<string, unknown> = {};
@@ -209,7 +212,12 @@ if (process.argv[1]?.endsWith("review-app.ts")) {
         if (pinsRow && strip) (pinsRow as AutoReading & { six?: unknown }).six = strip.frames;
       }
       const geo = (i: number) => out.debug.geometry[i - out.debug.first]?.H ?? null;
-      for (const r of auto) {
+      // The reading frames, then any other frame asked for by its number in the video (`--check-frames`).
+      const asked = (alsoFrames ?? []).flatMap((n) => {
+        const i = Array.from({ length: view.count }, (_, k) => k).find((k) => view.number(k) === n);
+        return i === undefined || auto.some((r) => r.frames.some((fm) => fm.readFrame === i)) ? [] : [{ reading: "frame", frames: [{ frame: n, readFrame: i }] }];
+      });
+      for (const r of [...auto, ...asked]) {
         for (const fm of r.frames) {
           const i = fm.readFrame;
           const h = geo(i);

@@ -430,8 +430,9 @@ function followFace(
     if (best.c < MATCH_MIN) break;
     // The face's match carries any offset of the circle it started from;
     // the rim, where it shows, puts the center on the ball itself
-    // (`arcFit`, its size known).
-    const a = arcFit(f, p.down ?? { x: 0, y: 1 }, { x: best.x, y: best.y }, p.r, ARC_REACH * p.r);
+    // (`arcFit`, its size known), all the way round: on the dry pin deck its
+    // lower rim shows, and against the pit often only that and a side do.
+    const a = arcFit(f, p.down ?? { x: 0, y: 1 }, { x: best.x, y: best.y }, p.r, ARC_REACH * p.r, true);
     const at = a && a.support >= ARC_MIN ? { x: a.cx, y: a.cy } : best;
     cx = at.x;
     off = at.y - p.cy;
