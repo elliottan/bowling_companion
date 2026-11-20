@@ -102,8 +102,10 @@ export interface PathModel {
   s: number;
   L: number;
   k: number;
-  /** Smoothing spline knots (v, u), set when kind is "spline". */
+  /** Smoothing spline knots (v, u), set when kind is "spline": read from traces made before 0.114.1, never fitted now. */
   knots?: [number, number][];
+  /** The ball's shape fitted the sightings loosely (over 0.7 board RMS): drawn and read as fitted, but its bend is not taken as measured. */
+  rough?: boolean;
 }
 
 export interface TrackMetrics {

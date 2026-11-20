@@ -44,6 +44,17 @@ export const PIN_REFS = 5;
 
 const PIN_IN = 15;
 
+/**
+ * A pin's points within this many of the ball's radii of its circle (or its
+ * mirror image's) are left out: the ball's own edge and blur. Not more: a pin
+ * the ball touches has its near side about 1.3 radii from the ball's center,
+ * and that side moves first. At 1.5, with shot-01's circle on the ball at
+ * last (2026-11-20), frame 234's first move was hidden and found a frame
+ * late; at 1.35 the synthetic shot's ball edge counted as a move a frame
+ * early. At 1.42 shot-01, shot-06 and the synthetic shots all find theirs.
+ */
+export const BALL_MASK = 1.42;
+
 /** Each pin's sample points on a frame, picture pixels; NaN where the ball or its mirror image covers the point. */
 function pinPoints(p: PinFrame): { x: number; y: number }[][] {
   const r60 = expectedRadiusPx(p.H, 20, 60);
@@ -60,7 +71,7 @@ function pinPoints(p: PinFrame): { x: number; y: number }[][] {
         if (ball) {
           const bd = downAt(p.H, { x: ball.cx, y: ball.cy });
           const m = { x: ball.cx + 2 * ball.r * bd.x, y: ball.cy + 2 * ball.r * bd.y };
-          hidden = Math.hypot(q.x - ball.cx, q.y - ball.cy) < 1.5 * ball.r || Math.hypot(q.x - m.x, q.y - m.y) < 1.5 * ball.r;
+          hidden = Math.hypot(q.x - ball.cx, q.y - ball.cy) < BALL_MASK * ball.r || Math.hypot(q.x - m.x, q.y - m.y) < BALL_MASK * ball.r;
         }
         pts.push(hidden ? { x: NaN, y: NaN } : q);
       }

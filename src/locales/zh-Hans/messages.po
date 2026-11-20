@@ -2409,6 +2409,14 @@ msgctxt "bowling hand"
 msgid "Hand"
 msgstr "惯用手"
 
+#: src/views/ShotTracerView.tsx
+msgid "Hand not clear in the video: counted as left-handed, the app's setting"
+msgstr "视频中看不出投球的手：按设置以左手计算"
+
+#: src/views/ShotTracerView.tsx
+msgid "Hand not clear in the video: counted as right-handed, the app's setting"
+msgstr "视频中看不出投球的手：按设置以右手计算"
+
 #: src/components/HandednessPicker.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "Handedness"
@@ -2901,16 +2909,8 @@ msgid "Left-handed"
 msgstr "左手"
 
 #: src/views/ShotTracerView.tsx
-msgid "Left-handed, as you chose. The boards are counted from the left gutter."
-msgstr "左手，按你的选择。板数从左侧洗沟数起。"
-
-#: src/views/ShotTracerView.tsx
-msgid "Left-handed, from the video."
-msgstr "左手，根据视频判断。"
-
-#: src/views/ShotTracerView.tsx
-msgid "Left-handed, from your settings: the video didn't show which hand threw it."
-msgstr "左手，来自设置：视频中看不出是哪只手投的球。"
+msgid "Left-handed (from the video)"
+msgstr "左手（根据视频判断）"
 
 #. Bowling term: how far down the lane the ball travels before it turns, a reading on the layout lab's rail
 #: src/components/OilPatternFormDialog.tsx
@@ -4142,16 +4142,8 @@ msgid "Right-handed"
 msgstr "右手"
 
 #: src/views/ShotTracerView.tsx
-msgid "Right-handed, as you chose. The boards are counted from the right gutter."
-msgstr "右手，按你的选择。板数从右侧洗沟数起。"
-
-#: src/views/ShotTracerView.tsx
-msgid "Right-handed, from the video."
-msgstr "右手，根据视频判断。"
-
-#: src/views/ShotTracerView.tsx
-msgid "Right-handed, from your settings: the video didn't show which hand threw it."
-msgstr "右手，来自设置：视频中看不出是哪只手投的球。"
+msgid "Right-handed (from the video)"
+msgstr "右手（根据视频判断）"
 
 #. Accent color name: a pink-red
 #: src/lib/palette.ts

@@ -24,12 +24,17 @@ import type { GrayFrame, Mat3, PathModel } from "./types";
  *   right-hander's turns left.
  * - `pins`: a right-hander's pocket is the 1-3, right of the head pin; a
  *   left-hander's the 1-2, left of it.
+ * - `line`: the side of the lane the ball crosses the arrows on. A
+ *   right-hander plays the right half (arrows boards 5 to 20 from the right
+ *   gutter on almost every shot, 25 when deep inside), a left-hander the
+ *   left (2026-11-20: a left-hander's ball up board 11 from the left, with no
+ *   release seen and no hook yet, was left to the app's setting).
  *
- * Together they decide the hand when they agree and say enough (`decideHand`);
- * otherwise the app's setting stands, and the result says so.
+ * Together they always decide the hand (`decideHand`, the owner: no input
+ * from the bowler); the app's setting stands only when no cue can be read.
  */
 
-export type HandCueName = "release" | "drift" | "hook" | "pins";
+export type HandCueName = "release" | "drift" | "hook" | "pins" | "line";
 
 export interface HandCue {
   name: HandCueName;
@@ -41,22 +46,32 @@ export interface HandCue {
 
 export interface HandFound {
   hand: Handedness;
-  /** `video` when the cues decided it, `setting` when the app's setting was kept. */
+  /** `video` when the cues decided it, `setting` when no cue could be read and the app's setting was kept. */
   by: "video" | "setting";
-  /** With `setting`: the cues were too weak, or disagreed. */
+  /** With `video`, for the details: the cues said little (`weak`), or one voted strongly against the rest (`disagree`). */
   why?: "weak" | "disagree";
   /** 0 to 1: how much of the cues' weight agrees with the hand found. */
   confidence: number;
   cues: HandCue[];
 }
 
-/** How much each cue counts. The pins are weakest: a missed pocket (a Brooklyn, a light hit far out) lands on the other side. */
-const WEIGHT: Record<HandCueName, number> = { release: 1, drift: 1, hook: 1, pins: 0.6 };
+/**
+ * How much each cue counts. The release counts most: it is the only one that
+ * does not depend on where the bowler aimed. The line counts as much as the
+ * drift: where the ball is on the lane is plain on any video, small or not.
+ * The hook and the pins count least: a hook is read off the far end, a few
+ * pixels on a small video, where a bend of the fitted path can be the lane's
+ * mapping or the camera's pan rather than the ball (2026-11-20: the owner's
+ * left-hander up board 11, no release seen, read a bend to the left past the
+ * arrows); a missed pocket (a Brooklyn, a light hit far out) lands on the
+ * other side of the head pin.
+ */
+const WEIGHT: Record<HandCueName, number> = { release: 1.5, drift: 1, line: 1, hook: 0.6, pins: 0.6 };
 
-/** The cues together must say at least this much, in weighted votes, for the video to decide. */
+/** Under this much, in weighted votes, the hand is still the video's but marked weak in the details. */
 export const HAND_EVIDENCE = 0.6;
 
-/** A cue voting at least this much against the rest makes them disagree. */
+/** A cue voting at least this much against the rest marks the hand as disagreed in the details. */
 export const HAND_DISSENT = 0.5;
 
 const clamp = (x: number) => Math.max(-1, Math.min(1, x));
@@ -127,13 +142,37 @@ export function driftCue(atFoul: number, atArrows: number): HandCue {
 /**
  * The turn of a fitted hook, when the sightings run past the middle of its
  * bend (`seenTo`, feet): how far the ball ends right of where its skid would
- * have taken it by 60 ft. Null for a straight path or a bend not seen.
+ * have taken it by 60 ft. Null for a straight path, a bend not seen, or a
+ * path fitted loosely (`rough`: its bend can be the noise).
  */
 export function hookCue(path: PathModel, seenTo: number): HandCue | null {
-  if (path.kind !== "hook" || !(path.L > 0) || seenTo < path.s + path.L / 2) return null;
+  if (path.kind !== "hook" || path.rough || !(path.L > 0) || seenTo < path.s + path.L / 2) return null;
   const after = Math.max(0, 60 - path.s - path.L);
   const boards = path.k * path.L * path.L + 2 * path.k * path.L * after;
   return { name: "hook", vote: clamp(-boards / 4), boards: -boards };
+}
+
+/**
+ * The ball's lane u at the arrows: right of the middle is a right-hander's
+ * half. A full vote 8 boards from the middle (arrows board 12 from either
+ * gutter); a right-hander deep inside at board 25 votes -0.6, which a
+ * release or a drift out to the right outvotes.
+ */
+export function lineCue(atArrows: number): HandCue | null {
+  if (!(atArrows >= LEFT_U && atArrows <= RIGHT_U)) return null;
+  const boards = atArrows - CENTER_U;
+  return { name: "line", vote: clamp(boards / 8), boards };
+}
+
+/**
+ * The hook cue, unless the path's bend turns the same way the ball drifted
+ * to the arrows: a hook turns back against the drift (a right-hander's ball
+ * goes out right, then turns left), so a bend that carries the drift on is
+ * the fit following noise or the camera, not a hook, and is left out.
+ */
+export function hookAgainstDrift(hook: HandCue | null, drift: HandCue | null): HandCue | null {
+  if (!hook || !drift || Math.abs(drift.boards) < 1) return hook;
+  return hook.vote * drift.vote < 0 ? null : hook;
 }
 
 /** The ball's lane u where it meets the pins: right of the head pin is a right-hander's pocket. */
@@ -144,9 +183,12 @@ export function pinsCue(u: number): HandCue | null {
 }
 
 /**
- * The hand from the cues seen, or `setting` when they say too little or a
- * strong one disagrees with the rest. The confidence is the weighted share
- * of the votes on the side found.
+ * The hand from the cues seen: the side the weighted votes come down on,
+ * however little they say (the owner, 2026-11-20: "It should be obvious from
+ * the video"). A strong cue against the rest is outvoted, and the details say
+ * so (`why`). The app's setting stands only with no cue at all, or votes
+ * that cancel exactly. The confidence is the weighted share of the votes on
+ * the side found.
  */
 export function decideHand(cues: HandCue[], setting: Handedness): HandFound {
   let sum = 0;
@@ -155,12 +197,12 @@ export function decideHand(cues: HandCue[], setting: Handedness): HandFound {
     sum += WEIGHT[c.name] * c.vote;
     total += WEIGHT[c.name] * Math.abs(c.vote);
   }
-  const side = sum >= 0 ? 1 : -1;
-  const confidence = total > 0 ? Math.max(0, (side * sum + total) / (2 * total)) : 0;
+  if (sum === 0) return { hand: setting, by: "setting", confidence: 0, cues };
+  const side = sum > 0 ? 1 : -1;
+  const confidence = (side * sum + total) / (2 * total);
   const hand: Handedness = side > 0 ? "right" : "left";
-  if (cues.some((c) => c.vote * side <= -HAND_DISSENT)) return { hand: setting, by: "setting", why: "disagree", confidence, cues };
-  if (Math.abs(sum) < HAND_EVIDENCE) return { hand: setting, by: "setting", why: "weak", confidence, cues };
-  return { hand, by: "video", confidence, cues };
+  const why = cues.some((c) => c.vote * side <= -HAND_DISSENT) ? "disagree" : Math.abs(sum) < HAND_EVIDENCE ? "weak" : undefined;
+  return why ? { hand, by: "video", why, confidence, cues } : { hand, by: "video", confidence, cues };
 }
 
 /** The other hand. */
@@ -169,6 +211,6 @@ export const otherHand = (h: Handedness): Handedness => (h === "right" ? "left" 
 /** The hand found and its cues, for the details block (technical English, as `notes.ts`). */
 export function handNote(f: HandFound): string {
   const cues = f.cues.map((c) => `${c.name} ${c.boards.toFixed(1)} boards (${c.vote >= 0 ? "+" : ""}${c.vote.toFixed(2)})`).join(", ");
-  const how = f.by === "video" ? "from the video" : `from the setting, the video ${f.why === "disagree" ? "disagreed with itself" : "said too little"}`;
+  const how = f.by === "setting" ? "from the setting, no cue in the video" : f.why === "disagree" ? "from the video, a cue against the rest" : f.why === "weak" ? "from the video, the cues weak" : "from the video";
   return `${f.hand} ${how}, confidence ${f.confidence.toFixed(2)}; ${cues || "no cues"}`;
 }

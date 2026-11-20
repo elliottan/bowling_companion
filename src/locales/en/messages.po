@@ -2409,6 +2409,14 @@ msgctxt "bowling hand"
 msgid "Hand"
 msgstr "Hand"
 
+#: src/views/ShotTracerView.tsx
+msgid "Hand not clear in the video: counted as left-handed, the app's setting"
+msgstr "Hand not clear in the video: counted as left-handed, the app's setting"
+
+#: src/views/ShotTracerView.tsx
+msgid "Hand not clear in the video: counted as right-handed, the app's setting"
+msgstr "Hand not clear in the video: counted as right-handed, the app's setting"
+
 #: src/components/HandednessPicker.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "Handedness"
@@ -2901,16 +2909,8 @@ msgid "Left-handed"
 msgstr "Left-handed"
 
 #: src/views/ShotTracerView.tsx
-msgid "Left-handed, as you chose. The boards are counted from the left gutter."
-msgstr "Left-handed, as you chose. The boards are counted from the left gutter."
-
-#: src/views/ShotTracerView.tsx
-msgid "Left-handed, from the video."
-msgstr "Left-handed, from the video."
-
-#: src/views/ShotTracerView.tsx
-msgid "Left-handed, from your settings: the video didn't show which hand threw it."
-msgstr "Left-handed, from your settings: the video didn't show which hand threw it."
+msgid "Left-handed (from the video)"
+msgstr "Left-handed (from the video)"
 
 #. Bowling term: how far down the lane the ball travels before it turns, a reading on the layout lab's rail
 #: src/components/OilPatternFormDialog.tsx
@@ -4142,16 +4142,8 @@ msgid "Right-handed"
 msgstr "Right-handed"
 
 #: src/views/ShotTracerView.tsx
-msgid "Right-handed, as you chose. The boards are counted from the right gutter."
-msgstr "Right-handed, as you chose. The boards are counted from the right gutter."
-
-#: src/views/ShotTracerView.tsx
-msgid "Right-handed, from the video."
-msgstr "Right-handed, from the video."
-
-#: src/views/ShotTracerView.tsx
-msgid "Right-handed, from your settings: the video didn't show which hand threw it."
-msgstr "Right-handed, from your settings: the video didn't show which hand threw it."
+msgid "Right-handed (from the video)"
+msgstr "Right-handed (from the video)"
 
 #. Accent color name: a pink-red
 #: src/lib/palette.ts

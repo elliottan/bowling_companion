@@ -124,8 +124,13 @@ export function residualRms(pts: PathPoint[], at: (v: number) => number): number
 /**
  * Board against feet with the shape a ball makes: skid, a quadratic bend,
  * roll. Five unknowns, Nelder-Mead from three starts. A ball with no hook
- * fits with k near zero, and that is a valid answer. Above 0.7 board RMS the
- * shape is wrong for this shot and a smoothing spline is used instead.
+ * fits with k near zero, and that is a valid answer. The path is always this
+ * shape: straight, then one bend whose curvature keeps its sign, then
+ * straight (the owner, 2026-11-20: "The ball cannot move left and right like
+ * that"). Above 0.7 board RMS the sightings are noisy (a small video, a
+ * panning camera) and the path is marked `rough`: its bend is not taken as a
+ * measured breakpoint. A smoothing spline through them was used before, and
+ * it wove with the noise.
  */
 export function fitPath(pts: PathPoint[]): PathFit {
   const vs = pts.map((p) => p.v);
@@ -151,31 +156,13 @@ export function fitPath(pts: PathPoint[]): PathFit {
   p.s = Math.min(S_RANGE[1], Math.max(S_RANGE[0], p.s));
   p.L = Math.min(L_RANGE[1], Math.max(L_RANGE[0], p.L));
   const rms = residualRms(pts, (v) => hookU(p, v));
-  if (rms <= 0.7) return { path: { kind: "hook", ...p }, rms };
-  const knots = smoothingKnots(pts);
-  const sp: PathModel = { kind: "spline", ...p, knots };
-  return { path: sp, rms: residualRms(pts, (v) => pathU(sp, v)) };
+  return rms <= ROUGH_RMS ? { path: { kind: "hook", ...p }, rms } : { path: { kind: "hook", ...p, rough: true }, rms };
 }
 
-/** Weighted medians every 3 ft, then a three-point running mean. */
-function smoothingKnots(pts: PathPoint[]): [number, number][] {
-  const sorted = [...pts].sort((a, b) => a.v - b.v);
-  const bins = new Map<number, PathPoint[]>();
-  for (const p of sorted) {
-    const k = Math.floor(p.v / 3);
-    bins.set(k, [...(bins.get(k) ?? []), p]);
-  }
-  const raw = [...bins.values()].map((b) => {
-    const us = b.map((p) => p.u).sort((x, y) => x - y);
-    return [b.reduce((s, p) => s + p.v, 0) / b.length, us[us.length >> 1]] as [number, number];
-  });
-  return raw.map((k, i) => {
-    const nb = raw.slice(Math.max(0, i - 1), i + 2);
-    return [k[0], nb.reduce((s, x) => s + x[1], 0) / nb.length];
-  });
-}
+/** Over this RMS across, boards, the ball's shape fits its sightings loosely (`PathModel.rough`). */
+export const ROUGH_RMS = 0.7;
 
-/** The fitted path's u at v feet. Linear between spline knots, held flat-sloped beyond. */
+/** The fitted path's u at v feet. A spline from an older trace: linear between its knots, held flat-sloped beyond. */
 export function pathU(p: PathModel, v: number): number {
   if (p.kind === "hook" || !p.knots || p.knots.length < 2) return hookU(p, v);
   const k = p.knots;
@@ -468,7 +455,7 @@ export function metrics(inp: MetricInput): TrackMetrics {
   if (bpV !== null && bpV > lo + 0.5 && bpV < hi - 0.5) {
     const before = seen.some((s) => s < bpV! && s >= bpV! - 5);
     const after = seen.some((s) => s > bpV! && s <= bpV! + 5);
-    bpState = before && after && path.kind === "hook" ? "measured" : bpV >= from && bpV <= to ? "estimated" : "missing";
+    bpState = before && after && path.kind === "hook" && !path.rough ? "measured" : bpV >= from && bpV <= to ? "estimated" : "missing";
   }
   const breakpoint = bpState === "missing" ? M(null, "missing") : M(bpB, bpState);
   const breakpointFeet = bpState === "missing" ? M(null, "missing") : M(bpV, bpState);

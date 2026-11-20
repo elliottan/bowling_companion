@@ -1,3 +1,4 @@
+import { ARC_MIN, ARC_REACH, arcFit } from "./ballDetect";
 import { sample } from "./image";
 import { downAt, intersect, lineThrough, mapLine } from "./homography";
 import { imageToLane } from "./laneModel";
@@ -269,8 +270,8 @@ export function overFoulLine(
   return null;
 }
 
-/** Where the ball should be on frame `i`, from the lane and its motion: its center's row and its radius, pixels; `cx` is where it was on the frame before. */
-export type FollowPrediction = (i: number, cx: number) => { cy: number; r: number } | null;
+/** Where the ball should be on frame `i`, from the lane and its motion: its center's row and its radius, pixels, and "down" there when known; `cx` is where it was on the frame before. */
+export type FollowPrediction = (i: number, cx: number) => { cy: number; r: number; down?: Point } | null;
 
 /**
  * The laydown by time (the owner, 2026-11-16: bowlers finish at different
@@ -427,9 +428,14 @@ function followFace(
       }
     }
     if (best.c < MATCH_MIN) break;
-    cx = best.x;
-    off = best.y - p.cy;
-    out.push({ frame: i, cx: best.x, cy: best.y, r: p.r, contrast: contrast * best.c });
+    // The face's match carries any offset of the circle it started from;
+    // the rim, where it shows, puts the center on the ball itself
+    // (`arcFit`, its size known).
+    const a = arcFit(f, p.down ?? { x: 0, y: 1 }, { x: best.x, y: best.y }, p.r, ARC_REACH * p.r);
+    const at = a && a.support >= ARC_MIN ? { x: a.cx, y: a.cy } : best;
+    cx = at.x;
+    off = at.y - p.cy;
+    out.push({ frame: i, cx: at.x, cy: at.y, r: p.r, contrast: contrast * best.c });
   }
   return out;
 }

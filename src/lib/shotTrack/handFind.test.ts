@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bodyAtRelease, BODY_CHANGE, decideHand, driftCue, handNote, hookCue, otherHand, pinsCue, releaseCue, type HandCue } from "./handFind";
+import { bodyAtRelease, BODY_CHANGE, decideHand, driftCue, handNote, hookAgainstDrift, hookCue, lineCue, otherHand, pinsCue, releaseCue, type HandCue } from "./handFind";
 import { handedMetrics, type ReadOff } from "./pathFit";
 import type { Background } from "./background";
 import type { GrayFrame, Mat3, PathModel } from "./types";
@@ -32,6 +32,27 @@ describe("the hand cues", () => {
   });
 });
 
+describe("the line and the hook against the drift", () => {
+  it("votes by the half of the lane the ball crosses the arrows in", () => {
+    expect(lineCue(32)!.vote).toBe(1);
+    expect(lineCue(8)!.vote).toBe(-1);
+    expect(lineCue(24)!.vote).toBeCloseTo(0.5, 6);
+    expect(lineCue(-3)).toBeNull();
+  });
+
+  it("leaves out a bend that carries the drift on, and keeps one that turns back", () => {
+    const hook = hookCue(rightPath, 60)!;
+    // Out right, then left: a right-hander's hook.
+    expect(hookAgainstDrift(hook, driftCue(16, 21))).toBe(hook);
+    // Out left and still turning left: no hook, the fit following noise.
+    expect(hookAgainstDrift(hook, driftCue(21, 16))).toBeNull();
+    // Straight up a board: the bend stands alone.
+    expect(hookAgainstDrift(hook, driftCue(20, 20.5))).toBe(hook);
+    expect(hookAgainstDrift(hook, null)).toBe(hook);
+    expect(hookAgainstDrift(null, driftCue(16, 21))).toBeNull();
+  });
+});
+
 describe("decideHand", () => {
   const right: HandCue[] = [releaseCue(25, 14), driftCue(16, 21), hookCue(rightPath, 60)!, pinsCue(22.5)!];
   const left: HandCue[] = right.map((c) => ({ ...c, vote: -c.vote, boards: -c.boards }));
@@ -41,25 +62,56 @@ describe("decideHand", () => {
     expect(decideHand(left, "right")).toMatchObject({ hand: "left", by: "video", confidence: 1 });
   });
 
-  it("keeps the setting when the cues say too little", () => {
+  it("decides from the video even when the cues say little, and says so in the details", () => {
     const weak = decideHand([driftCue(20, 21), pinsCue(20.8)!], "left");
-    expect(weak).toMatchObject({ hand: "left", by: "setting", why: "weak" });
-    expect(decideHand([], "right")).toMatchObject({ hand: "right", by: "setting", why: "weak", confidence: 0 });
+    expect(weak).toMatchObject({ hand: "right", by: "video", why: "weak" });
+    expect(handNote(weak)).toMatch(/^right from the video, the cues weak/);
   });
 
-  it("keeps the setting when a strong cue disagrees with the rest", () => {
+  it("keeps the setting only with no cue at all", () => {
+    expect(decideHand([], "right")).toMatchObject({ hand: "right", by: "setting", confidence: 0 });
+    expect(decideHand([], "left")).toMatchObject({ hand: "left", by: "setting" });
+    expect(handNote(decideHand([], "right"))).toBe("right from the setting, no cue in the video, confidence 0.00; no cues");
+  });
+
+  it("outvotes a strong cue against the rest", () => {
     const split = decideHand([releaseCue(25, 14), hookCue(rightPath, 60)!, driftCue(24, 19)], "left");
-    expect(split.by).toBe("setting");
-    expect(split.why).toBe("disagree");
-    expect(split.hand).toBe("left");
-    expect(split.confidence).toBeCloseTo(2 / 3, 6);
+    expect(split).toMatchObject({ hand: "right", by: "video", why: "disagree" });
+    expect(split.confidence).toBeCloseTo(2.1 / 3.1, 6);
+  });
+
+  // Shots as a right- or left-hander plays them, in lane u (boards from the left edge).
+  const shot = (o: { release?: [number, number]; foul: number; arrows: number; hook?: PathModel; pins?: number }): HandCue[] => {
+    const cues: HandCue[] = [];
+    if (o.release) cues.push(releaseCue(...o.release));
+    const drift = driftCue(o.foul, o.arrows);
+    cues.push(drift);
+    const hook = hookAgainstDrift(o.hook ? hookCue(o.hook, 60) : null, drift);
+    if (hook) cues.push(hook);
+    cues.push(lineCue(o.arrows)!);
+    if (o.pins !== undefined) cues.push(pinsCue(o.pins)!);
+    return cues;
+  };
+
+  it("reads the hand on the shots that fooled or stumped it", () => {
+    // A right-hander deep inside: laid down on board 33, out to 25 at the arrows (u 7 to 15), back left.
+    expect(decideHand(shot({ release: [7, 0], foul: 7, arrows: 15, hook: { ...rightPath, u0: 7 } }), "left").hand).toBe("right");
+    // The same with the release hidden by the body.
+    expect(decideHand(shot({ foul: 7, arrows: 15, hook: { ...rightPath, u0: 7 } }), "left").hand).toBe("right");
+    // A left-hander outside: board 10 at the foul line, 5 at the arrows, from the left.
+    expect(decideHand(shot({ release: [10, 20], foul: 10, arrows: 5, hook: mirror(rightPath) }), "right").hand).toBe("left");
+    // A straight ball, no hook, the bowler gone before the pins: a right-hander up board 10.
+    expect(decideHand(shot({ release: [30, 21], foul: 30, arrows: 30.2 }), "left").hand).toBe("right");
+    // The owner's video (2026-11-20): a left-hander up board 11 from the left,
+    // no release seen, the path bending further left before the arrows were
+    // passed; the app's setting said right.
+    const owner = shot({ foul: 11.1, arrows: 10.9, hook: { kind: "hook", u0: 11, a: 0, s: 20, L: 20, k: -0.01 }, pins: undefined });
+    expect(decideHand(owner, "right")).toMatchObject({ hand: "left", by: "video" });
   });
 
   it("is said in the details with every cue", () => {
     expect(handNote(decideHand(right, "left"))).toMatch(/^right from the video, confidence 1\.00; release 11\.0 boards \(\+1\.00\), drift 5\.0 boards/);
-    expect(handNote(decideHand([driftCue(20, 21)], "left"))).toBe("left from the setting, the video said too little, confidence 1.00; drift 1.0 boards (+0.33)");
-    expect(handNote(decideHand([releaseCue(25, 14), driftCue(24, 19)], "left"))).toMatch(/^left from the setting, the video disagreed with itself/);
-    expect(handNote(decideHand([], "right"))).toBe("right from the setting, the video said too little, confidence 0.00; no cues");
+    expect(handNote(decideHand([releaseCue(25, 14), driftCue(24, 19)], "left"))).toMatch(/^right from the video, a cue against the rest/);
     expect(otherHand("right")).toBe("left");
     expect(otherHand("left")).toBe("right");
   });

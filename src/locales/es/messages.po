@@ -2409,6 +2409,14 @@ msgctxt "bowling hand"
 msgid "Hand"
 msgstr "Mano"
 
+#: src/views/ShotTracerView.tsx
+msgid "Hand not clear in the video: counted as left-handed, the app's setting"
+msgstr "Mano no clara en el vídeo: contado como zurdo, según tus ajustes"
+
+#: src/views/ShotTracerView.tsx
+msgid "Hand not clear in the video: counted as right-handed, the app's setting"
+msgstr "Mano no clara en el vídeo: contado como diestro, según tus ajustes"
+
 #: src/components/HandednessPicker.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "Handedness"
@@ -2901,16 +2909,8 @@ msgid "Left-handed"
 msgstr "Zurdo"
 
 #: src/views/ShotTracerView.tsx
-msgid "Left-handed, as you chose. The boards are counted from the left gutter."
-msgstr "Zurdo, como elegiste. Las tablas se cuentan desde el canal izquierdo."
-
-#: src/views/ShotTracerView.tsx
-msgid "Left-handed, from the video."
-msgstr "Zurdo, según el vídeo."
-
-#: src/views/ShotTracerView.tsx
-msgid "Left-handed, from your settings: the video didn't show which hand threw it."
-msgstr "Zurdo, según tus ajustes: el vídeo no mostró con qué mano se lanzó."
+msgid "Left-handed (from the video)"
+msgstr "Zurdo (según el vídeo)"
 
 #. Bowling term: how far down the lane the ball travels before it turns, a reading on the layout lab's rail
 #: src/components/OilPatternFormDialog.tsx
@@ -4142,16 +4142,8 @@ msgid "Right-handed"
 msgstr "Diestro"
 
 #: src/views/ShotTracerView.tsx
-msgid "Right-handed, as you chose. The boards are counted from the right gutter."
-msgstr "Diestro, como elegiste. Las tablas se cuentan desde el canal derecho."
-
-#: src/views/ShotTracerView.tsx
-msgid "Right-handed, from the video."
-msgstr "Diestro, según el vídeo."
-
-#: src/views/ShotTracerView.tsx
-msgid "Right-handed, from your settings: the video didn't show which hand threw it."
-msgstr "Diestro, según tus ajustes: el vídeo no mostró con qué mano se lanzó."
+msgid "Right-handed (from the video)"
+msgstr "Diestro (según el vídeo)"
 
 #. Accent color name: a pink-red
 #: src/lib/palette.ts

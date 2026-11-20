@@ -7,7 +7,7 @@ import { fitLine, robustLine, snapEdge } from "./edgeSnap";
 import { apply, intersect, multiply, segmentLine } from "./homography";
 import { makeFrame, warp } from "./image";
 import { BALL_RADIUS_FT, BOARD_FT, CONTACT_IN, expectedRadiusPx, laneToWorld } from "./laneModel";
-import { boardAtPins, fitMotion, fitPath, localU, metrics, nelderMead, pathU, pinContactFeet, timeAtFeet, withoutIslands } from "./pathFit";
+import { boardAtPins, fitMotion, fitPath, localU, metrics, nelderMead, pathU, pinContactFeet, ROUGH_RMS, timeAtFeet, withoutIslands } from "./pathFit";
 import { globalShift, register } from "./registration";
 import { project, timeAt, truthAt } from "./synthetic";
 import { standardShot, syntheticSource } from "./syntheticSource";
@@ -458,12 +458,26 @@ describe("pathFit", () => {
     expect(withoutIslands([])).toEqual([]);
   });
 
-  it("falls back to a smoothing spline when the shape does not fit", () => {
+  it("keeps the ball's shape on noisy sightings: one bend, no weave, marked rough", () => {
     const zig = pts.map((p, i) => ({ ...p, u: 20 + (i % 20 < 10 ? 3 : -3) }));
     const fit = fitPath(zig);
-    expect(fit.path.kind).toBe("spline");
-    expect(Number.isFinite(pathU(fit.path, 70))).toBe(true);
-    expect(Number.isFinite(pathU(fit.path, -5))).toBe(true);
+    expect(fit.path.kind).toBe("hook");
+    expect(fit.path.rough).toBe(true);
+    expect(fit.rms).toBeGreaterThan(ROUGH_RMS);
+    // The slope across never turns back: the second differences keep one sign.
+    const d2 = Array.from({ length: 58 }, (_, i) => pathU(fit.path, i + 2) - 2 * pathU(fit.path, i + 1) + pathU(fit.path, i));
+    expect(d2.every((x) => x * fit.path.k >= -1e-9)).toBe(true);
+    // A rough bend is not a measured breakpoint.
+    const m = metrics({ path: fit.path, hand: "right", seen: zig.map((p) => p.v), touchdown: 1, motion: { v0: 0, w: 20, d: 0 }, tFirst: 0, tLast: 3, speedMeasured: false });
+    expect(m.breakpoint.state).not.toBe("measured");
+    expect(fitPath(pts).path.rough).toBeUndefined();
+  });
+
+  it("still reads a spline from a trace made before", () => {
+    const old = { kind: "spline" as const, u0: 0, a: 0, s: 0, L: 0, k: 0, knots: [[0, 10], [10, 12], [20, 13]] as [number, number][] };
+    expect(pathU(old, 5)).toBeCloseTo(11, 9);
+    expect(pathU(old, -10)).toBeCloseTo(8, 9);
+    expect(pathU(old, 30)).toBeCloseTo(14, 9);
   });
 
   it("fits distance against time with the ball only slowing", () => {

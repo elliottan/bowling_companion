@@ -2409,6 +2409,14 @@ msgctxt "bowling hand"
 msgid "Hand"
 msgstr "사용하는 손"
 
+#: src/views/ShotTracerView.tsx
+msgid "Hand not clear in the video: counted as left-handed, the app's setting"
+msgstr "영상에서 손을 알 수 없음: 설정대로 왼손으로 셉니다"
+
+#: src/views/ShotTracerView.tsx
+msgid "Hand not clear in the video: counted as right-handed, the app's setting"
+msgstr "영상에서 손을 알 수 없음: 설정대로 오른손으로 셉니다"
+
 #: src/components/HandednessPicker.tsx
 #: src/views/BowlingProfileView.tsx
 msgid "Handedness"
@@ -2901,16 +2909,8 @@ msgid "Left-handed"
 msgstr "왼손"
 
 #: src/views/ShotTracerView.tsx
-msgid "Left-handed, as you chose. The boards are counted from the left gutter."
-msgstr "왼손, 직접 고른 대로. 보드는 왼쪽 거터부터 셉니다."
-
-#: src/views/ShotTracerView.tsx
-msgid "Left-handed, from the video."
-msgstr "왼손, 영상에서 판단."
-
-#: src/views/ShotTracerView.tsx
-msgid "Left-handed, from your settings: the video didn't show which hand threw it."
-msgstr "왼손, 설정에서: 영상에서 던진 손을 알 수 없었습니다."
+msgid "Left-handed (from the video)"
+msgstr "왼손 (영상에서 판단)"
 
 #. Bowling term: how far down the lane the ball travels before it turns, a reading on the layout lab's rail
 #: src/components/OilPatternFormDialog.tsx
@@ -4142,16 +4142,8 @@ msgid "Right-handed"
 msgstr "오른손"
 
 #: src/views/ShotTracerView.tsx
-msgid "Right-handed, as you chose. The boards are counted from the right gutter."
-msgstr "오른손, 직접 고른 대로. 보드는 오른쪽 거터부터 셉니다."
-
-#: src/views/ShotTracerView.tsx
-msgid "Right-handed, from the video."
-msgstr "오른손, 영상에서 판단."
-
-#: src/views/ShotTracerView.tsx
-msgid "Right-handed, from your settings: the video didn't show which hand threw it."
-msgstr "오른손, 설정에서: 영상에서 던진 손을 알 수 없었습니다."
+msgid "Right-handed (from the video)"
+msgstr "오른손 (영상에서 판단)"
 
 #. Accent color name: a pink-red
 #: src/lib/palette.ts

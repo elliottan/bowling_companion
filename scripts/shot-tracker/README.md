@@ -153,6 +153,118 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
+## The ball among the pins, and the hand always from the video (0.114.1, 2026-11-20)
+
+**The owner's marks** (ground truth): shot-01 frames 229 (yellow right),
+230 and 233 (the ball up and left of yellow, a little smaller), shot-02
+213 to 216 (the ball smaller, up and left; the cyan outline nearly right on
+215 and 216), shot-04 109 (the cyan outline right), shot-05 136 (yellow
+right, the cyan outline took the hand).
+
+**Why the circles were off.**
+
+1. The size. Every covered or weak circle was drawn at the lane's predicted
+   size (a disk 8.5 in wide on the lane), but the ball's rim measures 0.93 to
+   0.98 of it on every clip from 15 to 40 ft (free fits with 80% of rays on
+   the rim; shot-01 0.96, shot-02 0.94, shot-05 0.97, shot-06 0.96). Drawn
+   larger, a circle fitted to the upper rim only sits low. A ball 4.25 in
+   above the lane, projected as a sphere with the camera from the found lane,
+   is within 1% of the flat disk on shot-01 and shot-06 (the other clips'
+   focal lengths from the lane alone are too loose to say more), so the model
+   was not the cause; the measured ratio is what is used now (`ownScale`).
+   Past 45 ft the free fits run large (1.03 to 1.16 on shot-01 in front of the
+   rack: a pin's edge beside the ball widens them), so only circles nearer
+   than `RACK_FT` count.
+2. The center. The rays' fit (`refineCircle`) is cast from the detector's
+   blob; among the pins the strongest edge on a ray is often a pin's, and
+   with the radius fixed the circle slid toward it (shot-01 f232 and f233 1.3
+   px right of the ball's run). The face match near the pins (`followFace`)
+   carries whatever offset its first circle had.
+
+**What changed.** `arcFit` (`ballDetect.ts`): the edge pixels near where the
+ball is expected, each voting for the centers one radius behind it, only
+where the side of the edge that looks like the ball's own face is toward the
+center (a rim against a white pin rises outward, one against the dark between
+pins falls). One vote per direction round the ball, capped, the best center
+pulled gently toward the prior (`ARC_PULL`). Stable to where it starts: on
+shot-01 f233 two priors 1.5 px apart give the same center to 0.01 px. Used
+for every circle whose radius could not be freed (`fit.fixed`: a leg, a hand,
+the pins), at the ball's own size, from its face match when carried, else
+where its last circles put it (`predictCenter`); and in `followFace` after
+each match. A rim seen round two thirds of the ball sets its own radius
+within 10%. `WEAK_RIM` is gone.
+
+The pins' moving test masked 1.5 ball radii round the circle; with the
+circle on the ball that hid the near side of the pin it touches, and shot-01's
+first move was found a frame late (235); at 1.35 the synthetic shot's ball
+edge counted as a move a frame early. `BALL_MASK` 1.42: shot-01 234, shot-06
+103 and the synthetic shots' frames all found.
+
+**Measured** (Node, `review-app.ts --check` on the same dumped frames; circle
+against the owner's mark, in the mark's radii):
+
+| frame | before: offset, size | after |
+|---|---|---|
+| shot-01 f229 (yellow right) | 0.00, 1.00 | 0.02, 0.93 |
+| shot-01 f230 | 0.36 (right 0.31, low 0.19), 1.14 | 0.23 (right 0.19, low 0.14), 1.14 |
+| shot-01 f233 | 0.17 (right 0.17), 1.03 | 0.11 (left 0.10), 1.00 |
+| shot-02 f213 | 0.22 (right 0.12, low 0.19), 1.19 | 0.20, 1.10 |
+| shot-02 f214 | 0.28 (right 0.17, low 0.22), 1.18 | 0.27, 1.09 |
+| shot-02 f215 (cyan) | 0.27 (low 0.27), 1.12 | 0.28, 1.04 |
+| shot-04 f109 (cyan) | 0.12, 1.05 | 0.07, 1.07 |
+| shot-05 f136 (yellow right) | 0, 1 | unchanged |
+
+shot-01's frames now run smoothly along the ball's path (x 468.7, 468.1,
+466.6, 466.2 on 229, 230, 232, 233). shot-02 near the pins is only resized:
+its rim shows on under 30% of the directions (a dark ball against the dark
+pit, the lower rim left out for the mirror image), so the face match stands
+and its center stays a quarter radius low. Its far-end lane mapping is the
+likelier cause and is not changed here.
+
+Readings that moved by more than 0.1 board: shot-01 pins 17.36 to 17.81 (frames
+230, 232, 233 moved left onto the ball's run; read on 233 as before), shot-06
+pins 19.30 to 19.13 (frames 98 to 101 moved onto the ball; read on 102 as
+before; the owner reads 18.4), 6447 pins 17.33 to 17.22 (frame 174 moved 0.6
+px up and the line through the last frames turned), IMG_1996 SDR full range
+now has a breakpoint, 8.92 at 50.6 ft (a breakpoint frame's circle now on the
+ball, as the other SDR copy's 8.98 at 49.9). IMG_9960's breakpoint moved 1 ft
+(36.7 to 35.7) on 0.05 board.
+
+**The hand** (`handFind.ts`). The owner: no input from the bowler. The
+switch is gone from the result; the line says "Left-handed (from the video)".
+The video decides whenever any cue can be read (the weighted votes' sign);
+the setting stands only with none, and the line says so. A fifth cue,
+`line`: the side of the lane at the arrows (a full vote 8 boards from the
+middle). Weights: release 1.5, drift 1, line 1, hook 0.6, pins 0.6. A hook
+that turns the same way the ball drifted (by a board or more) is not a hook
+and is left out, and so is the hook of a path fitted loosely (`rough`).
+
+How the owner's left-hander (8133, laydown 11.1, arrows 10.9 from the left)
+read right: no release seen (the clip is small and she stands in the empty
+lane), drift -0.2 board, and a bend to the left past the arrows read as a
+right-hander's hook; the old rule took the setting or the hook. With the
+line cue (-1 at weight 1) it reads left. Tested on that pattern and on a
+right-hander deep inside, a left-hander outside, a straight ball, a release
+hidden by the body. On the 17 inputs that read every cue agrees, as before.
+
+**The path** (`fitPath`): always the hook shape (straight, one bend whose
+curvature keeps its sign, straight). Over 0.7 board RMS it was replaced by a
+smoothing spline that wove with the sightings (8133's S at the start); now it
+is kept and marked `rough`, and its bend is not a measured breakpoint. No
+sample input was over 0.7 (all 0.05 to 0.39).
+
+**Not done this round.** 8133 (464 by 848, 30 fps) does not read in Node:
+the first look puts the release at 3.73 s (the shot is at about 6 s) and the
+lane is not found on the first part in either band (0.30-0.72, 0.56-1.00), so
+why its sightings stop two thirds down the lane on the phone, and the
+owner's mark of its far right edge, are not reproduced. 1856 reads in Node
+(left from the video, laydown 12.09, arrows 9.73, breakpoint 8.35 at 30.6 ft,
+pins 14.66); the pin line's tilt and a far-line constraint from the camera
+are not built: with a lane homography the far line and the foul line already
+meet at one vanishing point, so a wrong tilt means a wrong cross-lane
+vanishing point, which the focal length fixes (`focalFromPlane`); the lane
+alone gives 1016 to 1436 px on the sample clips, too loose to constrain it.
+
 ## The hand from the video, and a far-back phone (0.114.0, 2026-11-19)
 
 ```
