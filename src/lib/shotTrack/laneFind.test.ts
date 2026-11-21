@@ -45,6 +45,8 @@ import {
   pinRows,
   prepare,
   rankLanes,
+  interiorPeak,
+  INTERIOR_MARGIN,
   rayThrough,
   refineVanishingPoint,
   rowEnergy,
@@ -427,6 +429,35 @@ describe("laneWidth, lanePairs and rankLanes on built profiles", () => {
     expect(ranked.map((p) => p.index)).toEqual([2, 0]);
     expect(rankLanes([null, null], 960)).toEqual([]);
     expect(rankLanes([fakeLanes(new Float32Array(1000))], 960)).toEqual([]);
+  });
+
+  it("interiorPeak is the strongest line inside a pair, clear of its edges' lobes", () => {
+    const g = lobes(1000, [[300, 25], [330, 24], [350, -20], [500, -4]]);
+    const f = fakeLanes(g);
+    expect(interiorPeak(f, { left: 300, right: 500, leftEdge: 25, rightEdge: -4 })).toBe(24);
+    // The edges' own half-height shoulders (301, 499) are inside the margin.
+    expect(INTERIOR_MARGIN * 200).toBeGreaterThan(1);
+    expect(interiorPeak(f, { left: 360, right: 560, leftEdge: 1, rightEdge: -1 })).toBe(4);
+    // Columns outside the profile, or not measured, count for nothing.
+    g[420] = NaN;
+    expect(interiorPeak(fakeLanes(g, { x0: 2000 }), { left: 300, right: 500, leftEdge: 25, rightEdge: -4 })).toBe(0);
+  });
+
+  it("rankLanes does not take the stretch over the ball return for the lane, with the bowler over the lane's right edge", () => {
+    // IMG_2938: the lane is 380 to 580, its right edge faint (the bowler
+    // stands over it). One lane width to the left of a faint line inside the
+    // lane (500) is the far side of the next lane's gutter (300), strong, with
+    // this lane's gutter groove and the capping between (330, 350): by its
+    // edges and its centering that pair won, and the left edge was drawn on
+    // the gutter's outer side.
+    const g = lobes(1000, [[300, 25], [330, 24], [350, -20], [380, 20], [500, -4], [580, -3]]);
+    const f = fakeLanes(g, { candidates: [cand(380, 580)] });
+    const [pick] = rankLanes([f], 960);
+    expect(pick.candidate.left).toBeCloseTo(380, 3);
+    expect(pick.candidate.right).toBeCloseTo(580, 3);
+    // With no quiet pair in the frame, it keeps the best it has.
+    const lone = fakeLanes(lobes(1000, [[300, 25], [330, 24], [350, -20], [500, -4]]), { candidates: [cand(380, 580)] });
+    expect(rankLanes([lone], 960)[0].candidate.left).toBeCloseTo(300, 3);
   });
 
   it("rankLanes scores a pair nearer the middle above an equal one further out", () => {

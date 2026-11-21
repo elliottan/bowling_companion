@@ -213,11 +213,41 @@ async function searchFinds(shot: ShotFound | null) {
   searcher()!.reply({ kind: "found", found: shot });
 }
 
-/** The lane looked for on the read's first part, to say where the shot ends: answered, and the rest read. */
+/** Whether the lane search `k` is on a part read to look for the lane or the ball (1.6 s), not on the whole read. */
+const onPart = (k: number) => {
+  const fr = pooled.finds[k].frames;
+  return fr.length > 0 && fr[fr.length - 1].t - fr[0].t < 1.65;
+};
+
+/** The latest read's plan. */
+const lastPlan = () => plan(readVideoFrames.mock.calls.length - 1);
+
+/**
+ * Answers "no lane" to the lane search on each part read to look for it
+ * (`readShot`, after a first part with none) while `more` holds, from search
+ * `k` on: until the whole read's search (not a part's), or the screen ends.
+ */
+async function noLaneInParts(k: number, more: () => boolean = () => true) {
+  for (; ; k++) {
+    await waitFor(() => expect(pooled.finds.length > k || !!screen.queryByRole("alert")).toBe(true));
+    if (screen.queryByRole("alert") || !onPart(k) || !more()) return;
+    find()!.reply(NONE);
+  }
+}
+
+/**
+ * The lane looked for on the read's first part, to say where the shot ends:
+ * answered, and the rest read. With no lane there, the other parts the lane
+ * is then looked for in (`readShot`) show none either.
+ */
 async function firstFind(answer: LanesFound = NONE) {
   await waitFor(() => expect(find()).toBeTruthy());
   find()!.reply(answer);
-  await waitFor(() => expect(pooled.finds).toHaveLength(2));
+  for (let k = 1; ; k++) {
+    await waitFor(() => expect(pooled.finds.length).toBeGreaterThan(k));
+    if (answer.best || !onPart(k)) return;
+    find()!.reply(NONE);
+  }
 }
 
 /**
@@ -306,12 +336,16 @@ describe("ShotTracerView", () => {
     // The lane looked for on a few of its frames.
     expect(find()!.frames.length).toBeLessThanOrEqual(10);
     find()!.reply(NONE);
-    // No lane there: the window ends where the pins were seen hit, and the rest is read to it.
+    // No lane there: other parts are looked at for it, each 1.6 s at 60 a second.
     await waitFor(() => expect(readVideoFrames).toHaveBeenCalledTimes(2));
-    expect(plan(1).from).toBeCloseTo(13.2, 9);
-    expect(plan(1).to).toBeCloseTo(14.6 + 0.4, 9);
+    expect(plan(1).to - plan(1).from).toBeCloseTo(1.6, 9);
     expect(plan(1).fps).toBe(60);
-    expect(plan(1).after?.t).toBeCloseTo(11.6 + 95 / 60, 9);
+    await noLaneInParts(1);
+    // In none: the window ends where the pins were seen hit, and the rest is read to it.
+    expect(lastPlan().from).toBeCloseTo(13.2, 9);
+    expect(lastPlan().to).toBeCloseTo(14.6 + 0.4, 9);
+    expect(lastPlan().fps).toBe(60);
+    expect(lastPlan().after?.t).toBeCloseTo(11.6 + 95 / 60, 9);
     expect(screen.queryByRole("slider")).toBeNull();
   });
 
@@ -331,8 +365,9 @@ describe("ShotTracerView", () => {
     await waitFor(() => expect(find()).toBeTruthy());
     expect(plan(0).band).toEqual({ top: 0.3, bottom: 0.72 });
     find()!.reply(NONE);
-    await waitFor(() => expect(readVideoFrames).toHaveBeenCalledTimes(2));
-    const band = plan(1).band as { top: number; bottom: number };
+    // No lane in any part of the clips' band: the run's band next.
+    await noLaneInParts(1, () => (lastPlan().band as { top: number }).top === 0.3);
+    const band = lastPlan().band as { top: number; bottom: number };
     expect(band.top).toBeCloseTo(0.15, 9);
     expect(band.bottom).toBeCloseTo(0.59, 9);
   });
@@ -724,22 +759,25 @@ describe("ShotTracerView", () => {
     expect(screen.getByTestId("tracer-details").textContent).toContain("lane: not found on 204 frames");
   });
 
-  it("goes straight to the run's band when the first part of the clips' band holds no lane", async () => {
+  it("goes to the run's band when no part of the clips' band holds a lane", async () => {
     scanning({ width: 1080, height: 1920, duration: 30 });
     await searchFinds({ ...SHOT, run: [{ t: 12, x: 0.5, y: 0.95 }] });
     await waitFor(() => expect(find()).toBeTruthy());
     find()!.reply(NONE);
-    // Nothing more of the first band is read: the second band's first part next.
     expect(plan(0).band).toEqual({ top: 0.3, bottom: 0.72 });
-    await waitFor(() => expect(readVideoFrames).toHaveBeenCalledTimes(2));
-    expect((plan(1).band as { bottom: number }).bottom).toBe(1);
-    expect(plan(1).fps).toBe(60);
-    expect(plan(1).from).toBeCloseTo(11.6, 9);
-    // The last band: on to the end however its first part went, then the lane on the whole.
-    await waitFor(() => expect(pooled.finds).toHaveLength(2));
+    // The first band's other parts, then the second band's first part.
+    const inFirst = () => (lastPlan().band as { bottom: number }).bottom === 0.72;
+    await noLaneInParts(1, inFirst);
+    const second = readVideoFrames.mock.calls.length - 1;
+    expect(second).toBeGreaterThan(1);
+    expect((plan(second).band as { bottom: number }).bottom).toBe(1);
+    expect(plan(second).fps).toBe(60);
+    expect(plan(second).from).toBeCloseTo(11.6, 9);
+    // The last band: its other parts, then on to the end, then the lane on the whole.
+    const finds = pooled.finds.length;
     find()!.reply(NONE);
-    await waitFor(() => expect(pooled.finds).toHaveLength(3));
-    expect(readVideoFrames).toHaveBeenCalledTimes(3);
+    await noLaneInParts(finds);
+    expect(onPart(pooled.finds.length - 1)).toBe(false);
     find()!.reply(NONE);
     expect((await screen.findByRole("alert")).textContent).toBe("The lane couldn't be found in this video.");
   });
@@ -786,13 +824,55 @@ describe("ShotTracerView", () => {
     }
   });
 
+  it("ends a first look that stops giving frames on the error screen, saying what it last did", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      // A frame, then nothing, and never an end: a browser wait that never settles.
+      scanVideo.mockImplementation((_f: Blob, onFrame: (f: unknown) => void, onProgress: (x: number) => void) => {
+        onFrame({ width: 4, height: 2, data: new Uint8ClampedArray(8), t: 0.4 });
+        onProgress(0.1);
+        return new Promise(() => {});
+      });
+      pickFile();
+      expect(await screen.findByText("Looking for the shot…")).toBeTruthy();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(89_000);
+      });
+      expect(screen.queryByRole("alert")).toBeNull();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2000);
+      });
+      expect((await screen.findByRole("alert")).textContent).toMatch(/couldn't be read/);
+      expect(screen.getAllByText(/the look at the video \(last: frame at 0\.40 s\) stalled: no answer in 90 s/).length).toBeGreaterThan(0);
+      expect(readVideoFrames).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("ends a read that stops moving on the error screen, saying which read stalled", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      readVideoFrames.mockImplementation(() => new Promise(() => {}));
+      await searchFinds(SHOT);
+      expect(await screen.findByText("Reading the video…")).toBeTruthy();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(91_000);
+      });
+      expect((await screen.findByRole("alert")).textContent).toMatch(/couldn't be read/);
+      expect(screen.getAllByText(/the read from [\d.]+ to [\d.]+ s \(last: nothing yet\) stalled: no answer in 90 s/).length).toBeGreaterThan(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("takes a lane search that never answers for a lane not found", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
       await searchFinds(SHOT);
       await waitFor(() => expect(find()).toBeTruthy());
       find()!.reply(NONE);
-      await waitFor(() => expect(pooled.finds).toHaveLength(2));
+      await noLaneInParts(1);
       const stuck = pools()[pools().length - 1];
       await act(async () => {
         await vi.advanceTimersByTimeAsync(61_000);
@@ -894,7 +974,7 @@ describe("ShotTracerView", () => {
     expect(pools()[0].terminated).toBe(true);
     expect(pools()[1].size).toBe(1);
     find()!.reply(NONE);
-    await waitFor(() => expect(pooled.finds).toHaveLength(3));
+    await noLaneInParts(2);
     find()!.reply(found());
     await waitFor(() => expect(trace()).toBeTruthy());
     trace()!.reply(done());

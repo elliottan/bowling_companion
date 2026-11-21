@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.116.1: The shot tracer no longer freezes or loses a zooming clip (2026-11-21)
+
+- In Settings, Labs: a video that stalled while loading held the shot tracer
+  on "Loading video" for ever. Every loading step now has a time limit: it
+  moves on, falls back to playing the video, or says which step stalled.
+- A clip whose camera zooms in after the shot could fail with "The lane
+  couldn't be found" when the first look landed on the zoomed end. The tracer
+  now looks for the lane elsewhere in the clip before giving up.
+- The lane is less often taken from the next lane's gutter and the ball return
+  when the bowler hides the lane's far edge.
+
 ## 0.116.0: The shot tracer follows a moving camera (2026-11-21)
 
 - In Settings, Labs: the shot tracer now copes with a phone that zooms, pans

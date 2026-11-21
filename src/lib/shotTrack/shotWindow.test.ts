@@ -359,4 +359,12 @@ describe("the parts the ball is looked for in", () => {
     expect(seekPart([], [], 1.2, 0.5)).toEqual({ from: 0, to: 1.2 });
     expect(seekPart([], [{ from: 0, to: 1.2 }], 1.2, 0.5)).toBeNull();
   });
+
+  it("does not read again the part of a hint too near the video's end to be seen", () => {
+    // A hint at 3.7 s in a 4 s video: its part (3.3 to 4 s) has no room after it, so it never counts seen.
+    const first = seekPart([3.7], [], 4, 3.7)!;
+    expect(first.to).toBe(4);
+    const next = seekPart([3.7, 2.7], [first], 4, 3.7)!;
+    expect(next.from).toBeCloseTo(2.7 - LEAD_SECONDS, 1);
+  });
 });

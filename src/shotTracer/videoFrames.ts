@@ -21,6 +21,7 @@ import {
 } from "../lib/shotTrack/marking";
 import { lumaRange, toFullRange } from "../lib/shotTrack/grayRange";
 import { grayStats, type Notes } from "../lib/shotTrack/notes";
+import { within } from "../lib/shotTrack/stall";
 import { codecRead, codecScan, dropCodec, openCodec, reasonOf } from "./codecFrames";
 
 /**
@@ -147,6 +148,8 @@ const SEEK_INTO = 1 / 240;
 const STALL_MS = 2000;
 /** The first frame may take longer: the decoder starts up. */
 const FIRST_FRAME_MS = 4000;
+/** The longest a played frame's copy (`copyTo`) may take, milliseconds. */
+const COPY_MS = 5000;
 /**
  * The rate playback starts at, before the video's own frame rate is known:
  * a 120 fps clip shows 30 frames a second at it, which the browser hands over
@@ -303,7 +306,8 @@ function keep(r: Reading, at: number, frame: Frame | null): number {
   const shape = { format: f.format!, w: f.visibleRect!.width, h: f.visibleRect!.height, turn: f.rotation ?? 0, fullRange: f.colorSpace?.fullRange ?? null };
   const buf = new Uint8Array(f.allocationSize());
   // Copied at once, so the decoder has its frame back; turned to grey in order.
-  const copied = f.copyTo(buf).finally(() => f.close());
+  // Bounded: a copy that never ends would hold every wait on `r.pending`, and the screen, for ever; it is lost and drawn instead.
+  const copied = within(f.copyTo(buf), COPY_MS, "copying a played frame").finally(() => f.close());
   const before = performance.now() - started;
   r.pending = r.pending.then(async () => {
     try {
@@ -392,7 +396,8 @@ async function playPass(r: Reading, from: number, to: number, rate: number, judg
   }
   video.playbackRate = rate;
   try {
-    if (!over) await video.play();
+    // Or the pass's own end: a play that never settles must not hold it once its timers have stopped it.
+    if (!over) await Promise.race([video.play(), finished]);
   } catch {
     stalled();
   }

@@ -51,9 +51,10 @@ export interface ShotFrames {
 /**
  * Reads the shot `found` with `read` (a video `size` pixels shown and `duration`
  * seconds long), of a portrait video only `band`. `look` finds the lane on the
- * first part's frames (null when it is not there); not found there and with
- * another band to try (`lastBand` false), nothing more is read and the answer
- * is "no-lane". A shot the first look only guessed at (`ShotFound.guessed`)
+ * first part's frames (null when it is not there); not found there, other
+ * parts are looked at for it (the look's other runs, then the video stepped
+ * through), and found in none with another band to try (`lastBand` false),
+ * the answer is "no-lane". A shot the first look only guessed at (`ShotFound.guessed`)
  * whose ball is seen in no part read, and none of whose runs goes up the lane
  * at a ball's speed, is "no-shot". Without a shot (a short video) the whole
  * video is read. `seek` looks for the ball in a part's frames (`findBall` on
@@ -83,11 +84,36 @@ export async function readShot(
   let first = await read({ ...part, fps: READ_FPS, band }, (f) => onProgress(FIRST_SHARE * f));
   let lanes = first.gray.length ? await look(first) : null;
   notes?.add(key, `first part ${part.from.toFixed(2)} to ${part.to.toFixed(2)} s, ${first.gray.length} frames, lane ${lanes ? `found on ${lanes.length}` : "not found"}`);
+  const looks = [found.run, ...(found.others ?? [])];
+  const tried = [part];
+  // No lane on the first part: the run the look chose may be no ball's
+  // (IMG_2938 on an iPhone: a run at 7.27 s, the camera zoomed in on the
+  // bowler walking back, no lane in the picture), so the parts the look's
+  // other runs start in, then the video stepped through, are looked at for
+  // the lane in turn (`seekPart`), and the first that shows it is taken as
+  // the first part, before the band is given up.
+  if (!lanes) {
+    const starts = looks.flatMap((r) => (r[0] ? [r[0].t] : []));
+    const began = Date.now();
+    for (let more = 0; !lanes && more < SEEK_PARTS && Date.now() - began < SEEK_MS; more++) {
+      const next = seekPart(starts, tried, video.duration, found.release);
+      if (!next) break;
+      tried.push(next);
+      const other = await read({ ...next, fps: READ_FPS, band }, () => {});
+      const otherLanes = other.gray.length ? await look(other) : null;
+      notes?.add(key, `lane looked for ${next.from.toFixed(2)} to ${next.to.toFixed(2)} s, ${otherLanes ? `found on ${otherLanes.length}` : "not found"}`);
+      if (!otherLanes) {
+        other.gray = [];
+        continue;
+      }
+      first.gray = [];
+      [part, first, lanes] = [next, other, otherLanes];
+    }
+  }
   if (!lanes && !lastBand) {
-    console.info(`Shot tracer: no lane on the first part (${part.from.toFixed(3)} to ${part.to.toFixed(3)} s) in this band; the next band`);
+    console.info(`Shot tracer: no lane in ${tried.length} part${tried.length === 1 ? "" : "s"} of the video in this band; the next band`);
     return "no-lane";
   }
-  const looks = [found.run, ...(found.others ?? [])];
   const judged = (on: VideoFrames, by: FrameLane[]) => looks.map((run) => runFeet(runInFrame(run, band, on), by, on.times));
   let runs = lanes ? judged(first, lanes) : [];
   let window = pickWindow(runs, found, video.duration);
@@ -109,7 +135,6 @@ export async function readShot(
   // saw it out on the lane, then the crossing of the look's run that passes,
   // then the look's runs that pass on the lane, then its others, then the
   // whole video stepped through.
-  const tried = [part];
   const hints: number[] = [];
   const hintFrom = (seen: BallSearch | null, w: ShotWindow, rs: ReturnType<typeof judged>) => {
     if (seen?.earlier != null) hints.push(seen.earlier);

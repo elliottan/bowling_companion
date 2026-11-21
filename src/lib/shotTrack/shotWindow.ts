@@ -350,7 +350,11 @@ export function seekPart(hints: readonly number[], read: readonly { from: number
   for (const t of hints) {
     if (!Number.isFinite(t) || t < 0 || t > end || seen(t)) continue;
     const from = Math.max(0, Math.round((t - LEAD_SECONDS) * EDGE_GRID) / EDGE_GRID);
-    return { from, to: Math.min(end, from + FIRST_SECONDS) };
+    const to = Math.min(end, from + FIRST_SECONDS);
+    // Near the video's end a part cannot leave `SEEN_ROOM` after the hint,
+    // so no part read ever counts it seen: a part read already is not read again.
+    if (read.some((p) => Math.abs(p.from - from) < 1e-6 && Math.abs(p.to - to) < 1e-6)) continue;
+    return { from, to };
   }
   const steps: { from: number; to: number }[] = [];
   for (let k = 0; k * STEP_SECONDS < end; k++) {
