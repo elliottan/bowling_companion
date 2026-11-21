@@ -204,7 +204,7 @@ describe("a wait the browser never ends, ended", () => {
   it("a frame's copyTo", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "performance"] });
     installDecoder({ output: "decode-order", copy: "never" });
-    await expect(settle(codecScan(codec(), () => {}, () => {}))).rejects.toThrow(/turning the frame at 0\.000 s to grey \(NV12, copyTo\) stalled: no answer in 5 s \(\d+ of 243 fed/);
+    await expect(settle(codecScan(codec(), () => {}, () => {}))).rejects.toThrow(/turning the frame at 0\.000 s to gray \(NV12, copyTo\) stalled: no answer in 5 s \(\d+ of 243 fed/);
   });
 
   it("a decoder that takes the frames and gives nothing back", async () => {

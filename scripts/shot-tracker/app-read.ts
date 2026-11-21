@@ -19,6 +19,9 @@
  * range as the app now does (`grayRange.ts`). `--from 0` reads from the
  * video's start to the window's end instead of from the window's start, the
  * frames otherwise chosen the same way: the read's start alone changed.
+ * `--found file.json` replays a first look's result instead of searching (a
+ * `ShotFound` as JSON: the release, the run and the others a phone's details
+ * show), for a search a phone made that the luma plane here does not repeat.
  * `--dump dir` writes the frames the trace got as `bench.ts --dump` does, for
  * `pool-bench.ts` and `review-app.ts --frames` (with the video and the band read).
  *
@@ -214,18 +217,18 @@ export interface AppRead {
 }
 
 /** The frames the app gives the tracer for `path`: the first look, the bands, `readShot`. `fromZero` reads from the video's start instead of the window's. */
-export async function appRead(path: string, gray: GrayMode, fromZero = false, lookDir?: string): Promise<AppRead | null> {
+export async function appRead(path: string, gray: GrayMode, fromZero = false, lookDir?: string, given?: ShotFound): Promise<AppRead | null> {
   const track = await fileTrack(path);
   const log: string[] = [];
   const notes = new Notes();
-  const coarse = lookDir ? savedLook(lookDir, path, gray) : await look(path, track, gray);
+  const coarse = given ? [] : lookDir ? savedLook(lookDir, path, gray) : await look(path, track, gray);
   const search = new ShotSearch();
   for (const f of coarse) search.push(f);
-  const found = search.finish();
+  const found = given ?? search.finish();
   const from = readFrom(track.duration, found);
   const bands = laneBands(track.width, track.height, found);
   log.push(
-    `look: ${coarse.length} frames; ${found ? `release ${found.release.toFixed(2)} s, pins ${found.pinHit?.toFixed(2) ?? "not seen"}, ${found.guessed ? "guessed, " : ""}${1 + (found.others?.length ?? 0)} runs` : "no shot"}; read from ${from?.toFixed(2) ?? "nowhere"}; bands ${bands.map((b) => (b ? `${b.top.toFixed(2)}-${b.bottom.toFixed(2)}` : "all")).join(", ")}`
+    `look: ${given ? "given" : `${coarse.length} frames`}; ${found ? `release ${found.release.toFixed(2)} s, pins ${found.pinHit?.toFixed(2) ?? "not seen"}, ${found.guessed ? "guessed, " : ""}${1 + (found.others?.length ?? 0)} runs` : "no shot"}; read from ${from?.toFixed(2) ?? "nowhere"}; bands ${bands.map((b) => (b ? `${b.top.toFixed(2)}-${b.bottom.toFixed(2)}` : "all")).join(", ")}`
   );
   if (from === null) return null;
   const read = reader(path, track, gray, log);
@@ -279,10 +282,12 @@ if (process.argv[1]?.endsWith("app-read.ts")) {
   const jsonOut = opt("--json");
   const dumpDir = opt("--dump");
   const lookDir = opt("--look");
+  const foundFile = opt("--found");
+  const given = foundFile ? (JSON.parse(readFileSync(foundFile, "utf8")) as ShotFound) : undefined;
   const results: Record<string, unknown>[] = [];
   for (const path of args) {
     const t0 = Date.now();
-    const r = await appRead(path, gray, fromZero, lookDir);
+    const r = await appRead(path, gray, fromZero, lookDir, given);
     if (!r) {
       console.log(`${basename(path)}: no shot read`);
       continue;

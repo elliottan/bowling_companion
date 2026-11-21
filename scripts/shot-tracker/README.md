@@ -153,6 +153,50 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
+## The first look's run on a zoomed-in camera, and the ball return taken for the lane (2026-11-21)
+
+**The owner's report**: IMG_2938 on an iPhone (Safari 18.7, 0.116.0): "The
+lane couldn't be found". The phone's search chose a run at 7.27 s (5
+points from y 0.56), when the camera is zoomed in on the bowler walking
+back; the first part, 6.87 to 8.47 s, shows no lane, and with one band to
+try `readShot` read on to the end and gave up. In Node the luma plane's look
+chooses 5.07 s instead (also no ball's, but its part has a lane, so the
+ball search carried on to the real shot at 3.1 s). The search is not stable
+on this clip: the whole picture zooms and the ball is a few pixels at 192
+wide; adding 1 to every pixel keeps 5.07 s, a gamma of 0.8 picks 1.00 s,
+a pixel of noise 2.47 s. `app-read.ts --found file.json` replays a look's
+result (the phone's release and run, Node's others), and reproduces the
+phone's "lane not found" on 6.87 to 8.47 s.
+
+**The fix** is in `readShot`, not the search: when the first part shows no
+lane, the parts the look's other runs start in, then the video stepped
+through (`seekPart`), are looked at for the lane, and the first that shows
+it becomes the first part; a band is given up only after that. A hint so
+near the video's end that no part can leave `SEEN_ROOM` after it was read
+again and again; `seekPart` now skips a part already read.
+
+**The ball return.** With the bowler over the lane's right edge, the stretch
+one lane width wide from the next lane's gutter (its far side) across the
+ball return to a faint line inside this lane was the frame's pair: the left
+edge on the gutter's outer side, the owner's complaint, on 13 of 16 frames
+of one grid of a read from 2.87 s (the traced lane was right: `laneTrack`
+drops lanes that disagree, while most agree). Inside that stretch lie the
+gutter's groove and the capping, as strong as its edges; inside the lane
+nothing is (under 0.3 of the stronger edge on IMG_2938 and IMG_9960, the
+bowler and ball included). `rankLanes` now chooses among a frame's quiet
+pairs (`interiorPeak` at most `INTERIOR_RATIO`, 0.5, of the stronger edge)
+when it has any. A frame with no quiet pair keeps its best (a hard rule lost
+true lanes behind the bowler on img1996 and moved its readings). Frames with
+a wrong lane over nine grids of IMG_2938's reads: 57 of 148 to 32, and 22 of
+80 to 10; the remaining ones have no true pair at all (the right edge hidden).
+
+**Measured** (`app-read.ts --hand auto`, every input): IMG_2938 8.25 / 13.72
+as before (the phone's look replayed: 8.25 / 13.72; with only the look's
+runs at 7.87 s and before 1.1 s: 8.58 / 13.37, pins 36.5 estimated);
+8133 now reads (laydown 14.62, the lane found on 5.60 to 7.20 s; it read
+nothing before); img1996-vp9-10-60 laydown 18.31 to 18.44; every other
+input reads the same. Pictures: `scratchpad/review18/`.
+
 ## The lane one gutter too wide on a zooming camera (2026-11-21)
 
 **The owner's report**: on IMG_2938 "the left lane edge lines are wrong. They

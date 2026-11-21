@@ -337,7 +337,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
         return;
       }
       if (read === "no-lane") {
-        // No lane on the first part in this band: the next, read again.
+        // No lane in any part read in this band: the next, read again.
         if (attempt.current === mine) void readBand(f, looked, bands.slice(1), mine);
         return;
       }

@@ -100,6 +100,19 @@ describe("readShot finds the ball whatever the first look picked", () => {
     expect(notes.text()).toMatch(/though no ball rolled after its crossing/);
   }, SLOW);
 
+  it("looks for the lane in the other runs' parts when the first part shows none", async () => {
+    const v = video(spec);
+    const notes = new Notes();
+    // The camera zoomed in on the bowler walking back after the shot: no lane from 3.2 s on (IMG_2938 on an iPhone).
+    const look = async (part: VideoFrames) => (part.times[0] > 3.2 ? null : v.look(part));
+    const late = found({ release: 3.7, run: lookRun(spec, 3.7, 30, 6), others: [lookRun(spec, crossing, 0, 20)] });
+    const r = await readShot(v.read, late, v.info, null, look, () => {}, true, notes);
+    if (typeof r === "string") throw new Error(r);
+    expect(notes.text()).toMatch(/lane not found; lane looked for 2\.\d\d to \d\.\d\d s, found on/);
+    expect(r.window!.by).toBe("seen");
+    expect(Math.abs(r.window!.foul! - crossing)).toBeLessThan(0.07);
+  }, SLOW);
+
   it("says no shot when the look guessed, nothing passes and no ball is seen", async () => {
     const v = video(hidden);
     const r = await readShot(v.read, found({ release: 0.5, run: lookRun(hidden, 0.5, -12, 6), guessed: true }), v.info, null, v.look, () => {}, true);

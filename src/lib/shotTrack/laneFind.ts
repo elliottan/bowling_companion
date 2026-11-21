@@ -598,6 +598,34 @@ export function lanePairs(r: FrameLanes, width: number): LaneCandidate[] {
   return out;
 }
 
+/** How far in from each edge a pair's interior starts, a fraction of its width (`interiorPeak`): clear of the edges' own lobes. */
+export const INTERIOR_MARGIN = 0.06;
+/**
+ * A frame's pair is chosen among those with nothing inside stronger than
+ * this times their stronger edge, when it has any (`rankLanes`). IMG_2938's
+ * and IMG_9960's lanes, the bowler and the ball in them: under 0.3; the same
+ * width over the ball return (the next gutter's far side for its left edge,
+ * this lane's gutter groove and the capping inside): 0.9 and up.
+ */
+export const INTERIOR_RATIO = 0.5;
+
+/**
+ * The strongest lane-parallel line inside a pair (its profile's largest
+ * |gradient| between its edges, `INTERIOR_MARGIN` in from each). The lane's
+ * surface has no line along it as strong as its own edges; a stretch of the
+ * same width over the ball return does (both gutters' grooves and the
+ * capping's sides run inside it).
+ */
+export function interiorPeak(r: FrameLanes, c: LaneCandidate): number {
+  const g = r.profile.grad;
+  const m = INTERIOR_MARGIN * (c.right - c.left);
+  const i0 = Math.max(0, Math.ceil(c.left + m - r.fan.x0));
+  const i1 = Math.min(g.length - 1, Math.floor(c.right - m - r.fan.x0));
+  let peak = 0;
+  for (let i = i0; i <= i1; i++) if (Number.isFinite(g[i])) peak = Math.max(peak, Math.abs(g[i]));
+  return peak;
+}
+
 /** Center of a candidate at the near end, in lane widths from the picture's center. */
 function centerOffset(r: FrameLanes, c: LaneCandidate, frameWidth: number): number {
   const s = (r.near - r.vp.y) / (r.fan.yRef - r.vp.y);
@@ -610,7 +638,8 @@ function centerOffset(r: FrameLanes, c: LaneCandidate, frameWidth: number): numb
  * width apart whose middle is within three quarters of a lane width of the
  * picture's center at the near end (the bowler films from behind their own
  * lane; the next lanes' middles are a lane and a half or more away), scored
- * by its weaker edge.
+ * by its weaker edge. Among a frame's pairs, those with no line inside as
+ * strong as their edges (`interiorPeak`, `INTERIOR_RATIO`) are preferred.
  */
 export function rankLanes(all: (FrameLanes | null)[], frameWidth: number): LanePick[] {
   const ok = all.filter((r): r is FrameLanes => !!r);
@@ -621,7 +650,12 @@ export function rankLanes(all: (FrameLanes | null)[], frameWidth: number): LaneP
     if (!r) return;
     // The lane's columns on this frame.
     const width = spread * fanDepth(r);
-    const pairs = lanePairs(r, width).filter((c) => Math.abs(centerOffset(r, c, frameWidth)) < 0.75);
+    const near = lanePairs(r, width).filter((c) => Math.abs(centerOffset(r, c, frameWidth)) < 0.75);
+    // A pair with a line inside it as strong as its stronger edge is less
+    // likely the lane than one without (`INTERIOR_RATIO`): the frame's pick
+    // is made among the quiet pairs when it has any.
+    const quiet = near.filter((c) => interiorPeak(r, c) <= INTERIOR_RATIO * Math.max(c.leftEdge, -c.rightEdge));
+    const pairs = quiet.length ? quiet : near;
     if (!pairs.length) return;
     const centered = (c: LaneCandidate) => 1 - 0.3 * Math.abs(centerOffset(r, c, frameWidth));
     const score = (c: LaneCandidate) => Math.min(c.leftEdge, -c.rightEdge) * centered(c);

@@ -206,7 +206,7 @@ async function decodeRange(
   const drainOne = async () => {
     const next = waiting.shift()!;
     try {
-      await within(handle(next.frame, next.t, next.place), FRAME_MS, `turning the frame at ${next.t.toFixed(3)} s to grey (${String(next.frame.format)}, copyTo)`);
+      await within(handle(next.frame, next.t, next.place), FRAME_MS, `turning the frame at ${next.t.toFixed(3)} s to gray (${String(next.frame.format)}, copyTo)`);
     } finally {
       next.frame.close();
     }
