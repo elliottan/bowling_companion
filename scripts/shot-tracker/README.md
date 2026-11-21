@@ -153,6 +153,69 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
+## The foul line held to the pin row's direction (not released, 2026-11-21)
+
+**The owner's report**: on IMG_9960 "the foul line red line is not on the
+foul line", circled at its right end beside the bowler's feet. The phone's
+result picture (a frame about 8.7 s in) drew the foul line with its right end
+about 3 read pixels above the corner where the right gutter meets the
+approach, the line level (slope -0.005) where the real one falls to the right
+(+0.012 on that stretch). Node's read draws its result on read frame 79
+(9.31 s), where the line sits on both corners to a pixel; the phone chose
+another calibration frame.
+
+**Why** (`scripts/shot-tracker` pictures in the session's `review15/`):
+
+- The right gutter of this lane is a smooth grey channel: `gutterEnds` finds
+  no end on it on any frame, so the foul line's right end only ever comes from
+  the edge line's end (`edgeOnly`) or from a change of brightness in the right
+  strip (0.85 to 0.96 of the lane).
+- From 7.1 to 8.3 s the trailing shoe stands over that corner. On read frame
+  48 the edge line's "end" was taken at the top of the shoe (20 rows high) and
+  a brightness pair won with its right end on the shoe: slope -0.019, the
+  right end 5 px high. Frame 43 went 0.023 the other way. Both were kept by
+  `laneTrack` (they agree with their neighbors to half a board) and blended
+  into the lane of every frame from the laydown on.
+- Nothing held the foul line's slope: the pairs could lie 0.03 and the gutter
+  line 0.04 from the reference, while the camera's roll itself moves 0.01 over
+  the clip (the pin row's slope runs 0.0003 to 0.0108).
+
+**The fix** (`laneFind.ts`): the foul line and the pin row are the same
+direction on the floor, so the foul line's slope less the pin row's (its
+tilt, `Ends.tilt`) barely moves within a clip whatever the camera's roll. Its
+mode over the frames whose foul line runs through both gutters' ends is the
+clip's tilt (`laneSteps`, at least `MIN_GUTTER_FRAMES`, `FOUL_TILT_SPREAD`),
+and each frame's foul line is held to it (`holdToTilt`): a line more than
+`FOUL_TILT_TOL` (0.01) off gives way to another candidate at the tilt or a
+line at the pin row's slope plus the tilt through a gutter end the frame shows
+for certain (`foulAnchors`), whichever puts the camera nearest where the clip
+does; a line seen at one point only is turned to the tilt about that point.
+Only frames whose pin row is wide enough to give its own slope are held (the
+rest have no tilt to measure). IMG_9960's tilt is 0.0066; frame 48 now has
+slope 0.0068 and its right end within about a pixel of the corner, frame 43
+0.0070.
+
+**Measured** (Node, `app-read.ts --hand auto`; laydown, arrows, breakpoint at
+feet, pins; `e` estimated):
+
+| input | before | after |
+|---|---|---|
+| shot-01, shot-04, shot-05, shot-06, 6447, 1856 | | same to the digit |
+| shot-02 | 21.25, 15.96, 8.83 at 43.0, 15.82 | 21.23, 15.96, 8.82 at 43.5, 15.79 |
+| shot-03 | 13.58, 9.90, none | 13.59, 9.64, 7.43 at 36.1 |
+| IMG_1996 | 18.39, 13.34, 8.72 at 51.4 | 18.33, 13.34, 8.83 at 50.1 |
+| rot90-120 | 18.43, 13.52, 8.75 at 51.6 | 18.41, 13.53, 8.95 at 46.1 |
+| SDR / SDR full | 18.55, 13.36, 9.04 at 49.4 / 18.35, 13.36, 8.93 at 50.6 | 18.54, 13.39, 8.93 at 50.1 / 18.36, 13.36, 8.93 at 50.4 |
+| IMG_9960 | 11.30, 10.45, 9.18 at 36.0, 12.83e | 11.23, 10.41, 9.15 at 36.1, none |
+| 8133 | no lane | no lane |
+
+IMG_9960's pins were an estimate from a path whose sightings reached 54.0005
+ft (`pinState` needs 54); they now reach 53.84, so the pins are not read, as
+the 0.114.0 notes above already expected. shot-03's arrows move
+with the lone foul lines of its release frames, now turned to the clip's tilt
+(0.010) instead of drawn at the pin row's slope. The breakpoints that moved by
+feet moved by 0.1 to 0.2 board: the bottom of the hook is flat.
+
 ## The ball among the pins, and the hand always from the video (0.114.1, 2026-11-20)
 
 **The owner's marks** (ground truth): shot-01 frames 229 (yellow right),

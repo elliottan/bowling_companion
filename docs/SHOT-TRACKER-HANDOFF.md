@@ -109,6 +109,11 @@ IMG_1996 in headless Chromium four runs gave the same window and laydown
 - `associate`: sightings may cross by `FAR_SLACK_FT` (2 ft) from `FAR_FT` on; shot-01 frame 231 is seen (board 16.84, the owner's 17.02).
 - Open: shot-02's visible ball at the pins is still 3 to 6% inside the drawn circle; shot-02's sightings at 50 to 54 ft scatter 1 to 3 boards about the path (their rows); shot-06 pins 19.00 (was 19.13, owner 19.3). Review pictures: `scratchpad/review14/`.
 
+### Since 0.115.1 (2026-11-21, not released): the foul line's tilt
+
+- The owner: IMG_9960's foul line is off at its right end (by the bowler's feet). The trailing shoe over the right corner (its gutter shows no end, so that end is only ever the edge line's end or a change of brightness) tilted the foul line on the frames from 7.1 to 8.3 s by 0.02 either way, and nothing held its slope. Now each frame's foul line is held to the clip's tilt against the pin row (`holdToTilt`, `FOUL_TILT_TOL` 0.01, the tilt from the frames through both gutters' ends in `laneSteps`). shot-01, 04, 05, 06, 6447 and 1856 read the same to the digit; IMG_9960 laydown 11.30 to 11.23, its pins estimate lost (sightings to 53.84 ft, 54 needed); shot-03 arrows 9.90 to 9.64. README, "The foul line held to the pin row's direction". Pictures: `scratchpad/review15/`.
+- Open: the phone's calibration frame for IMG_9960 is not reproduced in Node (Node shows read frame 79, already right); the right gutter's end is not found on IMG_9960 on any frame.
+
 ## Where it stood before that (0.112.0, 2026-11-15)
 
 - **0.112.0 made the app all automatic**, on the owner's word: no marking
