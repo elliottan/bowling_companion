@@ -26,7 +26,8 @@ export interface FrameSource {
 export interface FrameGeometry {
   index: number;
   ok: boolean;
-  reason?: "lane-lost" | "jump";
+  /** Lost; "lane-left" once lost for `GIVE_UP_S`, after which the pass stopped looking. */
+  reason?: "lane-lost" | "jump" | "lane-left";
   /** Calibration frame pixels to this frame's pixels. */
   S: Mat3;
   /** The lane's edges, foul line and pin row in this frame, from H. */
@@ -605,6 +606,8 @@ export interface Matches {
   p: TurnParams;
   ok: boolean;
   reason?: FrameGeometry["reason"];
+  /** How many patches the frame was matched by (its key frame's, `RegisterPass`), when not the calibration frame's. */
+  patches?: number;
 }
 
 /** The frames a pass from the calibration frame visits, in order: `dir` 1 forward to `last`, -1 back to `first`. */
@@ -620,26 +623,72 @@ function startLens(width: number, height: number, opts: RegisterOptions): Lens {
 }
 
 /**
+ * A pass moves its key frame on (`RegisterPass`) once the camera has zoomed
+ * this much from it, as a log: a patch is matched by its picture alone, at
+ * one size, and at 5% the rim of a 26 px patch has moved 0.65 px against its
+ * middle. IMG_2938 zooms from 0.57 to 1.88 of the calibration frame's scale
+ * from the release to the pins; matched against the calibration frame
+ * alone, the share of patches found fell under the 0.15 floor outside 0.71
+ * to 1.18 of it, and every frame further out was lost.
+ */
+export const REKEY_ZOOM = 0.05;
+/**
+ * ...or once fewer than this share of its patches would still be inside the
+ * picture (the camera panned away from them): those that left can no longer
+ * be found, and the frame would be lost with half the picture still in common.
+ */
+export const REKEY_IN_VIEW = 0.6;
+/**
+ * A pass that has lost every frame for this long, seconds, stops looking:
+ * no input found its frames again after more than 0.1 s lost (6447's lost
+ * frames back from the calibration frame, IMG_2938's once the camera turned
+ * to the bowler), and each lost frame costs a full search.
+ */
+export const GIVE_UP_S = 0.5;
+
+/** A pass's key frame: the frame whose patches are matched, and its turn from the calibration frame. */
+interface KeyFrame {
+  frame: GrayFrame;
+  patches: Patch[];
+  /** Key frame pixels back to the calibration frame's; null for the calibration frame itself. */
+  back: Mat3 | null;
+  p: TurnParams;
+}
+
+/**
  * One direction of `register`, a frame at a time: forward (`dir` 1) or back
  * from the calibration frame, each frame matched around where the frame
  * before it in the pass and the coarse shift put the patches. The two
  * directions share nothing, so they can run side by side (in two workers);
  * `step` must be given the frames in `passFrames` order.
+ *
+ * The patches are the key frame's: the calibration frame's at first, and a
+ * frame's own once the camera has zoomed `REKEY_ZOOM` from the key frame or
+ * turned most of its patches out of the picture (`REKEY_IN_VIEW`). Each match
+ * is carried back to the calibration frame's pixels through the key frame's
+ * turn, so every frame's turn and zoom is still fitted from the calibration
+ * frame: a phone that zooms or pans while the ball rolls is followed a key
+ * frame at a time. A camera that holds still never moves its key frame and
+ * is registered as before, to the bit.
  */
 export class RegisterPass {
-  private readonly c0: GrayFrame;
   private readonly lens0: Lens;
-  private readonly patches: Patch[];
   private readonly tol: number;
   private readonly maxJump: number;
+  private readonly calibPatches: number;
+  private key: KeyFrame;
   private prev: TurnParams = [0, 0, 0, 0];
   private prevFrame: GrayFrame;
   private qPrev: GrayFrame;
+  /** When the frames started being lost (the first of a run of lost frames), null while registered. */
+  private lostAt: number | null = null;
+  /** How many times the key frame moved on. */
+  rekeyed = 0;
 
   constructor(c0: GrayFrame, opts: RegisterOptions = {}) {
-    this.c0 = c0;
     this.lens0 = startLens(c0.width, c0.height, opts);
-    this.patches = choosePatches(c0);
+    this.key = { frame: c0, patches: choosePatches(c0), back: null, p: [0, 0, 0, 0] };
+    this.calibPatches = this.key.patches.length;
     this.tol = opts.tolerance ?? 1.5;
     this.maxJump = opts.maxJump ?? 0.05;
     this.prevFrame = c0;
@@ -649,7 +698,12 @@ export class RegisterPass {
 
   /** The next frame of the pass, `i` its index: its matches and turn. */
   step(i: number, f: GrayFrame): Matches {
-    const { c0, lens0, patches, prev } = this;
+    const { lens0, prev, key } = this;
+    // Lost for `GIVE_UP_S`: the camera has left the lane for good (IMG_2938
+    // turned to the bowler walking back), and the frames after are not looked at.
+    if (this.lostAt !== null && Math.abs(f.t - this.lostAt) >= GIVE_UP_S) {
+      return { index: i, P: [], Q: [], inliers: [], p: prev, ok: false, reason: "lane-left", patches: key.back ? key.patches.length : undefined };
+    }
     const q = downsample(f, 4);
     const g = globalShift(this.prevFrame, f, 40, this.qPrev, q);
     this.qPrev = q;
@@ -658,29 +712,52 @@ export class RegisterPass {
     // The coarse shift as a small pan and tilt on top of the last frame's turn.
     const guess: TurnParams = [prev[0] - g.y / lens0.f, prev[1] + g.x / lens0.f, prev[2], prev[3]];
     const guessH = multiply([1, 0, g.x, 0, 1, g.y, 0, 0, 1], prevH);
+    // Key frame pixels to this frame's, as guessed.
+    const fromKey = key.back ? multiply(guessH, key.back) : guessH;
     const P: Point[] = [];
     const Q: Point[] = [];
-    for (const pt of patches) {
-      const m = matchPatch(c0, f, pt, apply(guessH, pt));
+    for (const pt of key.patches) {
+      const m = matchPatch(key.frame, f, pt, apply(fromKey, pt));
       if (m) {
-        P.push(pt);
+        P.push(key.back ? apply(key.back, pt) : pt);
         Q.push(m);
       }
     }
     const fit = robustTurn(lens0, guess, P, Q, this.tol);
-    const share = fit ? fit.inliers.length / Math.max(1, patches.length) : 0;
+    const share = fit ? fit.inliers.length / Math.max(1, key.patches.length) : 0;
+    const patches = key.back ? key.patches.length : undefined;
     if (!fit || fit.inliers.length < 8 || share < 0.15) {
       this.prev = guess;
-      return { index: i, P, Q, inliers: fit?.inliers ?? [], p: guess, ok: false, reason: "lane-lost" };
+      this.lostAt ??= f.t;
+      return { index: i, P, Q, inliers: fit?.inliers ?? [], p: guess, ok: false, reason: "lane-lost", patches };
     }
-    const bad = jumpedTurn(prev, fit.p, lens0.f, c0.width, c0.height, this.maxJump);
+    this.lostAt = null;
+    const bad = jumpedTurn(prev, fit.p, lens0.f, f.width, f.height, this.maxJump);
     this.prev = fit.p;
-    return { index: i, P, Q, inliers: fit.inliers, p: fit.p, ok: !bad, reason: bad ? "jump" : undefined };
+    if (!bad && this.moveKey(fit.p, f)) {
+      this.key = { frame: f, patches: choosePatches(f), back: invert(turnHomography(lens0, fit.p)), p: fit.p };
+      this.rekeyed++;
+    }
+    return { index: i, P, Q, inliers: fit.inliers, p: fit.p, ok: !bad, reason: bad ? "jump" : undefined, patches };
   }
 
-  /** How many patches each frame is matched by. */
+  /** Whether a frame registered at `p` should be the key frame from here on (`REKEY_ZOOM`, `REKEY_IN_VIEW`). */
+  private moveKey(p: TurnParams, f: GrayFrame): boolean {
+    const { key } = this;
+    if (Math.abs(p[3] - key.p[3]) > REKEY_ZOOM) return true;
+    const H = turnHomography(this.lens0, p);
+    const toF = key.back ? multiply(H, key.back) : H;
+    let inside = 0;
+    for (const pt of key.patches) {
+      const r = apply(toF, pt);
+      if (r.x - pt.h >= 0 && r.y - pt.h >= 0 && r.x + pt.h < f.width && r.y + pt.h < f.height) inside++;
+    }
+    return inside < REKEY_IN_VIEW * key.patches.length;
+  }
+
+  /** How many patches the calibration frame is matched by. */
   get patchCount(): number {
-    return this.patches.length;
+    return this.calibPatches;
   }
 }
 
@@ -711,7 +788,7 @@ export function finishRegister(
     const H = normalize(multiply(S, H0));
     out[m.index - first] = {
       index: m.index, ok: m.ok, reason: m.reason, S, H, marks: laneMarksOf(H),
-      share: m.index === calibFrame ? 1 : m.inliers.length / Math.max(1, patchCount),
+      share: m.index === calibFrame ? 1 : m.inliers.length / Math.max(1, m.patches ?? patchCount),
       turn: [p[0], p[1], p[2]], zoom: fdlibm.exp(p[3]), lens
     };
   }
@@ -897,6 +974,8 @@ export class PlanePass {
 
   /** The next frame of the pass: `g` its picture's registration, `f` the frame. */
   step(g: FrameGeometry, f: GrayFrame): FrameGeometry {
+    // The picture's registration stopped looking (`GIVE_UP_S`): so does the floor's.
+    if (g.reason === "lane-left") return { ...g };
     const { c0, H0, tol, minPatches, patches, laneV } = this;
     const matchFrom = (guess: Mat3) => {
       const P: Point[] = [];

@@ -114,6 +114,11 @@ IMG_1996 in headless Chromium four runs gave the same window and laydown
 - The owner: IMG_9960's foul line is off at its right end (by the bowler's feet). The trailing shoe over the right corner (its gutter shows no end, so that end is only ever the edge line's end or a change of brightness) tilted the foul line on the frames from 7.1 to 8.3 s by 0.02 either way, and nothing held its slope. Now each frame's foul line is held to the clip's tilt against the pin row (`holdToTilt`, `FOUL_TILT_TOL` 0.01, the tilt from the frames through both gutters' ends in `laneSteps`). shot-01, 04, 05, 06, 6447 and 1856 read the same to the digit; IMG_9960 laydown 11.30 to 11.23, its pins estimate lost (sightings to 53.84 ft, 54 needed); shot-03 arrows 9.90 to 9.64. README, "The foul line held to the pin row's direction". Pictures: `scratchpad/review15/`.
 - Open: the phone's calibration frame for IMG_9960 is not reproduced in Node (Node shows read frame 79, already right); the right gutter's end is not found on IMG_9960 on any frame.
 
+### After 0.115.1 (2026-11-21): a camera that zooms and pans
+
+- IMG_2938 (a phone zooming from 0.57 to 1.88 of the calibration frame's scale while the ball rolls) failed `too-shaky`: the picture's registration matched only the calibration frame's patches, at one size, and lost every frame outside 0.71 to 1.18 of its zoom. `RegisterPass` now moves its key frame on every 5% of zoom (`REKEY_ZOOM`) or when most of its patches leave the picture (`REKEY_IN_VIEW`), each match carried back to the calibration frame through the key frame's turn; a pass lost for `GIVE_UP_S` stops looking; the steadied share is counted over `steadySpan`; a pin move more than `PIN_LATE_S` after the ball is due is not its touch. IMG_2938 reads left-handed, laydown 11.94, arrows 16.08, pins 37.45 estimated; every other input gives the same trace digest. README, "A camera that zooms and pans while the ball rolls".
+- Open: `ballFind` steadies by a shift only, so under a zoom its speed (and the window's end) is off (IMG_2938: 14.6 ft/s for 23); a share-based key frame move fixes 6447's laydown but loses its pins (README). Review pictures: `scratchpad/review16/`.
+
 ## Where it stood before that (0.112.0, 2026-11-15)
 
 - **0.112.0 made the app all automatic**, on the owner's word: no marking
