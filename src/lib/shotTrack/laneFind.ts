@@ -509,14 +509,36 @@ export function lanesOnFrame(f: GrayFrame): FrameLanes | null {
 }
 
 /**
- * The width every lane has in the fan, from the candidates of many frames:
- * the most common width, within 8%, weighted by width. The neighbouring
- * lanes are the same width as the bowler's on a line of constant distance,
- * so a gutter cap (a third as wide) or two lanes run together (when an edge
- * is hidden) stand out.
+ * How far below the vanishing point a frame's reference line passes (it runs
+ * through (vp.x, yRef)): a lane `w` columns wide spans w / depth of a ray's
+ * slope (`laneSpread`). One number per frame: the fan already makes every
+ * lane in the frame the same number of columns wide.
  */
-export function laneWidth(all: FrameLanes[]): number | null {
-  const widths = all.flatMap((r) => r.candidates.map((c) => c.right - c.left));
+export function fanDepth(r: FrameLanes): number {
+  return r.fan.yRef - r.vp.y;
+}
+
+/**
+ * The width every lane has, from the candidates of many frames: the most
+ * common width, within 8%, weighted by width. The neighbouring lanes are the
+ * same width as the bowler's on a line of constant distance, so a gutter cap
+ * (a third as wide) or two lanes run together (when an edge is hidden) stand
+ * out.
+ *
+ * A width is counted as a spread, the columns over the reference line's
+ * depth below the vanishing point (`fanDepth`): the two edges' rays differ
+ * by that much in slope. A lane's columns at the picture's bottom row change
+ * whenever the camera zooms or tilts (the vanishing point moves up or down
+ * the picture while the bottom row stays put), its spread does not: a zoom
+ * or a shift of the picture keeps every line's slope. IMG_2938 zooms from
+ * 0.57 to 1.88 of its calibration frame's scale while the ball rolls; its
+ * lanes were 431 columns wide at the start and 520 later, the zoomed frames
+ * outnumbered the rest, and on the early frames the only pair one "lane
+ * width" apart ran from the left gutter's far side to the right edge, a
+ * gutter too wide. Their spreads are 0.73 to 0.77 throughout.
+ */
+export function laneSpread(all: FrameLanes[]): number | null {
+  const widths = all.flatMap((r) => r.candidates.map((c) => (c.right - c.left) / fanDepth(r)));
   if (!widths.length) return null;
   let best = 0;
   let bestScore = 0;
@@ -542,7 +564,7 @@ export interface LanePick {
   candidate: LaneCandidate;
   left: Line3;
   right: Line3;
-  /** Lane width in the fan, as `laneWidth`. */
+  /** Lane width in this frame's fan, columns: `laneSpread` at its middle's depth. */
   width: number;
 }
 
@@ -592,15 +614,22 @@ function centerOffset(r: FrameLanes, c: LaneCandidate, frameWidth: number): numb
  */
 export function rankLanes(all: (FrameLanes | null)[], frameWidth: number): LanePick[] {
   const ok = all.filter((r): r is FrameLanes => !!r);
-  const width = laneWidth(ok);
-  if (!width) return [];
+  const spread = laneSpread(ok);
+  if (!spread) return [];
   const out: { score: number; pick: LanePick }[] = [];
   all.forEach((r, index) => {
     if (!r) return;
+    // The lane's columns on this frame.
+    const width = spread * fanDepth(r);
     const pairs = lanePairs(r, width).filter((c) => Math.abs(centerOffset(r, c, frameWidth)) < 0.75);
     if (!pairs.length) return;
-    const score = (c: LaneCandidate) => Math.min(c.leftEdge, -c.rightEdge) * (1 - 0.3 * Math.abs(centerOffset(r, c, frameWidth)));
-    const c = pairs.reduce((a, b) => (score(a) >= score(b) ? a : b));
+    const centered = (c: LaneCandidate) => 1 - 0.3 * Math.abs(centerOffset(r, c, frameWidth));
+    const score = (c: LaneCandidate) => Math.min(c.leftEdge, -c.rightEdge) * centered(c);
+    // Within the frame, both edges choose: pairs that share their weaker edge
+    // would otherwise tie, and the centering alone would pick between a lane's
+    // edge and a faint line beside it (the gutter's lip, a board or two out).
+    const both = (c: LaneCandidate) => Math.sqrt(-c.leftEdge * c.rightEdge) * centered(c);
+    const c = pairs.reduce((a, b) => (both(a) >= both(b) ? a : b));
     out.push({ score: score(c), pick: { index, vp: r.vp, far: r.far, near: r.near, candidate: c, left: columnLine(r.fan, c.left), right: columnLine(r.fan, c.right), width } });
   });
   return out.sort((a, b) => b.score - a.score).map((o) => o.pick);

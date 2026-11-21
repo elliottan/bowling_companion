@@ -153,6 +153,106 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
+## The lane one gutter too wide on a zooming camera (2026-11-21)
+
+**The owner's report**: on IMG_2938 "the left lane edge lines are wrong. They
+are on the gutter, but it should be on the lane", circled on the first two
+frames of `review16/lane-across-the-move.jpg` (read frames 0 and 24, 2.67
+and 3.47 s).
+
+**Where the edges are** (`scratchpad/review17/`, before on the left, after on
+the right). Between lanes 3 and 4 stand lane 3's right gutter, the ball
+return's capping with its hood at the foul line, lane 4's left gutter, then a
+flat lip with two thin dark lines; the lane's edge is the outer of those two.
+On read frame 0 that edge meets the foul line at x 452.5; the found left edge
+ran from the capping's side of the left gutter to x 407, one gutter (9 boards)
+out. The right edge was right on every frame. From read frame 33 on (zoom
+about 1.2 and up) the left edge was already on the lane. Frames 0 to 28 were
+wrong in the finder's own lanes, and the traced lane, blended from them,
+carried the error onto every frame from the release to about 12 ft.
+
+**Why.** `laneWidth` pooled the candidates' widths of every frame as fan
+columns at the picture's bottom row. A lane's columns there are its spread
+(the slope between its two edge rays) times the bottom row's depth below
+the vanishing point, and a zoom moves the vanishing point up the picture
+(IMG_2938: row 156 at the release, 9 on the calibration frame, -102 at 5.4
+s) while the bottom row stays: the same lane was 431 columns at the start
+and 520 later. The zoomed frames outnumbered the rest, the pooled width came
+out 508, and on the early frames the only pair within 6% of it ran from the
+gutter's far side to the right edge (491; the lane is 416). Neither the ball
+return nor the shiny gutter was the cause: both are what the pair landed on.
+
+Measured as spreads the lanes agree on every frame (0.73 to 0.77), and so
+now: `laneSpread` replaces `laneWidth` (each width over its frame's
+`fanDepth`, the reference line's depth below the vanishing point), and
+`rankLanes` turns it back into each frame's columns. A zoom or a shift of the
+picture keeps every line's slope, so a camera that holds still reads as
+before to a fraction of a column.
+
+That exposed a second, smaller fault: on the calibration frame the pair
+within the new width could also take the lip's inner dark line, 24 px (2
+boards) outside the edge, and the pair is scored by its weaker edge only: the
+right edge was shared, so a 0.8% centering difference chose the faint line
+(13) over the edge (47). Within a frame a pair is now chosen by both edges
+(their geometric mean, times the centering); frames are still ranked by the
+weaker edge.
+
+**Measured** (Node, `app-read.ts --hand auto`, every input; laydown, arrows,
+breakpoint at feet, pins; `e` estimated):
+
+| input | before | after |
+|---|---|---|
+| IMG_2938 | 11.88, 16.01, none, 37.71e; left 0.56 | 8.25, 13.72, none, none; left 0.70 |
+| IMG_9960 | 11.23, 10.41, 9.15 at 36.1, none | 12.38, 10.52, 9.31 at 33.6, 12.43e |
+| 1856 | 12.09, 9.73, 8.36 at 30.6, 15.16 | 12.13, 9.75, 8.22 at 31.0, 17.35 |
+| shot-01 | 24.30, 17.51, 7.45 at 43.3, 17.67 | 24.30, 17.53, 7.51 at 43.3, 17.47 |
+| shot-02 | 21.23, 15.96, 8.82 at 43.5, 15.79 | 21.26, 15.96, 8.83 at 43.8, 15.67 |
+| shot-03 | 13.59, 9.64, 7.43 at 36.1, none | 13.59, 9.64, 7.43 at 36.1, none |
+| shot-04 | 6.24, 5.05e | 6.24, 5.05e |
+| shot-05 | 18.54, 13.29, 9.04 at 48.6 | 18.53, 13.24, 9.04 at 48.6 |
+| shot-06 | 17.62, 14.83, 12.76 at 34.2, 19.00 | 17.62, 14.81, 12.73 at 34.5, 18.99 |
+| IMG_1996, eight copies | 18.18 to 18.54, 13.28 to 13.54 | 18.18 to 18.55, 13.27 to 13.54 |
+| 6447 | pins 17.26 | the same |
+| 8133 | no shot | no shot |
+
+Pins frames: shot-01 frame 233 and shot-06 read frame 82 (video 101/102)
+are kept. The IMG_1996 copies' breakpoints moved by under 0.2 board; one
+copy lost its breakpoint and another gained one (two of eight had none
+before and two have none now).
+
+- IMG_2938: the near sightings were 4 boards right at the foul line and met
+  the new ones by 30 ft; now the path runs evenly from board 8.7 at the foul
+  line to 26.6 at 45 ft, a left-hander crossing to the right corner. The
+  hand's confidence went from 0.56 to 0.70 (the release and line cues
+  stronger, the drift still the other way). The pins are lost: the best lane
+  frame moved from read frame 55 to 33 (zoom about 1.2 against 1.75; the
+  qualities are within 0.03, the edges' support now higher), and with the
+  empty lane built in frame 33's pixels the ball is lost past 45 ft. Forced
+  to frame 60 it is seen to 59 ft and the pins read 37.67, measured, but the
+  touchdown is lost; frame 55 breaks the laydown. No single calibration
+  frame serves both ends of a camera that zooms 3 times; the empty lane per
+  stretch of the clip (handoff, "The far end") is what fixes it.
+- IMG_9960: the lane edges on every frame are the same to 0.3 px, but
+  the coarse pick now takes the stronger left edge, the quality's edge bonus
+  with it, and the best frame moved from read frame 79 to 66. On the laydown
+  frame (read frame 13) the real corners at the foul line are x 415 and 676
+  to 680 (pixel rows and a raw crop); the old traced lane put them at 422.0
+  and 683.7, 7.5 px (1.1 boards) inside on both sides, the new at 414.6 and
+  675.8. The laydown 11.23 was read off the shifted lane; 12.38 is the
+  better reading. The foul line's row is unchanged; the breakpoint stays
+  about 9.2 (9.31).
+- 1856: the pins frame moved from read frame 92 to 98. In the raw frames the
+  ball is still rolling in front of a standing rack from 92 to 98, and the
+  pins first move at 99 to 100 (the bowler's hair crosses the rack's right
+  side from 90 on); 17.35 is read from a sighting on 97, 15.16 was a face
+  followed 0.1 s early.
+- img1996-sdr-full: the best frame moved; the lane on it is the same lane.
+
+Pictures: `scratchpad/review17/` (`IMG_2938-f<n>.jpg` for read frames 0,
+24, 60, 83, 110 and 119, the lane carried through registration in green and
+the frame's own found lane in cyan; `-left-edge` crops; the laydown, arrows
+and lane pictures of IMG_2938, IMG_9960, 1856 and img1996-sdr-full).
+
 ## The foul line held to the pin row's direction (not released, 2026-11-21)
 
 **The owner's report**: on IMG_9960 "the foul line red line is not on the

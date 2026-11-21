@@ -119,6 +119,10 @@ IMG_1996 in headless Chromium four runs gave the same window and laydown
 - IMG_2938 (a phone zooming from 0.57 to 1.88 of the calibration frame's scale while the ball rolls) failed `too-shaky`: the picture's registration matched only the calibration frame's patches, at one size, and lost every frame outside 0.71 to 1.18 of its zoom. `RegisterPass` now moves its key frame on every 5% of zoom (`REKEY_ZOOM`) or when most of its patches leave the picture (`REKEY_IN_VIEW`), each match carried back to the calibration frame through the key frame's turn; a pass lost for `GIVE_UP_S` stops looking; the steadied share is counted over `steadySpan`; a pin move more than `PIN_LATE_S` after the ball is due is not its touch. IMG_2938 reads left-handed, laydown 11.94, arrows 16.08, pins 37.45 estimated; every other input gives the same trace digest. README, "A camera that zooms and pans while the ball rolls".
 - Open: `ballFind` steadies by a shift only, so under a zoom its speed (and the window's end) is off (IMG_2938: 14.6 ft/s for 23); a share-based key frame move fixes 6447's laydown but loses its pins (README). Review pictures: `scratchpad/review16/`.
 
+### After 0.115.1 (2026-11-21): the lane one gutter too wide under a zoom
+
+- The owner: IMG_2938's left edge ran down the gutter on the frames before the zoom. `laneWidth` pooled widths as fan columns at the bottom row, which a zoom changes (the vanishing point moves up the picture): the zoomed frames set the width, and on the early ones the pair of that width took the gutter's far side. Now `laneSpread` (columns over `fanDepth`, the depth below the vanishing point), which a zoom or shift keeps; and a frame's pair is chosen by both edges, not the weaker alone (the gutter lip's faint line had tied with the edge). IMG_2938 laydown 8.25, arrows 13.72, left 0.70, pins lost (its best lane frame moved to a zoomed-out one; the empty lane per stretch is the fix). IMG_9960 laydown 11.23 to 12.38 (best frame 79 to 66; the old traced lane was 7.5 px inside both corners on the laydown frame), breakpoint 9.31. 1856 pins 15.16 to 17.35 (pins frame 92 to 98, the rack's real first move is 99 to 100). shot-01 pins 17.47 on 233, shot-06 18.99 on 101/102. README, "The lane one gutter too wide on a zooming camera". Pictures: `scratchpad/review17/`.
+
 ## Where it stood before that (0.112.0, 2026-11-15)
 
 - **0.112.0 made the app all automatic**, on the owner's word: no marking
@@ -237,7 +241,7 @@ function with tests (`laneFind.test.ts`). In one paragraph each:
    rescues edges hidden near the camera; and each frame's profile is a median
    with its neighbours' (`steadyProfiles`), so a trouser leg lying along an
    edge on one frame is outvoted.
-3. **Which lane** (`laneWidth`, `lanePairs`, `rankLanes`). Every lane is the
+3. **Which lane** (`laneSpread`, `lanePairs`, `rankLanes`). Every lane is the
    same width in the fan. The bowler's is the pair of edges one lane width
    apart whose middle is within three quarters of a lane of the picture's
    centre at the near end; the neighbours' middles are 1.3 to 1.9 lanes away.

@@ -34,10 +34,11 @@ import {
   houghLines,
   laneAttempts,
   laneCandidates,
+  fanDepth,
   lanePairs,
   lanesOnFrame,
   laneRows,
-  laneWidth,
+  laneSpread,
   markLinesOf,
   modeOf,
   pinBases,
@@ -342,15 +343,54 @@ describe("laneCandidates", () => {
 describe("laneWidth, lanePairs and rankLanes on built profiles", () => {
   const cand = (left: number, right: number) => ({ left, right, leftEdge: 10, rightEdge: -10 });
 
-  it("laneWidth is the commonest width, weighted by width, so a narrow cap does not win", () => {
+  it("laneSpread is the commonest width, weighted by width, so a narrow cap does not win", () => {
+    // fakeLanes' reference row lies 719 rows below its vanishing point.
     const frames = [
       fakeLanes(new Float32Array(0), { candidates: [cand(0, 100), cand(0, 33), cand(0, 33)] }),
       fakeLanes(new Float32Array(0), { candidates: [cand(0, 102), cand(0, 33), cand(0, 34)] }),
       fakeLanes(new Float32Array(0), { candidates: [cand(0, 98)] })
     ];
-    expect(laneWidth(frames)).toBeCloseTo(100, 6);
-    expect(laneWidth([])).toBeNull();
-    expect(laneWidth([fakeLanes(new Float32Array(0))])).toBeNull();
+    expect(laneSpread(frames)! * 719).toBeCloseTo(100, 6);
+    expect(laneSpread([])).toBeNull();
+    expect(laneSpread([fakeLanes(new Float32Array(0))])).toBeNull();
+  });
+
+  it("laneSpread counts a width against the depth below the vanishing point, so a zoom does not change it", () => {
+    // The same lane on a frame zoomed out (vanishing point 219 rows down: 500
+    // rows to the reference line, the lane 100 columns there) and on three
+    // zoomed in (vanishing point above the picture: 800 rows, 160 columns).
+    // In columns the zoomed frames win and the zoomed-out lane matches a
+    // pair one gutter too wide; as spreads they all agree.
+    const out = fakeLanes(new Float32Array(0), { vp: { x: 480, y: 219 }, candidates: [cand(0, 100)] });
+    const zoomed = [0, 1, 2].map(() => fakeLanes(new Float32Array(0), { vp: { x: 480, y: -81 }, candidates: [cand(0, 160)] }));
+    expect(fanDepth(out)).toBe(500);
+    expect(fanDepth(zoomed[0])).toBe(800);
+    expect(laneSpread([out, ...zoomed])).toBeCloseTo(0.2, 9);
+  });
+
+  it("rankLanes takes the lane one spread wide on a zoomed-out frame, not the pair a gutter wider", () => {
+    // Zoomed out: the lane 100 columns (380 to 480), the left gutter's far
+    // side 22 columns further out (358). Counted in columns, the zoomed
+    // frames' 160 would win and this frame would get no pair at all, or, as
+    // on IMG_2938, the pair one gutter wider.
+    const g = lobes(1000, [[358, 12], [380, 10], [480, -10]]);
+    const out = fakeLanes(g, { vp: { x: 480, y: 219 }, candidates: [cand(380, 480)] });
+    const zoomed = [0, 1, 2].map(() => fakeLanes(lobes(1000, [[400, 10], [560, -10]]), { vp: { x: 480, y: -81 }, candidates: [cand(400, 560)] }));
+    const ranked = rankLanes([out, ...zoomed], 960);
+    const pick = ranked.find((p) => p.index === 0)!;
+    expect(pick.candidate.left).toBeCloseTo(380, 3);
+    expect(pick.width).toBeCloseTo(100, 6);
+    expect(ranked.find((p) => p.index === 1)!.width).toBeCloseTo(160, 6);
+  });
+
+  it("rankLanes chooses a frame's pair by both edges: a faint line beside a strong edge does not win on the centering", () => {
+    // The right edge (580, weaker) is shared; the left is a strong edge at 380
+    // or a faint line 10 columns out (370), whose pair is nearer the middle.
+    const g = lobes(1000, [[370, 6], [380, 30], [580, -5]]);
+    const f = fakeLanes(g, { candidates: [cand(380, 580)] });
+    const [pick] = rankLanes([f], 900);
+    expect(pick.candidate.left).toBeCloseTo(380, 3);
+    expect(pick.candidate.leftEdge).toBe(30);
   });
 
   it("lanePairs wants a rising edge and a falling one a lane width on, within 6%", () => {
@@ -1057,15 +1097,16 @@ describe("the stages on a rendered house", () => {
     }
   });
 
-  it("laneWidth and rankLanes agree on one lane width and put the bowler's lane first", () => {
+  it("laneSpread and rankLanes agree on one lane width and put the bowler's lane first", () => {
     const ok = per.filter((r): r is FrameLanes => !!r);
-    const w = laneWidth(ok)!;
-    expect(w).toBeGreaterThan(380);
-    expect(w).toBeLessThan(440);
+    const spread = laneSpread(ok)!;
     const ranked = rankLanes(per, h.frames[0].width);
     expect(ranked.length).toBe(3);
     for (const k of ranked) {
-      expect(k.width).toBe(w);
+      const w = spread * fanDepth(per[k.index]!);
+      expect(w).toBeGreaterThan(380);
+      expect(w).toBeLessThan(440);
+      expect(k.width).toBeCloseTo(w, 9);
       const p = h.lane(onLineAtY(k.left, 600));
       expect(Math.abs(p.x - 0.5)).toBeLessThan(0.6);
       expect(Math.abs(h.lane(onLineAtY(k.right, 600)).x - 39.5)).toBeLessThan(0.6);
