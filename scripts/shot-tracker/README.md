@@ -153,6 +153,111 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
+## A camera that zooms and pans while the ball rolls (2026-11-21)
+
+The owner: "We are supposed to be able to handle mildly shaky shot. None of
+the vids ive sent you are completely still." IMG_2938 (HEVC 10-bit HLG,
+portrait, 60 fps, filmed from behind the ball return, a left-hander) failed
+with `too-shaky`, "51 of 175 frames could be steadied".
+
+**Why.** `RegisterPass` matched the calibration frame's patches in every
+frame, a patch by its picture alone at one size, and fitted a turn and a zoom
+to them. The phone zooms the whole time the ball rolls: 0.57 of the
+calibration frame's (read frame 60, 4.67 s) scale at the release, 1.0 at the
+calibration frame, 1.88 at 6.6 s with the pins filling the picture, about 1%
+a frame at 30 a second. A patch of 26 px at 20% of zoom has its rim 2.6 px off
+its middle, so outside 0.71 to 1.18 of the calibration frame's scale the
+share of agreeing patches fell under the 0.15 floor (frames 0 to 23 back,
+from 75 on forward), and a lost frame kept the last turn as its guess, so the
+pass never found the picture again. Neither the bowler nor the ball return
+was the cause: the bowler covers a third of the calibration frame, and the
+robust fit dropped her patches on the frames that did register (shares 0.2
+to 0.6); the ball return's hood is in the picture only before 3.5 s, the
+frames already lost to the zoom. With 51 of 175 the 30% floor (52.5) failed the shot.
+
+**What changed** (`registration.ts`, `pipeline.ts`):
+
+- Key frames. A pass matches its key frame's patches: the calibration
+  frame's at first, a frame's own once the camera has zoomed `REKEY_ZOOM`
+  (5%) from the key frame or turned more than 40% of its patches out of the
+  picture (`REKEY_IN_VIEW`). Each match is carried back to the calibration
+  frame's pixels through the key frame's own turn, so every frame is still
+  fitted as one turn and zoom from the calibration frame, and the lens, the
+  share (of the key frame's patches) and everything after are as before. A
+  camera that holds still never moves its key frame: every other input reads
+  to the bit as before (the trace digests below).
+- `GIVE_UP_S` (0.5 s): a pass that has lost every frame that long stops
+  looking (`reason: "lane-left"`), and the floor's pass skips those frames.
+  No input found its frames again after more than 0.1 s lost.
+- `steadySpan`: the frames that could be steadied are counted against the
+  stretch from the first to the last of them, not the whole read: a camera
+  that turned away after the ball (to the bowler walking back) is not a shaky
+  one. The trace already ends where its frames do.
+- `PIN_LATE_S` (0.3 s): a pin seen to move more than that after the fitted
+  motion has the ball meeting the rack is not its touch. On every input the
+  first move comes 0.07 s before to 0.10 s after; on IMG_2938 the rack the
+  camera had zoomed in on moved 0.63 s after (frame 112), and the pins were
+  read off a follow that never reached it.
+
+**IMG_2938 now** (Node, `app-read.ts --hand auto`): 120 of 175 frames
+registered (to 6.6 s, zoom 0.57 to 1.88); the lane sits on the
+lane's lines from the release to the pins
+(`scratchpad/review16/lane-across-the-move/`). Left-handed from the video
+(confidence 0.55: release and line left, drift and pins right). Laydown
+11.94, touchdown 13.90 at 5.0 ft, arrows 16.08, launch 15.5 mph; seen from
+1.2 to 54.1 ft (frame 83, 5.44 s), where a head passes in front of the
+camera; pins 37.45 estimated (the ball rolls toward the 10 pin: in the
+original at 5.40 s it is among the rack's right-hand pins), no pin frame. The
+ball crosses to the right the whole way (u 13 at 1 ft, 21 at 34 ft, 32.5 at
+54 ft); no breakpoint.
+
+**How much of the roll is in view.** The ball rolls from the foul line at
+about 3.1 s to the rack at about 5.5 s. The camera zooms from 3.1 s and pans
+from about 5.2 s; the lane is in view and registered on every frame to 6.6 s,
+the ball seen on 66 of the 70 frames from 1.2 ft (five in the air) to 54 ft. From 6.7 s the
+camera turns to the bowler and every frame is lost.
+
+**The first look.** It put the release at 5.07 s (the zoom at its fastest,
+read as a run), not 3.08 s. It costs time, not the reading: `readShot` read
+4.67 to 6.27 s, did not see the ball, looked again from the hint at 2.27 to
+3.87 s and saw the crossing at 3.08 s, the right window start. But its speed
+there, 14.6 ft/s, is half the ball's (23 ft/s from the trace): `ballFind`
+steadies its frames by a shift only, and the camera zooms 40% over that part
+with the ball below the picture's middle, so the zoom pulls it back down the
+lane. The window's end then went to 8.5 s, and the read to 30 a second over
+175 frames where a 23 ft/s window ends near 6.3 s and is read at 60 a second; 55 of the frames
+read are the camera on the bowler. Not changed: a slow speed only makes the
+window long, never short.
+
+**Measured** (Node, `app-read.ts --hand auto`, every input; laydown, arrows,
+breakpoint at feet, pins, launch mph): every input other than IMG_2938 gives
+the same trace digest before and after (shot-01 to 06, the eight IMG_1996
+copies, 1856, 6447, IMG_9960; 8133 reads no shot either way). shot-01 pins
+17.67 on frame 233, shot-06 pins 19.00 on 102, IMG_9960 left with
+breakpoint 9.18 at 36.0 ft, all unchanged.
+
+**Timing** (`bench.ts`, Node, one thread, which now takes an
+`app-read.ts --dump` as `dir/stem.json`): shot-01 trace 13.0 s (13.5
+before), shot-06 3.7 (4.1), IMG_1996 10.9 (11.2), 6447 3.6 (3.8): the
+same, within the machine's noise. IMG_2938 12.1 s (registration 4.8,
+background 1.1, ball 3.8, circles 2.0), where before it failed after 7.5 s
+of registration.
+
+**Tried and not kept.** Moving the key frame also when fewer than 25% of its
+patches agree registers all 118 frames of 6447 (it tilts 0.22 rad from the
+calibration frame by the release) and reads laydown 10.25, arrows 9.17e,
+breakpoint 8.49 at 25.3 ft, the readings the README's near-release
+calibration frame gave (10.2 to 10.4, 9.0 to 9.2, 8.3 to 8.5 at 26), but
+the far sightings change with the empty lane built from the extra frames and
+the measured pins 17.26 is lost. Left for a round that builds the empty lane
+per stretch of the clip.
+
+**Open.** `ballFind`'s shift-only steadying under a zoom (above); the far
+end of IMG_2938 past 54 ft (a head in front, then the zoom on the rack);
+nothing of this round has run on an iPhone. Review pictures:
+`scratchpad/review16/` (`IMG_2938/` from `review-app.ts`,
+`lane-across-the-move/` the lane on frames 0 to 125, zoom in the label).
+
 ## The ball among the pins, and the hand always from the video (0.114.1, 2026-11-20)
 
 **The owner's marks** (ground truth): shot-01 frames 229 (yellow right),
