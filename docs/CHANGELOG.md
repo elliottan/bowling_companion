@@ -9,6 +9,19 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.116.0: The shot tracer follows a moving camera (2026-11-21)
+
+- In Settings, Labs: the shot tracer now copes with a phone that zooms, pans
+  or shakes while the ball rolls, as long as the lane stays in view. A clip
+  whose camera turns away after the shot is traced up to where the lane left
+  the picture, instead of failing with "too shaky".
+- The lane is no longer drawn one gutter too wide when the camera zooms, so
+  the boards on such clips read from the lane's real edges.
+- The foul line follows the camera's tilt and no longer takes its end off the
+  bowler's trailing shoe when the shoe covers a corner of the line.
+- Readings on some earlier clips move as a result, most by a few tenths of a
+  board.
+
 ## 0.115.1: The shot tracer's ball circle fits the ball near the pins (2026-11-20)
 
 - In Settings, Labs: far down the lane, the shot tracer's yellow ring was drawn

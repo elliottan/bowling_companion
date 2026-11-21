@@ -109,6 +109,20 @@ IMG_1996 in headless Chromium four runs gave the same window and laydown
 - `associate`: sightings may cross by `FAR_SLACK_FT` (2 ft) from `FAR_FT` on; shot-01 frame 231 is seen (board 16.84, the owner's 17.02).
 - Open: shot-02's visible ball at the pins is still 3 to 6% inside the drawn circle; shot-02's sightings at 50 to 54 ft scatter 1 to 3 boards about the path (their rows); shot-06 pins 19.00 (was 19.13, owner 19.3). Review pictures: `scratchpad/review14/`.
 
+### 0.116.0 (2026-11-21): the foul line's tilt
+
+- The owner: IMG_9960's foul line is off at its right end (by the bowler's feet). The trailing shoe over the right corner (its gutter shows no end, so that end is only ever the edge line's end or a change of brightness) tilted the foul line on the frames from 7.1 to 8.3 s by 0.02 either way, and nothing held its slope. Now each frame's foul line is held to the clip's tilt against the pin row (`holdToTilt`, `FOUL_TILT_TOL` 0.01, the tilt from the frames through both gutters' ends in `laneSteps`). shot-01, 04, 05, 06, 6447 and 1856 read the same to the digit; IMG_9960 laydown 11.30 to 11.23, its pins estimate lost (sightings to 53.84 ft, 54 needed); shot-03 arrows 9.90 to 9.64. README, "The foul line held to the pin row's direction". Pictures: `scratchpad/review15/`.
+- Open: the phone's calibration frame for IMG_9960 is not reproduced in Node (Node shows read frame 79, already right); the right gutter's end is not found on IMG_9960 on any frame.
+
+### 0.116.0 (2026-11-21): a camera that zooms and pans
+
+- IMG_2938 (a phone zooming from 0.57 to 1.88 of the calibration frame's scale while the ball rolls) failed `too-shaky`: the picture's registration matched only the calibration frame's patches, at one size, and lost every frame outside 0.71 to 1.18 of its zoom. `RegisterPass` now moves its key frame on every 5% of zoom (`REKEY_ZOOM`) or when most of its patches leave the picture (`REKEY_IN_VIEW`), each match carried back to the calibration frame through the key frame's turn; a pass lost for `GIVE_UP_S` stops looking; the steadied share is counted over `steadySpan`; a pin move more than `PIN_LATE_S` after the ball is due is not its touch. IMG_2938 reads left-handed, laydown 11.94, arrows 16.08, pins 37.45 estimated; every other input gives the same trace digest. README, "A camera that zooms and pans while the ball rolls".
+- Open: `ballFind` steadies by a shift only, so under a zoom its speed (and the window's end) is off (IMG_2938: 14.6 ft/s for 23); a share-based key frame move fixes 6447's laydown but loses its pins (README). Review pictures: `scratchpad/review16/`.
+
+### After 0.115.1 (2026-11-21): the lane one gutter too wide under a zoom
+
+- The owner: IMG_2938's left edge ran down the gutter on the frames before the zoom. `laneWidth` pooled widths as fan columns at the bottom row, which a zoom changes (the vanishing point moves up the picture): the zoomed frames set the width, and on the early ones the pair of that width took the gutter's far side. Now `laneSpread` (columns over `fanDepth`, the depth below the vanishing point), which a zoom or shift keeps; and a frame's pair is chosen by both edges, not the weaker alone (the gutter lip's faint line had tied with the edge). IMG_2938 laydown 8.25, arrows 13.72, left 0.70, pins lost (its best lane frame moved to a zoomed-out one; the empty lane per stretch is the fix). IMG_9960 laydown 11.23 to 12.38 (best frame 79 to 66; the old traced lane was 7.5 px inside both corners on the laydown frame), breakpoint 9.31. 1856 pins 15.16 to 17.35 (pins frame 92 to 98, the rack's real first move is 99 to 100). shot-01 pins 17.47 on 233, shot-06 18.99 on 101/102. README, "The lane one gutter too wide on a zooming camera". Pictures: `scratchpad/review17/`.
+
 ## Where it stood before that (0.112.0, 2026-11-15)
 
 - **0.112.0 made the app all automatic**, on the owner's word: no marking
@@ -227,7 +241,7 @@ function with tests (`laneFind.test.ts`). In one paragraph each:
    rescues edges hidden near the camera; and each frame's profile is a median
    with its neighbours' (`steadyProfiles`), so a trouser leg lying along an
    edge on one frame is outvoted.
-3. **Which lane** (`laneWidth`, `lanePairs`, `rankLanes`). Every lane is the
+3. **Which lane** (`laneSpread`, `lanePairs`, `rankLanes`). Every lane is the
    same width in the fan. The bowler's is the pair of edges one lane width
    apart whose middle is within three quarters of a lane of the picture's
    centre at the near end; the neighbours' middles are 1.3 to 1.9 lanes away.

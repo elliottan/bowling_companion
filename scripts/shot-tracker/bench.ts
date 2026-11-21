@@ -3,7 +3,10 @@
  * reading it gives, so a change to the lane finder or the tracer can be held
  * to the same readings (`--compare`).
  *
- *   npx tsx scripts/shot-tracker/bench.ts [shot-0N | IMG_1996 ...] [--out file.json] [--compare base.json] [--dump dir]
+ *   npx tsx scripts/shot-tracker/bench.ts [shot-0N | IMG_1996 | dumpDir/stem.json ...] [--out file.json] [--compare base.json] [--dump dir]
+ *
+ * A `.json` name is a read `app-read.ts --dump` wrote: the frames the app
+ * gives the tracer for any video, timed the same way.
  *
  * The frames are what the app reads (`marking.ts`): scaled to fit
  * `MAX_PIXELS`, at 60 a second. The clips are read whole (shot-01 is 279
@@ -61,7 +64,18 @@ function probe(path: string): { width: number; height: number; times: number[] }
   return { width, height, times: stamps };
 }
 
+/** The frames `app-read.ts --dump` wrote (`<dir>/<stem>.json` and `.gray`): the app's own read of any video. */
+function loadDump(path: string): Input {
+  const meta = JSON.parse(readFileSync(path, "utf8")) as { name: string; hand: Handedness; width: number; height: number; times: number[] };
+  const raw = readFileSync(path.replace(/\.json$/, ".gray"));
+  const px = meta.width * meta.height;
+  const frames = meta.times.map((t, i) => ({ width: meta.width, height: meta.height, data: new Uint8ClampedArray(raw.buffer, raw.byteOffset + i * px, px), t }));
+  console.log(`${meta.name}: ${frames.length} frames of ${meta.width} x ${meta.height}, as app-read gave them`);
+  return { name: meta.name, hand: meta.hand, width: meta.width, height: meta.height, frames };
+}
+
 function load(name: string): Input {
+  if (name.endsWith(".json")) return loadDump(name);
   const original = !name.startsWith("shot-");
   const path = original ? join(here, "fixtures", "originals", `${name}.mov`) : join(here, "fixtures", "clips", `${name}.mp4`);
   const cal = original ? null : (JSON.parse(readFileSync(join(here, "calibrations", `${name}.json`), "utf8")) as { hand: Handedness });

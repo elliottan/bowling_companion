@@ -80,6 +80,8 @@ export interface TraceDebug {
   lanes?: Omit<LaneTrack, "H">;
   geometry: FrameGeometry[];
   first: number;
+  /** The places in `geometry` of the first and last frame that could be steadied (`steadySpan`). */
+  steadySpan?: { first: number; last: number };
   roi: Roi | null;
   background: GrayFrame | null;
   /** Per frame, calibration pixels to that frame's as used for differencing (after the second alignment). */
@@ -198,7 +200,37 @@ export const PREDICT_FRAMES = 8;
 
 /** The pins are watched for the first one to move from when the ball is this many feet short of where it meets one. */
 export const PIN_LEAD_FT = 1.5;
+/**
+ * A pin seen to move later than this, seconds, after the fitted motion has
+ * the ball meeting it is not taken as the ball's touch. On every input the
+ * first move comes 0.07 s before to 0.10 s after; on IMG_2938, with the ball
+ * last seen at 54 ft, the rack the camera had zoomed in on 1.9 times "moved"
+ * 0.63 s after (the zoom and a head passing in front), and the board at the
+ * pins was read off a follow that never reached it.
+ */
+export const PIN_LATE_S = 0.3;
 export const NEAR_SPAN_FT = 5;
+
+/**
+ * The stretch of the read the camera kept on the lane: from the first frame
+ * that could be steadied to the last (their places in `geometry`), null when
+ * none could. A handheld phone turned away once the ball is down the lane
+ * (IMG_2938: to the pins at 1.9 times the zoom, then to the bowler walking
+ * back) leaves the frames after it unsteadied; they end the trace there, and
+ * are not counted against the frames that could be steadied (`too-shaky` is
+ * for a camera that shook all through the shot, not one that stopped
+ * filming the lane).
+ */
+export function steadySpan(geometry: readonly (FrameGeometry | undefined)[]): { first: number; last: number } | null {
+  let a = -1;
+  let b = -1;
+  geometry.forEach((g, k) => {
+    if (!g?.ok) return;
+    if (a < 0) a = k;
+    b = k;
+  });
+  return a < 0 ? null : { first: a, last: b };
+}
 
 export function trace(input: TraceInput): TraceOutput {
   const steps = traceSteps(input);
@@ -460,7 +492,9 @@ export function* traceSteps(input: TraceInput): Generator<TraceJob[], TraceOutpu
   }
   debug.geometry = geometry;
   const usable = geometry.filter((g) => g && g.ok);
-  if (usable.length < Math.max(MIN_SIGHTINGS, 0.3 * geometry.length)) {
+  const span = steadySpan(geometry);
+  debug.steadySpan = span ?? undefined;
+  if (!span || usable.length < Math.max(MIN_SIGHTINGS, 0.3 * (span.last - span.first + 1))) {
     return { result: fail("too-shaky", `${usable.length} of ${geometry.length} frames could be steadied`), debug };
   }
 
@@ -1085,7 +1119,10 @@ function findPinFrame(
   const hit = firstPinMove(frames, from, pinsInReach((v) => pathU(path, Math.min(v, 62.8))));
   const scores = hit?.scores ?? pinScores(frames);
   frames.forEach((p, k) => debug.pinEnergy.push({ frame: p.index, energy: scores[k] }));
-  if (!hit) return null;
+  // A rack first seen moving long after the ball should have reached it is
+  // not this ball's doing.
+  const due = timeAtFeet(motion, contactV);
+  if (!hit || (due !== null && hit.t > due + PIN_LATE_S)) return null;
   const k = frames.findIndex((p) => p.index === hit.index);
   const prevT = k > 0 ? frames[k - 1].t : hit.t;
   return { frame: hit.index, t: (hit.t + prevT) / 2 };

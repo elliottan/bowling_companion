@@ -153,6 +153,274 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
+## The lane one gutter too wide on a zooming camera (2026-11-21)
+
+**The owner's report**: on IMG_2938 "the left lane edge lines are wrong. They
+are on the gutter, but it should be on the lane", circled on the first two
+frames of `review16/lane-across-the-move.jpg` (read frames 0 and 24, 2.67
+and 3.47 s).
+
+**Where the edges are** (`scratchpad/review17/`, before on the left, after on
+the right). Between lanes 3 and 4 stand lane 3's right gutter, the ball
+return's capping with its hood at the foul line, lane 4's left gutter, then a
+flat lip with two thin dark lines; the lane's edge is the outer of those two.
+On read frame 0 that edge meets the foul line at x 452.5; the found left edge
+ran from the capping's side of the left gutter to x 407, one gutter (9 boards)
+out. The right edge was right on every frame. From read frame 33 on (zoom
+about 1.2 and up) the left edge was already on the lane. Frames 0 to 28 were
+wrong in the finder's own lanes, and the traced lane, blended from them,
+carried the error onto every frame from the release to about 12 ft.
+
+**Why.** `laneWidth` pooled the candidates' widths of every frame as fan
+columns at the picture's bottom row. A lane's columns there are its spread
+(the slope between its two edge rays) times the bottom row's depth below
+the vanishing point, and a zoom moves the vanishing point up the picture
+(IMG_2938: row 156 at the release, 9 on the calibration frame, -102 at 5.4
+s) while the bottom row stays: the same lane was 431 columns at the start
+and 520 later. The zoomed frames outnumbered the rest, the pooled width came
+out 508, and on the early frames the only pair within 6% of it ran from the
+gutter's far side to the right edge (491; the lane is 416). Neither the ball
+return nor the shiny gutter was the cause: both are what the pair landed on.
+
+Measured as spreads the lanes agree on every frame (0.73 to 0.77), and so
+now: `laneSpread` replaces `laneWidth` (each width over its frame's
+`fanDepth`, the reference line's depth below the vanishing point), and
+`rankLanes` turns it back into each frame's columns. A zoom or a shift of the
+picture keeps every line's slope, so a camera that holds still reads as
+before to a fraction of a column.
+
+That exposed a second, smaller fault: on the calibration frame the pair
+within the new width could also take the lip's inner dark line, 24 px (2
+boards) outside the edge, and the pair is scored by its weaker edge only: the
+right edge was shared, so a 0.8% centering difference chose the faint line
+(13) over the edge (47). Within a frame a pair is now chosen by both edges
+(their geometric mean, times the centering); frames are still ranked by the
+weaker edge.
+
+**Measured** (Node, `app-read.ts --hand auto`, every input; laydown, arrows,
+breakpoint at feet, pins; `e` estimated):
+
+| input | before | after |
+|---|---|---|
+| IMG_2938 | 11.88, 16.01, none, 37.71e; left 0.56 | 8.25, 13.72, none, none; left 0.70 |
+| IMG_9960 | 11.23, 10.41, 9.15 at 36.1, none | 12.38, 10.52, 9.31 at 33.6, 12.43e |
+| 1856 | 12.09, 9.73, 8.36 at 30.6, 15.16 | 12.13, 9.75, 8.22 at 31.0, 17.35 |
+| shot-01 | 24.30, 17.51, 7.45 at 43.3, 17.67 | 24.30, 17.53, 7.51 at 43.3, 17.47 |
+| shot-02 | 21.23, 15.96, 8.82 at 43.5, 15.79 | 21.26, 15.96, 8.83 at 43.8, 15.67 |
+| shot-03 | 13.59, 9.64, 7.43 at 36.1, none | 13.59, 9.64, 7.43 at 36.1, none |
+| shot-04 | 6.24, 5.05e | 6.24, 5.05e |
+| shot-05 | 18.54, 13.29, 9.04 at 48.6 | 18.53, 13.24, 9.04 at 48.6 |
+| shot-06 | 17.62, 14.83, 12.76 at 34.2, 19.00 | 17.62, 14.81, 12.73 at 34.5, 18.99 |
+| IMG_1996, eight copies | 18.18 to 18.54, 13.28 to 13.54 | 18.18 to 18.55, 13.27 to 13.54 |
+| 6447 | pins 17.26 | the same |
+| 8133 | no shot | no shot |
+
+Pins frames: shot-01 frame 233 and shot-06 read frame 82 (video 101/102)
+are kept. The IMG_1996 copies' breakpoints moved by under 0.2 board; one
+copy lost its breakpoint and another gained one (two of eight had none
+before and two have none now).
+
+- IMG_2938: the near sightings were 4 boards right at the foul line and met
+  the new ones by 30 ft; now the path runs evenly from board 8.7 at the foul
+  line to 26.6 at 45 ft, a left-hander crossing to the right corner. The
+  hand's confidence went from 0.56 to 0.70 (the release and line cues
+  stronger, the drift still the other way). The pins are lost: the best lane
+  frame moved from read frame 55 to 33 (zoom about 1.2 against 1.75; the
+  qualities are within 0.03, the edges' support now higher), and with the
+  empty lane built in frame 33's pixels the ball is lost past 45 ft. Forced
+  to frame 60 it is seen to 59 ft and the pins read 37.67, measured, but the
+  touchdown is lost; frame 55 breaks the laydown. No single calibration
+  frame serves both ends of a camera that zooms 3 times; the empty lane per
+  stretch of the clip (handoff, "The far end") is what fixes it.
+- IMG_9960: the lane edges on every frame are the same to 0.3 px, but
+  the coarse pick now takes the stronger left edge, the quality's edge bonus
+  with it, and the best frame moved from read frame 79 to 66. On the laydown
+  frame (read frame 13) the real corners at the foul line are x 415 and 676
+  to 680 (pixel rows and a raw crop); the old traced lane put them at 422.0
+  and 683.7, 7.5 px (1.1 boards) inside on both sides, the new at 414.6 and
+  675.8. The laydown 11.23 was read off the shifted lane; 12.38 is the
+  better reading. The foul line's row is unchanged; the breakpoint stays
+  about 9.2 (9.31).
+- 1856: the pins frame moved from read frame 92 to 98. In the raw frames the
+  ball is still rolling in front of a standing rack from 92 to 98, and the
+  pins first move at 99 to 100 (the bowler's hair crosses the rack's right
+  side from 90 on); 17.35 is read from a sighting on 97, 15.16 was a face
+  followed 0.1 s early.
+- img1996-sdr-full: the best frame moved; the lane on it is the same lane.
+
+Pictures: `scratchpad/review17/` (`IMG_2938-f<n>.jpg` for read frames 0,
+24, 60, 83, 110 and 119, the lane carried through registration in green and
+the frame's own found lane in cyan; `-left-edge` crops; the laydown, arrows
+and lane pictures of IMG_2938, IMG_9960, 1856 and img1996-sdr-full).
+
+## The foul line held to the pin row's direction (not released, 2026-11-21)
+
+**The owner's report**: on IMG_9960 "the foul line red line is not on the
+foul line", circled at its right end beside the bowler's feet. The phone's
+result picture (a frame about 8.7 s in) drew the foul line with its right end
+about 3 read pixels above the corner where the right gutter meets the
+approach, the line level (slope -0.005) where the real one falls to the right
+(+0.012 on that stretch). Node's read draws its result on read frame 79
+(9.31 s), where the line sits on both corners to a pixel; the phone chose
+another calibration frame.
+
+**Why** (`scripts/shot-tracker` pictures in the session's `review15/`):
+
+- The right gutter of this lane is a smooth grey channel: `gutterEnds` finds
+  no end on it on any frame, so the foul line's right end only ever comes from
+  the edge line's end (`edgeOnly`) or from a change of brightness in the right
+  strip (0.85 to 0.96 of the lane).
+- From 7.1 to 8.3 s the trailing shoe stands over that corner. On read frame
+  48 the edge line's "end" was taken at the top of the shoe (20 rows high) and
+  a brightness pair won with its right end on the shoe: slope -0.019, the
+  right end 5 px high. Frame 43 went 0.023 the other way. Both were kept by
+  `laneTrack` (they agree with their neighbors to half a board) and blended
+  into the lane of every frame from the laydown on.
+- Nothing held the foul line's slope: the pairs could lie 0.03 and the gutter
+  line 0.04 from the reference, while the camera's roll itself moves 0.01 over
+  the clip (the pin row's slope runs 0.0003 to 0.0108).
+
+**The fix** (`laneFind.ts`): the foul line and the pin row are the same
+direction on the floor, so the foul line's slope less the pin row's (its
+tilt, `Ends.tilt`) barely moves within a clip whatever the camera's roll. Its
+mode over the frames whose foul line runs through both gutters' ends is the
+clip's tilt (`laneSteps`, at least `MIN_GUTTER_FRAMES`, `FOUL_TILT_SPREAD`),
+and each frame's foul line is held to it (`holdToTilt`): a line more than
+`FOUL_TILT_TOL` (0.01) off gives way to another candidate at the tilt or a
+line at the pin row's slope plus the tilt through a gutter end the frame shows
+for certain (`foulAnchors`), whichever puts the camera nearest where the clip
+does; a line seen at one point only is turned to the tilt about that point.
+Only frames whose pin row is wide enough to give its own slope are held (the
+rest have no tilt to measure). IMG_9960's tilt is 0.0066; frame 48 now has
+slope 0.0068 and its right end within about a pixel of the corner, frame 43
+0.0070.
+
+**Measured** (Node, `app-read.ts --hand auto`; laydown, arrows, breakpoint at
+feet, pins; `e` estimated):
+
+| input | before | after |
+|---|---|---|
+| shot-01, shot-04, shot-05, shot-06, 6447, 1856 | | same to the digit |
+| shot-02 | 21.25, 15.96, 8.83 at 43.0, 15.82 | 21.23, 15.96, 8.82 at 43.5, 15.79 |
+| shot-03 | 13.58, 9.90, none | 13.59, 9.64, 7.43 at 36.1 |
+| IMG_1996 | 18.39, 13.34, 8.72 at 51.4 | 18.33, 13.34, 8.83 at 50.1 |
+| rot90-120 | 18.43, 13.52, 8.75 at 51.6 | 18.41, 13.53, 8.95 at 46.1 |
+| SDR / SDR full | 18.55, 13.36, 9.04 at 49.4 / 18.35, 13.36, 8.93 at 50.6 | 18.54, 13.39, 8.93 at 50.1 / 18.36, 13.36, 8.93 at 50.4 |
+| IMG_9960 | 11.30, 10.45, 9.18 at 36.0, 12.83e | 11.23, 10.41, 9.15 at 36.1, none |
+| 8133 | no lane | no lane |
+
+IMG_9960's pins were an estimate from a path whose sightings reached 54.0005
+ft (`pinState` needs 54); they now reach 53.84, so the pins are not read, as
+the 0.114.0 notes above already expected. shot-03's arrows move
+with the lone foul lines of its release frames, now turned to the clip's tilt
+(0.010) instead of drawn at the pin row's slope. The breakpoints that moved by
+feet moved by 0.1 to 0.2 board: the bottom of the hook is flat.
+
+## A camera that zooms and pans while the ball rolls (2026-11-21)
+
+The owner: "We are supposed to be able to handle mildly shaky shot. None of
+the vids ive sent you are completely still." IMG_2938 (HEVC 10-bit HLG,
+portrait, 60 fps, filmed from behind the ball return, a left-hander) failed
+with `too-shaky`, "51 of 175 frames could be steadied".
+
+**Why.** `RegisterPass` matched the calibration frame's patches in every
+frame, a patch by its picture alone at one size, and fitted a turn and a zoom
+to them. The phone zooms the whole time the ball rolls: 0.57 of the
+calibration frame's (read frame 60, 4.67 s) scale at the release, 1.0 at the
+calibration frame, 1.88 at 6.6 s with the pins filling the picture, about 1%
+a frame at 30 a second. A patch of 26 px at 20% of zoom has its rim 2.6 px off
+its middle, so outside 0.71 to 1.18 of the calibration frame's scale the
+share of agreeing patches fell under the 0.15 floor (frames 0 to 23 back,
+from 75 on forward), and a lost frame kept the last turn as its guess, so the
+pass never found the picture again. Neither the bowler nor the ball return
+was the cause: the bowler covers a third of the calibration frame, and the
+robust fit dropped her patches on the frames that did register (shares 0.2
+to 0.6); the ball return's hood is in the picture only before 3.5 s, the
+frames already lost to the zoom. With 51 of 175 the 30% floor (52.5) failed the shot.
+
+**What changed** (`registration.ts`, `pipeline.ts`):
+
+- Key frames. A pass matches its key frame's patches: the calibration
+  frame's at first, a frame's own once the camera has zoomed `REKEY_ZOOM`
+  (5%) from the key frame or turned more than 40% of its patches out of the
+  picture (`REKEY_IN_VIEW`). Each match is carried back to the calibration
+  frame's pixels through the key frame's own turn, so every frame is still
+  fitted as one turn and zoom from the calibration frame, and the lens, the
+  share (of the key frame's patches) and everything after are as before. A
+  camera that holds still never moves its key frame: every other input reads
+  to the bit as before (the trace digests below).
+- `GIVE_UP_S` (0.5 s): a pass that has lost every frame that long stops
+  looking (`reason: "lane-left"`), and the floor's pass skips those frames.
+  No input found its frames again after more than 0.1 s lost.
+- `steadySpan`: the frames that could be steadied are counted against the
+  stretch from the first to the last of them, not the whole read: a camera
+  that turned away after the ball (to the bowler walking back) is not a shaky
+  one. The trace already ends where its frames do.
+- `PIN_LATE_S` (0.3 s): a pin seen to move more than that after the fitted
+  motion has the ball meeting the rack is not its touch. On every input the
+  first move comes 0.07 s before to 0.10 s after; on IMG_2938 the rack the
+  camera had zoomed in on moved 0.63 s after (frame 112), and the pins were
+  read off a follow that never reached it.
+
+**IMG_2938 now** (Node, `app-read.ts --hand auto`): 120 of 175 frames
+registered (to 6.6 s, zoom 0.57 to 1.88); the lane sits on the
+lane's lines from the release to the pins
+(`scratchpad/review16/lane-across-the-move/`). Left-handed from the video
+(confidence 0.55: release and line left, drift and pins right). Laydown
+11.94, touchdown 13.90 at 5.0 ft, arrows 16.08, launch 15.5 mph; seen from
+1.2 to 54.1 ft (frame 83, 5.44 s), where a head passes in front of the
+camera; pins 37.45 estimated (the ball rolls toward the 10 pin: in the
+original at 5.40 s it is among the rack's right-hand pins), no pin frame. The
+ball crosses to the right the whole way (u 13 at 1 ft, 21 at 34 ft, 32.5 at
+54 ft); no breakpoint.
+
+**How much of the roll is in view.** The ball rolls from the foul line at
+about 3.1 s to the rack at about 5.5 s. The camera zooms from 3.1 s and pans
+from about 5.2 s; the lane is in view and registered on every frame to 6.6 s,
+the ball seen on 66 of the 70 frames from 1.2 ft (five in the air) to 54 ft. From 6.7 s the
+camera turns to the bowler and every frame is lost.
+
+**The first look.** It put the release at 5.07 s (the zoom at its fastest,
+read as a run), not 3.08 s. It costs time, not the reading: `readShot` read
+4.67 to 6.27 s, did not see the ball, looked again from the hint at 2.27 to
+3.87 s and saw the crossing at 3.08 s, the right window start. But its speed
+there, 14.6 ft/s, is half the ball's (23 ft/s from the trace): `ballFind`
+steadies its frames by a shift only, and the camera zooms 40% over that part
+with the ball below the picture's middle, so the zoom pulls it back down the
+lane. The window's end then went to 8.5 s, and the read to 30 a second over
+175 frames where a 23 ft/s window ends near 6.3 s and is read at 60 a second; 55 of the frames
+read are the camera on the bowler. Not changed: a slow speed only makes the
+window long, never short.
+
+**Measured** (Node, `app-read.ts --hand auto`, every input; laydown, arrows,
+breakpoint at feet, pins, launch mph): every input other than IMG_2938 gives
+the same trace digest before and after (shot-01 to 06, the eight IMG_1996
+copies, 1856, 6447, IMG_9960; 8133 reads no shot either way). shot-01 pins
+17.67 on frame 233, shot-06 pins 19.00 on 102, IMG_9960 left with
+breakpoint 9.18 at 36.0 ft, all unchanged.
+
+**Timing** (`bench.ts`, Node, one thread, which now takes an
+`app-read.ts --dump` as `dir/stem.json`): shot-01 trace 13.0 s (13.5
+before), shot-06 3.7 (4.1), IMG_1996 10.9 (11.2), 6447 3.6 (3.8): the
+same, within the machine's noise. IMG_2938 12.1 s (registration 4.8,
+background 1.1, ball 3.8, circles 2.0), where before it failed after 7.5 s
+of registration.
+
+**Tried and not kept.** Moving the key frame also when fewer than 25% of its
+patches agree registers all 118 frames of 6447 (it tilts 0.22 rad from the
+calibration frame by the release) and reads laydown 10.25, arrows 9.17e,
+breakpoint 8.49 at 25.3 ft, the readings the README's near-release
+calibration frame gave (10.2 to 10.4, 9.0 to 9.2, 8.3 to 8.5 at 26), but
+the far sightings change with the empty lane built from the extra frames and
+the measured pins 17.26 is lost. Left for a round that builds the empty lane
+per stretch of the clip.
+
+**Open.** `ballFind`'s shift-only steadying under a zoom (above); the far
+end of IMG_2938 past 54 ft (a head in front, then the zoom on the rack);
+nothing of this round has run on an iPhone. Review pictures:
+`scratchpad/review16/` (`IMG_2938/` from `review-app.ts`,
+`lane-across-the-move/` the lane on frames 0 to 125, zoom in the label).
+
 ## The ball among the pins, and the hand always from the video (0.114.1, 2026-11-20)
 
 **The owner's marks** (ground truth): shot-01 frames 229 (yellow right),

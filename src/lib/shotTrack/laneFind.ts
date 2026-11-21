@@ -509,14 +509,36 @@ export function lanesOnFrame(f: GrayFrame): FrameLanes | null {
 }
 
 /**
- * The width every lane has in the fan, from the candidates of many frames:
- * the most common width, within 8%, weighted by width. The neighbouring
- * lanes are the same width as the bowler's on a line of constant distance,
- * so a gutter cap (a third as wide) or two lanes run together (when an edge
- * is hidden) stand out.
+ * How far below the vanishing point a frame's reference line passes (it runs
+ * through (vp.x, yRef)): a lane `w` columns wide spans w / depth of a ray's
+ * slope (`laneSpread`). One number per frame: the fan already makes every
+ * lane in the frame the same number of columns wide.
  */
-export function laneWidth(all: FrameLanes[]): number | null {
-  const widths = all.flatMap((r) => r.candidates.map((c) => c.right - c.left));
+export function fanDepth(r: FrameLanes): number {
+  return r.fan.yRef - r.vp.y;
+}
+
+/**
+ * The width every lane has, from the candidates of many frames: the most
+ * common width, within 8%, weighted by width. The neighbouring lanes are the
+ * same width as the bowler's on a line of constant distance, so a gutter cap
+ * (a third as wide) or two lanes run together (when an edge is hidden) stand
+ * out.
+ *
+ * A width is counted as a spread, the columns over the reference line's
+ * depth below the vanishing point (`fanDepth`): the two edges' rays differ
+ * by that much in slope. A lane's columns at the picture's bottom row change
+ * whenever the camera zooms or tilts (the vanishing point moves up or down
+ * the picture while the bottom row stays put), its spread does not: a zoom
+ * or a shift of the picture keeps every line's slope. IMG_2938 zooms from
+ * 0.57 to 1.88 of its calibration frame's scale while the ball rolls; its
+ * lanes were 431 columns wide at the start and 520 later, the zoomed frames
+ * outnumbered the rest, and on the early frames the only pair one "lane
+ * width" apart ran from the left gutter's far side to the right edge, a
+ * gutter too wide. Their spreads are 0.73 to 0.77 throughout.
+ */
+export function laneSpread(all: FrameLanes[]): number | null {
+  const widths = all.flatMap((r) => r.candidates.map((c) => (c.right - c.left) / fanDepth(r)));
   if (!widths.length) return null;
   let best = 0;
   let bestScore = 0;
@@ -542,7 +564,7 @@ export interface LanePick {
   candidate: LaneCandidate;
   left: Line3;
   right: Line3;
-  /** Lane width in the fan, as `laneWidth`. */
+  /** Lane width in this frame's fan, columns: `laneSpread` at its middle's depth. */
   width: number;
 }
 
@@ -592,15 +614,22 @@ function centerOffset(r: FrameLanes, c: LaneCandidate, frameWidth: number): numb
  */
 export function rankLanes(all: (FrameLanes | null)[], frameWidth: number): LanePick[] {
   const ok = all.filter((r): r is FrameLanes => !!r);
-  const width = laneWidth(ok);
-  if (!width) return [];
+  const spread = laneSpread(ok);
+  if (!spread) return [];
   const out: { score: number; pick: LanePick }[] = [];
   all.forEach((r, index) => {
     if (!r) return;
+    // The lane's columns on this frame.
+    const width = spread * fanDepth(r);
     const pairs = lanePairs(r, width).filter((c) => Math.abs(centerOffset(r, c, frameWidth)) < 0.75);
     if (!pairs.length) return;
-    const score = (c: LaneCandidate) => Math.min(c.leftEdge, -c.rightEdge) * (1 - 0.3 * Math.abs(centerOffset(r, c, frameWidth)));
-    const c = pairs.reduce((a, b) => (score(a) >= score(b) ? a : b));
+    const centered = (c: LaneCandidate) => 1 - 0.3 * Math.abs(centerOffset(r, c, frameWidth));
+    const score = (c: LaneCandidate) => Math.min(c.leftEdge, -c.rightEdge) * centered(c);
+    // Within the frame, both edges choose: pairs that share their weaker edge
+    // would otherwise tie, and the centering alone would pick between a lane's
+    // edge and a faint line beside it (the gutter's lip, a board or two out).
+    const both = (c: LaneCandidate) => Math.sqrt(-c.leftEdge * c.rightEdge) * centered(c);
+    const c = pairs.reduce((a, b) => (both(a) >= both(b) ? a : b));
     out.push({ score: score(c), pick: { index, vp: r.vp, far: r.far, near: r.near, candidate: c, left: columnLine(r.fan, c.left), right: columnLine(r.fan, c.right), width } });
   });
   return out.sort((a, b) => b.score - a.score).map((o) => o.pick);
@@ -831,6 +860,8 @@ export interface FoulLine {
   gutters?: boolean;
   /** Through one gutter's near end and a change of brightness that passes through it (`oneGutterFoulLine`). */
   oneGutter?: boolean;
+  /** Turned to the clip's tilt against the pin row, its own being out or not measured (`holdToTilt`). */
+  tilted?: boolean;
 }
 
 /** A gutter's structure above its end at least this, grey levels per pixel, for the end to count. */
@@ -1331,6 +1362,15 @@ interface Ends {
   camera: number;
   /** The foul line not seen but placed from the camera's distance (`guessFoul`), and where that distance came from. */
   guess?: "camera-from-frames" | "typical-camera";
+  /**
+   * The foul line's slope less the pin row's, when the pin row is seen
+   * across enough of the picture to give its own slope (NaN otherwise). The
+   * two are the same direction on the floor, so on one clip this barely
+   * moves (`laneSteps`, `FOUL_TILT_TOL`).
+   */
+  tilt: number;
+  /** The pin row's own slope, the reference `tilt` is taken from (NaN with none). */
+  pinSlope: number;
 }
 
 /** What one frame measures for the lane picked there, before the pin row and foul line are settled. */
@@ -1380,21 +1420,35 @@ function measure(f: GrayFrame, r: FrameLanes, pick: LanePick): Measured | null {
     // A pin row seen across a quarter of the picture or more gives the level;
     // one rack alone is too short, and the house's level lines give it instead.
     const xs = p.bases.map((b) => b.x);
-    const slope = Math.max(...xs) - Math.min(...xs) > 0.25 * f.width ? -p.line[0] / p.line[1] : r.fan.roll;
+    const wide = Math.max(...xs) - Math.min(...xs) > 0.25 * f.width;
+    const slope = wide ? -p.line[0] / p.line[1] : r.fan.roll;
     if (pins.length === 1) slope0 = slope;
     for (const fl of findFoulLines(f, left, right, pick.near, span, slope)) {
-      const yf = rowAt(fl.line, mid(pick.near));
-      if (!(yf - y > 0.5 * span)) continue;
-      const ratio = (y - vp.y) / (yf - vp.y);
-      const d = (BACK_ROW_FT * ratio) / (1 - ratio);
-      if (!(d >= CAMERA_FT[0] && d <= CAMERA_FT[1])) continue;
-      ends.push({ pin: p, foul: fl, camera: d });
+      const d = cameraFeet(vp, p.line, fl.line, mid, pick.far, pick.near);
+      if (d === null) continue;
+      ends.push({ pin: p, foul: fl, camera: d, tilt: wide ? -fl.line[0] / fl.line[1] - slope : NaN, pinSlope: wide ? slope : NaN });
       if (ends.length >= MAX_ENDS) break;
     }
     if (ends.length >= MAX_ENDS) break;
   }
   if (!ends.length && !pins.length) return null;
   return { f, pick, vp, sl, sr, ends, pins, slope: slope0 };
+}
+
+/**
+ * How far behind the foul line `foul` and the pin row `pin` put the camera,
+ * feet, along the lane's middle (`mid`, the middle's column at a row): (pin
+ * row - vp) / (foul - vp) = d / (d + 62.6). Null when the two are too near
+ * together or the distance is outside `CAMERA_FT`.
+ */
+function cameraFeet(vp: Point, pin: Line3, foul: Line3, mid: (y: number) => number, far: number, near: number): number | null {
+  const rowAt = (l: Line3, x: number) => -(l[0] * x + l[2]) / l[1];
+  const y = rowAt(pin, mid(far));
+  const yf = rowAt(foul, mid(near));
+  if (!(yf - y > 0.5 * (near - far))) return null;
+  const ratio = (y - vp.y) / (yf - vp.y);
+  const d = (BACK_ROW_FT * ratio) / (1 - ratio);
+  return d >= CAMERA_FT[0] && d <= CAMERA_FT[1] ? d : null;
 }
 
 /** A camera this far behind the foul line, feet, when no frame of the clip shows how far: the middle of the sample clips' 19 to 26. */
@@ -1419,6 +1473,101 @@ export function guessFoul(vp: Point, left: Line3, right: Line3, pin: Line3, slop
   const q = { x: vp.x + (p.x - vp.x) * k, y: vp.y + (p.y - vp.y) * k };
   const b = { x: q.x + 100, y: q.y + 100 * slope };
   return { line: [q.y - b.y, b.x - q.x, q.x * b.y - b.x * q.y], points: [], strength: 0 };
+}
+
+/**
+ * The foul line's ends this frame shows for certain (`foulEnds`): a gutter's
+ * end, at its edge line's corner where the two agree, never an edge line's
+ * end alone. The points a re-tilted foul line may run through (`holdToTilt`).
+ */
+export function foulAnchors(f: GrayFrame, left: Line3, right: Line3, near: number, span: number, slope: number): FoulEnd[] {
+  const ends = foulEnds(gutterEnds(f, left, right, near, span, slope), edgeEnds(f, left, right, near, span), slope, Math.max(1.5, EDGE_AGREE * span));
+  return ends.filter((e): e is FoulEnd => !!e && !e.edgeOnly && e.drop >= GUTTER_DROP);
+}
+
+/** The line through `p` at `slope`. */
+export function lineAtSlope(p: Point, slope: number): Line3 {
+  const b = { x: p.x + 100, y: p.y + 100 * slope };
+  return [p.y - b.y, b.x - p.x, p.x * b.y - b.x * p.y];
+}
+
+/** What `holdToTilt` weighs of a pin row and foul line read together (`Ends`). */
+export interface TiltEnd {
+  foul: FoulLine;
+  /** Feet behind the foul line this foul line and its pin row put the camera. */
+  camera: number;
+  /** The foul line's slope less the pin row's, NaN when the pin row gives no slope of its own. */
+  tilt: number;
+  /** The pin row's own slope, NaN with none. */
+  pinSlope: number;
+}
+
+/** What `holdToTilt` may look at on the frame, for a foul line it has to place itself. */
+export interface TiltLook {
+  /** The ends the frame shows for certain, looked for along `slope` (`foulAnchors`). */
+  anchors: (slope: number) => FoulEnd[];
+  /** Feet behind the foul line a foul line puts the camera with the pin row (null: not believable). */
+  cameraOf: (foul: Line3) => number | null;
+  /** The lane's middle column at the near end. */
+  middle: number;
+}
+
+/**
+ * The end to calibrate with among `ends` (those near the clip's camera
+ * distance `camera`, best first), held to the clip's foul line tilt `tilt`
+ * (`laneSteps`; NaN: none, and the first end as before). The foul line and
+ * the pin row are the same direction on the floor, so the foul line's slope
+ * is the pin row's plus the clip's tilt, whatever the camera's roll.
+ *
+ * - The first end stands when its tilt is within `FOUL_TILT_TOL` of the
+ *   clip's, or its pin row gives no slope of its own (too short).
+ * - A foul line seen at one point only (one end, or one side's change of
+ *   brightness) has no tilt of its own, only the slope it was drawn at: it
+ *   is turned about that point to the clip's.
+ * - Otherwise one of its ends is hidden, or something else was taken for it
+ *   (on IMG_9960 the trailing shoe over the right corner, 2026-11-21). Of
+ *   the other ends within the tolerance, and lines at the clip's tilt through
+ *   each end the frame shows for certain (`look.anchors`), the one that puts
+ *   the camera nearest where the clip does; with none of them, the first
+ *   end's line turned about the lane's middle. Its `points` are those seen
+ *   (one or none), so the frame weighs less as the one to show.
+ */
+export function holdToTilt<E extends TiltEnd>(ends: E[], tilt: number, camera: number, look: TiltLook): E {
+  const first = ends[0];
+  if (!Number.isFinite(tilt) || !Number.isFinite(first.pinSlope)) return first;
+  const slope = first.pinSlope + tilt;
+  const turned = (e: E, through: Point, seen: Point[], strength: number): E | null => {
+    const line = lineAtSlope(through, slope);
+    const d = look.cameraOf(line);
+    return d === null ? null : { ...e, foul: { line, points: seen, strength, tilted: true }, camera: d, tilt };
+  };
+  const fits = (e: E) => e.foul.points.length === 2 && Math.abs(e.tilt - tilt) <= FOUL_TILT_TOL;
+  if (fits(first)) return first;
+  if (first.foul.points.length === 1) return turned(first, first.foul.points[0], first.foul.points, first.foul.strength) ?? first;
+  const options: E[] = ends.filter(fits);
+  for (const e of ends) if (e.foul.points.length === 1 && e.pinSlope === first.pinSlope) options.push(turned(e, e.foul.points[0], e.foul.points, e.foul.strength) ?? e);
+  for (const a of look.anchors(slope)) {
+    const t = turned(first, a, [{ x: a.x, y: a.y }], a.drop / 4);
+    if (t) options.push(t);
+  }
+  let best: E | null = null;
+  for (const o of options) if (Math.abs(o.camera - camera) <= 2 * CAMERA_SPREAD_FT && (!best || Math.abs(o.camera - camera) < Math.abs(best.camera - camera))) best = o;
+  if (best) return best;
+  const middle = { x: look.middle, y: -(first.foul.line[0] * look.middle + first.foul.line[2]) / first.foul.line[1] };
+  return turned(first, middle, [], 0) ?? first;
+}
+
+/** `holdToTilt` on a measured frame. */
+function atTilt(m: Measured, ends: Ends[], tilt: number, camera: number): Ends {
+  const { f, pick, vp, sl, sr } = m;
+  const span = pick.near - pick.far;
+  const X = (l: Line3, y: number) => -(l[1] * y + l[2]) / l[0];
+  const mid = (y: number) => (X(sl.line, y) + X(sr.line, y)) / 2;
+  return holdToTilt(ends, tilt, camera, {
+    anchors: (slope) => foulAnchors(f, sl.line, sr.line, pick.near, span, slope),
+    cameraOf: (line) => cameraFeet(vp, ends[0].pin.line, line, mid, pick.far, pick.near),
+    middle: mid(pick.near)
+  });
 }
 
 /** The marks on one frame from its edges and the pin row and foul line chosen. */
@@ -1566,7 +1715,7 @@ export function laneAttempts(frames: GrayFrame[], tries = 10): { attempts: Attem
 export type LaneJob =
   | { kind: "lanes"; index: number }
   | { kind: "measure"; index: number; pick: LanePick }
-  | { kind: "attempt"; index: number; camera: number; seen: boolean };
+  | { kind: "attempt"; index: number; camera: number; seen: boolean; tilt: number };
 
 /** What a frame's lane jobs keep between them. */
 export interface LaneStore {
@@ -1579,11 +1728,13 @@ export function laneSummary(r: FrameLanes | null): FrameLanes | null {
   return r && { ...r, fan: { ...r.fan, F: new Float32Array(0), G: new Float32Array(0) } };
 }
 
-/** What `laneSteps` needs of a frame's `measure`: whether it saw ends, and the first one's camera and gutters. */
+/** What `laneSteps` needs of a frame's `measure`: whether it saw ends, and the first one's camera, gutters and tilt. */
 export interface MeasureSummary {
   ends: number;
   camera: number;
   gutters: boolean;
+  /** The first end's `tilt` (the foul line's slope less the pin row's), NaN when not measured. */
+  tilt: number;
 }
 
 /** One lane job on its frame `f`. */
@@ -1597,7 +1748,7 @@ export function runLaneJob(job: LaneJob, f: GrayFrame, store: LaneStore): FrameL
     case "measure": {
       const m = measure(f, store.per.get(job.index)!, job.pick);
       store.measured.set(job.index, m);
-      return m && { ends: m.ends.length, camera: m.ends[0]?.camera ?? NaN, gutters: !!m.ends[0]?.foul.gutters };
+      return m && { ends: m.ends.length, camera: m.ends[0]?.camera ?? NaN, gutters: !!m.ends[0]?.foul.gutters, tilt: m.ends[0]?.tilt ?? NaN };
     }
     case "attempt": {
       const m = store.measured.get(job.index)!;
@@ -1607,10 +1758,10 @@ export function runLaneJob(job: LaneJob, f: GrayFrame, store: LaneStore): FrameL
         // the picture): placed where the camera's distance puts it.
         const pin = m.pins[0];
         const foul = guessFoul(m.vp, m.sl.line, m.sr.line, pin.line, m.slope, camera);
-        return attempt(m, { pin, foul, camera, guess: job.seen ? "camera-from-frames" : "typical-camera" });
+        return attempt(m, { pin, foul, camera, guess: job.seen ? "camera-from-frames" : "typical-camera", tilt: NaN, pinSlope: NaN });
       }
       const near = m.ends.filter((e) => Math.abs(e.camera - camera) <= 2 * CAMERA_SPREAD_FT);
-      return attempt(m, near[0] ?? m.ends[0]);
+      return attempt(m, atTilt(m, near.length ? near : [m.ends[0]], job.tilt, camera));
     }
   }
 }
@@ -1633,12 +1784,31 @@ export function* laneSteps(count: number, width: number, tries: number): Generat
   // no frame showing the foul line, a typical camera distance.
   const byGutters = seen.filter((x) => x.m.gutters);
   const camera = seen.length ? modeOf((byGutters.length >= MIN_GUTTER_FRAMES ? byGutters : seen).map((x) => x.m.camera), CAMERA_SPREAD_FT) : TYPICAL_CAMERA_FT;
-  const attempts = (yield measured.map((x) => ({ kind: "attempt" as const, index: x.index, camera, seen: seen.length > 0 }))) as (Attempt | null)[];
+  // The foul line's tilt against the pin row, from the frames whose foul
+  // line runs through both gutters' ends: the two lines are the same
+  // direction on the floor, so the frames agree on it however the camera
+  // rolls, and a frame where a shoe or a leg hides one end does not.
+  const tilts = byGutters.map((x) => x.m.tilt).filter((t) => Number.isFinite(t));
+  const tilt = tilts.length >= MIN_GUTTER_FRAMES ? modeOf(tilts, FOUL_TILT_SPREAD) : NaN;
+  const attempts = (yield measured.map((x) => ({ kind: "attempt" as const, index: x.index, camera, seen: seen.length > 0, tilt }))) as (Attempt | null)[];
   return { attempts: attempts.filter((a): a is Attempt => !!a), camera };
 }
 
-/** Frames showing both gutter ends needed for them alone to set the camera's distance (`laneAttempts`). */
+/** Frames showing both gutter ends needed for them alone to set the camera's distance (`laneAttempts`), and to set the foul line's tilt. */
 export const MIN_GUTTER_FRAMES = 3;
+
+/** How far the foul line's tilt against the pin row wanders between frames of one clip where both ends show (slope; about a pixel across the lane). */
+export const FOUL_TILT_SPREAD = 0.002;
+
+/**
+ * A foul line whose tilt against the pin row is further than this from the
+ * clip's (slope) has taken something else for one of its ends. The tilt
+ * drifts as the camera turns: the frames that show both ends lie within
+ * 0.0025 of their mode on IMG_9960 and within 0.008 on shot-01, whose camera
+ * pans. On IMG_9960 the trailing shoe over the right corner put frames 0.011
+ * to 0.026 out, 3 to 7 pixels at the right end.
+ */
+export const FOUL_TILT_TOL = 0.01;
 
 /** How far the camera's distance behind the foul line wanders between frames of one clip, feet (a hand-held camera sways). */
 export const CAMERA_SPREAD_FT = 0.6;

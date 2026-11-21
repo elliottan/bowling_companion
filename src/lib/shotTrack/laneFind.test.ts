@@ -14,6 +14,13 @@ import {
   edgeEnds,
   EDGE_LINE_DEPTH,
   foulEnds,
+  foulAnchors,
+  FOUL_TILT_TOL,
+  holdToTilt,
+  lineAtSlope,
+  laneSteps,
+  type MeasureSummary,
+  type TiltEnd,
   oneGutterFoulLine,
   loneEndFoulLine,
   type FoulLine,
@@ -27,10 +34,11 @@ import {
   houghLines,
   laneAttempts,
   laneCandidates,
+  fanDepth,
   lanePairs,
   lanesOnFrame,
   laneRows,
-  laneWidth,
+  laneSpread,
   markLinesOf,
   modeOf,
   pinBases,
@@ -335,15 +343,54 @@ describe("laneCandidates", () => {
 describe("laneWidth, lanePairs and rankLanes on built profiles", () => {
   const cand = (left: number, right: number) => ({ left, right, leftEdge: 10, rightEdge: -10 });
 
-  it("laneWidth is the commonest width, weighted by width, so a narrow cap does not win", () => {
+  it("laneSpread is the commonest width, weighted by width, so a narrow cap does not win", () => {
+    // fakeLanes' reference row lies 719 rows below its vanishing point.
     const frames = [
       fakeLanes(new Float32Array(0), { candidates: [cand(0, 100), cand(0, 33), cand(0, 33)] }),
       fakeLanes(new Float32Array(0), { candidates: [cand(0, 102), cand(0, 33), cand(0, 34)] }),
       fakeLanes(new Float32Array(0), { candidates: [cand(0, 98)] })
     ];
-    expect(laneWidth(frames)).toBeCloseTo(100, 6);
-    expect(laneWidth([])).toBeNull();
-    expect(laneWidth([fakeLanes(new Float32Array(0))])).toBeNull();
+    expect(laneSpread(frames)! * 719).toBeCloseTo(100, 6);
+    expect(laneSpread([])).toBeNull();
+    expect(laneSpread([fakeLanes(new Float32Array(0))])).toBeNull();
+  });
+
+  it("laneSpread counts a width against the depth below the vanishing point, so a zoom does not change it", () => {
+    // The same lane on a frame zoomed out (vanishing point 219 rows down: 500
+    // rows to the reference line, the lane 100 columns there) and on three
+    // zoomed in (vanishing point above the picture: 800 rows, 160 columns).
+    // In columns the zoomed frames win and the zoomed-out lane matches a
+    // pair one gutter too wide; as spreads they all agree.
+    const out = fakeLanes(new Float32Array(0), { vp: { x: 480, y: 219 }, candidates: [cand(0, 100)] });
+    const zoomed = [0, 1, 2].map(() => fakeLanes(new Float32Array(0), { vp: { x: 480, y: -81 }, candidates: [cand(0, 160)] }));
+    expect(fanDepth(out)).toBe(500);
+    expect(fanDepth(zoomed[0])).toBe(800);
+    expect(laneSpread([out, ...zoomed])).toBeCloseTo(0.2, 9);
+  });
+
+  it("rankLanes takes the lane one spread wide on a zoomed-out frame, not the pair a gutter wider", () => {
+    // Zoomed out: the lane 100 columns (380 to 480), the left gutter's far
+    // side 22 columns further out (358). Counted in columns, the zoomed
+    // frames' 160 would win and this frame would get no pair at all, or, as
+    // on IMG_2938, the pair one gutter wider.
+    const g = lobes(1000, [[358, 12], [380, 10], [480, -10]]);
+    const out = fakeLanes(g, { vp: { x: 480, y: 219 }, candidates: [cand(380, 480)] });
+    const zoomed = [0, 1, 2].map(() => fakeLanes(lobes(1000, [[400, 10], [560, -10]]), { vp: { x: 480, y: -81 }, candidates: [cand(400, 560)] }));
+    const ranked = rankLanes([out, ...zoomed], 960);
+    const pick = ranked.find((p) => p.index === 0)!;
+    expect(pick.candidate.left).toBeCloseTo(380, 3);
+    expect(pick.width).toBeCloseTo(100, 6);
+    expect(ranked.find((p) => p.index === 1)!.width).toBeCloseTo(160, 6);
+  });
+
+  it("rankLanes chooses a frame's pair by both edges: a faint line beside a strong edge does not win on the centering", () => {
+    // The right edge (580, weaker) is shared; the left is a strong edge at 380
+    // or a faint line 10 columns out (370), whose pair is nearer the middle.
+    const g = lobes(1000, [[370, 6], [380, 30], [580, -5]]);
+    const f = fakeLanes(g, { candidates: [cand(380, 580)] });
+    const [pick] = rankLanes([f], 900);
+    expect(pick.candidate.left).toBeCloseTo(380, 3);
+    expect(pick.candidate.leftEdge).toBe(30);
   });
 
   it("lanePairs wants a rising edge and a falling one a lane width on, within 6%", () => {
@@ -796,6 +843,19 @@ describe("findFoulLines on a built picture", () => {
       expect(oneGutterFoulLine([{ ...end, drop: 1 }, { x: 230, y: 163, drop: 0, edgeOnly: true }], [near], 0.02, 2)).toBeNull();
     });
 
+    it("foulAnchors keeps the ends seen for certain: a gutter's end at its edge line's corner, never the line alone", () => {
+      const both = foulAnchors(withEdges({ edgeEnd: 159, gutterEnd: 160, tilt: 3 }), L, R, 160, 100, 0.02);
+      expect(both).toHaveLength(2);
+      expect(Math.abs(both[0].y - 158.5)).toBeLessThan(1);
+      expect(both[0].x).toBeCloseTo(70, 5);
+      expect(Math.abs(both[1].y - 161.5)).toBeLessThan(1);
+      // The console over the right gutter leaves its edge line's end alone: not an anchor.
+      const one = foulAnchors(withEdges({ edgeEnd: 159, gutterEnd: 160, tilt: 3, console: 0 }), L, R, 160, 100, 0.02);
+      expect(one).toHaveLength(1);
+      expect(one[0].x).toBeCloseTo(70, 5);
+      expect(foulAnchors(makeFrame(300, 220, 0, 200), L, R, 160, 100, 0)).toEqual([]);
+    });
+
     it("loneEndFoulLine runs through the stronger gutter end at the slope, never an edge line's alone", () => {
       const g = { x: 50, y: 160, drop: 20 };
       const e = { x: 230, y: 163, drop: 0, edgeOnly: true };
@@ -814,6 +874,129 @@ describe("findFoulLines on a built picture", () => {
     const f = approach(150, 200, 150, 100);
     const fl = findFoulLines(f, [1, 0, 10], [1, 0, -190], 195, 100, 0);
     expect(Array.isArray(fl)).toBe(true);
+  });
+});
+
+describe("the foul line held to the clip's tilt", () => {
+  // A lane 200 wide at the near end, its middle at x 300; the pin row's slope 0.01, the clip's tilt 0.006.
+  const rowOf = (l: Line3, x: number) => -(l[0] * x + l[2]) / l[1];
+  const pairLine = (yl: number, yr: number): FoulLine => {
+    const a = { x: 200, y: yl };
+    const b = { x: 400, y: yr };
+    return { line: [a.y - b.y, b.x - a.x, a.x * b.y - b.x * a.y], points: [a, b], strength: 10 };
+  };
+  const end = (yl: number, yr: number, camera = 20): TiltEnd & { tag: string } => ({ foul: pairLine(yl, yr), camera, tilt: (yr - yl) / 200 - 0.01, pinSlope: 0.01, tag: `${yl}` });
+  // The camera from the foul line's row at the middle: 20 ft at row 460, a foot a row.
+  const look = (anchors: { x: number; y: number; drop: number }[]) => ({
+    anchors: () => anchors,
+    cameraOf: (l: Line3) => 20 + (rowOf(l, 300) - 460),
+    middle: 300
+  });
+
+  it("lineAtSlope is the line through the point at the slope", () => {
+    const l = lineAtSlope({ x: 10, y: 20 }, 0.05);
+    expect(rowOf(l, 10)).toBeCloseTo(20, 9);
+    expect(rowOf(l, 110)).toBeCloseTo(25, 9);
+  });
+
+  it("keeps the first end when the clip has no tilt, and the first within the tolerance when it has", () => {
+    const tilted = end(460, 456);
+    const level = end(461, 464.2);
+    expect(holdToTilt([tilted, level], NaN, 20, look([]))).toBe(tilted);
+    expect(holdToTilt([tilted, level], 0.006, 20, look([]))).toBe(level);
+    // An end with no tilt of its own (a short pin row) is not held to it.
+    const short = { ...tilted, tilt: NaN, pinSlope: NaN };
+    expect(holdToTilt([short, level], 0.006, 20, look([]))).toBe(short);
+    // Just inside the tolerance, and just outside it.
+    const edge = end(460, 460 + 200 * (0.016 + FOUL_TILT_TOL - 1e-4));
+    expect(holdToTilt([edge], 0.006, 20, look([]))).toBe(edge);
+    const out = end(460, 460 + 200 * (0.016 + FOUL_TILT_TOL + 1e-4));
+    expect(holdToTilt([out], 0.006, 20, look([])).foul.tilted).toBe(true);
+  });
+
+  it("turns a foul line off the tilt to it, through the end the frame shows for certain", () => {
+    // The right end taken off a shoe 4 rows above the line: through the left gutter's corner at 461 instead.
+    const shoe = end(461, 457);
+    const held = holdToTilt([shoe], 0.006, 22.5, look([{ x: 180, y: 461, drop: 12 }]));
+    expect(held.tag).toBe("461");
+    expect(held.foul.tilted).toBe(true);
+    expect(held.foul.points).toEqual([{ x: 180, y: 461 }]);
+    expect(held.foul.strength).toBe(3);
+    expect(-held.foul.line[0] / held.foul.line[1]).toBeCloseTo(0.016, 9);
+    expect(rowOf(held.foul.line, 400)).toBeCloseTo(461 + 220 * 0.016, 6);
+    expect(held.camera).toBeCloseTo(20 + 461 + 120 * 0.016 - 460, 6);
+    expect(held.tilt).toBe(0.006);
+    // Of two anchors, the one that puts the camera nearer the clip's (21.9 and 20.1 ft against 21.2), in either order.
+    const a = { x: 180, y: 460, drop: 12 };
+    const b = { x: 420, y: 462, drop: 20 };
+    expect(holdToTilt([shoe], 0.006, 21.2, look([a, b])).foul.points).toEqual([{ x: 180, y: 460 }]);
+    expect(holdToTilt([shoe], 0.006, 21.2, look([b, a])).foul.points).toEqual([{ x: 180, y: 460 }]);
+  });
+
+  it("turns a foul line seen at one point only about that point, its slope being only the one it was drawn at", () => {
+    const lone: TiltEnd & { tag: string } = { foul: { line: lineAtSlope({ x: 200, y: 461 }, 0.01), points: [{ x: 200, y: 461 }], strength: 4 }, camera: 21, tilt: 0, pinSlope: 0.01, tag: "lone" };
+    const held = holdToTilt([lone], 0.006, 21, look([]));
+    expect(held.tag).toBe("lone");
+    expect(held.foul.points).toEqual([{ x: 200, y: 461 }]);
+    expect(held.foul.strength).toBe(4);
+    expect(rowOf(held.foul.line, 200)).toBeCloseTo(461, 9);
+    expect(-held.foul.line[0] / held.foul.line[1]).toBeCloseTo(0.016, 9);
+    expect(held.camera).toBeCloseTo(20 + 461 + 100 * 0.016 - 460, 6);
+    // Where the camera that puts is not believable, the line as it was.
+    expect(holdToTilt([lone], 0.006, 21, { ...look([]), cameraOf: () => null })).toBe(lone);
+  });
+
+  it("takes, of the ends at the tilt and the lines through the frame's own ends, the one that puts the camera nearest the clip's", () => {
+    const shoe = end(461, 457, 20);
+    // Another pair at the tilt 1.1 ft out, and the left gutter's corner 0.1 ft out: the corner.
+    const pair = end(450, 453.2, 18.9);
+    const corner = { x: 180, y: 461, drop: 12 };
+    expect(holdToTilt([shoe, pair], 0.006, 22.8, look([corner])).foul.points).toEqual([{ x: 180, y: 461 }]);
+    // The pair nearer than the corner: the pair, as it was.
+    expect(holdToTilt([shoe, pair], 0.006, 19.2, look([corner]))).toBe(pair);
+    // A one-sided line beside them is turned to the tilt first.
+    const side: TiltEnd & { tag: string } = { foul: { line: lineAtSlope({ x: 400, y: 462.4 }, 0.01), points: [{ x: 400, y: 462.4 }], strength: 2 }, camera: 21, tilt: 0, pinSlope: 0.01, tag: "side" };
+    const held = holdToTilt([shoe, side], 0.006, 20.8, look([]));
+    expect(held.tag).toBe("side");
+    expect(held.foul.tilted).toBe(true);
+    expect(rowOf(held.foul.line, 300)).toBeCloseTo(462.4 - 100 * 0.016, 6);
+    // A one-sided line read on another pin row is not turned at this one's slope.
+    expect(holdToTilt([shoe, { ...side, pinSlope: 0.02 }], 0.006, 20.8, look([])).foul.points).toEqual([]);
+  });
+
+  it("turns it about the lane's middle when no end the frame shows puts the camera where the clip does", () => {
+    const shoe = end(461, 457);
+    for (const anchors of [[], [{ x: 180, y: 470, drop: 12 }]]) {
+      const held = holdToTilt([shoe], 0.006, 20, look(anchors));
+      expect(held.foul.points).toEqual([]);
+      expect(held.foul.tilted).toBe(true);
+      expect(rowOf(held.foul.line, 300)).toBeCloseTo(459, 6);
+      expect(-held.foul.line[0] / held.foul.line[1]).toBeCloseTo(0.016, 9);
+      expect(held.camera).toBeCloseTo(19, 6);
+    }
+    // A camera that is not believable keeps the end's own.
+    const held = holdToTilt([shoe], 0.006, 20, { ...look([]), cameraOf: () => null });
+    expect(held.camera).toBe(20);
+  });
+
+  it("laneSteps takes the clip's tilt from the frames whose foul line runs through both gutters' ends", () => {
+    const run = (sums: (MeasureSummary | null)[]) => {
+      const steps = laneSteps(sums.length, 960, sums.length);
+      const first = steps.next();
+      expect(first.done).toBe(false);
+      const lanes = (first.value as unknown[]).map(() => fakeLanes(lobes(1000, [[380, 20], [580, -20]]), { candidates: [{ left: 380, right: 580, leftEdge: 10, rightEdge: -10 }] }));
+      const measure = steps.next(lanes);
+      if (measure.done) return null;
+      const n = (measure.value as unknown[]).length;
+      const attempts = steps.next(sums.slice(0, n));
+      return attempts.done ? null : (attempts.value as { tilt: number }[]);
+    };
+    const g = (tilt: number, gutters = true): MeasureSummary => ({ ends: 2, camera: 19.3, gutters, tilt });
+    const jobs = run([g(0.006), g(0.0065), g(0.0058), g(-0.02), g(0.03, false)]);
+    expect(jobs).not.toBeNull();
+    for (const j of jobs!) expect(j.tilt).toBeCloseTo(0.0061, 3);
+    // Fewer than three such frames: no tilt to hold to.
+    for (const j of run([g(0.006), g(0.0065), g(0.03, false)])!) expect(j.tilt).toBeNaN();
   });
 });
 
@@ -914,15 +1097,16 @@ describe("the stages on a rendered house", () => {
     }
   });
 
-  it("laneWidth and rankLanes agree on one lane width and put the bowler's lane first", () => {
+  it("laneSpread and rankLanes agree on one lane width and put the bowler's lane first", () => {
     const ok = per.filter((r): r is FrameLanes => !!r);
-    const w = laneWidth(ok)!;
-    expect(w).toBeGreaterThan(380);
-    expect(w).toBeLessThan(440);
+    const spread = laneSpread(ok)!;
     const ranked = rankLanes(per, h.frames[0].width);
     expect(ranked.length).toBe(3);
     for (const k of ranked) {
-      expect(k.width).toBe(w);
+      const w = spread * fanDepth(per[k.index]!);
+      expect(w).toBeGreaterThan(380);
+      expect(w).toBeLessThan(440);
+      expect(k.width).toBeCloseTo(w, 9);
       const p = h.lane(onLineAtY(k.left, 600));
       expect(Math.abs(p.x - 0.5)).toBeLessThan(0.6);
       expect(Math.abs(h.lane(onLineAtY(k.right, 600)).x - 39.5)).toBeLessThan(0.6);
