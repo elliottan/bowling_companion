@@ -786,6 +786,48 @@ describe("ShotTracerView", () => {
     }
   });
 
+  it("ends a first look that stops giving frames on the error screen, saying what it last did", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      // A frame, then nothing, and never an end: a browser wait that never settles.
+      scanVideo.mockImplementation((_f: Blob, onFrame: (f: unknown) => void, onProgress: (x: number) => void) => {
+        onFrame({ width: 4, height: 2, data: new Uint8ClampedArray(8), t: 0.4 });
+        onProgress(0.1);
+        return new Promise(() => {});
+      });
+      pickFile();
+      expect(await screen.findByText("Looking for the shot…")).toBeTruthy();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(89_000);
+      });
+      expect(screen.queryByRole("alert")).toBeNull();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2000);
+      });
+      expect((await screen.findByRole("alert")).textContent).toMatch(/couldn't be read/);
+      expect(screen.getAllByText(/the look at the video \(last: frame at 0\.40 s\) stalled: no answer in 90 s/).length).toBeGreaterThan(0);
+      expect(readVideoFrames).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("ends a read that stops moving on the error screen, saying which read stalled", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      readVideoFrames.mockImplementation(() => new Promise(() => {}));
+      await searchFinds(SHOT);
+      expect(await screen.findByText("Reading the video…")).toBeTruthy();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(91_000);
+      });
+      expect((await screen.findByRole("alert")).textContent).toMatch(/couldn't be read/);
+      expect(screen.getAllByText(/the read from [\d.]+ to [\d.]+ s \(last: nothing yet\) stalled: no answer in 90 s/).length).toBeGreaterThan(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("takes a lane search that never answers for a lane not found", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {

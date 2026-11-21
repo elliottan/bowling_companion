@@ -5,6 +5,7 @@ import { planeCrop, planeGray, readProgress, sourceStep, toGray } from "../lib/s
 import { grayStats, type Notes } from "../lib/shotTrack/notes";
 import { drawnTurn, frameNote, lookGray, lumaBits, meanAbsDiff, type FrameShape } from "../lib/shotTrack/lookFrame";
 import { blobSource, Mp4Error, nearestStamp, readVideoTrack, shownTimes, spanStamps, stampOf, type VideoTrack } from "../lib/shotTrack/mp4";
+import { within } from "../lib/shotTrack/stall";
 
 /**
  * Frames read out of a video file by decoding it (WebCodecs' `VideoDecoder`),
@@ -60,11 +61,20 @@ export function dropCodec(file: Blob, why: string): void {
   opened.set(file, Promise.resolve(why));
 }
 
+/**
+ * The longest the file's `moov` may take to read, and the decoder to say
+ * whether it takes a stream, milliseconds. Neither is bounded by the browser:
+ * one that never answers is a file read by playing, with the reason, not a
+ * screen that waits for ever.
+ */
+const OPEN_MS = 10_000;
+const CONFIG_MS = 5000;
+
 async function open(file: Blob): Promise<CodecVideo | string> {
   if (typeof VideoDecoder === "undefined" || typeof VideoFrame === "undefined") return "no VideoDecoder";
   let track: VideoTrack;
   try {
-    track = await readVideoTrack(blobSource(file));
+    track = await within(readVideoTrack(blobSource(file)), OPEN_MS, "reading the file's moov");
   } catch (e) {
     return e instanceof Mp4Error ? e.message : `container: ${reasonOf(e)}`;
   }
@@ -78,7 +88,7 @@ async function open(file: Blob): Promise<CodecVideo | string> {
   // Hardware first where the browser says it has it for this stream.
   for (const hardwareAcceleration of ["prefer-hardware", "no-preference"] as const) {
     try {
-      const { supported } = await VideoDecoder.isConfigSupported({ ...base, hardwareAcceleration });
+      const { supported } = await within(VideoDecoder.isConfigSupported({ ...base, hardwareAcceleration }), CONFIG_MS, `isConfigSupported ${hardwareAcceleration}`);
       if (supported) return { file, track, config: { ...base, hardwareAcceleration } };
     } catch (e) {
       return `codec ${track.codec}: ${reasonOf(e)}`;
@@ -100,6 +110,14 @@ const QUEUE = 6;
 const WAITING = 3;
 /** The most bytes read from the file at once, for a run of frames next to each other. */
 const READ_BYTES = 4 << 20;
+/**
+ * The longest a read of the file, or one frame turned to grey (its
+ * `copyTo`), may take, milliseconds. The decoder's own stall (`STALL_MS`) is
+ * watched only between these: a wait on either that never ended held the
+ * decode, and the screen, for ever.
+ */
+const READ_MS = 10_000;
+const FRAME_MS = 5000;
 
 /** What a decode pass did. */
 interface Decoded {
@@ -188,7 +206,7 @@ async function decodeRange(
   const drainOne = async () => {
     const next = waiting.shift()!;
     try {
-      await handle(next.frame, next.t, next.place);
+      await within(handle(next.frame, next.t, next.place), FRAME_MS, `turning the frame at ${next.t.toFixed(3)} s to grey (${String(next.frame.format)}, copyTo)`);
     } finally {
       next.frame.close();
     }
@@ -216,7 +234,7 @@ async function decodeRange(
           end = Math.max(end, n.offset + n.size);
         }
         bytesFrom = s.offset;
-        bytes = await source.read(s.offset, end - s.offset);
+        bytes = await within(source.read(s.offset, end - s.offset), READ_MS, `reading ${end - s.offset} bytes of the file`);
       }
       for (;;) {
         check();
@@ -252,6 +270,9 @@ async function decodeRange(
       else await Promise.race([flush, tick()]);
     }
     check();
+  } catch (e) {
+    // What the decoder had done when it failed or stalled, for the details line.
+    throw new Error(`${reasonOf(e)} (${fed} of ${last - first + 1} fed, ${out} out, queue ${decoder.state === "closed" ? "closed" : decoder.decodeQueueSize}, ${waiting.length} waiting)`);
   } finally {
     for (const w of waiting) w.frame.close();
     if (decoder.state !== "closed") decoder.close();
@@ -435,11 +456,14 @@ export async function codecScan(
       } else return;
     }
   };
+  // A frame turned to grey after the decode gave up on it (`FRAME_MS`) is not handed on: playing has taken over.
+  let live = true;
   const done = await decodeRange(cv, span.first, span.last, wanted, async (frame, t, place) => {
     if (!count) notes?.set("frame", frameNote(shapeOf(frame)));
     const stats = place === 0 || place === order.length >> 1 || place === order.length - 1;
     let data: Uint8ClampedArray;
     const luma = await copyLuma(frame, null, copying);
+    if (!live) return;
     if (luma) {
       // The luma plane, as the read takes it: the same on every browser, and untouched by tone mapping.
       const range = lumaRange(frame.colorSpace?.fullRange, track.fullRange);
@@ -462,7 +486,7 @@ export async function codecScan(
     count++;
     handOn(false);
     onProgress(Math.min(1, count / Math.max(1, order.length)));
-  });
+  }).finally(() => (live = false));
   handOn(true);
   const via = `WebCodecs ${track.codec} ${cv.config.hardwareAcceleration}`;
   const how = [planes ? `${planesHow} ${planes}` : "", drawn ? `${drawnHow} ${drawn}` : ""].filter(Boolean).join(", ") || "none";

@@ -15,6 +15,7 @@ import { BACK_ROW_FT, laneU, LEFT_U, RIGHT_U } from "../lib/shotTrack/laneModel"
 import type { FrameLane } from "../lib/shotTrack/laneTrack";
 import { laneVerdict, type LaneEvidence, type LaneVerdict } from "../lib/shotTrack/laneVerdict";
 import { foundNote, Notes, timesNote } from "../lib/shotTrack/notes";
+import { Stalled, Watchdog, within } from "../lib/shotTrack/stall";
 import { glimpseIndices } from "../lib/shotTrack/lookFrame";
 import { MARK_LINES, pathInPicture, type MarkLine } from "../lib/shotTrack/marking";
 import { FIRST_LANE_EVERY, gridFrames, LANE_EVERY, readStep } from "../lib/shotTrack/framePick";
@@ -36,7 +37,7 @@ import { breakFlags, startBroken } from "../shotTracer/workerFault";
 import poolWorkerUrl from "../shotTracer/pool.worker.ts?worker&url";
 import searchWorkerUrl from "../shotTracer/search.worker.ts?worker&url";
 import { readShot } from "../shotTracer/readShot";
-import { readVideoFrames, scanVideo, type VideoFrames } from "../shotTracer/videoFrames";
+import { readVideoFrames, scanVideo, type ReadPlan, type VideoFrames } from "../shotTracer/videoFrames";
 import type { Handedness } from "../types/bowling";
 
 /**
@@ -105,6 +106,17 @@ const now = () => performance.now();
  */
 const WORKER_WAIT_MS = 60_000;
 
+/**
+ * The longest the look or a read may go without a frame or any progress,
+ * milliseconds, before the screen gives up on it as stalled. Each wait inside
+ * is bounded on its own, more tightly and with its own reason (`stall.ts`);
+ * this is the net under them all, longer than the worst run of those back to
+ * back (opening the codec, a stalled decode, then starting playback).
+ */
+const LOAD_STALL_MS = 90_000;
+/** The longest the frame table for the result's frame numbers may take to read, milliseconds. */
+const FRAME_TIMES_MS = 10_000;
+
 /** Each line's colour on the picture. */
 const LINE_TONE: Record<MarkLine, string> = {
   left: "stroke-accent",
@@ -165,18 +177,29 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     });
     // The look's frames, kept by reference until three are picked for the pictures (the search is sent copies).
     const seen: CoarseFrame[] = [];
+    // A look that stops giving frames ends on the error screen; anything it gives after is dropped.
+    const dog = new Watchdog(LOAD_STALL_MS, "the look at the video");
+    let over = false;
     try {
-      const video = await scanVideo(
-        f,
-        (frame) => {
-          seen.push(frame);
-          client.push(frame);
-        },
-        (fraction) => {
-          if (attempt.current === mine) setStep({ kind: "searching", fraction });
-        },
-        notes.current
-      );
+      const video = await dog
+        .guard(
+          scanVideo(
+            f,
+            (frame) => {
+              if (over) return;
+              dog.poke(`frame at ${frame.t.toFixed(2)} s`);
+              seen.push(frame);
+              client.push(frame);
+            },
+            (fraction) => {
+              if (over) return;
+              dog.poke();
+              if (attempt.current === mine) setStep({ kind: "searching", fraction });
+            },
+            notes.current
+          )
+        )
+        .finally(() => (over = true));
       glimpses.current.look = glimpseIndices(
         seen.map((s) => s.t),
         video.duration
@@ -232,9 +255,33 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     else void readBand(f, looked, bands, mine);
   }
 
+  /**
+   * `readVideoFrames`, ended on the error screen when it goes `LOAD_STALL_MS`
+   * without progress; what it reports after is dropped.
+   */
+  function watchedRead(f: File, plan: ReadPlan, onRead: (fraction: number) => void): Promise<VideoFrames> {
+    const dog = new Watchdog(LOAD_STALL_MS, `the read from ${plan.from.toFixed(2)} to ${plan.to.toFixed(2)} s`);
+    let over = false;
+    return dog
+      .guard(
+        readVideoFrames(
+          f,
+          (fraction) => {
+            if (over) return;
+            dog.poke(`${Math.round(fraction * 100)}%`);
+            onRead(fraction);
+          },
+          plan,
+          notes.current
+        )
+      )
+      .finally(() => (over = true));
+  }
+
   /** Back to the start, saying the video couldn't be read and what the reader said. */
   function unreadable(e: unknown, mine: number) {
     const why = e instanceof Error ? e.message : String(e);
+    if (e instanceof Stalled && attempt.current === mine) notes.current.add("stalled", why);
     console.info(`Shot tracer: the video couldn't be read: ${why}`);
     if (attempt.current === mine) setStep({ kind: "pick", unreadable: true, why, details: details() });
   }
@@ -260,7 +307,7 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
     let counted = false;
     try {
       const read = await readShot(
-        (plan, onRead) => readVideoFrames(f, onRead, plan, notes.current),
+        (plan, onRead) => watchedRead(f, plan, onRead),
         looked.found,
         looked,
         bands[0],
@@ -419,7 +466,8 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       const r = next.result;
       notes.current.set("trace", r.ok ? `${r.sightings.length} sightings, ${r.from.toFixed(1)} to ${r.to.toFixed(1)} ft` : `${r.failure}: ${r.detail}`);
       if (r.ok && r.handFound) notes.current.set("hand", handNote(r.handFound));
-      const times = await frameTimes.current;
+      // The frame numbers are a nicety: a table that never reads leaves them out rather than the result.
+      const times = await within(frameTimes.current, FRAME_TIMES_MS, "the frame table").catch(() => null);
       if (attempt.current !== mine) return;
       setStep({ ...next, timing: took, details: details(), pictures: pictures(), shots: next.shots, numbering: { times, step: video.src } });
     };
