@@ -153,6 +153,82 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
+## The ball found again past the bowler, and the far readings gated (2026-11-22, not released)
+
+**The owner's report**: IMG_0047 (iPhone HEVC, portrait, 59.94 fps, a
+right-hander on lane 9 filmed from behind) on 0.116.1 read laydown 13.5,
+touchdown 13.3 at 1 ft, arrows 10.5, breakpoint 10.8 at 14 ft (measured) and
+at the pins 36.7 (estimated), with the drawn path swinging across the lane
+past the last dot. "Completely off": the bowler's arm and body cover the ball
+from mid lane until just before the pins.
+
+**Node does not reproduce the phone** (`app-read.ts --hand auto`, full and
+decoded grey): laydown 13.80 (13.60 decoded), arrows 10.50 (10.07e), no
+breakpoint, no pins: sightings 1.3 to 26 ft only, one stray at 61.8 ft (read
+frame 207, after the rack moved) left out as an island. The phone's frames
+evidently gave it a far group the fit swung across to; the gates below are
+what keeps any such group from being shown.
+
+**Why the ball is lost.** The bowler holds the finish in front of the rack
+for most of the read, so he is in the empty lane (the median): over the pins
+the empty lane is his dark shirt, and the dark ball in front of the pins
+differs from nothing, while the pins he steps away from are all change. In
+mid lane the ball is plain to the eye beside his arm, but its change joins
+the arm's into one blob too wide for a ball.
+
+**What changed.**
+
+- `reacquire.ts` (new): when the ball was last seen short of
+  `REACQUIRE_BELOW_FT` (50 ft), the frames after are searched in the frame
+  itself, not against the empty lane: a dark disk of the ball's own size
+  (`ownRadius`) with the bright lane or pins round it (`darkDisk`, the ring's
+  lower side left out for the mirror image, at most `INNER_LIT` of the inside
+  lit), on the stretch of lane its pace puts it on each frame (0.75 to 1 of
+  its pace, 3 ft either way, at most 0.45 board a foot across), not as dark
+  on five frames from before (`stillDark`: a gap between pins, a mark), each
+  placed by its rim (`arcFit`), then the one chain a ball can make
+  (`gapTrack`: links at most 0.5 s apart, across no faster than 40 boards a
+  second, down the lane at its pace) going on at 0.5 to 1.3 of its pace
+  overall (`paceHolds`). They join the sightings as `reacquired`, weight 0.5,
+  and the path, motion, pins frame and readings are read with them
+  (`reacquireBall` in `pipeline.ts`).
+- Gates in `metrics` (`pathFit.ts`): a breakpoint only in `BREAKPOINT_FT` (24
+  to 56 ft), with sightings within 15 ft on both sides (`BP_REACH_FT`;
+  measured within 5 ft, as before), else none; a board at the pins only on
+  the lane, an estimate only within 3 boards of the straight line through
+  the last 10 ft seen run on (`pinsPlausible`), and neither the pins nor the
+  breakpoint when the pins sit more than 20 boards (`MAX_HOOK_BOARDS`) in
+  from the path's furthest point out. The entry angle goes with the pins.
+- The follow to the pins with no rack movement starts only from a sighting
+  past 45 ft (`PINS_FOLLOW_FROM_FT`); it ran from mid lane when the fitted
+  motion alone said the ball was near the pins.
+- The drawn path (`TrackResult.drawTo`, `drawnTo`): to the last sighting
+  when the pins reading stands, else to the end of the first stretch seen
+  (no gap over 15 ft), so it never swings out to sightings no reading
+  trusts.
+
+**IMG_0047 now**: 58 frames found again (read frames 97 to 114 and 132 to 148,
+26.5 to 46.5 ft, beside the arm; 171 to 193, 54.5 to 61 ft, in front of the pins), every
+circle on the ball. Laydown 13.80, arrows 10.50, breakpoint 6.59 at 36.8 ft
+(measured: the ball is seen on both sides of it), pins 14.35 measured (the
+owner's rough "17 or so"; the ball is right of the head pin, toward the 3
+pin), pin frame 198 (the arm covers the rack from about 194).
+
+**Every other input** (`sh16/runall.sh`): 17 of 20 give the same trace
+digest. shot-03 (the same bowler) finds read frames 139 to 144 and 167 to
+188 again: pins 13.99 measured (none before), breakpoint 6.46 at 38.3 ft
+estimated (was 7.43 at 36.1 measured; the far sightings bend the path more
+and the nearest sighting before it is 6 ft away). 8133 (left-handed) finds
+33 to 48 ft and 56 to 59 ft again: arrows 11.44e, breakpoint 7.75 at 40.4,
+pins 14.05 (none before). shot-04's first try found a pin's edge crossing
+the arm at 47 to 49 ft going back down the lane; `paceHolds` drops it and it
+reads as before. Pictures: `scratchpad/review19/`.
+
+**Open**: the owner should check shot-03's and 8133's new far readings
+against the frames; nothing of this has run on a phone (the search costs
+about 0.5 s in Node on IMG_0047); the far lane mapping on IMG_0047 is not
+checked against the rack's 12 in spacing.
+
 ## The first look's run on a zoomed-in camera, and the ball return taken for the lane (2026-11-21)
 
 **The owner's report**: IMG_2938 on an iPhone (Safari 18.7, 0.116.0): "The

@@ -717,7 +717,7 @@ function Result({
   // 2026-11-20): the result says which, with no switch.
   const hand = result.hand;
   const m = result.metrics;
-  const path = H ? pathInPicture(H, result.path, result.from, result.to) : [];
+  const path = H ? pathInPicture(H, result.path, result.from, result.drawTo ?? result.to) : [];
   // The laydown on the foul line, where the drawn path starts: the ball is
   // first seen on the lane a foot or two past it.
   const laydownAt = H && m.laydown.value !== null ? apply(H, { x: laneU(m.laydown.value, hand), y: 0 }) : null;

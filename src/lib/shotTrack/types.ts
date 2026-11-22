@@ -91,6 +91,12 @@ export interface BallSighting {
   radiusV?: number;
   /** Before the touchdown: not used for the path or the speed (plan 7.4). */
   airborne: boolean;
+  /**
+   * Found again by its dark disk in the frame itself after the change
+   * against the empty lane lost it (`reacquire.ts`): a bowler standing in
+   * front of the rack is in the empty lane there.
+   */
+  reacquired?: boolean;
 }
 
 /** The fitted path across the lane, in lane `u` against feet (plan 7.5). */
@@ -152,6 +158,8 @@ export interface TrackResult {
   /** Feet of the first and last sighting used by the fit. */
   from: number;
   to: number;
+  /** How far the fitted path is drawn, feet (`drawnTo`): `to` unless the sightings past a long gap carry no reading. */
+  drawTo?: number;
   /** RMS of the across-lane residual, boards. */
   rms: number;
   metrics: TrackMetrics;

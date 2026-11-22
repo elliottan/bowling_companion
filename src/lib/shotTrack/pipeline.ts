@@ -1,5 +1,5 @@
 import type { Handedness } from "../../types/bowling";
-import { associate } from "./associate";
+import { associate, MAX_SPEED_FTS, MIN_SPEED_FTS } from "./associate";
 import { laneRoi, medianBackground, steady, type Background, type Roi } from "./background";
 import { gridFrames, readStep } from "./framePick";
 import { ARC_MIN, ARC_REACH, arcFit, carryFace, findCandidates, FREE_RADIUS_TOLERANCE, refineCircle, type Candidate, type CircleFit } from "./ballDetect";
@@ -18,6 +18,7 @@ import { followNear, nearSeeds } from "./nearFollow";
 import { firstPinMove, pinScores, pinsInReach, type PinFrame } from "./pinMove";
 import { alignTo, finishRegister, laneMarksOf, passFrames, PlanePass, planeSlots, RegisterPass, type FrameGeometry, type FrameSource, type Matches, type PlaneOptions, type RegisterOptions } from "./registration";
 import { readingShots, type ReadingShot } from "./readingFrame";
+import { findAfterGap, GAP_SLOW, GAP_TO_FT } from "./reacquire";
 import type { BallSighting, DistanceSource, GrayFrame, LaneMarks, Mat3, Metric, PathModel, TrackError, TrackFailure, TrackMetrics, TrackResult } from "./types";
 
 /**
@@ -111,6 +112,8 @@ export interface TraceDebug {
   nearOnly?: boolean;
   /** The bowler's hand as the video shows it (`handFind.ts`), whether or not it was used. */
   hand?: HandFound;
+  /** The frames the ball was found on again past a long gap (`reacquireBall`). */
+  reacquired?: number[];
 }
 
 export interface TraceOutput {
@@ -805,6 +808,29 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
   const motionOf = (ss: BallSighting[]): MotionPoint[] => ss.map((s) => ({ t: s.t, v: s.v, w: s.weight / (1 + (svOf.get(s.frame) ?? 0) ** 2) }));
   let motionPts = motionOf(seen);
   let motion = fitMotion(motionPts);
+  // Lost well short of the pins: looked for again by its dark disk in the
+  // frames themselves (`reacquire.ts`), at its own pace, to the pins.
+  if (!nearOnly) {
+    const { late, sv: lateSv } = reacquireBall(source, geometry, first, seen, motion, ownInset(insets));
+    if (late.length) {
+      // A sighting the islands rule left out on one of those frames gives way to it.
+      const lateFrames = new Set(late.map((s) => s.frame));
+      for (let k = sightings.length - 1; k >= 0; k--) if (lateFrames.has(sightings[k].frame)) sightings.splice(k, 1);
+      for (const s of late) {
+        sightings.push(s);
+        svOf.set(s.frame, lateSv.get(s.frame) ?? 0);
+        debug.circles.set(s.frame, { cx: s.cx, cy: s.cy, r: s.r, weight: s.weight, edges: [], fixed: true });
+      }
+      sightings.sort((a, b) => a.frame - b.frame);
+      seen = [...seen, ...late];
+      debug.reacquired = late.map((s) => s.frame);
+      vs = seen.map((s) => s.v);
+      pathPts = pathOf(seen);
+      fit = fitPath(pathPts);
+      motionPts = motionOf(seen);
+      motion = fitMotion(motionPts);
+    }
+  }
   let contactV = pinContactFeet(fit.path);
   let pinFrame: number | null = null;
   let pinT: number | undefined;
@@ -910,7 +936,7 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
     const ys = near.map((d) => d.u);
     pinsU = lineAt(xs, ys, lastBefore);
     debug.pinsRead = { frame: lastBefore, u: pinsU, frames: xs };
-  } else if (pinFrame === null && Math.max(lastSeen.v, vAtT(lastSeen.t)) > 50) {
+  } else if (pinFrame === null && lastSeen.v > PINS_FOLLOW_FROM_FT && Math.max(lastSeen.v, vAtT(lastSeen.t)) > 50) {
     // The rack never seen to move (shot-02: the bowler's arm swings across it
     // as the ball arrives). The ball is followed on until the arm covers it
     // or it reaches the first pin; if by then the fitted motion has it within
@@ -965,7 +991,7 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
   progress("done", 1);
   const output: TraceOutput = {
     result: {
-      ok: true, hand: used, sightings, path: fit.path, from: Math.min(...vs), to: Math.max(...vs), rms: fit.rms,
+      ok: true, hand: used, sightings, path: fit.path, from: Math.min(...vs), to: Math.max(...vs), drawTo: drawnTo(vs, met.pins.value !== null), rms: fit.rms,
       metrics: met, readOff, handFound: state.handFromVideo ? handFound : undefined, motion, touchdownFrame: touchdown !== null ? seen[0].frame : null, pinFrame
     },
     debug
@@ -977,6 +1003,81 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
     output.shots = [];
   }
   return output;
+}
+
+/**
+ * The rack never seen to move, the ball is followed on to the pins only from
+ * a sighting this far down the lane, feet: from the middle of the lane the
+ * fitted motion alone said it was near the pins, and the follow wandered.
+ */
+export const PINS_FOLLOW_FROM_FT = 45;
+/** Sightings further apart than this, feet, are two stretches seen. */
+export const DRAW_GAP_FT = 15;
+
+/**
+ * How far down the lane the fitted path is drawn, feet: to the last
+ * sighting when the board at the pins stands, else to the end of the first
+ * stretch seen (sightings no more than `DRAW_GAP_FT` apart): a path run on
+ * across a long gap to sightings no reading trusts is not shown as the
+ * ball's.
+ */
+export function drawnTo(vs: number[], pinsShown: boolean): number {
+  const sorted = [...vs].sort((a, b) => a - b);
+  if (pinsShown) return sorted[sorted.length - 1];
+  let end = sorted[0];
+  for (const v of sorted) {
+    if (v - end > DRAW_GAP_FT) break;
+    end = v;
+  }
+  return end;
+}
+
+/** The change against the empty lane lost the ball this far short of the pins or more, feet: it is looked for again (`reacquireBall`). */
+export const REACQUIRE_BELOW_FT = 50;
+/** A sighting found again counts for this much in the fits (a covered one's share). */
+export const REACQUIRED_WEIGHT = 0.5;
+
+/**
+ * The ball found again past its last sighting (`findAfterGap`) when that is
+ * short of `REACQUIRE_BELOW_FT`: in the steadied frames after it, as far as
+ * its pace there (the fitted motion's) can take it to the pins, at its own
+ * size (`ownRadius`), against five frames from before as the references. As
+ * sightings with their down-lane uncertainty; none when it is not found.
+ */
+export function reacquireBall(
+  source: FrameSource,
+  geometry: FrameGeometry[],
+  first: number,
+  seen: BallSighting[],
+  motion: { v0: number; w: number; d: number },
+  inset: number
+): { late: BallSighting[]; sv: Map<number, number> } {
+  const none = { late: [], sv: new Map<number, number>() };
+  const last = seen[seen.length - 1];
+  if (!last || last.v >= REACQUIRE_BELOW_FT) return none;
+  const speed = motion.w + motion.d * last.t;
+  if (!(speed >= MIN_SPEED_FTS && speed <= MAX_SPEED_FTS)) return none;
+  const ok = geometry.filter((g) => g && g.ok);
+  const before = ok.filter((g) => g.index <= last.frame);
+  const step = Math.max(1, Math.ceil(before.length / 5));
+  const refs = before.filter((_, k) => k % step === 0).map((g) => ({ f: source.frame(g.index), H: g.H }));
+  // No later than the slowest pace allowed takes it to the pins, and a little.
+  const until = last.t + (GAP_TO_FT - last.v) / (GAP_SLOW * speed) + 0.2;
+  const frames = ok.filter((g) => g.index > last.frame).map((g) => ({ index: g.index, f: source.frame(g.index), H: g.H })).filter((x) => x.f.t <= until);
+  const radius = (H: Mat3, u: number, v: number) => ownRadius(expectedRadiusPx(H, u, v), inset);
+  const found = findAfterGap({ frames, refs, last: { v: last.v, u: last.u, t: last.t, speed }, radius });
+  const sv = new Map<number, number>();
+  const late = found.map((c): BallSighting => {
+    const H = geometry[c.frame - first].H;
+    const cp = contactPoint(H, { x: c.cx, y: c.cy }, c.r);
+    const below = imageToLane(H, { x: cp.contact.x, y: cp.contact.y + 0.5 });
+    sv.set(c.frame, Math.abs(below.v - cp.v));
+    return {
+      frame: c.frame, t: c.t, cx: c.cx, cy: c.cy, r: c.r, contact: cp.contact, u: cp.u, v: cp.v, weight: REACQUIRED_WEIGHT,
+      rExpected: expectedRadiusPx(H, cp.u, cp.v), airborne: false, reacquired: true
+    };
+  });
+  return { late, sv };
 }
 
 /**
