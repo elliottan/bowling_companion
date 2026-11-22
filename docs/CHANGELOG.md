@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.117.0: The shot tracer finds the ball again behind the bowler (2026-11-22)
+
+- In Settings, Labs: when the bowler's arm or body hides the ball down the
+  lane, the shot tracer now looks for it again beside the arm and in front of
+  the pins, so the breakpoint and the board at the pins can still be read.
+- A breakpoint is shown only between 24 and 56 ft, with the ball seen on both
+  sides of it, and an estimated board at the pins only when it follows from
+  where the ball was last seen. A reading that fails these is left out instead
+  of shown wrong, and the drawn path stops where the ball was last seen.
+
 ## 0.116.1: The shot tracer no longer freezes or loses a zooming clip (2026-11-21)
 
 - In Settings, Labs: a video that stalled while loading held the shot tracer

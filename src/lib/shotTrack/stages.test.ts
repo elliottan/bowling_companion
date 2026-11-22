@@ -7,7 +7,7 @@ import { fitLine, robustLine, snapEdge } from "./edgeSnap";
 import { apply, intersect, multiply, segmentLine } from "./homography";
 import { makeFrame, warp } from "./image";
 import { BALL_RADIUS_FT, BOARD_FT, CONTACT_IN, expectedRadiusPx, laneToWorld } from "./laneModel";
-import { boardAtPins, fitMotion, fitPath, localU, metrics, nelderMead, pathU, pinContactFeet, ROUGH_RMS, timeAtFeet, withoutIslands } from "./pathFit";
+import { boardAtPins, BREAKPOINT_FT, breakpointState, fitMotion, fitPath, localU, MAX_HOOK_BOARDS, metrics, nelderMead, pathU, pinContactFeet, pinsPlausible, ROUGH_RMS, timeAtFeet, withoutIslands } from "./pathFit";
 import { globalShift, register } from "./registration";
 import { project, timeAt, truthAt } from "./synthetic";
 import { standardShot, syntheticSource } from "./syntheticSource";
@@ -484,6 +484,67 @@ describe("pathFit", () => {
     const m = metrics({ path: fit.path, hand: "right", seen: zig.map((p) => p.v), touchdown: 1, motion: { v0: 0, w: 20, d: 0 }, tFirst: 0, tLast: 3, speedMeasured: false });
     expect(m.breakpoint.state).not.toBe("measured");
     expect(fitPath(pts).path.rough).toBeUndefined();
+  });
+
+  it("reports a breakpoint only far enough down the lane, with sightings on both sides of it", () => {
+    const hook = { kind: "hook" as const, u0: 20, a: 0.2, s: 30, L: 10, k: -0.02 };
+    const every = Array.from({ length: 60 }, (_, i) => i + 1);
+    expect(breakpointState(40, 1, 60, every, hook)).toBe("measured");
+    // The owner's phone on IMG_0047: "board 10.8 at 14 ft", measured. No ball turns there.
+    expect(breakpointState(14, 1, 60, every, hook)).toBe("missing");
+    expect(breakpointState(BREAKPOINT_FT[1] + 1, 1, 60, every, hook)).toBe("missing");
+    // Seen within 15 ft either side but not 5: estimated; further: missing.
+    const gappy = every.filter((v) => v < 30 || v > 50);
+    expect(breakpointState(40, 1, 60, gappy, hook)).toBe("estimated");
+    expect(breakpointState(40, 1, 60, every.filter((v) => v < 20 || v > 50), hook)).toBe("missing");
+    expect(breakpointState(40, 1, 60, every.filter((v) => v < 40), hook)).toBe("missing");
+    // A loose fit is never measured; the path's own ends are not a breakpoint.
+    expect(breakpointState(40, 1, 60, every, { ...hook, rough: true })).toBe("estimated");
+    expect(breakpointState(1.2, 1, 60, every, hook)).toBe("missing");
+    expect(breakpointState(null, 1, 60, every, hook)).toBe("missing");
+  });
+
+  it("gives no board at the pins off the lane, or off the ball's direction when estimated", () => {
+    const line = Array.from({ length: 20 }, (_, i) => ({ v: 35 + i, u: 25 - 0.2 * i, w: 1 }));
+    // Run on to 59.4 ft the last 10 ft say u 19.1, board 20.9.
+    expect(pinsPlausible(20.9, "estimated", line, 54, 59.4, "right")).toBe(true);
+    expect(pinsPlausible(36.7, "estimated", line, 54, 59.4, "right")).toBe(false);
+    expect(pinsPlausible(36.7, "measured", line, 54, 59.4, "right")).toBe(true);
+    expect(pinsPlausible(41, "measured", line, 54, 59.4, "right")).toBe(false);
+    expect(pinsPlausible(-1, "measured", line, 54, 59.4, "right")).toBe(false);
+    // An estimate with nothing seen to run on from does not stand.
+    expect(pinsPlausible(20.9, "estimated", [], 54, 59.4, "right")).toBe(false);
+  });
+
+  it("drops the far readings off a path that swings across the lane past the last sighting it trusts", () => {
+    // IMG_0047 as the phone traced it: the ball seen to 26 ft drifting out to
+    // board 7.7, then a far group by the left gutter the fit swung across to.
+    const near = Array.from({ length: 36 }, (_, i) => ({ v: 1.3 + 0.7 * i, u: 26.5 + 0.23 * 0.7 * i, w: 1, sv: 0.1, t: 3.65 + i / 60 }));
+    const far = Array.from({ length: 10 }, (_, i) => ({ v: 52 + 0.8 * i, u: 3.5, w: 0.5, sv: 1, t: 5.9 + i / 60 }));
+    const pts = [...near, ...far];
+    const fit = fitPath(pts);
+    const m = metrics({
+      path: fit.path, hand: "right", seen: pts.map((p) => p.v), points: pts, touchdown: 1.3,
+      motion: { v0: -76, w: 23, d: 0 }, tFirst: pts[0].t, tLast: pts[pts.length - 1].t, speedMeasured: false
+    });
+    expect(m.pins.state).toBe("missing");
+    expect(m.pins.value).toBeNull();
+    expect(m.entryAngle.state).toBe("missing");
+    expect(m.breakpoint.state).toBe("missing");
+    expect(MAX_HOOK_BOARDS).toBeLessThan(36.7 - 7.7);
+  });
+
+  it("drops a board at the pins more than a hook away from the path's furthest point out, even with no breakpoint to show", () => {
+    // Seen to 14 ft at board 13 and then, after a gap, a far group by the left gutter.
+    const near = Array.from({ length: 20 }, (_, i) => ({ v: 1 + 0.7 * i, u: 27, w: 1, sv: 0.1, t: 3.6 + i / 60 }));
+    const far = Array.from({ length: 12 }, (_, i) => ({ v: 53 + 0.6 * i, u: 4 + 0.1 * i, w: 1, sv: 1, t: 5.9 + i / 60 }));
+    const pts = [...near, ...far];
+    const m = metrics({
+      path: fitPath(pts).path, hand: "right", seen: pts.map((p) => p.v), points: pts, touchdown: 1,
+      motion: { v0: -76, w: 22, d: 0 }, tFirst: pts[0].t, tLast: pts[pts.length - 1].t, speedMeasured: false
+    });
+    expect(m.breakpoint.state).toBe("missing");
+    expect(m.pins.state).toBe("missing");
   });
 
   it("still reads a spline from a trace made before", () => {

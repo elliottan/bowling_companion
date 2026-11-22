@@ -187,7 +187,7 @@ if (process.argv[1]?.endsWith("review-app.ts")) {
     const W = view.width;
     const Hh = view.height;
     const f = view.color(lane.frame);
-    const path = ok ? pathInPicture(H, res.path, res.from, res.to) : [];
+    const path = ok ? pathInPicture(H, res.path, res.from, res.drawTo ?? res.to) : [];
     const sightings = ok ? res.sightings.filter((s) => !s.airborne).map((s) => apply(H, { x: s.u, y: s.v })) : [];
     const lay = ok ? res.metrics.laydown.value : null;
     const base = { H, path, sightings, laydown: lay !== null ? apply(H, { x: laneU(lay, inp.hand), y: 0 }) : undefined };

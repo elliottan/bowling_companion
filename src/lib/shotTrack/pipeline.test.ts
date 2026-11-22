@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { gridFrames, LANE_EVERY, readStep } from "./framePick";
-import { ownInset, ownRadius, predictCenter, PREDICT_FRAMES, trace } from "./pipeline";
+import { DRAW_GAP_FT, drawnTo, ownInset, ownRadius, predictCenter, PREDICT_FRAMES, reacquireBall, REACQUIRE_BELOW_FT, trace } from "./pipeline";
+import { makeFrame } from "./image";
+import { BALL_DIAMETER_BOARDS } from "./laneModel";
+import type { FrameGeometry } from "./registration";
 import { multiply, normalize } from "./homography";
 import { PIN_HIT_FT, timeAt, truthAt } from "./synthetic";
 import { roughMarks, standardShot, syntheticSource, truthBoard, truthBoardAtPins, truthSpeedMph } from "./syntheticSource";
-import type { TrackResult } from "./types";
+import type { BallSighting, GrayFrame, Mat3, TrackResult } from "./types";
 
 /**
  * The headline test (plan 10.1): render a shot, trace it, and the boards at
@@ -232,5 +235,61 @@ describe("ownInset and ownRadius", () => {
     expect(ownRadius(4, 3)).toBe(2);
     // A ball measured larger than the lane predicts (1856: -0.2 px) is drawn larger.
     expect(ownRadius(10, -0.2)).toBeCloseTo(10.2, 9);
+  });
+});
+
+describe("drawnTo", () => {
+  it("draws to the last sighting when the board at the pins stands, else to the end of the first stretch seen", () => {
+    const vs = [1, 5, 10, 20, 26, 52, 55, 58];
+    expect(drawnTo(vs, true)).toBe(58);
+    expect(drawnTo(vs, false)).toBe(26);
+    expect(drawnTo([1, 1 + DRAW_GAP_FT, 1 + 2 * DRAW_GAP_FT], false)).toBe(1 + 2 * DRAW_GAP_FT);
+  });
+});
+
+describe("reacquireBall", () => {
+  // A plain lane, 4 px a board and 6 px a foot, the ball at 22 ft a second on
+  // board 30 (u 10), the bowler across the lane from 26 to 50 ft.
+  const H: Mat3 = [4, 0, 20, 0, -6, 400, 0, 0, 1];
+  const R = (BALL_DIAMETER_BOARDS / 2) * 4;
+  const vAt = (t: number) => 20 + 22 * t;
+  const frames = new Map<number, GrayFrame>();
+  const frame = (i: number) => {
+    const known = frames.get(i);
+    if (known) return known;
+    const f = makeFrame(200, 420, i / 60, 200);
+    const v = vAt(i / 60);
+    const cx = 20 + 4 * 10;
+    const cy = 400 - 6 * v - R;
+    if (v <= 60) for (let y = Math.floor(cy - R); y <= cy + R; y++) for (let x = Math.floor(cx - R); x <= cx + R; x++) if (y >= 0 && Math.hypot(x - cx, y - cy) <= R) f.data[y * 200 + x] = 40;
+    for (let y = 100; y <= 244; y++) for (let x = 0; x < 200; x++) f.data[y * 200 + x] = 10;
+    frames.set(i, f);
+    return f;
+  };
+  const source = { count: 120, frame };
+  const geometry = Array.from({ length: 120 }, (_, index) => ({ index, ok: true, H }) as unknown as FrameGeometry);
+  const seen = Array.from({ length: 16 }, (_, i): BallSighting => ({
+    frame: i, t: i / 60, cx: 0, cy: 0, r: R, contact: { x: 0, y: 0 }, u: 10, v: vAt(i / 60), weight: 1, airborne: false
+  }));
+  const motion = { v0: 20, w: 22, d: 0 };
+
+  it("finds the ball past the bowler as sightings, at its own size, with their uncertainty", () => {
+    const { late, sv } = reacquireBall(source, geometry, 0, seen, motion, 0);
+    expect(late.length).toBeGreaterThanOrEqual(10);
+    for (const s of late) {
+      expect(s.reacquired).toBe(true);
+      expect(s.airborne).toBe(false);
+      expect(s.frame).toBeGreaterThan(15);
+      expect(Math.abs(s.u - 10)).toBeLessThan(0.6);
+      expect(Math.abs(s.v - vAt(s.t))).toBeLessThan(0.8);
+      expect(sv.get(s.frame)!).toBeGreaterThan(0);
+    }
+  });
+
+  it("does not look when the ball was seen far enough, or its pace is not a ball's", () => {
+    const far = seen.map((s) => ({ ...s, v: s.v + REACQUIRE_BELOW_FT }));
+    expect(reacquireBall(source, geometry, 0, far, motion, 0).late).toEqual([]);
+    expect(reacquireBall(source, geometry, 0, seen, { v0: 0, w: 2, d: 0 }, 0).late).toEqual([]);
+    expect(reacquireBall(source, geometry, 0, [], motion, 0).late).toEqual([]);
   });
 });

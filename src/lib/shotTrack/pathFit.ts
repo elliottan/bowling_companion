@@ -1,5 +1,5 @@
 import type { Handedness } from "../../types/bowling";
-import { BOARD_FT, CONTACT_IN, handedBoard, hookSlope, hookU, type HookShape } from "./laneModel";
+import { BOARD_FT, CONTACT_IN, handedBoard, hookSlope, hookU, LEFT_U, RIGHT_U, type HookShape } from "./laneModel";
 import { PIN_POSITIONS } from "../pinGeometry";
 import { entrySpeed, launchSpeed } from "./speeds";
 import type { Metric, MetricState, PathModel, TrackMetrics } from "./types";
@@ -392,6 +392,45 @@ export function localU(pts: PathPoint[], lo: number, hi: number, at: number, min
   return u0 + a * at;
 }
 
+/** A breakpoint is this far down the lane, feet, or it is not one (they lie at 30 to 50 ft; a turn nearer the foul line is the path's shape, not the ball's). */
+export const BREAKPOINT_FT: [number, number] = [24, 56];
+/** Measured with sightings this close on both sides of it, feet... */
+export const BP_SEEN_FT = 5;
+/** ...estimated with sightings this close, and missing beyond. */
+export const BP_REACH_FT = 15;
+/** More boards than this from the breakpoint back to the pins is more hook than a ball has. */
+export const MAX_HOOK_BOARDS = 20;
+/** An estimated board at the pins this far from the straight line through the last 10 ft seen, run on, is not the ball's direction. */
+export const PINS_LINE_TOL = 3;
+
+/**
+ * The breakpoint's state: missing unless it lies inside the path (not at its
+ * ends), in `BREAKPOINT_FT`, with sightings on both sides within
+ * `BP_REACH_FT`; measured with sightings within `BP_SEEN_FT` on both sides
+ * on a path whose shape fits them (a hook, not rough), else estimated.
+ */
+export function breakpointState(bpV: number | null, lo: number, hi: number, seen: number[], path: PathModel): MetricState {
+  if (bpV === null || !(bpV > lo + 0.5 && bpV < hi - 0.5)) return "missing";
+  if (bpV < BREAKPOINT_FT[0] || bpV > BREAKPOINT_FT[1]) return "missing";
+  const within = (d: number) => seen.some((s) => s < bpV && s >= bpV - d) && seen.some((s) => s > bpV && s <= bpV + d);
+  if (!within(BP_REACH_FT)) return "missing";
+  return within(BP_SEEN_FT) && path.kind === "hook" && !path.rough ? "measured" : "estimated";
+}
+
+/**
+ * Whether a board at the pins can stand: on the lane (a ball off it meets no
+ * pin), and, when estimated, within `PINS_LINE_TOL` of where the straight
+ * line through the last 10 ft of sightings runs on to `contactV` (a reading
+ * that turns away from the way the ball was going is the path's guess, not
+ * the ball's). Without sightings there, an estimate does not stand.
+ */
+export function pinsPlausible(board: number, state: MetricState, pts: PathPoint[], to: number, contactV: number, hand: Handedness): boolean {
+  if (!(board >= LEFT_U && board <= RIGHT_U)) return false;
+  if (state !== "estimated") return true;
+  const u = localU(pts, to - LOCAL_SPAN_FT, to, contactV, 4, 3);
+  return u !== null && Math.abs(handedBoard(u, hand) - board) <= PINS_LINE_TOL;
+}
+
 /** What the readings are read off, without the hand they are counted from: kept with a result so another hand reads it again (`handedMetrics`). */
 export type ReadOff = Omit<MetricInput, "hand">;
 
@@ -451,19 +490,13 @@ export function metrics(inp: MetricInput): TrackMetrics {
       bpV = v;
     }
   }
-  let bpState: MetricState = "missing";
-  if (bpV !== null && bpV > lo + 0.5 && bpV < hi - 0.5) {
-    const before = seen.some((s) => s < bpV! && s >= bpV! - 5);
-    const after = seen.some((s) => s > bpV! && s <= bpV! + 5);
-    bpState = before && after && path.kind === "hook" && !path.rough ? "measured" : bpV >= from && bpV <= to ? "estimated" : "missing";
-  }
-  const breakpoint = bpState === "missing" ? M(null, "missing") : M(bpB, bpState);
-  const breakpointFeet = bpState === "missing" ? M(null, "missing") : M(bpV, bpState);
+  const bpState = breakpointState(bpV, lo, hi, seen, path);
 
   // Not read at all when the ball was last seen short of 54 ft (the owner,
   // shot-05: last seen at 52.8 ft, the pins cannot be seen, and "about 9.2"
   // was too sure of itself).
-  const pinState: MetricState = to >= 57 ? "measured" : to >= 54 ? "estimated" : "missing";
+  const seenState: MetricState = to >= 57 ? "measured" : to >= 54 ? "estimated" : "missing";
+  let pinState = seenState;
   // The board at the pins is read off the last sightings alone, like the
   // laydown: a ball turns hardest in its last feet (shot-01: a board a foot),
   // and the whole path, one bend and then straight, runs under it. Their
@@ -485,9 +518,25 @@ export function metrics(inp: MetricInput): TrackMetrics {
   }
   lastU = boardAtPins(pts, contactV, inp.rackMovesAt);
   const board60 = lastU === null ? board(contactV) : handedBoard(lastU, hand);
-  const pins = inp.pinsU !== undefined ? M(handedBoard(inp.pinsU, hand), inp.pinsEstimated ? "estimated" : "measured") : pinState === "missing" ? M(null, "missing") : M(board60, pinState);
+  let pinsValue: number | null = inp.pinsU !== undefined ? handedBoard(inp.pinsU, hand) : pinState === "missing" ? null : board60;
+  if (inp.pinsU !== undefined) pinState = inp.pinsEstimated ? "estimated" : "measured";
+  // The gates (2026-11-22, IMG_0047 on the owner's phone: breakpoint at
+  // 14 ft, the pins 36.7 estimated, off a path that swung across the lane
+  // past the last sighting). Never a wrong number rather than none.
+  if (pinsValue !== null && !pinsPlausible(pinsValue, pinState, pts, to, contactV, hand)) pinsValue = null;
+  let breakpoint = bpState === "missing" ? M(null, "missing") : M(bpB, bpState);
+  let breakpointFeet = bpState === "missing" ? M(null, "missing") : M(bpV, bpState);
+  if (pinsValue !== null && Number.isFinite(bpB) && pinsValue - bpB > MAX_HOOK_BOARDS) {
+    // More hook than a ball has, from the path's furthest point out to the
+    // pins, wherever that is: the far end of the path is not the ball's.
+    pinsValue = null;
+    breakpoint = M(null, "missing");
+    breakpointFeet = M(null, "missing");
+  }
+  if (pinsValue === null) pinState = "missing";
+  const pins = M(pinsValue, pinState);
   const entry = (fdlibm.atan(Math.abs(board(60) - board(54)) * BOARD_FT / 6) * 180) / Math.PI;
-  const entryAngle = pinState === "missing" ? M(null, "missing") : M(entry, pinState);
+  const entryAngle = seenState === "missing" || pinsValue === null ? M(null, "missing") : M(entry, seenState);
   const skidSpan = seen.filter((v) => v <= path.s);
   const launch = (fdlibm.atan(Math.abs(path.a) * BOARD_FT) * 180) / Math.PI;
   const launchAngle =
