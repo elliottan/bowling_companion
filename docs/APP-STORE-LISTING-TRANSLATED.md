@@ -544,10 +544,10 @@ Headpin iPhone 版首次发布。
 Headpin Pro
 ```
 
-### In-app purchase description (22 of 45)
+### In-app purchase description (18 of 45)
 
 ```
-一次购买，无需订阅。深入分析，记录永远免费。
+一次购买，无需订阅。深入分析每颗球。
 ```
 
 ## Spanish, Mexico (es-MX)
