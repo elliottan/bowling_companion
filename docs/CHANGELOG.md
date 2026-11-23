@@ -16,6 +16,10 @@ had all shipped.
   longer say free, one purchase or no subscription, and the captioned sets in
   `marketing/app-store/2026-11-10/` are redrawn from the same plain screens.
   Shot 9 (Home) is left out of the upload, since its Pro banner says "Pay once".
+- Three shot tracer tests that run the tracer over synthetic video get the
+  60 second budget their neighbours already have. Each takes 1 to 2 s alone,
+  but under CI's full parallel run they passed the 5 s default and turned
+  `main` red on 0.117.0.
 
 ## 0.117.0: The shot tracer finds the ball again behind the bowler (2026-11-22)
 
