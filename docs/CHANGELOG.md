@@ -9,12 +9,24 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
-## 0.117.1: The shot tracer's foul line stays on the line at the release (2026-11-23)
+## 0.117.2: The shot tracer's foul line stays on the line at the release (2026-11-23)
 
 - In Settings, Labs: when the bowler's trailing leg lay over a gutter at the
   release, the shot tracer could draw the foul line a few inches onto the
   approach. It now takes the line only from gutter ends the lane's edge
   confirms, so it stays on the foul line.
+
+## 0.117.1: App Store screenshots without a price (2026-11-23)
+
+- No change to the app. App Review turned down 1.2 (5) under Guideline 2.3.7
+  because screenshot captions said "free". The captions in every language no
+  longer say free, one purchase or no subscription, and the captioned sets in
+  `marketing/app-store/2026-11-10/` are redrawn from the same plain screens.
+  Shot 9 (Home) is left out of the upload, since its Pro banner says "Pay once".
+- Three shot tracer tests that run the tracer over synthetic video get the
+  60 second budget their neighbours already have. Each takes 1 to 2 s alone,
+  but under CI's full parallel run they passed the 5 s default and turned
+  `main` red on 0.117.0.
 
 ## 0.117.0: The shot tracer finds the ball again behind the bowler (2026-11-22)
 

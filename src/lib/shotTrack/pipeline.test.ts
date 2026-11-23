@@ -284,7 +284,7 @@ describe("reacquireBall", () => {
       expect(Math.abs(s.v - vAt(s.t))).toBeLessThan(0.8);
       expect(sv.get(s.frame)!).toBeGreaterThan(0);
     }
-  });
+  }, 60_000);
 
   it("does not look when the ball was seen far enough, or its pace is not a ball's", () => {
     const far = seen.map((s) => ({ ...s, v: s.v + REACQUIRE_BELOW_FT }));

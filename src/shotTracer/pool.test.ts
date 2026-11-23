@@ -86,7 +86,7 @@ describe("the tracer's pool", () => {
       expect(await findInPool(pool, looked())).toEqual(alone);
       pool.terminate();
     }
-  });
+  }, 60_000);
 
   // A whole trace each, so one test a pool size: on CI under coverage the two
   // together ran past 30 s.

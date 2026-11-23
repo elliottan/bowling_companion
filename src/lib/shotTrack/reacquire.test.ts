@@ -123,7 +123,7 @@ describe("findAfterGap", () => {
       expect(Math.abs(c.u - uAt(v))).toBeLessThan(0.6);
       expect(Math.abs(c.v - v)).toBeLessThan(0.8);
     }
-  });
+  }, 60_000);
 
   it("finds nothing when the ball never shows again, or with no pace", () => {
     const frames = Array.from({ length: 100 }, (_, k) => 16 + k).map((index) => ({ index, f: frameAt(index, false), H }));
