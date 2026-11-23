@@ -261,25 +261,33 @@ Every screen is in the app's dark theme, at the owner's request.
 
 | # | Screen | Headline | Under it |
 |---|---|---|---|
-| 1 | The scorer in the tenth, the 10 left standing, ball and line beside it | Score every shot. | Tap the pins you left. Unlimited games, free. |
+| 1 | The scorer in the tenth, the 10 left standing, ball and line beside it | Score every shot. | Tap the pins you left. Unlimited games. |
 | 2 | The lane view, the line over 2019 PBA Shark 48 | Remember every line you threw. | Your line drawn over the oil, shot by shot. |
-| 3 | The arsenal, nine balls | Your whole arsenal, free. | Every ball you own, with no cap on the bag. |
+| 3 | The arsenal, nine balls | Your whole arsenal, in one place. | Every ball you own, with no cap on the bag. |
 | 4 | Stats: average, the trend chart, the first-ball card, spares | Know what's working. | Your average, pocket and spares, over time. |
 | 5 | A catalog ball's page, photo and specs | Over 800 balls, one tap. | Specs and photos. Build your bag from them. |
 | 6 | 2019 PBA Shark 48: its numbers and the oil on the lane | See the oil before you throw. | Load tables and the oil drawn on the lane. |
 | 7 | The layout lab as it opens: the drilled ball, what it will do, the sliders | See a layout before you drill it. | Dual angle and Storm VLS, drawn from your PAP. |
-| 8 | Stats with Pro bought: carry, strike and every ball, under the Headpin Pro badge | Go deeper with Pro. | Carry, strike, ball by ball. One purchase, no subscription. |
-| 9 | Home, tonight's game in progress, with the Pro banner | Works without a signal. | No account to make. Built for the alley. |
-| 10 | History: five weeks of league nights | Every night, on your phone. | Unlimited sessions. Back up any time, free. |
+| 8 | Stats with Pro bought: carry, strike and every ball, under the Headpin Pro badge | Go deeper with Pro. | Carry, strike, ball by ball, alley by alley. |
+| 9 | Home, tonight's game in progress, with the Pro banner (not uploaded: see the rules) | Works without a signal. | No account to make. Built for the alley. |
+| 10 | History: five weeks of league nights | Every night, on your phone. | Unlimited sessions. Back up any time. |
 
 Shots 1 to 3 carry the pitch, since they are what a browser sees before it
-scrolls, and they say what is free. Shot 8 is the one Pro screen.
+scrolls. Shot 8 is the one Pro screen.
 
 Rules for the set:
 
+- **No price, anywhere in a screenshot** (App Review Guideline 2.3.7). Version
+  1.2 (5) was turned down on 2026-11-23 because captions said "free"; Apple
+  counts "free", "discounted", "one purchase" and "no subscription" as price
+  references, in any language, in the caption or on the screen under it. The
+  captions no longer say any of them. Shot 9's screen shows Home's Headpin Pro
+  banner, whose text says "Pay once", so it is left out of the upload until it
+  is retaken without the banner. The description is where the free and Pro
+  split is told.
 - **A screen that shows Pro says so** (App Review Guideline 2.3.2: screenshots
   must make clear when a featured item needs a purchase). Shot 8 carries the
-  Headpin Pro badge and the price model in its line. Shots 2, 4, 6 and 7 are
+  Headpin Pro badge. Shots 2, 4, 6 and 7 are
   taken with Pro owned, at the owner's request, so no lock sits over them:
   what they feature (a line, a pattern and a layout drawn, and the stats their
   captions name) is free to read. Shot 4 does show carry and strike on the
