@@ -905,6 +905,8 @@ export const GUTTER_DROP = 6;
 export interface FoulEnd extends GutterEnd {
   /** Only the edge line's end was seen, no gutter end with it: never enough alone. */
   edgeOnly?: boolean;
+  /** The gutter's end and the edge line's end agree: the corner itself, seen twice. */
+  corner?: boolean;
 }
 
 /** How near a gutter's end and its edge line's end must lie to count as one corner, as a share of the lane's span in rows (about 3 rows on the sample clips). */
@@ -916,14 +918,14 @@ export const EDGE_AGREE = 0.012;
  * gutter's end, carried along `slope` to it, lies within `tol` rows: the
  * gutter strip's structure can run on a row or more past the corner (a lace
  * or a shoe over the gutter; 2026-11-16: shot-05's left corner sat 1.5 rows
- * low on every frame, 3.4 on the owner's frame). When the two disagree the
- * gutter's end is kept, as before; with no gutter end, the edge line's end
- * alone, marked `edgeOnly`.
+ * low on every frame, 3.4 on the owner's frame), and is marked `corner`.
+ * When the two disagree the gutter's end is kept, as before; with no gutter
+ * end, the edge line's end alone, marked `edgeOnly`.
  */
 export function foulEnds(gutters: [GutterEnd | null, GutterEnd | null], edges: [EdgeEnd | null, EdgeEnd | null], slope: number, tol: number): [FoulEnd | null, FoulEnd | null] {
   const one = (g: GutterEnd | null, e: EdgeEnd | null): FoulEnd | null => {
     const gOk = g && g.drop >= GUTTER_DROP ? g : null;
-    if (gOk && e) return Math.abs(e.y - (gOk.y + slope * (e.x - gOk.x))) <= tol ? { x: e.x, y: e.y, drop: gOk.drop } : gOk;
+    if (gOk && e) return Math.abs(e.y - (gOk.y + slope * (e.x - gOk.x))) <= tol ? { x: e.x, y: e.y, drop: gOk.drop, corner: true } : gOk;
     if (gOk) return gOk;
     return e ? { x: e.x, y: e.y, drop: 0, edgeOnly: true } : null;
   };
@@ -1513,10 +1515,20 @@ export function guessFoul(vp: Point, left: Line3, right: Line3, pin: Line3, slop
  * The foul line's ends this frame shows for certain (`foulEnds`): a gutter's
  * end, at its edge line's corner where the two agree, never an edge line's
  * end alone. The points a re-tilted foul line may run through (`holdToTilt`).
+ * When one side is such a corner, seen twice, a gutter's end that its own
+ * edge line does not confirm is left out: a leg or a shoe over that gutter
+ * ends where it does, and the camera's distance cannot tell a few rows apart
+ * (2026-11-23: on IMG_0047 just after the release, the trailing leg over the
+ * left gutter put its end 4 rows onto the approach; the line at the tilt
+ * through it put the camera 0.13 ft from the clip's, nearer than the lines
+ * on the foul line itself, and the release frames drew the foul line 0.3 ft
+ * short of it).
  */
 export function foulAnchors(f: GrayFrame, left: Line3, right: Line3, near: number, span: number, slope: number): FoulEnd[] {
   const ends = foulEnds(gutterEnds(f, left, right, near, span, slope), edgeEnds(f, left, right, near, span), slope, Math.max(1.5, EDGE_AGREE * span));
-  return ends.filter((e): e is FoulEnd => !!e && !e.edgeOnly && e.drop >= GUTTER_DROP);
+  const sure = ends.filter((e): e is FoulEnd => !!e && !e.edgeOnly && e.drop >= GUTTER_DROP);
+  const corners = sure.filter((e) => e.corner);
+  return corners.length ? corners : sure;
 }
 
 /** The line through `p` at `slope`. */

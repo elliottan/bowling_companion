@@ -153,6 +153,73 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
+## The foul line short of it after the release (2026-11-23, not released)
+
+**The owner's report**: on IMG_0047's trace picture (a frame just after the
+release) "the foul line (red) is not aligned... it is slightly before the
+foul line, not on it".
+
+**What the near end shows** (the clip's luma, read frames 0 to 251 of the
+`app-read.ts --dump`): from the lane down, the yellow lane, a white band
+about 8 rows deep, a grey band about 7 rows, then a thin dark step where both
+gutters end and the approach begins. The finder's foul line runs through the
+gutter ends on that step. On every found frame from read frame 38 on it lies
+within a row of the step; the trace's lanes (`debug.geometry`) from frame 40
+on lie a row above its bright side, on the dark line. On read frames 0 to 36
+(3.13 to 3.75 s, the release and the laydown at 3.56 s) they lay 2 to 4 rows
+below it, on the approach: the owner's "slightly before".
+
+**Why**: one found frame, read frame 29 (3.61 s). The trailing leg lies over
+the left gutter, its trouser ending where the approach begins: the gutter
+strip's structure ran on 4 rows past the corner (left end 575.1 where the
+step is at 571), while the left edge line's end was read at the top of the leg
+(544.6), so `foulEnds` kept the gutter's end alone. Through it and the right
+corner (gutter end and edge line's end agreeing at 568.9) the frame's foul
+line was off the clip's tilt (-0.011 against 0.010), and `holdToTilt` weighed
+the lines at the tilt through each end the frame shows for certain
+(`foulAnchors`): the one through the leg put the camera 23.39 ft behind the
+line, 0.13 from the clip's 23.52, nearer than any line on the step, and won.
+The camera's distance cannot tell 3 rows (0.3 ft) apart. Read frame 29 is
+the found lane nearest the release, so `laneTrack` carried it over the
+release frames.
+
+**The fix** (`laneFind.ts`): `foulEnds` marks an end where the gutter's end
+and the edge line's end agree `corner` (the corner seen twice), and
+`foulAnchors` keeps only the corners when the frame shows one; a gutter's end
+that its own edge line does not confirm is left out then. Read frame 29 now
+takes a line within a row of the step on the left and 2 rows below it on the
+right (camera 23.74 ft); the release frames' lines lie from a row above the
+step to a row below it (were 2 to 4 below), the later ones as before. Test:
+`foulAnchors leaves out a gutter's end its edge line does not confirm when
+the other side is a corner`.
+
+**Measured** (Node, `app-read.ts --hand auto`, every input; laydown, touchdown
+at feet, arrows, breakpoint at feet, pins, launch mph):
+
+| input | before | after |
+|---|---|---|
+| IMG_0047 | 13.80, 13.19 at 1.28, 10.50, 6.59 at 36.78, 14.35, 15.96 | 13.80, 13.20 at 1.18, 10.50, 6.59 at 36.68, 14.33, 16.07 |
+| img1996-sdr-avc1 | 18.55, 17.32 at 1.90, 13.39, 8.93 at 50.15 | 18.54, 17.32 at 1.90, 13.39, 8.93 at 50.15 |
+| img1996-vp9-10-60 | 18.44, 13.36, 8.99 at 48.61 | 18.45, 13.36, 8.99 at 48.61 |
+| shot-01 to 06, IMG_9960, IMG_2938, 1856, 6447, 8133, the other six IMG_1996 copies | | same digest |
+
+The two IMG_1996 copies each moved one found frame's foul line (sdr-avc1 read
+frame 136 by 2.4 rows, vp9-10-60 frame 105 by 1.0), both up toward the
+thin dark line, which they had sat 2 to 5 rows below beside a shoe.
+
+**Not changed: the white band.** On this house (shot-01 to 06 and IMG_0047)
+the white band past the gutter ends is 1.1 to 1.7 ft deep, its far edge where
+the lane's yellow starts and where the edge line has a small hook. It is the
+band the finder took for the foul line before 0.112.0, which the owner then
+said was not on it. The gutters, both edge lines and the capping's end all
+stop at its near edge, and the ball's reflection shows in it. If the owner
+means its far edge, that is a new ruling for every clip of this house, a foot
+or more each.
+
+Pictures: `scratchpad/review20/` (`IMG_0047-f20`, `-f30`, `-f40-foul-before-after.jpg`
+for the traced line, `IMG_0047-lane-f29-*` for the found frame,
+`img1996-*-f136` and `-f105` for the two copies).
+
 ## The ball found again past the bowler, and the far readings gated (2026-11-22, not released)
 
 **The owner's report**: IMG_0047 (iPhone HEVC, portrait, 59.94 fps, a

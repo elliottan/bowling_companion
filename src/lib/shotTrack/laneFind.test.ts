@@ -819,9 +819,9 @@ describe("findFoulLines on a built picture", () => {
     it("foulEnds takes the edge line's corner when it agrees with the gutter's end, the gutter's end when not, and the line alone marked", () => {
       const g = { x: 50, y: 161, drop: 20 };
       const e = { x: 70, y: 159, depth: 60 };
-      expect(foulEnds([g, null], [e, null], 0, 3)).toEqual([{ x: 70, y: 159, drop: 20 }, null]);
+      expect(foulEnds([g, null], [e, null], 0, 3)).toEqual([{ x: 70, y: 159, drop: 20, corner: true }, null]);
       // Carried along the slope: 20 px at 0.05 is a row.
-      expect(foulEnds([g, null], [{ ...e, y: 164.5 }, null], 0.05, 3)[0]).toEqual({ x: 70, y: 164.5, drop: 20 });
+      expect(foulEnds([g, null], [{ ...e, y: 164.5 }, null], 0.05, 3)[0]).toEqual({ x: 70, y: 164.5, drop: 20, corner: true });
       expect(foulEnds([g, null], [{ ...e, y: 164.5 }, null], 0, 3)[0]).toBe(g);
       expect(foulEnds([g, null], [{ ...e, y: 150 }, null], 0, 3)[0]).toBe(g);
       expect(foulEnds([null, null], [null, e], 0, 3)).toEqual([null, { x: 70, y: 159, drop: 0, edgeOnly: true }]);
@@ -885,6 +885,30 @@ describe("findFoulLines on a built picture", () => {
       expect(one).toHaveLength(1);
       expect(one[0].x).toBeCloseTo(70, 5);
       expect(foulAnchors(makeFrame(300, 220, 0, 200), L, R, 160, 100, 0)).toEqual([]);
+    });
+
+    it("foulAnchors leaves out a gutter's end its edge line does not confirm when the other side is a corner", () => {
+      // IMG_0047 just after the release (2026-11-23): the trailing leg over the
+      // left gutter carries its structure 5 rows onto the approach, past the
+      // corner where the edge line stops; the right is a corner, seen twice.
+      const leg = (console?: number) => {
+        const f = withEdges({ edgeEnd: 159, gutterEnd: 160, tilt: 3, console });
+        for (let y = 160; y < 165; y++) for (let x = 35; x < 68; x++) f.data[y * 300 + x] = Math.floor(x / 3) % 2 ? 60 : 190;
+        return f;
+      };
+      const ends = foulEnds(gutterEnds(leg(), L, R, 160, 100, 0.02), edgeEnds(leg(), L, R, 160, 100), 0.02, 1.5);
+      expect(ends[0]!.corner).toBeUndefined();
+      expect(Math.abs(ends[0]!.y - 164.5)).toBeLessThan(1);
+      expect(ends[1]!.corner).toBe(true);
+      const anchors = foulAnchors(leg(), L, R, 160, 100, 0.02);
+      expect(anchors).toHaveLength(1);
+      expect(anchors[0].x).toBeCloseTo(230, 5);
+      expect(Math.abs(anchors[0].y - 161.5)).toBeLessThan(1);
+      // With no corner on either side (a console over the right gutter), the gutter's end stands as before.
+      const alone = foulAnchors(leg(0), L, R, 160, 100, 0.02);
+      expect(alone).toHaveLength(1);
+      expect(alone[0].corner).toBeUndefined();
+      expect(Math.abs(alone[0].y - 164.5)).toBeLessThan(1);
     });
 
     it("loneEndFoulLine runs through the stronger gutter end at the slope, never an edge line's alone", () => {
