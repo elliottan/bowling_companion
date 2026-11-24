@@ -1966,6 +1966,10 @@ msgstr "Anggaran: bola hanya kelihatan pada sebahagian daripada jarak ini."
 msgid "Estimated: the ball wasn't seen at this spot, so the cross is where the fitted path crosses it, on the nearest frame where the ball was seen."
 msgstr "Anggaran: bola tidak kelihatan di titik ini, jadi tanda silang berada di tempat laluan yang dipadankan melaluinya, pada frame terdekat yang menunjukkan bola."
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball wasn't seen near this spot, so the cross is where the fitted path puts it on the frame it should be there."
+msgstr "Anggaran: bola tidak kelihatan berhampiran titik ini, jadi tanda silang berada di tempat laluan yang dipadankan meletakkannya, pada frame yang bola sepatutnya berada di situ."
+
 #: src/components/SessionFilterBar.tsx
 msgid "Event"
 msgstr "Jenis sesi"
@@ -4988,6 +4992,10 @@ msgstr "Katalog belum dimuatkan"
 #: src/components/BallFormDialog.tsx
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "Katalog belum dimuatkan lagi. Ia memerlukan satu sambungan, kemudian ia berfungsi di luar talian."
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "The cross is where the board is read, and the line is that board."
+msgstr "Tanda silang ialah tempat papan dibaca, dan garisan ialah papan itu."
 
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."

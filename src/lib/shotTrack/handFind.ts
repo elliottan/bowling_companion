@@ -183,12 +183,26 @@ export function pinsCue(u: number): HandCue | null {
 }
 
 /**
+ * A release cue with the ball at least this far, boards, to one side of the
+ * body's middle decides the hand on its own (`decideHand`). Half a ball's
+ * width and more: a body's middle is never that far on the ball's wrong side.
+ * The twenty inputs read 7 to 16 boards, shot-01 2.7.
+ */
+export const RELEASE_CLEAR = 6;
+
+/**
  * The hand from the cues seen: the side the weighted votes come down on,
  * however little they say (the owner, 2026-11-20: "It should be obvious from
  * the video"). A strong cue against the rest is outvoted, and the details say
- * so (`why`). The app's setting stands only with no cue at all, or votes
- * that cancel exactly. The confidence is the weighted share of the votes on
- * the side found.
+ * so (`why`), except a clear release (`RELEASE_CLEAR`): the ball beside the
+ * body is the one cue that holds whatever the bowler aimed at and wherever
+ * the lane was drawn (the picture's left and right survive a lane mapping a
+ * gutter or more out), while the drift, the line, the hook and the pins are
+ * all read in the found lane's boards and turn with it (2026-11-24: on
+ * IMG_5853 a lane that ran out over the ball return put a right-hander's
+ * ball on the left half). The app's setting stands only with no cue at all,
+ * or votes that cancel exactly. The confidence is the weighted share of the
+ * votes on the side found.
  */
 export function decideHand(cues: HandCue[], setting: Handedness): HandFound {
   let sum = 0;
@@ -196,6 +210,11 @@ export function decideHand(cues: HandCue[], setting: Handedness): HandFound {
   for (const c of cues) {
     sum += WEIGHT[c.name] * c.vote;
     total += WEIGHT[c.name] * Math.abs(c.vote);
+  }
+  const release = cues.find((c) => c.name === "release" && Math.abs(c.boards) >= RELEASE_CLEAR);
+  if (release && release.vote * sum <= 0) {
+    const side = Math.sign(release.vote);
+    return { hand: side > 0 ? "right" : "left", by: "video", why: "disagree", confidence: (side * sum + total) / (2 * total), cues };
   }
   if (sum === 0) return { hand: setting, by: "setting", confidence: 0, cues };
   const side = sum > 0 ? 1 : -1;

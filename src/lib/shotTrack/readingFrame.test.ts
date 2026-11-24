@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CROP_MAX, CROP_MIN, cropBox, isEstimated, pickFrame, readingShots, speedStretch, videoFrameNumber, type Ok } from "./readingFrame";
+import { CROP_MAX, CROP_MIN, cropBox, isEstimated, pickFrame, readingShots, speedStretch, SPOT_REACH_FT, spotFrame, videoFrameNumber, type Ok } from "./readingFrame";
 import { laneU } from "./laneModel";
 import { trace, type TraceDebug, type TraceOutput } from "./pipeline";
 import { roughMarks, standardShot, syntheticSource } from "./syntheticSource";
@@ -118,6 +118,66 @@ describe("readingShots", () => {
     const gappy = SIGHTINGS.filter((s) => s.v < 8 || s.v > 22);
     expect(shotOf(made({ sightings: gappy }), "arrows")!.estimated).toBe(true);
     expect(shotOf(made({ sightings: gappy }), "breakpoint")!.estimated).toBe(false);
+  });
+
+  it("shows an estimated reading the ball was not seen near on the frame the path puts it at the spot, with no ring, cut round the spot", () => {
+    // Seen to 7 ft and from 25 ft: the arrows' 15 ft is 8 ft from either.
+    const gappy = SIGHTINGS.filter((s) => s.v < 8 || s.v > 22);
+    const s = shotOf(made({ sightings: gappy, metrics: { arrows: m(17, "estimated") } }), "arrows")!;
+    expect(s.estimated).toBe(true);
+    const [p] = s.parts;
+    expect(p.disc).toBeNull();
+    expect(p.feet).toBeNull();
+    // 20 ft a second from 0 ft at 0 s: 15 ft at 0.75 s, frame 22.5 by the sightings' pace (frame 10 at 1/3 s, 29 at 29/30 s).
+    expect([22, 23]).toContain(p.frame);
+    // The cross is the spot: board 17 at 15 ft, x = 170, y = 480, inside the crop and near its middle.
+    expect(p.cross!.x).toBeGreaterThan(0.25 * p.width);
+    expect(p.cross!.x).toBeLessThan(0.75 * p.width);
+    expect(p.cross!.y).toBeGreaterThan(0.25 * p.height);
+    expect(p.cross!.y).toBeLessThan(0.85 * p.height);
+    const ox = 170 + 0.5 - p.cross!.x;
+    const oy = 480 + 0.5 - p.cross!.y;
+    expect(p.gray[2 * p.width + 3]).toBe(frameAt(p.frame).data[(2 + Math.round(oy)) * W + 3 + Math.round(ox)]);
+    // As wide as a crop round a ball standing there (here 4 boards, 40 px, a radius): the lane's 16 boards at the least.
+    expect(p.width).toBeGreaterThanOrEqual(160);
+    expect(p.width).toBeLessThanOrEqual(CROP_MAX);
+    const [a, b] = p.line!;
+    expect(a.x).toBeCloseTo(b.x, 6);
+    expect(a.x).toBeCloseTo(p.cross!.x, 6);
+  });
+
+  it("rings the nearest sighting when it is within reach of the spot, and puts the cross on the path there", () => {
+    const near = SIGHTINGS.filter((s) => s.v < 8 || (s.v > 15 && s.v - 15 <= SPOT_REACH_FT) || s.v > 22);
+    const s = shotOf(made({ sightings: near, metrics: { arrows: m(17, "estimated") } }), "arrows")!;
+    const [p] = s.parts;
+    // The sighting at 16 ft, frame 15.
+    expect(p.frame).toBe(15);
+    expect(p.disc).not.toBeNull();
+    expect(p.feet).toBe(16);
+    // 15 ft is a foot nearer than the ball's base: 8 px below it.
+    expect(p.cross!.y).toBeCloseTo(p.disc!.cy + p.disc!.r + 8, 6);
+  });
+
+  it("falls back to the nearest sighting's frame, with no ring, when the motion never reaches the spot", () => {
+    const gappy = SIGHTINGS.filter((s) => s.v < 8 || s.v > 22);
+    const o = made({ sightings: gappy, metrics: { arrows: m(17, "estimated") } });
+    (o.result as TrackResult).motion = { v0: 0, w: 0, d: 0 };
+    const p = shotOf(o, "arrows")!.parts[0];
+    expect(p.disc).toBeNull();
+    expect(p.frame).toBe(12);
+  });
+
+  it("finds the frame nearest the time with a lane mapping, and none without a sighting on one", () => {
+    const gappy = SIGHTINGS.filter((s) => s.v < 8 || s.v > 22);
+    const o = made({ sightings: gappy });
+    const run: Ok = { result: o.result as TrackResult, debug: o.debug };
+    const at = spotFrame(run, 15, 100)!;
+    o.debug.geometry = o.debug.geometry.map((g) => (Math.abs(g.index - at.frame) <= 1 ? { ...g, H: null as unknown as Mat3 } : g));
+    const moved = spotFrame(run, 15, 100)!;
+    expect(Math.abs(moved.frame - at.frame)).toBe(2);
+    expect(moved.seen).toBeNull();
+    o.debug.geometry = o.debug.geometry.map((g) => ({ ...g, H: null as unknown as Mat3 }));
+    expect(spotFrame(run, 15, 100)).toBeNull();
   });
 
   it("has no picture for a reading with no value", () => {

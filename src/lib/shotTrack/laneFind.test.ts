@@ -38,6 +38,12 @@ import {
   lanePairs,
   lanesOnFrame,
   laneRows,
+  NEAR_FALL,
+  NEAR_SHARP,
+  settleNear,
+  atNear,
+  MIN_SHARP_FRAMES,
+  type NearSide,
   laneSpread,
   markLinesOf,
   modeOf,
@@ -273,6 +279,33 @@ describe("laneRows", () => {
     expect(r.near - 10).toBeLessThan(85);
   });
 
+  it("offers a soft fall onto a busy approach beside the lowest busy row (a camera far behind the approach)", () => {
+    // IMG_5853 (2026-11-24): 3.9 across the lane, the gutters' ends blurred
+    // over eight rows, then 2.3 down the approach (legs, reflections, the
+    // ball return) to the bottom: a fall of 1.42, under `NEAR_SHARP`, and
+    // the approach over half the lane's structure, so the lowest busy row is
+    // the picture's bottom.
+    const E = Array.from({ length: 200 }, (_, j) => (j === far ? 10 : j < 100 ? 3.9 : j < 108 ? 3.9 - (1.6 * (j - 100)) / 8 : 2.3));
+    const r = laneRows(energyFan(E));
+    expect(r.sharp).toBe(false);
+    expect(r.near).toBe(10 + 199);
+    expect(r.alts).toHaveLength(1);
+    expect(Math.abs(r.alts[0] - (10 + 104))).toBeLessThanOrEqual(4);
+    expect(NEAR_FALL).toBeLessThan(NEAR_SHARP);
+  });
+
+  it("offers every soft fall, the sharpest first, and none with a sharp one", () => {
+    // 8133: the lane's sheen fades 70 rows before the gutters end, as softly
+    // as the end itself. Falls of 1.38 (row 100) and 1.37 (row 150); the
+    // plain approach below still at over half the lane's structure.
+    const E = Array.from({ length: 200 }, (_, j) => (j === far ? 10 : j < 100 ? 6 : j < 150 ? 4.3 : 3.1));
+    const r = laneRows(energyFan(E));
+    expect(r.sharp).toBe(false);
+    expect(r.alts.map((y) => Math.round((y - 10) / 5) * 5)).toEqual([100, 150]);
+    const sharp = laneRows(energyFan(Array.from({ length: 100 }, (_, j) => (j === far ? 10 : j < 70 ? 4 : 0.1))));
+    expect(sharp).toMatchObject({ sharp: true, alts: [] });
+  });
+
   it("looks for the racks only where a camera 10 to 45 ft behind the foul line puts them", () => {
     // A phone held low: the masking units' artwork just under the horizon is
     // busier than the racks below it (2026-11-19, a 720 by 1280 video).
@@ -280,6 +313,55 @@ describe("laneRows", () => {
     const r = laneRows(energyFan(E));
     expect(r.far).toBe(10 + 40);
     expect(Math.abs(r.near - (10 + 250))).toBeLessThanOrEqual(4);
+  });
+});
+
+describe("settleNear", () => {
+  const side = (near: number): NearSide => ({ near, candidates: [{ left: near, right: near + 1, leftEdge: 1, rightEdge: -1 }], profile: { grad: new Float32Array(1), level: new Float32Array(1) }, whole: { grad: new Float32Array(1), level: new Float32Array(1) } });
+  const frame = (vpY: number, near: number, sharp: boolean, alts: number[] = []): FrameLanes => ({ vp: { x: 0, y: vpY }, far: vpY + 40, fan: {} as Fan, ...side(near), sharp, ...(alts.length ? { alts: alts.map(side) } : {}) });
+
+  it("moves a soft frame's near end to the row at the sharp frames' depth below the vanishing point", () => {
+    // IMG_5853: sharp frames 200 rows below the vanishing point; a soft one
+    // whose lowest busy row is the bottom (340 rows) and whose soft fall is at
+    // 201; 8133: a soft fall inside the lane (100 rows) beside the real one.
+    const per: (FrameLanes | null)[] = [frame(360, 560, true), frame(362, 562, true), null, frame(361, 700, false, [562]), frame(358, 558, true), frame(300, 640, false, [400, 498])];
+    settleNear(per);
+    expect(per[3]!.near).toBe(562);
+    expect(per[3]!.candidates[0].left).toBe(562);
+    expect(per[3]!.alts!.map((a) => a.near)).toEqual([700]);
+    expect(per[5]!.near).toBe(498);
+    expect(per[5]!.alts!.map((a) => a.near)).toEqual([640, 400]);
+    // The sharp frames are as they were.
+    expect(per[0]!.near).toBe(560);
+  });
+
+  it("keeps a soft frame's own row when it is the nearest", () => {
+    const per = [frame(360, 560, true), frame(360, 561, true), frame(360, 559, true), frame(360, 562, false, [700])];
+    settleNear(per);
+    expect(per[3]!.near).toBe(562);
+    expect(MIN_SHARP_FRAMES).toBe(3);
+  });
+
+  it("with too few sharp frames, leaves the lowest busy row unless it puts the camera nearer than 10 ft", () => {
+    // The far row 40 rows below the vanishing point: 200 rows down is a
+    // camera 15.6 ft back, 340 rows (the picture's bottom past a busy
+    // approach) 8.3 ft, too near; 220 rows 13.9 ft.
+    const few = [frame(360, 560, true), frame(360, 560, false, [700]), frame(360, 700, false, [400, 562, 580]), frame(360, 700, false, [380])];
+    settleNear(few);
+    expect(few[1]!.near).toBe(560);
+    expect(few[2]!.near).toBe(562);
+    expect(few[2]!.alts!.map((a) => a.near)).toEqual([700, 400, 580]);
+    expect(few[3]!.near).toBe(700);
+  });
+
+  it("gives a frame at one of the rows it offered (`atNear`), as the measure job takes it", () => {
+    const r = frame(360, 700, false, [562, 450]);
+    expect(atNear(r, 700)).toBe(r);
+    const at = atNear(r, 562);
+    expect(at.near).toBe(562);
+    expect(at.candidates[0].left).toBe(562);
+    expect(at.alts!.map((a) => a.near)).toEqual([700, 450]);
+    expect(atNear(r, 600)).toBe(r);
   });
 });
 

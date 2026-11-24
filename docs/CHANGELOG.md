@@ -9,6 +9,19 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.118.0: The shot tracer reads a far camera and finds the ball after the bowler hides it (2026-11-24)
+
+- In Settings, Labs: filmed from far behind the approach, the shot tracer
+  could take the approach for the lane, and then read the hand and every
+  board wrong. It now finds where the lane starts from the frames that show
+  it clearly, and a ball released well beside the body decides the hand.
+- When the bowler stands in front of the lane and the pins, the ball is now
+  looked for again after any long gap, so arrows, breakpoint and the board
+  at the pins can be read on such clips.
+- The picture behind an estimated reading now shows the ball where it was
+  seen nearest that spot down the lane, or the lane at that spot, instead of
+  the ball close to the camera with the cross off to one side.
+
 ## 0.117.2: The shot tracer's foul line stays on the line at the release (2026-11-23)
 
 - In Settings, Labs: when the bowler's trailing leg lay over a gutter at the

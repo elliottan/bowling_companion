@@ -1,5 +1,6 @@
 import { apply, downAt, intersect, lineThrough, mapLine } from "./homography";
-import { CONTACT_IN, handedBoard, imageToLane, laneU } from "./laneModel";
+import { CONTACT_IN, expectedRadiusPx, handedBoard, imageToLane, laneU } from "./laneModel";
+import { timeAtFeet } from "./pathFit";
 import type { TraceDebug, TraceOutput } from "./pipeline";
 import type { FrameSource } from "./registration";
 import { uAtColumn } from "./release";
@@ -232,10 +233,10 @@ interface Marks {
   feet: number | null;
 }
 
-/** The frame cut to the crop that holds its marks, and the marks in the crop's pixels. */
-function partOf(frame: GrayFrame, index: number, marks: Marks, H: Mat3 | null, row: number): FramePart {
+/** The frame cut to the crop that holds its marks (and `room`, frame pixels), and the marks in the crop's pixels. */
+function partOf(frame: GrayFrame, index: number, marks: Marks, H: Mat3 | null, row: number, room: Point[] = []): FramePart {
   const { disc, cross, line } = marks;
-  const around: Point[] = [];
+  const around: Point[] = [...room];
   if (disc) around.push({ x: disc.cx - BALL_ROOM * disc.r, y: disc.cy - BALL_ROOM * disc.r }, { x: disc.cx + BALL_ROOM * disc.r, y: disc.cy + BALL_ROOM * disc.r });
   if (cross) around.push(cross);
   if (!around.length) around.push({ x: frame.width / 2, y: frame.height / 2 });
@@ -279,6 +280,59 @@ export function isEstimated(name: ReadingName, run: Ok, p: Pick, hand: Handednes
   }
 }
 
+/** An estimated reading's picture rings the ball only on a frame it was seen this close to the reading's spot on, feet. */
+export const SPOT_REACH_FT = 3;
+
+/**
+ * The frame an estimated reading is shown on, and the ball on it: the
+ * sighting nearest the reading's spot down the lane, when within
+ * `SPOT_REACH_FT`; else no ball, on the frame the fitted motion puts it at
+ * the spot (by the sightings' own pace in frames), or the nearest sighting's
+ * frame when the motion never gets there. Only frames with a lane mapping
+ * the source has. Null when there is none.
+ */
+export function spotFrame(run: Ok, feet: number, count: number): { frame: number; seen: BallSighting | null } | null {
+  const { result, debug } = run;
+  const H = (i: number) => (i >= 0 && i < count ? (debug.geometry[i - debug.first]?.H ?? null) : null);
+  const seen = result.sightings.filter((s) => !s.airborne && H(s.frame));
+  if (!seen.length) return null;
+  const near = seen.reduce((b, s) => (Math.abs(s.v - feet) < Math.abs(b.v - feet) ? s : b), seen[0]);
+  if (Math.abs(near.v - feet) <= SPOT_REACH_FT) return { frame: near.frame, seen: near };
+  const a = seen[0];
+  const b = seen[seen.length - 1];
+  const t = timeAtFeet(result.motion, feet);
+  if (t === null || b.frame === a.frame || !(b.t > a.t)) return { frame: near.frame, seen: null };
+  const at = Math.round(a.frame + ((t - a.t) * (b.frame - a.frame)) / (b.t - a.t));
+  // The nearest frame to it with a mapping, either side.
+  for (let k = 0; k < count; k++) {
+    for (const i of [at - k, at + k]) if (H(i)) return { frame: i, seen: null };
+  }
+  return { frame: near.frame, seen: null };
+}
+
+/**
+ * The picture of a board reading the ball was not seen at (2026-11-24, the
+ * owner on IMG_2986's arrows: a ball seen 9 ft short with the cross over
+ * its top was no picture of the arrows): the frame `spotFrame` gives, cut
+ * round the spot as a crop round a ball standing there would be (`BALL_ROOM`
+ * of the ball's radius the lane gives there, `CROP_BOARDS` across), and the
+ * ball's ring when it was seen near, with the cross where the fitted path is
+ * at the spot on that frame. Null without a frame or a mapping.
+ */
+function spotShot(name: ReadingName, run: Ok, source: FrameSource, value: number, feet: number): ReadingShot | null {
+  const { result, debug } = run;
+  const at = spotFrame(run, feet, source.count);
+  if (!at) return null;
+  const H = debug.geometry[at.frame - debug.first].H;
+  const u = laneU(value, result.hand);
+  const cross = apply(H, { x: u, y: feet });
+  const r = expectedRadiusPx(H, u, feet);
+  const room = Number.isFinite(r) && r > 0 ? [{ x: cross.x - BALL_ROOM * r, y: cross.y - 2 * BALL_ROOM * r }, { x: cross.x + BALL_ROOM * r, y: cross.y + BALL_ROOM * r }] : [];
+  const line: [Point, Point] = [apply(H, { x: u, y: feet - LINE_FEET }), apply(H, { x: u, y: feet + LINE_FEET })];
+  const marks: Marks = { disc: at.seen, cross, line, feet: at.seen?.v ?? null };
+  return { reading: name, estimated: true, parts: [partOf(source.frame(at.frame), at.frame, marks, H, feet, room)] };
+}
+
 /** The picture of a board reading: its frame, the ball, the cross and the board's line. */
 function boardShot(name: ReadingName, run: Ok, source: FrameSource): ReadingShot | null {
   const { result, debug } = run;
@@ -287,9 +341,16 @@ function boardShot(name: ReadingName, run: Ok, source: FrameSource): ReadingShot
   if (value === null) return null;
   const p = pickFrame(name, run, hand, null, "app");
   if (!p || p.frame < 0 || p.frame >= source.count) return null;
+  const estimated = isEstimated(name, run, p, hand);
+  // Estimated off the fitted path where the picture's ball is a sighting
+  // (not the ball followed back to the foul line or on to the pins).
+  const offPath = name === "laydown" ? !debug.release : name === "pins" ? !followedPins(run, hand) : true;
+  if (estimated && offPath) {
+    const s = spotShot(name, run, source, value, p.feet);
+    if (s) return s;
+  }
   const frame = source.frame(p.frame);
   const H = debug.geometry[p.frame - debug.first]?.H ?? null;
-  const estimated = isEstimated(name, run, p, hand);
   let cross: Point | null = null;
   let line: [Point, Point] | null = null;
   if (H) {

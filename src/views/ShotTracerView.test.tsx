@@ -596,6 +596,18 @@ describe("ShotTracerView", () => {
     expect(within(sheet).getByTestId("reading-estimated").textContent).toMatch(/Estimated: the ball wasn't seen at this spot/);
   });
 
+  it("shows the spot alone, with no ring, for an estimated reading where the ball was not seen near it", async () => {
+    await resultWithShots([{ reading: "arrows", estimated: true, parts: [{ ...part(40, 1.2, null), disc: null }] }]);
+    fireEvent.click(screen.getByRole("button", { name: "Arrows, show the frame" }));
+    const sheet = await screen.findByRole("dialog", { name: "Arrows" });
+    expect(within(sheet).queryByTestId("reading-ball")).toBeNull();
+    expect(within(sheet).getAllByTestId("reading-cross")).toHaveLength(1);
+    expect(within(sheet).getAllByTestId("reading-line")).toHaveLength(1);
+    expect(within(sheet).queryByText(/The ring is the ball/)).toBeNull();
+    expect(within(sheet).getByText("The cross is where the board is read, and the line is that board.")).toBeTruthy();
+    expect(within(sheet).getByTestId("reading-estimated").textContent).toMatch(/wasn't seen near this spot, so the cross is where the fitted path puts it on the frame it should be there/);
+  });
+
   it("shows the first and the last frame of the stretch a speed was measured over", async () => {
     centis();
     await resultWithShots();
