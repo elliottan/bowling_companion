@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bodyAtRelease, BODY_CHANGE, decideHand, driftCue, handNote, hookAgainstDrift, hookCue, lineCue, otherHand, pinsCue, releaseCue, type HandCue } from "./handFind";
+import { bodyAtRelease, BODY_CHANGE, decideHand, RELEASE_CLEAR, driftCue, handNote, hookAgainstDrift, hookCue, lineCue, otherHand, pinsCue, releaseCue, type HandCue } from "./handFind";
 import { handedMetrics, type ReadOff } from "./pathFit";
 import type { Background } from "./background";
 import type { GrayFrame, Mat3, PathModel } from "./types";
@@ -78,6 +78,22 @@ describe("decideHand", () => {
     const split = decideHand([releaseCue(25, 14), hookCue(rightPath, 60)!, driftCue(24, 19)], "left");
     expect(split).toMatchObject({ hand: "right", by: "video", why: "disagree" });
     expect(split.confidence).toBeCloseTo(2.1 / 3.1, 6);
+  });
+
+  it("follows a clear release against every cue read in the lane's boards", () => {
+    // IMG_5853 on a lane run out over the ball return (2026-11-24): the
+    // right-hander's ball beside the body, but on the lane's left half, its
+    // drift and hook read the wrong way.
+    const wrongLane = [releaseCue(22, 14), driftCue(12, 11), hookCue(mirror(rightPath), 60)!, lineCue(11)!, pinsCue(17)!];
+    const found = decideHand(wrongLane, "left");
+    expect(found).toMatchObject({ hand: "right", by: "video", why: "disagree" });
+    expect(found.confidence).toBeLessThan(0.5);
+    // A release under `RELEASE_CLEAR` is one vote among the rest.
+    expect(decideHand([releaseCue(18, 14), driftCue(12, 10), lineCue(11)!], "right").hand).toBe("left");
+    // Votes that cancel: a clear release still decides, not the setting.
+    expect(decideHand([releaseCue(8, 14.5)], "right")).toMatchObject({ hand: "left", by: "video", confidence: 1 });
+    expect(decideHand([releaseCue(21, 14), driftCue(20, 17), lineCue(16)!], "left")).toMatchObject({ hand: "right", by: "video", why: "disagree", confidence: 0.5 });
+    expect(RELEASE_CLEAR).toBe(6);
   });
 
   // Shots as a right- or left-hander plays them, in lane u (boards from the left edge).

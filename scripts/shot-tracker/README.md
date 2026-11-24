@@ -153,6 +153,57 @@ edges vs fit" column), so the edge definition agrees with the pin spots.
   fewer than 8 of them) are left out of the fit (`withoutIslands`), and the
   pins are then missing, not read off a path fitted across the gap.
 
+## A camera far behind the approach, and the hand from a clear release (2026-11-24, not released)
+
+**The owner's report** (IMG_5853, 0.117.2 on an iPhone): "Left-handed (from
+the video)", "The lane may be off", laydown 12, every line off; the bowler is
+right-handed. The camera stands about 23 ft behind the foul line, far back
+on the approach, with a ball return to the right; the lane is a fifth of the
+picture wide.
+
+**Why the lane was wrong**: `laneRows` takes the near end where the lane's
+structure falls sharply (a ratio of 1.5 over a few rows). Here the bowler's
+legs, their reflection and the ball return keep half the lane's structure on
+the approach, and the gutters' ends blur over six rows: the fall is 1.31 to
+1.47 on 20 of 28 frames, so those frames fell back to the picture's bottom
+row, 140 rows below the foul line. The lane's columns were then read over
+the approach, the only quiet stretch one lane wide ran from the bowler's leg
+to the ball return, and the lane width learned from those frames was wrong
+for all of them. Node read a foul line on the approach and the camera 13 ft
+back (laydown 33.7); the phone a lane out over the ball return.
+
+**The fix**: a frame without a sharp fall now also offers its soft falls
+(`NEAR_FALL`, 1.3) beside the lowest busy row (`NearRows.alts`), each with its
+own profile (`NearSide`), and `settleNear` (run in `laneSteps` before
+`steadyProfiles`) takes the one nearest the depth below the vanishing point
+the three nearest sharp frames give (`MIN_SHARP_FRAMES`); with fewer sharp
+frames the lowest busy row stays unless it puts the camera nearer than 10 ft
+and a soft fall does not. The measure job reads the frame at the row chosen
+(`atNear`). Not the sharpest soft fall on its own: on 8133 the lane's sheen
+fades 70 rows short of the gutters' ends as softly as the end itself, and on
+6447 a soft fall lies 40 rows onto the approach.
+
+**The hand**: the release cue (ball beside the body) is the only cue that
+holds whatever the lane mapping; drift, line, hook and pins are read in the
+found lane's boards. A release of `RELEASE_CLEAR` (6) boards or more now
+decides the hand against the rest (`why: "disagree"`). On the wrong lane the
+right-hander's ball sat on the lane's left half.
+
+**IMG_5853 now**: lane 7 between its gutters, foul line at the gutter ends,
+pin row on the pin bases (the 6 in pin spacing within a board of the
+mapping), camera 22.3 ft; right-handed (release +11.5, drift +4.7, hook,
+line +10.5; pins -2.1 against), laydown 14.19 (the frame shows 14.2), touchdown
+13.3 at 1.6 ft, arrows 9.54, breakpoint 6.69 at 29.3 ft, pins 22.1 estimated
+(the far end is 1.4 px a board and the bowler's hand is over it), launch
+17.0 mph. The same with the grey levels bent (gamma 0.6 to 1.6) and with
+video-range grey: laydown 14.18 to 14.32, always right-handed.
+
+**Every other input** (isolated from other work in the tree): 18 of 21 the
+same digest; 8133 laydown 14.62 to 14.64, breakpoint 7.75 at 40.4 to 7.88 at
+39.1, pins 14.05 to 14.50; shot-01 pins 17.47 to 17.57; shot-02 breakpoint
+8.83 at 43.8 to 8.58 at 43.3; no hand changed. Pictures:
+`scratchpad/review22/`.
+
 ## The foul line short of it after the release (2026-11-23, not released)
 
 **The owner's report**: on IMG_0047's trace picture (a frame just after the

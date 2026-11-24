@@ -16,7 +16,7 @@
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { apply, intersect, invert, lineThrough, mapLine, multiply, normalize, type Line3 } from "../../src/lib/shotTrack/homography";
-import { findFoulLines, gutterEnds, laneAttempts, lanesOnFrame, rankLanes, steadyProfiles } from "../../src/lib/shotTrack/laneFind";
+import { findFoulLines, gutterEnds, laneAttempts, lanesOnFrame, rankLanes, settleNear, steadyProfiles } from "../../src/lib/shotTrack/laneFind";
 import { focalFromPlane } from "../../src/lib/shotTrack/calibrate";
 import { register, registerPlane } from "../../src/lib/shotTrack/registration";
 import { BACK_ROW_FT } from "../../src/lib/shotTrack/laneModel";
@@ -63,6 +63,7 @@ for (const frame of frames) {
   console.log(`${name} frame ${frame}: clip camera ${camera.toFixed(2)} ft; found lane on this frame: ${a ? `camera ${a.camera.toFixed(2)} ft, foul ${vOf(H, a.foul!, 20).toFixed(2)} ft by the hand lane (measured ${vOf(H, a.measured.foul, 20).toFixed(2)})` : "none"}`);
   // Every candidate on the frame, as `measure` weighs them.
   const per = gray.map((f) => lanesOnFrame(f));
+  settleNear(per);
   steadyProfiles(per);
   const pick = rankLanes(per, t.clip.width).find((p) => p.index === k);
   const cands: Line3[] = [];

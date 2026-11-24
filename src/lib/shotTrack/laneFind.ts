@@ -318,12 +318,12 @@ export function rowEnergy(fan: Fan): Float32Array {
  * the most structure, the near end where the structure stops (the gutters end
  * just past the foul line; the approach is plain).
  */
-export function laneRows(fan: Fan): { far: number; near: number } {
+export function laneRows(fan: Fan): NearRows & { far: number } {
   const E = rowEnergy(fan);
   const n = E.length;
   let far = 0;
   for (let j = 1; j < Math.floor(n * 0.6); j++) if (E[j] > E[far]) far = j;
-  let near = nearRow(E, far);
+  let near = nearRows(E, far);
   // The racks stand where a camera `CAMERA_FT` behind the foul line puts them:
   // along the lane, (pin row - vp) / (foul line - vp) = d / (d + 62.6). A
   // camera held low has the masking units' artwork just under the horizon,
@@ -331,7 +331,7 @@ export function laneRows(fan: Fan): { far: number; near: number } {
   // the masking for the far end, a row under the vanishing point, and no pin
   // was looked for where they stand). The far end is then the busiest row
   // where the racks can be, with a margin for the rough near row.
-  const rows = fan.y0 + near - fan.vp.y;
+  const rows = fan.y0 + near.near - fan.vp.y;
   if (rows > 0) {
     const ratio = (d: number) => d / (d + BACK_ROW_FT);
     const lo = Math.max(1, Math.ceil(fan.vp.y + 0.8 * ratio(CAMERA_FT[0]) * rows - fan.y0));
@@ -339,39 +339,82 @@ export function laneRows(fan: Fan): { far: number; near: number } {
     if ((far < lo || far > hi) && hi > lo) {
       far = lo;
       for (let j = lo + 1; j <= hi; j++) if (E[j] > E[far]) far = j;
-      near = nearRow(E, far);
+      near = nearRows(E, far);
     }
   }
-  return { far: fan.y0 + far, near: fan.y0 + near };
+  return { far: fan.y0 + far, near: fan.y0 + near.near, sharp: near.sharp, alts: near.alts.map((j) => fan.y0 + j) };
 }
 
+/** The lane's near end as `laneRows` finds it, picture rows. */
+export interface NearRows {
+  near: number;
+  /** The structure falls sharply there (`NEAR_SHARP`): the near end beyond doubt. */
+  sharp: boolean;
+  /** Without a sharp fall, the other rows it could be (the other soft falls, the lowest busy row), for the clip to choose among (`settleNear`). */
+  alts: number[];
+}
+
+/** A fall in structure going down the picture by this ratio, over a few rows either side, is plainly the lane's near end (`laneRows`): the sample clips' falls are 2 and more. */
+export const NEAR_SHARP = 1.5;
+
+/**
+ * With no fall as sharp as `NEAR_SHARP`, a fall of at least this ratio may
+ * be the near end (`laneRows`). A camera far back behind the approach
+ * (IMG_5853, 23 ft behind the foul line, the lane a fifth of the picture
+ * wide) sees the bowler's legs, their reflection and a ball return on the
+ * approach, which keep half the lane's structure there, and the gutters'
+ * ends blur over six rows: its fall is 1.31 to 1.47. The near end used to
+ * fall back to the picture's bottom row then, 150 rows below the foul line,
+ * the lane's columns were read over the approach, and the pair found ran
+ * from the bowler's leg to the ball return. A soft fall can also come
+ * inside the lane (8133: the lane's sheen fades 70 rows before the gutters
+ * end, as softly as the end itself) or on the approach (6447, 40 rows below
+ * the foul line), so a frame's soft falls are only offered, and the clip
+ * chooses among them and the lowest busy row (`settleNear`).
+ */
+export const NEAR_FALL = 1.3;
+
 /** `laneRows`' near end below the far row `far`, in fan rows. */
-function nearRow(E: Float32Array, far: number): number {
+function nearRows(E: Float32Array, far: number): NearRows {
   const n = E.length;
   // The near end: the sharpest fall in structure going down (the gutters and
-  // caps end, the approach is plain), over a few rows either side; failing a
-  // clear fall, the lowest row still at half the lane's typical structure.
+  // caps end, the approach is plain), over a few rows either side, when one
+  // is sharp (`NEAR_SHARP`); else the lowest row still at half the lane's
+  // typical structure, with the soft falls (`NEAR_FALL`) as the alternatives,
+  // the sharpest first.
   const k = Math.max(4, Math.round(0.025 * n));
   const mean = (a: number, b: number) => {
     let s = 0;
     for (let j = a; j <= b; j++) s += E[j];
     return s / (b - a + 1);
   };
+  const from = far + Math.round(0.3 * (n - far));
+  const R = new Float64Array(n);
   let near = -1;
-  let best = 1.5;
-  for (let j = far + Math.round(0.3 * (n - far)); j < n - k - 1; j++) {
+  let best = NEAR_SHARP;
+  for (let j = from; j < n - k - 1; j++) {
     const r = mean(j - k, j - 1) / (mean(j + 1, j + k) + 0.05);
+    R[j] = r;
     if (r > best) {
       best = r;
       near = j;
     }
   }
-  if (near < 0) {
-    const mid = median(Array.from(E.subarray(far, n)).slice(0, Math.max(1, Math.floor((n - far) / 2))));
-    near = n - 1;
-    while (near > far && E[near] < 0.5 * mid) near--;
+  if (near >= 0) return { near, sharp: true, alts: [] };
+  const mid = median(Array.from(E.subarray(far, n)).slice(0, Math.max(1, Math.floor((n - far) / 2))));
+  let low = n - 1;
+  while (low > far && E[low] < 0.5 * mid) low--;
+  // The soft falls, one row each: the sharpest of each run of rows over
+  // `NEAR_FALL` no more than two windows apart.
+  const falls: number[] = [];
+  let last = -Infinity;
+  for (let j = from; j < n - k - 1; j++) {
+    if (R[j] < NEAR_FALL) continue;
+    if (j - last > 2 * k) falls.push(j);
+    else if (R[j] > R[falls[falls.length - 1]]) falls[falls.length - 1] = j;
+    last = j;
   }
-  return near;
+  return { near: low, sharp: false, alts: falls.filter((j) => Math.abs(j - low) > 2 * k).sort((a, b) => R[b] - R[a]) };
 }
 
 export interface ColumnProfile {
@@ -479,6 +522,17 @@ export interface FrameLanes {
   profile: ColumnProfile;
   /** The whole length's profile as measured (`profile` is changed by `steadyProfiles`), kept for `refineVanishingPoint`. */
   whole?: ColumnProfile;
+  /** The near end was a sharp fall of structure (`laneRows`); otherwise `alts` holds the frame read to its other likely near ends. */
+  sharp?: boolean;
+  alts?: NearSide[];
+}
+
+/** What a frame's lanes are when its near end is at `near` (`lanesOnFrame`). */
+export interface NearSide {
+  near: number;
+  candidates: LaneCandidate[];
+  profile: ColumnProfile;
+  whole: ColumnProfile;
 }
 
 /** Vanishing point, fan and lane candidates on one frame (full resolution, video-range grey). */
@@ -494,18 +548,82 @@ export function lanesOnFrame(f: GrayFrame): FrameLanes | null {
   const vp = { x: found.point.x * k + (k - 1) / 2, y: found.point.y * k + (k - 1) / 2 };
   const fan = buildFan(f, vp, roll);
   if (fan.rows < 10) return null;
-  const { far, near } = laneRows(fan);
-  const span = near - far;
-  if (span < 0.15 * f.height) return null;
-  // (The finder reads the gradient's medians only; the level's are left out.)
-  const prof = columnProfile(fan, far + 0.08 * span, near - 0.04 * span, false);
-  // The bowler, the ball return and a scoring screen stand near the camera and
-  // hide the near half of an edge far more often than the far half: each
-  // column keeps the stronger of its whole-length and far-half medians.
-  const farHalf = columnProfile(fan, far + 0.08 * span, far + 0.5 * span, false);
-  const grad = prof.grad.map((g, i) => (Math.abs(farHalf.grad[i]) > Math.abs(g) && Math.sign(farHalf.grad[i]) === Math.sign(g || farHalf.grad[i]) ? farHalf.grad[i] : g));
-  const profile = { grad: Float32Array.from(grad), level: prof.level };
-  return { vp, far, near, candidates: laneCandidates(prof, fan.x0, 0.08 * f.width), fan, profile, whole: prof };
+  const rows = laneRows(fan);
+  const { far } = rows;
+  const side = (near: number): NearSide | null => {
+    const span = near - far;
+    if (span < 0.15 * f.height) return null;
+    // (The finder reads the gradient's medians only; the level's are left out.)
+    const prof = columnProfile(fan, far + 0.08 * span, near - 0.04 * span, false);
+    // The bowler, the ball return and a scoring screen stand near the camera and
+    // hide the near half of an edge far more often than the far half: each
+    // column keeps the stronger of its whole-length and far-half medians.
+    const farHalf = columnProfile(fan, far + 0.08 * span, far + 0.5 * span, false);
+    const grad = prof.grad.map((g, i) => (Math.abs(farHalf.grad[i]) > Math.abs(g) && Math.sign(farHalf.grad[i]) === Math.sign(g || farHalf.grad[i]) ? farHalf.grad[i] : g));
+    const profile = { grad: Float32Array.from(grad), level: prof.level };
+    return { near, candidates: laneCandidates(prof, fan.x0, 0.08 * f.width), profile, whole: prof };
+  };
+  const main = side(rows.near);
+  if (!main) return null;
+  const alts = rows.alts.map(side).filter((a): a is NearSide => !!a);
+  return { vp, far, fan, ...main, sharp: rows.sharp, ...(alts.length ? { alts } : {}) };
+}
+
+/** Frames with a sharp near end needed to settle the others' (`settleNear`). */
+export const MIN_SHARP_FRAMES = 3;
+
+/**
+ * Each frame whose near end was a soft fall (`laneRows`) takes the row, of
+ * those it offered, nearest the depth below the vanishing point the frames
+ * with a sharp near end give it, the nearest three of them in the clip
+ * (their median): the person filming stays put, or moves slowly, so the
+ * foul line keeps its depth, while a soft fall inside the lane (8133, 70
+ * rows short) or the picture's bottom row past a busy approach (IMG_5853,
+ * 140 rows past) stands out. Depths are compared as ratios (a zoom scales
+ * them). With fewer than `MIN_SHARP_FRAMES` sharp frames, each frame keeps
+ * its lowest busy row, as before there were soft falls (1856 has none),
+ * unless that row and the far row put the camera outside `CAMERA_FT` and a
+ * soft fall does not. In place, before `steadyProfiles`.
+ */
+export function settleNear(per: (FrameLanes | null)[]): void {
+  const sharp = per.map((r, i) => ({ i, depth: r?.sharp ? r.near - r.vp.y : NaN })).filter((x) => x.depth > 0);
+  per.forEach((r, i) => {
+    if (!r || r.sharp || !r.alts?.length) return;
+    const own: NearSide = { near: r.near, candidates: r.candidates, profile: r.profile, whole: r.whole ?? r.profile };
+    let best = own;
+    if (sharp.length >= MIN_SHARP_FRAMES) {
+      const near = [...sharp].sort((a, b) => Math.abs(a.i - i) - Math.abs(b.i - i) || a.i - b.i).slice(0, MIN_SHARP_FRAMES);
+      const ref = median(near.map((x) => x.depth));
+      const off = (s: NearSide) => {
+        const d = s.near - r.vp.y;
+        return d > 0 ? Math.abs(fdlibm.log(d / ref)) : Infinity;
+      };
+      for (const a of r.alts) if (off(a) < off(best)) best = a;
+    } else {
+      // No clip to go by: the lowest busy row stands unless it puts the
+      // camera nearer than `CAMERA_FT` allows with the far row (IMG_5853's
+      // picture bottom: 7 to 10 ft), and a soft fall does not.
+      const fits = (s: NearSide) => roughCamera(r, s.near) >= CAMERA_FT[0] && roughCamera(r, s.near) <= CAMERA_FT[1];
+      if (!fits(own)) best = r.alts.find(fits) ?? own;
+    }
+    if (best !== own) per[i] = { ...r, ...best, alts: [own, ...r.alts.filter((a) => a !== best)] };
+  });
+}
+
+/** The camera's distance behind the foul line, feet, that a frame's far row and a near row `near` put it at (rough, as the rows are); NaN when they cannot. */
+function roughCamera(r: FrameLanes, near: number): number {
+  const a = r.far - r.vp.y;
+  const b = near - r.vp.y;
+  if (!(a > 0 && b > a)) return NaN;
+  const q = a / b;
+  return (BACK_ROW_FT * q) / (1 - q);
+}
+
+/** `r` with its near end at `near`, one of the rows it offered (`settleNear`), or as it is. */
+export function atNear(r: FrameLanes, near: number): FrameLanes {
+  if (r.near === near) return r;
+  const a = r.alts?.find((x) => x.near === near);
+  return a ? { ...r, ...a, alts: [{ near: r.near, candidates: r.candidates, profile: r.profile, whole: r.whole ?? r.profile }, ...r.alts!.filter((x) => x !== a)] } : r;
 }
 
 /**
@@ -1792,7 +1910,7 @@ export function runLaneJob(job: LaneJob, f: GrayFrame, store: LaneStore): FrameL
       return r;
     }
     case "measure": {
-      const m = measure(f, store.per.get(job.index)!, job.pick);
+      const m = measure(f, atNear(store.per.get(job.index)!, job.pick.near), job.pick);
       store.measured.set(job.index, m);
       return m && { ends: m.ends.length, camera: m.ends[0]?.camera ?? NaN, gutters: !!m.ends[0]?.foul.gutters, tilt: m.ends[0]?.tilt ?? NaN };
     }
@@ -1819,6 +1937,7 @@ export function runLaneJob(job: LaneJob, f: GrayFrame, store: LaneStore): FrameL
  */
 export function* laneSteps(count: number, width: number, tries: number): Generator<LaneJob[], { attempts: Attempt[]; camera: number }, unknown[]> {
   const per = (yield Array.from({ length: count }, (_, index) => ({ kind: "lanes" as const, index }))) as (FrameLanes | null)[];
+  settleNear(per);
   steadyProfiles(per);
   const ranked = rankLanes(per, width).slice(0, tries);
   const sums = (yield ranked.map((pick) => ({ kind: "measure" as const, index: pick.index, pick }))) as (MeasureSummary | null)[];
