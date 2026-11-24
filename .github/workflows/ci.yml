@@ -123,6 +123,108 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  # The shot tracer's regression check (scripts/shot-tracker/regress.ts): the
+  # tracer read on real videos, each reading held to its margin. A job of its
+  # own, so it adds nothing to the wall clock beside checks and e2e, and it
+  # exits green at once unless tracer code changed. It is not in `report`'s
+  # needs, and Vercel never reads CI, so it cannot hold a deploy.
+  shot-tracer:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env:
+      SHOT_RELEASE: shot-clips-v1
+    steps:
+      - uses: actions/checkout@v4
+
+      # Did tracer code change? A PR is compared with its base, a push with
+      # the commit before it. Where there is nothing to compare (a new
+      # branch, a force push, a shallow miss) it runs, because skipping on a
+      # guess is how a regression gets through.
+      - name: Did the tracer change?
+        id: filter
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          paths='^(src/lib/shotTrack/|src/shotTracer/|scripts/shot-tracker/|package-lock\.json$)'
+          run=true
+          if [ -n "$BASE" ] && [ "$BASE" != "0000000000000000000000000000000000000000" ] && git fetch --no-tags --depth=1 origin "$BASE"; then
+            changed=$(git diff --name-only "$BASE" HEAD)
+            if printf '%s\n' "$changed" | grep -Eq "$paths"; then
+              echo "Tracer files changed:"; printf '%s\n' "$changed" | grep -E "$paths"
+            else
+              run=false
+              echo "No tracer files changed: nothing to check."
+            fi
+          else
+            echo "No base to compare with: running the check."
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          if [ "$run" = false ]; then echo "Shot tracer check skipped: no tracer files changed." >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - uses: actions/setup-node@v4
+        if: steps.filter.outputs.run == 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.filter.outputs.run == 'true'
+        run: npm ci
+
+      # app-read.ts decodes the videos with ffmpeg.
+      - name: Install ffmpeg
+        if: steps.filter.outputs.run == 'true'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg unzip
+
+      # Keyed on the release tag and the sha256 of every release video in the
+      # manifest, so a new clip set is a new key and an old zip is never reused.
+      - name: Key the clips cache
+        if: steps.filter.outputs.run == 'true'
+        id: key
+        run: |
+          key=$(node -e 'const m=require("./scripts/shot-tracker/regress/expected.json");const s=m.videos.filter(v=>v.sha256).map(v=>v.sha256).sort().join(",");console.log(m.release.tag+"-"+require("crypto").createHash("sha256").update(s).digest("hex").slice(0,16))')
+          echo "key=shot-clips-$key" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the clips
+        if: steps.filter.outputs.run == 'true'
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: .shot-clips-cache
+          key: ${{ steps.key.outputs.key }}
+
+      # The release holds the videos too big or too private for the repo.
+      # Without it (the first run, a fork) the repo's own clips are still read.
+      - name: Fetch the clips release
+        if: steps.filter.outputs.run == 'true' && steps.cache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$SHOT_RELEASE" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+            gh release download "$SHOT_RELEASE" --repo "${{ github.repository }}" --pattern "$SHOT_RELEASE.zip" --dir .shot-clips-cache
+          else
+            echo "::warning::Release $SHOT_RELEASE is missing: the shot tracer check reads only the clips in the repo."
+          fi
+
+      - name: Check the shot tracer
+        if: steps.filter.outputs.run == 'true'
+        run: |
+          zip=".shot-clips-cache/$SHOT_RELEASE.zip"
+          if [ -f "$zip" ]; then
+            mkdir -p .shot-clips
+            unzip -o -q "$zip" -d .shot-clips
+            export SHOT_CLIPS_DIR="$PWD/.shot-clips" SHOT_CLIPS_REQUIRED=1
+          else
+            echo "::notice::Release $SHOT_RELEASE is missing, so only the repo clips are checked and the release clips are skipped."
+          fi
+          start=$SECONDS
+          # The shell runs with -e, so keep the status to print the time first.
+          status=0
+          npx tsx scripts/shot-tracker/regress.ts || status=$?
+          echo "Shot tracer check took $((SECONDS - start)) s." | tee -a "$GITHUB_STEP_SUMMARY"
+          exit $status
+
   # A red run on `main` is a shipped-broken production build, because
   # Vercel deploys the push regardless of this workflow. Four such runs
   # once went unnoticed for a day, so a failure files an issue rather than

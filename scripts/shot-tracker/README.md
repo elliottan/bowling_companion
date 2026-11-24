@@ -2205,3 +2205,33 @@ Same cases, before and after round two (errors in boards; mph):
 The synthetic ceiling and wall textures now ramp over a few pixels instead
 of stepping. The renderer samples each pixel once, so a hard edge jumped
 whole pixels as the camera turned, which no real lens does.
+
+## Regression check (`regress.ts`)
+
+CI reads a set of real videos with the app's own read and fails a PR when a
+reading leaves its margin (the `shot-tracer` job in `.github/workflows/ci.yml`,
+in parallel with the others, and only when tracer code changed).
+`regress/expected.json` holds, per video, the hand and each reading (laydown,
+arrows, breakpoint and its feet, pins, launch speed, entry speed): its value,
+`measured` or `estimated`, and a tolerance (0.5 board, 1.5 ft for the
+breakpoint's feet, 0.5 mph), or `null` for "must not be read". A `known` on a
+reading is an owner-corrected value: it is printed against ours and never fails.
+
+```
+SHOT_CLIPS_DIR=<dir with the release videos> npx tsx scripts/shot-tracker/regress.ts   # about 3 minutes with 4 workers
+npx tsx scripts/shot-tracker/regress.ts --only shot-06    # the videos whose name contains this
+npx tsx scripts/shot-tracker/regress.ts --update          # an intended change: rewrite expected.json, print the diff
+```
+
+The six repo clips need nothing else. The rest are the release asset
+`shot-clips-v1.zip` (tag `shot-clips-v1`), unzipped into `SHOT_CLIPS_DIR`; each
+is checked against its sha256 in the manifest. Without a clip the run skips it
+with a warning, or fails when `SHOT_CLIPS_REQUIRED=1` (CI sets it when the
+release exists). After an intended change, run `--update`, read the diff, and
+commit `expected.json` with the change.
+
+To add a clip: put it in a new zip with every video of the old one (top level,
+`zip -0`), upload it as release `shot-clips-v2` with the asset
+`shot-clips-v2.zip`, add the clip to `expected.json` (`"from": "release"`, its
+`sha256` and `bytes`; `--update` fills the readings) and set `release.tag` and
+`release.asset` there and `SHOT_RELEASE` in the workflow to the new tag.
