@@ -9,6 +9,16 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.118.2: The shot tracer reads the same on a slow phone (2026-11-24)
+
+- Fixed: when the ball is not in the first part of a video, the tracer looks
+  in up to 8 more parts. That search also stopped after 30 seconds, so a slow
+  or busy device could give up before the part with the ball and read a
+  different shot. The first run of the new CI check on all 16 sample videos
+  caught it: on the CI machine IMG_2986 read a laydown of 11.0 and pins of
+  30.6 instead of 17.7 and 14.7. The search is now bounded by the 8 parts
+  alone; a part that hangs is still stopped by the decoders' stall limits.
+
 ## 0.118.1: A regression check for the shot tracer (2026-11-24)
 
 - No change to the app. CI now reads the shot tracer's sample videos when a

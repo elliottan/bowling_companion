@@ -2224,7 +2224,7 @@ npx tsx scripts/shot-tracker/regress.ts --update          # an intended change: 
 ```
 
 The six repo clips need nothing else. The rest are the release asset
-`shot-clips-v1.zip` (tag `shot-clips-v1`), unzipped into `SHOT_CLIPS_DIR`; each
+`shot-clips-v1.zip` (tag `shot-clips-v1`, published 2026-11-24, 92,368,962 bytes), unzipped into `SHOT_CLIPS_DIR`; each
 is checked against its sha256 in the manifest. Without a clip the run skips it
 with a warning, or fails when `SHOT_CLIPS_REQUIRED=1` (CI sets it when the
 release exists). After an intended change, run `--update`, read the diff, and

@@ -28,10 +28,14 @@ const runSpan = (r: readonly { t: number; v: number }[]) =>
 /** How much of the bar the first part fills: about its share of a shot's read. */
 const FIRST_SHARE = 0.4;
 
-/** At most this many parts are read beside the first to look for the ball in (`seekPart`)... */
+/**
+ * At most this many parts are read beside the first to look for the ball in
+ * (`seekPart`), so a long video is not read whole a part at a time. The bound
+ * is a count, not a clock: a time limit gave a slow or busy device a different
+ * reading of the same video (IMG_2986 needs its third part). A part that hangs
+ * is stopped by the decoders' own stall limits.
+ */
 export const SEEK_PARTS = 8;
-/** ...for no longer than this, milliseconds: a long video is not read whole a part at a time. */
-export const SEEK_MS = 30000;
 
 /** Looks for the ball in a part's frames with its lane (`findBall`). */
 export type BallSeeker = (on: VideoFrames, lanes: FrameLane[]) => BallSearch;
@@ -94,8 +98,7 @@ export async function readShot(
   // the first part, before the band is given up.
   if (!lanes) {
     const starts = looks.flatMap((r) => (r[0] ? [r[0].t] : []));
-    const began = Date.now();
-    for (let more = 0; !lanes && more < SEEK_PARTS && Date.now() - began < SEEK_MS; more++) {
+    for (let more = 0; !lanes && more < SEEK_PARTS; more++) {
       const next = seekPart(starts, tried, video.duration, found.release);
       if (!next) break;
       tried.push(next);
@@ -148,8 +151,7 @@ export async function readShot(
   const byRun: { part: typeof part; window: ShotWindow; lanes: FrameLane[] }[] = window.by === "speed" ? [{ part, window, lanes: lanes! }] : [];
   const searched = lanes ? [part] : [];
   let dropped = false;
-  const began = Date.now();
-  for (let more = 0; lanes && !ball?.seen && more < SEEK_PARTS && Date.now() - began < SEEK_MS; more++) {
+  for (let more = 0; lanes && !ball?.seen && more < SEEK_PARTS; more++) {
     const next = seekPart(hints, tried, video.duration, found.release);
     if (!next) break;
     tried.push(next);
