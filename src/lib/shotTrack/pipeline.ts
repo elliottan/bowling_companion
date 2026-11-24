@@ -811,18 +811,24 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
   // Lost well short of the pins: looked for again by its dark disk in the
   // frames themselves (`reacquire.ts`), at its own pace, to the pins.
   if (!nearOnly) {
-    const { late, sv: lateSv } = reacquireBall(source, geometry, first, seen, motion, ownInset(insets));
-    if (late.length) {
-      // A sighting the islands rule left out on one of those frames gives way to it.
-      const lateFrames = new Set(late.map((s) => s.frame));
-      for (let k = sightings.length - 1; k >= 0; k--) if (lateFrames.has(sightings[k].frame)) sightings.splice(k, 1);
+    const { late, sv: lateSv, after } = reacquireBall(source, geometry, first, seen, motion, ownInset(insets));
+    if (late.length && after) {
+      // Past where the ball was lost, the track found again is the ball: a
+      // sighting up to its end gives way to it (one the islands rule left
+      // out, or one of a few blobs it was seen as across the gap), and so
+      // does any after it once it has reached the pins.
+      const end = late[late.length - 1];
+      const atPins = end.v >= CONTACT_ROW_FT;
+      const givesWay = (s: BallSighting) => s.frame > after.frame && (s.frame <= end.frame || atPins);
+      for (let k = sightings.length - 1; k >= 0; k--) if (givesWay(sightings[k])) sightings.splice(k, 1);
+      seen = seen.filter((s) => !givesWay(s));
       for (const s of late) {
         sightings.push(s);
         svOf.set(s.frame, lateSv.get(s.frame) ?? 0);
         debug.circles.set(s.frame, { cx: s.cx, cy: s.cy, r: s.r, weight: s.weight, edges: [], fixed: true });
       }
       sightings.sort((a, b) => a.frame - b.frame);
-      seen = [...seen, ...late];
+      seen = [...seen, ...late].sort((a, b) => a.frame - b.frame);
       debug.reacquired = late.map((s) => s.frame);
       vs = seen.map((s) => s.v);
       pathPts = pathOf(seen);
@@ -1037,12 +1043,33 @@ export const REACQUIRE_BELOW_FT = 50;
 /** A sighting found again counts for this much in the fits (a covered one's share). */
 export const REACQUIRED_WEIGHT = 0.5;
 
+/** Two sightings in a row this far apart down the lane, feet, or more have the ball lost between them (`lostAfter`). */
+export const REACQUIRE_GAP_FT = 15;
+/** The head pin's contact row, feet: a track found again ends where it first reaches it (the ball is among the pins from there). */
+const CONTACT_ROW_FT = 60 - CONTACT_IN / 12;
+
 /**
- * The ball found again past its last sighting (`findAfterGap`) when that is
- * short of `REACQUIRE_BELOW_FT`: in the steadied frames after it, as far as
- * its pace there (the fitted motion's) can take it to the pins, at its own
- * size (`ownRadius`), against five frames from before as the references. As
- * sightings with their down-lane uncertainty; none when it is not found.
+ * The sighting the change against the empty lane lost the ball after, of
+ * `seen` in frame order: the first followed by a jump of `REACQUIRE_GAP_FT`
+ * or more down the lane, else the last (2026-11-24, IMG_2986: seen to 6 ft,
+ * the bowler in the empty lane over the rest of it, then a few blobs at the
+ * rack of the ball and its mirror image together, placed 5 ft short, and of
+ * the ball in the pit after the hit; the ball, plain in every frame, was
+ * never looked for, since the last of those was past 50 ft).
+ */
+export function lostAfter(seen: BallSighting[]): BallSighting | undefined {
+  for (let k = 0; k + 1 < seen.length; k++) if (seen[k + 1].v - seen[k].v >= REACQUIRE_GAP_FT) return seen[k];
+  return seen[seen.length - 1];
+}
+
+/**
+ * The ball found again past where it was lost (`lostAfter`, `findAfterGap`)
+ * when that is short of `REACQUIRE_BELOW_FT`: in the steadied frames after
+ * it, as far as its pace there (the fitted motion's) can take it to the
+ * pins, at its own size (`ownRadius`), against five frames from before as
+ * the references, up to where it first reaches the head pin's contact row.
+ * As sightings with their down-lane uncertainty, and the sighting it was
+ * lost after; none when it is not found.
  */
 export function reacquireBall(
   source: FrameSource,
@@ -1051,9 +1078,9 @@ export function reacquireBall(
   seen: BallSighting[],
   motion: { v0: number; w: number; d: number },
   inset: number
-): { late: BallSighting[]; sv: Map<number, number> } {
+): { late: BallSighting[]; sv: Map<number, number>; after?: BallSighting } {
   const none = { late: [], sv: new Map<number, number>() };
-  const last = seen[seen.length - 1];
+  const last = lostAfter(seen);
   if (!last || last.v >= REACQUIRE_BELOW_FT) return none;
   const speed = motion.w + motion.d * last.t;
   if (!(speed >= MIN_SPEED_FTS && speed <= MAX_SPEED_FTS)) return none;
@@ -1065,7 +1092,9 @@ export function reacquireBall(
   const until = last.t + (GAP_TO_FT - last.v) / (GAP_SLOW * speed) + 0.2;
   const frames = ok.filter((g) => g.index > last.frame).map((g) => ({ index: g.index, f: source.frame(g.index), H: g.H })).filter((x) => x.f.t <= until);
   const radius = (H: Mat3, u: number, v: number) => ownRadius(expectedRadiusPx(H, u, v), inset);
-  const found = findAfterGap({ frames, refs, last: { v: last.v, u: last.u, t: last.t, speed }, radius });
+  const track = findAfterGap({ frames, refs, last: { v: last.v, u: last.u, t: last.t, speed }, radius });
+  const atRow = track.findIndex((c) => c.v >= CONTACT_ROW_FT);
+  const found = atRow < 0 ? track : track.slice(0, atRow + 1);
   const sv = new Map<number, number>();
   const late = found.map((c): BallSighting => {
     const H = geometry[c.frame - first].H;
@@ -1077,7 +1106,7 @@ export function reacquireBall(
       rExpected: expectedRadiusPx(H, cp.u, cp.v), airborne: false, reacquired: true
     };
   });
-  return { late, sv };
+  return { late, sv, after: last };
 }
 
 /**

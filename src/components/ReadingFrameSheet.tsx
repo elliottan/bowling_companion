@@ -86,6 +86,8 @@ function captionOf(part: FramePart, number: number, which: "board" | "first" | "
  */
 export function ReadingFrameSheet({ title, value, shot, numberOf, onClose }: { title: string; value: string | null; shot: ReadingShot; numberOf: (part: FramePart) => number; onClose: () => void }) {
   const speed = shot.reading === "launchSpeed" || shot.reading === "entrySpeed";
+  // An estimated board shown where the ball was not seen near: the spot alone, with no ring.
+  const noBall = !speed && shot.parts.every((p) => !p.disc);
   // Out to the body: opened from a screen pushed into a tab, the sheet would
   // sit under the tab bar, which draws over everything inside the tab.
   return createPortal(
@@ -97,13 +99,17 @@ export function ReadingFrameSheet({ title, value, shot, numberOf, onClose }: { t
         <p className="text-footnote text-ink-secondary">
           {speed
             ? t`The ring is the ball, and the line is the row where its distance is read.`
-            : t`The ring is the ball, the cross is where the board is read, and the line is that board.`}
+            : noBall
+              ? t`The cross is where the board is read, and the line is that board.`
+              : t`The ring is the ball, the cross is where the board is read, and the line is that board.`}
         </p>
         {shot.estimated && (
           <p data-testid="reading-estimated" className="text-footnote text-ink-secondary">
             {speed
               ? t`Estimated: the ball was seen over only part of this stretch.`
-              : t`Estimated: the ball wasn't seen at this spot, so the cross is where the fitted path crosses it, on the nearest frame where the ball was seen.`}
+              : noBall
+                ? t`Estimated: the ball wasn't seen near this spot, so the cross is where the fitted path puts it on the frame it should be there.`
+                : t`Estimated: the ball wasn't seen at this spot, so the cross is where the fitted path crosses it, on the nearest frame where the ball was seen.`}
           </p>
         )}
       </div>

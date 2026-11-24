@@ -1966,6 +1966,10 @@ msgstr "推定: ボールはこの区間の一部でしか見えませんでし�
 msgid "Estimated: the ball wasn't seen at this spot, so the cross is where the fitted path crosses it, on the nearest frame where the ball was seen."
 msgstr "推定: この位置ではボールが見えなかったため、十字は近似した軌道がここを通る位置です。表示しているのは、ボールが見えた最も近いフレームです。"
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball wasn't seen near this spot, so the cross is where the fitted path puts it on the frame it should be there."
+msgstr "推定: この位置の近くではボールが見えなかったため、十字は近似した軌道がボールを置く位置です。表示しているのは、ボールがそこにあるはずのフレームです。"
+
 #: src/components/SessionFilterBar.tsx
 msgid "Event"
 msgstr "イベント"
@@ -4988,6 +4992,10 @@ msgstr "カタログが読み込まれていません"
 #: src/components/BallFormDialog.tsx
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "カタログはまだ読み込まれていません。一度接続すれば、以降はオフラインで使えます。"
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "The cross is where the board is read, and the line is that board."
+msgstr "十字はボードを読み取る位置、線はそのボードです。"
 
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."

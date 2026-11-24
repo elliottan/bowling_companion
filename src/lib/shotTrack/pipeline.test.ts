@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { gridFrames, LANE_EVERY, readStep } from "./framePick";
-import { DRAW_GAP_FT, drawnTo, ownInset, ownRadius, predictCenter, PREDICT_FRAMES, reacquireBall, REACQUIRE_BELOW_FT, trace } from "./pipeline";
+import { DRAW_GAP_FT, drawnTo, lostAfter, ownInset, ownRadius, predictCenter, PREDICT_FRAMES, reacquireBall, REACQUIRE_BELOW_FT, REACQUIRE_GAP_FT, trace } from "./pipeline";
 import { makeFrame } from "./image";
-import { BALL_DIAMETER_BOARDS } from "./laneModel";
+import { BALL_DIAMETER_BOARDS, CONTACT_IN } from "./laneModel";
 import type { FrameGeometry } from "./registration";
 import { multiply, normalize } from "./homography";
 import { PIN_HIT_FT, timeAt, truthAt } from "./synthetic";
@@ -247,6 +247,18 @@ describe("drawnTo", () => {
   });
 });
 
+describe("lostAfter", () => {
+  const at = (frame: number, v: number) => ({ frame, v }) as BallSighting;
+  it("is the sighting before the first jump down the lane of the gap or more, else the last", () => {
+    const run = [at(1, 2), at(2, 3), at(3, 4)];
+    expect(lostAfter(run)).toBe(run[2]);
+    const jumped = [...run, at(60, 4 + REACQUIRE_GAP_FT), at(61, 50)];
+    expect(lostAfter(jumped)).toBe(run[2]);
+    expect(lostAfter([...run, at(9, 4 + REACQUIRE_GAP_FT - 0.1)])!.frame).toBe(9);
+    expect(lostAfter([])).toBeUndefined();
+  });
+});
+
 describe("reacquireBall", () => {
   // A plain lane, 4 px a board and 6 px a foot, the ball at 22 ft a second on
   // board 30 (u 10), the bowler across the lane from 26 to 50 ft.
@@ -284,6 +296,23 @@ describe("reacquireBall", () => {
       expect(Math.abs(s.v - vAt(s.t))).toBeLessThan(0.8);
       expect(sv.get(s.frame)!).toBeGreaterThan(0);
     }
+  }, 60_000);
+
+  it("ends the track found again where it first reaches the head pin's contact row", () => {
+    const { late } = reacquireBall(source, geometry, 0, seen, motion, 0);
+    const row = 60 - CONTACT_IN / 12;
+    expect(late.filter((s) => s.v >= row).length).toBeLessThanOrEqual(1);
+    expect(late.slice(0, -1).every((s) => s.v < row)).toBe(true);
+  }, 60_000);
+
+  it("looks from where the ball was lost when a few far blobs were taken for it past the gap", () => {
+    // Seen to 25 ft, then three blobs at 52 to 53 ft (IMG_2986: the ball and its mirror image at the rack, placed short).
+    const blobs = [90, 92, 94].map((frame, k): BallSighting => ({ ...seen[0], frame, t: frame / 60, v: 52 + 0.5 * k }));
+    const { late, after } = reacquireBall(source, geometry, 0, [...seen, ...blobs], motion, 0);
+    expect(after).toBe(seen[seen.length - 1]);
+    expect(late.length).toBeGreaterThanOrEqual(10);
+    expect(late[0].frame).toBeGreaterThan(15);
+    for (const s of late) expect(Math.abs(s.v - vAt(s.t))).toBeLessThan(0.8);
   }, 60_000);
 
   it("does not look when the ball was seen far enough, or its pace is not a ball's", () => {

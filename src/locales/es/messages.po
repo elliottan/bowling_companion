@@ -1966,6 +1966,10 @@ msgstr "Estimado: la bola solo se vio en parte de este tramo."
 msgid "Estimated: the ball wasn't seen at this spot, so the cross is where the fitted path crosses it, on the nearest frame where the ball was seen."
 msgstr "Estimado: no se vio la bola en este punto, así que la cruz está donde la trayectoria ajustada lo cruza, en el fotograma más cercano donde sí se vio la bola."
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball wasn't seen near this spot, so the cross is where the fitted path puts it on the frame it should be there."
+msgstr "Estimado: no se vio la bola cerca de este punto, así que la cruz está donde la trayectoria ajustada la sitúa en el fotograma en que debería estar ahí."
+
 #: src/components/SessionFilterBar.tsx
 msgid "Event"
 msgstr "Evento"
@@ -4988,6 +4992,10 @@ msgstr "El catálogo no se ha cargado"
 #: src/components/BallFormDialog.tsx
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "El catálogo aún no se ha cargado. Necesita una conexión una vez y luego funciona sin internet."
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "The cross is where the board is read, and the line is that board."
+msgstr "La cruz es donde se lee la tabla y la línea es esa tabla."
 
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."

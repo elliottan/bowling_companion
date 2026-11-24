@@ -1966,6 +1966,10 @@ msgstr "估計：這段距離只有一部分看得到球。"
 msgid "Estimated: the ball wasn't seen at this spot, so the cross is where the fitted path crosses it, on the nearest frame where the ball was seen."
 msgstr "估計：這個位置沒有看到球，所以十字是擬合路徑經過這裡的位置，畫面取自看得到球的最近一張。"
 
+#: src/components/ReadingFrameSheet.tsx
+msgid "Estimated: the ball wasn't seen near this spot, so the cross is where the fitted path puts it on the frame it should be there."
+msgstr "估計：這個位置附近沒有看到球，所以十字是擬合路徑在球本該經過這裡的那一張上給出的位置。"
+
 #: src/components/SessionFilterBar.tsx
 msgid "Event"
 msgstr "賽事"
@@ -4988,6 +4992,10 @@ msgstr "型錄尚未載入"
 #: src/components/BallFormDialog.tsx
 msgid "The catalog has not loaded yet. It needs one connection, then it works offline."
 msgstr "型錄尚未載入。只需連線一次，之後即可離線使用。"
+
+#: src/components/ReadingFrameSheet.tsx
+msgid "The cross is where the board is read, and the line is that board."
+msgstr "十字是讀取球板的位置，線就是那一塊板。"
 
 #: src/components/ShareCardDialog.tsx
 msgid "The image could not be created."
