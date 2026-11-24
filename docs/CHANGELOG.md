@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.118.1: A regression check for the shot tracer (2026-11-24)
+
+- No change to the app. CI now reads the shot tracer's sample videos when a
+  change touches the tracer, and fails it when a reading moves outside its
+  margin (`scripts/shot-tracker/regress.ts`). It runs beside the other jobs
+  and only for tracer changes, so it adds no time to the rest.
+
 ## 0.118.0: The shot tracer reads a far camera and finds the ball after the bowler hides it (2026-11-24)
 
 - In Settings, Labs: filmed from far behind the approach, the shot tracer

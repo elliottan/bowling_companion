@@ -346,5 +346,6 @@ function with tests (`laneFind.test.ts`). In one paragraph each:
   Merging to `main` deploys, so merge only when the owner says.
 - UI follows `docs/DESIGN-LANGUAGE.md`.
 - Never write an em dash anywhere.
+- `scripts/shot-tracker/regress.ts` is the tracer's regression check (the `shot-tracer` CI job; margins in `regress/expected.json`, clips in the `shot-clips-v1` release). After an intended change to a reading, run it with `--update` and commit the diff; see its README section.
 - Update `scripts/shot-tracker/README.md` with a dated section per round, and
   this file when the state above changes.

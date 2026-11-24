@@ -1,0 +1,544 @@
+{
+  "release": {
+    "tag": "shot-clips-v1",
+    "asset": "shot-clips-v1.zip"
+  },
+  "tolerance": {
+    "laydown": 0.5,
+    "arrows": 0.5,
+    "breakpoint": 0.5,
+    "breakpointFeet": 1.5,
+    "pins": 0.5,
+    "launchSpeed": 0.5,
+    "entrySpeed": 0.5
+  },
+  "videos": [
+    {
+      "file": "shot-01.mp4",
+      "from": "repo",
+      "hand": "right",
+      "readings": {
+        "laydown": {
+          "value": 24.3031,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 17.5336,
+          "state": "measured"
+        },
+        "breakpoint": {
+          "value": 7.5034,
+          "state": "measured"
+        },
+        "breakpointFeet": {
+          "value": 43.3117,
+          "state": "measured"
+        },
+        "pins": {
+          "value": 17.5729,
+          "state": "measured"
+        },
+        "launchSpeed": {
+          "value": 16.3675,
+          "state": "measured"
+        },
+        "entrySpeed": {
+          "value": 13.9581,
+          "state": "measured"
+        }
+      }
+    },
+    {
+      "file": "shot-02.mp4",
+      "from": "repo",
+      "hand": "right",
+      "readings": {
+        "laydown": {
+          "value": 21.2623,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 15.94,
+          "state": "measured"
+        },
+        "breakpoint": {
+          "value": 8.5772,
+          "state": "measured"
+        },
+        "breakpointFeet": {
+          "value": 43.2545,
+          "state": "measured"
+        },
+        "pins": {
+          "value": 15.6133,
+          "state": "measured"
+        },
+        "launchSpeed": {
+          "value": 16.4683,
+          "state": "measured"
+        },
+        "entrySpeed": {
+          "value": 11.4733,
+          "state": "estimated"
+        }
+      }
+    },
+    {
+      "file": "shot-03.mp4",
+      "from": "repo",
+      "hand": "right",
+      "readings": {
+        "laydown": {
+          "value": 13.5923,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 9.6374,
+          "state": "measured"
+        },
+        "breakpoint": {
+          "value": 6.4981,
+          "state": "estimated"
+        },
+        "breakpointFeet": {
+          "value": 38.064,
+          "state": "estimated"
+        },
+        "pins": {
+          "value": 13.9578,
+          "state": "measured"
+        },
+        "launchSpeed": {
+          "value": 15.7217,
+          "state": "measured"
+        },
+        "entrySpeed": {
+          "value": 14.0235,
+          "state": "measured"
+        }
+      }
+    },
+    {
+      "file": "shot-04.mp4",
+      "from": "repo",
+      "hand": "right",
+      "readings": {
+        "laydown": {
+          "value": 6.244,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 5.0506,
+          "state": "estimated"
+        },
+        "breakpoint": null,
+        "breakpointFeet": null,
+        "pins": null,
+        "launchSpeed": {
+          "value": 16.7961,
+          "state": "measured"
+        },
+        "entrySpeed": null
+      }
+    },
+    {
+      "file": "shot-05.mp4",
+      "from": "repo",
+      "hand": "right",
+      "readings": {
+        "laydown": {
+          "value": 18.53,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 13.2403,
+          "state": "measured"
+        },
+        "breakpoint": {
+          "value": 9.0447,
+          "state": "measured"
+        },
+        "breakpointFeet": {
+          "value": 48.6118,
+          "state": "measured"
+        },
+        "pins": null,
+        "launchSpeed": {
+          "value": 16.3976,
+          "state": "measured"
+        },
+        "entrySpeed": null
+      }
+    },
+    {
+      "file": "shot-06.mp4",
+      "from": "repo",
+      "hand": "left",
+      "readings": {
+        "laydown": {
+          "value": 17.6165,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 14.811,
+          "state": "measured"
+        },
+        "breakpoint": {
+          "value": 12.7257,
+          "state": "measured"
+        },
+        "breakpointFeet": {
+          "value": 34.4968,
+          "state": "measured"
+        },
+        "pins": {
+          "value": 18.9922,
+          "state": "measured"
+        },
+        "launchSpeed": {
+          "value": 18.8032,
+          "state": "measured"
+        },
+        "entrySpeed": {
+          "value": 16.6876,
+          "state": "measured"
+        }
+      }
+    },
+    {
+      "file": "IMG_0047.mov",
+      "from": "release",
+      "hand": "right",
+      "sha256": "81f7d5fa2c0e5f3091307314be662d41409221ec63261f9ca894097996cabab8",
+      "bytes": 12913194,
+      "readings": {
+        "laydown": {
+          "value": 13.7962,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 10.4981,
+          "state": "measured"
+        },
+        "breakpoint": {
+          "value": 6.6392,
+          "state": "measured"
+        },
+        "breakpointFeet": {
+          "value": 36.43,
+          "state": "measured"
+        },
+        "pins": {
+          "value": 14.303,
+          "state": "measured"
+        },
+        "launchSpeed": {
+          "value": 16.0747,
+          "state": "measured"
+        },
+        "entrySpeed": {
+          "value": 14.3912,
+          "state": "measured"
+        }
+      }
+    },
+    {
+      "file": "1856204746648684746.mp4",
+      "from": "release",
+      "hand": "left",
+      "sha256": "217eae75a41ee6d43e82cd684dee7d6b9e56195e8fcbe3a6f6259a1248899080",
+      "bytes": 3173667,
+      "readings": {
+        "laydown": {
+          "value": 12.1324,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 9.7491,
+          "state": "measured"
+        },
+        "breakpoint": {
+          "value": 8.2217,
+          "state": "measured"
+        },
+        "breakpointFeet": {
+          "value": 31.0131,
+          "state": "measured"
+        },
+        "pins": {
+          "value": 17.3451,
+          "state": "measured"
+        },
+        "launchSpeed": {
+          "value": 16.4125,
+          "state": "measured"
+        },
+        "entrySpeed": {
+          "value": 13.4393,
+          "state": "estimated"
+        }
+      }
+    },
+    {
+      "file": "6447176557853835635.mov",
+      "from": "release",
+      "hand": "left",
+      "sha256": "1833fb341c2b4814b544bfb835ee1b73b64b0db20f5baf49af66ec9876bf4f44",
+      "bytes": 4089690,
+      "readings": {
+        "laydown": null,
+        "arrows": null,
+        "breakpoint": null,
+        "breakpointFeet": null,
+        "pins": {
+          "value": 17.2616,
+          "state": "measured"
+        },
+        "launchSpeed": null,
+        "entrySpeed": {
+          "value": 17.1925,
+          "state": "measured"
+        }
+      }
+    },
+    {
+      "file": "8133144127580349236.mp4",
+      "from": "release",
+      "hand": "left",
+      "sha256": "ecd31757e3809d7a5965bfcc0ba33b3a836bbab51e42ab3f9d908326333bc442",
+      "bytes": 2199313,
+      "readings": {
+        "laydown": {
+          "value": 14.639,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 11.4352,
+          "state": "measured"
+        },
+        "breakpoint": {
+          "value": 7.882,
+          "state": "measured"
+        },
+        "breakpointFeet": {
+          "value": 39.0885,
+          "state": "measured"
+        },
+        "pins": {
+          "value": 14.5,
+          "state": "measured"
+        },
+        "launchSpeed": {
+          "value": 17.2105,
+          "state": "measured"
+        },
+        "entrySpeed": {
+          "value": 12.0793,
+          "state": "estimated"
+        }
+      }
+    },
+    {
+      "file": "IMG_2938.mov",
+      "from": "release",
+      "hand": "left",
+      "sha256": "27409f66de5135b079199c19123b73a1bad6c084e84fb99ca1ca87cb2a569d29",
+      "bytes": 14620954,
+      "readings": {
+        "laydown": {
+          "value": 8.2497,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 13.7209,
+          "state": "measured"
+        },
+        "breakpoint": null,
+        "breakpointFeet": null,
+        "pins": null,
+        "launchSpeed": {
+          "value": 16.1045,
+          "state": "measured"
+        },
+        "entrySpeed": null
+      }
+    },
+    {
+      "file": "IMG_9960.mov",
+      "from": "release",
+      "hand": "left",
+      "sha256": "aa55559d96c2731a8af8a19ae951363a38a72f0e9e1917d69450168c2ffdce23",
+      "bytes": 12095047,
+      "readings": {
+        "laydown": {
+          "value": 12.3823,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 10.5206,
+          "state": "measured"
+        },
+        "breakpoint": {
+          "value": 9.3059,
+          "state": "measured"
+        },
+        "breakpointFeet": {
+          "value": 33.648,
+          "state": "measured"
+        },
+        "pins": {
+          "value": 12.434,
+          "state": "estimated"
+        },
+        "launchSpeed": {
+          "value": 16.518,
+          "state": "measured"
+        },
+        "entrySpeed": {
+          "value": 16.155,
+          "state": "estimated"
+        }
+      }
+    },
+    {
+      "file": "IMG_2986.mov",
+      "from": "release",
+      "hand": "right",
+      "sha256": "2ea8d6740c41b96c4df83b4313e78a92154cb1ad618b5d8a8e83800c2a76a627",
+      "bytes": 14693727,
+      "readings": {
+        "laydown": {
+          "value": 17.6929,
+          "state": "measured",
+          "known": {
+            "value": 18.9,
+            "note": "Owner measured 18.9; we read 17.7."
+          }
+        },
+        "arrows": {
+          "value": 12.1552,
+          "state": "measured"
+        },
+        "breakpoint": {
+          "value": 5.309,
+          "state": "measured"
+        },
+        "breakpointFeet": {
+          "value": 37.4472,
+          "state": "measured"
+        },
+        "pins": {
+          "value": 14.6728,
+          "state": "measured"
+        },
+        "launchSpeed": {
+          "value": 16.1669,
+          "state": "measured"
+        },
+        "entrySpeed": {
+          "value": 14.6772,
+          "state": "measured"
+        }
+      }
+    },
+    {
+      "file": "IMG_5853.mov",
+      "from": "release",
+      "hand": "right",
+      "sha256": "3af2a284058698d30cb241de34889721615beab8ad19162f9dcd39bd61bf2a8a",
+      "bytes": 14415232,
+      "readings": {
+        "laydown": {
+          "value": 14.1911,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 9.5399,
+          "state": "measured"
+        },
+        "breakpoint": {
+          "value": 6.6906,
+          "state": "measured"
+        },
+        "breakpointFeet": {
+          "value": 29.3105,
+          "state": "measured"
+        },
+        "pins": {
+          "value": 22.0751,
+          "state": "estimated"
+        },
+        "launchSpeed": {
+          "value": 16.998,
+          "state": "measured"
+        },
+        "entrySpeed": {
+          "value": 10.5334,
+          "state": "estimated"
+        }
+      }
+    },
+    {
+      "file": "img1996-sdr-avc1.mp4",
+      "from": "release",
+      "hand": "right",
+      "sha256": "13e02434528531a3bcfaea214d78546d44c027b6a99e71d2644ecb54dbc5ef7e",
+      "bytes": 8106993,
+      "readings": {
+        "laydown": {
+          "value": 18.5409,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 13.3897,
+          "state": "measured"
+        },
+        "breakpoint": {
+          "value": 8.9304,
+          "state": "measured"
+        },
+        "breakpointFeet": {
+          "value": 50.1465,
+          "state": "measured"
+        },
+        "pins": null,
+        "launchSpeed": {
+          "value": 16.8387,
+          "state": "measured"
+        },
+        "entrySpeed": null
+      }
+    },
+    {
+      "file": "img1996-vp9-10-60.mp4",
+      "from": "release",
+      "hand": "right",
+      "sha256": "7c0b1b9a86bc9b046f42c38087eb1957e626ad7c39e5da8ac7fab874c7baffc9",
+      "bytes": 6059503,
+      "readings": {
+        "laydown": {
+          "value": 18.4459,
+          "state": "measured"
+        },
+        "arrows": {
+          "value": 13.3563,
+          "state": "measured"
+        },
+        "breakpoint": {
+          "value": 8.9875,
+          "state": "measured"
+        },
+        "breakpointFeet": {
+          "value": 48.6082,
+          "state": "measured"
+        },
+        "pins": null,
+        "launchSpeed": {
+          "value": 16.3496,
+          "state": "measured"
+        },
+        "entrySpeed": null
+      }
+    }
+  ]
+}
