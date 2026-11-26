@@ -346,7 +346,7 @@
       "bytes": 14620954,
       "readings": {
         "laydown": {
-          "value": 8.2497,
+          "value": 8.4379,
           "state": "measured"
         },
         "arrows": {
@@ -355,12 +355,22 @@
         },
         "breakpoint": null,
         "breakpointFeet": null,
-        "pins": null,
+        "pins": {
+          "value": 39.278,
+          "state": "measured",
+          "known": {
+            "value": 37.5,
+            "note": "By eye the ball meets the 10 pin around board 37 to 38; the circle slides toward the pit on the last frame. Owner shipped 39.3 (2026-11-26)."
+          }
+        },
         "launchSpeed": {
           "value": 16.1045,
           "state": "measured"
         },
-        "entrySpeed": null
+        "entrySpeed": {
+          "value": 14.2079,
+          "state": "estimated"
+        }
       }
     },
     {

@@ -29,13 +29,17 @@ const runSpan = (r: readonly { t: number; v: number }[]) =>
 const FIRST_SHARE = 0.4;
 
 /**
- * At most this many parts are read beside the first to look for the ball in
- * (`seekPart`), so a long video is not read whole a part at a time. The bound
- * is a count, not a clock: a time limit gave a slow or busy device a different
- * reading of the same video (IMG_2986 needs its third part). A part that hangs
- * is stopped by the decoders' own stall limits.
+ * At most this many parts are read beside the first, in all, to look for the
+ * lane and then the ball in (`seekPart`), so a long video is not read whole a
+ * part at a time. The bound is a count, not a clock: a time limit gave a slow
+ * or busy device a different reading of the same video (IMG_2986 needs its
+ * third part). It is shared by both searches and kept small, as a video the
+ * tracer cannot read otherwise costs every part (2026-11-26: a TV broadcast
+ * filmed off a laptop read 7 parts and took minutes on an iPhone; of the 16
+ * regression clips none needs more than 3). A part that hangs is stopped by
+ * the decoders' own stall limits.
  */
-export const SEEK_PARTS = 8;
+export const SEEK_PARTS = 4;
 
 /** Looks for the ball in a part's frames with its lane (`findBall`). */
 export type BallSeeker = (on: VideoFrames, lanes: FrameLane[]) => BallSearch;
@@ -98,7 +102,7 @@ export async function readShot(
   // the first part, before the band is given up.
   if (!lanes) {
     const starts = looks.flatMap((r) => (r[0] ? [r[0].t] : []));
-    for (let more = 0; !lanes && more < SEEK_PARTS; more++) {
+    for (let more = 0; !lanes && tried.length <= SEEK_PARTS; more++) {
       const next = seekPart(starts, tried, video.duration, found.release);
       if (!next) break;
       tried.push(next);
@@ -151,7 +155,7 @@ export async function readShot(
   const byRun: { part: typeof part; window: ShotWindow; lanes: FrameLane[] }[] = window.by === "speed" ? [{ part, window, lanes: lanes! }] : [];
   const searched = lanes ? [part] : [];
   let dropped = false;
-  for (let more = 0; lanes && !ball?.seen && more < SEEK_PARTS; more++) {
+  for (let more = 0; lanes && !ball?.seen && tried.length <= SEEK_PARTS; more++) {
     const next = seekPart(hints, tried, video.duration, found.release);
     if (!next) break;
     tried.push(next);

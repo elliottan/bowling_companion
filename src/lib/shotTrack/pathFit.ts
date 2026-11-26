@@ -418,6 +418,22 @@ export function breakpointState(bpV: number | null, lo: number, hi: number, seen
 }
 
 /**
+ * The board the ball would reach the pins on (`contactV`, feet) with no
+ * hook, from the path's furthest point out (`bpV`, its board `board(bpV)`):
+ * that board where the path turns there, and where it is furthest out at
+ * its start (`lo`) and never comes back, the line it runs on there carried
+ * on to the pins. Hook is the board at the pins past this (2026-11-25,
+ * IMG_2938: a left-hander's spare at the 10 pin, board 8 at the foul line
+ * to 39 at the pins on a straight line, was dropped as 31 boards of hook).
+ */
+export function hookFrom(board: (v: number) => number, bpV: number, lo: number, contactV: number): number {
+  const at = board(bpV);
+  if (bpV > lo + 0.5) return at;
+  const slope = board(bpV + 1) - at;
+  return slope > 0 ? at + slope * (contactV - bpV) : at;
+}
+
+/**
  * Whether a board at the pins can stand: on the lane (a ball off it meets no
  * pin), and, when estimated, within `PINS_LINE_TOL` of where the straight
  * line through the last 10 ft of sightings runs on to `contactV` (a reading
@@ -526,7 +542,7 @@ export function metrics(inp: MetricInput): TrackMetrics {
   if (pinsValue !== null && !pinsPlausible(pinsValue, pinState, pts, to, contactV, hand)) pinsValue = null;
   let breakpoint = bpState === "missing" ? M(null, "missing") : M(bpB, bpState);
   let breakpointFeet = bpState === "missing" ? M(null, "missing") : M(bpV, bpState);
-  if (pinsValue !== null && Number.isFinite(bpB) && pinsValue - bpB > MAX_HOOK_BOARDS) {
+  if (pinsValue !== null && Number.isFinite(bpB) && pinsValue - hookFrom(board, bpV!, lo, contactV) > MAX_HOOK_BOARDS) {
     // More hook than a ball has, from the path's furthest point out to the
     // pins, wherever that is: the far end of the path is not the ball's.
     pinsValue = null;

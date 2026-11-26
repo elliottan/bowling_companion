@@ -11,6 +11,7 @@ import {
   mapLine,
   multiply,
   normalize,
+  scaleAt,
   similarityFrom,
   similarityParts,
   solveHomography,
@@ -102,5 +103,18 @@ describe("homography", () => {
     expect(parts.angle).toBeCloseTo(0.03, 9);
     expect(parts.scale).toBeCloseTo(1.02, 9);
     expect(() => similarityFrom(p0, p0, q0, q1)).toThrow();
+  });
+
+  it("gives how much a mapping scales lengths at a point", () => {
+    expect(scaleAt(IDENTITY, { x: 5, y: 7 })).toBeCloseTo(1, 12);
+    expect(scaleAt([2, 0, 30, 0, 2, -4, 0, 0, 1], { x: 100, y: 50 })).toBeCloseTo(2, 12);
+    // A homography: the square root of the area a small square maps to.
+    const p = { x: 3, y: 20 };
+    const e = 1e-4;
+    const a = apply(H, p);
+    const bx = apply(H, { x: p.x + e, y: p.y });
+    const by = apply(H, { x: p.x, y: p.y + e });
+    const area = Math.abs((bx.x - a.x) * (by.y - a.y) - (bx.y - a.y) * (by.x - a.x)) / (e * e);
+    expect(scaleAt(H, p)).toBeCloseTo(Math.sqrt(area), 4);
   });
 });

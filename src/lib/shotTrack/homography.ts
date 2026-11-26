@@ -19,6 +19,17 @@ export function apply(H: Mat3, p: Point): Point {
   };
 }
 
+/**
+ * How much `H` scales lengths at `p`, on average: the square root of its
+ * Jacobian's determinant there (for a homography, det H over w cubed, w the
+ * point's homogeneous weight). 2 where a picture is seen at twice the size.
+ */
+export function scaleAt(H: Mat3, p: Point): number {
+  const w = H[6] * p.x + H[7] * p.y + H[8];
+  const det = H[0] * (H[4] * H[8] - H[5] * H[7]) - H[1] * (H[3] * H[8] - H[5] * H[6]) + H[2] * (H[3] * H[7] - H[4] * H[6]);
+  return Math.sqrt(Math.abs(det / (w * w * w)));
+}
+
 export function multiply(A: Mat3, B: Mat3): Mat3 {
   const out = new Array<number>(9);
   for (let r = 0; r < 3; r++) {

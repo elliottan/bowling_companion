@@ -9,6 +9,20 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.118.3: The shot tracer finds the ball at the pins when the camera zooms (2026-11-26)
+
+- Fixed: a video where the camera zooms in as the ball goes down the lane
+  lost the ball before the pins and gave no pins reading. The tracer judged
+  the ball's size at the zoom of the first frame, so a zoomed-in ball looked
+  too small and was dropped. It now allows for the zoom. IMG_2938 (a lefty's
+  10-pin spare) now reads pins 39.3; by eye the ball meets the 10 pin nearer
+  board 37 to 38, so the circle at the pit's edge is next to tighten.
+- Fixed: a straight spare shot across the lane no longer loses its pins
+  reading as "too much hook".
+- Fixed: a video the tracer cannot read no longer takes minutes. The search
+  for the lane and the ball reads at most 4 extra parts of the video in all
+  (it was 8 for each); none of the sample videos needs more than 3.
+
 ## 0.118.2: The shot tracer reads the same on a slow phone (2026-11-24)
 
 - Fixed: when the ball is not in the first part of a video, the tracer looks

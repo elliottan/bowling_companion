@@ -1,5 +1,5 @@
 import type { Roi } from "./background";
-import { apply, downAt } from "./homography";
+import { apply, downAt, scaleAt } from "./homography";
 import { median, parabolaPeak, sample } from "./image";
 import { DECK_END_FT, contactPoint, expectedRadiusPx, imageToLane } from "./laneModel";
 import type { GrayFrame, Mat3, Point } from "./types";
@@ -76,6 +76,17 @@ export function changeMap(
   }
   const noise = 1.4826 * median(probe.subarray(0, probed));
   return { diff, threshold: Math.max((opts.k ?? 4) * noise, opts.floor ?? 14) };
+}
+
+/**
+ * The scale a blob's size is judged at in the steadied picture, from `S`'s
+ * own there (`k`, frame pixels a calibration pixel): 1, the frame's size,
+ * while a ball at its true size still passes the width tolerance (`tol`)
+ * judged so; `k` once the camera has zoomed further than that from the
+ * calibration frame, where no ball could.
+ */
+export function steadiedScale(k: number, tol: number): number {
+  return Number.isFinite(k) && k > 0 && Math.abs(1 / k - 1) > tol ? k : 1;
 }
 
 /**
@@ -188,23 +199,36 @@ export function findCandidates(
       const bh = y1 - y0 + 1;
       // The top of the blob is the top of the ball (the reflection hangs below).
       // Its centre is one radius down from the top, across the top rows' middle.
+      // The blob is measured in calibration pixels and the ball's size is the
+      // frame's (`r`). A frame the camera has zoomed in or out on since the
+      // calibration frame shows the ball at another size than the steadied
+      // picture does: once that is more than the width tolerance absorbs (a
+      // ball could never pass at the frame's size), the size is brought to
+      // the calibration frame's pixels (`rCal`) by `S`'s scale there
+      // (2026-11-25, IMG_2938: zoomed in 1.5 to 2.3 times as the ball neared
+      // the pins, every blob of it was too narrow for its size and dropped,
+      // and one let through was set a third of a radius low). Within it the
+      // frame's size stands, as the readings were set on (`steadiedScale`).
+      const own = steadiedScale(scaleAt(S, { x: (x0 + x1) / 2 + roi.x0, y: y0 + roi.y0 }), tol);
       let r = 0;
+      let rCal = 0;
       let cxCal = (x0 + x1) / 2;
       let cyCal = y0;
       for (let it = 0; it < 4; it++) {
         const top = apply(S, { x: cxCal + roi.x0, y: y0 + roi.y0 });
-        const guess = r || bw / 2;
+        const guess = r || (own * bw) / 2;
         const lane = imageToLane(H, { x: top.x, y: top.y + 2 * guess });
         r = expectedRadiusPx(H, lane.u, lane.v);
+        rCal = r / own;
         const span: number[] = [];
-        for (let y = y0; y <= Math.min(y1, y0 + Math.round(1.4 * r)); y++) for (const x of rowsX[y] ?? []) span.push(x);
+        for (let y = y0; y <= Math.min(y1, y0 + Math.round(1.4 * rCal)); y++) for (const x of rowsX[y] ?? []) span.push(x);
         cxCal = span.length ? (Math.min(...span) + Math.max(...span)) / 2 : cxCal;
-        cyCal = y0 + r;
+        cyCal = y0 + rCal;
       }
-      if (!(r > 1)) continue;
-      if (Math.abs(bw / (2 * r) - 1) > tol) continue;
-      if (bh < 1.4 * r || bh > 7 * r) continue;
-      if (area < 0.35 * bw * Math.min(bh, 2 * r)) continue;
+      if (!(rCal > 1)) continue;
+      if (Math.abs(bw / (2 * rCal) - 1) > tol) continue;
+      if (bh < 1.4 * rCal || bh > 7 * rCal) continue;
+      if (area < 0.35 * bw * Math.min(bh, 2 * rCal)) continue;
       const c = apply(S, { x: cxCal + roi.x0, y: cyCal + roi.y0 });
       const cp = contactPoint(H, c, r);
       // Behind the foul line the ball is still in the hand, and past the deck

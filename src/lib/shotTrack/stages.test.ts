@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { associate, FAR_FT, FAR_SLACK_FT, onePace, polyfit } from "./associate";
 import { laneRoi, medianBackground, steady } from "./background";
-import { closeGaps, findCandidates, refineCircle } from "./ballDetect";
+import { closeGaps, findCandidates, refineCircle, steadiedScale } from "./ballDetect";
 import { calibrationReport, checkArrows, checkPins } from "./calibrationCheck";
 import { fitLine, robustLine, snapEdge } from "./edgeSnap";
 import { apply, intersect, multiply, segmentLine } from "./homography";
 import { makeFrame, warp } from "./image";
 import { BALL_RADIUS_FT, BOARD_FT, CONTACT_IN, expectedRadiusPx, laneToWorld } from "./laneModel";
-import { boardAtPins, BREAKPOINT_FT, breakpointState, fitMotion, fitPath, localU, MAX_HOOK_BOARDS, metrics, nelderMead, pathU, pinContactFeet, pinsPlausible, ROUGH_RMS, timeAtFeet, withoutIslands } from "./pathFit";
+import { boardAtPins, BREAKPOINT_FT, breakpointState, fitMotion, fitPath, hookFrom, localU, MAX_HOOK_BOARDS, metrics, nelderMead, pathU, pinContactFeet, pinsPlausible, ROUGH_RMS, timeAtFeet, withoutIslands } from "./pathFit";
 import { globalShift, register } from "./registration";
 import { project, timeAt, truthAt } from "./synthetic";
 import { standardShot, syntheticSource } from "./syntheticSource";
@@ -162,6 +162,47 @@ describe("ballDetect", () => {
     expect(c.length).toBe(1);
     expect(Math.abs(c[0].u - truth.u)).toBeLessThan(1);
     expect(Math.abs(c[0].v - truth.v)).toBeLessThan(1.5);
+  });
+
+  it("finds a ball on a frame the camera has zoomed in on since the calibration frame, at its own size there", () => {
+    // The frame is the calibration frame seen 1.8 times larger (IMG_2938: the
+    // camera zooms in as the ball nears the pins). The steadied picture is in
+    // the calibration frame's pixels, where the ball shows at its size there.
+    const k = 1.8;
+    const S: Mat3 = [k, 0, -150, 0, k, -120, 0, 0, 1];
+    const Hf = multiply(S, H);
+    const u = 22;
+    const v = 50;
+    const contact = apply(H, { x: u, y: v });
+    const r = expectedRadiusPx(H, u, v);
+    expect(expectedRadiusPx(Hf, u, v) / r).toBeCloseTo(k, 1);
+    const cx = contact.x - roi.x0;
+    const cy = contact.y - r - roi.y0;
+    const flat = makeFrame(roi.width, roi.height, 0, 120);
+    const f = makeFrame(roi.width, roi.height, 0, 120);
+    for (let y = Math.floor(cy - r - 1); y <= Math.ceil(cy + r + 1); y++) {
+      for (let x = Math.floor(cx - r - 1); x <= Math.ceil(cx + r + 1); x++) {
+        if ((x + 0.5 - cx) ** 2 + (y + 0.5 - cy) ** 2 <= r * r) f.data[y * roi.width + x] = 30;
+      }
+    }
+    const c = findCandidates(f, flat, roi, S, Hf, 0);
+    expect(c.length).toBe(1);
+    // In the frame's own pixels, at the frame's size, standing where it is.
+    expect(c[0].r / r).toBeCloseTo(k, 1);
+    expect(Math.abs(c[0].u - u)).toBeLessThan(1);
+    expect(Math.abs(c[0].v - v)).toBeLessThan(1.5);
+  });
+
+  it("judges a blob at the frame's size until the zoom is more than the width tolerance absorbs", () => {
+    expect(steadiedScale(1, 0.35)).toBe(1);
+    // Within the tolerance a ball at its true size still passes: the frame's size stands.
+    expect(steadiedScale(1.4, 0.35)).toBe(1);
+    expect(steadiedScale(0.8, 0.35)).toBe(1);
+    // Beyond it none could: the steadied picture's own.
+    expect(steadiedScale(1.8, 0.35)).toBe(1.8);
+    expect(steadiedScale(0.7, 0.35)).toBe(0.7);
+    expect(steadiedScale(NaN, 0.35)).toBe(1);
+    expect(steadiedScale(0, 0.35)).toBe(1);
   });
 
   it("joins a ball's highlight to its lower half when its top is lost against the pit", () => {
@@ -545,6 +586,34 @@ describe("pathFit", () => {
     });
     expect(m.breakpoint.state).toBe("missing");
     expect(m.pins.state).toBe("missing");
+  });
+
+  it("reads the board at the pins of a straight shot across the lane, which is not hook", () => {
+    // IMG_2938: a left-hander's spare at the 10 pin, board 8 at the foul line
+    // to 37 at the pins in a straight line, seen to the pins.
+    const pts = Array.from({ length: 60 }, (_, i) => {
+      const v = 1 + i;
+      return { v, u: 8 + 0.48 * v, w: 1, sv: 0.1, t: 3 + v / 22 };
+    });
+    const m = metrics({
+      path: fitPath(pts).path, hand: "left", seen: pts.map((p) => p.v), points: pts, touchdown: 1,
+      motion: { v0: -66, w: 22, d: 0 }, tFirst: pts[0].t, tLast: pts[pts.length - 1].t, speedMeasured: false
+    });
+    expect(m.breakpoint.state).toBe("missing");
+    expect(m.pins.state).toBe("measured");
+    expect(m.pins.value!).toBeGreaterThan(36);
+    expect(m.pins.value!).toBeLessThan(39);
+  });
+
+  it("counts hook from the line the ball runs on at its furthest point out", () => {
+    const straight = (v: number) => 8 + 0.5 * v;
+    // Furthest out where it starts: the line run on to the pins, and none of the boards crossed is hook.
+    expect(hookFrom(straight, 0, 0, 60)).toBeCloseTo(38, 9);
+    // Turned at 40 ft: the board there.
+    const hook = (v: number) => 10 + 0.002 * (v - 40) ** 2;
+    expect(hookFrom(hook, 40, 0, 60)).toBe(10);
+    // Seen flat from the start: the board there.
+    expect(hookFrom(() => 13, 1, 1, 60)).toBe(13);
   });
 
   it("still reads a spline from a trace made before", () => {
