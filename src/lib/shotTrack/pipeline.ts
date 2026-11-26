@@ -2,7 +2,7 @@ import type { Handedness } from "../../types/bowling";
 import { associate, MAX_SPEED_FTS, MIN_SPEED_FTS } from "./associate";
 import { laneRoi, medianBackground, steady, type Background, type Roi } from "./background";
 import { gridFrames, readStep } from "./framePick";
-import { ARC_MIN, ARC_REACH, arcFit, carryFace, findCandidates, FREE_RADIUS_TOLERANCE, refineCircle, type Candidate, type CircleFit } from "./ballDetect";
+import { ARC_MIN, ARC_REACH, arcFit, arcReach, carryFace, findCandidates, FREE_RADIUS_TOLERANCE, refineCircle, type Candidate, type CircleFit } from "./ballDetect";
 import { calibrationReport, type CalibrationReport } from "./calibrationCheck";
 import { fitCalibration, focalFromPlane, type CalibrationFit, type CalMark } from "./calibrate";
 import { snapEdge, snapMarks, type MarkSnap } from "./edgeSnap";
@@ -642,8 +642,20 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
       // (shot-02 frame 208, the circle the pins' follow starts from, was
       // drawn at the lane's size, 10% over the ball's).
       const rOwn: number = ownRadius(rAt(g.H, fit), ownInset(insets));
-      const at = fit.carried === undefined ? (predictCenter(placed, c0.frame) ?? { x: fit.cx, y: fit.cy }) : { x: fit.cx, y: fit.cy };
-      const a = arcFit(f, downAt(g.H, at), at, rOwn, ARC_REACH * rOwn);
+      // With no circles to run on from, the center is the rays' fit round
+      // the blob's own, looked for as far round as the blob is short of the
+      // ball (`arcReach`). So too when their run finds no rim and the blob is
+      // shorter than the plain reach covers: IMG_2938 frame 92, the ball
+      // over a pin as bright as itself, its face's median the pin's, where
+      // the run's search found too little rim and the rays' fit, half a
+      // radius toward the pit, stood.
+      const predicted = fit.carried === undefined ? predictCenter(placed, c0.frame) : null;
+      const at = predicted ?? { x: fit.cx, y: fit.cy };
+      let a = arcFit(f, downAt(g.H, at), at, rOwn, arcReach(rOwn, fit.carried === undefined && !predicted ? c0.narrow : 0));
+      if (predicted && !(a && a.support >= ARC_MIN) && (c0.narrow ?? 0) > ARC_REACH) {
+        const own = { x: fit.cx, y: fit.cy };
+        a = arcFit(f, downAt(g.H, own), own, rOwn, arcReach(rOwn, c0.narrow));
+      }
       if (a && a.support >= ARC_MIN) {
         const far = contactPoint(g.H, { x: a.cx, y: a.cy }, rOwn).v >= RACK_FT;
         const free: { cx: number; cy: number; r: number } | null = !far && a.free && Math.abs(a.free.r / rOwn - 1) <= FREE_RADIUS_TOLERANCE ? a.free : null;

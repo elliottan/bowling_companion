@@ -9,6 +9,20 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.118.4: The ball's position stays true while the camera zooms (2026-11-26)
+
+- Fixed: while the camera zoomed in, the tracer placed the ball a few feet
+  short of where it was, because it mixed the zoomed and unzoomed picture
+  sizes when finding the ball's center. It now places the ball at the
+  picture's own zoom once that is more than 10% off.
+- Fixed: a ball half hidden against a pin of its own shade, with only the
+  half over the dark pit showing, got its circle pulled half a ball toward
+  the pit. The circle is now searched for far enough round to land on the
+  ball.
+- IMG_2938 (a lefty's 10-pin spare) now reads pins 37.5, where the ball meets
+  the 10 pin, instead of 39.3. Its entry speed is no longer estimated: the
+  ball is seen only at the pins and before 50 ft, too little to time it.
+
 ## 0.118.3: The shot tracer finds the ball at the pins when the camera zooms (2026-11-26)
 
 - Fixed: a video where the camera zooms in as the ball goes down the lane

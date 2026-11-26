@@ -20,6 +20,12 @@ export interface Candidate {
   /** Blob box in calibration pixels, for drawing and the size filter. */
   box: { x0: number; y0: number; x1: number; y1: number };
   area: number;
+  /**
+   * How much narrower than the ball its blob is, in its radii (0 when as wide
+   * or wider): the part of the ball that does not differ from what is
+   * behind it. Its rough center can be off by this much to either side.
+   */
+  narrow?: number;
 }
 
 export interface CandidateOptions {
@@ -76,6 +82,22 @@ export function changeMap(
   }
   const noise = 1.4826 * median(probe.subarray(0, probed));
   return { diff, threshold: Math.max((opts.k ?? 4) * noise, opts.floor ?? 14) };
+}
+
+/** `S`'s scale past which the camera counts as zoomed for placing a blob (`placedScale`): ten times the steadying's own spread on a still camera. */
+export const ZOOM_PLACE = 0.1;
+
+/**
+ * The scale a blob is placed at in the steadied picture, from `S`'s own
+ * there (`k`): `k` once the camera has zoomed in or out by more than
+ * `ZOOM_PLACE` since the calibration frame, else 1. A camera held still
+ * steadies to within 6% of 1 (the sixteen regression videos but IMG_2938),
+ * where placing by `k` changes the seed of every circle by a fraction of a
+ * pixel and nothing that matters, and moved estimated entry speeds by a mile
+ * an hour; a zoom of 1.3 places the ball a third of its radius apart.
+ */
+export function placedScale(k: number): number {
+  return Number.isFinite(k) && k > 0 && Math.abs(k - 1) > ZOOM_PLACE ? k : 1;
 }
 
 /**
@@ -209,21 +231,32 @@ export function findCandidates(
       // the pins, every blob of it was too narrow for its size and dropped,
       // and one let through was set a third of a radius low). Within it the
       // frame's size stands, as the readings were set on (`steadiedScale`).
-      const own = steadiedScale(scaleAt(S, { x: (x0 + x1) / 2 + roi.x0, y: y0 + roi.y0 }), tol);
+      // Where the ball stands is another matter than whether it passes: its
+      // center is one radius below its top in the steadied picture's own
+      // pixels (`rPlace`) once the camera has zoomed at all (`placedScale`).
+      // At the frame's size, a camera zoomed in 1.3 to 1.5 times (IMG_2938
+      // frames 63 to 76, under the width switch) set the ball's center 5 to
+      // 9 pixels low, its point under it 2 to 5 ft short, and the sightings
+      // at the pins fell 15.5 ft past them, cut off as an island.
+      const k = scaleAt(S, { x: (x0 + x1) / 2 + roi.x0, y: y0 + roi.y0 });
+      const own = steadiedScale(k, tol);
+      const scale = placedScale(k);
       let r = 0;
       let rCal = 0;
+      let rPlace = 0;
       let cxCal = (x0 + x1) / 2;
       let cyCal = y0;
       for (let it = 0; it < 4; it++) {
         const top = apply(S, { x: cxCal + roi.x0, y: y0 + roi.y0 });
-        const guess = r || (own * bw) / 2;
+        const guess = r || (scale * bw) / 2;
         const lane = imageToLane(H, { x: top.x, y: top.y + 2 * guess });
         r = expectedRadiusPx(H, lane.u, lane.v);
         rCal = r / own;
+        rPlace = r / scale;
         const span: number[] = [];
-        for (let y = y0; y <= Math.min(y1, y0 + Math.round(1.4 * rCal)); y++) for (const x of rowsX[y] ?? []) span.push(x);
+        for (let y = y0; y <= Math.min(y1, y0 + Math.round(1.4 * rPlace)); y++) for (const x of rowsX[y] ?? []) span.push(x);
         cxCal = span.length ? (Math.min(...span) + Math.max(...span)) / 2 : cxCal;
-        cyCal = y0 + rCal;
+        cyCal = y0 + rPlace;
       }
       if (!(rCal > 1)) continue;
       if (Math.abs(bw / (2 * rCal) - 1) > tol) continue;
@@ -234,7 +267,7 @@ export function findCandidates(
       // Behind the foul line the ball is still in the hand, and past the deck
       // end it has fallen into the pit, off the lane's plane: never a sighting.
       if (cp.u < -2.5 || cp.u > 42.5 || cp.v < 0 || cp.v > DECK_END_FT) continue;
-      out.push({ frame, t: steadied.t, x: c.x, y: c.y, r, u: cp.u, v: cp.v, box: { x0: x0 + roi.x0, y0: y0 + roi.y0, x1: x1 + roi.x0, y1: y1 + roi.y0 }, area });
+      out.push({ frame, t: steadied.t, x: c.x, y: c.y, r, u: cp.u, v: cp.v, box: { x0: x0 + roi.x0, y0: y0 + roi.y0, x1: x1 + roi.x0, y1: y1 + roi.y0 }, area, narrow: Math.max(0, 1 - bw / (2 * rPlace)) });
     }
     return out;
   }
@@ -592,6 +625,20 @@ export const ARC_MIN = 0.3;
 
 /** How far from where it was expected `arcFit` is asked to look for a covered or blurred ball's center, in its radii. */
 export const ARC_REACH = 0.3;
+
+/**
+ * How far `arcFit` looks round a center that only the ball's own blob put
+ * there, pixels: `ARC_REACH` and the blob's shortfall on the ball (`narrow`,
+ * in radii), the most its rough center can be off to one side. Part of a
+ * ball that does not differ from what is behind it leaves no change there:
+ * against the dark pit beside the 10 pin, IMG_2938's ball over the pin's
+ * white body was as bright as the pin, its blob a third short of the ball and
+ * centered half a radius toward the pit, and its center lay out of the
+ * plain reach; the circle stayed toward the pit, 1.2 boards off.
+ */
+export function arcReach(r: number, narrow = 0): number {
+  return (ARC_REACH + Math.max(0, narrow)) * r;
+}
 
 export interface ArcFit {
   cx: number;

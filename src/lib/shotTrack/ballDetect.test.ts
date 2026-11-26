@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { arcFit, ARC_MIN, carryFace, CARRY_MIN } from "./ballDetect";
+import { arcFit, ARC_MIN, ARC_REACH, arcReach, carryFace, CARRY_MIN } from "./ballDetect";
 import { boxBlur, makeFrame } from "./image";
 import { lineAt } from "./pipeline";
 import type { GrayFrame } from "./types";
@@ -125,6 +125,42 @@ describe("arcFit", () => {
     // The upper side alone has the left rim only: too little to place it.
     const up = arcFit(f, down, prior, 6, 0.3 * 6);
     expect(up === null || up.support < ARC_MIN).toBe(true);
+  });
+
+  it("looks as far round a blob's own center as the blob is short of the ball", () => {
+    expect(arcReach(10)).toBeCloseTo(ARC_REACH * 10, 9);
+    expect(arcReach(10, 0.35)).toBeCloseTo((ARC_REACH + 0.35) * 10, 9);
+    // A blob as wide as the ball or wider adds nothing.
+    expect(arcReach(10, -0.2)).toBeCloseTo(ARC_REACH * 10, 9);
+  });
+
+  it("places a ball over a pin as bright as itself, against the dark pit, from its blob's center half a radius toward the pit", () => {
+    // IMG_2938 frame 92: the ball (160) over a white pin's body (165) on its
+    // left, the dark pit (35) round the rest of its upper side, the deck
+    // (120) below. Its left rim does not show, and its blob, the part against
+    // the pit, is a third short of the ball and centered toward the pit.
+    const cx = 60;
+    const cy = 60;
+    const r = 17;
+    const f = makeFrame(120, 120, 0, 0);
+    for (let y = 0; y < f.height; y++) {
+      for (let x = 0; x < f.width; x++) {
+        let v = y > cy + 0.7 * r ? 120 : 35;
+        if (x >= cx - r - 10 && x < cx - 0.3 * r && y > cy - 2 * r) v = 165;
+        if (Math.hypot(x - cx, y - cy) <= r) v = 160;
+        f.data[y * f.width + x] = v;
+      }
+    }
+    const blurred = boxBlur(f, 1);
+    const prior = { x: cx + 0.5 * r, y: cy + 0.2 * r };
+    // Within the plain reach the rim is out of its window.
+    const plain = arcFit(blurred, down, prior, r, ARC_REACH * r);
+    expect(plain === null || Math.hypot(plain.cx - cx, plain.cy - cy) > 0.25 * r).toBe(true);
+    // Reaching as far as the blob falls short of the ball, it is found.
+    const wide = arcFit(blurred, down, prior, r, arcReach(r, 0.35));
+    expect(wide).not.toBeNull();
+    expect(wide!.support).toBeGreaterThanOrEqual(ARC_MIN);
+    expect(Math.hypot(wide!.cx - cx, wide!.cy - cy)).toBeLessThanOrEqual(0.1 * r);
   });
 
   it("finds no rim where there is no ball, or none in the picture", () => {
