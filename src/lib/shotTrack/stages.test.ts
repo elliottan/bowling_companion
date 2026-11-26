@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { associate, FAR_FT, FAR_SLACK_FT, onePace, polyfit } from "./associate";
 import { laneRoi, medianBackground, steady } from "./background";
-import { closeGaps, findCandidates, refineCircle, steadiedScale } from "./ballDetect";
+import { closeGaps, findCandidates, placedScale, refineCircle, steadiedScale, ZOOM_PLACE } from "./ballDetect";
 import { calibrationReport, checkArrows, checkPins } from "./calibrationCheck";
 import { fitLine, robustLine, snapEdge } from "./edgeSnap";
 import { apply, intersect, multiply, segmentLine } from "./homography";
@@ -191,6 +191,80 @@ describe("ballDetect", () => {
     expect(c[0].r / r).toBeCloseTo(k, 1);
     expect(Math.abs(c[0].u - u)).toBeLessThan(1);
     expect(Math.abs(c[0].v - v)).toBeLessThan(1.5);
+  });
+
+  it("says how much narrower than the ball a blob is, where part of the ball matches what is behind it", () => {
+    // The dark pit behind the ball, a white pin as bright as the ball over
+    // its left third (IMG_2938 frame 92): only the part against the pit changed.
+    const at = apply(H, { x: 20, y: 20 });
+    const r = expectedRadiusPx(H, 20, 20);
+    expect(r).toBeGreaterThanOrEqual(6);
+    const cx = Math.round(at.x) - roi.x0;
+    const cy = Math.round(at.y - r) - roi.y0;
+    const pinTo = cx - r / 3;
+    const disc = (x: number, y: number) => (x + 0.5 - cx) ** 2 + (y + 0.5 - cy) ** 2 <= r * r;
+    const scene = (ball: boolean, pin: boolean) => {
+      const f = makeFrame(roi.width, roi.height, 0, 30);
+      for (let y = 0; y < roi.height; y++) {
+        for (let x = 0; x < roi.width; x++) {
+          if (pin && x >= cx - r - 6 && x < pinTo && Math.abs(y - cy) <= 2 * r) f.data[y * roi.width + x] = 170;
+          if (ball && disc(x, y)) f.data[y * roi.width + x] = 170;
+        }
+      }
+      return f;
+    };
+    const c = findCandidates(scene(true, true), scene(false, true), roi, I, H, 0);
+    expect(c.length).toBe(1);
+    // A third of its width matches the pin: about a third of a radius short.
+    expect(c[0].narrow!).toBeGreaterThan(0.2);
+    expect(c[0].narrow!).toBeLessThan(0.45);
+    // Its rough center is off toward the pit, by no more than that.
+    const off = c[0].x - (cx + roi.x0);
+    expect(off).toBeGreaterThan(0);
+    expect(off).toBeLessThanOrEqual(c[0].narrow! * r + 1);
+    // The whole ball against the pit is not short at all.
+    const w = findCandidates(scene(true, false), scene(false, false), roi, I, H, 0);
+    expect(w.length).toBe(1);
+    expect(w[0].narrow!).toBeLessThan(0.12);
+  });
+
+  it("places a ball one of its own radii below its top on a frame zoomed less than the width switch", () => {
+    // IMG_2938 frames 63 to 76: zoomed 1.3 to 1.5 times, the blob passes at
+    // the frame's size, but its center is a radius down in the steadied
+    // picture's pixels, not the frame's.
+    for (const k of [1.3, 1.5]) {
+      const S: Mat3 = [k, 0, -100, 0, k, -80, 0, 0, 1];
+      const Hf = multiply(S, H);
+      const u = 22;
+      const v = 30;
+      const contact = apply(H, { x: u, y: v });
+      const r = expectedRadiusPx(H, u, v);
+      const cx = contact.x - roi.x0;
+      const cy = contact.y - r - roi.y0;
+      const flat = makeFrame(roi.width, roi.height, 0, 120);
+      const f = makeFrame(roi.width, roi.height, 0, 120);
+      for (let y = Math.floor(cy - r - 1); y <= Math.ceil(cy + r + 1); y++) {
+        for (let x = Math.floor(cx - r - 1); x <= Math.ceil(cx + r + 1); x++) {
+          if ((x + 0.5 - cx) ** 2 + (y + 0.5 - cy) ** 2 <= r * r) f.data[y * roi.width + x] = 30;
+        }
+      }
+      const c = findCandidates(f, flat, roi, S, Hf, 0);
+      expect(c.length).toBe(1);
+      const center = apply(S, { x: cx + roi.x0, y: cy + roi.y0 });
+      expect(Math.abs(c[0].y - center.y)).toBeLessThanOrEqual(0.15 * c[0].r);
+      expect(Math.abs(c[0].v - v)).toBeLessThan(1);
+    }
+  });
+
+  it("places a blob at the steadied picture's scale only once the camera has zoomed", () => {
+    expect(placedScale(1)).toBe(1);
+    // A camera held still steadies within a few percent of 1: placed as it was.
+    expect(placedScale(0.95)).toBe(1);
+    expect(placedScale(1 + 0.9 * ZOOM_PLACE)).toBe(1);
+    expect(placedScale(1.3)).toBe(1.3);
+    expect(placedScale(0.8)).toBe(0.8);
+    expect(placedScale(NaN)).toBe(1);
+    expect(placedScale(0)).toBe(1);
   });
 
   it("judges a blob at the frame's size until the zoom is more than the width tolerance absorbs", () => {
