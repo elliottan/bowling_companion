@@ -188,16 +188,25 @@ const TRACED: TrackResult = {
   pinFrame: null
 };
 /** The tracer's output: `result`, the calibration frame's mapping, and what it learned of the lane. */
-const out = (result: TrackResult | TrackError, evidence?: { kept: number; dropped: number; pinCheck: number | null }, H0: Mat3 | null = [0.2, 0, 0, 0, -0.08, 5.5, 0, 0, 1]) =>
+interface Evidence {
+  kept: number;
+  dropped: number;
+  /** Of `dropped`, not the traced lane at all. */
+  elsewhere?: number;
+  pinCheck: number | null;
+  /** Pins the check found: one unless given (none without a `pinCheck`). */
+  pins?: number;
+}
+const out = (result: TrackResult | TrackError, evidence?: Evidence, H0: Mat3 | null = [0.2, 0, 0, 0, -0.08, 5.5, 0, 0, 1]) =>
   ({
     result,
     debug: {
       H0,
-      lanes: evidence && { kept: Array(evidence.kept).fill({}), dropped: Array(evidence.dropped).fill({}), checks: [] },
-      calibration: evidence && { pinError: evidence.pinCheck }
+      lanes: evidence && { kept: Array(evidence.kept).fill({}), dropped: Array(evidence.dropped).fill({}), elsewhere: Array(evidence.elsewhere ?? 0).fill({}), checks: [] },
+      calibration: evidence && { pinError: evidence.pinCheck, pins: Array(evidence.pins ?? (evidence.pinCheck === null ? 0 : 1)).fill({}) }
     }
   }) as unknown as TraceOutput;
-const done = (evidence?: { kept: number; dropped: number; pinCheck: number | null }) => out(TRACED, evidence);
+const done = (evidence?: Evidence) => out(TRACED, evidence);
 
 function pickFile() {
   const view = render(<ShotTracerView handedness="right" onBack={vi.fn()} />);
@@ -715,6 +724,15 @@ describe("ShotTracerView", () => {
     expect(screen.getByText("Board 23.8")).toBeTruthy();
     expect(screen.queryByText(/move/i)).toBeNull();
     expect(screen.getAllByRole("button").map((b) => b.textContent)).not.toContain("Move the lines and trace again");
+  });
+
+  it("does not doubt a lane the pins place for found lanes that were never on it (IMG_2986)", async () => {
+    await chooseVideo();
+    find()!.reply(found());
+    await waitFor(() => expect(trace()).toBeTruthy());
+    trace()!.reply(done({ kept: 5, dropped: 20, elsewhere: 18, pinCheck: 0.4, pins: 3 }));
+    expect(await screen.findByText("Board 23.8")).toBeTruthy();
+    expect(screen.queryByText("The lane may be off. Check its lines on the picture.")).toBeNull();
   });
 
   it("says the entry speed was not seen when the ball was not followed to the pins", async () => {

@@ -14,6 +14,13 @@
  * ft, on good and bad clips alike), so the camera only catches a distance
  * none of the clips came near, and a faint edge counts only together with a
  * far end no pin held.
+ *
+ * IMG_2986 (2026-11-27), a lane the owner confirmed, was asked to be checked
+ * on both: 18 of its 25 found lanes were not its lane at all, found where the
+ * bowler stood over the left edge, and the one frame the pins were checked on
+ * had his shoulder beside the 7 pin. The pins are now checked on every frame
+ * before the ball nears them, and found lanes far from the traced one stop
+ * counting against it once the pins place it (`PINS_PLACE_LANE`).
  */
 
 export interface LaneEvidence {
@@ -28,8 +35,12 @@ export interface LaneEvidence {
   /** Found lanes the tracer kept, and dropped as disagreeing with the rest (`debug.lanes`). */
   kept?: number;
   dropped?: number;
+  /** Of `dropped`, those that were not the best one's lane at all (`debug.lanes.elsewhere`). */
+  elsewhere?: number;
   /** The tracer's pins check on the lane it traced: the worst pin's error, boards (null: no pin found). */
   pinCheck?: number | null;
+  /** How many pins that check found (`CalibrationReport.pins`). */
+  pinsSeen?: number;
 }
 
 export type LaneDoubt =
@@ -58,6 +69,14 @@ export const KEPT_SHARE = 0.25;
 export const KEPT_AT_LEAST = 3;
 /** A pin further off than this, boards, fails the tracer's own check (plan 6.5, R8). */
 export const PIN_OFF_BOARDS = 1;
+/**
+ * This many pins found within `PIN_OFF_BOARDS` place the traced lane's far
+ * end, so a found lane far from it (`LaneEvidence.elsewhere`) cannot be the
+ * bowler's. One pin is not enough: a lane a pin's spacing over (11 or 23
+ * boards) can find a neighbor of the pin it looks for in its place; two in
+ * different places cannot both be.
+ */
+export const PINS_PLACE_LANE = 2;
 /** Where a camera filming a lane stands, feet behind the foul line: the clips are 19 to 26. */
 export const CAMERA_USUAL_FT: [number, number] = [15, 32];
 /** An edge followed on fewer than this share of its steps is faint: the clips' weakest is 0.37 (shot-02). */
@@ -74,7 +93,13 @@ export function laneVerdict(e: LaneEvidence): LaneVerdict {
   const soft: LaneDoubt[] = [];
   if (e.guess) hard.push("foul-guessed");
   if (e.kept !== undefined) {
-    const found = e.kept + (e.dropped ?? 0);
+    // A found lane far from the traced one is the right one only if the
+    // traced lane is wrong by as much; pins found where the traced lane puts
+    // them say it is not, and those finds are then not a disagreement but a
+    // frame where the finder saw something else (a bowler over an edge).
+    // Without pins to say so they count: they may be the lane the best one missed.
+    const placed = e.pinCheck != null && e.pinCheck <= PIN_OFF_BOARDS && (e.pinsSeen ?? 0) >= PINS_PLACE_LANE;
+    const found = e.kept + (e.dropped ?? 0) - (placed ? (e.elsewhere ?? 0) : 0);
     if (e.kept < KEPT_AT_LEAST || e.kept < KEPT_SHARE * found) hard.push("lanes-disagree");
   }
   if (e.pinCheck != null && e.pinCheck > PIN_OFF_BOARDS) hard.push("pins-off");

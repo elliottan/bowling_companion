@@ -5,6 +5,7 @@ import { makeFrame } from "./image";
 import { BALL_DIAMETER_BOARDS, CONTACT_IN } from "./laneModel";
 import type { FrameGeometry } from "./registration";
 import { multiply, normalize } from "./homography";
+import { laneVerdict, PINS_PLACE_LANE } from "./laneVerdict";
 import { PIN_HIT_FT, timeAt, truthAt } from "./synthetic";
 import { roughMarks, standardShot, syntheticSource, truthBoard, truthBoardAtPins, truthSpeedMph } from "./syntheticSource";
 import type { BallSighting, GrayFrame, Mat3, TrackResult } from "./types";
@@ -121,6 +122,54 @@ describe("tracing with the lane found on many frames", () => {
   it("says the lane was not found when no found lane is in the frames traced", () => {
     const none = trace({ source: src, calibFrame: 5, first: 0, last: 10, lanes: [{ frame: 80, H: truthAt(spec, 80).H }], hand: "right" });
     expect(!none.result.ok && none.result.failure).toBe("lane-not-found");
+  });
+});
+
+describe("doubting the lane, with found lanes that were never on it", () => {
+  const spec = standardShot({ hand: "right", body: true });
+  const src = syntheticSource(spec);
+  const over = (k: number, boards: number) => normalize(multiply(truthAt(spec, k).H, [1, 0, boards, 0, 1, 0, 0, 0, 1]));
+  /**
+   * Found lanes every sixth frame: on one in five the most trusted, the lane
+   * itself (or `boards` over when `bestIsOver`), and on the rest, trusted
+   * less, the other.
+   */
+  const foundLanes = (boards: number, bestIsOver: boolean) =>
+    Array.from({ length: Math.floor(src.count / 6) }, (_, i) => {
+      const best = i % 5 === 0;
+      return { frame: 6 * i, H: best !== bestIsOver ? truthAt(spec, 6 * i).H : over(6 * i, boards), weight: best ? 1.2 : 0.5 };
+    });
+  const verdictOf = (o: ReturnType<typeof trace>, withElsewhere = true) => {
+    const lanes = o.debug.lanes!;
+    const cal = o.debug.calibration!;
+    return laneVerdict({ kept: lanes.kept.length, dropped: lanes.dropped.length, elsewhere: withElsewhere ? lanes.elsewhere.length : undefined, pinCheck: cal.pinError, pinsSeen: cal.pins.length });
+  };
+  // IMG_2986: on four found frames in five the finder took something 25
+  // boards over, as it does where the bowler stands over an edge, and
+  // trusted it less; the lane's own frames are under a quarter of those found.
+  const lanes2986 = foundLanes(25, false);
+  const traced2986 = trace({ source: src, calibFrame: 60, lanes: lanes2986, hand: "right" });
+  // The mirror, a lane truly off: the most trusted found lane is 22.5 boards
+  // over (two pins' spacing, so its 7 pin finds the 9), and the lane itself
+  // was found on the other four frames in five, trusted less.
+  const lanesOff = foundLanes(22.5, true);
+  const tracedOff = trace({ source: src, calibFrame: 60, lanes: lanesOff, hand: "right" });
+
+  it("does not doubt a lane the pins place for found lanes that were never on it (IMG_2986)", () => {
+    const lanes = traced2986.debug.lanes!;
+    expect(lanes.elsewhere.length).toBe(lanes2986.filter((l) => l.weight === 0.5).length);
+    expect(lanes.kept.length).toBeLessThan(0.25 * lanes2986.length);
+    expect(traced2986.debug.calibration!.pins.length).toBeGreaterThanOrEqual(PINS_PLACE_LANE);
+    expect(verdictOf(traced2986)).toEqual({ level: "sure", reasons: [] });
+    // Counted as before, they would have asked.
+    expect(verdictOf(traced2986, false).reasons).toEqual(["lanes-disagree"]);
+  });
+
+  it("still says the lane may be off when the best found lane is another one the pins do not place", () => {
+    expect(tracedOff.debug.lanes!.elsewhere.length).toBe(lanesOff.filter((l) => l.weight === 0.5).length);
+    expect(tracedOff.debug.calibration!.pins.length).toBeLessThan(PINS_PLACE_LANE);
+    expect(verdictOf(tracedOff).level).toBe("check");
+    expect(verdictOf(tracedOff).reasons).toContain("lanes-disagree");
   });
 });
 

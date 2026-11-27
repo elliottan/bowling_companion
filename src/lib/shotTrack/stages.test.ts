@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { associate, FAR_FT, FAR_SLACK_FT, onePace, polyfit } from "./associate";
 import { laneRoi, medianBackground, steady } from "./background";
 import { closeGaps, findCandidates, placedScale, refineCircle, steadiedScale, ZOOM_PLACE } from "./ballDetect";
-import { calibrationReport, checkArrows, checkPins } from "./calibrationCheck";
+import { PIN_POSITIONS } from "../pinGeometry";
+import { calibrationReport, checkArrows, checkPins, checkPinsOver } from "./calibrationCheck";
+import { PIN_OFF_BOARDS } from "./laneVerdict";
 import { fitLine, robustLine, snapEdge } from "./edgeSnap";
 import { apply, intersect, multiply, segmentLine } from "./homography";
 import { makeFrame, warp } from "./image";
@@ -366,9 +368,35 @@ describe("ballDetect", () => {
     for (const e of [...pins, ...arrows]) expect(Math.abs(e.error)).toBeLessThan(0.35);
     // A mapping two boards off is caught.
     const off = multiply(H, [1, 0, 2, 0, 1, 0, 0, 0, 1]);
-    const report = calibrationReport(f, off, f, off);
+    const report = calibrationReport([{ frame: f, H: off }], f, off);
     expect(report.warn).toBe(true);
-    expect(calibrationReport(null, null, null, null).pinError).toBeNull();
+    expect(calibrationReport([], null, null).pinError).toBeNull();
+  });
+
+  it("checks the pins over several frames, so a shoulder beside one pin on one frame does not move it", () => {
+    const clear = { ...spec, body: undefined };
+    const f = syntheticSource(clear).frame(0);
+    // A dark shoulder over the left half of the 7 pin, on one frame (IMG_2986).
+    const seven = apply(H, { x: PIN_POSITIONS[7].board, y: PIN_POSITIONS[7].feet });
+    const boardPx = expectedRadiusPx(H, PIN_POSITIONS[7].board, PIN_POSITIONS[7].feet) / 4;
+    const covered = { ...f, data: Uint8ClampedArray.from(f.data) };
+    for (let y = Math.floor(seven.y - 12 * boardPx); y <= seven.y; y++) {
+      for (let x = Math.floor(seven.x - 6 * boardPx); x <= seven.x + 0.4 * boardPx; x++) covered.data[y * f.width + x] = 20;
+    }
+    // On that frame alone the 7 pin is more than a board out...
+    const one = checkPins(covered, H).find((p) => p.name === "pin 7")!;
+    expect(Math.abs(one.error)).toBeGreaterThan(PIN_OFF_BOARDS);
+    // ...and with the frames either side it is where the lane puts it.
+    const over = checkPinsOver([f, covered, f].map((frame) => ({ frame, H })));
+    expect(over.map((p) => p.name)).toEqual(["pin 7", "pin 10", "pin 1"]);
+    for (const p of over) {
+      expect(p.frames).toBe(3);
+      expect(Math.abs(p.error)).toBeLessThan(0.35);
+    }
+    // A lane that is out is out on every frame, and the median keeps it.
+    const out = multiply(H, [1, 0, 0.6, 0, 1, 0, 0, 0, 1]);
+    for (const p of checkPinsOver([f, f, f].map((frame) => ({ frame, H: out })))) expect(Math.abs(p.error)).toBeGreaterThan(0.4);
+    expect(checkPinsOver([])).toEqual([]);
   });
 });
 

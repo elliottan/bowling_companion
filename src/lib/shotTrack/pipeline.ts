@@ -132,6 +132,15 @@ const fail = (failure: TrackFailure, detail: string): TrackError => ({ ok: false
 
 /** Fewer sightings than this, or a visible stretch shorter than 10 ft, is too little to draw a line (plan 7.7). */
 export const MIN_SIGHTINGS = 8;
+/**
+ * The pins are checked on the frames before the ball is this far down the
+ * lane, feet (`calibrationReport`). The pins stand still until the ball
+ * touches them, near 59 ft, and seen from behind the foul line a ball 10 ft
+ * short of them sits below the third of a pin the check looks at; on many
+ * clips the bowler stands in front of the pin deck until the ball is well
+ * down the lane (IMG_2986: the 7 pin first shows with the ball at about 33 ft).
+ */
+export const PINS_CHECKED_UNTIL_FT = 50;
 /** A visible stretch this long, feet, is enough to read the whole lane by. */
 export const MIN_SPAN_FT = 10;
 /**
@@ -484,7 +493,7 @@ export function* traceSteps(input: TraceInput): Generator<TraceJob[], TraceOutpu
   if (lanes) {
     const track = laneTrack(lanes, carryOn(geometry), geometry.filter((g) => g).map((g) => g.index), input.laneTrack);
     perFrame = track.H;
-    debug.lanes = { kept: track.kept, dropped: track.dropped, checks: track.checks };
+    debug.lanes = { kept: track.kept, dropped: track.dropped, elsewhere: track.elsewhere, checks: track.checks };
     H0 = perFrame.get(input.calibFrame) ?? H0;
   }
   debug.H0 = H0;
@@ -971,13 +980,14 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
     }
   }
 
-  // The calibration check (plan 6.5): pins in a frame before the ball nears
-  // them, arrows on the calibration frame.
-  const tPins = timeAtFeet(motion, 35);
+  // The calibration check (plan 6.5): the pins on every frame before the ball
+  // nears them, each frame with its own lane (`checkPinsOver`), arrows on the
+  // calibration frame. One frame alone was at the mercy of whatever stood in
+  // front of a pin on it.
+  const tPins = timeAtFeet(motion, PINS_CHECKED_UNTIL_FT);
   const before = usable.filter((g) => tPins !== null && source.frame(g.index).t <= tPins);
-  const pinGeo = before.length ? before[before.length - 1] : null;
   debug.calibration = calibrationReport(
-    pinGeo ? source.frame(pinGeo.index) : null, pinGeo?.H ?? null,
+    before.map((g) => ({ frame: source.frame(g.index), H: g.H })),
     calibFrame, H0
   );
 

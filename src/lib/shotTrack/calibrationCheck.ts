@@ -1,7 +1,7 @@
 import { arrowFeet } from "../laneGeometry";
 import { PIN_POSITIONS } from "../pinGeometry";
 import { apply, downAt } from "./homography";
-import { parabolaPeak, sample } from "./image";
+import { median, parabolaPeak, sample } from "./image";
 import { BALL_DIAMETER_IN, expectedRadiusPx, imageToLane } from "./laneModel";
 import type { GrayFrame, Mat3 } from "./types";
 
@@ -16,6 +16,14 @@ export interface LandmarkError {
   name: string;
   /** Found minus expected, boards (lane u, so the sign is not handed). */
   error: number;
+  /** Over several frames (`checkPinsOver`): how many frames it was found on, its error the median of theirs. */
+  frames?: number;
+}
+
+/** A frame and the lane mapping on it. */
+export interface PinView {
+  frame: GrayFrame;
+  H: Mat3;
 }
 
 export interface CalibrationReport {
@@ -113,8 +121,31 @@ export function checkArrows(f: GrayFrame, H: Mat3): LandmarkError[] {
   return out;
 }
 
-export function calibrationReport(pinFrame: GrayFrame | null, pinH: Mat3 | null, arrowFrame: GrayFrame | null, arrowH: Mat3 | null): CalibrationReport {
-  const pins = pinFrame && pinH ? checkPins(pinFrame, pinH) : [];
+/**
+ * The pins on several frames, each with its own lane mapping: per pin, the
+ * median of its errors over the frames it was found on. On one frame a
+ * bowler's shoulder or arm beside a pin moves the bright run the pin is
+ * found by (IMG_2986: the shoulder beside the 7 pin put it 1.6 boards off on
+ * the frame the check used, where the frames after it found it within 0.4),
+ * while a pin that stands still is found in the same place on every frame
+ * it shows on. A lane that is off is off on every frame, so the median keeps
+ * that.
+ */
+export function checkPinsOver(views: PinView[]): LandmarkError[] {
+  const errors = new Map<string, number[]>();
+  for (const v of views) {
+    for (const p of checkPins(v.frame, v.H)) {
+      const list = errors.get(p.name) ?? [];
+      list.push(p.error);
+      errors.set(p.name, list);
+    }
+  }
+  return [...errors].map(([name, e]) => ({ name, error: median(e), frames: e.length }));
+}
+
+/** The pins on `pinViews` (`checkPinsOver`: frames before the ball nears them), the arrows on one frame. */
+export function calibrationReport(pinViews: PinView[], arrowFrame: GrayFrame | null, arrowH: Mat3 | null): CalibrationReport {
+  const pins = checkPinsOver(pinViews);
   const arrows = arrowFrame && arrowH ? checkArrows(arrowFrame, arrowH) : [];
   const worst = (e: LandmarkError[]) => (e.length ? Math.max(...e.map((x) => Math.abs(x.error))) : null);
   const pinError = worst(pins);

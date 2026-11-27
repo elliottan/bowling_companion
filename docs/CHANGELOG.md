@@ -9,6 +9,18 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.118.5: No false "the lane may be off" warning when you cover the lane (2026-11-27)
+
+- Fixed: the shot tracer asked you to check a lane that was right (IMG_2986)
+  because of frames where you stood over the lane. On those frames the lane
+  finder picked up the next lane over, and those finds counted as the lane
+  disagreeing with itself. They no longer count once at least 2 pins sit where
+  the traced lane puts them.
+- Fixed: the pins were checked on a single frame, which could be one where
+  your arm or shoulder was beside a pin. They are now checked on every frame
+  before the ball reaches 50 ft, and each pin's error is its median.
+- A lane that is really off still gets the warning. No reading changes.
+
 ## 0.118.4: The ball's position stays true while the camera zooms (2026-11-26)
 
 - Fixed: while the camera zoomed in, the tracer placed the ball a few feet
