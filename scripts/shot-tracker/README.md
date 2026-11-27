@@ -1426,8 +1426,18 @@ What the clips taught:
 ## The app's read in Node (2026-11-17, not released)
 
 ```
-npx tsx scripts/shot-tracker/app-read.ts <video> [--hand left] [--gray decoded|full] [--from 0] [--look dir] [--json out.json] [--dump dir]
+npx tsx scripts/shot-tracker/app-read.ts <video> [--hand left] [--gray decoded|full|phone] [--from 0] [--look dir] [--json out.json] [--dump dir]
 ```
+
+`--gray phone` (2026-11-27) decodes an HDR video (HLG or PQ, by ffprobe's
+transfer) as an iPhone hands it to the app: Safari's WebCodecs gives an 8-bit
+NV12 frame in full range tagged BT.709 and sRGB, and its luma is the HLG
+signal as coded, rounded from 10-bit video range to 8-bit full range
+(`PHONE_DECODE`, ffmpeg's `zscale=rin=limited:r=full`). On 6602 that gives the
+phone's first-look gray means exactly (158/138/142 at frames 0, 47 and 93),
+where `--gray full` (the 10-bit plane cut to 8 bits, then expanded) is half a
+level darker (158/138/141) and every tone map tried is further off. Any
+other video reads as `--gray full` does. `PHONE_VF` tries another ffmpeg chain.
 
 `app-read.ts` is the app's whole read with ffmpeg as the decoder: the file's
 sample table by `mp4.ts`, the first look's and each read's frames chosen by
@@ -2221,6 +2231,7 @@ reading is an owner-corrected value: it is printed against ours and never fails.
 SHOT_CLIPS_DIR=<dir with the release videos> npx tsx scripts/shot-tracker/regress.ts   # about 3 minutes with 4 workers
 npx tsx scripts/shot-tracker/regress.ts --only shot-06    # the videos whose name contains this
 npx tsx scripts/shot-tracker/regress.ts --update          # an intended change: rewrite expected.json, print the diff
+npx tsx scripts/shot-tracker/regress.ts --gray phone      # the HDR videos as a phone decodes them (app-read's --gray phone), held to the same margins
 ```
 
 The six repo clips need nothing else. The rest are the release asset
