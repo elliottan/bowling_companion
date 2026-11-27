@@ -32,6 +32,30 @@ describe("laneVerdict", () => {
     expect(laneVerdict({ ...GOOD, kept: 3, dropped: undefined }).level).toBe("sure");
   });
 
+  // IMG_2986 as the app traces it: 5 found lanes kept, 2 dropped as a board
+  // off, 18 more not its lane at all (the bowler over the left edge), and the
+  // three outer pins found within half a board of the traced lane.
+  const IMG_2986: LaneEvidence = { ...GOOD, kept: 5, dropped: 20, elsewhere: 18, pinCheck: 0.5, pinsSeen: 3 };
+
+  it("does not count found lanes that were never on the traced lane once the pins place it (IMG_2986)", () => {
+    expect(laneVerdict(IMG_2986)).toEqual({ level: "sure", reasons: [] });
+    // Without them the 5 of 25 kept would ask for a check, as it did.
+    expect(laneVerdict({ ...IMG_2986, elsewhere: undefined }).reasons).toEqual(["lanes-disagree"]);
+  });
+
+  it("still counts them when the pins do not place the lane: none, one, or off", () => {
+    expect(laneVerdict({ ...IMG_2986, pinCheck: null, pinsSeen: 0 }).reasons).toEqual(["lanes-disagree"]);
+    // One pin can be a neighbor found in its place by a lane a pin's spacing over.
+    expect(laneVerdict({ ...IMG_2986, pinsSeen: 1 }).reasons).toEqual(["lanes-disagree"]);
+    expect(laneVerdict({ ...IMG_2986, pinCheck: 1.6 }).reasons).toEqual(["lanes-disagree", "pins-off"]);
+  });
+
+  it("still asks when the lanes that were on the traced one disagree, pins or not", () => {
+    // 3 kept of 15 on the lane: the found lanes there disagree among themselves.
+    expect(laneVerdict({ ...IMG_2986, kept: 3, dropped: 30, elsewhere: 18 }).reasons).toEqual(["lanes-disagree"]);
+    expect(laneVerdict({ ...IMG_2986, kept: 2, dropped: 18, elsewhere: 18 }).reasons).toEqual(["lanes-disagree"]);
+  });
+
   it("asks for a check when the tracer's pins check is off by more than a board", () => {
     expect(laneVerdict({ ...GOOD, pinCheck: 1.43 }).reasons).toEqual(["pins-off"]);
     expect(laneVerdict({ ...GOOD, pinCheck: 1 }).level).toBe("sure");

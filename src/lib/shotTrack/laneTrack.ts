@@ -100,6 +100,14 @@ export interface LaneTrack {
   kept: FrameLane[];
   /** Found lanes left out as disagreeing with the rest. */
   dropped: FrameLane[];
+  /**
+   * Of `dropped`, those further than `SAME_LANE_BOARDS` from the anchor's,
+   * carried to its frame: not the anchor's lane at all. 12 of the 16
+   * regression clips have some, mostly 18 to 33 boards over, on frames where
+   * the bowler stands over an edge and the finder pairs the lane's other edge
+   * with the next gutter's (IMG_2986: 18 of 25 found lanes).
+   */
+  elsewhere: FrameLane[];
   /** Each found lane against its nearest others: how many it agrees with, and the median disagreement (NaN: none to check against). */
   checks: { frame: number; agree: number; boards: number; feet: number }[];
 }
@@ -145,11 +153,15 @@ export function laneTrack(
   const anchor = opts.anchor !== undefined
     ? finite.find((l) => l.frame === opts.anchor)
     : finite.reduce<FrameLane | undefined>((a, l) => (!a || (l.weight ?? 1) > (a.weight ?? 1) ? l : a), undefined);
+  const elsewhere: FrameLane[] = [];
   const all = anchor
     ? finite.filter((l) => {
         if (l === anchor) return true;
         const S = l.frame === anchor.frame ? I : carry(l.frame, anchor.frame);
-        return !!S && laneDisagreement(anchor.H, normalize(multiply(S, l.H))).boards <= SAME_LANE_BOARDS;
+        if (!S) return false;
+        const same = laneDisagreement(anchor.H, normalize(multiply(S, l.H))).boards <= SAME_LANE_BOARDS;
+        if (!same) elsewhere.push(l);
+        return same;
       })
     : finite;
   const nearest = (l: FrameLane) => all.filter((o) => o !== l).sort((x, y) => Math.abs(x.frame - l.frame) - Math.abs(y.frame - l.frame)).slice(0, NEIGHBORS);
@@ -178,5 +190,5 @@ export function laneTrack(
     const h = blendAt(k, kept);
     if (h) H.set(k, h);
   }
-  return { H, kept, dropped, checks };
+  return { H, kept, dropped, elsewhere, checks };
 }

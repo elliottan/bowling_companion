@@ -503,7 +503,13 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       return;
     }
     const lanesUsed = out.debug.lanes;
-    const evidence = { kept: lanesUsed?.kept.length, dropped: lanesUsed?.dropped.length, pinCheck: out.debug.calibration?.pinError ?? null };
+    const evidence = {
+      kept: lanesUsed?.kept.length,
+      dropped: lanesUsed?.dropped.length,
+      elsewhere: lanesUsed?.elsewhere.length,
+      pinCheck: out.debug.calibration?.pinError ?? null,
+      pinsSeen: out.debug.calibration?.pins.length
+    };
     // The calibration frame's mapping as traced: the found lanes' blend there.
     void finish({ kind: "done", result: out.result, H: out.debug.H0 ?? null, verdict: laneVerdict({ ...found.evidence, ...evidence }), shots: out.shots });
   }

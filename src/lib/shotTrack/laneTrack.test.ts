@@ -58,8 +58,10 @@ describe("laneTrack", () => {
   it("drops a lane that disagrees with the rest", () => {
     const wrong = { frame: 20, H: normalize(multiply(truth(20), shift(3))) };
     const lanes: FrameLane[] = [{ frame: 0, H: truth(0) }, { frame: 10, H: truth(10) }, wrong, { frame: 30, H: truth(30) }, { frame: 40, H: truth(40) }];
-    const { H, dropped } = laneTrack(lanes, carry, frames);
+    const { H, dropped, elsewhere } = laneTrack(lanes, carry, frames);
     expect(dropped).toEqual([wrong]);
+    // Three boards out is the same lane, put somewhere else.
+    expect(elsewhere).toEqual([]);
     expect(boards(H.get(20)!, truth(20))).toBeLessThan(1e-6);
   });
 
@@ -82,12 +84,17 @@ describe("laneTrack", () => {
     ];
     const r = laneTrack(lanes, carry, frames);
     expect(r.kept.map((l) => l.frame)).toEqual([35, 40, 45]);
+    // Those are not the anchor's lane at all, and are told apart from lanes that disagree on it.
+    expect(r.elsewhere.map((l) => l.frame)).toEqual([0, 5, 10, 15, 20, 25, 30]);
     expect(boards(r.H.get(0)!, truth(0))).toBeLessThan(1e-6);
     // Named, the anchor wins whatever the weights.
     expect(laneTrack(lanes, carry, frames, { anchor: 10 }).kept.map((l) => l.frame)).toEqual([0, 5, 10, 15, 20, 25, 30]);
     // A lane that cannot be carried to the anchor cannot be checked, and is dropped.
     const cut = (from: number, to: number) => (from < 20 && to >= 35 ? null : carry(from, to));
-    expect(laneTrack(lanes.map((l) => ({ ...l, H: truth(l.frame) })), cut, frames).dropped.map((l) => l.frame)).toEqual([0, 5, 10, 15]);
+    const uncut = laneTrack(lanes.map((l) => ({ ...l, H: truth(l.frame) })), cut, frames);
+    expect(uncut.dropped.map((l) => l.frame)).toEqual([0, 5, 10, 15]);
+    // Unchecked is not elsewhere.
+    expect(uncut.elsewhere).toEqual([]);
   });
 
   it("averages the noise of single frames and counts a guess for less", () => {
