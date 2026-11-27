@@ -9,6 +9,18 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.118.6: The shot tracer follows the ball to the pins in a dark house (2026-11-27)
+
+- Fixed: on a clip where the ball was last seen around 52 ft and its face
+  changed as it rolled past your leg, the follow to the pins gave up 11
+  frames early and there was no pins reading, although the ball shows in
+  front of the rack. When the follow falls short, the tracer now carries the
+  ball on from frame to frame using the ball-shaped spots it found but had
+  left out, then follows its face again from there. A clip whose follow
+  already reached the pins reads as before.
+- The Details block now says why the lane may be off (which check doubted it
+  and the numbers behind it), so a warning seen on a phone can be traced.
+
 ## 0.118.5: No false "the lane may be off" warning when you cover the lane (2026-11-27)
 
 - Fixed: the shot tracer asked you to check a lane that was right (IMG_2986)

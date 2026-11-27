@@ -13,7 +13,7 @@ import { CONTACT_IN, DECK_END_FT, LEFT_U, RIGHT_U, contactPoint, expectedRadiusP
 import { FTS_TO_MPH, fitMotion, fitPath, handedMetrics, pathU, pinContactFeet, timeAtFeet, withoutIslands, type MotionPoint, type ReadOff } from "./pathFit";
 import { bodyAtRelease, decideHand, driftCue, hookAgainstDrift, hookCue, lineCue, pinsCue, releaseCue, type HandCue, type HandFound } from "./handFind";
 import { laneTrack, type FrameLane, type LaneTrack, type LaneTrackOptions } from "./laneTrack";
-import { atFoulLineTime, followForward, overFoulLine, uAtColumn, type FollowPrediction, type OverFoulLine, type ReleaseFrame } from "./release";
+import { atFoulLineTime, chainCandidates, followForward, overFoulLine, uAtColumn, type FollowPrediction, type OverFoulLine, type ReleaseFrame } from "./release";
 import { followNear, nearSeeds } from "./nearFollow";
 import { firstPinMove, pinScores, pinsInReach, type PinFrame } from "./pinMove";
 import { alignTo, finishRegister, laneMarksOf, passFrames, PlanePass, planeSlots, RegisterPass, type FrameGeometry, type FrameSource, type Matches, type PlaneOptions, type RegisterOptions } from "./registration";
@@ -938,7 +938,30 @@ export function traceTail(state: TailState, source: FrameSource, progress: (stag
   if (pinFrame !== null && lastSeen.v > 50 && lastBefore - lastSeen.frame >= 2 && lastBefore - lastSeen.frame <= 29) {
     // Followed two frames on, for the pictures of the frames after (the
     // owner picks among them when unsure); read only up to `lastBefore`.
-    debug.toPins = followForward((i) => (geometry[i - first]?.ok ? source.frame(i) : null), lastSeen.frame, lastSeen, lastBefore + 2, 0.6, predict);
+    const frameOk = (i: number) => (geometry[i - first]?.ok ? source.frame(i) : null);
+    debug.toPins = followForward(frameOk, lastSeen.frame, lastSeen, lastBefore + 2, 0.6, predict);
+    const reached = (t: ReleaseFrame[]) => t.filter((d) => d.frame <= lastBefore).reduce((m, d) => Math.max(m, d.frame), lastSeen.frame);
+    if (reached(debug.toPins) < lastBefore - 2) {
+      // Lost by its face short of the pins: carried on by the detector's own
+      // candidates the run left out (`chainCandidates`), each placed by its
+      // rim at the ball's own size where the rim shows (`arcFit`, as the
+      // follow places it), and followed by its face again from the last of
+      // them (6602: the face lost 6 frames on as it changed under the
+      // picture's sharpening, the candidates carried it 12 frames on, to 5
+      // frames before the pins moved, and the face from there to them).
+      const carried = chainCandidates(cands, lastSeen, lastBefore).flatMap((c): ReleaseFrame[] => {
+        const p = frameOk(c.frame) ? predict(c.frame, c.x) : null;
+        if (!p) return [];
+        const a = arcFit(source.frame(c.frame), p.down ?? { x: 0, y: 1 }, { x: c.x, y: c.y }, p.r, arcReach(p.r, c.narrow), true);
+        const at = a && a.support >= ARC_MIN ? { x: a.cx, y: a.cy } : { x: c.x, y: c.y };
+        return [{ frame: c.frame, cx: at.x, cy: at.y, r: p.r, contrast: 0 }];
+      });
+      if (carried.length) {
+        const seed = carried[carried.length - 1];
+        const on = [...carried, ...followForward(frameOk, seed.frame, seed, lastBefore + 2, 0.6, predict)];
+        if (reached(on) > reached(debug.toPins)) debug.toPins = on;
+      }
+    }
     const track = debug.toPins.filter((d) => d.frame <= lastBefore);
     const reach = track.length ? track[track.length - 1].frame : lastSeen.frame;
     if (reach >= lastBefore - 2) {

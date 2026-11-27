@@ -1,5 +1,6 @@
 import type { ShotFound } from "./shotStart";
 import type { BallSearch } from "./ballFind";
+import type { LaneEvidence, LaneVerdict } from "./laneVerdict";
 import type { RunVerdict, ShotWindow } from "./shotWindow";
 
 /**
@@ -75,6 +76,24 @@ export function windowNote(w: ShotWindow): string {
 export function ballNote(b: BallSearch): string {
   const what = b.seen ? `foul line ${f2(b.seen.foul)} s at ${f1(b.seen.speed)} ft/s` : b.earlier !== null ? `over the foul line about ${f2(b.earlier)} s` : "not seen";
   return `${what}: ${b.why}, ${b.candidates} candidates`;
+}
+
+/**
+ * The lane check and what it was decided on: "check (pins-off), kept 7 of 24
+ * (7 elsewhere), pins 3 within 0.65 bd, edges 0.58/0.60, 3 pins in the fit,
+ * camera 20.2 ft". A phone that warned the lane may be off says why here
+ * (2026-11-27, 6602: the warning on the phone, none on the same clip read in
+ * Node, and nothing in the details to tell which doubt it was).
+ */
+export function laneCheckNote(v: LaneVerdict, e: LaneEvidence): string {
+  const parts = [v.reasons.length ? `${v.level} (${v.reasons.join(", ")})` : v.level];
+  if (e.kept !== undefined) parts.push(`kept ${e.kept} of ${e.kept + (e.dropped ?? 0)}${e.elsewhere ? ` (${e.elsewhere} elsewhere)` : ""}`);
+  if (e.pinCheck !== undefined) parts.push(e.pinCheck === null ? "no pins checked" : `pins ${e.pinsSeen ?? "?"} within ${f2(e.pinCheck)} bd`);
+  if (e.support) parts.push(`edges ${f2(e.support.left)}/${f2(e.support.right)}`);
+  if (e.pinsUsed !== undefined) parts.push(`${e.pinsUsed} pin${e.pinsUsed === 1 ? "" : "s"} in the fit`);
+  if (e.camera !== undefined) parts.push(`camera ${f1(e.camera)} ft`);
+  if (e.guess) parts.push(`foul line guessed (${e.guess.foul})`);
+  return parts.join(", ");
 }
 
 /** The stage times, seconds. */

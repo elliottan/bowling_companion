@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeFrame } from "./image";
-import { atFoulLineTime, findDisc, followForward, MATCH_MIN, overFoulLine } from "./release";
+import { atFoulLineTime, CHAIN_GAP_FRAMES, chainCandidates, findDisc, followForward, MATCH_MIN, overFoulLine } from "./release";
 import type { GrayFrame, Mat3 } from "./types";
 
 // A lane seen square on: x = 100 + 10 u, y = 400 - 5 v (the foul line is row 400).
@@ -128,5 +128,32 @@ describe("following the ball forward", () => {
     const f = ballAt(200, 310, false);
     expect(Math.abs(findDisc(f, { x: 200, y: 300 }, [R], 12)!.cy - 310)).toBeLessThanOrEqual(2);
     expect(findDisc(f, { x: 200, y: 300 }, [R], 12, 2)!.cy).toBe(302);
+  });
+});
+
+describe("carrying the ball on by the candidates left out", () => {
+  // 6602's far end as the detector saw it: the ball 6 pixels across, a pixel
+  // left a frame, its mirror image 9 pixels below on some frames.
+  const start = { frame: 102, cx: 536, cy: 342, r: 5.8 };
+  const at = (frame: number, x: number, y = 342, r = 6.3) => ({ frame, x, y, r });
+
+  it("takes each frame's candidate nearest where the ball was, across frames with none", () => {
+    const cands = [at(106, 532), at(106, 532, 351, 7.6), at(107, 532, 344), at(108, 531), at(110, 530), at(111, 528), at(114, 526)];
+    expect(chainCandidates(cands, start, 119).map((c) => [c.frame, c.y])).toEqual([[106, 342], [107, 344], [108, 342], [110, 342], [111, 342], [114, 342]]);
+    // Not past the frame it is asked to stop at.
+    expect(chainCandidates(cands, start, 108).map((c) => c.frame)).toEqual([106, 107, 108]);
+  });
+
+  it("stops at a gap longer than it bridges", () => {
+    const cands = [at(103, 535), at(104 + CHAIN_GAP_FRAMES + 1, 530)];
+    expect(chainCandidates(cands, start, 119).map((c) => c.frame)).toEqual([103]);
+    expect(chainCandidates([at(103 + CHAIN_GAP_FRAMES, 533)], start, 119).map((c) => c.frame)).toEqual([103 + CHAIN_GAP_FRAMES]);
+  });
+
+  it("leaves out a candidate too far across, up or down, or of another size", () => {
+    expect(chainCandidates([at(103, 540)], start, 119)).toEqual([]);
+    expect(chainCandidates([at(103, 536, 345)], start, 119)).toEqual([]);
+    expect(chainCandidates([at(103, 536, 342, 9)], start, 119)).toEqual([]);
+    expect(chainCandidates([at(103, 536, 342, 3.5)], start, 119)).toEqual([]);
   });
 });
