@@ -643,6 +643,25 @@ describe("snapLaneEdge", () => {
   it("is null where there is no edge", () => {
     expect(snapLaneEdge(makeFrame(200, 100, 0, 120), rough, vp, { x: 150, y: 50 }, 5, 95)).toBeNull();
   });
+
+  it("looks again further in when the rough line sits in the gutter, a groove at its band's lane side", () => {
+    // Across from the rough line x = 50 + 0.1 y: gutter, a groove 4 to 6 px in
+    // on the far half (rows under 55), gutter, the lane's dark line 10 to 12 px
+    // in, then the lane.
+    const f = makeFrame(200, 100);
+    for (let y = 0; y < 100; y++)
+      for (let x = 0; x < 200; x++) {
+        const r = x - (50 + 0.1 * y);
+        f.data[y * 200 + x] = r >= 12 ? 200 : r >= 10 ? 90 : r >= 6 ? 150 : r >= 4 && y < 55 ? 60 : 150;
+      }
+    const at = (l: Line3) => -(l[1] * 50 + l[2]) / l[0] - 55;
+    const s = snapLaneEdge(f, [1, -0.1, -50], vp, { x: 150, y: 50 }, 5, 95, { band: 8 })!;
+    expect(at(s.line)).toBeGreaterThan(10.5);
+    expect(at(s.line)).toBeLessThan(12.5);
+    // Near the lane's edge already, it is found the first time.
+    const near = snapLaneEdge(f, [1, -0.1, -58], vp, { x: 150, y: 50 }, 5, 95, { band: 8 })!;
+    expect(Math.abs(at(near.line) - at(s.line))).toBeLessThan(0.3);
+  });
 });
 
 describe("pins on a built picture", () => {

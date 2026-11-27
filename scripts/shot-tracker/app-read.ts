@@ -3,7 +3,7 @@
  * give the tracer, so a reading the app gives can be reproduced and bisected
  * without a browser.
  *
- *   npx tsx scripts/shot-tracker/app-read.ts <video> [<video> ...] [--hand left] [--gray decoded|full] [--from 0] [--look dir] [--json out.json] [--dump dir]
+ *   npx tsx scripts/shot-tracker/app-read.ts <video> [<video> ...] [--hand left] [--gray decoded|full|phone] [--from 0] [--look dir] [--json out.json] [--dump dir]
  *
  * What the app does (`ShotTracerView`, `readShot.ts`, `codecFrames.ts`), with
  * ffmpeg as the decoder: the file's sample table read by `mp4.ts`; the first
@@ -16,7 +16,9 @@
  *
  * `--gray decoded` keeps each luma plane as decoded (the app before
  * 2026-11-17: video range), `--gray full` (the default) brings it to full
- * range as the app now does (`grayRange.ts`). `--from 0` reads from the
+ * range as the app now does (`grayRange.ts`). `--gray phone` decodes an HDR
+ * video (HLG or PQ) as an iPhone's decoder hands it to the app
+ * (`PHONE_DECODE`), and any other video as `full` does. `--from 0` reads from the
  * video's start to the window's end instead of from the window's start, the
  * frames otherwise chosen the same way: the read's start alone changed.
  * `--found file.json` replays a first look's result instead of searching (a
@@ -37,7 +39,8 @@ import { lumaRange, toFullRange } from "../../src/lib/shotTrack/grayRange";
 import { findLanes, frameLanes } from "../../src/lib/shotTrack/laneFind";
 import { planeCrop, planeGray } from "../../src/lib/shotTrack/marking";
 import { nearestStamp, readVideoTrack, spanStamps, type VideoTrack } from "../../src/lib/shotTrack/mp4";
-import { Notes } from "../../src/lib/shotTrack/notes";
+import { laneCheckNote, Notes } from "../../src/lib/shotTrack/notes";
+import { laneVerdict, type LaneEvidence } from "../../src/lib/shotTrack/laneVerdict";
 import { trace } from "../../src/lib/shotTrack/pipeline";
 import { COARSE_WIDTH, laneBands, readFrom, ShotSearch, type Band, type CoarseFrame, type ShotFound } from "../../src/lib/shotTrack/shotStart";
 import type { GrayFrame } from "../../src/lib/shotTrack/types";
@@ -46,7 +49,50 @@ import type { VideoFrames } from "../../src/shotTracer/videoFrames";
 import type { Handedness } from "../../src/types/bowling";
 import { tracedReading } from "./bench-readings";
 
-export type GrayMode = "decoded" | "full";
+export type GrayMode = "decoded" | "full" | "phone";
+
+/**
+ * How an iPhone's hardware decoder hands an HDR video to the app (Safari 18.7,
+ * WebCodecs, HEVC Main 10 HLG, 0.118.6): an 8-bit NV12 frame in full range,
+ * tagged BT.709 with the sRGB transfer. The tag says tone mapped, but the
+ * luma is the HLG signal as coded, only rounded from 10-bit video range to
+ * 8-bit full range: on clip 6602 the first look's gray means at frames 0, 47
+ * and 93 are the phone's 158/138/142 with this, where the 10-bit plane cut to
+ * 8 bits and then expanded (`--gray full`) gives 158/138/141 (141.31: half a
+ * level darker on average) and every tone map tried is further off (BT.2390
+ * via zscale to linear then hable 115/99/102, mobius 154/141/144 at 203 nits,
+ * no tone map at 203 nits 185/154/159, the gamut alone 157/137/141, and none
+ * reaches 255). `PHONE_VF` tries another ffmpeg chain in its place.
+ */
+export const PHONE_DECODE = process.env.PHONE_VF ?? "zscale=rin=limited:r=full,format=yuv420p";
+
+/** The transfers of an HDR video, as ffprobe names them: HLG and PQ. */
+export const HDR_TRANSFERS = new Set(["arib-std-b67", "smpte2084"]);
+
+/** The transfer in ffprobe's `stream=color_transfer` csv (a trailing comma where the stream has side data): `unknown` where it names none. */
+export function transferOf(csv: string): string {
+  return csv.split(/[,\n]/)[0].trim() || "unknown";
+}
+
+/** Whether `path` is an HDR video (HLG or PQ), which a phone's decoder hands over as 8-bit full range. */
+export function hdrSource(path: string): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const p = spawn("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=color_transfer", "-of", "csv=p=0", path]);
+    let out = "";
+    p.stdout.on("data", (d: Buffer) => (out += d.toString()));
+    p.on("error", reject);
+    p.on("close", () => resolve(HDR_TRANSFERS.has(transferOf(out))));
+  });
+}
+
+/** A track as the decoder hands it over: with `convert`, that ffmpeg chain applied first (the phone's), giving 8 bits in full range. */
+export type Decoded = VideoTrack & { convert?: string };
+
+/** The track as `gray` decodes it: an HDR video in `phone` mode as the phone's decoder gives it (`PHONE_DECODE`), any other as it is. */
+export async function decodedTrack(path: string, track: VideoTrack, gray: GrayMode): Promise<Decoded> {
+  if (gray !== "phone" || !(await hdrSource(path))) return track;
+  return { ...track, bitDepth: 8, fullRange: true, convert: PHONE_DECODE };
+}
 
 /** A file as `mp4.ts` reads it, from disk. */
 export async function fileTrack(path: string): Promise<VideoTrack> {
@@ -84,7 +130,7 @@ const stampsCache = new Map<string, Promise<number[]>>();
  * `onFrame` as its luma plane: one byte a sample, or two (little-endian)
  * past 8 bits.
  */
-async function decodeLuma(path: string, track: VideoTrack, wanted: ReadonlyMap<number, number>, onFrame: (place: number, t: number, plane: Uint8Array) => void): Promise<number> {
+async function decodeLuma(path: string, track: Decoded, wanted: ReadonlyMap<number, number>, onFrame: (place: number, t: number, plane: Uint8Array) => void): Promise<number> {
   if (!stampsCache.has(path)) stampsCache.set(path, frameStamps(path));
   const times = await stampsCache.get(path)!;
   const stamps = spanStamps(track.samples, 0, track.samples.length - 1);
@@ -100,8 +146,9 @@ async function decodeLuma(path: string, track: VideoTrack, wanted: ReadonlyMap<n
   const size = track.codedWidth * track.codedHeight * bytes;
   const fmt = track.bitDepth > 8 ? "gray10le" : "gray";
   return new Promise((resolve, reject) => {
-    // The luma plane as stored: no turn, no range change, no scaling.
-    const p = spawn("ffmpeg", ["-v", "error", "-noautorotate", "-i", path, "-vf", `extractplanes=y,format=${fmt}`, "-f", "rawvideo", "-vsync", "passthrough", "-"]);
+    // The luma plane as stored: no turn, no range change, no scaling; or as a phone's decoder gives an HDR video.
+    const vf = `${track.convert ? `${track.convert},` : ""}extractplanes=y,format=${fmt}`;
+    const p = spawn("ffmpeg", ["-v", "error", "-noautorotate", "-i", path, "-vf", vf, "-f", "rawvideo", "-vsync", "passthrough", "-"]);
     let k = 0;
     let given = 0;
     let fill = Buffer.alloc(size);
@@ -133,7 +180,7 @@ async function decodeLuma(path: string, track: VideoTrack, wanted: ReadonlyMap<n
 }
 
 /** The first look, as `codecScan` gives it to the search worker. */
-export async function look(path: string, track: VideoTrack, gray: GrayMode): Promise<CoarseFrame[]> {
+export async function look(path: string, track: Decoded, gray: GrayMode): Promise<CoarseFrame[]> {
   const pick = scanPick(track.samples, track.duration);
   if (!pick) return [];
   const width = COARSE_WIDTH;
@@ -144,7 +191,7 @@ export async function look(path: string, track: VideoTrack, gray: GrayMode): Pro
   const wanted = new Map(pick.order.map((s, k) => [s, k]));
   await decodeLuma(path, track, wanted, (place, t, plane) => {
     const data = planeGray(plane, track.bitDepth, 0, track.codedWidth * (track.bitDepth > 8 ? 2 : 1), track.codedWidth, track.codedHeight, quarter ? height : width, quarter ? width : height, turn);
-    made[place] = { width, height, data: gray === "full" ? toFullRange(data, lumaRange(null, track.fullRange)) : data, t };
+    made[place] = { width, height, data: gray !== "decoded" ? toFullRange(data, lumaRange(null, track.fullRange)) : data, t };
   });
   return made.filter(Boolean);
 }
@@ -161,7 +208,7 @@ function savedLook(dir: string, path: string, gray: GrayMode): CoarseFrame[] {
   const raw = readFileSync(join(dir, `${stem}.look`));
   const px = meta.width * meta.height;
   // Saved in the range the page gave (`range` in the json: video range before 2026-11-17).
-  const expand = gray === "full" && meta.range !== "full";
+  const expand = gray !== "decoded" && meta.range !== "full";
   return meta.times.map((t, i) => {
     const data = new Uint8ClampedArray(raw.subarray(i * px, (i + 1) * px));
     return { width: meta.width, height: meta.height, data: expand ? toFullRange(data, "limited") : data, t };
@@ -169,7 +216,7 @@ function savedLook(dir: string, path: string, gray: GrayMode): CoarseFrame[] {
 }
 
 /** A read as `codecRead` gives it. */
-export function reader(path: string, track: VideoTrack, gray: GrayMode, log: string[]) {
+export function reader(path: string, track: Decoded, gray: GrayMode, log: string[]) {
   return async (plan: PickPlan): Promise<VideoFrames> => {
     const pick = readPick(track, plan);
     const turn = track.rotation;
@@ -181,7 +228,7 @@ export function reader(path: string, track: VideoTrack, gray: GrayMode, log: str
     if (pick.span)
       await decodeLuma(path, track, pick.wanted, (place, t, plane) => {
         const g = planeGray(plane, track.bitDepth, c.y * track.codedWidth * bytes + c.x * bytes, track.codedWidth * bytes, c.w, c.h, quarter ? pick.height : pick.width, quarter ? pick.width : pick.height, turn);
-        placed[place] = gray === "full" ? toFullRange(g, lumaRange(null, track.fullRange)) : g;
+        placed[place] = gray !== "decoded" ? toFullRange(g, lumaRange(null, track.fullRange)) : g;
         placedT[place] = t;
       });
     const out: VideoFrames = { width: pick.width, height: pick.height, gray: [], times: [], src: pick.src, step: pick.step, missing: pick.missing, via: "ffmpeg" };
@@ -202,7 +249,7 @@ export function findOn(v: VideoFrames, every: number) {
   const all = framesOf(v);
   const idx = gridFrames(v.times, every, v.step || readStep(v.times));
   const found = findLanes(idx.map((i) => all[i]));
-  return found.best ? { frame: idx[found.best.index], lanes: frameLanes(found, (i) => idx[i]) } : null;
+  return found.best ? { frame: idx[found.best.index], lanes: frameLanes(found, (i) => idx[i]), best: found.best } : null;
 }
 
 export interface AppRead {
@@ -218,7 +265,7 @@ export interface AppRead {
 
 /** The frames the app gives the tracer for `path`: the first look, the bands, `readShot`. `fromZero` reads from the video's start instead of the window's. */
 export async function appRead(path: string, gray: GrayMode, fromZero = false, lookDir?: string, given?: ShotFound): Promise<AppRead | null> {
-  const track = await fileTrack(path);
+  const track = await decodedTrack(path, await fileTrack(path), gray);
   const log: string[] = [];
   const notes = new Notes();
   const coarse = given ? [] : lookDir ? savedLook(lookDir, path, gray) : await look(path, track, gray);
@@ -264,7 +311,21 @@ export function traceRead(frames: GrayFrame[], hand: Handedness, handFromVideo =
   const v: VideoFrames = { width: frames[0].width, height: frames[0].height, gray: frames.map((f) => f.data), times: frames.map((f) => f.t), src: null, step: 0, missing: 0 };
   const m = findOn(v, LANE_EVERY);
   if (!m) return null;
-  return trace({ source: { count: frames.length, frame: (i) => frames[i] }, calibFrame: m.frame, lanes: m.lanes, hand, handFromVideo });
+  const out = trace({ source: { count: frames.length, frame: (i) => frames[i] }, calibFrame: m.frame, lanes: m.lanes, hand, handFromVideo });
+  // The view's lane check (`traceShot` in `ShotTracerView`): the finder's best frame and the lanes the trace kept.
+  const used = out.debug.lanes;
+  const evidence: LaneEvidence = {
+    guess: m.best.guess,
+    support: m.best.support,
+    pinsUsed: m.best.pinsUsed,
+    camera: m.best.camera,
+    kept: used?.kept.length,
+    dropped: used?.dropped.length,
+    elsewhere: used?.elsewhere.length,
+    pinCheck: out.debug.calibration?.pinError ?? null,
+    pinsSeen: out.debug.calibration?.pins.length
+  };
+  return { ...out, laneCheck: laneCheckNote(laneVerdict(evidence), evidence) };
 }
 
 if (process.argv[1]?.endsWith("app-read.ts")) {
@@ -299,10 +360,11 @@ if (process.argv[1]?.endsWith("app-read.ts")) {
     for (const l of r.log) console.log(`   ${l}`);
     // The details block's lines on the bands: the runs as judged on the lane, and the window.
     for (const l of r.notes.split("\n").filter((x) => x.startsWith("band"))) console.log(`   ${l}`);
+    if (out) console.log(`   lane check: ${out.laneCheck}`);
     const hf = out?.debug.hand;
     if (hf) console.log(`   hand: ${out?.result.ok ? out.result.hand : "-"} (video says ${hf.by === "video" ? hf.hand : `nothing: ${hf.why}`}, confidence ${hf.confidence.toFixed(2)}; ${hf.cues.map((c) => `${c.name} ${c.boards.toFixed(1)} -> ${c.vote.toFixed(2)}`).join(", ")})`);
     const pick = (k: string) => (reading as Record<string, unknown> | null)?.[k];
-    console.log(`   ${JSON.stringify({ laydown: pick("laydown"), arrows: pick("arrows"), breakpoint: pick("breakpoint"), at: pick("breakpointFeet"), pins: pick("pins"), launch: pick("launchSpeed"), failure: pick("failure") })}`);
+    console.log(`   ${JSON.stringify({ laydown: pick("laydown"), arrows: pick("arrows"), breakpoint: pick("breakpoint"), at: pick("breakpointFeet"), pins: pick("pins"), launch: pick("launchSpeed"), entry: pick("entrySpeed"), failure: pick("failure") })}`);
     results.push({ name: r.name, gray, fromZero, first: r.frames[0].t, last: r.frames[r.frames.length - 1].t, count: r.frames.length, window: w, trace: reading });
     if (dumpDir) {
       mkdirSync(dumpDir, { recursive: true });

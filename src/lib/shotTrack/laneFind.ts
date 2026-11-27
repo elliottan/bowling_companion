@@ -839,6 +839,17 @@ export function rayThrough(vp: Point, pts: Point[]): Line3 | null {
   return [nx, ny, -(nx * vp.x + ny * vp.y)];
 }
 
+/**
+ * An edge whose points sit further toward the lane than this share of the
+ * band (their median) is looked for again about where they sit
+ * (`snapLaneEdge`)...
+ */
+export const RESNAP_SHARE = 0.6;
+/** ...and the second look is taken when it follows the edge on this many times the steps... */
+export const RESNAP_GAIN = 1.3;
+/** ...and puts it further than this share of the band from the first at the near row: another edge, not the same one followed further. */
+export const RESNAP_MOVE = 0.5;
+
 export interface LaneEdgeOptions {
   /** Half-width of the search across the rough line, pixels. */
   band?: number;
@@ -866,16 +877,37 @@ export interface LaneEdgeOptions {
 export function snapLaneEdge(
   f: GrayFrame, rough: Line3, vp: Point, interior: Point, far: number, near: number, opts: LaneEdgeOptions = {}
 ): { line: Line3; free: Line3; support: number; rms: number; points: Point[] } | null {
-  const at = (y: number) => ({ x: -(rough[1] * y + rough[2]) / rough[0], y });
-  const s = snapEdge(f, { a: at(far), b: at(near) }, {
-    band: opts.band ?? Math.max(4, 0.01 * f.width),
-    interior,
-    sign: "rising",
-    pick: "first",
-    firstShare: opts.share ?? 0.15,
-    firstMin: opts.min ?? 5,
-    toLine: opts.toLine ?? 0.0018 * f.width
-  });
+  const band = opts.band ?? Math.max(4, 0.01 * f.width);
+  const snapAt = (l: Line3) => {
+    const at = (y: number) => ({ x: -(l[1] * y + l[2]) / l[0], y });
+    return snapEdge(f, { a: at(far), b: at(near) }, {
+      band,
+      interior,
+      sign: "rising",
+      pick: "first",
+      firstShare: opts.share ?? 0.15,
+      firstMin: opts.min ?? 5,
+      toLine: opts.toLine ?? 0.0018 * f.width
+    });
+  };
+  let s = snapAt(rough);
+  // A rough line two boards out in the gutter (on 6602 the fan's column took
+  // a groove in the gutter on the frames where the bowler's leg hid the
+  // lane's left edge near the foul line): the band then ends short of the
+  // lane's own edge, and the first rising edge inside it is the groove's, on
+  // the band's lane side. Looked for again about where those points sit, the
+  // second look is kept when it follows an edge along clearly more of the
+  // lane, somewhere else: the lane's own edge, no longer hidden by the band.
+  const X = (l: Line3, y: number) => -(l[1] * y + l[2]) / l[0];
+  const inward = (l: Line3, p: Point) => Math.sign(interior.x - X(l, interior.y)) * (p.x - X(l, p.y));
+  if (s.inliers.length >= 3 && median(s.inliers.map((p) => inward(rough, p))) > RESNAP_SHARE * band) {
+    const first = rayThrough(vp, s.inliers)!;
+    const again = snapAt(first);
+    if (again.inliers.length >= RESNAP_GAIN * s.inliers.length) {
+      const moved = Math.abs(inward(first, { x: X(rayThrough(vp, again.inliers)!, near), y: near }));
+      if (moved > RESNAP_MOVE * band) s = again;
+    }
+  }
   if (s.inliers.length < 3) return null;
   let line = rayThrough(vp, s.inliers)!;
   // Refit on the points near the ray (the free fit's inliers can lean).

@@ -9,6 +9,17 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.118.7: The lane's edge stays out of the gutter when your leg covers it (2026-11-27)
+
+- Fixed: when your leg covered the lane's left edge near the foul line, the
+  lane finder could take a groove in the gutter for the edge, and the lane
+  came out too wide (your new clip: up to 1.6 boards into the gutter). The
+  edge is now looked for again where its points gather, and taken there when
+  that follows the edge on clearly more of the lane. On that clip arrows move
+  from 15.2 to 14.9.
+- For the developer: the shot tracer's test scripts can now read an HDR
+  video the way an iPhone hands it over (`--gray phone`).
+
 ## 0.118.6: The shot tracer follows the ball to the pins in a dark house (2026-11-27)
 
 - Fixed: on a clip where the ball was last seen around 52 ft and its face

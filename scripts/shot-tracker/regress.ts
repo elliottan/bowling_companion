@@ -6,6 +6,7 @@
  *   npx tsx scripts/shot-tracker/regress.ts --only IMG_2986 # the videos whose name contains this
  *   npx tsx scripts/shot-tracker/regress.ts --update        # rewrite expected.json from the current reads (an intended change)
  *   npx tsx scripts/shot-tracker/regress.ts --verbose       # every reading, not just the ones that are not plain passes
+ *   npx tsx scripts/shot-tracker/regress.ts --gray phone    # an HDR video decoded as a phone's decoder gives it (`app-read.ts`)
  *
  * Videos come from the repo (`fixtures/clips/`) or from the release asset
  * unzipped into `SHOT_CLIPS_DIR` (default `scripts/shot-tracker/out/shot-clips`),
@@ -26,6 +27,7 @@ import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs
 import { cpus } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { hdrSource, type GrayMode } from "./app-read";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "../..");
@@ -78,11 +80,11 @@ function parseValue(v: unknown): Got | null {
 }
 
 /** Child: read one video in this process and print the result as one marked line. */
-async function child(path: string): Promise<void> {
+async function child(path: string, gray: GrayMode): Promise<void> {
   const t0 = Date.now();
   const { appRead, traceRead } = await import("./app-read");
   const { tracedReading } = await import("./bench-readings");
-  const r = await appRead(path, "full");
+  const r = await appRead(path, gray);
   let note: string | null = null;
   let reading: Record<string, unknown> | null = null;
   let hand: string | null = null;
@@ -102,9 +104,9 @@ async function child(path: string): Promise<void> {
   process.stdout.write(`\n${CHILD_MARK}${JSON.stringify(result)}\n`);
 }
 
-function readInChild(path: string): Promise<Result> {
+function readInChild(path: string, gray: GrayMode): Promise<Result> {
   return new Promise((done, fail) => {
-    const p = spawn(process.execPath, [...process.execArgv, fileURLToPath(import.meta.url), "--child", path], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] });
+    const p = spawn(process.execPath, [...process.execArgv, fileURLToPath(import.meta.url), "--child", path, "--gray", gray], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] });
     let out = "";
     let err = "";
     p.stdout.on("data", (d: Buffer) => (out += d.toString()));
@@ -204,8 +206,12 @@ async function main() {
     const i = args.indexOf(k);
     return i >= 0 ? args[i + 1] : undefined;
   };
+  const gray = (opt("--gray") ?? "full") as GrayMode;
+  if (!["decoded", "full", "phone"].includes(gray)) throw new Error(`--gray ${gray}: decoded, full or phone`);
+  // The manifest holds the app's own decode: another is only compared with it.
+  if (gray !== "full" && flag("--update")) throw new Error(`--update reads with --gray full only (got --gray ${gray})`);
   const childPath = opt("--child");
-  if (childPath) return child(childPath);
+  if (childPath) return child(childPath, gray);
 
   const manifest = JSON.parse(readFileSync(MANIFEST, "utf8")) as Manifest;
   const only = opt("--only");
@@ -228,6 +234,8 @@ async function main() {
       failures.push(`${entry.file}: sha256 differs from the manifest, so this is not the clip the margins were set on`);
       continue;
     }
+    // A phone decodes any other video as the app's own read does: only the HDR ones read otherwise.
+    if (gray === "phone" && !(await hdrSource(path))) continue;
     todo.push({ entry, path });
   }
   if (only && !manifest.videos.some((e) => e.file.includes(only))) failures.push(`--only ${only}: no such video in the manifest`);
@@ -236,7 +244,7 @@ async function main() {
   const t0 = Date.now();
   const results = await pool(todo, workers, async ({ entry, path }) => {
     try {
-      const r = await readInChild(path);
+      const r = await readInChild(path, gray);
       console.log(`read ${entry.file} (${r.seconds.toFixed(1)} s)`);
       return r;
     } catch (e) {
