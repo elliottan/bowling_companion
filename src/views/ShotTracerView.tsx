@@ -14,7 +14,7 @@ import { apply } from "../lib/shotTrack/homography";
 import { BACK_ROW_FT, laneU, LEFT_U, RIGHT_U } from "../lib/shotTrack/laneModel";
 import type { FrameLane } from "../lib/shotTrack/laneTrack";
 import { laneVerdict, type LaneEvidence, type LaneVerdict } from "../lib/shotTrack/laneVerdict";
-import { foundNote, Notes, timesNote } from "../lib/shotTrack/notes";
+import { foundNote, laneCheckNote, Notes, timesNote } from "../lib/shotTrack/notes";
 import { Stalled, Watchdog, within } from "../lib/shotTrack/stall";
 import { glimpseIndices } from "../lib/shotTrack/lookFrame";
 import { MARK_LINES, pathInPicture, type MarkLine } from "../lib/shotTrack/marking";
@@ -510,8 +510,11 @@ export function ShotTracerView({ handedness, onBack }: { handedness: Handedness;
       pinCheck: out.debug.calibration?.pinError ?? null,
       pinsSeen: out.debug.calibration?.pins.length
     };
+    const all = { ...found.evidence, ...evidence };
+    const verdict = laneVerdict(all);
+    notes.current.set("lane check", laneCheckNote(verdict, all));
     // The calibration frame's mapping as traced: the found lanes' blend there.
-    void finish({ kind: "done", result: out.result, H: out.debug.H0 ?? null, verdict: laneVerdict({ ...found.evidence, ...evidence }), shots: out.shots });
+    void finish({ kind: "done", result: out.result, H: out.debug.H0 ?? null, verdict, shots: out.shots });
   }
 
   const another = () => {

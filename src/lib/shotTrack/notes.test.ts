@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { foundNote, grayStats, Notes, timesNote, verdictNote, windowNote } from "./notes";
+import { laneVerdict } from "./laneVerdict";
+import { foundNote, grayStats, laneCheckNote, Notes, timesNote, verdictNote, windowNote } from "./notes";
 
 describe("the shot tracer's details", () => {
   it("keeps lines in the order first written, replaced by set and joined by add", () => {
@@ -30,5 +31,17 @@ describe("the shot tracer's details", () => {
     expect(windowNote({ foul: 3.7, end: 7.1, by: "speed", speed: 39.5 })).toBe("foul line 3.70 s, end 7.10 s by speed (39.5 ft/s)");
     expect(windowNote({ foul: null, end: 4.67, by: "slowest", speed: null })).toBe("foul line not found, end 4.67 s by slowest");
     expect(timesNote({ look: 3400, read: 4800, lane: 1000, trace: 8800 })).toBe("look 3.4, read 4.8, lane 1.0, trace 8.8 s");
+  });
+
+  it("says the lane check and what it was decided on", () => {
+    // 6602 as the Node read finds it.
+    const e = { guess: null, support: { left: 0.58, right: 0.6 }, pinsUsed: 3, camera: 20.18, kept: 7, dropped: 17, elsewhere: 7, pinCheck: 0.649, pinsSeen: 3 };
+    expect(laneCheckNote(laneVerdict(e), e)).toBe("sure, kept 7 of 24 (7 elsewhere), pins 3 within 0.65 bd, edges 0.58/0.60, 3 pins in the fit, camera 20.2 ft");
+    const off = { ...e, pinCheck: 1.4, elsewhere: 0, pinsUsed: 1, guess: { foul: "typical-camera" } };
+    expect(laneCheckNote(laneVerdict(off), off)).toBe(
+      "check (foul-guessed, pins-off), kept 7 of 24, pins 3 within 1.40 bd, edges 0.58/0.60, 1 pin in the fit, camera 20.2 ft, foul line guessed (typical-camera)"
+    );
+    expect(laneCheckNote(laneVerdict({ pinCheck: null }), { pinCheck: null })).toBe("sure, no pins checked");
+    expect(laneCheckNote(laneVerdict({}), {})).toBe("sure");
   });
 });

@@ -366,6 +366,49 @@ export function followForward(
   return out;
 }
 
+/** A chain of candidates (`chainCandidates`) goes on over at most this many frames with none in a row. */
+export const CHAIN_GAP_FRAMES = 4;
+
+/**
+ * The ball carried on past a sighting by the detector's own candidates (the
+ * change against the empty lane) that the run left out, from frame to frame
+ * in the picture: each frame's candidate nearest where the ball was, within
+ * `0.6` of its radius a frame across and a third of it up or down, of about
+ * its size (within a third), over gaps of up to `CHAIN_GAP_FRAMES` frames
+ * with none. A ball that slows at the far end is left out of the run, whose
+ * pace is one straight line in time (`associate`), though the change still
+ * shows it frame after frame (2026-11-27, 6602: seen to 52 ft, then
+ * candidates on nine of the next twelve frames, one per frame, a pixel to
+ * the left each time, 4 to 8 ft short of the run's line). Where the ball is
+ * in the picture is what this keeps; its place down the lane, a foot or
+ * two a pixel row there, is not used. Pure.
+ */
+export function chainCandidates<T extends { frame: number; x: number; y: number; r: number }>(
+  cands: T[],
+  start: { frame: number; cx: number; cy: number; r: number },
+  to: number
+): T[] {
+  const out: T[] = [];
+  let at = { frame: start.frame, x: start.cx, y: start.cy, r: start.r };
+  for (let i = start.frame + 1; i <= to && i - at.frame <= CHAIN_GAP_FRAMES + 1; i++) {
+    const n = i - at.frame;
+    let best: { c: T; d: number } | null = null;
+    for (const c of cands) {
+      if (c.frame !== i) continue;
+      const dx = Math.abs(c.x - at.x);
+      const dy = Math.abs(c.y - at.y);
+      if (dx > Math.max(1.5, 0.6 * at.r) * n || dy > Math.max(1, at.r / 3) * n) continue;
+      if (Math.abs(c.r / at.r - 1) > 1 / 3) continue;
+      const d = Math.hypot(dx, dy);
+      if (!best || d < best.d) best = { c, d };
+    }
+    if (!best) continue;
+    at = { frame: i, x: best.c.x, y: best.c.y, r: best.c.r };
+    out.push(best.c);
+  }
+  return out;
+}
+
 /** The face match must correlate at least this well for the follow to go on. */
 export const MATCH_MIN = 0.6;
 
