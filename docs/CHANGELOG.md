@@ -9,6 +9,13 @@ shipped as. The dated sections below `0.2.0` were all shipped as `0.1.0`.
 Thirty of them used to be headed `[Unreleased]`, which said nothing once they
 had all shipped.
 
+## 0.118.8: A video the phone could not decode from the middle is decoded from the start (2026-11-28)
+
+- Fixed: on some iPhone clips the decoder refused to start reading at a point
+  in the middle of the video, so the read fell back to playing it, which was
+  very slow. It now decodes from the start of the file instead, and reading
+  such a video is much quicker.
+
 ## 0.118.7: The lane's edge stays out of the gutter when your leg covers it (2026-11-27)
 
 - Fixed: when your leg covered the lane's left edge near the foul line, the

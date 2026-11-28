@@ -533,11 +533,12 @@ export async function codecRead(
     return vr ? copyLuma(frame, planeCrop(band, vr.width, vr.height, turn), copying) : Promise.resolve(null);
   };
 
-  const done = span
-    ? await decodeRange(
+  /** One decode of samples `first` to the span's end, into the read's own state (reset by the caller). */
+  const decodeFrom = (first: number, last: number) =>
+    decodeRange(
         cv,
-        span.first,
-        span.last,
+        first,
+        last,
         wanted,
         async (frame, t, place) => {
           const started = performance.now();
@@ -569,8 +570,24 @@ export async function codecRead(
           cost.push(performance.now() - started);
           onProgress(readProgress(t, from, to));
         }
-      )
-    : { out: 0, fed: 0, ms: 0, backwards: 0, moved: 0, stray: 0, lost: 0 };
+    );
+  const none = { out: 0, fed: 0, ms: 0, backwards: 0, moved: 0, stray: 0, lost: 0 };
+  let done = none;
+  if (span) {
+    try {
+      done = await decodeFrom(span.first, span.last);
+    } catch (e) {
+      // A phone's decoder can refuse to start at a sync sample that needs pictures before it (an open GOP): the whole file decodes from its first sample, so decode from there before the read is played instead.
+      if (span.first === 0) throw e;
+      notes?.add("read", `decoding from ${track.samples[span.first].t.toFixed(2)} s failed (${reasonOf(e)}), decoded from the start instead`);
+      placed.length = 0;
+      placedT.length = 0;
+      cost.length = 0;
+      mode = "unknown";
+      how = "none";
+      done = await decodeFrom(0, span.last);
+    }
+  }
   // In time order, any frame the decoder never gave left out.
   const gray: Uint8ClampedArray[] = [];
   const times: number[] = [];

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Sample, VideoTrack } from "../lib/shotTrack/mp4";
+import { Notes } from "../lib/shotTrack/notes";
 import { codecRead, codecScan, openCodec, type CodecVideo } from "./codecFrames";
 
 // The decode bookkeeping, with a stand-in for the browser's `VideoDecoder`
@@ -67,6 +68,8 @@ interface Fake {
   output: "decode-order" | "show-order" | "none";
   /** Whether a frame's `copyTo` answers. */
   copy: "answer" | "never";
+  /** Errors out when the first chunk it is given is a sync sample other than the first (an open GOP an iPhone cannot start from); `always` errors on every start. */
+  refuse?: "mid-file" | "always";
 }
 
 class FakeFrame {
@@ -117,7 +120,15 @@ function installDecoder(fake: Fake, supported: "yes" | "never" = "yes"): FakeFra
       made.push(f);
       this.init.output(f);
     }
+    private started = false;
     decode(chunk: { timestamp: number }) {
+      if (!this.started) {
+        this.started = true;
+        if (fake.refuse === "always" || (fake.refuse === "mid-file" && chunk.timestamp > 0)) {
+          queueMicrotask(() => this.init.error(new Error("Decoder failure")));
+          return;
+        }
+      }
       if (fake.output === "none") {
         this.decodeQueueSize++;
         return;
@@ -186,6 +197,31 @@ describe("the first look by decoding, on the stuck clip's frames", () => {
     const read = await codecRead(codec(), { from: 2, to: 3, fps: 30, band: null }, () => {});
     expect(read.gray).toHaveLength(30);
     expect(read.times[0]).toBeCloseTo(2, 6);
+  });
+});
+
+describe("a read from a sync sample the decoder cannot start at", () => {
+  const plan = { from: 2, to: 3, fps: 30, band: null };
+
+  it("decodes from the start instead, with the same frames, and says so", async () => {
+    installDecoder({ output: "decode-order", copy: "answer" });
+    const good = await codecRead(codec(), plan, () => {});
+    installDecoder({ output: "decode-order", copy: "answer", refuse: "mid-file" });
+    const notes = new Notes();
+    const progress: number[] = [];
+    const read = await codecRead(codec(), plan, (p) => progress.push(p), notes);
+    expect(read.gray).toHaveLength(good.gray.length);
+    expect(read.times).toEqual(good.times);
+    expect(read.gray).toEqual(good.gray);
+    expect(notes.get("read")).toMatch(/decoding from \d\.\d\d s failed \(.*Decoder failure.*\), decoded from the start instead/);
+    // A decode of the whole file is slow in a test.
+  }, 30000);
+
+  it("throws when the decode from the start fails too", async () => {
+    installDecoder({ output: "decode-order", copy: "answer", refuse: "always" });
+    const notes = new Notes();
+    await expect(codecRead(codec(), plan, () => {}, notes)).rejects.toThrow(/Decoder failure/);
+    expect(notes.get("read")).toMatch(/decoded from the start instead/);
   });
 });
 
